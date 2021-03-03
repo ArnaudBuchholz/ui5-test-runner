@@ -1,6 +1,8 @@
 (function () {
   'use strict'
 
+  /* global suite */
+
   const pages = []
 
   function jsUnitTestSuite () {}
