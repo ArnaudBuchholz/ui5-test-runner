@@ -1,18 +1,23 @@
+'use strict'
+
 const { join } = require('path')
 
 const job = {
   cwd: process.cwd(),
   port: 0,
-  ui5: 'https://openui5.hana.ondemand.com/1.87.0',
+  ui5: 'https://ui5.sap.com/1.87.0',
   cache: '',
+  webapp: 'webapp',
   keepAlive: false,
   logServer: false,
 
   command: 'node',
-  args: join(__dirname, '../defaults/chromium.js') + ' ${url}',
+  args: join(__dirname, '../defaults/chromium.js') + ' $url',
   parallel: 2,
 
-  coverage: true
+  coverage: true,
+  covTempDir: '.nyc_output',
+  covReportDir: 'coverage'
 }
 
 process.argv.forEach(arg => {
