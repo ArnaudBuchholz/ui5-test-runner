@@ -1,0 +1,38 @@
+{
+  "name": "ui5-test-runner",
+  "version": "0.0.1",
+  "description": "Standalone test runner for UI5",
+  "main": "index.js",
+  "scripts": {
+    "lint": "standard --fix"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ArnaudBuchholz/ui5-test-runner.git"
+  },
+  "keywords": [
+    "REserve",
+    "test",
+    "continuous",
+    "integration",
+    "code",
+    "coverage",
+    "ui5"
+  ],
+  "author": "Arnaud Buchholz",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/ArnaudBuchholz/ui5-test-runner/issues"
+  },
+  "homepage": "https://github.com/ArnaudBuchholz/ui5-test-runner#readme",
+  "dependencies": {
+    "colors": "^1.4.0",
+    "mime": "^2.5.2",
+    "nyc": "^15.1.0",
+    "puppeteer": "^8.0.0",
+    "reserve": "^1.11.1"
+  },
+  "devDependencies": {
+    "standard": "^16.0.3"
+  }
+}
