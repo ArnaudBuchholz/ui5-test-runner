@@ -2,10 +2,13 @@
 
 const { join } = require('path')
 const { body } = require('reserve')
-const { stop } = require('../browsers')
+const { stop } = require('./browsers')
 const { promisify } = require('util')
 const { writeFile } = require('fs')
 const writeFileAsync = promisify(writeFile)
+const { Request, Response } = require('reserve')
+
+const job = require('./job')
 
 function endpoint (implementation) {
   return async function (request, response) {
@@ -23,14 +26,13 @@ function endpoint (implementation) {
   }
 }
 
-module.exports = job => {
-  if (!job.parallel) {
-    return []
-  }
-  return [{
+if (!job.parallel) {
+  module.exports = []
+} else {
+  module.exports = [{
     // Substitute qunit-redirect to extract test pages
     match: '/resources/sap/ui/qunit/qunit-redirect.js',
-    file: join(__dirname, '../inject/qunit-redirect.js')
+    file: join(__dirname, './inject/qunit-redirect.js')
   }, {
     // Endpoint to receive test pages
     match: '/_/addTestPages',
@@ -41,7 +43,7 @@ module.exports = job => {
   }, {
     // QUnit hooks
     match: '/_/qunit-hooks.js',
-    file: join(__dirname, '../inject/qunit-hooks.js')
+    file: join(__dirname, './inject/qunit-hooks.js')
   }, {
     // Concatenate qunit.js source with hooks
     match: /\/thirdparty\/(qunit(?:-2)?\.js)/,
