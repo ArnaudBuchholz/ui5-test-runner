@@ -1,4 +1,7 @@
+'use strict'
+
 const { join } = require('path')
+const { spawn } = require('process')
 
 module.exports = (...args) => {
   const process = spawn('node', [join(__dirname, '../node_modules/nyc/bin/nyc.js'), ...args], {
