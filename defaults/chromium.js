@@ -4,7 +4,12 @@ const url = process.argv[2]
 
 let browser
 
-process.on('beforeExit', () => browser.close())
+process.on('message', async message => {
+  if (message.command === 'stop') {
+    await browser.close()
+    process.exit(0)
+  }
+})
 
 async function main () {
   browser = await puppeteer.launch({
