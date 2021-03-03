@@ -1,6 +1,6 @@
 'use strict'
 
-const { join } = require('path')
+const { join, isAbsolute } = require('path')
 
 const job = {
   cwd: process.cwd(),
@@ -11,11 +11,12 @@ const job = {
   keepAlive: false,
   logServer: false,
 
-  command: 'node',
-  args: join(__dirname, '../defaults/chromium.js') + ' $url',
+  browser: join(__dirname, '../defaults/chromium.js'),
+  args: '$url',
   parallel: 2,
 
   coverage: true,
+  covSettings: join(__dirname, '../defaults/nyc.json'),
   covTempDir: '.nyc_output',
   covReportDir: 'coverage'
 }
@@ -36,5 +37,13 @@ process.argv.forEach(arg => {
     }
   }
 })
+
+if (!isAbsolute(job.covSettings)) {
+  job.covSettings = join(job.cwd, job.covSettings)
+}
+
+if (!isAbsolute(job.browser)) {
+  job.browser = join(job.cwd, job.browser)
+}
 
 module.exports = job
