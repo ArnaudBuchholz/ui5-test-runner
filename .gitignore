@@ -19,3 +19,6 @@ coverage
 
 # Dependency directories
 node_modules/
+
+# shortcuts created for debugging
+*.cmd
