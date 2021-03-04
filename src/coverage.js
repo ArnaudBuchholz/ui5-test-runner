@@ -11,6 +11,7 @@ const readFileAsync = promisify(readFile)
 const statAsync = promisify(stat)
 const writeFileAsync = promisify(writeFile)
 const { Readable } = require('stream')
+const progress = require('./progress')
 
 const job = require('./job')
 
@@ -52,6 +53,8 @@ const reportDir = join(job.cwd, job.covReportDir)
 const settingsPath = join(tempDir, 'settings/nyc.json')
 
 async function instrument () {
+  progress('Instrumenting')
+
   await rmdirAsync(tempDir, { recursive: true })
   await mkdirAsync(join(tempDir, 'settings'), { recursive: true })
   const settings = JSON.parse((await readFileAsync(job.covSettings)).toString())
@@ -61,6 +64,7 @@ async function instrument () {
 }
 
 async function generateCoverageReport () {
+  progress('Generating coverage report')
   await rmdirAsync(reportDir, { recursive: true })
   await nyc('merge', tempDir, join(tempDir, 'coverage.json'))
   await nyc('report', '--reporter=lcov', '--temp-dir', tempDir, '--report-dir', reportDir, '--nycrc-path', settingsPath)
