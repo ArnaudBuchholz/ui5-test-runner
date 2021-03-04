@@ -1,0 +1,28 @@
+<html>
+  <body>
+    <H1>Ping</H1>
+    <p>The goal is to check if the ping rate (100ms) remains the same when executed in headless chrome</p>
+    <script>
+
+const ping = () => {
+  const xhr = new XMLHttpRequest()
+  xhr.open('GET', '/ping')
+  xhr.send()
+}
+
+const timeout = () => {
+  setTimeout(() => {
+    ping()
+    timeout()
+  }, 100)
+}
+
+if (location.toString().match(/\btimeout\b/)) {
+  timeout()
+} else {
+  setInterval(ping, 100)
+}
+
+    </script>
+  </body>
+</html>
