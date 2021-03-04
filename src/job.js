@@ -38,6 +38,8 @@ process.argv.forEach(arg => {
   }
 })
 
+job.start = new Date()
+
 function toAbsolute (member, from = job.cwd) {
   if (!isAbsolute(job[member])) {
     job[member] = join(from, job[member])
