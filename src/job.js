@@ -6,6 +6,7 @@ const job = {
   cwd: process.cwd(),
   port: 0,
   ui5: 'https://ui5.sap.com/1.87.0',
+  libs: '',
   cache: '',
   webapp: 'webapp',
   keepAlive: false,
@@ -47,6 +48,8 @@ function toAbsolute (member, from = job.cwd) {
 }
 
 toAbsolute('cwd', process.cwd())
+toAbsolute('webapp')
+toAbsolute('libs')
 toAbsolute('covSettings')
 toAbsolute('browser')
 
