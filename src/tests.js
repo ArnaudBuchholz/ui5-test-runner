@@ -69,6 +69,8 @@ async function generateReport () {
 
   await generateCoverageReport()
 
+  console.log(`Time spent: ${new Date() - job.start}ms`)
+
   if (job.keepAlive) {
     console.log('Keeping alive.')
   } else {
