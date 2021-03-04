@@ -22,7 +22,6 @@ function start (relativeUrl) {
   if (job.keepAlive) {
     url += '&__keepAlive__'
   }
-  console.log(url)
   const parameters = { url, id }
   const args = job.args.split(' ')
     .map(arg => arg.replace(/\$(\w+)\b/, (match, name) => parameters[name] || match))
