@@ -1,0 +1,10 @@
+{
+  "port": 8080,
+  "mappings": [{
+    "match": "/ping$",
+    "custom": "./ping.js"
+  }, {
+    "match": "^/(.*)",
+    "file": "./$1"
+  }]
+}
