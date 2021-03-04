@@ -38,12 +38,14 @@ process.argv.forEach(arg => {
   }
 })
 
-if (!isAbsolute(job.covSettings)) {
-  job.covSettings = join(job.cwd, job.covSettings)
+function toAbsolute (member, from = job.cwd) {
+  if (!isAbsolute(job[member])) {
+    job[member] = join(from, job[member])
+  }
 }
 
-if (!isAbsolute(job.browser)) {
-  job.browser = join(job.cwd, job.browser)
-}
+toAbsolute('cwd', process.cwd())
+toAbsolute('covSettings')
+toAbsolute('browser')
 
 module.exports = job
