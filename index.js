@@ -18,7 +18,7 @@ async function main () {
       ...coverage, {
         // Project mapping
         match: /^\/(.*)/,
-        file: join(job.cwd, job.webapp, '$1')
+        file: join(job.webapp, '$1')
       }]
   })
   const server = serve(configuration)
