@@ -67,7 +67,7 @@ async function generateReport () {
     }
   }
 
-  generateCoverageReport()
+  await generateCoverageReport()
 
   if (job.keepAlive) {
     console.log('Keeping alive.')
