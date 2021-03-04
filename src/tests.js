@@ -2,16 +2,17 @@
 
 const { start } = require('./browsers')
 const { generateCoverageReport } = require('./coverage')
-
 const job = require('./job')
+const progress = require('./progress')
 
 async function extractTestPages () {
+  progress('Extracting test pages')
   await start('test/testsuite.qunit.html')
-  console.log(job.testPageUrls)
   job.testPagesStarted = 0
   job.testPagesCompleted = 0
   job.testPagesById = {}
   job.testPagesByUrl = {}
+  progress('Executing test pages')
   for (let i = 0; i < job.parallel; ++i) {
     runTestPage()
   }
@@ -37,14 +38,16 @@ async function runTestPage () {
   }
   job.testPagesById[page.id] = page
   job.testPagesByUrl[page.url] = page
+  progress()
 
   await promise
+  progress()
   ++job.testPagesCompleted
   runTestPage()
 }
 
 async function generateReport () {
-  console.log('done.')
+  progress('Finalizing')
 
   // Simple report
   let failed = 0
