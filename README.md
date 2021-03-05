@@ -1,5 +1,7 @@
 # UI5 Test runner
 
+A test runner for UI5 applications enabling parallel execution of tests.
+
 ## Parameters
 
 | name | default | description |
