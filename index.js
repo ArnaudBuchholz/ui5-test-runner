@@ -25,8 +25,11 @@ async function main () {
     log(server)
   }
   server
-    .on('ready', async ({ port }) => {
+    .on('ready', async ({ url, port }) => {
       job.port = port
+      if (!job.logServer) {
+        console.log(`Server running at ${url}`)
+      }
       await instrument()
       executeTests()
     })
