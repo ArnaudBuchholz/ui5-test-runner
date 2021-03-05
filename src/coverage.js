@@ -11,7 +11,6 @@ const readFileAsync = promisify(readFile)
 const statAsync = promisify(stat)
 const writeFileAsync = promisify(writeFile)
 const { Readable } = require('stream')
-const progress = require('./progress')
 
 const job = require('./job')
 
@@ -46,28 +45,24 @@ const customFileSystem = {
   }
 }
 
-const tempDir = join(job.cwd, job.covTempDir)
-const instrumentedSourceDir = join(tempDir, job.webapp)
-const sourceDir = join(job.cwd, job.webapp)
-const reportDir = join(job.cwd, job.covReportDir)
-const settingsPath = join(tempDir, 'settings/nyc.json')
+const instrumentedSourceDir = join(job.covTempDir, 'instrumented')
+const settingsPath = join(job.covTempDir, 'settings/nyc.json')
 
 async function instrument () {
-  progress('Instrumenting')
-
-  await rmdirAsync(tempDir, { recursive: true })
-  await mkdirAsync(join(tempDir, 'settings'), { recursive: true })
+  job.status = 'Instrumenting'
+  await rmdirAsync(job.covTempDir, { recursive: true })
+  await mkdirAsync(join(job.covTempDir, 'settings'), { recursive: true })
   const settings = JSON.parse((await readFileAsync(job.covSettings)).toString())
   settings.cwd = job.cwd
   await writeFileAsync(settingsPath, JSON.stringify(settings))
-  await nyc('instrument', sourceDir, instrumentedSourceDir, '--nycrc-path', settingsPath)
+  await nyc('instrument', job.webapp, instrumentedSourceDir, '--nycrc-path', settingsPath)
 }
 
 async function generateCoverageReport () {
-  progress('Generating coverage report')
-  await rmdirAsync(reportDir, { recursive: true })
-  await nyc('merge', tempDir, join(tempDir, 'coverage.json'))
-  await nyc('report', '--reporter=lcov', '--temp-dir', tempDir, '--report-dir', reportDir, '--nycrc-path', settingsPath)
+  job.status = 'Generating coverage report'
+  await rmdirAsync(job.covReportDir, { recursive: true })
+  await nyc('merge', job.covTempDir, join(job.covTempDir, 'coverage.json'))
+  await nyc('report', '--reporter=lcov', '--temp-dir', job.covTempDir, '--report-dir', job.covReportDir, '--nycrc-path', settingsPath)
 }
 
 const mappings = [{
