@@ -74,7 +74,7 @@ if (job.libs) {
     match: /\/resources\/(.*)/,
     file: join(job.libs, '$1'),
     'ignore-if-not-found': true
-  })  
+  })
 }
 
 module.exports = mappings
