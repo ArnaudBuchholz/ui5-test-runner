@@ -1,43 +1,26 @@
 'use strict'
 
-const { randomInt } = require('crypto')
 const { fork } = require('child_process')
 const job = require('./job')
 
 job.browsers = {}
 
 function start (relativeUrl) {
-  if (!relativeUrl.startsWith('/')) {
-    relativeUrl = '/' + relativeUrl
-  }
-  if (relativeUrl.includes('?')) {
-    relativeUrl += '&'
-  } else {
-    relativeUrl += '?'
-  }
-
-  const id = randomInt(0xFFFFFFFF)
-
-  let url = `http://localhost:${job.port}${relativeUrl}__id__=${id}`
-  if (job.keepAlive) {
-    url += '&__keepAlive__'
-  }
-  const parameters = { url, id }
+  console.log(relativeUrl)
   const args = job.args.split(' ')
-    .map(arg => arg.replace(/\$(\w+)\b/, (match, name) => parameters[name] || match))
+    .map(arg => arg.replace('__URL__', `http://localhost:${job.port}${relativeUrl}`))
   const childProcess = fork(job.browser, args, { stdio: 'inherit' })
   let done
   const promise = new Promise(resolve => {
     done = resolve
   })
-  job.browsers[id] = { childProcess, done }
-  promise.id = id
+  job.browsers[relativeUrl] = { childProcess, done }
   return promise
 }
 
-function stop (id) {
-  const { childProcess, done } = job.browsers[id]
-  delete job.browsers[id]
+function stop (relativeUrl) {
+  const { childProcess, done } = job.browsers[relativeUrl]
+  delete job.browsers[relativeUrl]
   childProcess.send({ command: 'stop' })
   done()
 }
