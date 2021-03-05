@@ -14,7 +14,9 @@ const job = {
 
   browser: join(__dirname, '../defaults/chromium.js'),
   args: '__URL__',
+
   parallel: 2,
+  tstReportDir: 'report',
 
   coverage: true,
   covSettings: join(__dirname, '../defaults/nyc.json'),
@@ -48,7 +50,7 @@ function toAbsolute (member, from = job.cwd) {
 }
 
 toAbsolute('cwd', process.cwd())
-'libs,webapp,browser,covSettings,covTempDir,covReportDir'
+'libs,webapp,browser,tstReportDir,covSettings,covTempDir,covReportDir'
   .split(',')
   .forEach(setting => toAbsolute(setting))
 
