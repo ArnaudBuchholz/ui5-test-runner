@@ -6,6 +6,10 @@ body {
   font-family: Verdana, Geneva, sans-serif; 
 }
 
+th {
+  text-align: left;
+}
+
     </style>
     <script>
 
@@ -49,15 +53,19 @@ async function refresh () {
   </head>
   <body onload="refresh()">
     <h1 id="status"></h1>
-    <table id='pages'>
-      <tr>
-        <th>Test</th>
-        <th>progress</th>
-      </tr>
-      <tr id="tpl" style="display: none;">
-        <td>URL</td>
-        <td><progress value="0" max="0"></progress></td>
-      </tr>
+    <table>
+      <thead>
+        <tr>
+          <th>Page</th>
+          <th>Progress</th>
+        </tr>
+        <tr id="tpl" style="display: none;">
+          <td></td>
+          <td><progress value="0" max="0"></progress></td>
+        </tr>
+      </thead>
+      <tbody id='pages'>
+      </tbody>
     </table>
   </body>
 </html>
