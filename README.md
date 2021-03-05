@@ -15,6 +15,7 @@
 | browser | *String, see description* | Browser instanciation command, it should point to a node.js script (absolute or relative to `cwd`). By default, a script will instantiate chromium through puppetteer. |
 | args | `'__URL__'` | Browser instanciation arguments. The string `'__URL__'` is replaced with the URL to open</li> |
 | parallel | `2` | Number of parallel tests executions (`0` to ignore tests) |
+| tstReportDir | `'report'` | Directory to output test reports *(relative to `cwd`)* |
 | coverage | `true` | Enables code coverage |
 | covSettings | *String, see description* | Path to a custom `nyc.json` file providing settings for instrumentation *(relative to `cwd`)*. By default, tests folders are *not* excluded |
 | covTempDir | `'.nyc_output'` | Directory to output raw coverage information to *(relative to `cwd`)* |
