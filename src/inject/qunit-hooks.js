@@ -8,6 +8,10 @@
     xhr.send(JSON.stringify(data))
   }
 
+  QUnit.begin(function (details) {
+    post('QUnit/begin', details)
+  })
+
   QUnit.testDone(function (report) {
     post('QUnit/testDone', report)
   })
@@ -17,8 +21,5 @@
       post('nyc/coverage', window.__coverage__)
     }
     post('QUnit/done', report)
-    if (!location.toString().includes('__keepAlive__')) {
-      window.close()
-    }
   })
 }())
