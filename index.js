@@ -9,7 +9,6 @@ const executeTests = require('./src/tests')
 const { check, log, serve } = require('reserve')
 
 async function main () {
-  await instrument()
   const configuration = await check({
     port: job.port,
     mappings: [
@@ -26,8 +25,9 @@ async function main () {
     log(server)
   }
   server
-    .on('ready', ({ port }) => {
+    .on('ready', async ({ port }) => {
       job.port = port
+      await instrument()
       executeTests()
     })
 }
