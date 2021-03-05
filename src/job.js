@@ -13,7 +13,7 @@ const job = {
   logServer: false,
 
   browser: join(__dirname, '../defaults/chromium.js'),
-  args: '$url',
+  args: '__URL__',
   parallel: 2,
 
   coverage: true,
@@ -48,9 +48,8 @@ function toAbsolute (member, from = job.cwd) {
 }
 
 toAbsolute('cwd', process.cwd())
-toAbsolute('webapp')
-toAbsolute('libs')
-toAbsolute('covSettings')
-toAbsolute('browser')
+'libs,webapp,browser,covSettings,covTempDir,covReportDir'
+  .split(',')
+  .forEach(setting => toAbsolute(setting))
 
 module.exports = job
