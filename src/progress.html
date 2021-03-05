@@ -1,0 +1,60 @@
+<html>
+  <head>
+    <style>
+
+body {
+  font-family: Verdana, Geneva, sans-serif; 
+}
+
+    </style>
+    <script>
+
+const byId = id => document.getElementById(id)
+function tag (name, attributes, ...children) {
+  const element = document.createElement(name)
+  Object.keys(attributes).forEach(att => element.setAttribute(att, attributes[att]))
+  children.forEach(child => {
+    if (['string', 'number'].includes(typeof child)) {
+      element.appendChild(document.createTextNode(child))
+    } else {
+      element.appendChild(child)
+    }
+  })
+  return element
+}
+
+async function refresh () {
+  try {
+    const response = await fetch('/_/progress')
+    const job = await response.json()
+    document.title = job.status
+    byId('status').innerHTML = job.status
+    if (job.testPageUrls) {
+      job.testPageUrls.forEach(url => {
+        const page = Object.values(job.testPagesById).filter(candidate => candidate.url === url)[0]
+        let tr = byId(page.id)
+        if (!tr) {
+          tr = byId('pages').appendChild(tag('tr', { id: page.id }, tag('td', {}, page.url), tag('td', {}, page.id), tag('td', {}, '0')))
+        }
+      })
+    }
+  } catch (e) {
+    console.log(e)
+  } finally {
+    setTimeout(refresh, 250)
+  }
+}
+
+    </script>
+  </head>
+  <body onload="refresh()">
+    <h1 id="status"></h1>
+    <table id='pages'>
+      <tr>
+        <th>Test</th>
+        <th>id</th>
+        <th>progress</th>
+      </tr>
+    </table>
+  </body>
+</html>
