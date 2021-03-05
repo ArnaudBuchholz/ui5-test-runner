@@ -8,6 +8,9 @@
   function jsUnitTestSuite () {}
 
   jsUnitTestSuite.prototype.addTestPage = function (url) {
+    if (!url.startsWith('/')) {
+      url = '/' + url
+    }
     pages.push(url)
   }
 
@@ -18,8 +21,5 @@
     const xhr = new XMLHttpRequest()
     xhr.open('POST', '/_/addTestPages', false)
     xhr.send(JSON.stringify(pages))
-    if (!location.toString().includes('__keepAlive__')) {
-      window.close()
-    }
   })
 }())
