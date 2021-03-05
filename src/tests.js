@@ -2,10 +2,17 @@
 
 const { start } = require('./browsers')
 const { generateCoverageReport } = require('./coverage')
+const { promisify } = require('util')
+const { mkdir, rmdir } = require('fs')
+const mkdirAsync = promisify(mkdir)
+const rmdirAsync = promisify(rmdir)
+
 const job = require('./job')
 
 async function extractTestPages () {
   job.status = 'Extracting test pages'
+  await rmdirAsync(job.tstReportDir, { recursive: true })
+  await mkdirAsync(job.tstReportDir, { recursive: true })
   await start('/test/testsuite.qunit.html')
   job.testPagesStarted = 0
   job.testPagesCompleted = 0
