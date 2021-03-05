@@ -10,6 +10,10 @@ const { Request, Response } = require('reserve')
 
 const job = require('./job')
 
+const filename = url => {
+  return escape(url).replace(/\//g, '_')
+}
+
 function endpoint (implementation) {
   return async function (request, response) {
     response.writeHead(200)
@@ -74,13 +78,24 @@ if (!job.parallel) {
     // Endpoint to receive QUnit.begin
     match: '/_/QUnit/begin',
     custom: endpoint((url, details) => {
-      job.testPages[url].details = details
+      const page = job.testPages[url]
+      Object.assign(page, {
+        total: details.totalTests,
+        failed: 0,
+        passed: 0
+      })
     })
   }, {
     // Endpoint to receive QUnit.testDone
     match: '/_/QUnit/testDone',
     custom: endpoint((url, report) => {
-      job.testPages[url].tests.push(report)
+      const page = job.testPages[url]
+      if (report.failed) {
+        ++page.failed
+      } else {
+        ++page.passed
+      }
+      page.tests.push(report)
     })
   }, {
     // Endpoint to receive QUnit.done
@@ -88,14 +103,15 @@ if (!job.parallel) {
     custom: endpoint((url, report) => {
       const page = job.testPages[url]
       page.report = report
-      page.wait.then(() => stop(url))
+      const promise = writeFileAsync(join(job.tstReportDir, `${filename(url)}.json`), JSON.stringify(page))
+      page.wait.then(promise).then(() => stop(url))
     })
   }, {
     // Endpoint to receive coverage
     match: '/_/nyc/coverage',
     custom: endpoint((url, data) => {
       const page = job.testPages[url]
-      const promise = writeFileAsync(join(job.covTempDir, `${page.coverageId}.json`), JSON.stringify(data))
+      const promise = writeFileAsync(join(job.covTempDir, `${filename(url)}.json`), JSON.stringify(data))
       page.wait = page.wait.then(promise)
       return promise
     })
@@ -107,7 +123,12 @@ if (!job.parallel) {
     // Endpoint to follow progress
     match: '/_/progress',
     custom: async (request, response) => {
-      const json = JSON.stringify(job)
+      const json = JSON.stringify(job, (key, value) => {
+        if (key === 'tests' && Array.isArray(value)) {
+          return undefined // Filter out
+        }
+        return value
+      })
       response.writeHead(200, {
         'Content-Type': 'application/json',
         'Content-Length': json.length
