@@ -14,12 +14,12 @@ function endpoint (implementation) {
   return async function (request, response) {
     response.writeHead(200)
     response.end()
-    const id = request.headers.referer.match(/__id__=(\d+)/)[1]
+    const [, url] = request.headers.referer.match(/http:\/\/[^/]+(?::\d+)?(\/.*)/)
     const data = JSON.parse(await body(request))
     try {
-      await implementation.call(this, id, data)
+      await implementation.call(this, url, data)
     } catch (e) {
-      console.error(`Exception when processing ${request.url} with id ${id}`)
+      console.error(`Exception when processing ${url}`)
       console.error(data)
       console.error(e)
     }
@@ -36,9 +36,9 @@ if (!job.parallel) {
   }, {
     // Endpoint to receive test pages
     match: '/_/addTestPages',
-    custom: endpoint((id, data) => {
+    custom: endpoint((url, data) => {
       job.testPageUrls = data
-      stop(id)
+      stop(url)
     })
   }, {
     // QUnit hooks
@@ -71,27 +71,48 @@ if (!job.parallel) {
       response.end(hooksResponse.toString())
     }
   }, {
-    // Endpoint to receive QUnit test result
-    match: '/_/QUnit/testDone',
-    custom: endpoint((id, data) => {
-      job.testPagesById[id].tests.push(data)
+    // Endpoint to receive QUnit.begin
+    match: '/_/QUnit/begin',
+    custom: endpoint((url, details) => {
+      job.testPages[url].details = details
     })
   }, {
-    // Endpoint to receive QUnit end
+    // Endpoint to receive QUnit.testDone
+    match: '/_/QUnit/testDone',
+    custom: endpoint((url, report) => {
+      job.testPages[url].tests.push(report)
+    })
+  }, {
+    // Endpoint to receive QUnit.done
     match: '/_/QUnit/done',
-    custom: endpoint((id, data) => {
-      const page = job.testPagesById[id]
-      page.report = data
-      page.wait.then(() => stop(id))
+    custom: endpoint((url, report) => {
+      const page = job.testPages[url]
+      page.report = report
+      page.wait.then(() => stop(url))
     })
   }, {
     // Endpoint to receive coverage
     match: '/_/nyc/coverage',
-    custom: endpoint((id, data) => {
-      const page = job.testPagesById[id]
-      const promise = writeFileAsync(join(job.cwd, job.covTempDir, `${id}.json`), JSON.stringify(data))
+    custom: endpoint((url, data) => {
+      const page = job.testPages[url]
+      const promise = writeFileAsync(join(job.covTempDir, `${page.coverageId}.json`), JSON.stringify(data))
       page.wait = page.wait.then(promise)
       return promise
     })
+  }, {
+    // UI to follow progress
+    match: '/_/progress.html',
+    file: join(__dirname, 'progress.html')
+  }, {
+    // Endpoint to follow progress
+    match: '/_/progress',
+    custom: async (request, response) => {
+      const json = JSON.stringify(job)
+      response.writeHead(200, {
+        'Content-Type': 'application/json',
+        'Content-Length': json.length
+      })
+      response.end(json)
+    }
   }]
 }
