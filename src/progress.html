@@ -10,18 +10,6 @@ body {
     <script>
 
 const byId = id => document.getElementById(id)
-function tag (name, attributes, ...children) {
-  const element = document.createElement(name)
-  Object.keys(attributes).forEach(att => element.setAttribute(att, attributes[att]))
-  children.forEach(child => {
-    if (['string', 'number'].includes(typeof child)) {
-      element.appendChild(document.createTextNode(child))
-    } else {
-      element.appendChild(child)
-    }
-  })
-  return element
-}
 
 async function refresh () {
   try {
@@ -31,10 +19,22 @@ async function refresh () {
     byId('status').innerHTML = job.status
     if (job.testPageUrls) {
       job.testPageUrls.forEach(url => {
-        const page = Object.values(job.testPagesById).filter(candidate => candidate.url === url)[0]
-        let tr = byId(page.id)
+        let tr = byId(url)
         if (!tr) {
-          tr = byId('pages').appendChild(tag('tr', { id: page.id }, tag('td', {}, page.url), tag('td', {}, page.id), tag('td', {}, '0')))
+          tr = byId('pages').appendChild(byId('tpl').cloneNode(true))
+          tr.removeAttribute('style')
+          tr.id = url
+          tr.querySelector('td').appendChild(document.createTextNode(url))
+        }
+        const page = job.testPages[url]
+        if (page) {
+          const progress = tr.querySelector('progress')
+          if (page.total) {
+            progress.setAttribute('max', page.total)
+          }
+          if (page.passed || page.failed) {
+            progress.setAttribute('value', page.passed + page.failed)
+          }
         }
       })
     }
@@ -52,8 +52,11 @@ async function refresh () {
     <table id='pages'>
       <tr>
         <th>Test</th>
-        <th>id</th>
         <th>progress</th>
+      </tr>
+      <tr id="tpl" style="display: none;">
+        <td>URL</td>
+        <td><progress value="0" max="0"></progress></td>
       </tr>
     </table>
   </body>
