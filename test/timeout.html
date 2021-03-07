@@ -1,13 +1,13 @@
 <html>
   <body>
-    <H1>Ping</H1>
+    <H1>Timeout</H1>
     <p>The goal is to check if the ping rate (100ms) remains the same when executed in headless chrome</p>
     <script>
 
 const ping = () => {
   const xhr = new XMLHttpRequest()
-  xhr.open('GET', '/ping')
-  xhr.send()
+  xhr.open('POST', '/trace')
+  xhr.send(JSON.stringify({ now: Date.now() }))
 }
 
 const timeout = () => {
