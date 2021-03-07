@@ -1,8 +1,9 @@
 {
   "port": 8080,
   "mappings": [{
-    "match": "/ping$",
-    "custom": "./ping.js"
+    "method": "POST",
+    "match": "/trace$",
+    "custom": "./trace.js"
   }, {
     "match": "^/(.*)",
     "file": "./$1"
