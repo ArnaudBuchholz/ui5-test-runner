@@ -1,12 +1,13 @@
 'use strict'
 
 const { join } = require('path')
-const job = require('./src/job')
 const endpoints = require('./src/endpoints')
 const { instrument, mappings: coverage } = require('./src/coverage')
 const ui5 = require('./src/ui5')
 const executeTests = require('./src/tests')
 const { check, log, serve } = require('reserve')
+
+const job = require('./src/job')
 
 async function main () {
   const configuration = await check({
