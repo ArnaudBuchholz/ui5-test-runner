@@ -2,10 +2,9 @@
 
 const { join } = require('path')
 const { fork } = require('child_process')
+const { cleanDir, createDir } = require('./tools')
 const { promisify } = require('util')
-const { mkdir, readdir, readFile, rmdir, stat, writeFile } = require('fs')
-const mkdirAsync = promisify(mkdir)
-const rmdirAsync = promisify(rmdir)
+const { readdir, readFile, stat, writeFile } = require('fs')
 const readdirAsync = promisify(readdir)
 const readFileAsync = promisify(readFile)
 const statAsync = promisify(stat)
@@ -50,8 +49,8 @@ const settingsPath = join(job.covTempDir, 'settings/nyc.json')
 
 async function instrument () {
   job.status = 'Instrumenting'
-  await rmdirAsync(job.covTempDir, { recursive: true })
-  await mkdirAsync(join(job.covTempDir, 'settings'), { recursive: true })
+  await cleanDir(job.covTempDir)
+  await createDir(join(job.covTempDir, 'settings'))
   const settings = JSON.parse((await readFileAsync(job.covSettings)).toString())
   settings.cwd = job.cwd
   await writeFileAsync(settingsPath, JSON.stringify(settings))
@@ -60,7 +59,7 @@ async function instrument () {
 
 async function generateCoverageReport () {
   job.status = 'Generating coverage report'
-  await rmdirAsync(job.covReportDir, { recursive: true })
+  await cleanDir(job.covReportDir)
   await nyc('merge', job.covTempDir, join(job.covTempDir, 'coverage.json'))
   await nyc('report', '--reporter=lcov', '--temp-dir', job.covTempDir, '--report-dir', job.covReportDir, '--nycrc-path', settingsPath)
 }
