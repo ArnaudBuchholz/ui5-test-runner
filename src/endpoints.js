@@ -6,13 +6,10 @@ const { stop } = require('./browsers')
 const { promisify } = require('util')
 const { writeFile } = require('fs')
 const writeFileAsync = promisify(writeFile)
+const { filename } = require('./tools')
 const { Request, Response } = require('reserve')
 
 const job = require('./job')
-
-const filename = url => {
-  return escape(url).replace(/\//g, '_')
-}
 
 function endpoint (implementation) {
   return async function (request, response) {
