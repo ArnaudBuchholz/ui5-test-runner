@@ -13,7 +13,7 @@ const job = {
   logServer: false,
 
   browser: join(__dirname, '../defaults/chromium.js'),
-  args: '__URL__',
+  args: '__URL__ __REPORT__',
 
   parallel: 2,
   tstReportDir: 'report',
