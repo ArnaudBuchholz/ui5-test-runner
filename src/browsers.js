@@ -1,14 +1,23 @@
 'use strict'
 
 const { fork } = require('child_process')
+const { join } = require('path')
+const { recreateDir, filename } = require('./tools')
+
 const job = require('./job')
 
 job.browsers = {}
 
-function start (relativeUrl) {
+async function start (relativeUrl) {
   console.log(relativeUrl)
+  const reportDir = join(job.tstReportDir, filename(relativeUrl))
+  await recreateDir(reportDir)
+
   const args = job.args.split(' ')
-    .map(arg => arg.replace('__URL__', `http://localhost:${job.port}${relativeUrl}`))
+    .map(arg => arg
+      .replace('__URL__', `http://localhost:${job.port}${relativeUrl}`)
+      .replace('__REPORT__', reportDir)
+    )
   const childProcess = fork(job.browser, args, { stdio: 'inherit' })
   let done
   const promise = new Promise(resolve => {
