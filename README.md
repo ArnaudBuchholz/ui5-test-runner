@@ -2,6 +2,13 @@
 
 A test runner for UI5 applications enabling parallel execution of tests.
 
+## How to demo
+
+* Clone the project [training-ui5con18-opa](https://github.com/ArnaudBuchholz/training-ui5con18-opa) and run `npm install`
+* Inside the project, use `npm run karma` to test with the karma runner
+* From the **ui5-test-runner** project, use `node . -cwd:..\training-ui5con18-opa -port:8080 -ui5:https://ui5.sap.com/1.87.0/ -cache:.ui5`
+* You may follow the progress of the test executions using http://localhost:8080/_/progress.html
+
 ## Parameters
 
 | name | default | description |
