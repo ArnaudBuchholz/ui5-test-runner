@@ -19,7 +19,7 @@
   window.addEventListener('load', function () {
     suite()
     const xhr = new XMLHttpRequest()
-    xhr.open('POST', '/_/addTestPages', false)
+    xhr.open('POST', '/_/addTestPages')
     xhr.send(JSON.stringify(pages))
   })
 }())
