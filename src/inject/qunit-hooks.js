@@ -4,7 +4,7 @@
 
   function post (url, data) {
     const xhr = new XMLHttpRequest()
-    xhr.open('POST', '/_/' + url, false)
+    xhr.open('POST', '/_/' + url)
     xhr.send(JSON.stringify(data))
   }
 
