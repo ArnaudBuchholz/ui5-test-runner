@@ -75,12 +75,13 @@ if (!job.parallel) {
     // Endpoint to receive QUnit.begin
     match: '/_/QUnit/begin',
     custom: endpoint((url, details) => {
-      const page = job.testPages[url]
-      Object.assign(page, {
+      job.testPages[url] = {
         total: details.totalTests,
         failed: 0,
-        passed: 0
-      })
+        passed: 0,
+        tests: [],
+        wait: Promise.resolve()
+      }
     })
   }, {
     // Endpoint to receive QUnit.testDone
