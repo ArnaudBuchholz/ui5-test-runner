@@ -27,16 +27,9 @@ async function runTestPage () {
   if (job.testPagesStarted === length) {
     return
   }
-
   const index = job.testPagesStarted++
   const url = job.testPageUrls[index]
-  const promise = start(url)
-  job.testPages[url] = {
-    tests: [],
-    wait: Promise.resolve()
-  }
-
-  await promise
+  await start(url)
   ++job.testPagesCompleted
   runTestPage()
 }
