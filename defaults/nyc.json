@@ -1,7 +1,4 @@
 {
   "all": true,
-  "exclude": [
-    "!**/test/**"
-  ],
   "sourceMap": false
 }
