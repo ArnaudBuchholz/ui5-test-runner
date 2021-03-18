@@ -79,8 +79,7 @@ if (!job.parallel) {
         total: details.totalTests,
         failed: 0,
         passed: 0,
-        tests: [],
-        wait: Promise.resolve()
+        tests: []
       }
     })
   }, {
@@ -100,18 +99,16 @@ if (!job.parallel) {
     match: '/_/QUnit/done',
     custom: endpoint((url, report) => {
       const page = job.testPages[url]
+      const promises = []
+      if (report.__coverage__) {
+        const coverageFileName = join(job.covTempDir, `${filename(url)}.json`)
+        promises.push(writeFileAsync(coverageFileName, JSON.stringify(report.__coverage__)))
+        delete report.__coverage__
+      }
       page.report = report
-      const promise = writeFileAsync(join(job.tstReportDir, `${filename(url)}.json`), JSON.stringify(page))
-      page.wait.then(promise).then(() => stop(url))
-    })
-  }, {
-    // Endpoint to receive coverage
-    match: '/_/nyc/coverage',
-    custom: endpoint((url, data) => {
-      const page = job.testPages[url]
-      const promise = writeFileAsync(join(job.covTempDir, `${filename(url)}.json`), JSON.stringify(data))
-      page.wait = page.wait.then(promise)
-      return promise
+      const reportFileName = join(job.tstReportDir, `${filename(url)}.json`)
+      promises.push(writeFileAsync(reportFileName, JSON.stringify(page)))
+      Promise.all(promises).then(() => stop(url))
     })
   }, {
     // UI to follow progress
