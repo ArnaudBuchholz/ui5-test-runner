@@ -3,12 +3,7 @@
 const { join } = require('path')
 const { fork } = require('child_process')
 const { cleanDir, createDir } = require('./tools')
-const { promisify } = require('util')
-const { readdir, readFile, stat, writeFile } = require('fs')
-const readdirAsync = promisify(readdir)
-const readFileAsync = promisify(readFile)
-const statAsync = promisify(stat)
-const writeFileAsync = promisify(writeFile)
+const { readdir, readFile, stat, writeFile } = require('fs').promises
 const { Readable } = require('stream')
 
 const job = require('./job')
@@ -28,16 +23,16 @@ const globalContextSearch = 'var global=new Function("return this")();'
 const globalContextReplace = 'var global=window.top;'
 
 const customFileSystem = {
-  stat: path => statAsync(path)
+  stat: path => stat(path)
     .then(stats => {
       if (stats) {
         stats.size -= globalContextSearch.length + globalContextReplace.length
       }
       return stats
     }),
-  readdir: readdirAsync,
+  readdir,
   createReadStream: async (path) => {
-    const buffer = (await readFileAsync(path))
+    const buffer = (await readFile(path))
       .toString()
       .replace(globalContextSearch, globalContextReplace)
     return Readable.from(buffer)
@@ -51,9 +46,9 @@ async function instrument () {
   job.status = 'Instrumenting'
   await cleanDir(job.covTempDir)
   await createDir(join(job.covTempDir, 'settings'))
-  const settings = JSON.parse((await readFileAsync(job.covSettings)).toString())
+  const settings = JSON.parse((await readFile(job.covSettings)).toString())
   settings.cwd = job.cwd
-  await writeFileAsync(settingsPath, JSON.stringify(settings))
+  await writeFile(settingsPath, JSON.stringify(settings))
   await nyc('instrument', job.webapp, instrumentedSourceDir, '--nycrc-path', settingsPath)
 }
 
