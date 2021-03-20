@@ -9,6 +9,7 @@ const job = {
   libs: '',
   cache: '',
   webapp: 'webapp',
+  pageFilter: '',
   keepAlive: false,
   logServer: false,
 
