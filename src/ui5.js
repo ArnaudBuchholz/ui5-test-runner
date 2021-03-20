@@ -1,7 +1,8 @@
 'use strict'
 
 const { dirname, join } = require('path')
-const { createWriteStream, mkdir, unlink } = require('fs').promises
+const { createWriteStream } = require('fs')
+const { mkdir, unlink } = require('fs').promises
 const { capture } = require('reserve')
 
 const job = require('./job')
