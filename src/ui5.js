@@ -1,10 +1,7 @@
 'use strict'
 
 const { dirname, join } = require('path')
-const { createWriteStream, mkdir, unlink } = require('fs')
-const { promisify } = require('util')
-const mkdirAsync = promisify(mkdir)
-const unlinkAsync = promisify(unlink)
+const { createWriteStream, mkdir, unlink } = require('fs').promises
 const { capture } = require('reserve')
 
 const job = require('./job')
@@ -49,14 +46,14 @@ const mappings = [{
     const filePath = /([^?#]+)/.exec(unescape(path))[1] // filter URL parameters & hash (assuming resources are static)
     const cachePath = join(cacheBase, filePath)
     const cacheFolder = dirname(cachePath)
-    await mkdirAsync(cacheFolder, { recursive: true })
+    await mkdir(cacheFolder, { recursive: true })
     const file = createWriteStream(cachePath)
     cachingInProgress[path] = capture(response, file)
       .catch(reason => {
         file.end()
         uncachable[path] = true
         console.error(`Unable to cache '${path}' (status ${response.statusCode}),`, reason)
-        return unlinkAsync(cachePath)
+        return unlink(cachePath)
       })
       .then(() => {
         delete cachingInProgress[path]
