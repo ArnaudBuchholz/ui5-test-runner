@@ -105,7 +105,7 @@ if (!job.parallel) {
       const promises = []
       if (report.__coverage__) {
         const coverageFileName = join(job.covTempDir, `${filename(url)}.json`)
-        promises.push(writeFileAsync(coverageFileName, JSON.stringify(report.__coverage__)))
+        promises.push(writeFile(coverageFileName, JSON.stringify(report.__coverage__)))
         delete report.__coverage__
       }
       page.report = report
