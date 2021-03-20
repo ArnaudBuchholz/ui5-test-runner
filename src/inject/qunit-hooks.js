@@ -18,7 +18,7 @@
 
   QUnit.done(function (report) {
     if (window.__coverage__) {
-      post('nyc/coverage', window.__coverage__)
+      report.__coverage__ = window.__coverage__
     }
     post('QUnit/done', report)
   })
