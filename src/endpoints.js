@@ -3,9 +3,7 @@
 const { join } = require('path')
 const { body } = require('reserve')
 const { stop } = require('./browsers')
-const { promisify } = require('util')
-const { writeFile } = require('fs')
-const writeFileAsync = promisify(writeFile)
+const { writeFile } = require('fs').promises
 const { filename } = require('./tools')
 const { Request, Response } = require('reserve')
 
@@ -38,7 +36,12 @@ if (!job.parallel) {
     // Endpoint to receive test pages
     match: '/_/addTestPages',
     custom: endpoint((url, data) => {
-      job.testPageUrls = data
+      if (job.pageFilter) {
+        const filter = new RegExp(job.pageFilter)
+        job.testPageUrls = data.filter(name => name.match(filter))
+      } else {
+        job.testPageUrls = data
+      }
       stop(url)
     })
   }, {
@@ -101,7 +104,7 @@ if (!job.parallel) {
     custom: endpoint((url, report) => {
       const page = job.testPages[url]
       page.report = report
-      const promise = writeFileAsync(join(job.tstReportDir, `${filename(url)}.json`), JSON.stringify(page))
+      const promise = writeFile(join(job.tstReportDir, `${filename(url)}.json`), JSON.stringify(page))
       page.wait.then(promise).then(() => stop(url))
     })
   }, {
@@ -109,7 +112,7 @@ if (!job.parallel) {
     match: '/_/nyc/coverage',
     custom: endpoint((url, data) => {
       const page = job.testPages[url]
-      const promise = writeFileAsync(join(job.covTempDir, `${filename(url)}.json`), JSON.stringify(data))
+      const promise = writeFile(join(job.covTempDir, `${filename(url)}.json`), JSON.stringify(data))
       page.wait = page.wait.then(promise)
       return promise
     })
