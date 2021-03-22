@@ -38,3 +38,4 @@ Concept is detailled in the  article [REserve - Testing UI5](https://arnaud-buch
 | covSettings | *String, see description* | Path to a custom `nyc.json` file providing settings for instrumentation *(relative to `cwd`)*. By default, tests folders are *not* excluded |
 | covTempDir | `'.nyc_output'` | Directory to output raw coverage information to *(relative to `cwd`)* |
 | covReportDir | `'coverage'` | Where to put the coverage report files *(relative to `cwd`)* |
+| covReporters | `'lcov,cobertura'` | Comma separated list of reporters to use |
