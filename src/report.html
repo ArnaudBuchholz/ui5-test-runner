@@ -1,0 +1,41 @@
+<html>
+  <head>
+    <title>ui5-test-runner report</title>
+  </head>
+  <body>
+    <script>
+
+function el (name, attributes, ...children) {
+  const element = document.createElement(name)
+  Object.keys(attributes).forEach(attribute => {
+    element.setAttribute(attribute, attributes[attribute])
+  })
+  children.forEach(child => {
+      if (typeof child === 'string') {
+        element.appendChild(document.createTextNode(child))
+      } else {
+        element.appendChild(child)
+      }
+  })
+  return element
+}
+
+const h1 = title => el('h1', {}, title)
+
+async function json (url) {
+  return (await fetch(url)).json()
+}
+
+json('pages.json')
+  .then(pages => Object.keys(pages).forEach(page => {
+    const path = pages[page]
+    document.body.appendChild(h1(page))
+    const div = document.body.appendChild(el('div', {id: path}))
+    json(`/_/${path}.json`).then(report => {
+      
+    })
+  }))
+        
+    </script>
+  </body>
+</html>
