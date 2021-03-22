@@ -56,7 +56,8 @@ async function generateCoverageReport () {
   job.status = 'Generating coverage report'
   await cleanDir(job.covReportDir)
   await nyc('merge', job.covTempDir, join(job.covTempDir, 'coverage.json'))
-  await nyc('report', '--reporter=lcov', '--temp-dir', job.covTempDir, '--report-dir', job.covReportDir, '--nycrc-path', settingsPath)
+  const reporters = job.covReporters.split(',').map(reporter => `--reporter=${reporter}`)
+  await nyc('report', ...reporters, '--temp-dir', job.covTempDir, '--report-dir', job.covReportDir, '--nycrc-path', settingsPath)
 }
 
 const mappings = [{
