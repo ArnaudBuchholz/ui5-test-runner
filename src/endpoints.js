@@ -35,13 +35,19 @@ if (!job.parallel) {
   }, {
     // Endpoint to receive test pages
     match: '/_/addTestPages',
-    custom: endpoint((url, data) => {
+    custom: endpoint(async (url, data) => {
       if (job.pageFilter) {
         const filter = new RegExp(job.pageFilter)
         job.testPageUrls = data.filter(name => name.match(filter))
       } else {
         job.testPageUrls = data
       }
+      const pagesFileName = join(job.tstReportDir, 'pages.json')
+      const pages = job.testPageUrls.reduce((mapping, page) => {
+        mapping[page] = filename(page)
+        return mapping
+      }, {})
+      await writeFile(pagesFileName, JSON.stringify(pages))
       stop(url)
     })
   }, {
@@ -133,5 +139,13 @@ if (!job.parallel) {
       })
       response.end(json)
     }
+  }, {
+    // Endpoint to report
+    match: '/_/report.html',
+    file: join(__dirname, 'report.html')
+  }, {
+    // Endpoint to report files
+    match: '/_/(.*)',
+    file: join(job.tstReportDir, '$1')
   }]
 }
