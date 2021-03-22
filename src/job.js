@@ -22,7 +22,8 @@ const job = {
   coverage: true,
   covSettings: join(__dirname, '../defaults/nyc.json'),
   covTempDir: '.nyc_output',
-  covReportDir: 'coverage'
+  covReportDir: 'coverage',
+  covReporters: 'lcov,cobertura'
 }
 
 process.argv.forEach(arg => {
