@@ -5,22 +5,24 @@
   <body>
     <script>
 
-function el (name, attributes, ...children) {
+function tx (content) {
+  return document.createTextNode(content)
+}
+
+function el (name, attributes = {}, ...children) {
   const element = document.createElement(name)
   Object.keys(attributes).forEach(attribute => {
     element.setAttribute(attribute, attributes[attribute])
   })
   children.forEach(child => {
-      if (typeof child === 'string') {
-        element.appendChild(document.createTextNode(child))
+      if (typeof child !== 'object') {
+        element.appendChild(tx(child.toString()))
       } else {
         element.appendChild(child)
       }
   })
   return element
 }
-
-const h1 = title => el('h1', {}, title)
 
 async function json (url) {
   return (await fetch(url)).json()
@@ -29,10 +31,37 @@ async function json (url) {
 json('pages.json')
   .then(pages => Object.keys(pages).forEach(page => {
     const path = pages[page]
-    document.body.appendChild(h1(page))
-    const div = document.body.appendChild(el('div', {id: path}))
-    json(`/_/${path}.json`).then(report => {
-      
+    const details = document.body.appendChild(el('details'))
+    const summary = details.appendChild(el('summary'))
+    summary.appendChild(el('span', {}, page))
+
+    json(`${path}.json`).then(report => {
+      if (report.failed) {
+        summary.appendChild(tx('\u274c'))
+      } else {
+        summary.appendChild(tx('\u2714\ufe0f'))
+      }
+      const table = details.appendChild(el('table', { width: '100%' }))
+      table.innerHTML = `<tr>
+  <th width="14%">Module</th>
+  <th width="80%">Test</th>
+  <th width="2%">Passed</th>
+  <th width="2%">Failed</th>
+  <th width="2%">Total</th>
+</tr>
+`
+      report.tests.forEach(test => {
+        table.appendChild(el('tr')).innerHTML = `
+  <td>${test.module}</td>
+  <td>${test.name}</td>
+  <td>${test.passed}</td>
+  <td>${test.failed}</td>
+  <td>${test.total}</td>
+`})
+
+      details.appendChild(el('a', { href: `${path}/screenshot.png`, target: '_blank' }, 'screenshot'))
+      details.appendChild(tx(' '))
+      details.appendChild(el('a', { href: `${path}/console.txt`, target: '_blank' }, 'console'))
     })
   }))
         
