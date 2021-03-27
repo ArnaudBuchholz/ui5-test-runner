@@ -7,10 +7,11 @@ const { readdir, readFile, stat, writeFile } = require('fs').promises
 const { Readable } = require('stream')
 
 const job = require('./job')
+const nycScript = require.resolve('nyc/bin/nyc.js')
 
 function nyc (...args) {
   console.log('nyc', ...args)
-  const childProcess = fork(join(__dirname, '../node_modules/nyc/bin/nyc.js'), args, {
+  const childProcess = fork(nycScript, args, {
     stdio: 'inherit'
   })
   let done
