@@ -3,6 +3,8 @@
 const { start } = require('./browsers')
 const { generateCoverageReport } = require('./coverage')
 const { recreateDir } = require('./tools')
+const { join } = require('path')
+const { copyFile } = require('fs').promises
 
 const job = require('./job')
 
@@ -56,7 +58,7 @@ async function generateReport () {
       console.log('(skipped)')
     }
   }
-
+  await copyFile(join(__dirname, 'report.html'), join(job.tstReportDir, 'report.html'))
   await generateCoverageReport()
 
   console.log(`Time spent: ${new Date() - job.start}ms`)
