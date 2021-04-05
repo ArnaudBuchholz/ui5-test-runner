@@ -4,7 +4,7 @@ const { start } = require('./browsers')
 const { generateCoverageReport } = require('./coverage')
 const { recreateDir } = require('./tools')
 const { join } = require('path')
-const { copyFile } = require('fs').promises
+const { copyFile } = require('fs').promises
 
 const job = require('./job')
 
