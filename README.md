@@ -28,14 +28,15 @@ Concept is detailled in the  article [REserve - Testing UI5](https://arnaud-buch
 | cache | `''` | Cache UI5 resources locally in the given folder *(empty to disable)* |
 | webapp | `'webapp'` | base folder of the web application *(relative to `cwd`)* |
 | pageFilter | `''` | [regexp](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/RegExp) to select which pages to execute |
+| pageParams | `''` | Parameters added to each page URL.<br/>For instance : `'sap-ui-theme=sap_belize&sap-ui-debug=true'` |
 | keepAlive | `false` | Keeps the server alive *(enables debugging)* |
 | logServer | `false` | Logs REserve traces |
-| browser | *String, see description* | Browser instanciation command, it should point to a node.js script (absolute or relative to `cwd`). By default, a script will instantiate chromium through puppetteer. |
-| args | `'__URL__'` | Browser instanciation arguments. The string `'__URL__'` is replaced with the URL to open</li> |
+| browser | *String, see description* | Browser instanciation command, it should point to a node.js script (absolute or relative to `cwd`).<br/>By default, a script will instantiate chromium through puppetteer |
+| args | `'__URL__'` | Browser instanciation arguments.<br/>The string `'__URL__'` is replaced with the URL to open |
 | parallel | `2` | Number of parallel tests executions (`0` to ignore tests) |
 | tstReportDir | `'report'` | Directory to output test reports *(relative to `cwd`)* |
 | coverage | `true` | Enables code coverage |
-| covSettings | *String, see description* | Path to a custom `nyc.json` file providing settings for instrumentation *(relative to `cwd`)*. By default, tests folders are *not* excluded |
+| covSettings | *String, see description* | Path to a custom `nyc.json` file providing settings for instrumentation *(relative to `cwd`)* |
 | covTempDir | `'.nyc_output'` | Directory to output raw coverage information to *(relative to `cwd`)* |
 | covReportDir | `'coverage'` | Where to put the coverage report files *(relative to `cwd`)* |
 | covReporters | `'lcov,cobertura'` | Comma separated list of reporters to use |
