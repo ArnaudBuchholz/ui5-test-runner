@@ -10,6 +10,7 @@ const job = {
   cache: '',
   webapp: 'webapp',
   pageFilter: '',
+  pageParams: '',
   keepAlive: false,
   logServer: false,
 
