@@ -42,6 +42,14 @@ if (!job.parallel) {
       } else {
         job.testPageUrls = data
       }
+      if (job.pageParams) {
+        job.testPageUrls = job.testPageUrls.map(url => {
+          if (url.includes('?')) {
+            return url + '&' + job.pageParams
+          }
+          return url + '?' + job.pageParams
+        })
+      }
       const pagesFileName = join(job.tstReportDir, 'pages.json')
       const pages = job.testPageUrls.reduce((mapping, page) => {
         mapping[page] = filename(page)
