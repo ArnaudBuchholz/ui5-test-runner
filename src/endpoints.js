@@ -64,7 +64,7 @@ if (!job.parallel) {
     file: join(__dirname, './inject/qunit-hooks.js')
   }, {
     // Concatenate qunit.js source with hooks
-    match: /\/thirdparty\/(qunit(?:-2)?\.js)/,
+    match: /\/thirdparty\/(qunit(?:-2)?(?:-dbg)?\.js)/,
     custom: async function (request, response, scriptName) {
       if (request.internal) {
         return // ignore to avoid infinite loop
