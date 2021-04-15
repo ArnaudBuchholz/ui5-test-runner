@@ -34,7 +34,7 @@ if (!job.parallel) {
     file: join(__dirname, './inject/qunit-redirect.js')
   }, {
     // Endpoint to receive test pages
-    match: '/_/addTestPages',
+    match: '^/_/addTestPages',
     custom: endpoint(async (url, data) => {
       if (job.pageFilter) {
         const filter = new RegExp(job.pageFilter)
@@ -60,7 +60,7 @@ if (!job.parallel) {
     })
   }, {
     // QUnit hooks
-    match: '/_/qunit-hooks.js',
+    match: '^/_/qunit-hooks.js',
     file: join(__dirname, './inject/qunit-hooks.js')
   }, {
     // Concatenate qunit.js source with hooks
@@ -90,7 +90,7 @@ if (!job.parallel) {
     }
   }, {
     // Endpoint to receive QUnit.begin
-    match: '/_/QUnit/begin',
+    match: '^/_/QUnit/begin',
     custom: endpoint((url, details) => {
       job.testPages[url] = {
         total: details.totalTests,
@@ -101,7 +101,7 @@ if (!job.parallel) {
     })
   }, {
     // Endpoint to receive QUnit.testDone
-    match: '/_/QUnit/testDone',
+    match: '^/_/QUnit/testDone',
     custom: endpoint((url, report) => {
       const page = job.testPages[url]
       if (report.failed) {
@@ -113,7 +113,7 @@ if (!job.parallel) {
     })
   }, {
     // Endpoint to receive QUnit.done
-    match: '/_/QUnit/done',
+    match: '^/_/QUnit/done',
     custom: endpoint((url, report) => {
       const page = job.testPages[url]
       const promises = []
@@ -129,11 +129,11 @@ if (!job.parallel) {
     })
   }, {
     // UI to follow progress
-    match: '/_/progress.html',
+    match: '^/_/progress.html',
     file: join(__dirname, 'progress.html')
   }, {
     // Endpoint to follow progress
-    match: '/_/progress',
+    match: '^/_/progress',
     custom: async (request, response) => {
       const json = JSON.stringify(job, (key, value) => {
         if (key === 'tests' && Array.isArray(value)) {
@@ -149,11 +149,11 @@ if (!job.parallel) {
     }
   }, {
     // Endpoint to report
-    match: '/_/report.html',
+    match: '^/_/report.html',
     file: join(__dirname, 'report.html')
   }, {
     // Endpoint to report files
-    match: '/_/(.*)',
+    match: '^/_/(.*)',
     file: join(job.tstReportDir, '$1')
   }]
 }
