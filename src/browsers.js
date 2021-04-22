@@ -9,7 +9,7 @@ const job = require('./job')
 job.browsers = {}
 
 async function start (relativeUrl) {
-  console.log(relativeUrl)
+  console.log('>>', relativeUrl)
   const reportDir = join(job.tstReportDir, filename(relativeUrl))
   await recreateDir(reportDir)
 
@@ -24,7 +24,7 @@ async function start (relativeUrl) {
     done = resolve
   })
   job.browsers[relativeUrl] = { childProcess, done }
-  return promise
+  return promise.then(() => console.log('<<', relativeUrl))
 }
 
 function stop (relativeUrl) {
