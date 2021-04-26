@@ -7,7 +7,7 @@ const { capture } = require('reserve')
 
 const job = require('./job')
 
-const [, hostName, version] = /https?:\/\/([^/]*)(?:\/[^\/]+)*\/(\d+\.\d+\.\d+)?$/.exec(job.ui5)
+const [, hostName, version] = /https?:\/\/([^/]*)(?:\/[^/]+)*\/(\d+\.\d+\.\d+)?$/.exec(job.ui5)
 const cacheBase = join(job.cwd, job.cache, hostName, version || '')
 const match = /\/((?:test-)?resources\/.*)/
 const ifCacheEnabled = (request, url, match) => job.cache ? match : false
