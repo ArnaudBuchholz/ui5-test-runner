@@ -1,6 +1,6 @@
 {
   "name": "ui5-test-runner",
-  "version": "0.9.5",
+  "version": "0.9.6",
   "description": "Standalone test runner for UI5",
   "main": "index.js",
   "files": [
@@ -41,7 +41,7 @@
     "mime": "^2.5.2",
     "nyc": "^15.1.0",
     "puppeteer": "^9.0.0",
-    "reserve": "^1.11.1"
+    "reserve": "^1.11.2"
   },
   "devDependencies": {
     "standard": "^16.0.3"
