@@ -4,7 +4,7 @@ const { join } = require('path')
 const { body } = require('reserve')
 const { stop } = require('./browsers')
 const { writeFile } = require('fs').promises
-const { filename } = require('./tools')
+const { extractUrl, filename } = require('./tools')
 const { Request, Response } = require('reserve')
 
 const job = require('./job')
@@ -13,7 +13,7 @@ function endpoint (implementation) {
   return async function (request, response) {
     response.writeHead(200)
     response.end()
-    const [, url] = request.headers.referer.match(/http:\/\/[^/]+(?::\d+)?(\/.*)/)
+    const url = extractUrl(request.headers)
     const data = JSON.parse(await body(request))
     try {
       await implementation.call(this, url, data)
