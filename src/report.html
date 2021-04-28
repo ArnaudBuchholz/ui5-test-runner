@@ -33,35 +33,35 @@ json('pages.json')
     const path = pages[page]
     const details = document.body.appendChild(el('details'))
     const summary = details.appendChild(el('summary'))
-    summary.appendChild(el('span', {}, page))
+    const ok = '\u2714\ufe0f'
+    const ko = '\u274c'
+    summary.appendChild(el('b', {}, page))
 
     json(`${path}.json`)
       .then(report => {
         if (report.failed) {
-          summary.appendChild(tx('\u274c'))
+          summary.appendChild(tx(ko))
         } else {
-          summary.appendChild(tx('\u2714\ufe0f'))
+          summary.appendChild(tx(ok))
         }
         const table = details.appendChild(el('table', { width: '100%' }))
-        table.innerHTML = `<tr>
-  <th width="14%">Module</th>
-  <th width="80%">Test</th>
-  <th width="2%">Passed</th>
-  <th width="2%">Failed</th>
-  <th width="2%">Total</th>
-</tr>
-`
+        let lastModule
         report.tests.forEach(test => {
+          let { module, name, failed } = test
+          if (module !== lastModule) {
+            lastModule = module
+          } else {
+            module = ' '
+          }
+          if (failed) {
+            name += ko
+          }
           table.appendChild(el('tr')).innerHTML = `
-  <td>${test.module}</td>
-  <td>${test.name}</td>
-  <td>${test.passed}</td>
-  <td>${test.failed}</td>
-  <td>${test.total}</td>
+  <td width="15%">${module}</td>
+  <td width="85%">${name}</td>
 `})
-
       }, () => {
-        summary.appendChild(tx('\u274c'))
+        summary.appendChild(tx(ko))
         details.appendChild(el('p', {}, 'No report found ', el('i', {}, '(fatal error or timeout)')))
       })
       .then(() => {
