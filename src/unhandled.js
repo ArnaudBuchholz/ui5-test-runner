@@ -4,7 +4,7 @@ const { extractUrl } = require('./tools')
 
 module.exports = [{
   custom: ({ headers, method, url }, response) => {
-    if (method === 'GET' && url.match(/-preload\.js$|i18n_\w+\.properties$/)) {
+    if (method === 'GET' && url.match(/-preload\.js$|-dbg(\.[^.]+)*\.js$|i18n_\w+\.properties$/)) {
       return 404 // expected
     }
     if (method === 'GET') {
