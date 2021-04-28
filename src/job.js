@@ -11,6 +11,8 @@ const job = {
   webapp: 'webapp',
   pageFilter: '',
   pageParams: '',
+  pageTimeout: 0,
+  globalTimeout: 0,
   keepAlive: false,
   logServer: false,
 
