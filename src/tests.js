@@ -43,7 +43,7 @@ async function generateReport () {
   const pages = []
   for (const url of job.testPageUrls) {
     const page = job.testPages[url]
-    if (page) {
+    if (page && page.report) {
       pages.push({
         url,
         failed: page.report.failed
@@ -54,6 +54,7 @@ async function generateReport () {
         url,
         failed: -1
       })
+      failed += 1
     }
   }
   console.table(pages)
