@@ -38,6 +38,8 @@ Concept is detailled in the  article [REserve - Testing UI5](https://arnaud-buch
 | webapp | `'webapp'` | base folder of the web application *(relative to `cwd`)* |
 | pageFilter | `''` | [regexp](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/RegExp) to select which pages to execute |
 | pageParams | `''` | Parameters added to each page URL.<br/>For instance : `'sap-ui-theme=sap_belize&sap-ui-debug=true'` |
+| pageTimeout | `0` | Limit the page execution time, fails the page if it takes longer than the timeout (`0` to disable the timeout) |
+| globalTimeout | `0` | Limit the pages execution time, fails the execution if it takes longer than the timeout (`0` to disable the timeout) |
 | keepAlive | `false` | Keeps the server alive *(enables debugging)* |
 | logServer | `false` | Logs REserve traces |
 | browser | *String, see description* | Browser instanciation command, it should point to a node.js script (absolute or relative to `cwd`).<br/>By default, a script will instantiate chromium through puppetteer |
