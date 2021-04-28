@@ -19,19 +19,33 @@ async function start (relativeUrl) {
       .replace('__REPORT__', reportDir)
     )
   const childProcess = fork(job.browser, args, { stdio: 'inherit' })
-  let done
+  const pageBrowser = { childProcess }
   const promise = new Promise(resolve => {
-    done = resolve
+    pageBrowser.done = resolve
   })
-  job.browsers[relativeUrl] = { childProcess, done }
-  return promise.then(() => console.log('<<', relativeUrl))
+  if (job.pageTimeout) {
+    pageBrowser.timeoutId = setTimeout(() => {
+      console.log('!! TIMEOUT', relativeUrl)
+      stop(relativeUrl)
+    }, job.pageTimeout)
+  }
+  job.browsers[relativeUrl] = pageBrowser
+  return promise.then(() => {
+    console.log('<<', relativeUrl)
+  })
 }
 
 function stop (relativeUrl) {
-  const { childProcess, done } = job.browsers[relativeUrl]
-  delete job.browsers[relativeUrl]
-  childProcess.send({ command: 'stop' })
-  done()
+  const pageBrowser = job.browsers[relativeUrl]
+  if (pageBrowser) {
+    const { childProcess, done, timeoutId } = pageBrowser
+    if (timeoutId) {
+      clearTimeout(timeoutId)
+    }
+    delete job.browsers[relativeUrl]
+    childProcess.send({ command: 'stop' })
+    done()
+  }
 }
 
 module.exports = { start, stop }
