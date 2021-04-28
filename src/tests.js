@@ -40,29 +40,26 @@ async function generateReport () {
   job.status = 'Finalizing'
   // Simple report
   let failed = 0
+  const pages = []
   for (const url of job.testPageUrls) {
-    console.log(url)
     const page = job.testPages[url]
     if (page) {
-      console.table(page.tests.map(result => {
-        return {
-          name: result.name,
-          passed: result.passed,
-          failed: result.failed,
-          total: result.total
-        }
-      }))
-      console.log(page.report)
+      pages.push({
+        url,
+        failed: page.report.failed
+      })
       failed += page.report.failed
     } else {
-      console.log('(skipped)')
+      pages.push({
+        url,
+        failed: -1
+      })
     }
   }
+  console.table(pages)
   await copyFile(join(__dirname, 'report.html'), join(job.tstReportDir, 'report.html'))
   await generateCoverageReport()
-
   console.log(`Time spent: ${new Date() - job.start}ms`)
-
   if (job.keepAlive) {
     console.log('Keeping alive.')
   } else {

@@ -1,5 +1,14 @@
 # UI5 Test runner
 
+[![Package Quality](https://npm.packagequality.com/shield/ui5-test-runner.svg)](https://packagequality.com/#?package=ui5-test-runner)
+[![Known Vulnerabilities](https://snyk.io/test/github/ArnaudBuchholz/ui5-test-runner/badge.svg?targetFile=package.json)](https://snyk.io/test/github/ArnaudBuchholz/ui5-test-runner?targetFile=package.json)
+[![dependencies Status](https://david-dm.org/ArnaudBuchholz/ui5-test-runner/status.svg)](https://david-dm.org/ArnaudBuchholz/ui5-test-runner)
+[![devDependencies Status](https://david-dm.org/ArnaudBuchholz/ui5-test-runner/dev-status.svg)](https://david-dm.org/ArnaudBuchholz/ui5-test-runner?type=dev)
+[![ui5-test-runner](https://badge.fury.io/js/ui5-test-runner.svg)](https://www.npmjs.org/package/ui5-test-runner)
+[![ui5-test-runner](http://img.shields.io/npm/dm/ui5-test-runner.svg)](https://www.npmjs.org/package/ui5-test-runner)
+[![install size](https://packagephobia.now.sh/badge?p=ui5-test-runner)](https://packagephobia.now.sh/result?p=ui5-test-runner)
+[![MIT License](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+
 A test runner for UI5 applications enabling parallel execution of tests.
 
 ## Documentation
