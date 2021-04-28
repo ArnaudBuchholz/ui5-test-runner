@@ -35,14 +35,15 @@ json('pages.json')
     const summary = details.appendChild(el('summary'))
     summary.appendChild(el('span', {}, page))
 
-    json(`${path}.json`).then(report => {
-      if (report.failed) {
-        summary.appendChild(tx('\u274c'))
-      } else {
-        summary.appendChild(tx('\u2714\ufe0f'))
-      }
-      const table = details.appendChild(el('table', { width: '100%' }))
-      table.innerHTML = `<tr>
+    json(`${path}.json`)
+      .then(report => {
+        if (report.failed) {
+          summary.appendChild(tx('\u274c'))
+        } else {
+          summary.appendChild(tx('\u2714\ufe0f'))
+        }
+        const table = details.appendChild(el('table', { width: '100%' }))
+        table.innerHTML = `<tr>
   <th width="14%">Module</th>
   <th width="80%">Test</th>
   <th width="2%">Passed</th>
@@ -50,8 +51,8 @@ json('pages.json')
   <th width="2%">Total</th>
 </tr>
 `
-      report.tests.forEach(test => {
-        table.appendChild(el('tr')).innerHTML = `
+        report.tests.forEach(test => {
+          table.appendChild(el('tr')).innerHTML = `
   <td>${test.module}</td>
   <td>${test.name}</td>
   <td>${test.passed}</td>
@@ -59,10 +60,15 @@ json('pages.json')
   <td>${test.total}</td>
 `})
 
-      details.appendChild(el('a', { href: `${path}/screenshot.png`, target: '_blank' }, 'screenshot'))
-      details.appendChild(tx(' '))
-      details.appendChild(el('a', { href: `${path}/console.txt`, target: '_blank' }, 'console'))
-    })
+      }, () => {
+        summary.appendChild(tx('\u274c'))
+        details.appendChild(el('p', {}, 'No report found ', el('i', {}, '(fatal error or timeout)')))
+      })
+      .then(() => {
+        details.appendChild(el('a', { href: `${path}/screenshot.png`, target: '_blank' }, 'screenshot'))
+        details.appendChild(el('span', {}, ' '))
+        details.appendChild(el('a', { href: `${path}/console.txt`, target: '_blank' }, 'console'))
+      })
   }))
         
     </script>
