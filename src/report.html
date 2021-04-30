@@ -39,12 +39,15 @@ json('pages.json')
 
     json(`${path}.json`)
       .then(report => {
-        if (report.failed) {
+        if (!report.report || report.failed) {
           summary.appendChild(tx(ko))
         } else {
           summary.appendChild(tx(ok))
         }
         const table = details.appendChild(el('table', { width: '100%' }))
+        const row = (module, name = ' ') => {
+          table.appendChild(el('tr')).innerHTML = `<td width="15%">${module}</td><td width="85%">${name}</td>`
+        }
         let lastModule
         report.tests.forEach(test => {
           let { module, name, failed } = test
@@ -56,10 +59,13 @@ json('pages.json')
           if (failed) {
             name += ko
           }
-          table.appendChild(el('tr')).innerHTML = `
-  <td width="15%">${module}</td>
-  <td width="85%">${name}</td>
-`})
+          row(module, name)
+        })
+        if (report.report) {
+          row(`${report.report.runtime} ms`)
+        } else {
+          row(`Timed out ${ko}`)
+        }
       }, () => {
         summary.appendChild(tx(ko))
         details.appendChild(el('p', {}, 'No report found ', el('i', {}, '(fatal error or timeout)')))
@@ -70,7 +76,6 @@ json('pages.json')
         details.appendChild(el('a', { href: `${path}/console.txt`, target: '_blank' }, 'console'))
       })
   }))
-        
     </script>
   </body>
 </html>
