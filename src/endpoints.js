@@ -116,16 +116,16 @@ if (!job.parallel) {
     match: '^/_/QUnit/done',
     custom: endpoint((url, report) => {
       const page = job.testPages[url]
-      const promises = []
+      let promise
       if (report.__coverage__) {
         const coverageFileName = join(job.covTempDir, `${filename(url)}.json`)
-        promises.push(writeFile(coverageFileName, JSON.stringify(report.__coverage__)))
+        promise = writeFile(coverageFileName, JSON.stringify(report.__coverage__))
         delete report.__coverage__
+      } else {
+        promise = Promise.resolve()
       }
       page.report = report
-      const reportFileName = join(job.tstReportDir, `${filename(url)}.json`)
-      promises.push(writeFile(reportFileName, JSON.stringify(page)))
-      Promise.all(promises).then(() => stop(url))
+      promise.then(() => stop(url))
     })
   }, {
     // UI to follow progress
