@@ -2,21 +2,22 @@
 
 const { start } = require('./browsers')
 const { generateCoverageReport } = require('./coverage')
-const { recreateDir } = require('./tools')
+const { filename, recreateDir } = require('./tools')
 const { join } = require('path')
-const { copyFile } = require('fs').promises
+const { copyFile, writeFile } = require('fs').promises
 
 const job = require('./job')
 
 async function extractTestPages () {
   job.status = 'Extracting test pages'
   await recreateDir(job.tstReportDir)
+  job.testPageUrls = []
   await start('/test/testsuite.qunit.html')
   job.testPagesStarted = 0
   job.testPagesCompleted = 0
   job.testPages = {}
   job.status = 'Executing test pages'
-  for (let i = 0; i < job.parallel; ++i) {
+  for (let i = 0; i < Math.min(job.parallel, job.testPageUrls.length); ++i) {
     runTestPage()
   }
 }
@@ -32,6 +33,11 @@ async function runTestPage () {
   const index = job.testPagesStarted++
   const url = job.testPageUrls[index]
   await start(url)
+  const page = job.testPages[url]
+  if (page) {
+    const reportFileName = join(job.tstReportDir, `${filename(url)}.json`)
+    await writeFile(reportFileName, JSON.stringify(page))
+  }
   ++job.testPagesCompleted
   runTestPage()
 }
