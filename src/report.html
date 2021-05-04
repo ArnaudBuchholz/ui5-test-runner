@@ -76,14 +76,12 @@ json('pages.json')
         } else {
           row(`Timed out ${ko}`)
         }
-      }, () => {
-        summary.appendChild(tx(ko))
-        details.appendChild(el('p', {}, 'No report found ', el('i', {}, '(fatal error or timeout)')))
-      })
-      .then(() => {
         details.appendChild(el('a', { href: `${path}/screenshot.png`, target: '_blank' }, 'screenshot'))
         details.appendChild(el('span', {}, ' '))
         details.appendChild(el('a', { href: `${path}/console.txt`, target: '_blank' }, 'console'))
+      }, () => {
+        summary.appendChild(tx(ko))
+        details.appendChild(el('p', {}, 'No report found ', el('i', {}, '(fatal error or timeout)')))
       })
   }))
     </script>
