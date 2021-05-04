@@ -5,6 +5,7 @@ const { generateCoverageReport } = require('./coverage')
 const { filename, recreateDir } = require('./tools')
 const { join } = require('path')
 const { copyFile, writeFile } = require('fs').promises
+const { globallyTimedOut } = require('./timeout')
 
 const job = require('./job')
 
@@ -32,11 +33,15 @@ async function runTestPage () {
   }
   const index = job.testPagesStarted++
   const url = job.testPageUrls[index]
-  await start(url)
-  const page = job.testPages[url]
-  if (page) {
-    const reportFileName = join(job.tstReportDir, `${filename(url)}.json`)
-    await writeFile(reportFileName, JSON.stringify(page))
+  if (globallyTimedOut()) {
+    console.log('!! TIMEOUT', url)
+  } else {
+    await start(url)
+    const page = job.testPages[url]
+    if (page) {
+      const reportFileName = join(job.tstReportDir, `${filename(url)}.json`)
+      await writeFile(reportFileName, JSON.stringify(page))
+    }
   }
   ++job.testPagesCompleted
   runTestPage()
