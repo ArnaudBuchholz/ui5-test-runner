@@ -72,6 +72,7 @@ async function generateReport () {
   await copyFile(join(__dirname, 'report.html'), join(job.tstReportDir, 'report.html'))
   await generateCoverageReport()
   console.log(`Time spent: ${new Date() - job.start}ms`)
+  job.status = 'Done'
   if (job.keepAlive) {
     console.log('Keeping alive.')
   } else {
