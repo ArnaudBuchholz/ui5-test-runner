@@ -40,7 +40,7 @@
     "colors": "^1.4.0",
     "mime": "^2.5.2",
     "nyc": "^15.1.0",
-    "puppeteer": "^9.0.0",
+    "puppeteer": "^9.1.0",
     "reserve": "^1.11.2"
   },
   "devDependencies": {
