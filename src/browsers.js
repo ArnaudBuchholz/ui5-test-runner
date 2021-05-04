@@ -3,6 +3,7 @@
 const { fork } = require('child_process')
 const { join } = require('path')
 const { recreateDir, filename } = require('./tools')
+const { getPageTimeout } = require('./timeout')
 
 const job = require('./job')
 
@@ -23,11 +24,12 @@ async function start (relativeUrl) {
   const promise = new Promise(resolve => {
     pageBrowser.done = resolve
   })
-  if (job.pageTimeout) {
+  const timeout = getPageTimeout()
+  if (timeout) {
     pageBrowser.timeoutId = setTimeout(() => {
       console.log('!! TIMEOUT', relativeUrl)
       stop(relativeUrl)
-    }, job.pageTimeout)
+    }, timeout)
   }
   job.browsers[relativeUrl] = pageBrowser
   return promise.then(() => {
