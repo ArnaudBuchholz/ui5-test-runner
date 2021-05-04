@@ -46,7 +46,9 @@ json('pages.json')
         }
         const table = details.appendChild(el('table', { width: '100%' }))
         const row = (module, name = ' ') => {
-          table.appendChild(el('tr')).innerHTML = `<td width="15%">${module}</td><td width="85%">${name}</td>`
+          const tr = table.appendChild(el('tr'))
+          tr.innerHTML = `<td width="15%">${module}</td><td width="85%">${name}</td>`
+          return tr
         }
         let lastModule
         report.tests.forEach(test => {
@@ -57,9 +59,17 @@ json('pages.json')
             module = ' '
           }
           if (failed) {
-            name += ko
+            const tr = row(module)
+            const td = tr.querySelectorAll('td')[1]
+            const assertions = td.appendChild(el('details'))
+            assertions.appendChild(el('summary', {}, name + ko))
+            test.assertions.forEach(assertion => {
+              const bullet = assertion.result && ok || ko
+              assertions.appendChild(el('div', {}, el('pre', {}, bullet + ' ' + assertion.message)))
+            })
+          } else {
+            row(module, name)
           }
-          row(module, name)
         })
         if (report.report) {
           row(`${report.report.runtime} ms`)
