@@ -4,7 +4,7 @@
 
 const { join } = require('path')
 const endpoints = require('./src/endpoints')
-const { instrument, mappings: coverage } = require('./src/coverage')
+const { mappings: coverage } = require('./src/coverage')
 const ui5 = require('./src/ui5')
 const executeTests = require('./src/tests')
 const { check, log, serve } = require('reserve')
@@ -38,7 +38,6 @@ async function main () {
       if (!job.logServer) {
         console.log(`Server running at ${url}`)
       }
-      await instrument()
       executeTests()
     })
     .on('error', args => {
