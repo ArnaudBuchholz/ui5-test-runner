@@ -36,26 +36,28 @@ if (!job.parallel) {
     // Endpoint to receive test pages
     match: '^/_/addTestPages',
     custom: endpoint(async (url, data) => {
+      let testPageUrls
       if (job.pageFilter) {
         const filter = new RegExp(job.pageFilter)
-        job.testPageUrls = data.filter(name => name.match(filter))
+        testPageUrls = data.filter(name => name.match(filter))
       } else {
-        job.testPageUrls = data
+        testPageUrls = data
       }
       if (job.pageParams) {
-        job.testPageUrls = job.testPageUrls.map(url => {
+        testPageUrls = testPageUrls.map(url => {
           if (url.includes('?')) {
             return url + '&' + job.pageParams
           }
           return url + '?' + job.pageParams
         })
       }
-      const pagesFileName = join(job.tstReportDir, 'pages.json')
-      const pages = job.testPageUrls.reduce((mapping, page) => {
+      const pages = testPageUrls.reduce((mapping, page) => {
         mapping[page] = filename(page)
         return mapping
       }, {})
+      const pagesFileName = join(job.tstReportDir, 'pages.json')
       await writeFile(pagesFileName, JSON.stringify(pages))
+      job.testPageUrls = Object.keys(pages) // filter out duplicates
       stop(url)
     })
   }, {
