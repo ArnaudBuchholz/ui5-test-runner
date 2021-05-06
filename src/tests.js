@@ -1,15 +1,18 @@
 'use strict'
 
 const { start } = require('./browsers')
-const { generateCoverageReport } = require('./coverage')
+const { instrument, generateCoverageReport } = require('./coverage')
 const { filename, recreateDir } = require('./tools')
 const { join } = require('path')
 const { copyFile, writeFile } = require('fs').promises
+const { watch } = require('fs')
 const { globallyTimedOut } = require('./timeout')
 
 const job = require('./job')
 
 async function extractTestPages () {
+  job.start = new Date()
+  await instrument()
   job.status = 'Extracting test pages'
   await recreateDir(job.tstReportDir)
   job.testPageUrls = []
@@ -73,7 +76,19 @@ async function generateReport () {
   await generateCoverageReport()
   console.log(`Time spent: ${new Date() - job.start}ms`)
   job.status = 'Done'
-  if (job.keepAlive) {
+  delete job.start
+  if (job.watch) {
+    if (!job.watching) {
+      console.log('Watching changes on', job.webapp)
+      watch(job.webapp, { recursive: true }, (eventType, filename) => {
+        console.log(eventType, filename)
+        if (!job.start) {
+          extractTestPages()
+        }
+      })
+      job.watching = true
+    }
+  } else if (job.keepAlive) {
     console.log('Keeping alive.')
   } else {
     process.exit(failed)
