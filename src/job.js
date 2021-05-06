@@ -14,6 +14,7 @@ const job = {
   pageTimeout: 0,
   globalTimeout: 0,
   keepAlive: false,
+  watch: false,
   logServer: false,
 
   browser: join(__dirname, '../defaults/chromium.js'),
@@ -45,8 +46,6 @@ process.argv.forEach(arg => {
     }
   }
 })
-
-job.start = new Date()
 
 function toAbsolute (member, from = job.cwd) {
   if (!isAbsolute(job[member])) {
