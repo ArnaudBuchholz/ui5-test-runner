@@ -45,7 +45,7 @@ Concept is detailled in the  article [REserve - Testing UI5](https://arnaud-buch
 | logServer | `false` | Logs REserve traces |
 | browser | *String, see description* | Browser instanciation command, it should point to a node.js script (absolute or relative to `cwd`).<br/>By default, a script will instantiate chromium through puppetteer |
 | args | `'__URL__'` | Browser instanciation arguments.<br/>The string `'__URL__'` is replaced with the URL to open |
-| parallel | `2` | Number of parallel tests executions (`0` to ignore tests) |
+| parallel | `2` | Number of parallel tests executions (`0` to ignore tests and keep alive) |
 | tstReportDir | `'report'` | Directory to output test reports *(relative to `cwd`)* |
 | coverage | `true` | Enables code coverage |
 | covSettings | *String, see description* | Path to a custom `nyc.json` file providing settings for instrumentation *(relative to `cwd`)* |
