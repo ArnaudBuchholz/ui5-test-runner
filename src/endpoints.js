@@ -150,6 +150,10 @@ if (!job.parallel) {
       response.end(json)
     }
   }, {
+    // Endpoint to coverage files
+    match: '^/_/coverage/(.*)',
+    file: join(job.covReportDir, '$1')
+  }, {
     // Endpoint to report
     match: '^/_/report.html',
     file: join(__dirname, 'report.html')
