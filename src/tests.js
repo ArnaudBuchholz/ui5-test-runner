@@ -24,6 +24,9 @@ async function extractTestPages () {
   for (let i = 0; i < Math.min(job.parallel, job.testPageUrls.length); ++i) {
     runTestPage()
   }
+  if (job.parallel === -1) {
+    console.log(job.testPageUrls)
+  }
 }
 
 async function runTestPage () {
