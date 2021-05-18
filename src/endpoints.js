@@ -15,6 +15,9 @@ function endpoint (implementation) {
     response.end()
     const url = extractUrl(request.headers)
     const data = JSON.parse(await body(request))
+    if (job.parallel === -1) {
+      console.log(url, data)
+    }
     try {
       await implementation.call(this, url, data)
     } catch (e) {
