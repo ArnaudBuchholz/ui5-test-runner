@@ -44,7 +44,7 @@ Concept is detailled in the  article [REserve - Testing UI5](https://arnaud-buch
 | watch | `false` | Monitors the webapp folder and re-execute tests on change |
 | logServer | `false` | Logs REserve traces |
 | browser | *String, see description* | Browser instanciation command, it should point to a node.js script (absolute or relative to `cwd`).<br/>By default, a script will instantiate chromium through puppetteer |
-| args | `'__URL__'` | Browser instanciation arguments.<br/>The string `'__URL__'` is replaced with the URL to open |
+| args | `'__URL__ __REPORT__'` | Browser instanciation arguments :<ul><li>`'__URL__'` is replaced with the URL to open</li><li>`'__REPORT__'` is replaced with a folder path that is associated with the current URL <i>(can be used to store additional traces such as console logs or screenshots)</i></li></ul> |
 | parallel | `2` | Number of parallel tests executions (`0` to ignore tests and keep alive) |
 | tstReportDir | `'report'` | Directory to output test reports *(relative to `cwd`)* |
 | coverage | `true` | Enables code coverage |
