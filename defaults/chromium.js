@@ -4,8 +4,8 @@ const puppeteer = require('puppeteer')
 const { join } = require('path')
 const { createWriteStream } = require('fs')
 
-const url = process.argv[2]
-const reportDir = process.argv[3]
+const [url, reportDir] = process.argv.slice(2).filter(arg => !arg.startsWith('--'))
+const headless = !process.argv.some(arg => arg === '--visible')
 
 let browser
 let page
@@ -27,7 +27,7 @@ process.on('message', async message => {
 
 async function main () {
   browser = await puppeteer.launch({
-    headless: true,
+    headless,
     args: [
       url,
       '--no-sandbox',
