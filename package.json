@@ -1,6 +1,6 @@
 {
   "name": "ui5-test-runner",
-  "version": "0.9.8",
+  "version": "0.9.9",
   "description": "Standalone test runner for UI5",
   "main": "index.js",
   "files": [
@@ -15,7 +15,8 @@
     "node": ">=14.0.0"
   },
   "scripts": {
-    "lint": "standard --fix"
+    "lint": "standard --fix",
+    "test": "jest"
   },
   "repository": {
     "type": "git",
@@ -44,6 +45,7 @@
     "reserve": "^1.11.3"
   },
   "devDependencies": {
+    "jest": "^26.6.3",
     "standard": "^16.0.3"
   },
   "standard": {
@@ -52,5 +54,17 @@
       "qunit",
       "node"
     ]
+  },
+  "jest": {
+    "collectCoverage": true,
+    "collectCoverageFrom": ["src/*.js"],
+    "coverageThreshold": {
+      "global": {
+        "branches": 80,
+        "functions": 80,
+        "lines": 80,
+        "statements": 80
+      }
+    }
   }
 }

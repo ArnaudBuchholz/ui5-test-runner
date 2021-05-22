@@ -23,3 +23,6 @@ node_modules/
 # shortcuts created for debugging
 *.cmd
 *.sh
+
+# generated during tests
+report/
