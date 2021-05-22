@@ -1,12 +1,13 @@
 const { start, stop } = require('../../src/browsers')
-const { _hook } = require('child_process')
 
 describe('src/job', () => {
   let log
+  let hook
 
   beforeEach(() => {
+    jest.mock('child_process') 
+    hook = require('child_process')._hook
     // log = jest.spyOn(console, 'log').mockImplementation()
-    jest.resetModules()
   })
 
   describe('normal flow', () => {
@@ -19,7 +20,7 @@ describe('src/job', () => {
       return promise
     })
   })
-  
+
   afterAll(() => {
     // log.mockRestore()
   })
