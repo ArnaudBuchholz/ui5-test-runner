@@ -52,12 +52,15 @@
     "env": [
       "browser",
       "qunit",
-      "node"
+      "node",
+      "jest"
     ]
   },
   "jest": {
     "collectCoverage": true,
-    "collectCoverageFrom": ["src/*.js"],
+    "collectCoverageFrom": [
+      "src/*.js"
+    ],
     "coverageThreshold": {
       "global": {
         "branches": 80,
