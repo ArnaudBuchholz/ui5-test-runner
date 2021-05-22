@@ -20,5 +20,3 @@ module.exports = {
 
   _hook
 }
-
-console.log('mocked')
