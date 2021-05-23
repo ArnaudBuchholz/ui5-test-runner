@@ -6,7 +6,7 @@ describe('src/job', () => {
   let log
 
   beforeEach(() => {
-    // log = jest.spyOn(console, 'log').mockImplementation()
+    log = jest.spyOn(console, 'log').mockImplementation()
   })
 
   it('starts and stop a browser', () => {
@@ -18,6 +18,6 @@ describe('src/job', () => {
   })
 
   afterAll(() => {
-    // log.mockRestore()
+    log.mockRestore()
   })
 })
