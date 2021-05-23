@@ -9,7 +9,7 @@ class ChildProcess {
     this._scriptPath = scriptPath
     this._args = args
     this._options = options
-    _hook.emit('new', this)
+    setTimeout(() => _hook.emit('new', this), 0) // Defer the call since creation is 'asynchronous'
   }
 }
 
