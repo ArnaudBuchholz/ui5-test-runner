@@ -61,10 +61,12 @@ async function generateCoverageReport (job) {
 module.exports = {
   instrument: job => job.coverage && instrument(job),
   generateCoverageReport: job => job.coverage && generateCoverageReport(job),
-  mappings: job => job.coverage ? [{
-    match: /^\/(.*\.js)$/,
-    file: join(job.covTempDir, 'instrumented', '$1'),
-    'ignore-if-not-found': true,
-    'custom-file-system': customFileSystem
-  }] : []
+  mappings: job => job.coverage
+    ? [{
+        match: /^\/(.*\.js)$/,
+        file: join(job.covTempDir, 'instrumented', '$1'),
+        'ignore-if-not-found': true,
+        'custom-file-system': customFileSystem
+      }]
+    : []
 }
