@@ -27,7 +27,7 @@ async function start (job, relativeUrl) {
   if (timeout) {
     pageBrowser.timeoutId = setTimeout(() => {
       console.log('!! TIMEOUT', relativeUrl)
-      stop(relativeUrl)
+      stop(job, relativeUrl)
     }, timeout)
   }
   job.browsers[relativeUrl] = pageBrowser
