@@ -9,16 +9,16 @@ const ui5 = require('./src/ui5')
 const executeTests = require('./src/tests')
 const { check, log, serve } = require('reserve')
 const unhandled = require('./src/unhandled')
-
-const job = require('./src/job')
+const jobFactory = require('./src/job')
 
 async function main () {
+  const job = jobFactory.fromCmdLine(process.cwd(), process.argv)
   const configuration = await check({
     port: job.port,
     mappings: [
-      ...endpoints,
-      ...ui5,
-      ...coverage, {
+      ...endpoints(job),
+      ...ui5(job),
+      ...coverage(job), {
         // Project mapping
         match: /^\/(.*)/,
         file: join(job.webapp, '$1'),
@@ -38,7 +38,7 @@ async function main () {
       if (!job.logServer) {
         console.log(`Server running at ${url}`)
       }
-      executeTests()
+      executeTests(job)
     })
     .on('error', args => {
       console.log('ERROR', args)
