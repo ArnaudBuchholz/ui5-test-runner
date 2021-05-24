@@ -5,11 +5,10 @@ const { join } = require('path')
 const { recreateDir, filename } = require('./tools')
 const { getPageTimeout } = require('./timeout')
 
-const job = require('./job')
-
-job.browsers = {}
-
-async function start (relativeUrl) {
+async function start (job, relativeUrl) {
+  if (!job.browsers) {
+    job.browsers = {}
+  }
   console.log('>>', relativeUrl)
   const reportDir = join(job.tstReportDir, filename(relativeUrl))
   await recreateDir(reportDir)
@@ -24,7 +23,7 @@ async function start (relativeUrl) {
   const promise = new Promise(resolve => {
     pageBrowser.done = resolve
   })
-  const timeout = getPageTimeout()
+  const timeout = getPageTimeout(job)
   if (timeout) {
     pageBrowser.timeoutId = setTimeout(() => {
       console.log('!! TIMEOUT', relativeUrl)
@@ -37,7 +36,7 @@ async function start (relativeUrl) {
   })
 }
 
-function stop (relativeUrl) {
+function stop (job, relativeUrl) {
   const pageBrowser = job.browsers[relativeUrl]
   if (pageBrowser) {
     const { childProcess, done, timeoutId } = pageBrowser
