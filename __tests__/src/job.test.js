@@ -17,7 +17,7 @@ describe('src/job', () => {
   })
 
   it('parses parameters', () => {
-    const job = jobFactory.fromCmdLine(cwd, ['node', 'ui5-test-runner', '-cwd:../project2', '-port:8080', '-keepAlive:true'])
+    const job = jobFactory.fromCmdLine(cwd, [0, 0, '-cwd:../project2', '-port:8080', '-keepAlive:true'])
     expect(normalizePath(job.cwd)).toStrictEqual('/test/project2')
     expect(job.port).toStrictEqual(8080)
     expect(job.keepAlive).toStrictEqual(true)
@@ -25,7 +25,7 @@ describe('src/job', () => {
   })
 
   it('ignores unknown parameters', () => {
-    const job = jobFactory.fromCmdLine(cwd, ['node', 'ui5-test-runner', '-cwd2:../project2'])
+    const job = jobFactory.fromCmdLine(cwd, [0, 0, '-cwd2:../project2'])
     expect(normalizePath(job.cwd)).toStrictEqual('/test/project')
   })
 })
