@@ -1,30 +1,28 @@
 jest.mock('child_process')
+const { join } = require('path')
 const { _hook: hook } = require('child_process')
+const jobFactory = require('../../src/job')
 const { start, stop } = require('../../src/browsers')
 
-const jobPath = '../../src/job.js'
-const cwdPath = '/test/project'
-const cwd = () => cwdPath
+const cwd = '/test/project'
 
 describe('src/job', () => {
   let log
+  let job
 
   beforeAll(() => {
     log = jest.spyOn(console, 'log').mockImplementation()
-  })
-
-  beforeEach(() => {
-    jest.resetModules()
+    job = jobFactory.fromCmdLine(cwd, [0, 0, `-tstReportDir:${join(__dirname, '../tmp')}`])
   })
 
   it('starts returns a promise resolved on stop', () => {
     hook.once('new', childProcess => {
-      stop('test.html')
+      stop(job, 'test.html')
     })
-    return start('test.html')
+    return start(job, 'test.html')
   })
 
-  it('stops automatically after the page timeout', () => {
+  it('stops automatically after a timeout', () => {
     let done
     const waitingForMessage = new Promise(resolve => {
       done = resolve
@@ -36,13 +34,15 @@ describe('src/job', () => {
         }
       })
     })
-    global.process = { cwd, argv: ['node', 'ui5-test-runner', '-pageTimeout:100'] }
-    const job = require(jobPath)
-    expect(job.pageTimeout).toStrictEqual(100)
+    job.pageTimeout = 100
     return Promise.all([
-      start('test.html'),
+      start(job, 'test.html'),
       waitingForMessage
     ])
+  })
+
+  it('ignores unstarted pages', () => {
+    stop(job, 'unknown.html')
   })
 
   afterAll(() => {
