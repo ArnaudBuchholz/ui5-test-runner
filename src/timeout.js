@@ -1,9 +1,7 @@
 'use strict'
 
-const job = require('./job')
-
 module.exports = {
-  getPageTimeout () {
+  getPageTimeout (job) {
     if (job.pageTimeout || job.globalTimeout) {
       if (job.globalTimeout) {
         return Math.min(job.globalTimeout - (new Date() - job.start), job.pageTimeout || Number.MAX_SAFE_INTEGER)
@@ -13,7 +11,7 @@ module.exports = {
     return 0
   },
 
-  globallyTimedOut () {
+  globallyTimedOut (job) {
     if (job.globalTimeout) {
       return new Date() - job.start > job.globalTimeout
     }
