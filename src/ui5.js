@@ -12,7 +12,7 @@ module.exports = job => {
   const ifCacheEnabled = (request, url, match) => job.cache ? match : false
   const uncachable = {}
   const cachingInProgress = {}
-  
+
   const mappings = [{
     /* Prevent caching issues :
      * - Caching was not possible (99% URL does not exist)
@@ -67,7 +67,7 @@ module.exports = job => {
     match,
     url: `${job.ui5}/$1`
   }]
-  
+
   if (job.libs) {
     mappings.unshift({
       match: /\/resources\/(.*)/,
