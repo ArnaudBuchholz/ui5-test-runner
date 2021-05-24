@@ -4,6 +4,7 @@ const { join, isAbsolute } = require('path')
 
 function allocate (cwd) {
   return {
+    initialCwd: cwd,
     cwd,
     port: 0,
     ui5: 'https://ui5.sap.com/1.87.0',
@@ -39,7 +40,7 @@ function finalize (job) {
     }
   }
 
-  toAbsolute('cwd', process.cwd())
+  toAbsolute('cwd', job.initialCwd)
   'libs,webapp,browser,tstReportDir,covSettings,covTempDir,covReportDir'
     .split(',')
     .forEach(setting => toAbsolute(setting))
@@ -64,13 +65,6 @@ module.exports = {
         }
       }
     })
-    finalize(job)
-    return job
-  },
-
-  fromProperties (properties) {
-    const job = allocate()
-    Object.assign(job, properties)
     finalize(job)
     return job
   }
