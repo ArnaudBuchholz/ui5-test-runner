@@ -7,31 +7,27 @@ const { writeFile } = require('fs').promises
 const { extractUrl, filename } = require('./tools')
 const { Request, Response } = require('reserve')
 
-const job = require('./job')
-
-function endpoint (implementation) {
-  return async function (request, response) {
-    response.writeHead(200)
-    response.end()
-    const url = extractUrl(request.headers)
-    const data = JSON.parse(await body(request))
-    if (job.parallel === -1) {
-      console.log(url, data)
-    }
-    try {
-      await implementation.call(this, url, data)
-    } catch (e) {
-      console.error(`Exception when processing ${url}`)
-      console.error(data)
-      console.error(e)
+module.exports = job => {
+  function endpoint (implementation) {
+    return async function (request, response) {
+      response.writeHead(200)
+      response.end()
+      const url = extractUrl(request.headers)
+      const data = JSON.parse(await body(request))
+      if (job.parallel === -1) {
+        console.log(url, data)
+      }
+      try {
+        await implementation.call(this, url, data)
+      } catch (e) {
+        console.error(`Exception when processing ${url}`)
+        console.error(data)
+        console.error(e)
+      }
     }
   }
-}
 
-if (!job.parallel) {
-  module.exports = []
-} else {
-  module.exports = [{
+  return job ? [{
     // Substitute qunit-redirect to extract test pages
     match: '/resources/sap/ui/qunit/qunit-redirect.js',
     file: join(__dirname, './inject/qunit-redirect.js')
@@ -61,7 +57,7 @@ if (!job.parallel) {
       const pagesFileName = join(job.tstReportDir, 'pages.json')
       await writeFile(pagesFileName, JSON.stringify(pages))
       job.testPageUrls = Object.keys(pages) // filter out duplicates
-      stop(url)
+      stop(job, url)
     })
   }, {
     // QUnit hooks
@@ -130,7 +126,7 @@ if (!job.parallel) {
         promise = Promise.resolve()
       }
       page.report = report
-      promise.then(() => stop(url))
+      promise.then(() => stop(job, url))
     })
   }, {
     // UI to follow progress
@@ -164,5 +160,5 @@ if (!job.parallel) {
     // Endpoint to report files
     match: '^/_/(.*)',
     file: join(job.tstReportDir, '$1')
-  }]
+  }] : []
 }
