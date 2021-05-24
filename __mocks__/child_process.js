@@ -1,11 +1,13 @@
 const EventEmitter = require('events')
 const _hook = new EventEmitter()
 
-class ChildProcess {
+class ChildProcess extends EventEmitter {
   send (message) {
+    this.emit('message', message)
   }
 
   constructor (scriptPath, args, options) {
+    super()
     this._scriptPath = scriptPath
     this._args = args
     this._options = options
