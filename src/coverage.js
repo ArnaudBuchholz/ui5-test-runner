@@ -6,7 +6,6 @@ const { cleanDir, createDir } = require('./tools')
 const { readdir, readFile, stat, writeFile } = require('fs').promises
 const { Readable } = require('stream')
 
-const job = require('./job')
 const nycScript = require.resolve('nyc/bin/nyc.js')
 
 function nyc (...args) {
@@ -40,46 +39,32 @@ const customFileSystem = {
   }
 }
 
-const instrumentedSourceDir = join(job.covTempDir, 'instrumented')
-const settingsPath = join(job.covTempDir, 'settings/nyc.json')
-
-async function instrument () {
+async function instrument (job) {
   job.status = 'Instrumenting'
+  job.nycSettingsPath = join(job.covTempDir, 'settings/nyc.json')
   await cleanDir(job.covTempDir)
   await createDir(join(job.covTempDir, 'settings'))
   const settings = JSON.parse((await readFile(job.covSettings)).toString())
   settings.cwd = job.cwd
-  await writeFile(settingsPath, JSON.stringify(settings))
-  await nyc('instrument', job.webapp, instrumentedSourceDir, '--nycrc-path', settingsPath)
+  await writeFile(job.nycSettingsPath, JSON.stringify(settings))
+  await nyc('instrument', job.webapp, join(job.covTempDir, 'instrumented'), '--nycrc-path', job.nycSettingsPath)
 }
 
-async function generateCoverageReport () {
+async function generateCoverageReport (job) {
   job.status = 'Generating coverage report'
   await cleanDir(job.covReportDir)
   await nyc('merge', job.covTempDir, join(job.covTempDir, 'coverage.json'))
   const reporters = job.covReporters.split(',').map(reporter => `--reporter=${reporter}`)
-  await nyc('report', ...reporters, '--temp-dir', job.covTempDir, '--report-dir', job.covReportDir, '--nycrc-path', settingsPath)
+  await nyc('report', ...reporters, '--temp-dir', job.covTempDir, '--report-dir', job.covReportDir, '--nycrc-path', job.nycSettingsPath)
 }
 
-const mappings = [{
-  match: /^\/(.*\.js)$/,
-  file: join(instrumentedSourceDir, '$1'),
-  'ignore-if-not-found': true,
-  'custom-file-system': customFileSystem
-}]
-
-if (!job.coverage) {
-  const nop = () => {}
-
-  module.exports = {
-    instrument: nop,
-    generateCoverageReport: nop,
-    mappings: []
-  }
-} else {
-  module.exports = {
-    instrument,
-    generateCoverageReport,
-    mappings
-  }
+module.exports = {
+  instrument: job => job.coverage && instrument(job),
+  generateCoverageReport: job => job.coverage && generateCoverageReport(job),
+  mappings: job => job.coverage ? [{
+    match: /^\/(.*\.js)$/,
+    file: join(job.covTempDir, 'instrumented', '$1'),
+    'ignore-if-not-found': true,
+    'custom-file-system': customFileSystem
+  }] : []
 }
