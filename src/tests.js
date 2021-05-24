@@ -8,38 +8,36 @@ const { copyFile, writeFile } = require('fs').promises
 const { watch } = require('fs')
 const { globallyTimedOut } = require('./timeout')
 
-const job = require('./job')
-
-async function extractTestPages () {
+async function extractTestPages (job) {
   job.start = new Date()
-  await instrument()
+  await instrument(job)
   job.status = 'Extracting test pages'
   await recreateDir(job.tstReportDir)
   job.testPageUrls = []
-  await start('/test/testsuite.qunit.html')
+  await start(job, '/test/testsuite.qunit.html')
   job.testPagesStarted = 0
   job.testPagesCompleted = 0
   job.testPages = {}
   job.status = 'Executing test pages'
   for (let i = 0; i < Math.min(job.parallel, job.testPageUrls.length); ++i) {
-    runTestPage()
+    runTestPage(job)
   }
 }
 
-async function runTestPage () {
+async function runTestPage (job) {
   const { length } = job.testPageUrls
   if (job.testPagesCompleted === length) {
-    return generateReport()
+    return generateReport(job)
   }
   if (job.testPagesStarted === length) {
     return
   }
   const index = job.testPagesStarted++
   const url = job.testPageUrls[index]
-  if (globallyTimedOut()) {
+  if (globallyTimedOut(job)) {
     console.log('!! TIMEOUT', url)
   } else {
-    await start(url)
+    await start(job, url)
     const page = job.testPages[url]
     if (page) {
       const reportFileName = join(job.tstReportDir, `${filename(url)}.json`)
@@ -47,10 +45,10 @@ async function runTestPage () {
     }
   }
   ++job.testPagesCompleted
-  runTestPage()
+  runTestPage(job)
 }
 
-async function generateReport () {
+async function generateReport (job) {
   job.status = 'Finalizing'
   // Simple report
   let failed = 0
@@ -73,7 +71,7 @@ async function generateReport () {
   }
   console.table(pages)
   await copyFile(join(__dirname, 'report.html'), join(job.tstReportDir, 'report.html'))
-  await generateCoverageReport()
+  await generateCoverageReport(job)
   console.log(`Time spent: ${new Date() - job.start}ms`)
   job.status = 'Done'
   delete job.start
@@ -83,7 +81,7 @@ async function generateReport () {
       watch(job.webapp, { recursive: true }, (eventType, filename) => {
         console.log(eventType, filename)
         if (!job.start) {
-          extractTestPages()
+          extractTestPages(job)
         }
       })
       job.watching = true
@@ -95,11 +93,11 @@ async function generateReport () {
   }
 }
 
-if (!job.parallel) {
-  module.exports = () => {
+module.exports = job => {
+  if (job.parallel) {
+    extractTestPages(job)
+  } else {
     job.status = 'Serving'
     console.log('Keeping alive.')
   }
-} else {
-  module.exports = extractTestPages
 }
