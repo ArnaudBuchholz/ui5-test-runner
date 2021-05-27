@@ -31,7 +31,7 @@ describe('src/timeout', () => {
     it('returns false if not globally timed out', () => {
       expect(globallyTimedOut({ globalTimeout: 1000, start: new Date() })).toStrictEqual(false)
     })
-  
+
     it('returns true if globally timed out', () => {
       expect(globallyTimedOut({ globalTimeout: 10, start: new Date(Date.now() - 1000) })).toStrictEqual(true)
     })
