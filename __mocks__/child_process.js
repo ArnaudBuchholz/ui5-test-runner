@@ -6,6 +6,10 @@ class ChildProcess extends EventEmitter {
     this.emit('message', message)
   }
 
+  get scriptPath () { return this._scriptPath }
+  get args () { return this._args }
+  get options () { return this._options }
+
   constructor (scriptPath, args, options) {
     super()
     this._scriptPath = scriptPath
