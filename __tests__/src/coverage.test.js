@@ -53,7 +53,7 @@ describe('src/coverage', () => {
     })
   })
 
-  describe('disabled', () => {
+  describe('enabled', () => {
     const path = join(__dirname, '../tmp/coverage')
     let job
 
@@ -90,8 +90,6 @@ describe('src/coverage', () => {
       hook.on('new', newChildProcess)
       await generateCoverageReport(job)
       expect(mergeTriggered).toStrictEqual(true)
-      const stat = await statAsync(join(path, 'report'))
-      expect(stat.isDirectory()).toStrictEqual(true)
       expect(reportTriggered).toStrictEqual(true)
       hook.off('new', newChildProcess)
     })
