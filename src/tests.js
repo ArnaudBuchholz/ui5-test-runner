@@ -5,7 +5,6 @@ const { instrument, generateCoverageReport } = require('./coverage')
 const { filename, recreateDir } = require('./tools')
 const { join } = require('path')
 const { copyFile, writeFile } = require('fs').promises
-const { watch } = require('fs')
 const { globallyTimedOut } = require('./timeout')
 
 async function extractTestPages (job) {
@@ -19,9 +18,11 @@ async function extractTestPages (job) {
   job.testPagesCompleted = 0
   job.testPages = {}
   job.status = 'Executing test pages'
+  const promises = []
   for (let i = 0; i < Math.min(job.parallel, job.testPageUrls.length); ++i) {
-    runTestPage(job)
+    promises.push(runTestPage(job))
   }
+  return Promise.all(promises)
 }
 
 async function runTestPage (job) {
@@ -45,13 +46,13 @@ async function runTestPage (job) {
     }
   }
   ++job.testPagesCompleted
-  runTestPage(job)
+  return runTestPage(job)
 }
 
 async function generateReport (job) {
   job.status = 'Finalizing'
   // Simple report
-  let failed = 0
+  job.failed = 0
   const pages = []
   for (const url of job.testPageUrls) {
     const page = job.testPages[url]
@@ -60,13 +61,13 @@ async function generateReport (job) {
         url,
         failed: page.report.failed
       })
-      failed += page.report.failed
+      job.failed += page.report.failed
     } else {
       pages.push({
         url,
         failed: -1
       })
-      failed += 1
+      job.failed += 1
     }
   }
   console.table(pages)
@@ -75,27 +76,11 @@ async function generateReport (job) {
   console.log(`Time spent: ${new Date() - job.start}ms`)
   job.status = 'Done'
   delete job.start
-  if (job.watch) {
-    if (!job.watching) {
-      console.log('Watching changes on', job.webapp)
-      watch(job.webapp, { recursive: true }, (eventType, filename) => {
-        console.log(eventType, filename)
-        if (!job.start) {
-          extractTestPages(job)
-        }
-      })
-      job.watching = true
-    }
-  } else if (job.keepAlive) {
-    console.log('Keeping alive.')
-  } else {
-    process.exit(failed)
-  }
 }
 
 module.exports = job => {
   if (job.parallel) {
-    extractTestPages(job)
+    return extractTestPages(job)
   } else {
     job.status = 'Serving'
     console.log('Keeping alive.')
