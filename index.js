@@ -23,12 +23,13 @@ async function main () {
       }
       await executeTests(job)
       if (job.watch) {
+        delete job.start
         if (!job.watching) {
           console.log('Watching changes on', job.webapp)
           watch(job.webapp, { recursive: true }, (eventType, filename) => {
             console.log(eventType, filename)
             if (!job.start) {
-              extractTestPages(job)
+              executeTests(job)
             }
           })
           job.watching = true
