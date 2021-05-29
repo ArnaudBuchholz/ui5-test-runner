@@ -6,6 +6,7 @@ const { log, serve } = require('reserve')
 const jobFactory = require('./src/job')
 const reserveConfigurationFactory = require('./src/reserve')
 const executeTests = require('./src/tests')
+const { watch } = require('fs')
 
 async function main () {
   const job = jobFactory.fromCmdLine(process.cwd(), process.argv)
@@ -20,7 +21,23 @@ async function main () {
       if (!job.logServer) {
         console.log(`Server running at ${url}`)
       }
-      executeTests(job)
+      await executeTests(job)
+      if (job.watch) {
+        if (!job.watching) {
+          console.log('Watching changes on', job.webapp)
+          watch(job.webapp, { recursive: true }, (eventType, filename) => {
+            console.log(eventType, filename)
+            if (!job.start) {
+              extractTestPages(job)
+            }
+          })
+          job.watching = true
+        }
+      } else if (job.keepAlive) {
+        console.log('Keeping alive.')
+      } else {
+        process.exit(job.failed)
+      }
     })
     .on('error', args => {
       console.log('ERROR', args)
