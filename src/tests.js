@@ -75,7 +75,6 @@ async function generateReport (job) {
   await generateCoverageReport(job)
   console.log(`Time spent: ${new Date() - job.start}ms`)
   job.status = 'Done'
-  delete job.start
 }
 
 module.exports = job => {
