@@ -37,7 +37,7 @@ async function main () {
       } else if (job.keepAlive) {
         console.log('Keeping alive.')
       } else {
-        process.exit(job.failed)
+        process.exit(job.failed || 0)
       }
     })
     .on('error', args => {
