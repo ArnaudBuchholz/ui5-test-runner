@@ -103,6 +103,19 @@ describe('simulate', () => {
     it('succeeded', () => {
       expect(job.failed).toStrictEqual(0)
     })
+
+    it('provides a progress endpoint', async () => {
+      const response = await mocked.request('GET', '/_/progress')
+      expect(response.statusCode).toStrictEqual(200)
+      const progress = JSON.parse(response.toString())
+      expect(Object.keys(progress.testPages).length).toStrictEqual(2)
+      expect(progress.testPages['/page1.html']).not.toStrictEqual(undefined)
+      expect(progress.testPages['/page1.html'].total).toStrictEqual(1)
+      expect(progress.testPages['/page1.html'].failed).toStrictEqual(0)
+      expect(progress.testPages['/page1.html'].passed).toStrictEqual(1)
+      expect(progress.testPages['/page1.html'].report).not.toStrictEqual(undefined)
+      expect(progress.testPages['/page2.html']).not.toStrictEqual(undefined)
+    })
   })
 
   describe('using parallel:0', () => {
@@ -161,10 +174,58 @@ describe('simulate', () => {
     })
   })
 
-/*
-  describe('error')
-  describe('progress')
-*/
+  describe('error', () => {
+    beforeAll(async () => {
+      await setup('error')
+      pages = {
+        'testsuite.qunit.html': async referer => {
+          await mocked.request('POST', '/_/addTestPages', { referer }, JSON.stringify([
+            '/page1.html',
+            '/page2.html'
+          ]))
+        },
+        'page1.html': async referer => {
+          simulateOK(referer)
+        },
+        'page2.html': async referer => {
+          await mocked.request('POST', '/_/QUnit/begin', { referer }, JSON.stringify({ totalTests: 1 }))
+          await mocked.request('POST', '/_/QUnit/testDone', { referer }, JSON.stringify({ failed: 1, passed: 0 }))
+          await mocked.request('POST', '/_/QUnit/done', { referer }, JSON.stringify({ failed: 1 }))
+        }
+      }
+      await executeTests(job)
+    })
+
+    it('failed', () => {
+      expect(job.failed).toStrictEqual(1)
+    })
+  })
+
+  describe('global timeout', () => {
+    beforeAll(async () => {
+      await setup('timeout', '-parallel:1', '-globalTimeout:100')
+      pages = {
+        'testsuite.qunit.html': async referer => {
+          await mocked.request('POST', '/_/addTestPages', { referer }, JSON.stringify([
+            '/page1.html',
+            '/page2.html'
+          ]))
+        },
+        'page1.html': async referer => {
+          await new Promise(resolve => setTimeout(resolve, 100))
+          simulateOK(referer)
+        },
+        'page2.html': async referer => {
+          expect(false).toStrictEqual(true) // Should not be executed
+        }
+      }
+      await executeTests(job)
+    })
+
+    it('failed', () => {
+      expect(job.failed).not.toStrictEqual(0)
+    })
+  })
 
   afterAll(() => {
     hook.off('new', onNewChildProcess)
