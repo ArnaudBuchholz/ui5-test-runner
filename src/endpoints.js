@@ -17,7 +17,6 @@ module.exports = job => {
       if (job.parallel === -1) {
         console.log(url, data)
       }
-      /* istanbul ignore next */
       try {
         await implementation.call(this, url, data)
       } catch (e) {
@@ -118,16 +117,16 @@ module.exports = job => {
       // Endpoint to receive QUnit.done
         match: '^/_/QUnit/done',
         custom: endpoint((url, report) => {
+          let promise = Promise.resolve()
           const page = job.testPages[url]
-          let promise
-          if (report.__coverage__) {
-            const coverageFileName = join(job.covTempDir, `${filename(url)}.json`)
-            promise = writeFile(coverageFileName, JSON.stringify(report.__coverage__))
-            delete report.__coverage__
-          } else {
-            promise = Promise.resolve()
+          if (page) {
+            if (report.__coverage__) {
+              const coverageFileName = join(job.covTempDir, `${filename(url)}.json`)
+              promise = writeFile(coverageFileName, JSON.stringify(report.__coverage__))
+              delete report.__coverage__
+            }
+            page.report = report
           }
-          page.report = report
           promise.then(() => stop(job, url))
         })
       }, {
