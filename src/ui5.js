@@ -27,6 +27,7 @@ module.exports = job => {
         return
       }
       const cachingPromise = cachingInProgress[path]
+      /* istanbul ignore next */ // Hard to reproduce
       if (cachingPromise) {
         await cachingPromise
       }
@@ -47,6 +48,9 @@ module.exports = job => {
       const cachePath = join(cacheBase, filePath)
       const cacheFolder = dirname(cachePath)
       await mkdir(cacheFolder, { recursive: true })
+      if (cachingInProgress[path]) {
+        return request.url // loop back to use cached result
+      }
       const file = createWriteStream(cachePath)
       cachingInProgress[path] = capture(response, file)
         .catch(reason => {
