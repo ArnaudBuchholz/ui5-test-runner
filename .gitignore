@@ -25,4 +25,4 @@ node_modules/
 *.sh
 
 # generated during tests
-__tests__/tmp/
+tmp/
