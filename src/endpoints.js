@@ -17,6 +17,7 @@ module.exports = job => {
       if (job.parallel === -1) {
         console.log(url, data)
       }
+      /* istanbul ignore next */
       try {
         await implementation.call(this, url, data)
       } catch (e) {
@@ -27,7 +28,7 @@ module.exports = job => {
     }
   }
 
-  return job
+  return job.parallel
     ? [{
       // Substitute qunit-redirect to extract test pages
         match: '/resources/sap/ui/qunit/qunit-redirect.js',
