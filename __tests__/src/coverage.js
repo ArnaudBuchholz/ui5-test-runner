@@ -15,7 +15,7 @@ describe('src/coverage', () => {
   })
 
   describe('disabled', () => {
-    const path = join(__dirname, '../tmp/no_coverage')
+    const path = join(__dirname, '../../tmp/coverage/disabled')
     let job
 
     beforeAll(() => {
@@ -54,7 +54,7 @@ describe('src/coverage', () => {
   })
 
   describe('enabled', () => {
-    const path = join(__dirname, '../tmp/coverage')
+    const path = join(__dirname, '../../tmp/coverage/enabled')
     let job
 
     beforeAll(() => {
