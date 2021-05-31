@@ -25,9 +25,7 @@ const globalContextReplace = 'var global=window.top;'
 const customFileSystem = {
   stat: path => stat(path)
     .then(stats => {
-      if (stats) {
-        stats.size -= globalContextSearch.length + globalContextReplace.length
-      }
+      stats.size -= globalContextSearch.length + globalContextReplace.length
       return stats
     }),
   readdir,
