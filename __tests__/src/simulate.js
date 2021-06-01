@@ -30,6 +30,7 @@ describe('simulate', () => {
       })
       if (!pageFound) {
         console.warn(`Page ${referer} not found`)
+        expect(false).toStrictEqual(true)
       }
       return
     }
@@ -336,6 +337,36 @@ var global=new Function("return this")();
 
     it('succeeded', () => {
       expect(job.failed).toStrictEqual(0)
+    })
+  })
+
+  describe('error and failFast (stop after first failure)', () => {
+    beforeAll(async () => {
+      await setup('fail_fast', '-parallel:1', '-failFast')
+      pages = {
+        'testsuite.qunit.html': async referer => {
+          await mocked.request('POST', '/_/addTestPages', { referer }, JSON.stringify([
+            '/page1.html',
+            '/page2.html',
+            '/page3.html',
+            '/page4.html'
+          ]))
+        },
+        'page1.html': async referer => {
+          simulateOK(referer)
+        },
+        'page2.html': async referer => {
+          await mocked.request('POST', '/_/QUnit/begin', { referer }, JSON.stringify({ totalTests: 1 }))
+          await mocked.request('POST', '/_/QUnit/testDone', { referer }, JSON.stringify({ failed: 1, passed: 0 }))
+          await mocked.request('POST', '/_/QUnit/done', { referer }, JSON.stringify({ failed: 1 }))
+        }
+        // Should not try to run page 3 & 4
+      }
+      await executeTests(job)
+    })
+
+    it('failed', () => {
+      expect(job.failed).toStrictEqual(3) // page2 + other pages that didn't run
     })
   })
 
