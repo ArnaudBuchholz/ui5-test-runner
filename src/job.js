@@ -45,6 +45,10 @@ function finalize (job) {
   'libs,webapp,browser,tstReportDir,covSettings,covTempDir,covReportDir'
     .split(',')
     .forEach(setting => toAbsolute(setting))
+
+  if (job.parallel <= 0) {
+    job.keepAlive = true
+  }
 }
 
 module.exports = {
