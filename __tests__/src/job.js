@@ -33,4 +33,14 @@ describe('src/job', () => {
     const job = jobFactory.fromCmdLine(cwd, [0, 0, '-cwd2:../project2'])
     expect(normalizePath(job.cwd)).toStrictEqual('/test/project')
   })
+
+  it('sets keepAlive when parallel = 0', () => {
+    const job = jobFactory.fromCmdLine(cwd, [0, 0, '-parallel:0'])
+    expect(job.keepAlive).toStrictEqual(true)
+  })
+
+  it('sets keepAlive when parallel < 0', () => {
+    const job = jobFactory.fromCmdLine(cwd, [0, 0, '-parallel:-1'])
+    expect(job.keepAlive).toStrictEqual(true)
+  })
 })

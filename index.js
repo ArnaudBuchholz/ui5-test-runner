@@ -35,6 +35,7 @@ async function main () {
           job.watching = true
         }
       } else if (job.keepAlive) {
+        job.status = 'Serving'
         console.log('Keeping alive.')
       } else {
         process.exit(job.failed || 0)
