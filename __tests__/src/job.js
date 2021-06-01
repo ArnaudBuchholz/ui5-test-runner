@@ -24,6 +24,11 @@ describe('src/job', () => {
     expect(normalizePath(job.webapp)).toStrictEqual('/test/project2/webapp')
   })
 
+  it('implements boolean switch', () => {
+    const job = jobFactory.fromCmdLine(cwd, [0, 0, '-cwd:../project2', '-port:8080', '-keepAlive'])
+    expect(job.keepAlive).toStrictEqual(true)
+  })
+
   it('ignores unknown parameters', () => {
     const job = jobFactory.fromCmdLine(cwd, [0, 0, '-cwd2:../project2'])
     expect(normalizePath(job.cwd)).toStrictEqual('/test/project')
