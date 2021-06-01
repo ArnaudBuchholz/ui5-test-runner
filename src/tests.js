@@ -83,8 +83,5 @@ async function generateReport (job) {
 module.exports = job => {
   if (job.parallel) {
     return extractTestPages(job)
-  } else {
-    job.status = 'Serving'
-    console.log('Keeping alive.')
   }
 }
