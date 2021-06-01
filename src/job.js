@@ -15,6 +15,7 @@ function allocate (cwd) {
     pageParams: '',
     pageTimeout: 0,
     globalTimeout: 0,
+    failFast: false,
     keepAlive: false,
     watch: false,
     logServer: false,
@@ -51,17 +52,17 @@ module.exports = {
     const job = allocate(cwd)
     argv.forEach(arg => {
       const valueParsers = {
-        boolean: value => value === 'true',
+        boolean: (value, defaultValue) => value === undefined ? !defaultValue : value === 'true',
         number: value => parseInt(value, 10),
         default: value => value
       }
 
-      const parsed = /-(\w+):(.*)/.exec(arg)
+      const parsed = /-(\w+)(?::(.*))?/.exec(arg)
       if (parsed) {
         const [, name, value] = parsed
         if (Object.prototype.hasOwnProperty.call(job, name)) {
           const valueParser = valueParsers[typeof job[name]] || valueParsers.default
-          job[name] = valueParser(value)
+          job[name] = valueParser(value, job[name])
         }
       }
     })
