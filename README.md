@@ -40,6 +40,7 @@ Concept is detailled in the  article [REserve - Testing UI5](https://arnaud-buch
 | pageParams | `''` | Parameters added to each page URL.<br/>For instance : `'sap-ui-theme=sap_belize&sap-ui-debug=true'` |
 | pageTimeout | `0` | Limit the page execution time, fails the page if it takes longer than the timeout (`0` to disable the timeout) |
 | globalTimeout | `0` | Limit the pages execution time, fails the execution if it takes longer than the timeout (`0` to disable the timeout) |
+| failFast | `false` | Stops the execution after the first failing page |
 | keepAlive | `false` | Keeps the server alive *(enables debugging)* |
 | watch | `false` | Monitors the webapp folder and re-execute tests on change |
 | logServer | `false` | Logs REserve traces |
