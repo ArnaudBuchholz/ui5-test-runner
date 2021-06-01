@@ -107,6 +107,7 @@ module.exports = job => {
         custom: endpoint((url, report) => {
           const page = job.testPages[url]
           if (report.failed) {
+            job.failed = true
             ++page.failed
           } else {
             ++page.passed
