@@ -18,6 +18,7 @@ async function extractTestPages (job) {
   job.testPagesCompleted = 0
   job.testPages = {}
   job.status = 'Executing test pages'
+  delete job.failed
   const promises = []
   for (let i = 0; i < Math.min(job.parallel, job.testPageUrls.length); ++i) {
     promises.push(runTestPage(job))
@@ -37,6 +38,8 @@ async function runTestPage (job) {
   const url = job.testPageUrls[index]
   if (globallyTimedOut(job)) {
     console.log('!! TIMEOUT', url)
+  } else if (job.failFast && job.failed) {
+    console.log('!! FAILFAST', url)
   } else {
     await start(job, url)
     const page = job.testPages[url]
