@@ -6,11 +6,13 @@ const reserveConfigurationFactory = require('../../src/reserve')
 const { _hook: hook } = require('child_process')
 const executeTests = require('../../src/tests')
 const nock = require('nock')
-const { mkdir, readFile, rmdir, stat, writeFile } = require('fs').promises
+const { readFile, stat, writeFile } = require('fs').promises
+const { cleanDir, createDir } = require('../../src/tools')
 
 describe('simulate', () => {
   let log
   let error
+  const simulatePath = join(__dirname, '../../tmp/simulate')
 
   let pages = {}
 
@@ -53,16 +55,17 @@ describe('simulate', () => {
     })
     nockScope.get('/resources/not-found.js').reply(404)
     nockScope.get('/resources/error.js').reply(500)
+    return cleanDir(simulatePath)
   })
 
   let job
   let mocked
 
   async function setup (name, ...args) {
-    job = jobFactory.fromCmdLine(join(__dirname, `../../tmp/simulate/${name}`), [0, 0,
-      `-tstReportDir:${join(__dirname, `../../tmp/simulate/${name}/report`)}`,
-      `-covTempDir:${join(__dirname, `../../tmp/simulate/${name}/coverage/temp`)}`,
-      `-covReportDir:${join(__dirname, `../../tmp/simulate/${name}/coverage/report`)}`,
+    job = jobFactory.fromCmdLine(join(simulatePath, 'name'), [0, 0,
+      `-tstReportDir:${join(simulatePath, name, 'report')}`,
+      `-covTempDir:${join(simulatePath, name, 'coverage/temp')}`,
+      `-covReportDir:${join(simulatePath, name, 'coverage/report')}`,
       ...args
     ])
     const configuration = await reserveConfigurationFactory(job)
@@ -288,12 +291,11 @@ describe('simulate', () => {
     beforeAll(async () => {
       await setup('coverage_and_cache', '-cache:ui5')
       ui5Cache = join(__dirname, '../../tmp/simulate/coverage_and_cache/ui5')
-      const recursive = { recursive: true }
-      await rmdir(ui5Cache, recursive)
+      await cleanDir(ui5Cache)
       pages = {
         'testsuite.qunit.html': async referer => {
           const instrumentedPath = join(__dirname, '../../tmp/simulate/coverage_and_cache/coverage/temp/instrumented')
-          await mkdir(instrumentedPath, recursive)
+          await createDir(instrumentedPath)
           const instrumentedComponentPath = join(instrumentedPath, 'component.js')
           await writeFile(instrumentedComponentPath, `/* component.js */
 var global=new Function("return this")();
