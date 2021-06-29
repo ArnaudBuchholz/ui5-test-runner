@@ -4,18 +4,21 @@ const jobFactory = require('../../src/job')
 const { _hook: hook } = require('child_process')
 const { instrument, generateCoverageReport, mappings } = require('../../src/coverage')
 const { stat: statAsync } = require('fs').promises
+const { cleanDir } = require('../../src/tools')
 
 const cwd = '/test/project'
 
 describe('src/coverage', () => {
   let log
+  const coveragePath = join(__dirname, '../../tmp/coverage')
 
   beforeAll(() => {
     log = jest.spyOn(console, 'log').mockImplementation()
+    return cleanDir(coveragePath)
   })
 
   describe('disabled', () => {
-    const path = join(__dirname, '../../tmp/coverage/disabled')
+    const path = join(coveragePath, 'disabled')
     let job
 
     beforeAll(() => {
@@ -54,7 +57,7 @@ describe('src/coverage', () => {
   })
 
   describe('enabled', () => {
-    const path = join(__dirname, '../../tmp/coverage/enabled')
+    const path = join(coveragePath, 'enabled')
     let job
 
     beforeAll(() => {
