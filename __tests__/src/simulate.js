@@ -43,7 +43,7 @@ describe('simulate', () => {
     log = jest.spyOn(console, 'log').mockImplementation()
     error = jest.spyOn(console, 'error').mockImplementation()
     hook.on('new', onNewChildProcess)
-    const nockScope = nock('https://ui5.sap.com/1.87.0').persist()
+    const nockScope = nock('https://ui5.sap.com/').persist()
     const nockContent = [
       '/resources/sap-ui-core.js',
       '/resources/sap/ui/qunit/qunit-redirect.js',
