@@ -6,7 +6,8 @@ const { mkdir, unlink } = require('fs').promises
 const { capture } = require('reserve')
 
 module.exports = job => {
-  const [, hostName, version] = /https?:\/\/([^/]*)(?:\/[^/]+)*\/(\d+\.\d+\.\d+)?$/.exec(job.ui5)
+  const [, hostName] = /https?:\/\/([^/]*)/.exec(job.ui5)
+  const [, version] = /(\d+\.\d+\.\d+)?$/.exec(job.ui5)
   const cacheBase = join(job.cwd, job.cache, hostName, version || '')
   const match = /\/((?:test-)?resources\/.*)/
   const ifCacheEnabled = (request, url, match) => job.cache ? match : false
