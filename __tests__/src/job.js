@@ -5,11 +5,17 @@ const cwd = '/test/project'
 const normalizePath = path => path.replace(/\\/g, '/') // win -> unix
 
 describe('src/job', () => {
+  let error
+
+  beforeAll(() => {
+    error = jest.spyOn(console, 'error').mockImplementation()
+  })
+
   it('provides default values', () => {
     const job = jobFactory.fromCmdLine(cwd, [])
     expect(normalizePath(job.cwd)).toStrictEqual(cwd)
     expect(job.port).toStrictEqual(0)
-    expect(job.ui5).toStrictEqual('https://ui5.sap.com/1.87.0')
+    expect(job.ui5).toStrictEqual('https://ui5.sap.com')
     expect(job.browser.startsWith(dirname(dirname(__dirname)))).toStrictEqual(true)
     expect(normalizePath(job.browser).endsWith('defaults/chromium.js')).toStrictEqual(true)
     expect(normalizePath(job.webapp)).toStrictEqual('/test/project/webapp')
@@ -42,5 +48,39 @@ describe('src/job', () => {
   it('sets keepAlive when parallel < 0', () => {
     const job = jobFactory.fromCmdLine(cwd, [0, 0, '-parallel:-1'])
     expect(job.keepAlive).toStrictEqual(true)
+  })
+
+  it('supports libs parameter', () => {
+    const job = jobFactory.fromCmdLine(cwd, [0, 0, '-libs:/any_path'])
+    expect(job.libs.length).toStrictEqual(1)
+    expect(job.libs[0].relative).toStrictEqual('')
+    expect(job.libs[0].source).toStrictEqual('/any_path')
+  })
+
+  it('supports multiple libs parameter', () => {
+    const job = jobFactory.fromCmdLine(cwd, [0, 0, '-libs:/any_path', '-libs:rel_path'])
+    expect(job.libs.length).toStrictEqual(2)
+    expect(job.libs[0].relative).toStrictEqual('')
+    expect(job.libs[0].source).toStrictEqual('/any_path')
+    expect(job.libs[1].relative).toStrictEqual('')
+    expect(normalizePath(job.libs[1].source)).toStrictEqual('/test/project/rel_path')
+  })
+
+  it('supports complex libs parameter', () => {
+    const job = jobFactory.fromCmdLine(cwd, [0, 0, '-libs:abs/=/any_path', '-libs:rel/=rel_path'])
+    expect(job.libs.length).toStrictEqual(2)
+    expect(job.libs[0].relative).toStrictEqual('abs/')
+    expect(job.libs[0].source).toStrictEqual('/any_path')
+    expect(job.libs[1].relative).toStrictEqual('rel/')
+    expect(normalizePath(job.libs[1].source)).toStrictEqual('/test/project/rel_path')
+  })
+
+  it('ignores malformed parameters', () => {
+    const job = jobFactory.fromCmdLine(cwd, [0, 0, '-ui5=abc'])
+    expect(job.ui5).toStrictEqual('https://ui5.sap.com')
+  })
+
+  afterAll(() => {
+    error.mockRestore()
   })
 })
