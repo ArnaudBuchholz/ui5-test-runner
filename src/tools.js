@@ -15,7 +15,7 @@ const recursive = { recursive: true }
 
 const cleanDir = async dir => {
   try {
-    const dirStat = await stat(dir)
+    await stat(dir)
     await rm(dir, recursive)
   } catch (err) {
     // Ignore
