@@ -32,8 +32,8 @@ Concept is detailled in the  article [REserve - Testing UI5](https://arnaud-buch
 |---|---|---|
 | cwd | `process.cwd()` | Current working directory |
 | port | `0` | port to use (`0` to let REserve allocate one) |
-| ui5 | `'https://ui5.sap.com/1.87.0'` | UI5 url |
-| libs | `''` | Folder containing dependent libraries *(relative to `cwd`)* |
+| ui5 | `'https://ui5.sap.com'` | UI5 url |
+| libs | | Folder(s) containing dependent libraries *(relative to `cwd`)*.<br/>Might be used multiple times, two syntaxes are supported :<ul><li>`-libs:path` adds `path` to the list of libraries, mapped directly under `/resources/`</li><li>`-libs:rel/=path` adds the `path` to the list of libraries, mapped under `/resources/rel/`</li></ul> |
 | cache | `''` | Cache UI5 resources locally in the given folder *(empty to disable)* |
 | webapp | `'webapp'` | base folder of the web application *(relative to `cwd`)* |
 | pageFilter | `''` | [regexp](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/RegExp) to select which pages to execute |
