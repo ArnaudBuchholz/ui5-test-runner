@@ -72,13 +72,13 @@ module.exports = job => {
     url: `${job.ui5}/$1`
   }]
 
-  if (job.libs) {
+  job.libs.forEach(({ relative, source }) => {
     mappings.unshift({
-      match: /\/resources\/(.*)/,
-      file: join(job.libs, '$1'),
+      match: new RegExp(`\\/resources\\/${relative.replace(/\//g, '\\/')}(.*)`),
+      file: join(source, '$1'),
       'ignore-if-not-found': true
     })
-  }
+  })
 
   return mappings
 }
