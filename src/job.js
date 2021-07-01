@@ -7,8 +7,8 @@ function allocate (cwd) {
     initialCwd: cwd,
     cwd,
     port: 0,
-    ui5: 'https://ui5.sap.com/1.87.0',
-    libs: '',
+    ui5: 'https://ui5.sap.com',
+    libs: [],
     cache: '',
     webapp: 'webapp',
     pageFilter: '',
@@ -35,16 +35,25 @@ function allocate (cwd) {
 }
 
 function finalize (job) {
-  function toAbsolute (member, from = job.cwd) {
-    if (!isAbsolute(job[member])) {
-      job[member] = join(from, job[member])
+  function toAbsolute (path, from = job.cwd) {
+    if (!isAbsolute(path)) {
+      return join(from, path)
     }
+    return path
   }
 
-  toAbsolute('cwd', job.initialCwd)
-  'libs,webapp,browser,tstReportDir,covSettings,covTempDir,covReportDir'
+  function updateToAbsolute (member, from = job.cwd) {
+    job[member] = toAbsolute(job[member], from)
+  }
+
+  updateToAbsolute('cwd', job.initialCwd)
+  'webapp,browser,tstReportDir,covSettings,covTempDir,covReportDir'
     .split(',')
-    .forEach(setting => toAbsolute(setting))
+    .forEach(setting => updateToAbsolute(setting))
+
+  job.libs.forEach(libMapping => {
+    libMapping.source = toAbsolute(libMapping.source)
+  })
 
   if (job.parallel <= 0) {
     job.keepAlive = true
@@ -58,15 +67,31 @@ module.exports = {
       const valueParsers = {
         boolean: (value, defaultValue) => value === undefined ? !defaultValue : value === 'true',
         number: value => parseInt(value, 10),
-        default: value => value
+        default: value => { if (!value) { throw new Error('must not be empty') } return value }
+      }
+
+      const paramParser = {
+        libs: (value, defaultValue) => {
+          if (value.includes('=')) {
+            const [relative, source] = value.split('=')
+            defaultValue.push({ relative, source })
+          } else {
+            defaultValue.push({ relative: '', source: value })
+          }
+          return defaultValue
+        }
       }
 
       const parsed = /-(\w+)(?::(.*))?/.exec(arg)
       if (parsed) {
         const [, name, value] = parsed
         if (Object.prototype.hasOwnProperty.call(job, name)) {
-          const valueParser = valueParsers[typeof job[name]] || valueParsers.default
-          job[name] = valueParser(value, job[name])
+          const valueParser = paramParser[name] || valueParsers[typeof job[name]] || valueParsers.default
+          try {
+            job[name] = valueParser(value, job[name])
+          } catch (error) {
+            console.error(`Unexpected value for option ${name} : ${error.message}`)
+          }
         }
       }
     })
