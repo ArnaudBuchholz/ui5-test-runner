@@ -372,6 +372,30 @@ var global=new Function("return this")();
     })
   })
 
+  describe('ui5 libraries', () => {
+    beforeAll(async () => {
+      await setup('ui5', '-ui5:https://any.cdn.com/', `-libs:inject/=${join(__dirname, '../../src/inject')}`)
+      pages = {
+        'testsuite.qunit.html': async referer => {
+          await mocked.request('POST', '/_/addTestPages', { referer }, JSON.stringify([
+            '/page1.html'
+          ]))
+        },
+        'page1.html': async referer => {
+          const response = await mocked.request('GET', '/resources/inject/qunit-hooks.js', { referer })
+          expect(response.statusCode).toStrictEqual(200)
+          expect(response.toString().includes('/* Injected QUnit hooks */')).toStrictEqual(true)
+          simulateOK(referer)
+        }
+      }
+      await executeTests(job)
+    })
+
+    it('succeeded', () => {
+      expect(job.failed).toStrictEqual(0)
+    })
+  })
+
   afterAll(() => {
     hook.off('new', onNewChildProcess)
     log.mockRestore()
