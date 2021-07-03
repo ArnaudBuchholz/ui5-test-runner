@@ -374,7 +374,7 @@ var global=new Function("return this")();
 
   describe('ui5 libraries', () => {
     beforeAll(async () => {
-      await setup('ui5', '-ui5:https://any.cdn.com/', `-libs:inject/=${join(__dirname, '../../src/inject')}`)
+      await setup('ui5', '-ui5:https://any.cdn.com/', `-libs:${join(__dirname, '../..')}`, `-libs:inject/=${join(__dirname, '../../src/inject')}`)
       pages = {
         'testsuite.qunit.html': async referer => {
           await mocked.request('POST', '/_/addTestPages', { referer }, JSON.stringify([
@@ -382,9 +382,12 @@ var global=new Function("return this")();
           ]))
         },
         'page1.html': async referer => {
-          const response = await mocked.request('GET', '/resources/inject/qunit-hooks.js', { referer })
-          expect(response.statusCode).toStrictEqual(200)
-          expect(response.toString().includes('/* Injected QUnit hooks */')).toStrictEqual(true)
+          const response1 = await mocked.request('GET', '/resources/inject/qunit-hooks.js', { referer })
+          expect(response1.statusCode).toStrictEqual(200)
+          expect(response1.toString().includes('/* Injected QUnit hooks */')).toStrictEqual(true)
+          const response2 = await mocked.request('GET', '/resources/src/inject/qunit-hooks.js', { referer })
+          expect(response2.statusCode).toStrictEqual(200)
+          expect(response2.toString().includes('/* Injected QUnit hooks */')).toStrictEqual(true)
           simulateOK(referer)
         }
       }
