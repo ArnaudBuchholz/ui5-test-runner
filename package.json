@@ -1,6 +1,6 @@
 {
   "name": "ui5-test-runner",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "Standalone test runner for UI5",
   "main": "index.js",
   "files": [
@@ -47,7 +47,7 @@
   },
   "devDependencies": {
     "jest": "^27.0.6",
-    "nock": "^13.1.0",
+    "nock": "^13.1.1",
     "standard": "^16.0.3"
   },
   "standard": {
