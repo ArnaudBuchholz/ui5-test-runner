@@ -10,7 +10,21 @@ const { watch } = require('fs')
 
 function send (message) {
   if (process.send) {
-    process.send(message)
+    process.send({
+      pid: process.pid,
+      ...message
+    })
+  }
+}
+
+async function notifyAndExecuteTests (job) {
+  send({ msg: 'begin' })
+  try {
+    await executeTests(job)
+    send({ msg: 'end', status: job.failed || 0 })
+  } catch (error) {
+    console.error('ERROR', error)
+    send({ msg: 'error', error })
   }
 }
 
@@ -24,11 +38,11 @@ async function main () {
   server
     .on('ready', async ({ url, port }) => {
       job.port = port
+      send({ msg: 'ready', port: job.port })
       if (!job.logServer) {
         console.log(`Server running at ${url}`)
       }
-      send({ port })
-      await executeTests(job)
+      await notifyAndExecuteTests(job)
       if (job.watch) {
         delete job.start
         if (!job.watching) {
@@ -36,7 +50,7 @@ async function main () {
           watch(job.webapp, { recursive: true }, (eventType, filename) => {
             console.log(eventType, filename)
             if (!job.start) {
-              executeTests(job)
+              notifyAndExecuteTests(job)
             }
           })
           job.watching = true
@@ -50,7 +64,7 @@ async function main () {
     })
     .on('error', error => {
       console.error('ERROR', error)
-      send({ error })
+      send({ msg: 'error', error })
     })
 }
 
