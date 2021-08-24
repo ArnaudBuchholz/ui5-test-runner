@@ -8,6 +8,12 @@ const reserveConfigurationFactory = require('./src/reserve')
 const executeTests = require('./src/tests')
 const { watch } = require('fs')
 
+function send (message) {
+  if (process.send) {
+    process.send(message)
+  }
+}
+
 async function main () {
   const job = jobFactory.fromCmdLine(process.cwd(), process.argv)
   const configuration = await reserveConfigurationFactory(job)
@@ -21,6 +27,7 @@ async function main () {
       if (!job.logServer) {
         console.log(`Server running at ${url}`)
       }
+      send({ port })
       await executeTests(job)
       if (job.watch) {
         delete job.start
@@ -41,8 +48,9 @@ async function main () {
         process.exit(job.failed || 0)
       }
     })
-    .on('error', args => {
-      console.log('ERROR', args)
+    .on('error', error => {
+      console.error('ERROR', error)
+      send({ error })
     })
 }
 
