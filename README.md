@@ -8,6 +8,7 @@
 [![ui5-test-runner](http://img.shields.io/npm/dm/ui5-test-runner.svg)](https://www.npmjs.org/package/ui5-test-runner)
 [![install size](https://packagephobia.now.sh/badge?p=ui5-test-runner)](https://packagephobia.now.sh/result?p=ui5-test-runner)
 [![MIT License](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2FArnaudBuchholz%2Fui5-test-runner.svg?type=shield)](https://app.fossa.com/projects/git%2Bgithub.com%2FArnaudBuchholz%2Fui5-test-runner?ref=badge_shield)
 
 A test runner for UI5 applications enabling parallel execution of tests.
 
@@ -143,3 +144,7 @@ You may also use :
 | covTempDir | `'.nyc_output'` | Directory to output raw coverage information to *(relative to `cwd`)* |
 | covReportDir | `'coverage'` | Where to put the coverage report files *(relative to `cwd`)* |
 | covReporters | `'lcov,cobertura'` | Comma separated list of reporters to use |
+
+
+## License
+[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2FArnaudBuchholz%2Fui5-test-runner.svg?type=large)](https://app.fossa.com/projects/git%2Bgithub.com%2FArnaudBuchholz%2Fui5-test-runner?ref=badge_large)
