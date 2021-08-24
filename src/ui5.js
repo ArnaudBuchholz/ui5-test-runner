@@ -70,7 +70,8 @@ module.exports = job => {
     // UI5 from url
     method: ['GET', 'HEAD'],
     match,
-    url: `${job.ui5}/$1`
+    url: `${job.ui5}/$1`,
+    'ignore-unverifiable-certificate': true
   }]
 
   job.libs.forEach(({ relative, source }) => {
