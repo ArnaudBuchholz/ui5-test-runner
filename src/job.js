@@ -60,39 +60,50 @@ function finalize (job) {
   }
 }
 
+function parseJobParam (job, arg) {
+  const valueParsers = {
+    boolean: (value, defaultValue) => value === undefined ? !defaultValue : value === 'true',
+    number: value => parseInt(value, 10),
+    default: value => { if (!value) { throw new Error('must not be empty') } return value }
+  }
+
+  const paramParser = {
+    libs: (value, defaultValue) => {
+      if (value.includes('=')) {
+        const [relative, source] = value.split('=')
+        defaultValue.push({ relative, source })
+      } else {
+        defaultValue.push({ relative: '', source: value })
+      }
+      return defaultValue
+    }
+  }
+
+  const parsed = /-(\w+)(?::(.*))?/.exec(arg)
+  if (parsed) {
+    const [, name, value] = parsed
+    if (Object.prototype.hasOwnProperty.call(job, name)) {
+      const valueParser = paramParser[name] || valueParsers[typeof job[name]] || valueParsers.default
+      try {
+        job[name] = valueParser(value, job[name])
+      } catch (error) {
+        console.error(`Unexpected value for option ${name} : ${error.message}`)
+      }
+    }
+  }
+}
+
 module.exports = {
   fromCmdLine (cwd, argv) {
     const job = allocate(cwd)
+    let inBrowserParams = false
     argv.forEach(arg => {
-      const valueParsers = {
-        boolean: (value, defaultValue) => value === undefined ? !defaultValue : value === 'true',
-        number: value => parseInt(value, 10),
-        default: value => { if (!value) { throw new Error('must not be empty') } return value }
-      }
-
-      const paramParser = {
-        libs: (value, defaultValue) => {
-          if (value.includes('=')) {
-            const [relative, source] = value.split('=')
-            defaultValue.push({ relative, source })
-          } else {
-            defaultValue.push({ relative: '', source: value })
-          }
-          return defaultValue
-        }
-      }
-
-      const parsed = /-(\w+)(?::(.*))?/.exec(arg)
-      if (parsed) {
-        const [, name, value] = parsed
-        if (Object.prototype.hasOwnProperty.call(job, name)) {
-          const valueParser = paramParser[name] || valueParsers[typeof job[name]] || valueParsers.default
-          try {
-            job[name] = valueParser(value, job[name])
-          } catch (error) {
-            console.error(`Unexpected value for option ${name} : ${error.message}`)
-          }
-        }
+      if (inBrowserParams) {
+        job.args += ` ${arg}`
+      } else if (arg === '--') {
+        inBrowserParams = true
+      } else {
+        parseJobParam(job, arg)
       }
     })
     finalize(job)
