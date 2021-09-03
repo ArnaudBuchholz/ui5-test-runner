@@ -85,6 +85,14 @@ describe('src/job', () => {
     expect(job.args).toStrictEqual('__URL__ __REPORT__ --visible')
   })
 
+  it('fixes invalid browserRetry value', () => {
+    const warn = jest.spyOn(console, 'warn').mockImplementation()
+    const job = jobFactory.fromCmdLine(cwd, [0, 0, '-browserRetry: -1'])
+    expect(job.browserRetry).toStrictEqual(1)
+    expect(warn.mock.calls.length).toStrictEqual(1)
+    warn.mockRestore()
+  })
+
   afterAll(() => {
     error.mockRestore()
   })
