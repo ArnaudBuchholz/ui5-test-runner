@@ -136,6 +136,7 @@ You may also use :
 | logServer | `false` | Logs REserve traces |
 | browser | *String, see description* | Browser instantiation command, it should point to a node.js script (absolute or relative to `cwd`).<br/>By default, a script will instantiate chromium through puppetteer |
 | args | `'__URL__ __REPORT__'` | Browser instantiation arguments :<ul><li>`'__URL__'` is replaced with the URL to open</li><li>`'__REPORT__'` is replaced with a folder path that is associated with the current URL <i>(can be used to store additional traces such as console logs or screenshots)</i></li></ul> |
+| -- | | Parameters given right after `--` are directly added to the browser instantiation arguments *(see below)* |
 | parallel | `2` | Number of parallel tests executions (`0` to ignore tests and keep alive) |
 | tstReportDir | `'report'` | Directory to output test reports *(relative to `cwd`)* |
 | coverage | `true` | Enables code coverage |
@@ -143,6 +144,13 @@ You may also use :
 | covTempDir | `'.nyc_output'` | Directory to output raw coverage information to *(relative to `cwd`)* |
 | covReportDir | `'coverage'` | Where to put the coverage report files *(relative to `cwd`)* |
 | covReporters | `'lcov,cobertura'` | Comma separated list of reporters to use |
+
+These two commands are equivalent :
+
+```text
+ui5-test-runner "-args:__URL__ __REPORT__ --visible"
+ui5-test-runner -- --visible
+```
 
 ## Building a custom browser instantiation command
 
