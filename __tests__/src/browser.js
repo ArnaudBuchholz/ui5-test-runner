@@ -12,7 +12,7 @@ describe('src/job', () => {
 
   beforeAll(() => {
     log = jest.spyOn(console, 'log').mockImplementation()
-    job = jobFactory.fromCmdLine(cwd, [0, 0, `-tstReportDir:${join(__dirname, '../../tmp/browser')}`])
+    job = jobFactory.fromCmdLine(cwd, [0, 0, `-tstReportDir:${join(__dirname, '../../tmp/browser')}`, '-browserRetry:0'])
   })
 
   it('starts returns a promise resolved on stop', () => {
