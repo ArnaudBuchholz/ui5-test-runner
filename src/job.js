@@ -21,7 +21,7 @@ function allocate (cwd) {
     logServer: false,
 
     browser: join(__dirname, '../defaults/chromium.js'),
-    browserRetry: 3,
+    browserRetry: 1,
     args: '__URL__ __REPORT__',
 
     parallel: 2,
@@ -58,6 +58,11 @@ function finalize (job) {
 
   if (job.parallel <= 0) {
     job.keepAlive = true
+  }
+
+  if (job.browserRetry < 0) {
+    console.warn('Invalid browserRetry value, defaulting to 1')
+    job.browserRetry = 1
   }
 }
 
