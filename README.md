@@ -134,8 +134,9 @@ You may also use :
 | keepAlive | `false` | Keeps the server alive *(enables debugging)* |
 | watch | `false` | Monitors the webapp folder and re-execute tests on change |
 | logServer | `false` | Logs REserve traces |
-| browser | *String, see description* | Browser instantiation command, it should point to a node.js script (absolute or relative to `cwd`).<br/>By default, a script will instantiate chromium through puppetteer |
-| args | `'__URL__ __REPORT__'` | Browser instantiation arguments :<ul><li>`'__URL__'` is replaced with the URL to open</li><li>`'__REPORT__'` is replaced with a folder path that is associated with the current URL <i>(can be used to store additional traces such as console logs or screenshots)</i></li></ul> |
+| browser | *String, see description* | Browser instantiation command, it should point to a node.js script *(absolute or relative to `cwd`)*.<br/>By default, a script will instantiate chromium through puppetteer |
+| browserRetry | `3` | Browser instantiation retries : if the command **fails** unexpectedly, it is re-executed.<br/>The page **fails** if **all attempts** fail |
+| args | `'__URL__ __REPORT__'` | Browser instantiation arguments :<ul><li>`'__URL__'` is replaced with the URL to open</li><li>`'__REPORT__'` is replaced with a folder path that is associated with the current URL *(can be used to store additional traces such as console logs or screenshots)*</li><li>`'__RETRY__'` is replaced with the retry count *(0 for the first try, can be used to put additional traces or change strategy)*</i>*</li></ul> |
 | -- | | Parameters given right after `--` are directly added to the browser instantiation arguments *(see below)* |
 | parallel | `2` | Number of parallel tests executions (`0` to ignore tests and keep alive) |
 | tstReportDir | `'report'` | Directory to output test reports *(relative to `cwd`)* |
