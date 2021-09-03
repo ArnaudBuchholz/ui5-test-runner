@@ -1,12 +1,11 @@
 # UI5 Test runner
 
+[![Node.js CI](https://github.com/ArnaudBuchholz/ui5-test-runner/actions/workflows/node.js.yml/badge.svg)](https://github.com/ArnaudBuchholz/ui5-test-runner/actions/workflows/node.js.yml)
 [![Package Quality](https://npm.packagequality.com/shield/ui5-test-runner.svg)](https://packagequality.com/#?package=ui5-test-runner)
 [![Known Vulnerabilities](https://snyk.io/test/github/ArnaudBuchholz/ui5-test-runner/badge.svg?targetFile=package.json)](https://snyk.io/test/github/ArnaudBuchholz/ui5-test-runner?targetFile=package.json)
 [![dependencies Status](https://david-dm.org/ArnaudBuchholz/ui5-test-runner/status.svg)](https://david-dm.org/ArnaudBuchholz/ui5-test-runner)
 [![devDependencies Status](https://david-dm.org/ArnaudBuchholz/ui5-test-runner/dev-status.svg)](https://david-dm.org/ArnaudBuchholz/ui5-test-runner?type=dev)
 [![ui5-test-runner](https://badge.fury.io/js/ui5-test-runner.svg)](https://www.npmjs.org/package/ui5-test-runner)
-[![ui5-test-runner](http://img.shields.io/npm/dm/ui5-test-runner.svg)](https://www.npmjs.org/package/ui5-test-runner)
-[![install size](https://packagephobia.now.sh/badge?p=ui5-test-runner)](https://packagephobia.now.sh/result?p=ui5-test-runner)
 [![MIT License](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2FArnaudBuchholz%2Fui5-test-runner.svg?type=shield)](https://app.fossa.com/projects/git%2Bgithub.com%2FArnaudBuchholz%2Fui5-test-runner?ref=badge_shield)
 
@@ -145,6 +144,10 @@ You may also use :
 | covReportDir | `'coverage'` | Where to put the coverage report files *(relative to `cwd`)* |
 | covReporters | `'lcov,cobertura'` | Comma separated list of reporters to use |
 
+## Building a custom browser instantiation command
+
+* You may follow the pattern being used by [`chromium.js`](https://github.com/ArnaudBuchholz/ui5-test-runner/blob/main/defaults/chromium.js)
+* It is **mandatory** to ensure that the child process explicitly exits at some point *(see this [thread](https://github.com/nodejs/node-v0.x-archive/issues/2605) explaining the fork behavior with Node.js)*
 
 ## License
 [![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2FArnaudBuchholz%2Fui5-test-runner.svg?type=large)](https://app.fossa.com/projects/git%2Bgithub.com%2FArnaudBuchholz%2Fui5-test-runner?ref=badge_large)
