@@ -372,6 +372,22 @@ var global=new Function("return this")();
     })
   })
 
+  describe('error when no page found', () => {
+    beforeAll(async () => {
+      await setup('no_page', '-parallel:1')
+      pages = {
+        'testsuite.qunit.html': async referer => {
+          await mocked.request('POST', '/_/addTestPages', { referer }, JSON.stringify([]))
+        }
+      }
+      await executeTests(job)
+    })
+
+    it('failed', () => {
+      expect(job.failed).toStrictEqual(true) // page2 + other pages that didn't run
+    })
+  })
+
   describe('ui5 libraries', () => {
     beforeAll(async () => {
       await setup('ui5', '-ui5:https://any.cdn.com/', `-libs:${join(__dirname, '../..')}`, `-libs:inject/=${join(__dirname, '../../src/inject')}`)
