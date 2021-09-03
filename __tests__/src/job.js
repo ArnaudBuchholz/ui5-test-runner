@@ -80,6 +80,11 @@ describe('src/job', () => {
     expect(job.ui5).toStrictEqual('https://ui5.sap.com')
   })
 
+  it('allows passing parameters to the browser instantiation command line', () => {
+    const job = jobFactory.fromCmdLine(cwd, [0, 0, '--', '--visible'])
+    expect(job.args).toStrictEqual('__URL__ __REPORT__ --visible')
+  })
+
   afterAll(() => {
     error.mockRestore()
   })
