@@ -14,6 +14,11 @@ async function extractTestPages (job) {
   await recreateDir(job.tstReportDir)
   job.testPageUrls = []
   await start(job, '/test/testsuite.qunit.html')
+  if (job.testPageUrls.length === 0) {
+    console.log('No test page found')
+    job.failed = true
+    return Promise.resolve()
+  }
   job.testPagesStarted = 0
   job.testPagesCompleted = 0
   job.testPages = {}
