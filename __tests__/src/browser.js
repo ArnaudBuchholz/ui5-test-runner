@@ -12,7 +12,7 @@ describe('src/job', () => {
 
   beforeAll(() => {
     log = jest.spyOn(console, 'log').mockImplementation()
-    job = jobFactory.fromCmdLine(cwd, [0, 0, `-tstReportDir:${join(__dirname, '../../tmp/browser')}`, '-browserRetry:0'])
+    job = jobFactory.fromCmdLine(cwd, [0, 0, `-tstReportDir:${join(__dirname, '../../tmp/browser')}`])
   })
 
   it('starts returns a promise resolved on stop', () => {
@@ -39,6 +39,40 @@ describe('src/job', () => {
       start(job, 'test.html'),
       waitingForMessage
     ])
+  })
+
+  it('retries automatically if the process crashes unexpectedly (second succeeds)', () => {
+    let step = 0
+    hook.once('new', childProcess => {
+      step = 1
+      setTimeout(() => childProcess.close(), 100)
+      hook.once('new', () => {
+        step = 2
+        setTimeout(() => stop(job, 'test.html'))
+      })
+    })
+    job.pageTimeout = 1000
+    return start(job, 'test.html')
+      .then(() => {
+        expect(step).toStrictEqual(2)
+      })
+  })
+
+  it('retries automatically if the process crashes unexpectedly (second also fails)', () => {
+    let step = 0
+    hook.once('new', childProcess => {
+      step = 1
+      setTimeout(() => childProcess.close(), 100)
+      hook.once('new', childProcess => {
+        step = 2
+        setTimeout(() => childProcess.close(), 100)
+      })
+    })
+    job.pageTimeout = 1000
+    return start(job, 'test.html')
+      .then(() => {
+        expect(step).toStrictEqual(2)
+      })
   })
 
   it('ignores unstarted pages', () => {
