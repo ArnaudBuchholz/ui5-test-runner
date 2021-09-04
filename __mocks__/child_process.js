@@ -6,12 +6,19 @@ class ChildProcess extends EventEmitter {
     this.emit('message', message)
   }
 
+  close () {
+    this._connected = false
+    this.emit('close')
+  }
+
   get scriptPath () { return this._scriptPath }
   get args () { return this._args }
   get options () { return this._options }
+  get connected () { return this._connected }
 
   constructor (scriptPath, args, options) {
     super()
+    this._connected = true
     this._scriptPath = scriptPath
     this._args = args
     this._options = options
