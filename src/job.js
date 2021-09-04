@@ -36,6 +36,10 @@ function allocate (cwd) {
 }
 
 function finalize (job) {
+  Object.keys(job)
+    .filter(name => name.startsWith('!'))
+    .forEach(name => { job[name.substring(1)] = job[name] })
+
   function toAbsolute (path, from = job.cwd) {
     if (!isAbsolute(path)) {
       return join(from, path)
@@ -102,6 +106,12 @@ function parseJobParam (job, arg) {
 module.exports = {
   fromCmdLine (cwd, argv) {
     const job = allocate(cwd)
+    try {
+      const defaults = require(join(cwd, 'ui5-test-runner.json'))
+      Object.assign(job, defaults)
+    } catch (e) {
+      // ignore
+    }
     let inBrowserParams = false
     argv.forEach(arg => {
       if (inBrowserParams) {
