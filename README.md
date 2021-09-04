@@ -23,7 +23,7 @@ A test runner for UI5 applications enabling parallel execution of tests.
 ## How to install
 
 * Install the [LTS version of Node.js](https://nodejs.org/en/download/)
-* `npm install -g ui5-test-runner` *(takes a while because [puppeteer](https://github.com/puppeteer/puppeteer) is quite big)*
+* `npm install -g ui5-test-runner` *(takes a while because [puppeteer](https://github.com/puppeteer/puppeteer) is big)*
 
 ## How to demo
 
@@ -69,7 +69,7 @@ The list of options is detailed below but to explain the command :
 
 * `-cache:.ui5` : caches UI5 resources to boost loading of pages. It stores resources in a project folder named `.ui5` *(you may use an absolute path if preferred)*.
 
-* `-libs:hpa/cei/mkt/lib/=../hpa.cei.mkt.lib/src/hpa/cei/mkt/lib/` : maps the library path (access to URL `/resources/hpa/cei/mkt/lib/library.js` will be mapped to the file path `../hpa.cei.mkt.lib/src/hpa/cei/mkt/lib/library.js`)
+* `-libs:my/namespace/feature/lib/=../my.namespace.feature.project.lib/src/my/namespace/feature/lib/` : maps the library path (access to URL `/resources/my/namespace/feature/lib/library.js` will be mapped to the file path `./my.namespace.feature.project.lib/src/my/namespace/feature/lib/library.js`)
 
 You may also use :
 * `-ui5:https://ui5.sap.com/1.92.1/` : uses a specific version of UI5
@@ -114,7 +114,7 @@ You may also use :
 
   - `.ui5/` : contains cached UI5 resources
 
-  - These folder names can be changed through options *(see list of parameters below)*
+  - These folder names can be changed through parameters *(see the list below)*
 
 ## Parameters
 
@@ -122,14 +122,14 @@ You may also use :
 |---|---|---|
 | cwd | `process.cwd()` | Current working directory |
 | port | `0` | port to use (`0` to let REserve allocate one) |
-| ui5 | `'https://ui5.sap.com'` | UI5 url |
+| ui5 | `'https://ui5.sap.com'` | UI5 url |
 | libs | | Folder(s) containing dependent libraries *(relative to `cwd`)*.<br/>Might be used multiple times, two syntaxes are supported :<ul><li>`-libs:path` adds `path` to the list of libraries, mapped directly under `/resources/`</li><li>`-libs:rel/=path` adds the `path` to the list of libraries, mapped under `/resources/rel/`</li></ul> |
 | cache | `''` | Cache UI5 resources locally in the given folder *(empty to disable)* |
 | webapp | `'webapp'` | base folder of the web application *(relative to `cwd`)* |
 | pageFilter | `''` | [regexp](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/RegExp) to select which pages to execute |
 | pageParams | `''` | Parameters added to each page URL.<br/>For instance : `'sap-ui-theme=sap_belize&sap-ui-debug=true'` |
-| pageTimeout | `0` | Limit the page execution time, fails the page if it takes longer than the timeout (`0` to disable the timeout) |
-| globalTimeout | `0` | Limit the pages execution time, fails the execution if it takes longer than the timeout (`0` to disable the timeout) |
+| pageTimeout | `0` | Limit the page execution time (ms), fails the page if it takes longer than the timeout (`0` to disable the timeout) |
+| globalTimeout | `0` | Limit the pages execution time (ms), fails the execution if it takes longer than the timeout (`0` to disable the timeout) |
 | failFast | `false` | Stops the execution after the first failing page |
 | keepAlive | `false` | Keeps the server alive *(enables debugging)* |
 | watch | `false` | Monitors the webapp folder and re-execute tests on change |
@@ -152,6 +152,39 @@ These two commands are equivalent :
 ui5-test-runner "-args:__URL__ __REPORT__ --visible"
 ui5-test-runner -- --visible
 ```
+
+### Configuration file
+
+It is also possible to set these parameters by creating a JSON file named `ui5-test-runner.json` where the **runner is executed** *(i.e. `process.cwd()`)*.
+
+The file is applied **before** parsing the command line parameters, hence some parameters might be **overridden**.
+
+If you want the parameters to be **forced** *(and not be overridden by the command line)*, prefix the parameter name with `!`.
+
+For example :
+```json
+{
+  "!pageTimeout": 900000,
+  "globalTimeout": 3600000,
+  "failFast": true
+}
+```
+
+> The `pageTimeout` setting cannot be overridden by the command line parameters
+
+**NOTE** : the `libs` parameters must be converted to a dictionary mapping the libraries to their path.
+
+For instance :
+
+```json
+{
+  "libs": {
+    "my/namespace/feature/lib/": "../my.namespace.feature.project.lib/src/my/namespace/feature/lib/"
+  }
+}
+```
+
+> Structure of the `libs` parameter
 
 ## Building a custom browser instantiation command
 
