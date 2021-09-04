@@ -1,4 +1,4 @@
-const { dirname } = require('path')
+const { dirname, join } = require('path')
 
 const jobFactory = require('../../src/job')
 const cwd = '/test/project'
@@ -91,6 +91,20 @@ describe('src/job', () => {
     expect(job.browserRetry).toStrictEqual(1)
     expect(warn.mock.calls.length).toStrictEqual(1)
     warn.mockRestore()
+  })
+
+  it('preloads settings from ui5-test-runner.json', () => {
+    const job = jobFactory.fromCmdLine(join(__dirname, '../cwd'), [0, 0, '-globalTimeout:900000'])
+    expect(job.pageTimeout).toStrictEqual(900000)
+    expect(job.globalTimeout).toStrictEqual(900000)
+    expect(job.failFast).toStrictEqual(true)
+  })
+
+  it('preloads and overrides command line settings from ui5-test-runner.json', () => {
+    const job = jobFactory.fromCmdLine(join(__dirname, '../cwd'), [0, 0, '-pageTimeout:60000'])
+    expect(job.pageTimeout).toStrictEqual(900000)
+    expect(job.globalTimeout).toStrictEqual(3600000)
+    expect(job.failFast).toStrictEqual(true)
   })
 
   afterAll(() => {
