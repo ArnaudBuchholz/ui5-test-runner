@@ -30,6 +30,7 @@ describe('src/job', () => {
     hook.once('new', childProcess => {
       childProcess.on('message', message => {
         if (message.command === 'stop') {
+          childProcess.close()
           done()
         }
       })
