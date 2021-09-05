@@ -18,14 +18,14 @@ describe('simulate', () => {
 
   function onNewChildProcess (childProcess) {
     if (childProcess.scriptPath.endsWith('nyc.js')) {
-      childProcess.emit('close')
+      childProcess.close()
       return
     }
     if (childProcess.scriptPath.endsWith('chromium.js')) {
       const referer = childProcess.args[0]
       const pageFound = !Object.keys(pages).every(page => {
         if (referer.endsWith(page)) {
-          pages[page](referer).then(() => childProcess.emit('close'))
+          pages[page](referer)
           return false
         }
         return true
