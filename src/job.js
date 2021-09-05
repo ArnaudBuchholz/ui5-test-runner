@@ -112,6 +112,7 @@ module.exports = {
     } catch (e) {
       // ignore
     }
+    let defaultHasLibs = job.libs.length !== 0
     let inBrowserParams = false
     argv.forEach(arg => {
       if (inBrowserParams) {
@@ -119,6 +120,10 @@ module.exports = {
       } else if (arg === '--') {
         inBrowserParams = true
       } else {
+        if (arg.toString().startsWith('-libs:') && defaultHasLibs) {
+          defaultHasLibs = false
+          job.libs = []
+        }
         parseJobParam(job, arg)
       }
     })
