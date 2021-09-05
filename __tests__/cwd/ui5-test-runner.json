@@ -1,5 +1,9 @@
 {
   "!pageTimeout": 900000,
   "globalTimeout": 3600000,
-  "failFast": true
+  "failFast": true,
+  "libs": [{
+    "relative": "a",
+    "source": "b"
+  }]
 }
