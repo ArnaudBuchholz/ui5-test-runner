@@ -94,17 +94,29 @@ describe('src/job', () => {
   })
 
   it('preloads settings from ui5-test-runner.json', () => {
-    const job = jobFactory.fromCmdLine(join(__dirname, '../cwd'), [0, 0, '-globalTimeout:900000'])
+    const cwd = join(__dirname, '../cwd')
+    const job = jobFactory.fromCmdLine(cwd, [0, 0, '-globalTimeout:900000'])
     expect(job.pageTimeout).toStrictEqual(900000)
     expect(job.globalTimeout).toStrictEqual(900000)
     expect(job.failFast).toStrictEqual(true)
+    expect(job.libs).toEqual([{
+      relative: 'a',
+      source: join(cwd, 'b')
+    }])
+    expect(job.ui5).toStrictEqual('https://ui5.sap.com')
   })
 
   it('preloads and overrides command line settings from ui5-test-runner.json', () => {
-    const job = jobFactory.fromCmdLine(join(__dirname, '../cwd'), [0, 0, '-pageTimeout:60000'])
+    const cwd = join(__dirname, '../cwd')
+    const job = jobFactory.fromCmdLine(cwd, [0, 0, '-pageTimeout:60000', '-libs:c=d'])
     expect(job.pageTimeout).toStrictEqual(900000)
     expect(job.globalTimeout).toStrictEqual(3600000)
     expect(job.failFast).toStrictEqual(true)
+    expect(job.libs).toEqual([{
+      relative: 'c',
+      source: join(cwd, 'd')
+    }])
+    expect(job.ui5).toStrictEqual('https://ui5.sap.com')
   })
 
   afterAll(() => {
