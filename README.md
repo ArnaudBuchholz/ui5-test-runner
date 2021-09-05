@@ -1,12 +1,11 @@
 # UI5 Test runner
 
+[![Node.js CI](https://github.com/ArnaudBuchholz/ui5-test-runner/actions/workflows/node.js.yml/badge.svg)](https://github.com/ArnaudBuchholz/ui5-test-runner/actions/workflows/node.js.yml)
 [![Package Quality](https://npm.packagequality.com/shield/ui5-test-runner.svg)](https://packagequality.com/#?package=ui5-test-runner)
 [![Known Vulnerabilities](https://snyk.io/test/github/ArnaudBuchholz/ui5-test-runner/badge.svg?targetFile=package.json)](https://snyk.io/test/github/ArnaudBuchholz/ui5-test-runner?targetFile=package.json)
 [![dependencies Status](https://david-dm.org/ArnaudBuchholz/ui5-test-runner/status.svg)](https://david-dm.org/ArnaudBuchholz/ui5-test-runner)
 [![devDependencies Status](https://david-dm.org/ArnaudBuchholz/ui5-test-runner/dev-status.svg)](https://david-dm.org/ArnaudBuchholz/ui5-test-runner?type=dev)
 [![ui5-test-runner](https://badge.fury.io/js/ui5-test-runner.svg)](https://www.npmjs.org/package/ui5-test-runner)
-[![ui5-test-runner](http://img.shields.io/npm/dm/ui5-test-runner.svg)](https://www.npmjs.org/package/ui5-test-runner)
-[![install size](https://packagephobia.now.sh/badge?p=ui5-test-runner)](https://packagephobia.now.sh/result?p=ui5-test-runner)
 [![MIT License](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2FArnaudBuchholz%2Fui5-test-runner.svg?type=shield)](https://app.fossa.com/projects/git%2Bgithub.com%2FArnaudBuchholz%2Fui5-test-runner?ref=badge_shield)
 
@@ -24,7 +23,7 @@ A test runner for UI5 applications enabling parallel execution of tests.
 ## How to install
 
 * Install the [LTS version of Node.js](https://nodejs.org/en/download/)
-* `npm install -g ui5-test-runner` *(takes a while because [puppeteer](https://github.com/puppeteer/puppeteer) is quite big)*
+* `npm install -g ui5-test-runner` *(takes a while because [puppeteer](https://github.com/puppeteer/puppeteer) is big)*
 
 ## How to demo
 
@@ -70,7 +69,7 @@ The list of options is detailed below but to explain the command :
 
 * `-cache:.ui5` : caches UI5 resources to boost loading of pages. It stores resources in a project folder named `.ui5` *(you may use an absolute path if preferred)*.
 
-* `-libs:hpa/cei/mkt/lib/=../hpa.cei.mkt.lib/src/hpa/cei/mkt/lib/` : maps the library path (access to URL `/resources/hpa/cei/mkt/lib/library.js` will be mapped to the file path `../hpa.cei.mkt.lib/src/hpa/cei/mkt/lib/library.js`)
+* `-libs:my/namespace/feature/lib/=../my.namespace.feature.project.lib/src/my/namespace/feature/lib/` : maps the library path (access to URL `/resources/my/namespace/feature/lib/library.js` will be mapped to the file path `./my.namespace.feature.project.lib/src/my/namespace/feature/lib/library.js`)
 
 You may also use :
 * `-ui5:https://ui5.sap.com/1.92.1/` : uses a specific version of UI5
@@ -115,7 +114,7 @@ You may also use :
 
   - `.ui5/` : contains cached UI5 resources
 
-  - These folder names can be changed through options *(see list of parameters below)*
+  - These folder names can be changed through parameters *(see the list below)*
 
 ## Parameters
 
@@ -123,20 +122,22 @@ You may also use :
 |---|---|---|
 | cwd | `process.cwd()` | Current working directory |
 | port | `0` | port to use (`0` to let REserve allocate one) |
-| ui5 | `'https://ui5.sap.com'` | UI5 url |
+| ui5 | `'https://ui5.sap.com'` | UI5 url |
 | libs | | Folder(s) containing dependent libraries *(relative to `cwd`)*.<br/>Might be used multiple times, two syntaxes are supported :<ul><li>`-libs:path` adds `path` to the list of libraries, mapped directly under `/resources/`</li><li>`-libs:rel/=path` adds the `path` to the list of libraries, mapped under `/resources/rel/`</li></ul> |
 | cache | `''` | Cache UI5 resources locally in the given folder *(empty to disable)* |
 | webapp | `'webapp'` | base folder of the web application *(relative to `cwd`)* |
 | pageFilter | `''` | [regexp](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/RegExp) to select which pages to execute |
 | pageParams | `''` | Parameters added to each page URL.<br/>For instance : `'sap-ui-theme=sap_belize&sap-ui-debug=true'` |
-| pageTimeout | `0` | Limit the page execution time, fails the page if it takes longer than the timeout (`0` to disable the timeout) |
-| globalTimeout | `0` | Limit the pages execution time, fails the execution if it takes longer than the timeout (`0` to disable the timeout) |
+| pageTimeout | `0` | Limit the page execution time (ms), fails the page if it takes longer than the timeout (`0` to disable the timeout) |
+| globalTimeout | `0` | Limit the pages execution time (ms), fails the execution if it takes longer than the timeout (`0` to disable the timeout) |
 | failFast | `false` | Stops the execution after the first failing page |
 | keepAlive | `false` | Keeps the server alive *(enables debugging)* |
 | watch | `false` | Monitors the webapp folder and re-execute tests on change |
 | logServer | `false` | Logs REserve traces |
-| browser | *String, see description* | Browser instantiation command, it should point to a node.js script (absolute or relative to `cwd`).<br/>By default, a script will instantiate chromium through puppetteer |
-| args | `'__URL__ __REPORT__'` | Browser instantiation arguments :<ul><li>`'__URL__'` is replaced with the URL to open</li><li>`'__REPORT__'` is replaced with a folder path that is associated with the current URL <i>(can be used to store additional traces such as console logs or screenshots)</i></li></ul> |
+| browser | *String, see description* | Browser instantiation command, it should point to a node.js script *(absolute or relative to `cwd`)*.<br/>By default, a script will instantiate chromium through puppetteer |
+| browserRetry | `1` | Browser instantiation retries : if the command **fails** unexpectedly, it is re-executed *(`0` means no retry)*.<br/>The page **fails** if **all attempts** fail |
+| args | `'__URL__ __REPORT__'` | Browser instantiation arguments :<ul><li>`'__URL__'` is replaced with the URL to open</li><li>`'__REPORT__'` is replaced with a folder path that is associated with the current URL *(can be used to store additional traces such as console logs or screenshots)*</li><li>`'__RETRY__'` is replaced with the retry count *(0 for the first execution, can be used to put additional traces or change strategy)*</i>*</li></ul> |
+| -- | | Parameters given right after `--` are directly added to the browser instantiation arguments *(see below)* |
 | parallel | `2` | Number of parallel tests executions (`0` to ignore tests and keep alive) |
 | tstReportDir | `'report'` | Directory to output test reports *(relative to `cwd`)* |
 | coverage | `true` | Enables code coverage |
@@ -145,6 +146,51 @@ You may also use :
 | covReportDir | `'coverage'` | Where to put the coverage report files *(relative to `cwd`)* |
 | covReporters | `'lcov,cobertura'` | Comma separated list of reporters to use |
 
+These two commands are equivalent :
+
+```text
+ui5-test-runner "-args:__URL__ __REPORT__ --visible"
+ui5-test-runner -- --visible
+```
+
+### Configuration file
+
+It is also possible to set these parameters by creating a JSON file named `ui5-test-runner.json` where the **runner is executed** *(i.e. `process.cwd()`)*.
+
+The file is applied **before** parsing the command line parameters, hence some parameters might be **overridden**.
+
+If you want the parameters to be **forced** *(and not be overridden by the command line)*, prefix the parameter name with `!`.
+
+For example :
+```json
+{
+  "!pageTimeout": 900000,
+  "globalTimeout": 3600000,
+  "failFast": true
+}
+```
+
+> The `pageTimeout` setting cannot be overridden by the command line parameters
+
+**NOTE** : the `libs` parameters must be converted to an array of pairs associating `relative` URL and `source` path.
+
+For instance :
+
+```json
+{
+  "libs": [{
+    "relative": "my/namespace/feature/lib/",
+    "source": "../my.namespace.feature.project.lib/src/my/namespace/feature/lib/"
+  }]
+}
+```
+
+> Structure of the `libs` parameter
+
+## Building a custom browser instantiation command
+
+* You may follow the pattern being used by [`chromium.js`](https://github.com/ArnaudBuchholz/ui5-test-runner/blob/main/defaults/chromium.js)
+* It is **mandatory** to ensure that the child process explicitly exits at some point *(see this [thread](https://github.com/nodejs/node-v0.x-archive/issues/2605) explaining the fork behavior with Node.js)*
 
 ## License
 [![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2FArnaudBuchholz%2Fui5-test-runner.svg?type=large)](https://app.fossa.com/projects/git%2Bgithub.com%2FArnaudBuchholz%2Fui5-test-runner?ref=badge_large)

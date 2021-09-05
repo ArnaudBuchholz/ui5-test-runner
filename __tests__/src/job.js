@@ -1,4 +1,4 @@
-const { dirname } = require('path')
+const { dirname, join } = require('path')
 
 const jobFactory = require('../../src/job')
 const cwd = '/test/project'
@@ -77,6 +77,45 @@ describe('src/job', () => {
 
   it('ignores malformed parameters', () => {
     const job = jobFactory.fromCmdLine(cwd, [0, 0, '-ui5=abc'])
+    expect(job.ui5).toStrictEqual('https://ui5.sap.com')
+  })
+
+  it('allows passing parameters to the browser instantiation command line', () => {
+    const job = jobFactory.fromCmdLine(cwd, [0, 0, '--', '--visible'])
+    expect(job.args).toStrictEqual('__URL__ __REPORT__ --visible')
+  })
+
+  it('fixes invalid browserRetry value', () => {
+    const warn = jest.spyOn(console, 'warn').mockImplementation()
+    const job = jobFactory.fromCmdLine(cwd, [0, 0, '-browserRetry: -1'])
+    expect(job.browserRetry).toStrictEqual(1)
+    expect(warn.mock.calls.length).toStrictEqual(1)
+    warn.mockRestore()
+  })
+
+  it('preloads settings from ui5-test-runner.json', () => {
+    const cwd = join(__dirname, '../cwd')
+    const job = jobFactory.fromCmdLine(cwd, [0, 0, '-globalTimeout:900000'])
+    expect(job.pageTimeout).toStrictEqual(900000)
+    expect(job.globalTimeout).toStrictEqual(900000)
+    expect(job.failFast).toStrictEqual(true)
+    expect(job.libs).toEqual([{
+      relative: 'a',
+      source: join(cwd, 'b')
+    }])
+    expect(job.ui5).toStrictEqual('https://ui5.sap.com')
+  })
+
+  it('preloads and overrides command line settings from ui5-test-runner.json', () => {
+    const cwd = join(__dirname, '../cwd')
+    const job = jobFactory.fromCmdLine(cwd, [0, 0, '-pageTimeout:60000', '-libs:c=d'])
+    expect(job.pageTimeout).toStrictEqual(900000)
+    expect(job.globalTimeout).toStrictEqual(3600000)
+    expect(job.failFast).toStrictEqual(true)
+    expect(job.libs).toEqual([{
+      relative: 'c',
+      source: join(cwd, 'd')
+    }])
     expect(job.ui5).toStrictEqual('https://ui5.sap.com')
   })
 

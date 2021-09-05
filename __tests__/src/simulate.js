@@ -18,14 +18,14 @@ describe('simulate', () => {
 
   function onNewChildProcess (childProcess) {
     if (childProcess.scriptPath.endsWith('nyc.js')) {
-      childProcess.emit('close')
+      childProcess.close()
       return
     }
     if (childProcess.scriptPath.endsWith('chromium.js')) {
       const referer = childProcess.args[0]
       const pageFound = !Object.keys(pages).every(page => {
         if (referer.endsWith(page)) {
-          pages[page](referer).then(() => childProcess.emit('close'))
+          pages[page](referer)
           return false
         }
         return true
@@ -369,6 +369,22 @@ var global=new Function("return this")();
 
     it('failed', () => {
       expect(job.failed).toStrictEqual(3) // page2 + other pages that didn't run
+    })
+  })
+
+  describe('error when no page found', () => {
+    beforeAll(async () => {
+      await setup('no_page', '-parallel:1')
+      pages = {
+        'testsuite.qunit.html': async referer => {
+          await mocked.request('POST', '/_/addTestPages', { referer }, JSON.stringify([]))
+        }
+      }
+      await executeTests(job)
+    })
+
+    it('failed', () => {
+      expect(job.failed).toStrictEqual(true) // page2 + other pages that didn't run
     })
   })
 
