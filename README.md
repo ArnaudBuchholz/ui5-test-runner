@@ -172,15 +172,16 @@ For example :
 
 > The `pageTimeout` setting cannot be overridden by the command line parameters
 
-**NOTE** : the `libs` parameters must be converted to a dictionary mapping the libraries to their path.
+**NOTE** : the `libs` parameters must be converted to an array of pairs associating `relative` URL and `source` path.
 
 For instance :
 
 ```json
 {
-  "libs": {
-    "my/namespace/feature/lib/": "../my.namespace.feature.project.lib/src/my/namespace/feature/lib/"
-  }
+  "libs": [{
+    "relative": "my/namespace/feature/lib/",
+    "source": "../my.namespace.feature.project.lib/src/my/namespace/feature/lib/"
+  }]
 }
 ```
 
