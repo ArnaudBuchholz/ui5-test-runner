@@ -22,6 +22,10 @@ process.on('message', async message => {
     }
     await browser.close()
     process.exit(0)
+  } else if (message.command === 'screenshot') {
+    if (reportDir && page) {
+      await page.screenshot({ path: join(reportDir, message.filename) })
+    }
   }
 })
 
