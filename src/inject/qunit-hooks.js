@@ -2,9 +2,9 @@
 (function () {
   'use strict'
 
-  function post (url, data) {
+  function post (url, data, sync) {
     const xhr = new XMLHttpRequest()
-    xhr.open('POST', '/_/' + url)
+    xhr.open('POST', '/_/' + url, !sync)
     xhr.send(JSON.stringify(data))
   }
 
@@ -13,7 +13,7 @@
   })
 
   QUnit.testDone(function (report) {
-    post('QUnit/testDone', report)
+    post('QUnit/testDone', report, true)
   })
 
   QUnit.done(function (report) {
