@@ -56,6 +56,19 @@ async function run (job, pageBrowser) {
   })
 }
 
+async function screenshot (job, relativeUrl, filename) {
+  const pageBrowser = job.browsers[relativeUrl]
+  if (pageBrowser) {
+    const { childProcess } = pageBrowser
+    if (childProcess.connected) {
+      childProcess.send({
+        command: 'screenshot',
+        filename
+      })
+    }
+  }
+}
+
 function stop (job, relativeUrl, retry = false) {
   const pageBrowser = job.browsers[relativeUrl]
   if (pageBrowser) {
@@ -76,4 +89,4 @@ function stop (job, relativeUrl, retry = false) {
   }
 }
 
-module.exports = { start, stop }
+module.exports = { start, screenshot, stop }
