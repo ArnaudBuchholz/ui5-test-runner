@@ -2,28 +2,40 @@
 
 const { join } = require('path')
 const { body } = require('reserve')
-const { stop } = require('./browsers')
+const { screenshot, stop } = require('./browsers')
 const { writeFile } = require('fs').promises
 const { extractUrl, filename } = require('./tools')
 const { Request, Response } = require('reserve')
 
 module.exports = job => {
+  async function endpointImpl (implementation, request) {
+    const url = extractUrl(request.headers)
+    const data = JSON.parse(await body(request))
+    if (job.parallel === -1) {
+      console.log(url, data)
+    }
+    try {
+      await implementation.call(this, url, data)
+    } catch (e) {
+      console.error(`Exception when processing ${url}`)
+      console.error(data)
+      console.error(e)
+    }
+  }
+
+  function synchronousEndpoint (implementation) {
+    return async function (request, response) {
+      await endpointImpl(implementation, request)
+      response.writeHead(200)
+      response.end()
+    }
+  }
+
   function endpoint (implementation) {
     return async function (request, response) {
       response.writeHead(200)
       response.end()
-      const url = extractUrl(request.headers)
-      const data = JSON.parse(await body(request))
-      if (job.parallel === -1) {
-        console.log(url, data)
-      }
-      try {
-        await implementation.call(this, url, data)
-      } catch (e) {
-        console.error(`Exception when processing ${url}`)
-        console.error(data)
-        console.error(e)
-      }
+      await endpointImpl(implementation, request)
     }
   }
 
@@ -104,9 +116,10 @@ module.exports = job => {
       }, {
       // Endpoint to receive QUnit.testDone
         match: '^/_/QUnit/testDone',
-        custom: endpoint((url, report) => {
+        custom: synchronousEndpoint(async (url, report) => {
           const page = job.testPages[url]
           if (report.failed) {
+            await screenshot(job, url, `${report.testId}.png`)
             job.failed = true
             ++page.failed
           } else {
