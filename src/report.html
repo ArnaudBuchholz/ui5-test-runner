@@ -1,6 +1,23 @@
 <html>
   <head>
     <title>ui5-test-runner report</title>
+    <style>
+
+body {
+  font-family: Verdana, Geneva, Tahoma, sans-serif;
+}
+
+.testId {
+  padding-left: .5rem;
+  padding-right: .5rem;
+  font-size: x-small;
+}
+
+img.log {
+  width: 50%;
+}
+
+    </style>
   </head>
   <body>
     <script>
@@ -47,29 +64,25 @@ json('pages.json')
         const table = details.appendChild(el('table', { width: '100%' }))
         const row = (module, name = ' ') => {
           const tr = table.appendChild(el('tr'))
-          tr.innerHTML = `<td width="15%">${module}</td><td width="85%">${name}</td>`
+          tr.innerHTML = `<td width="15%" valign="top">${module}</td><td width="85%">${name}</td>`
           return tr
         }
         let lastModule
         report.tests.forEach(test => {
-          let { module, name, failed } = test
+          let { module, name, failed, testId } = test
           if (module !== lastModule) {
             lastModule = module
           } else {
             module = ' '
           }
-          if (failed) {
-            const tr = row(module)
-            const td = tr.querySelectorAll('td')[1]
-            const assertions = td.appendChild(el('details'))
-            assertions.appendChild(el('summary', {}, name + ko))
-            test.assertions.forEach(assertion => {
-              const bullet = assertion.result && ok || ko
-              assertions.appendChild(el('div', {}, el('pre', {}, bullet + ' ' + assertion.message)))
-            })
-          } else {
-            row(module, name)
-          }
+          const tr = row(module)
+          const td = tr.querySelectorAll('td')[1]
+          const assertions = td.appendChild(el('details'))
+          assertions.appendChild(el('summary', {}, name, el('span', { class: 'testId' }, testId), failed ? ko : ''))
+          test.assertions.forEach((assertion, index) => {
+            const bullet = assertion.result && ok || ko
+            assertions.appendChild(el('div', {}, el('pre', {}, bullet + ' ' + assertion.message), el('img', { src: `${path}/${testId}-${index}.png`, class: 'log' })))
+          })
         })
         if (report.report) {
           row(`${report.report.runtime} ms`)
