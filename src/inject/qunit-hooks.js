@@ -12,6 +12,10 @@
     post('QUnit/begin', details)
   })
 
+  QUnit.log(function (report) {
+    post('QUnit/log', report, true)
+  })
+
   QUnit.testDone(function (report) {
     post('QUnit/testDone', report, true)
   })
