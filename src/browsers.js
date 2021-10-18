@@ -5,6 +5,9 @@ const { join } = require('path')
 const { recreateDir, filename } = require('./tools')
 const { getPageTimeout } = require('./timeout')
 
+let lastScreenshotId = 0
+const screenshots = {}
+
 function start (job, relativeUrl) {
   if (!job.browsers) {
     job.browsers = {}
@@ -48,6 +51,13 @@ async function run (job, pageBrowser) {
       stop(job, relativeUrl)
     }, timeout)
   }
+  childProcess.on('message', message => {
+    if (message.command === 'screenshot') {
+      const { id } = message
+      screenshots[id]()
+      delete screenshots[id]
+    }
+  })
   childProcess.on('close', () => {
     if (!pageBrowser.stopped) {
       console.log('!! BROWSER CLOSED', relativeUrl)
@@ -61,10 +71,22 @@ async function screenshot (job, relativeUrl, filename) {
   if (pageBrowser) {
     const { childProcess } = pageBrowser
     if (childProcess.connected) {
+      console.log('>>', filename)
+      const id = ++lastScreenshotId
+      const promise = new Promise(resolve => {
+        screenshots[id] = resolve
+      })
       childProcess.send({
+        id,
         command: 'screenshot',
         filename
       })
+      await promise
+      console.log('<<', filename)
+      // await Promise.race([
+      //   promise.
+      //   new Promise(resolve => setTimeout(resolve, 5000)) // max 1 second
+      // ])
     }
   }
 }
