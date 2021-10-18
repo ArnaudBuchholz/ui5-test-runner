@@ -24,7 +24,13 @@ process.on('message', async message => {
     process.exit(0)
   } else if (message.command === 'screenshot') {
     if (reportDir && page) {
+      // const { filename } = message
+      // console.log('>', filename)
+      // console.time(filename)
       await page.screenshot({ path: join(reportDir, message.filename) })
+      // console.timeEnd(filename)
+      // console.log('<', filename)
+      process.send(message)
     }
   }
 })
