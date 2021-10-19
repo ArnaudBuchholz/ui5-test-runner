@@ -71,7 +71,6 @@ async function screenshot (job, relativeUrl, filename) {
   if (pageBrowser) {
     const { childProcess } = pageBrowser
     if (childProcess.connected) {
-      console.log('>>', filename)
       const id = ++lastScreenshotId
       const promise = new Promise(resolve => {
         screenshots[id] = resolve
@@ -82,7 +81,6 @@ async function screenshot (job, relativeUrl, filename) {
         filename
       })
       await promise
-      console.log('<<', filename)
       // await Promise.race([
       //   promise.
       //   new Promise(resolve => setTimeout(resolve, 5000)) // max 1 second
