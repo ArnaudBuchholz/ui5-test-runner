@@ -10,8 +10,13 @@ const { globallyTimedOut } = require('./timeout')
 async function extractTestPages (job) {
   job.start = new Date()
   await instrument(job)
-  job.status = 'Extracting test pages'
   await recreateDir(job.tstReportDir)
+  if (!job.serialized) {
+    delete job.status
+    await writeFile(join(job.tstReportDir, 'job.json'), JSON.stringify(job))
+    job.serialized = true
+  }
+  job.status = 'Extracting test pages'
   job.testPageUrls = []
   await start(job, '/test/testsuite.qunit.html')
   if (job.testPageUrls.length === 0) {
