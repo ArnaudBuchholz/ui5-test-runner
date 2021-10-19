@@ -107,6 +107,7 @@ module.exports = job => {
         match: '^/_/QUnit/begin',
         custom: endpoint((url, details) => {
           job.testPages[url] = {
+            isOpa: details.isOpa,
             total: details.totalTests,
             failed: 0,
             passed: 0,
@@ -120,12 +121,14 @@ module.exports = job => {
         custom: synchronousEndpoint(async (url, report) => {
           const page = job.testPages[url]
           const { testId } = report
-          if (page.testIds[testId] === undefined) {
-            page.testIds[testId] = 0
-          } else {
-            ++page.testIds[testId]
+          if (page.isOpa) {
+            if (page.testIds[testId] === undefined) {
+              page.testIds[testId] = 0
+            } else {
+              ++page.testIds[testId]
+            }
+            await screenshot(job, url, `${report.testId}-${page.testIds[testId]}.png`)
           }
-          await screenshot(job, url, `${report.testId}-${page.testIds[testId]}.png`)
         })
       }, {
       // Endpoint to receive QUnit.testDone
