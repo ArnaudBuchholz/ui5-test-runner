@@ -17,9 +17,6 @@ if (reportDir) {
 
 process.on('message', async message => {
   if (message.command === 'stop') {
-    if (reportDir && page) {
-      await page.screenshot({ path: join(reportDir, 'screenshot.png') })
-    }
     await browser.close()
     process.exit(0)
   } else if (message.command === 'screenshot') {
@@ -27,6 +24,12 @@ process.on('message', async message => {
       await page.screenshot({ path: join(reportDir, message.filename) })
       process.send(message)
     }
+  } else if (message.command === 'capabilities') {
+    process.send({
+      command: 'capabilities',
+      screenshot: true,
+      consoleLog: true
+    })
   }
 })
 
