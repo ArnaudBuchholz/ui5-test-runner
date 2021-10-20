@@ -57,6 +57,7 @@ async function run (job, pageBrowser) {
       screenshots[id]()
       delete screenshots[id]
     } else if (message.command === 'capabilities') {
+      console.log('Retreived browser capabilities.', message)
       job.browserCapabilities = {
         screenshot: message.screenshot,
         consoleLog: message.consoleLog
@@ -70,6 +71,7 @@ async function run (job, pageBrowser) {
     }
   })
   if (!job.browserCapabilities) {
+    console.log('Querying browser capabilities...')
     childProcess.send({ command: 'capabilities' })
   }
 }
