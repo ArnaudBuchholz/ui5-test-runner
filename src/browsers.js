@@ -57,7 +57,10 @@ async function run (job, pageBrowser) {
       screenshots[id]()
       delete screenshots[id]
     } else if (message.command === 'capabilities') {
-      // Configure job
+      job.browserCapabilities = {
+        screenshot: message.screenshot,
+        consoleLog: message.consoleLog
+      }
     }
   })
   childProcess.on('close', () => {
@@ -66,6 +69,9 @@ async function run (job, pageBrowser) {
       stop(job, relativeUrl, true)
     }
   })
+  if (!job.browserCapabilities) {
+    childProcess.send({ command: 'capabilities' })
+  }
 }
 
 async function screenshot (job, relativeUrl, filename) {
@@ -86,10 +92,6 @@ async function screenshot (job, relativeUrl, filename) {
         filename
       })
       await promise
-      // await Promise.race([
-      //   promise.
-      //   new Promise(resolve => setTimeout(resolve, 5000)) // max 1 second
-      // ])
     }
   }
 }
