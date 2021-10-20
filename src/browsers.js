@@ -56,6 +56,8 @@ async function run (job, pageBrowser) {
       const { id } = message
       screenshots[id]()
       delete screenshots[id]
+    } else if (message.command === 'capabilities') {
+      // Configure job
     }
   })
   childProcess.on('close', () => {
@@ -67,6 +69,9 @@ async function run (job, pageBrowser) {
 }
 
 async function screenshot (job, relativeUrl, filename) {
+  if (!job.browserCapabilities || !job.browserCapabilities.screenshot) {
+    return
+  }
   const pageBrowser = job.browsers[relativeUrl]
   if (pageBrowser) {
     const { childProcess } = pageBrowser
@@ -89,7 +94,7 @@ async function screenshot (job, relativeUrl, filename) {
   }
 }
 
-function stop (job, relativeUrl, retry = false) {
+async function stop (job, relativeUrl, retry = false) {
   const pageBrowser = job.browsers[relativeUrl]
   if (pageBrowser) {
     pageBrowser.stopped = true
@@ -98,6 +103,7 @@ function stop (job, relativeUrl, retry = false) {
       clearTimeout(timeoutId)
     }
     if (childProcess.connected) {
+      await screenshot(job, relativeUrl, 'screenshot.png')
       childProcess.send({ command: 'stop' })
     }
     if (retry && ++pageBrowser.retry <= job.browserRetry) {
