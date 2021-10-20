@@ -137,7 +137,6 @@ You may also use :
 | browser | *String, see description* | Browser instantiation command, it should point to a node.js script *(absolute or relative to `cwd`)*.<br/>By default, a script will instantiate chromium through puppetteer |
 | browserRetry | `1` | Browser instantiation retries : if the command **fails** unexpectedly, it is re-executed *(`0` means no retry)*.<br/>The page **fails** if **all attempts** fail |
 | args | `'__URL__ __REPORT__'` | Browser instantiation arguments :<ul><li>`'__URL__'` is replaced with the URL to open</li><li>`'__REPORT__'` is replaced with a folder path that is associated with the current URL *(can be used to store additional traces such as console logs or screenshots)*</li><li>`'__RETRY__'` is replaced with the retry count *(0 for the first execution, can be used to put additional traces or change strategy)*</i>*</li></ul> |
-| screenshots | `true`  | Take screenshots during test executions *(only if command line supports it)* |
 | -- | | Parameters given right after `--` are directly added to the browser instantiation arguments *(see below)* |
 | parallel | `2` | Number of parallel tests executions (`0` to ignore tests and keep alive) |
 | tstReportDir | `'report'` | Directory to output test reports *(relative to `cwd`)* |
@@ -192,6 +191,12 @@ For instance :
 
 * You may follow the pattern being used by [`chromium.js`](https://github.com/ArnaudBuchholz/ui5-test-runner/blob/main/defaults/chromium.js)
 * It is **mandatory** to ensure that the child process explicitly exits at some point *(see this [thread](https://github.com/nodejs/node-v0.x-archive/issues/2605) explaining the fork behavior with Node.js)*
+* The child process will receive messages and it must handle them appropriately :
+  - `message.command === 'stop'` : the browser must be closed and the command line must exit
+  - `message.command === 'capabilities'` : a message must be sent back to indicate if the following features are supported (boolean)
+    - `screenshot` : the browser may take screenshots (in the `__REPORT__` folder, name is provided when needed)
+    - `consoleLog` : the browser console is serialized  (in the `__REPORT__` folder with the name `console.txt`)
+  - `message.command === 'screenshot'` : should generate a screenshot (the message contains a `filename` member). To indicate that the screenshot is done, the command line must send back the same message (`process.send(message)`).
 
 ## License
 [![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2FArnaudBuchholz%2Fui5-test-runner.svg?type=large)](https://app.fossa.com/projects/git%2Bgithub.com%2FArnaudBuchholz%2Fui5-test-runner?ref=badge_large)
