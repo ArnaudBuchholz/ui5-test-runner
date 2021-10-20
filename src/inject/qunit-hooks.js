@@ -4,7 +4,7 @@
 
   function post (url, data) {
     return new Promise(function (resolve, reject) {
-      var xhr = new XMLHttpRequest()
+      const xhr = new XMLHttpRequest()
       xhr.open('POST', '/_/' + url)
       xhr.send(JSON.stringify(data))
       xhr.onreadystatechange = function () {
@@ -33,7 +33,7 @@
   })
 
   QUnit.log(function (report) {
-    var ready = false
+    let ready = false
     post('QUnit/log', report).then(function () {
       ready = true
     })
