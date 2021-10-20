@@ -17,6 +17,19 @@ img.log {
   width: 50%;
 }
 
+table.job {
+  font-size: small;
+}
+
+table.job.object {
+  font-size: x-small;
+}
+
+table.job th {
+  text-align: right;
+  padding-right: .5rem;
+}
+
     </style>
   </head>
   <body>
@@ -49,19 +62,42 @@ async function json (url) {
 
 async function generate () {
   const job = await json('job.json')
+  let screenshot = false
+  let consoleLog = false
+  if (job.browserCapabilities) {
+    screenshot = job.browserCapabilities.screenshot
+    consoleLog = job.browserCapabilities.consoleLog
+  }
+
   const jobDetails = document.body.appendChild(el('details'))
   const jobSummary = jobDetails.appendChild(el('summary'))
   jobSummary.appendChild(el('span', {}, 'job details'))
+  const jobParams = jobDetails.appendChild(el('table', { class: 'job' }))
   
   function dump (obj, level) {
     Object.keys(obj).forEach(property => {
       const value = obj[property]
+      const tr = level.appendChild(el('tr'))
+      tr.appendChild(el('th', {}, property))
       if (typeof value !== 'object') {
-        level.appendChild(el('div', {}, el('span', {}, property), el('span', {}, value)))
+        let stringifiedValue
+        if (typeof value === 'string') {
+          if (value.match(/\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z/)) {
+            stringifiedValue = new Date(value).toString()
+          } else {
+            stringifiedValue = value
+          }
+        } else {
+          stringifiedValue = JSON.stringify(value)
+        }
+        tr.appendChild(el('td', {}, stringifiedValue))
+      } else {
+        const subLevel = tr.appendChild(el('td')).appendChild(el('table', { class: 'job object' }))
+        dump(value, subLevel)
       }
     })
   }
-  dump(job, jobDetails)
+  dump(job, jobParams)
 
   const pages = await json('pages.json')
   Object.keys(pages).forEach(async page => {
@@ -100,7 +136,7 @@ async function generate () {
       test.assertions.forEach((assertion, index) => {
         const bullet = assertion.result && ok || ko
         let preview
-        if (isOpa) {
+        if (isOpa && screenshot) {
           preview = el('img', { src: `${path}/${testId}-${index}.png`, class: 'log' })
         }
         assertions.appendChild(el('div', {}, el('pre', {}, bullet + ' ' + assertion.message), preview))
@@ -111,9 +147,13 @@ async function generate () {
     } else {
       row(`Timed out ${ko}`)
     }
-    details.appendChild(el('a', { href: `${path}/screenshot.png`, target: '_blank' }, 'screenshot'))
-    details.appendChild(el('span', {}, ' '))
-    details.appendChild(el('a', { href: `${path}/console.txt`, target: '_blank' }, 'console'))
+    if (screenshot) {
+      details.appendChild(el('a', { href: `${path}/screenshot.png`, target: '_blank' }, 'screenshot'))
+      details.appendChild(el('span', {}, ' '))
+    }
+    if (consoleLog) {
+      details.appendChild(el('a', { href: `${path}/console.txt`, target: '_blank' }, 'console'))
+    }
   }, () => {
     summary.appendChild(tx(ko))
     details.appendChild(el('p', {}, 'No report found ', el('i', {}, '(fatal error or timeout)')))
