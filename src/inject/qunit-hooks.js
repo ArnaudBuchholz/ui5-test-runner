@@ -40,6 +40,7 @@
     if (isOpa()) {
       window.sap.ui.test.Opa5.prototype.waitFor({
         timeout: 10,
+        autoWait: false, // Ignore interactable constraint
         check: function () {
           return ready
         }
