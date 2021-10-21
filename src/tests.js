@@ -7,10 +7,22 @@ const { join } = require('path')
 const { copyFile, writeFile } = require('fs').promises
 const { globallyTimedOut } = require('./timeout')
 
+async function saveJob (job) {
+  await writeFile(join(job.tstReportDir, 'job.json'), JSON.stringify({
+    ...job,
+    // Following members are useless because already serialized or not relevant
+    status: undefined,
+    testPageUrls: undefined,
+    browsers: undefined,
+    testPages: undefined
+  }))
+}
+
 async function extractTestPages (job) {
   job.start = new Date()
   await instrument(job)
   await recreateDir(job.tstReportDir)
+  await saveJob(job)
   job.status = 'Extracting test pages'
   job.testPageUrls = []
   await start(job, '/test/testsuite.qunit.html')
@@ -79,14 +91,7 @@ async function generateReport (job) {
     }
   }
   console.table(pages)
-  await writeFile(join(job.tstReportDir, 'job.json'), JSON.stringify({
-    ...job,
-    // Following members are useless because already serialized or not relevant
-    status: undefined,
-    testPageUrls: undefined,
-    browsers: undefined,
-    testPages: undefined
-  }))
+  await saveJob(job)
   await copyFile(join(__dirname, 'report.html'), join(job.tstReportDir, 'report.html'))
   await generateCoverageReport(job)
   console.log(`Time spent: ${new Date() - job.start}ms`)
