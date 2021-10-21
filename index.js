@@ -2,6 +2,7 @@
 
 'use strict'
 
+require('./output')
 const { log, serve } = require('reserve')
 const jobFactory = require('./src/job')
 const reserveConfigurationFactory = require('./src/reserve')
