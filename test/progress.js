@@ -11,7 +11,7 @@ if (columns) {
 
 function clean () {
   process.stdout.write('\x1b[1F')
-  process.stdout.write(''.padEnd(columns - 10, '\u2591'))
+  process.stdout.write(''.padEnd(columns, '\u2591'))
   process.stdout.write('\x1b[1G')
 }
 
