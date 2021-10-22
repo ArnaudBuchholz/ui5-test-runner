@@ -147,18 +147,18 @@ module.exports = job => {
       }, {
       // Endpoint to receive QUnit.done
         match: '^/_/QUnit/done',
-        custom: endpoint((url, report) => {
-          let promise = Promise.resolve()
+        custom: endpoint(async (url, report) => {
           const page = job.testPages[url]
           if (page) {
+            await screenshot(job, url, 'screenshot.png')
             if (report.__coverage__) {
               const coverageFileName = join(job.covTempDir, `${filename(url)}.json`)
-              promise = writeFile(coverageFileName, JSON.stringify(report.__coverage__))
+              await writeFile(coverageFileName, JSON.stringify(report.__coverage__))
               delete report.__coverage__
             }
             page.report = report
           }
-          promise.then(() => stop(job, url))
+          stop(job, url)
         })
       }, {
       // UI to follow progress
