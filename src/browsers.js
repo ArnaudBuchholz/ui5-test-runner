@@ -107,7 +107,6 @@ async function stop (job, relativeUrl, retry = false) {
       clearTimeout(timeoutId)
     }
     if (childProcess.connected) {
-      await screenshot(job, relativeUrl, 'screenshot.png')
       childProcess.send({ command: 'stop' })
     }
     if (retry && ++pageBrowser.retry <= job.browserRetry) {
