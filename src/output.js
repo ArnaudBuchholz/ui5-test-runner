@@ -25,7 +25,7 @@ function bar (ratio, msg) {
     if (ratio.length > width) {
       write(ratio.substring(0, width - 3), '...')
     } else {
-      const padded = ratio.padStart(Math.floor((width - ratio.length) / 2), '-').padEnd(width, '-')
+      const padded = ratio.padStart(width - Math.floor((width - ratio.length) / 2), '-').padEnd(width, '-')
       write(padded)
     }
   } else {
@@ -40,7 +40,7 @@ function progress (cleanFirst = true) {
     clean()
   }
   lines = 1
-  if (job.testPageUrls && job.testPages) {
+  if (job.testPageUrls && job.testPages && job.parallel > 0) {
     const total = job.testPageUrls.length
     const done = Object.keys(job.testPages)
       .filter(pageUrl => !!job.testPages[pageUrl].report)
