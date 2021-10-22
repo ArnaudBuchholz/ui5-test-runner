@@ -57,7 +57,7 @@ async function run (job, pageBrowser) {
       screenshots[id]()
       delete screenshots[id]
     } else if (message.command === 'capabilities') {
-      console.log('Retreived browser capabilities.', message)
+      console.log('Browser capabilities :', message)
       job.browserCapabilities = {
         screenshot: message.screenshot,
         consoleLog: message.consoleLog
