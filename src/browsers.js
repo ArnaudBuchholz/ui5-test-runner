@@ -4,6 +4,7 @@ const { fork } = require('child_process')
 const { join } = require('path')
 const { recreateDir, filename } = require('./tools')
 const { getPageTimeout } = require('./timeout')
+const output = require('./output')
 
 let lastScreenshotId = 0
 const screenshots = {}
@@ -12,7 +13,7 @@ function start (job, relativeUrl) {
   if (!job.browsers) {
     job.browsers = {}
   }
-  console.log('>>', relativeUrl)
+  output.browserStart(relativeUrl)
   const reportDir = join(job.tstReportDir, filename(relativeUrl))
   const args = job.args.split(' ')
     .map(arg => arg
@@ -31,14 +32,14 @@ function start (job, relativeUrl) {
   job.browsers[relativeUrl] = pageBrowser
   run(job, pageBrowser)
   return promise.then(() => {
-    console.log('<<', relativeUrl)
+    output.browserStopped(relativeUrl)
   })
 }
 
 async function run (job, pageBrowser) {
   const { relativeUrl } = pageBrowser
   if (pageBrowser.retry) {
-    console.log('>> RETRY', pageBrowser.retry, relativeUrl)
+    output.browserRetry(relativeUrl, pageBrowser.retry)
   }
   await recreateDir(pageBrowser.reportDir)
   delete pageBrowser.stopped
@@ -47,7 +48,7 @@ async function run (job, pageBrowser) {
   const timeout = getPageTimeout(job)
   if (timeout) {
     pageBrowser.timeoutId = setTimeout(() => {
-      console.log('!! TIMEOUT', relativeUrl)
+      output.browserTimeout(relativeUrl)
       stop(job, relativeUrl)
     }, timeout)
   }
@@ -57,21 +58,18 @@ async function run (job, pageBrowser) {
       screenshots[id]()
       delete screenshots[id]
     } else if (message.command === 'capabilities') {
-      console.log('Browser capabilities :', message)
-      job.browserCapabilities = {
-        screenshot: message.screenshot,
-        consoleLog: message.consoleLog
-      }
+      job.browserCapabilities = { ...message }
+      delete job.browserCapabilities.command
+      output.browserCapabilities(job.browserCapabilities)
     }
   })
   childProcess.on('close', () => {
     if (!pageBrowser.stopped) {
-      console.log('!! BROWSER CLOSED', relativeUrl)
+      output.browserClosed(relativeUrl)
       stop(job, relativeUrl, true)
     }
   })
   if (!job.browserCapabilities) {
-    console.log('Querying browser capabilities...')
     childProcess.send({ command: 'capabilities' })
   }
 }
