@@ -14,7 +14,18 @@ function write (...parts) {
 }
 
 function clean () {
-  write(`\x1b[${lines.toString()}F`, ''.padEnd(columns, ' '), '\x1b[1G')
+  write(`\x1b[${lines.toString()}F`)
+  for (let line = 0; line < lines; ++line) {
+    if (line > 1) {
+      write('\x1b[1E')
+    }
+    write(''.padEnd(columns, ' '))
+  }
+  if (lines > 1) {
+    write(`\x1b[${(lines - 1).toString()}F`)
+  } else {
+    write('\x1b[1G')
+  }
 }
 
 const width = 10
@@ -105,5 +116,27 @@ module.exports = {
       process.stdout.write('\n')
       setInterval(progress, 250)
     }
+  },
+  browserStart (url) {
+    if (!interactive) {
+      console.log('>>', url)
+    }
+  },
+  browserCapabilities (capabilities) {
+    console.log('Browser capabilities :', capabilities)
+  },
+  browserStopped (url) {
+    if (!interactive) {
+      console.log('<<', url)
+    }
+  },
+  browserClosed (url) {
+    console.log('!! BROWSER CLOSED', url)
+  },
+  browserRetry (url, retry) {
+    console.log('>> RETRY', retry, url)
+  },
+  browserTimeout (url) {
+    console.log('!! TIMEOUT', url)
   }
 }
