@@ -14,7 +14,7 @@ function write (...parts) {
 }
 
 function clean () {
-  write(`\x1b[${lines.toString()}F`, ''.padEnd(columns, '\u2591'), '\x1b[1G')
+  write(`\x1b[${lines.toString()}F`, ''.padEnd(columns, ' '), '\x1b[1G')
 }
 
 const width = 10
@@ -28,11 +28,14 @@ function bar (ratio, msg) {
       const padded = ratio.padStart(width - Math.floor((width - ratio.length) / 2), '-').padEnd(width, '-')
       write(padded)
     }
+    write(']     ')
   } else {
     const filled = Math.floor(width * ratio)
     write(''.padEnd(filled, '\u2588'), ''.padEnd(width - filled, '\u2591'))
+    const percent = Math.floor(100 * ratio).toString().padStart(3, ' ')
+    write('] ', percent, '%')
   }
-  write('] ', msg, '\n')
+  write(' ', msg, '\n')
 }
 
 function progress (cleanFirst = true) {
@@ -40,14 +43,14 @@ function progress (cleanFirst = true) {
     clean()
   }
   lines = 1
+  let progressRatio
   if (job.testPageUrls && job.testPages && job.parallel > 0) {
     const total = job.testPageUrls.length
     const done = Object.keys(job.testPages)
       .filter(pageUrl => !!job.testPages[pageUrl].report)
       .length
     if (done < total) {
-      lines += 1
-      bar(done / total, 'Overall progress')
+      progressRatio = done / total
     }
   }
   if (job.browsers) {
@@ -71,7 +74,12 @@ function progress (cleanFirst = true) {
       }
     })
   }
-  write(ticks[++lastTick % ticks.length], ' ', job.status, '\n')
+  const status = `${ticks[++lastTick % ticks.length]} ${job.status}`
+  if (progressRatio !== undefined) {
+    bar(progressRatio, status)
+  } else {
+    write(status, '\n')
+  }
 }
 
 Object.getOwnPropertyNames(console).forEach(name => {
