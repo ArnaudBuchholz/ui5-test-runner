@@ -5,14 +5,14 @@ const { fork } = require('child_process')
 const { cleanDir, createDir } = require('./tools')
 const { readdir, readFile, stat, writeFile } = require('fs').promises
 const { Readable } = require('stream')
+const { monitor } = require('./output')
 
 const nycScript = require.resolve('nyc/bin/nyc.js')
 
 function nyc (...args) {
   console.log('nyc', ...args)
-  const childProcess = fork(nycScript, args, {
-    stdio: 'inherit'
-  })
+  const childProcess = fork(nycScript, args, { stdio: 'pipe' })
+  monitor(childProcess)
   let done
   const promise = new Promise(resolve => { done = resolve })
   childProcess.on('close', done)
