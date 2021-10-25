@@ -2,6 +2,11 @@
 (function () {
   'use strict'
 
+  if (window['ui5-test-runner/qunit-hooks']) {
+    return // already installed
+  }
+  window['ui5-test-runner/qunit-hooks'] = true
+
   function post (url, data) {
     return new Promise(function (resolve, reject) {
       const xhr = new XMLHttpRequest()
