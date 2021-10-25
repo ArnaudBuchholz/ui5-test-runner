@@ -6,20 +6,19 @@ const { screenshot, stop } = require('./browsers')
 const { writeFile } = require('fs').promises
 const { extractUrl, filename } = require('./tools')
 const { Request, Response } = require('reserve')
+const output = require('./output')
 
 module.exports = job => {
   async function endpointImpl (implementation, request) {
     const url = extractUrl(request.headers)
     const data = JSON.parse(await body(request))
     if (job.parallel === -1) {
-      console.log(url, data)
+      output.endpoint(url, data)
     }
     try {
       await implementation.call(this, url, data)
     } catch (e) {
-      console.error(`Exception when processing ${url}`)
-      console.error(data)
-      console.error(e)
+      output.endpointError(url, data, e)
     }
   }
 
