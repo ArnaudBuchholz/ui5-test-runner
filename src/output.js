@@ -193,5 +193,8 @@ module.exports = {
   },
   unhandled () {
     console.warn('Some requests are not handled properly, check the unhandled.txt report for more info')
+  },
+  results (pages) {
+    console.table(pages)
   }
 }
