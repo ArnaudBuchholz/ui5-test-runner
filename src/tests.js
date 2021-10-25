@@ -91,7 +91,7 @@ async function generateReport (job) {
       job.failed += 1
     }
   }
-  console.table(pages)
+  output.results(pages)
   await saveJob(job)
   await copyFile(join(__dirname, 'report.html'), join(job.tstReportDir, 'report.html'))
   await generateCoverageReport(job)
