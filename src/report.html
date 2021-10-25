@@ -68,6 +68,9 @@ async function generate () {
     screenshot = job.browserCapabilities.screenshot
     consoleLog = job.browserCapabilities.consoleLog
   }
+  if (job.noScreenshot) {
+    screenshot = false
+  }
 
   const jobDetails = document.body.appendChild(el('details'))
   const jobSummary = jobDetails.appendChild(el('summary'))
