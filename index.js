@@ -2,7 +2,7 @@
 
 'use strict'
 
-const { report } = require('./src/output')
+const output = require('./src/output')
 const { log, serve } = require('reserve')
 const jobFactory = require('./src/job')
 const reserveConfigurationFactory = require('./src/reserve')
@@ -24,7 +24,7 @@ async function notifyAndExecuteTests (job) {
     await executeTests(job)
     send({ msg: 'end', status: job.failed || 0 })
   } catch (error) {
-    console.error('ERROR', error)
+    output.genericError(error)
     send({ msg: 'error', error })
   }
 }
@@ -41,16 +41,16 @@ async function main () {
       job.port = port
       send({ msg: 'ready', port: job.port })
       if (!job.logServer) {
-        console.log(`Server running at ${url}`)
+        output.serving(url)
       }
-      report(job)
+      output.report(job)
       await notifyAndExecuteTests(job)
       if (job.watch) {
         delete job.start
         if (!job.watching) {
-          console.log('Watching changes on', job.webapp)
+          output.watching(job.webapp)
           watch(job.webapp, { recursive: true }, (eventType, filename) => {
-            console.log(eventType, filename)
+            output.changeDetected(eventType, filename)
             if (!job.start) {
               notifyAndExecuteTests(job)
             }
@@ -59,13 +59,12 @@ async function main () {
         }
       } else if (job.keepAlive) {
         job.status = 'Serving'
-        console.log('Keeping alive.')
       } else {
         process.exit(job.failed || 0)
       }
     })
     .on('error', error => {
-      console.error('ERROR', error)
+      output.genericError(error)
       send({ msg: 'error', error })
     })
 }
