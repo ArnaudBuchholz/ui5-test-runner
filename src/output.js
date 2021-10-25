@@ -93,15 +93,19 @@ function progress (cleanFirst = true) {
   }
 }
 
+function wrap (write) {
+  if (job) {
+    clean()
+  }
+  write()
+  if (job) {
+    progress(false)
+  }
+}
+
 Object.getOwnPropertyNames(console).forEach(name => {
   mockConsole[name] = function (...args) {
-    if (job) {
-      clean()
-    }
-    nativeConsole[name](...args)
-    if (job) {
-      progress(false)
-    }
+    wrap(() => nativeConsole[name](...args))
   }
 })
 
@@ -110,7 +114,7 @@ if (interactive) {
 }
 
 module.exports = {
-  monitor (newJob) {
+  report (newJob) {
     job = newJob
     if (interactive) {
       process.stdout.write('\n')
@@ -138,5 +142,12 @@ module.exports = {
   },
   browserTimeout (url) {
     console.log('!! TIMEOUT', url)
+  },
+  monitor (childProcess) {
+    ['stdout', 'stderr'].forEach(channel => {
+      childProcess[channel].on('data', chunk => {
+        wrap(() => process[channel].write(chunk))
+      })
+    })
   }
 }
