@@ -4,6 +4,7 @@ const { dirname, join } = require('path')
 const { createWriteStream } = require('fs')
 const { mkdir, unlink } = require('fs').promises
 const { capture } = require('reserve')
+const output = require('./output')
 
 module.exports = job => {
   const [, hostName] = /https?:\/\/([^/]*)/.exec(job.ui5)
@@ -58,7 +59,7 @@ module.exports = job => {
           file.end()
           uncachable[path] = true
           if (response.statusCode !== 404) {
-            console.error(`Unable to cache '${path}' (status ${response.statusCode})`)
+            output.failedToCacheUI5resource(path, response.statusCode)
           }
           return unlink(cachePath)
         })
