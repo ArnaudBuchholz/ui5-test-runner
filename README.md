@@ -9,7 +9,7 @@
 [![MIT License](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2FArnaudBuchholz%2Fui5-test-runner.svg?type=shield)](https://app.fossa.com/projects/git%2Bgithub.com%2FArnaudBuchholz%2Fui5-test-runner?ref=badge_shield)
 
-A test runner for UI5 applications enabling parallel execution of tests.
+A self-sufficient test runner for UI5 applications enabling parallel execution of tests.
 
 > To put it in a nutshell, some applications have so many tests that when you run them in a browser, it ends up **crashing**. The main reason is **memory consumption** : the browser process goes up to 2 GB and it crashes. JavaScript is using garbage collecting but it needs time to operate and the stress caused by executing the tests does not let enough bandwidth for the browser to free up the memory.
 
@@ -29,8 +29,11 @@ A test runner for UI5 applications enabling parallel execution of tests.
 
 * Clone the project [training-ui5con18-opa](https://github.com/ArnaudBuchholz/training-ui5con18-opa) and run `npm install`
 * Inside the project, use `npm run karma` to test with the karma runner
-* Inside the project, use `ui5-test-runner -port:8080 -ui5:https://ui5.sap.com/1.87.0/ -cache:.ui5`
-* You may follow the progress of the test executions using http://localhost:8080/_/progress.html
+* Inside the project, use `ui5-test-runner -port:8080 -ui5:https://ui5.sap.com/1.87.0/ -cache:.ui5 -keepAlive`
+* Follow the progress of the test executions using http://localhost:8080/_/progress.html
+* When the tests are completed, inspect the results by opening :
+  - http://localhost:8080/_/report.html
+  - http://localhost:8080/_/coverage/lcov-report/index.html
 
 ## How to use
 
@@ -192,7 +195,7 @@ For instance :
 
 * You may follow the pattern being used by [`chromium.js`](https://github.com/ArnaudBuchholz/ui5-test-runner/blob/main/defaults/chromium.js)
 * It is **mandatory** to ensure that the child process explicitly exits at some point *(see this [thread](https://github.com/nodejs/node-v0.x-archive/issues/2605) explaining the fork behavior with Node.js)*
-* The child process will receive messages and it must handle them appropriately :
+* The child process will receive messages that must be handled appropriately :
   - `message.command === 'stop'` : the browser must be closed and the command line must exit
   - `message.command === 'capabilities'` : a message must be sent back to indicate if the following features are supported (boolean)
     - `screenshot` : the browser may take screenshots (in the `__REPORT__` folder, name is provided when needed)
