@@ -43,7 +43,8 @@ async function run (job, pageBrowser) {
   }
   await recreateDir(pageBrowser.reportDir)
   delete pageBrowser.stopped
-  const childProcess = fork(job.browser, pageBrowser.args.map(arg => arg.replace('__RETRY__', pageBrowser.retry)), { stdio: 'inherit' })
+  const childProcess = fork(job.browser, pageBrowser.args.map(arg => arg.replace('__RETRY__', pageBrowser.retry)), { stdio: 'pipe' })
+  output.monitor(childProcess)
   pageBrowser.childProcess = childProcess
   const timeout = getPageTimeout(job)
   if (timeout) {
