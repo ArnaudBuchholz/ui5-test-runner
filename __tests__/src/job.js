@@ -1,13 +1,21 @@
+jest.mock('../../src/output', () => {
+  return {
+    unexpectedOptionValue: jest.fn()
+  }
+})
 const { dirname, join } = require('path')
-
 const jobFactory = require('../../src/job')
 const cwd = '/test/project'
 const normalizePath = path => path.replace(/\\/g, '/') // win -> unix
 
 describe('src/job', () => {
+  let log
+  let warn
   let error
 
   beforeAll(() => {
+    log = jest.spyOn(console, 'log').mockImplementation()
+    warn = jest.spyOn(console, 'warn').mockImplementation()
     error = jest.spyOn(console, 'error').mockImplementation()
   })
 
@@ -86,11 +94,8 @@ describe('src/job', () => {
   })
 
   it('fixes invalid browserRetry value', () => {
-    const warn = jest.spyOn(console, 'warn').mockImplementation()
     const job = jobFactory.fromCmdLine(cwd, [0, 0, '-browserRetry: -1'])
     expect(job.browserRetry).toStrictEqual(1)
-    expect(warn.mock.calls.length).toStrictEqual(1)
-    warn.mockRestore()
   })
 
   it('preloads settings from ui5-test-runner.json', () => {
@@ -120,6 +125,11 @@ describe('src/job', () => {
   })
 
   afterAll(() => {
+    expect(log.mock.calls.length).toStrictEqual(0)
+    expect(warn.mock.calls.length).toStrictEqual(0)
+    expect(error.mock.calls.length).toStrictEqual(0)
+    log.mockRestore()
+    warn.mockRestore()
     error.mockRestore()
   })
 })
