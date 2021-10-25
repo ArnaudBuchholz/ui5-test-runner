@@ -2,7 +2,7 @@
 
 'use strict'
 
-const { monitor } = require('./src/output')
+const { report } = require('./src/output')
 const { log, serve } = require('reserve')
 const jobFactory = require('./src/job')
 const reserveConfigurationFactory = require('./src/reserve')
@@ -43,7 +43,7 @@ async function main () {
       if (!job.logServer) {
         console.log(`Server running at ${url}`)
       }
-      monitor(job)
+      report(job)
       await notifyAndExecuteTests(job)
       if (job.watch) {
         delete job.start
