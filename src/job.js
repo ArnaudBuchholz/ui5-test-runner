@@ -22,6 +22,7 @@ function allocate (cwd) {
 
     browser: join(__dirname, '../defaults/chromium.js'),
     browserRetry: 1,
+    noScreenshot: false,
     args: '__URL__ __REPORT__',
 
     parallel: 2,
