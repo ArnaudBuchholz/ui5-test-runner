@@ -58,7 +58,7 @@ async function run (job, pageBrowser) {
       const { id } = message
       screenshots[id]()
       delete screenshots[id]
-    } else if (message.command === 'capabilities') {
+    } else /* istanbul ignore else */ if (message.command === 'capabilities') {
       job.browserCapabilities = { ...message }
       delete job.browserCapabilities.command
       output.browserCapabilities(job.browserCapabilities)
