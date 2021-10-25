@@ -6,6 +6,7 @@ const { filename, recreateDir } = require('./tools')
 const { join } = require('path')
 const { copyFile, writeFile } = require('fs').promises
 const { globallyTimedOut } = require('./timeout')
+const output = require('./output')
 
 async function saveJob (job) {
   await writeFile(join(job.tstReportDir, 'job.json'), JSON.stringify({
@@ -27,7 +28,7 @@ async function extractTestPages (job) {
   job.testPageUrls = []
   await start(job, '/test/testsuite.qunit.html')
   if (job.testPageUrls.length === 0) {
-    console.log('No test page found')
+    output.noTestPageFound()
     job.failed = true
     return Promise.resolve()
   }
@@ -54,9 +55,9 @@ async function runTestPage (job) {
   const index = job.testPagesStarted++
   const url = job.testPageUrls[index]
   if (globallyTimedOut(job)) {
-    console.log('!! TIMEOUT', url)
+    output.globalTimeout(url)
   } else if (job.failFast && job.failed) {
-    console.log('!! FAILFAST', url)
+    output.failFast(url)
   } else {
     await start(job, url)
     const page = job.testPages[url]
@@ -94,7 +95,7 @@ async function generateReport (job) {
   await saveJob(job)
   await copyFile(join(__dirname, 'report.html'), join(job.tstReportDir, 'report.html'))
   await generateCoverageReport(job)
-  console.log(`Time spent: ${new Date() - job.start}ms`)
+  output.timeSpent(job.start)
   job.status = 'Done'
 }
 
