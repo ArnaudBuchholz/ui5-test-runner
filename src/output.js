@@ -114,6 +114,15 @@ if (interactive) {
 }
 
 module.exports = {
+  serving (url) {
+    console.log(`Server running at ${url}`)
+  },
+  watching (path) {
+    console.log('Watching changes on', path)
+  },
+  changeDetected (eventType, filename) {
+    console.log(eventType, filename)
+  },
   report (newJob) {
     job = newJob
     if (interactive) {
@@ -149,5 +158,37 @@ module.exports = {
         wrap(() => process[channel].write(chunk))
       })
     })
+  },
+  nyc (...args) {
+    console.log('nyc', ...args)
+  },
+  endpoint (url, data) {
+    console.log(url, data)
+  },
+  endpointError (url, data, error) {
+    console.error(`Exception when processing ${url}`)
+    console.error(data)
+    console.error(error)
+  },
+  globalTimeout (url) {
+    console.log('!! TIMEOUT', url)
+  },
+  failFast (url) {
+    console.log('!! FAILFAST', url)
+  },
+  timeSpent (start, end = new Date()) {
+    console.log(`Time spent: ${end - start}ms`)
+  },
+  unexpectedOptionValue (optionName, message) {
+    console.error(`Unexpected value for option ${optionName} : ${message}`)
+  },
+  noTestPageFound () {
+    console.error('No test page found (or all filtered out)')
+  },
+  failedToCacheUI5resource (path, statusCode) {
+    console.error(`Unable to cache '${path}' (status ${statusCode})`)
+  },
+  genericError (error) {
+    console.error('An unexpected error occurred', error)
   }
 }
