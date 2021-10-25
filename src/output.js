@@ -190,5 +190,8 @@ module.exports = {
   },
   genericError (error) {
     console.error('An unexpected error occurred', error)
+  },
+  unhandled () {
+    console.warn('Some requests are not handled properly, check the unhandled.txt report for more info')
   }
 }
