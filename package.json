@@ -62,6 +62,9 @@
     "collectCoverageFrom": [
       "src/*.js"
     ],
+    "coveragePathIgnorePatterns": [
+      "output\\.js"
+    ],
     "coverageThreshold": {
       "global": {
         "branches": 80,
