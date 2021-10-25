@@ -41,8 +41,10 @@ process.on('message', async message => {
 async function main () {
   browser = await puppeteer.launch({
     headless,
+    defaultViewport: null,
     args: [
       url,
+      '--start-maximized',
       '--no-sandbox',
       '--disable-gpu',
       '--disable-extensions'
