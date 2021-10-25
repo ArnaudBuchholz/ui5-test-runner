@@ -1,4 +1,20 @@
 jest.mock('child_process')
+jest.mock('../../src/output', () => {
+  return {
+    nyc: jest.fn(),
+    monitor: jest.fn(),
+    browserStart: jest.fn(),
+    browserStopped: jest.fn(),
+    endpoint: jest.fn(),
+    endpointError: jest.fn(),
+    timeSpent: jest.fn(),
+    globalTimeout: jest.fn(),
+    failFast: jest.fn(),
+    noTestPageFound: jest.fn(),
+    failedToCacheUI5resource: jest.fn(),
+    results: jest.fn()
+  }
+})
 const { join } = require('path')
 const { mock } = require('reserve')
 const jobFactory = require('../../src/job')
@@ -11,6 +27,7 @@ const { cleanDir, createDir } = require('../../src/tools')
 
 describe('simulate', () => {
   let log
+  let warn
   let error
   const simulatePath = join(__dirname, '../../tmp/simulate')
 
@@ -18,7 +35,7 @@ describe('simulate', () => {
 
   function onNewChildProcess (childProcess) {
     if (childProcess.scriptPath.endsWith('nyc.js')) {
-      childProcess.close()
+      setTimeout(() => childProcess.close(), 0)
       return
     }
     if (childProcess.scriptPath.endsWith('chromium.js')) {
@@ -41,6 +58,7 @@ describe('simulate', () => {
 
   beforeAll(() => {
     log = jest.spyOn(console, 'log').mockImplementation()
+    warn = jest.spyOn(console, 'warn').mockImplementation()
     error = jest.spyOn(console, 'error').mockImplementation()
     hook.on('new', onNewChildProcess)
     const nockScope = nock('https://ui5.sap.com/').persist()
@@ -417,7 +435,11 @@ var global=new Function("return this")();
 
   afterAll(() => {
     hook.off('new', onNewChildProcess)
+    expect(log.mock.calls.length).toStrictEqual(0)
+    expect(warn.mock.calls.length).toStrictEqual(0)
+    expect(error.mock.calls.length).toStrictEqual(0)
     log.mockRestore()
+    warn.mockRestore()
     error.mockRestore()
   })
 })
