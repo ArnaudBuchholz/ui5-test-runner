@@ -76,7 +76,7 @@ async function run (job, pageBrowser) {
 }
 
 async function screenshot (job, relativeUrl, filename) {
-  if (!job.browserCapabilities || !job.browserCapabilities.screenshot) {
+  if (job.noScreenshot || !job.browserCapabilities || !job.browserCapabilities.screenshot) {
     return
   }
   const pageBrowser = job.browsers[relativeUrl]
