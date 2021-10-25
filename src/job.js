@@ -1,6 +1,7 @@
 'use strict'
 
 const { join, isAbsolute } = require('path')
+const output = require('./output')
 
 function allocate (cwd) {
   return {
@@ -66,7 +67,7 @@ function finalize (job) {
   }
 
   if (job.browserRetry < 0) {
-    console.warn('Invalid browserRetry value, defaulting to 1')
+    output.unexpectedOptionValue('browserRetry', 'defaulting to 1')
     job.browserRetry = 1
   }
 }
@@ -98,7 +99,7 @@ function parseJobParam (job, arg) {
       try {
         job[name] = valueParser(value, job[name])
       } catch (error) {
-        console.error(`Unexpected value for option ${name} : ${error.message}`)
+        output.unexpectedOptionValue(name, error.message)
       }
     }
   }
