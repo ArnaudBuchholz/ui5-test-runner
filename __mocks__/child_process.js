@@ -1,9 +1,12 @@
 const EventEmitter = require('events')
 const _hook = new EventEmitter()
 
+class Channel extends EventEmitter {
+}
+
 class ChildProcess extends EventEmitter {
   send (message) {
-    this.emit('message', message)
+    this.emit('message.received', message)
   }
 
   close () {
@@ -15,6 +18,8 @@ class ChildProcess extends EventEmitter {
   get args () { return this._args }
   get options () { return this._options }
   get connected () { return this._connected }
+  get stdout () { return this._stdout }
+  get stderr () { return this._stderr }
 
   constructor (scriptPath, args, options) {
     super()
@@ -22,7 +27,9 @@ class ChildProcess extends EventEmitter {
     this._scriptPath = scriptPath
     this._args = args
     this._options = options
-    setTimeout(() => _hook.emit('new', this), 0) // Defer the call since creation is 'asynchronous'
+    this._stdout = new Channel()
+    this._stderr = new Channel()
+    _hook.emit('new', this)
   }
 }
 
