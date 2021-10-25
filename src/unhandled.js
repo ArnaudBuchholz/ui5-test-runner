@@ -23,9 +23,9 @@ module.exports = job => {
         output.unhandled()
         outputUnhandled = false
       }
-      writeFile(unhandled, `${extractUrl(headers)} ${status} ${method} ${url}`, {
+      writeFile(unhandled, `${extractUrl(headers)} ${status} ${method} ${url}\n`, {
         flag: 'a'
-      })
+      }, () => {})
       return status
     }
   }]
