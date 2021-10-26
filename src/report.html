@@ -8,9 +8,31 @@ body {
 }
 
 .testId {
+  padding-right: .5rem;
+  font-size: x-small;
+  color: gray;
+}
+
+.runtime {
   padding-left: .5rem;
   padding-right: .5rem;
   font-size: x-small;
+}
+
+.runtime::after {
+  content: "ms"
+}
+
+.timestamp {
+  font-size: x-small;
+}
+
+.timestamp::before {
+  content: "@"
+}
+
+.timestamp::after {
+  content: "ms"
 }
 
 img.log {
@@ -30,10 +52,16 @@ table.job th {
   padding-right: .5rem;
 }
 
+pre {
+  margin-top: 0;
+}
+
     </style>
   </head>
   <body>
     <script>
+const ok = '\u2714\ufe0f'
+const ko = '\u274c'
 
 function tx (content) {
   return document.createTextNode(content)
@@ -104,62 +132,66 @@ async function generate () {
 
   const pages = await json('pages.json')
   Object.keys(pages).forEach(async page => {
-    const path = pages[page]
-    const details = document.body.appendChild(el('details'))
-    const summary = details.appendChild(el('summary'))
-    const ok = '\u2714\ufe0f'
-    const ko = '\u274c'
-    summary.appendChild(el('b', {}, page))
+    const pagePath = pages[page]
+    const pageDetails = document.body.appendChild(el('details'))
+    const pageSummary = pageDetails.appendChild(el('summary'))
+    pageSummary.appendChild(el('b', {}, page))
 
-    const report = await json(`${path}.json`)
-    const { isOpa } = report
-    if (!report.report || report.failed) {
-      summary.appendChild(tx(ko))
+    const pageReport = await json(`${pagePath}.json`)
+    const { isOpa, report, failed } = pageReport
+    if (!report || failed) {
+      pageSummary.appendChild(tx(ko))
     } else {
-      summary.appendChild(tx(ok))
+      pageSummary.appendChild(tx(ok))
     }
-    const table = details.appendChild(el('table', { width: '100%' }))
-    const row = (module, name = ' ') => {
-      const tr = table.appendChild(el('tr'))
-      tr.innerHTML = `<td width="15%" valign="top">${module}</td><td width="85%">${name}</td>`
+
+    const pageDetailsTable = pageDetails.appendChild(el('table', { width: '100%' }))
+    const addPageDetailsRow = module => {
+      const tr = pageDetailsTable.appendChild(el('tr'))
+      tr.innerHTML = `<td width="15%" valign="top">${module}</td><td width="85%"> </td>`
       return tr
     }
+
     let lastModule
-    report.tests.forEach(test => {
-      let { module, name, failed, testId } = test
+    pageReport.order.forEach(testId => {
+      const { timestamps, report } = pageReport.tests[testId]
+      const { module, name, failed, assertions, runtime } = report
+
+      let displayModule = module
       if (module !== lastModule) {
         lastModule = module
       } else {
-        module = ' '
+        displayModule = ' '
       }
-      const tr = row(module)
-      const td = tr.querySelectorAll('td')[1]
-      const assertions = td.appendChild(el('details'))
-      assertions.appendChild(el('summary', {}, name, el('span', { class: 'testId' }, testId), failed ? ko : ''))
-      test.assertions.forEach((assertion, index) => {
+      const pageAssertions = addPageDetailsRow(displayModule).querySelectorAll('td')[1].appendChild(el('details'))
+      pageAssertions.appendChild(el('summary', {}, name, el('span', { class: 'runtime' }, runtime), el('span', { class: 'testId' }, testId), failed ? ko : ''))
+      const validTimestamps = assertions.length === timestamps.length
+      assertions.forEach((assertion, index) => {
         const bullet = assertion.result && ok || ko
+        const timestamp = timestamps[index]
         let preview
-        if (isOpa && screenshot) {
-          preview = el('img', { src: `${path}/${testId}-${index}.png`, class: 'log' })
+        if (isOpa && screenshot && validTimestamps) {
+          preview = el('img', { loading: 'lazy', src: `${pagePath}/${testId}-${timestamp}.png`, class: 'log' })
         }
-        assertions.appendChild(el('div', {}, el('pre', {}, bullet + ' ' + assertion.message), preview))
+        pageAssertions.appendChild(el('div', {}, el('div', { class: 'timestamp' }, timestamp), el('pre', {}, bullet + ' ' + assertion.message), preview))
       })
     })
-    if (report.report) {
-      row(`${report.report.runtime} ms`)
+
+    if (report) {
+      addPageDetailsRow(`${report.runtime} ms`)
     } else {
-      row(`Timed out ${ko}`)
+      addPageDetailsRow(`Timed out ${ko}`)
     }
     if (screenshot) {
-      details.appendChild(el('a', { href: `${path}/screenshot.png`, target: '_blank' }, 'screenshot'))
-      details.appendChild(el('span', {}, ' '))
+      pageDetails.appendChild(el('a', { href: `${pagePath}/screenshot.png`, target: '_blank' }, 'screenshot'))
+      pageDetails.appendChild(el('span', {}, ' '))
     }
     if (consoleLog) {
-      details.appendChild(el('a', { href: `${path}/console.txt`, target: '_blank' }, 'console'))
+      pageDetails.appendChild(el('a', { href: `${pagePath}/console.txt`, target: '_blank' }, 'console'))
     }
   }, () => {
-    summary.appendChild(tx(ko))
-    details.appendChild(el('p', {}, 'No report found ', el('i', {}, '(fatal error or timeout)')))
+    pageSummary.appendChild(tx(ko))
+    pageDetails.appendChild(el('p', {}, 'No report found ', el('i', {}, '(fatal error or timeout)')))
   })
 }
 

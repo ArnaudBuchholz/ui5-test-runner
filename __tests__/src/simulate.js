@@ -91,7 +91,10 @@ describe('simulate', () => {
   }
 
   async function simulateOK (referer, totalTests = 1, __coverage__ = undefined) {
-    await mocked.request('POST', '/_/QUnit/begin', { referer }, JSON.stringify({ totalTests }))
+    await mocked.request('POST', '/_/QUnit/begin', { referer }, JSON.stringify({
+      totalTests,
+      modules: []
+    }))
     await mocked.request('POST', '/_/QUnit/testDone', { referer }, JSON.stringify({ failed: 0, passed: totalTests }))
     await mocked.request('POST', '/_/QUnit/done', { referer }, JSON.stringify({ failed: 0, __coverage__ }))
   }
@@ -157,7 +160,7 @@ describe('simulate', () => {
       expect(page1HtmlJson.total).toStrictEqual(1)
       expect(page1HtmlJson.failed).toStrictEqual(0)
       expect(page1HtmlJson.passed).toStrictEqual(1)
-      expect(Array.isArray(page1HtmlJson.tests)).toStrictEqual(true)
+      expect(typeof page1HtmlJson.tests).toStrictEqual('object')
       // _page1.html/ output folder
       const page1Stat = await stat(join(reportPath, '_page1.html'))
       expect(page1Stat.isDirectory()).toStrictEqual(true)
