@@ -2,8 +2,7 @@
 
 const nativeConsole = console
 const mockConsole = {}
-const { columns } = process.stdout
-const interactive = columns !== undefined
+const interactive = process.stdout.columns !== undefined
 let lastTick = 0
 const ticks = ['\u280b', '\u2819', '\u2839', '\u2838', '\u283c', '\u2834', '\u2826', '\u2827', '\u2807', '\u280f']
 let job
@@ -19,7 +18,7 @@ function clean () {
     if (line > 1) {
       write('\x1b[1E')
     }
-    write(''.padEnd(columns, ' '))
+    write(''.padEnd(process.stdout.columns, ' '))
   }
   if (lines > 1) {
     write(`\x1b[${(lines - 1).toString()}F`)
