@@ -9,15 +9,15 @@
 [![MIT License](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2FArnaudBuchholz%2Fui5-test-runner.svg?type=shield)](https://app.fossa.com/projects/git%2Bgithub.com%2FArnaudBuchholz%2Fui5-test-runner?ref=badge_shield)
 
-A test runner for UI5 applications enabling parallel execution of tests.
+A self-sufficient test runner for UI5 applications enabling parallel execution of tests.
 
-> To put it in a nutshell, some applications have so many tests that when you run them in a browser, it ends up **crashing**. The main reason is **memory consumption** : the browser process goes up to 2 GB and it crashes. JavaScript is using garbage collecting but it needs time to operate and the stress caused by executing the tests does not let enough bandwidth for the browser to free up the memory.
+> To put it in a nutshell, some applications have so many tests that when you run them in a browser, it ends up **crashing**. The main reason is **memory consumption** : the browser process goes up to 2 GB and it blows up. JavaScript is using garbage collecting but it needs time to operate and the stress caused by executing the tests does not let enough bandwidth for the browser to free up the memory.
 
 > This tool is designed and built as a **substitute** of the [UI5 karma runner](https://github.com/SAP/karma-ui5). It executes all the tests in **parallel** thanks to several browser instances *(which also **reduces the total execution time**)*.
 
 ## Documentation
 
-* Concept is detailed in the  article [REserve - Testing UI5](https://arnaud-buchholz.medium.com/reserve-testing-ui5-85187d5eb7f1)
+* Initial concept is detailed in the  article [REserve - Testing UI5](https://arnaud-buchholz.medium.com/reserve-testing-ui5-85187d5eb7f1)
 * Tool was presented during UI5Con'21 : [A different approach to UI5 tests execution](https://youtu.be/EBp0bdIqu4s)
 
 ## How to install
@@ -29,8 +29,11 @@ A test runner for UI5 applications enabling parallel execution of tests.
 
 * Clone the project [training-ui5con18-opa](https://github.com/ArnaudBuchholz/training-ui5con18-opa) and run `npm install`
 * Inside the project, use `npm run karma` to test with the karma runner
-* Inside the project, use `ui5-test-runner -port:8080 -ui5:https://ui5.sap.com/1.87.0/ -cache:.ui5`
-* You may follow the progress of the test executions using http://localhost:8080/_/progress.html
+* Inside the project, use `ui5-test-runner -port:8080 -ui5:https://ui5.sap.com/1.87.0/ -cache:.ui5 -keepAlive`
+* Follow the progress of the test executions using http://localhost:8080/_/progress.html
+* When the tests are completed, inspect the results by opening :
+  - http://localhost:8080/_/report.html
+  - http://localhost:8080/_/coverage/lcov-report/index.html
 
 ## How to use
 
@@ -69,7 +72,7 @@ The list of options is detailed below but to explain the command :
 
 * `-cache:.ui5` : caches UI5 resources to boost loading of pages. It stores resources in a project folder named `.ui5` *(you may use an absolute path if preferred)*.
 
-* `-libs:my/namespace/feature/lib/=../my.namespace.feature.project.lib/src/my/namespace/feature/lib/` : maps the library path (access to URL `/resources/my/namespace/feature/lib/library.js` will be mapped to the file path `./my.namespace.feature.project.lib/src/my/namespace/feature/lib/library.js`)
+* `-libs:my/namespace/feature/lib/=../my.namespace.feature.project.lib/src/my/namespace/feature/lib/` : maps the library path (access to URL `/resources/my/namespace/feature/lib/library.js` will be mapped to the file path `../my.namespace.feature.project.lib/src/my/namespace/feature/lib/library.js`)
 
 You may also use :
 * `-ui5:https://ui5.sap.com/1.92.1/` : uses a specific version of UI5
@@ -78,7 +81,7 @@ You may also use :
 
 * `"-args:__URL__ __REPORT__ --visible"` : changes the browser spawning command line to make the browser windows **visible**
 
-* `-parallel:3` : increases *(changes)* the number of parallel execution *(by default it uses 2)*. You may even use `0` to only serve the application *(but the tests are not executed)*.
+* `-parallel:3` : increases *(changes)* the number of parallel execution *(by default it uses 2)*. You may even use `0` to only serve the application *(the tests are not executed)*.
 
 * `-keepAlive` : the server remains active after executing the tests
 
@@ -137,6 +140,7 @@ You may also use :
 | browser | *String, see description* | Browser instantiation command, it should point to a node.js script *(absolute or relative to `cwd`)*.<br/>By default, a script will instantiate chromium through puppetteer |
 | browserRetry | `1` | Browser instantiation retries : if the command **fails** unexpectedly, it is re-executed *(`0` means no retry)*.<br/>The page **fails** if **all attempts** fail |
 | args | `'__URL__ __REPORT__'` | Browser instantiation arguments :<ul><li>`'__URL__'` is replaced with the URL to open</li><li>`'__REPORT__'` is replaced with a folder path that is associated with the current URL *(can be used to store additional traces such as console logs or screenshots)*</li><li>`'__RETRY__'` is replaced with the retry count *(0 for the first execution, can be used to put additional traces or change strategy)*</i>*</li></ul> |
+| noScreenshot | `false` | No screenshot is taken during the tests execution (faster if the browser command supports screenshot) |
 | -- | | Parameters given right after `--` are directly added to the browser instantiation arguments *(see below)* |
 | parallel | `2` | Number of parallel tests executions (`0` to ignore tests and keep alive) |
 | tstReportDir | `'report'` | Directory to output test reports *(relative to `cwd`)* |
@@ -187,10 +191,24 @@ For instance :
 
 > Structure of the `libs` parameter
 
+## Tips & tricks
+
+* The runner takes a screenshot for **every** OPA assertion (`Opa5.assert.ok`)
+* To benefit from **parallelization**, split the OPA test pages per journey.<br> An example pattern :
+  - **Declare** the list of journeys in a json file : [`AllJourneys.json`](https://github.com/ArnaudBuchholz/training-ui5con18-opa/blob/master/webapp/test/integration/AllJourneys.json)
+  - **Enumerate** `AllJourneys.json` in [`testsuite.qunit.html`](https://github.com/ArnaudBuchholz/training-ui5con18-opa/blob/master/webapp/test/testsuite.qunit.html#L17) to declare as many pages as journeys
+  - **Modify** [`AllJourneys.js`](https://github.com/ArnaudBuchholz/training-ui5con18-opa/blob/master/webapp/test/integration/AllJourneys.js#L26) to support a `journey=` parameter and list all declared journeys
+
 ## Building a custom browser instantiation command
 
 * You may follow the pattern being used by [`chromium.js`](https://github.com/ArnaudBuchholz/ui5-test-runner/blob/main/defaults/chromium.js)
 * It is **mandatory** to ensure that the child process explicitly exits at some point *(see this [thread](https://github.com/nodejs/node-v0.x-archive/issues/2605) explaining the fork behavior with Node.js)*
+* The child process will receive messages that must be handled appropriately :
+  - `message.command === 'stop'` : the browser must be closed and the command line must exit
+  - `message.command === 'capabilities'` : a message must be sent back to indicate if the following features are supported *(boolean)*
+    - `screenshot` : the browser can take screenshots (in the `__REPORT__` folder, name is provided when needed)
+    - `consoleLog` : the browser serializes the console traces (in the `__REPORT__` folder with the name `console.txt`)
+  - `message.command === 'screenshot'` : should generate a screenshot (the message contains a `filename` member). To indicate that the screenshot is done, the command line must send back the same message (`process.send(message)`).
 
 ## License
 [![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2FArnaudBuchholz%2Fui5-test-runner.svg?type=large)](https://app.fossa.com/projects/git%2Bgithub.com%2FArnaudBuchholz%2Fui5-test-runner?ref=badge_large)

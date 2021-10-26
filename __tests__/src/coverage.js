@@ -1,4 +1,10 @@
 jest.mock('child_process')
+jest.mock('../../src/output', () => {
+  return {
+    nyc: jest.fn(),
+    monitor: jest.fn()
+  }
+})
 const { join } = require('path')
 const jobFactory = require('../../src/job')
 const { _hook: hook } = require('child_process')
@@ -10,10 +16,14 @@ const cwd = '/test/project'
 
 describe('src/coverage', () => {
   let log
+  let warn
+  let error
   const coveragePath = join(__dirname, '../../tmp/coverage')
 
   beforeAll(() => {
     log = jest.spyOn(console, 'log').mockImplementation()
+    warn = jest.spyOn(console, 'warn').mockImplementation()
+    error = jest.spyOn(console, 'error').mockImplementation()
     return cleanDir(coveragePath)
   })
 
@@ -71,7 +81,7 @@ describe('src/coverage', () => {
       let triggered = false
       hook.once('new', childProcess => {
         triggered = true
-        childProcess.emit('close')
+        setTimeout(() => childProcess.emit('close'), 0)
       })
       await instrument(job)
       expect(triggered).toStrictEqual(true)
@@ -88,7 +98,7 @@ describe('src/coverage', () => {
         } else if (childProcess.args[0] === 'report') {
           reportTriggered = true
         }
-        childProcess.emit('close')
+        setTimeout(() => childProcess.emit('close'), 0)
       }
       hook.on('new', newChildProcess)
       await generateCoverageReport(job)
@@ -104,6 +114,11 @@ describe('src/coverage', () => {
   })
 
   afterAll(() => {
+    expect(log.mock.calls.length).toStrictEqual(0)
+    expect(warn.mock.calls.length).toStrictEqual(0)
+    expect(error.mock.calls.length).toStrictEqual(0)
     log.mockRestore()
+    warn.mockRestore()
+    error.mockRestore()
   })
 })

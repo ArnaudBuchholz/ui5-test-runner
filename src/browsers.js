@@ -4,12 +4,16 @@ const { fork } = require('child_process')
 const { join } = require('path')
 const { recreateDir, filename } = require('./tools')
 const { getPageTimeout } = require('./timeout')
+const output = require('./output')
+
+let lastScreenshotId = 0
+const screenshots = {}
 
 function start (job, relativeUrl) {
   if (!job.browsers) {
     job.browsers = {}
   }
-  console.log('>>', relativeUrl)
+  output.browserStart(relativeUrl)
   const reportDir = join(job.tstReportDir, filename(relativeUrl))
   const args = job.args.split(' ')
     .map(arg => arg
@@ -28,35 +32,72 @@ function start (job, relativeUrl) {
   job.browsers[relativeUrl] = pageBrowser
   run(job, pageBrowser)
   return promise.then(() => {
-    console.log('<<', relativeUrl)
+    output.browserStopped(relativeUrl)
   })
 }
 
 async function run (job, pageBrowser) {
   const { relativeUrl } = pageBrowser
   if (pageBrowser.retry) {
-    console.log('>> RETRY', pageBrowser.retry, relativeUrl)
+    output.browserRetry(relativeUrl, pageBrowser.retry)
   }
   await recreateDir(pageBrowser.reportDir)
   delete pageBrowser.stopped
-  const childProcess = fork(job.browser, pageBrowser.args.map(arg => arg.replace('__RETRY__', pageBrowser.retry)), { stdio: 'inherit' })
+  const childProcess = fork(job.browser, pageBrowser.args.map(arg => arg.replace('__RETRY__', pageBrowser.retry)), { stdio: 'pipe' })
+  output.monitor(childProcess)
   pageBrowser.childProcess = childProcess
   const timeout = getPageTimeout(job)
   if (timeout) {
     pageBrowser.timeoutId = setTimeout(() => {
-      console.log('!! TIMEOUT', relativeUrl)
+      output.browserTimeout(relativeUrl)
       stop(job, relativeUrl)
     }, timeout)
   }
+  childProcess.on('message', message => {
+    if (message.command === 'screenshot') {
+      const { id } = message
+      screenshots[id]()
+      delete screenshots[id]
+    } else /* istanbul ignore else */ if (message.command === 'capabilities') {
+      job.browserCapabilities = { ...message }
+      delete job.browserCapabilities.command
+      output.browserCapabilities(job.browserCapabilities)
+    }
+  })
   childProcess.on('close', () => {
     if (!pageBrowser.stopped) {
-      console.log('!! BROWSER CLOSED', relativeUrl)
+      output.browserClosed(relativeUrl)
       stop(job, relativeUrl, true)
     }
   })
+  if (!job.browserCapabilities) {
+    childProcess.send({ command: 'capabilities' })
+  }
 }
 
-function stop (job, relativeUrl, retry = false) {
+async function screenshot (job, relativeUrl, filename) {
+  if (job.noScreenshot || !job.browserCapabilities || !job.browserCapabilities.screenshot) {
+    return
+  }
+  const pageBrowser = job.browsers[relativeUrl]
+  if (pageBrowser) {
+    const { childProcess } = pageBrowser
+    if (childProcess.connected) {
+      const id = ++lastScreenshotId
+      const promise = new Promise(resolve => {
+        screenshots[id] = resolve
+      })
+      childProcess.send({
+        id,
+        command: 'screenshot',
+        filename
+      })
+      await promise
+    }
+  }
+}
+
+async function stop (job, relativeUrl, retry = false) {
   const pageBrowser = job.browsers[relativeUrl]
   if (pageBrowser) {
     pageBrowser.stopped = true
@@ -76,4 +117,4 @@ function stop (job, relativeUrl, retry = false) {
   }
 }
 
-module.exports = { start, stop }
+module.exports = { start, screenshot, stop }

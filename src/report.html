@@ -1,6 +1,36 @@
 <html>
   <head>
     <title>ui5-test-runner report</title>
+    <style>
+
+body {
+  font-family: Verdana, Geneva, Tahoma, sans-serif;
+}
+
+.testId {
+  padding-left: .5rem;
+  padding-right: .5rem;
+  font-size: x-small;
+}
+
+img.log {
+  width: 50%;
+}
+
+table.job {
+  font-size: small;
+}
+
+table.job.object {
+  font-size: x-small;
+}
+
+table.job th {
+  text-align: right;
+  padding-right: .5rem;
+}
+
+    </style>
   </head>
   <body>
     <script>
@@ -14,13 +44,15 @@ function el (name, attributes = {}, ...children) {
   Object.keys(attributes).forEach(attribute => {
     element.setAttribute(attribute, attributes[attribute])
   })
-  children.forEach(child => {
+  children
+    .filter(child => !!child)
+    .forEach(child => {
       if (typeof child !== 'object') {
         element.appendChild(tx(child.toString()))
       } else {
         element.appendChild(child)
       }
-  })
+    })
   return element
 }
 
@@ -28,8 +60,50 @@ async function json (url) {
   return (await fetch(url)).json()
 }
 
-json('pages.json')
-  .then(pages => Object.keys(pages).forEach(page => {
+async function generate () {
+  const job = await json('job.json')
+  let screenshot = false
+  let consoleLog = false
+  if (job.browserCapabilities) {
+    screenshot = job.browserCapabilities.screenshot
+    consoleLog = job.browserCapabilities.consoleLog
+  }
+  if (job.noScreenshot) {
+    screenshot = false
+  }
+
+  const jobDetails = document.body.appendChild(el('details'))
+  const jobSummary = jobDetails.appendChild(el('summary'))
+  jobSummary.appendChild(el('span', {}, 'job details'))
+  const jobParams = jobDetails.appendChild(el('table', { class: 'job' }))
+  
+  function dump (obj, level) {
+    Object.keys(obj).forEach(property => {
+      const value = obj[property]
+      const tr = level.appendChild(el('tr'))
+      tr.appendChild(el('th', {}, property))
+      if (typeof value !== 'object') {
+        let stringifiedValue
+        if (typeof value === 'string') {
+          if (value.match(/\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z/)) {
+            stringifiedValue = new Date(value).toString()
+          } else {
+            stringifiedValue = value
+          }
+        } else {
+          stringifiedValue = JSON.stringify(value)
+        }
+        tr.appendChild(el('td', {}, stringifiedValue))
+      } else {
+        const subLevel = tr.appendChild(el('td')).appendChild(el('table', { class: 'job object' }))
+        dump(value, subLevel)
+      }
+    })
+  }
+  dump(job, jobParams)
+
+  const pages = await json('pages.json')
+  Object.keys(pages).forEach(async page => {
     const path = pages[page]
     const details = document.body.appendChild(el('details'))
     const summary = details.appendChild(el('summary'))
@@ -37,53 +111,60 @@ json('pages.json')
     const ko = '\u274c'
     summary.appendChild(el('b', {}, page))
 
-    json(`${path}.json`)
-      .then(report => {
-        if (!report.report || report.failed) {
-          summary.appendChild(tx(ko))
-        } else {
-          summary.appendChild(tx(ok))
+    const report = await json(`${path}.json`)
+    const { isOpa } = report
+    if (!report.report || report.failed) {
+      summary.appendChild(tx(ko))
+    } else {
+      summary.appendChild(tx(ok))
+    }
+    const table = details.appendChild(el('table', { width: '100%' }))
+    const row = (module, name = ' ') => {
+      const tr = table.appendChild(el('tr'))
+      tr.innerHTML = `<td width="15%" valign="top">${module}</td><td width="85%">${name}</td>`
+      return tr
+    }
+    let lastModule
+    report.tests.forEach(test => {
+      let { module, name, failed, testId } = test
+      if (module !== lastModule) {
+        lastModule = module
+      } else {
+        module = ' '
+      }
+      const tr = row(module)
+      const td = tr.querySelectorAll('td')[1]
+      const assertions = td.appendChild(el('details'))
+      assertions.appendChild(el('summary', {}, name, el('span', { class: 'testId' }, testId), failed ? ko : ''))
+      test.assertions.forEach((assertion, index) => {
+        const bullet = assertion.result && ok || ko
+        let preview
+        if (isOpa && screenshot) {
+          preview = el('img', { src: `${path}/${testId}-${index}.png`, class: 'log' })
         }
-        const table = details.appendChild(el('table', { width: '100%' }))
-        const row = (module, name = ' ') => {
-          const tr = table.appendChild(el('tr'))
-          tr.innerHTML = `<td width="15%">${module}</td><td width="85%">${name}</td>`
-          return tr
-        }
-        let lastModule
-        report.tests.forEach(test => {
-          let { module, name, failed } = test
-          if (module !== lastModule) {
-            lastModule = module
-          } else {
-            module = ' '
-          }
-          if (failed) {
-            const tr = row(module)
-            const td = tr.querySelectorAll('td')[1]
-            const assertions = td.appendChild(el('details'))
-            assertions.appendChild(el('summary', {}, name + ko))
-            test.assertions.forEach(assertion => {
-              const bullet = assertion.result && ok || ko
-              assertions.appendChild(el('div', {}, el('pre', {}, bullet + ' ' + assertion.message)))
-            })
-          } else {
-            row(module, name)
-          }
-        })
-        if (report.report) {
-          row(`${report.report.runtime} ms`)
-        } else {
-          row(`Timed out ${ko}`)
-        }
-        details.appendChild(el('a', { href: `${path}/screenshot.png`, target: '_blank' }, 'screenshot'))
-        details.appendChild(el('span', {}, ' '))
-        details.appendChild(el('a', { href: `${path}/console.txt`, target: '_blank' }, 'console'))
-      }, () => {
-        summary.appendChild(tx(ko))
-        details.appendChild(el('p', {}, 'No report found ', el('i', {}, '(fatal error or timeout)')))
+        assertions.appendChild(el('div', {}, el('pre', {}, bullet + ' ' + assertion.message), preview))
       })
-  }))
+    })
+    if (report.report) {
+      row(`${report.report.runtime} ms`)
+    } else {
+      row(`Timed out ${ko}`)
+    }
+    if (screenshot) {
+      details.appendChild(el('a', { href: `${path}/screenshot.png`, target: '_blank' }, 'screenshot'))
+      details.appendChild(el('span', {}, ' '))
+    }
+    if (consoleLog) {
+      details.appendChild(el('a', { href: `${path}/console.txt`, target: '_blank' }, 'console'))
+    }
+  }, () => {
+    summary.appendChild(tx(ko))
+    details.appendChild(el('p', {}, 'No report found ', el('i', {}, '(fatal error or timeout)')))
+  })
+}
+
+generate()
+
     </script>
   </body>
 </html>

@@ -2,28 +2,39 @@
 
 const { join } = require('path')
 const { body } = require('reserve')
-const { stop } = require('./browsers')
+const { screenshot, stop } = require('./browsers')
 const { writeFile } = require('fs').promises
 const { extractUrl, filename } = require('./tools')
 const { Request, Response } = require('reserve')
+const output = require('./output')
 
 module.exports = job => {
+  async function endpointImpl (implementation, request) {
+    const url = extractUrl(request.headers)
+    const data = JSON.parse(await body(request))
+    if (job.parallel === -1) {
+      output.endpoint(url, data)
+    }
+    try {
+      await implementation.call(this, url, data)
+    } catch (e) {
+      output.endpointError(url, data, e)
+    }
+  }
+
+  function synchronousEndpoint (implementation) {
+    return async function (request, response) {
+      await endpointImpl(implementation, request)
+      response.writeHead(200)
+      response.end()
+    }
+  }
+
   function endpoint (implementation) {
     return async function (request, response) {
       response.writeHead(200)
       response.end()
-      const url = extractUrl(request.headers)
-      const data = JSON.parse(await body(request))
-      if (job.parallel === -1) {
-        console.log(url, data)
-      }
-      try {
-        await implementation.call(this, url, data)
-      } catch (e) {
-        console.error(`Exception when processing ${url}`)
-        console.error(data)
-        console.error(e)
-      }
+      await endpointImpl(implementation, request)
     }
   }
 
@@ -95,18 +106,36 @@ module.exports = job => {
         match: '^/_/QUnit/begin',
         custom: endpoint((url, details) => {
           job.testPages[url] = {
+            isOpa: details.isOpa,
             total: details.totalTests,
             failed: 0,
             passed: 0,
-            tests: []
+            tests: [],
+            testIds: {}
+          }
+        })
+      }, {
+      // Endpoint to receive QUnit.testDone
+        match: '^/_/QUnit/log',
+        custom: synchronousEndpoint(async (url, report) => {
+          const page = job.testPages[url]
+          const { testId } = report
+          if (page.isOpa) {
+            if (page.testIds[testId] === undefined) {
+              page.testIds[testId] = 0
+            } else {
+              ++page.testIds[testId]
+            }
+            await screenshot(job, url, `${report.testId}-${page.testIds[testId]}.png`)
           }
         })
       }, {
       // Endpoint to receive QUnit.testDone
         match: '^/_/QUnit/testDone',
-        custom: endpoint((url, report) => {
+        custom: synchronousEndpoint(async (url, report) => {
           const page = job.testPages[url]
           if (report.failed) {
+            await screenshot(job, url, `${report.testId}.png`)
             job.failed = true
             ++page.failed
           } else {
@@ -117,18 +146,18 @@ module.exports = job => {
       }, {
       // Endpoint to receive QUnit.done
         match: '^/_/QUnit/done',
-        custom: endpoint((url, report) => {
-          let promise = Promise.resolve()
+        custom: endpoint(async (url, report) => {
           const page = job.testPages[url]
           if (page) {
+            await screenshot(job, url, 'screenshot.png')
             if (report.__coverage__) {
               const coverageFileName = join(job.covTempDir, `${filename(url)}.json`)
-              promise = writeFile(coverageFileName, JSON.stringify(report.__coverage__))
+              await writeFile(coverageFileName, JSON.stringify(report.__coverage__))
               delete report.__coverage__
             }
             page.report = report
           }
-          promise.then(() => stop(job, url))
+          stop(job, url)
         })
       }, {
       // UI to follow progress

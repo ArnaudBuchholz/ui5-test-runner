@@ -16,20 +16,35 @@ if (reportDir) {
 }
 
 process.on('message', async message => {
-  if (message.command === 'stop') {
-    if (reportDir && page) {
-      await page.screenshot({ path: join(reportDir, 'screenshot.png') })
+  try {
+    if (message.command === 'stop') {
+      await browser.close()
+      process.exit(0)
+    } else if (message.command === 'screenshot') {
+      if (reportDir && page) {
+        await page.screenshot({ path: join(reportDir, message.filename) })
+        process.send(message)
+      }
+    } else if (message.command === 'capabilities') {
+      process.send({
+        command: 'capabilities',
+        screenshot: true,
+        consoleLog: true
+      })
     }
-    await browser.close()
-    process.exit(0)
+  } catch (e) {
+    console.error(e)
+    process.exit(-2)
   }
 })
 
 async function main () {
   browser = await puppeteer.launch({
     headless,
+    defaultViewport: null,
     args: [
       url,
+      '--start-maximized',
       '--no-sandbox',
       '--disable-gpu',
       '--disable-extensions'

@@ -19,6 +19,6 @@ module.exports = job => check({
       strict: true,
       'ignore-if-not-found': true
     },
-    ...unhandled
+    ...unhandled(job)
   ]
 })
