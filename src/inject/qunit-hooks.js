@@ -39,9 +39,17 @@
 
   QUnit.log(function (report) {
     let ready = false
-    post('QUnit/log', report).then(function () {
-      ready = true
-    })
+    const log = {
+      testId: report.testId,
+      runtime: report.runtime
+    }
+    post('QUnit/log', log)
+      .then(undefined, function () {
+        console.error('Failed to POST to QUnit/log (no timestamp)', log)
+      })
+      .then(function () {
+        ready = true
+      })
     if (isOpa()) {
       window.sap.ui.test.Opa5.prototype.waitFor({
         timeout: 10,
