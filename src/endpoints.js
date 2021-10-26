@@ -105,13 +105,24 @@ module.exports = job => {
       // Endpoint to receive QUnit.begin
         match: '^/_/QUnit/begin',
         custom: endpoint((url, details) => {
+          const tests = {}
+          const order = []
+          details.modules.forEach(module => {
+            module.tests.forEach(test => {
+              tests[test.testId] = {
+                ...test,
+                timestamps: []
+              }
+              order.push(test.testId)
+            })
+          })
           job.testPages[url] = {
             isOpa: details.isOpa,
             total: details.totalTests,
             failed: 0,
             passed: 0,
-            tests: [],
-            testIds: {}
+            tests,
+            order
           }
         })
       }, {
@@ -119,14 +130,10 @@ module.exports = job => {
         match: '^/_/QUnit/log',
         custom: synchronousEndpoint(async (url, report) => {
           const page = job.testPages[url]
-          const { testId } = report
           if (page.isOpa) {
-            if (page.testIds[testId] === undefined) {
-              page.testIds[testId] = 0
-            } else {
-              ++page.testIds[testId]
-            }
-            await screenshot(job, url, `${report.testId}-${page.testIds[testId]}.png`)
+            const { testId, runtime } = report
+            page.tests[testId].timestamps.push(runtime)
+            await screenshot(job, url, `${testId}-${runtime}.png`)
           }
         })
       }, {
@@ -134,14 +141,15 @@ module.exports = job => {
         match: '^/_/QUnit/testDone',
         custom: synchronousEndpoint(async (url, report) => {
           const page = job.testPages[url]
+          const { testId } = report
           if (report.failed) {
-            await screenshot(job, url, `${report.testId}.png`)
+            await screenshot(job, url, `${testId}.png`)
             job.failed = true
             ++page.failed
           } else {
             ++page.passed
           }
-          page.tests.push(report)
+          page.tests[testId].report = report
         })
       }, {
       // Endpoint to receive QUnit.done
@@ -168,14 +176,17 @@ module.exports = job => {
         match: '^/_/progress',
         custom: async (request, response) => {
           const json = JSON.stringify(job, (key, value) => {
-            if (key === 'tests' && Array.isArray(value)) {
+            if (((key === 'tests' || key === 'browsers') && typeof value === 'object') ||
+                (key === 'order' && Array.isArray(value))
+            ) {
               return undefined // Filter out
             }
             return value
           })
+          const length = (new TextEncoder().encode(json)).length
           response.writeHead(200, {
             'Content-Type': 'application/json',
-            'Content-Length': json.length
+            'Content-Length': length
           })
           response.end(json)
         }
