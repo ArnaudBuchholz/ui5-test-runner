@@ -38,6 +38,17 @@ module.exports = job => {
     }
   }
 
+  function getPageTest (page, testId) {
+    const { tests, order } = page
+    if (!tests[testId]) {
+      tests[testId] = {
+        timestamps: []
+      }
+      order.push(testId)
+    }
+    return tests[testId]
+  }
+
   return job.parallel
     ? [{
       // Substitute qunit-redirect to extract test pages
@@ -105,25 +116,18 @@ module.exports = job => {
       // Endpoint to receive QUnit.begin
         match: '^/_/QUnit/begin',
         custom: endpoint((url, details) => {
-          const tests = {}
-          const order = []
-          details.modules.forEach(module => {
-            module.tests.forEach(test => {
-              tests[test.testId] = {
-                ...test,
-                timestamps: []
-              }
-              order.push(test.testId)
-            })
-          })
-          job.testPages[url] = {
+          const page = {
             isOpa: details.isOpa,
             total: details.totalTests,
             failed: 0,
             passed: 0,
-            tests,
-            order
+            tests: {},
+            order: []
           }
+          details.modules.forEach(module => {
+            module.tests.forEach(test => getPageTest(page, test.testId))
+          })
+          job.testPages[url] = page
         })
       }, {
       // Endpoint to receive QUnit.testDone
@@ -132,7 +136,7 @@ module.exports = job => {
           const page = job.testPages[url]
           if (page.isOpa) {
             const { testId, runtime } = report
-            page.tests[testId].timestamps.push(runtime)
+            getPageTest(page, testId).timestamps.push(runtime)
             await screenshot(job, url, `${testId}-${runtime}.png`)
           }
         })
@@ -149,7 +153,7 @@ module.exports = job => {
           } else {
             ++page.passed
           }
-          page.tests[testId].report = report
+          getPageTest(page, testId).report = report
         })
       }, {
       // Endpoint to receive QUnit.done
