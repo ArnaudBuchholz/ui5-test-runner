@@ -69,4 +69,4 @@ async function main () {
     })
 }
 
-main()
+main().catch(reason => output.genericError(reason))
