@@ -1,5 +1,6 @@
 'use strict'
 
+const { accessSync } = require('fs')
 const { join, isAbsolute } = require('path')
 const output = require('./output')
 
@@ -12,6 +13,7 @@ function allocate (cwd) {
     libs: [],
     cache: '',
     webapp: 'webapp',
+    testsuite: 'test/testsuite.qunit.html',
     pageFilter: '',
     pageParams: '',
     pageTimeout: 0,
@@ -37,6 +39,14 @@ function allocate (cwd) {
   }
 }
 
+function checkAccess (path, label) {
+  try {
+    accessSync(path)
+  } catch (error) {
+    throw new Error(`Unable to access ${label}, check your settings`)
+  }
+}
+
 function finalize (job) {
   Object.keys(job)
     .filter(name => name.startsWith('!'))
@@ -57,9 +67,15 @@ function finalize (job) {
   'webapp,browser,tstReportDir,covSettings,covTempDir,covReportDir'
     .split(',')
     .forEach(setting => updateToAbsolute(setting))
+  checkAccess(job.webapp, 'webapp folder')
+  checkAccess(job.browser, 'browser command')
+
+  const testsuitePath = toAbsolute(job.testsuite, job.webapp)
+  checkAccess(testsuitePath, 'testsuite')
 
   job.libs.forEach(libMapping => {
     libMapping.source = toAbsolute(libMapping.source)
+    checkAccess(libMapping.source, `lib mapping of ${libMapping.relative}`)
   })
 
   if (job.parallel <= 0) {

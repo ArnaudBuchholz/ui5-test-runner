@@ -1,17 +1,3 @@
-jest.mock('child_process')
-jest.mock('../../src/output', () => {
-  const EventEmitter = require('events')
-  class Output extends EventEmitter {
-    browserStart (...args) { this.emit('browserStart', ...args) }
-    browserStopped (...args) { this.emit('browserStopped', ...args) }
-    browserCapabilities (...args) { this.emit('browserCapabilities', ...args) }
-    browserTimeout (...args) { this.emit('browserTimeout', ...args) }
-    browserRetry (...args) { this.emit('browserRetry', ...args) }
-    browserClosed (...args) { this.emit('browserClosed', ...args) }
-    monitor (...args) { this.emit('monitor', ...args) }
-  }
-  return new Output()
-})
 const output = require('../../src/output')
 const { join } = require('path')
 const { _hook: hook } = require('child_process')

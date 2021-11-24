@@ -44,6 +44,15 @@ async function instrument (job) {
   await createDir(join(job.covTempDir, 'settings'))
   const settings = JSON.parse((await readFile(job.covSettings)).toString())
   settings.cwd = job.cwd
+  if (!settings.exclude) {
+    settings.exclude = []
+  }
+  settings.exclude.push(join(job.covTempDir, '**'))
+  if (job.cache) {
+    settings.exclude.push(join(job.cache, '**'))
+  }
+  settings.exclude.push(join(job.tstReportDir, '**'))
+  settings.exclude.push(join(job.covReportDir, '**'))
   await writeFile(job.nycSettingsPath, JSON.stringify(settings))
   await nyc('instrument', job.webapp, join(job.covTempDir, 'instrumented'), '--nycrc-path', job.nycSettingsPath)
 }

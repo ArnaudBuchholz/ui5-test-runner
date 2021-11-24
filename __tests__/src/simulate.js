@@ -1,20 +1,3 @@
-jest.mock('child_process')
-jest.mock('../../src/output', () => {
-  return {
-    nyc: jest.fn(),
-    monitor: jest.fn(),
-    browserStart: jest.fn(),
-    browserStopped: jest.fn(),
-    endpoint: jest.fn(),
-    endpointError: jest.fn(),
-    timeSpent: jest.fn(),
-    globalTimeout: jest.fn(),
-    failFast: jest.fn(),
-    noTestPageFound: jest.fn(),
-    failedToCacheUI5resource: jest.fn(),
-    results: jest.fn()
-  }
-})
 const { join } = require('path')
 const { mock } = require('reserve')
 const jobFactory = require('../../src/job')

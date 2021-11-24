@@ -1,18 +1,4 @@
-jest.mock('../../src/output', () => {
-  return {
-    unhandled: jest.fn()
-  }
-})
 const output = require('../../src/output')
-jest.mock('fs', () => {
-  return {
-    writeFile: jest.fn(),
-    promises: {
-      stat: jest.fn(),
-      mkdir: jest.fn()
-    }
-  }
-})
 const jobFactory = require('../../src/job')
 const mappingFactory = require('../../src/unhandled')
 
@@ -22,12 +8,23 @@ describe('src/unhandled', () => {
   let error
   let unhandled
 
+  let unhandledCall = 0
+
+  function incUnhandledCall () {
+    ++unhandledCall
+  }
+
   beforeAll(() => {
     log = jest.spyOn(console, 'log').mockImplementation()
     warn = jest.spyOn(console, 'warn').mockImplementation()
     error = jest.spyOn(console, 'error').mockImplementation()
+    output.on('unhandled', incUnhandledCall)
+  })
+
+  beforeEach(() => {
     const job = jobFactory.fromCmdLine('/', [])
     unhandled = mappingFactory(job)[0].custom
+    unhandledCall = 0
   })
 
   const expectedIgnores = [
@@ -39,7 +36,7 @@ describe('src/unhandled', () => {
   expectedIgnores.forEach(url => {
     it(`does not log known GET patterns (${url})`, () => {
       expect(unhandled({ method: 'GET', url })).toStrictEqual(404)
-      expect(output.unhandled.mock.calls.length).toStrictEqual(0)
+      expect(unhandledCall).toStrictEqual(0)
     })
   })
 
@@ -47,19 +44,32 @@ describe('src/unhandled', () => {
     'any-mock-data-file.json',
     'sourceFile.js'
   ]
-  expectedWarnings.forEach((url, index) => {
+  expectedWarnings.forEach(url => {
     it(`warns about 404 GET (${url})`, () => {
       expect(unhandled({ method: 'GET', url, headers: { referer: 'http://localhost:3475/test.html' } })).toStrictEqual(404)
-      expect(output.unhandled.mock.calls.length).toStrictEqual(1)
+      expect(unhandledCall).toStrictEqual(1)
     })
+  })
+  it('Warns only once', () => {
+    expectedWarnings.forEach(url => {
+      expect(unhandled({ method: 'GET', url, headers: { referer: 'http://localhost:3475/test.html' } })).toStrictEqual(404)
+    })
+    expect(unhandledCall).toStrictEqual(1)
   })
 
   it('logs errors for any other verb', () => {
     expect(unhandled({ method: 'POST', url: '/any_url', headers: { referer: 'http://localhost:3475/test.html' } })).toStrictEqual(500)
-    expect(output.unhandled.mock.calls.length).toStrictEqual(1)
+    expect(unhandledCall).toStrictEqual(1)
+  })
+
+  it('logs errors only once', () => {
+    expect(unhandled({ method: 'POST', url: '/any_url', headers: { referer: 'http://localhost:3475/test.html' } })).toStrictEqual(500)
+    expect(unhandled({ method: 'POST', url: '/any_other_url', headers: { referer: 'http://localhost:3475/test.html' } })).toStrictEqual(500)
+    expect(unhandledCall).toStrictEqual(1)
   })
 
   afterAll(() => {
+    output.off('unhandled', incUnhandledCall)
     expect(log.mock.calls.length).toStrictEqual(0)
     expect(warn.mock.calls.length).toStrictEqual(0)
     expect(error.mock.calls.length).toStrictEqual(0)
