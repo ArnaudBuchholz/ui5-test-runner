@@ -1,8 +1,3 @@
-jest.mock('../../src/output', () => {
-  return {
-    unexpectedOptionValue: jest.fn()
-  }
-})
 const { dirname, join } = require('path')
 const jobFactory = require('../../src/job')
 const cwd = '/test/project'
@@ -122,6 +117,28 @@ describe('src/job', () => {
       source: join(cwd, 'd')
     }])
     expect(job.ui5).toStrictEqual('https://ui5.sap.com')
+  })
+
+  describe('Path parameters validation', () => {
+    it('webapp', () => {
+      const cwd = join(__dirname, '../cwd')
+      expect(() => jobFactory.fromCmdLine(cwd, [0, 0, '-webapp:$NOT_EXISTING$'])).toThrow()
+    })
+
+    it('browser', () => {
+      const cwd = join(__dirname, '../cwd')
+      expect(() => jobFactory.fromCmdLine(cwd, [0, 0, '-browser:$NOT_EXISTING$/cmd.js'])).toThrow()
+    })
+
+    it('testsuite', () => {
+      const cwd = join(__dirname, '../cwd')
+      expect(() => jobFactory.fromCmdLine(cwd, [0, 0, '-testsuite:$NOT_EXISTING$/testsuite.html'])).toThrow()
+    })
+
+    it('lib', () => {
+      const cwd = join(__dirname, '../cwd')
+      expect(() => jobFactory.fromCmdLine(cwd, [0, 0, '-libs:c=$NOT_EXISTING$/c'])).toThrow()
+    })
   })
 
   afterAll(() => {
