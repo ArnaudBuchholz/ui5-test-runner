@@ -188,8 +188,7 @@ module.exports = {
     console.error(`Unable to cache '${path}' (status ${statusCode})`)
   },
   genericError (error) {
-    const message = error.message ?? error
-    console.error('An unexpected error occurred :', message)
+    console.error('An unexpected error occurred :', error.message || error)
   },
   unhandled () {
     console.warn('Some requests are not handled properly, check the unhandled.txt report for more info')
