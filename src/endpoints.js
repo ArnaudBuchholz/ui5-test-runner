@@ -130,7 +130,7 @@ module.exports = job => {
           job.testPages[url] = page
         })
       }, {
-      // Endpoint to receive QUnit.testDone
+      // Endpoint to receive QUnit.log
         match: '^/_/QUnit/log',
         custom: synchronousEndpoint(async (url, report) => {
           const page = job.testPages[url]
