@@ -1,10 +1,3 @@
-jest.mock('child_process')
-jest.mock('../../src/output', () => {
-  return {
-    nyc: jest.fn(),
-    monitor: jest.fn()
-  }
-})
 const { join } = require('path')
 const jobFactory = require('../../src/job')
 const { _hook: hook } = require('child_process')
