@@ -26,7 +26,7 @@ async function extractTestPages (job) {
   await saveJob(job)
   job.status = 'Extracting test pages'
   job.testPageUrls = []
-  await start(job, '/test/testsuite.qunit.html')
+  await start(job, '/' + job.testsuite)
   if (job.testPageUrls.length === 0) {
     output.noTestPageFound()
     job.failed = true
