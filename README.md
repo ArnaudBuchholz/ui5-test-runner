@@ -200,14 +200,43 @@ For instance :
 
 ## Building a custom browser instantiation command
 
-* You may follow the pattern being used by [`chromium.js`](https://github.com/ArnaudBuchholz/ui5-test-runner/blob/main/defaults/chromium.js)
-* It is **mandatory** to ensure that the child process explicitly exits at some point *(see this [thread](https://github.com/nodejs/node-v0.x-archive/issues/2605) explaining the fork behavior with Node.js)*
-* The child process will receive messages that must be handled appropriately :
+* You may follow the pattern being used by [`pupepeteer.js`](https://github.com/ArnaudBuchholz/ui5-test-runner/blob/main/defaults/pupepeteer.js)
+
+* The command accepts only one parameter
+* When the command is invoked with `capabilities` : it should dump the list of capabilities and stop. The expected result is a valid JSON that must be written on the standard output.
+  The expected members are :
+  - `modules` *(optional, array of strings, default is `[]`)* : the list of NPM modules the command dynamically depends on (see below).
+  - `screenshot` *(optional, boolean, default is `false`)* : does the command support the `screenshot` message.
+  - `console` *(optional, boolean, default is `false`)* : does the command support saving the console output.
+  - `scripts` *(optional, boolean, default is `false`)* : does the command support scripts injection.
+
+For instance : 
+```json
+{
+  "modules": ["puppeteer"],
+  "screenshot": true,
+  "console": true,
+  "scripts": true
+}
+```
+
+* Otherwise the command is invoked with a path to a JSON file : it must load the settings and start the browser accordingly.
+  The expected JSON syntax includes :
+  
+
+* During execution, the child process will receive messages that must be handled appropriately :
   - `message.command === 'stop'` : the browser must be closed and the command line must exit
-  - `message.command === 'capabilities'` : a message must be sent back to indicate if the following features are supported *(boolean)*
-    - `screenshot` : the browser can take screenshots (in the `__REPORT__` folder, name is provided when needed)
-    - `consoleLog` : the browser serializes the console traces (in the `__REPORT__` folder with the name `console.txt`)
-  - `message.command === 'screenshot'` : should generate a screenshot (the message contains a `filename` member). To indicate that the screenshot is done, the command line must send back the same message (`process.send(message)`).
+  - `message.command === 'screenshot'` : should generate a screenshot (the message contains a `filename` member with an absolute path). To indicate that the screenshot is done, the command line must send back the same message (`process.send(message)`).
+* It is **mandatory** to ensure that the child process explicitly exits at some point *(see this [thread](https://github.com/nodejs/node-v0.x-archive/issues/2605) explaining the fork behavior with Node.js)*
 
 ## License
 [![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2FArnaudBuchholz%2Fui5-test-runner.svg?type=large)](https://app.fossa.com/projects/git%2Bgithub.com%2FArnaudBuchholz%2Fui5-test-runner?ref=badge_large)
+
+## Breaking change
+
+### From 1.x.y to 2.y.z
+
+* The following dependencies are no more static : they are installed *if used* (expect some delay when the tests are starting).
+  * [`puppeteer`](https://www.npmjs.com/package/puppeteer)
+  * [`nyc`](https://www.npmjs.com/package/nyc)
+* Browser instantiation command evolved in an incompatible way.
