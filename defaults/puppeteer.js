@@ -6,7 +6,8 @@ if (param === 'capabilities') {
   console.log(JSON.stringify({
     modules: ['puppeteer'],
     screenshot: true,
-    consoleLog: true
+    console: true,
+    scripts: true
   }))
   process.exit(0)
 }
@@ -16,16 +17,11 @@ const settings = JSON.parse(readFileSync(param).toString())
 console.log(settings)
 const puppeteer = require(settings.modules.puppeteer)
 
-const { url, consoleLog } = settings
+const { url, scripts, consoleLog } = settings
 const headless = !(settings.argv || []).some(arg => arg === '--visible')
 
 let browser
 let page
-let consoleStream
-
-if (consoleLog) {
-  consoleStream = createWriteStream(consoleLog, 'utf-8')
-}
 
 process.on('message', async message => {
   try {
@@ -45,21 +41,28 @@ process.on('message', async message => {
 })
 
 async function main () {
-  browser = await puppeteer.launch({
+  const browser = await puppeteer.launch({
     headless,
     defaultViewport: null,
     args: [
-      url,
       '--start-maximized',
       '--no-sandbox',
       '--disable-gpu',
       '--disable-extensions'
     ]
   })
-  page = (await browser.pages())[0]
-  if (consoleStream) {
+  const page = (await browser.pages())[0]
+  if (consoleLog) {
+    const consoleStream = createWriteStream(consoleLog, 'utf-8')
     page.on('console', message => consoleStream.write(`${message.type().substr(0, 3).toUpperCase()} ${message.text()}\n`))
   }
+  if (scripts && scripts.length) {
+    for await (const scriptName of scripts) {
+      const script = readFileSync(scriptName).toString()
+      await page.evaluateOnNewDocument(script)
+    }
+  }
+  page.goto(url)
 }
 
 main().catch(e => {
