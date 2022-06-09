@@ -40,14 +40,12 @@
   "homepage": "https://github.com/ArnaudBuchholz/ui5-test-runner#readme",
   "dependencies": {
     "mime": "^3.0.0",
-    "nyc": "^15.1.0",
-    "puppeteer": "^13.5.2",
-    "reserve": "^1.14.0"
+    "reserve": "^1.15.0"
   },
   "devDependencies": {
-    "jest": "^27.5.1",
-    "nock": "^13.2.4",
-    "standard": "^16.0.4"
+    "jest": "^28.1.1",
+    "nock": "^13.2.6",
+    "standard": "^17.0.0"
   },
   "standard": {
     "env": [
