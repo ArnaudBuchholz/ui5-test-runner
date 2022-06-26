@@ -1,7 +1,8 @@
 'use strict'
 
-const { fork } = require('child_process')
+const { fork, exec } = require('child_process')
 const { join } = require('path')
+const { stat, writeFile } = require('fs/promises')
 const { recreateDir, filename } = require('./tools')
 const { getPageTimeout } = require('./timeout')
 const output = require('./output')
@@ -9,48 +10,109 @@ const output = require('./output')
 let lastScreenshotId = 0
 const screenshots = {}
 
-function start (job, relativeUrl) {
+function npm (...args) {
+  return new Promise((resolve, reject) => {
+    const childProcess = exec(`npm ${args.join(' ')}`, (err, stdout, stderr) => {
+      if (err) {
+        reject(stderr)
+      } else {
+        resolve(stdout.trim())
+      }
+    })
+    output.monitor(childProcess)
+  })
+}
+
+async function folderExists (path) {
+  try {
+    const result = await stat(path)
+    return result.isDirectory()
+  } catch (e) {
+    return false
+  }
+}
+
+async function probe (job) {
+  job.status = 'Probing browser instantiation command'
+  const childProcess = fork(job.browser, ['capabilities'], { stdio: 'pipe' })
+  const output = []
+  childProcess.stdout.on('data', chunk => output.push(chunk.toString()))
+  await new Promise(resolve => childProcess.on('close', resolve))
+  const capabilities = Object.assign({
+    modules: [],
+    screenshot: false,
+    console: false,
+    scripts: false,
+    parallel: true
+  }, JSON.parse(output.join('')))
+  job.browserCapabilities = capabilities
+  const { modules } = capabilities
+  const resolvedModules = {}
+  if (modules.length) {
+    const [npmLocalRoot, npmGlobalRoot] = await Promise.all([npm('root'), npm('root', '--global')])
+    for await (const name of capabilities.modules) {
+      const localModule = join(npmLocalRoot, name)
+      if (await folderExists(localModule)) {
+        resolvedModules[name] = localModule
+      } else {
+        const globalModule = join(npmGlobalRoot, name)
+        if (!await folderExists(globalModule)) {
+          job.status = `Installing ${name}...`
+          await npm('install', name, '-g')
+        }
+        resolvedModules[name] = globalModule
+      }
+    }
+  }
+  job.browserCapabilities.modules = resolvedModules
+}
+
+function start (job, url, scripts = []) {
   if (!job.browsers) {
     job.browsers = {}
   }
-  output.browserStart(relativeUrl)
-  const reportDir = join(job.tstReportDir, filename(relativeUrl))
-  const args = job.args.split(' ')
-    .map(arg => arg
-      .replace('__URL__', `http://localhost:${job.port}${relativeUrl}`)
-      .replace('__REPORT__', reportDir)
-    )
+  output.browserStart(url)
+  const reportDir = join(job.tstReportDir, filename(url))
   const pageBrowser = {
-    relativeUrl,
+    url,
     reportDir,
-    args,
+    scripts,
     retry: 0
   }
   const promise = new Promise(resolve => {
     pageBrowser.done = resolve
   })
-  job.browsers[relativeUrl] = pageBrowser
+  job.browsers[url] = pageBrowser
   run(job, pageBrowser)
   return promise.then(() => {
-    output.browserStopped(relativeUrl)
+    output.browserStopped(url)
   })
 }
 
 async function run (job, pageBrowser) {
-  const { relativeUrl } = pageBrowser
-  if (pageBrowser.retry) {
-    output.browserRetry(relativeUrl, pageBrowser.retry)
+  const { url, retry, reportDir } = pageBrowser
+  if (retry) {
+    output.browserRetry(url, retry)
   }
-  await recreateDir(pageBrowser.reportDir)
+  await recreateDir(reportDir)
   delete pageBrowser.stopped
-  const childProcess = fork(job.browser, pageBrowser.args.map(arg => arg.replace('__RETRY__', pageBrowser.retry)), { stdio: 'pipe' })
+
+  const browserConfig = {
+    modules: job.browserCapabilities.modules,
+    url,
+    retry
+  }
+  const browserConfigPath = join(reportDir, 'browser.json')
+  await writeFile(browserConfigPath, JSON.stringify(browserConfig))
+
+  const childProcess = fork(job.browser, [browserConfigPath], { stdio: 'pipe' })
   output.monitor(childProcess)
   pageBrowser.childProcess = childProcess
   const timeout = getPageTimeout(job)
   if (timeout) {
     pageBrowser.timeoutId = setTimeout(() => {
-      output.browserTimeout(relativeUrl)
-      stop(job, relativeUrl)
+      output.browserTimeout(url)
+      stop(job, url)
     }, timeout)
   }
   childProcess.on('message', message => {
@@ -58,28 +120,21 @@ async function run (job, pageBrowser) {
       const { id } = message
       screenshots[id]()
       delete screenshots[id]
-    } else /* istanbul ignore else */ if (message.command === 'capabilities') {
-      job.browserCapabilities = { ...message }
-      delete job.browserCapabilities.command
-      output.browserCapabilities(job.browserCapabilities)
     }
   })
   childProcess.on('close', () => {
     if (!pageBrowser.stopped) {
-      output.browserClosed(relativeUrl)
-      stop(job, relativeUrl, true)
+      output.browserClosed(url)
+      stop(job, url, true)
     }
   })
-  if (!job.browserCapabilities) {
-    childProcess.send({ command: 'capabilities' })
-  }
 }
 
-async function screenshot (job, relativeUrl, filename) {
+async function screenshot (job, url, filename) {
   if (job.noScreenshot || !job.browserCapabilities || !job.browserCapabilities.screenshot) {
     return
   }
-  const pageBrowser = job.browsers[relativeUrl]
+  const pageBrowser = job.browsers[url]
   if (pageBrowser) {
     const { childProcess } = pageBrowser
     if (childProcess.connected) {
@@ -97,8 +152,8 @@ async function screenshot (job, relativeUrl, filename) {
   }
 }
 
-async function stop (job, relativeUrl, retry = false) {
-  const pageBrowser = job.browsers[relativeUrl]
+async function stop (job, url, retry = false) {
+  const pageBrowser = job.browsers[url]
   if (pageBrowser) {
     pageBrowser.stopped = true
     const { childProcess, done, timeoutId } = pageBrowser
@@ -111,10 +166,10 @@ async function stop (job, relativeUrl, retry = false) {
     if (retry && ++pageBrowser.retry <= job.browserRetry) {
       run(job, pageBrowser)
     } else {
-      delete job.browsers[relativeUrl]
+      delete job.browsers[url]
       done()
     }
   }
 }
 
-module.exports = { start, screenshot, stop }
+module.exports = { probe, start, screenshot, stop }
