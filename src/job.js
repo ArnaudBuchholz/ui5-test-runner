@@ -14,6 +14,7 @@ function allocate (cwd) {
     cache: '',
     webapp: 'webapp',
     testsuite: 'test/testsuite.qunit.html',
+    url: '',
     pageFilter: '',
     pageParams: '',
     pageTimeout: 0,
@@ -67,11 +68,12 @@ function finalize (job) {
   'webapp,browser,tstReportDir,covSettings,covTempDir,covReportDir'
     .split(',')
     .forEach(setting => updateToAbsolute(setting))
-  checkAccess(job.webapp, 'webapp folder')
+  if (!job.url) {
+    checkAccess(job.webapp, 'webapp folder')
+    const testsuitePath = toAbsolute(job.testsuite, job.webapp)
+    checkAccess(testsuitePath, 'testsuite')
+  }
   checkAccess(job.browser, 'browser command')
-
-  const testsuitePath = toAbsolute(job.testsuite, job.webapp)
-  checkAccess(testsuitePath, 'testsuite')
 
   job.libs.forEach(libMapping => {
     libMapping.source = toAbsolute(libMapping.source)
