@@ -14,11 +14,10 @@ if (param === 'capabilities') {
 
 const { createWriteStream, readFileSync } = require('fs')
 const settings = JSON.parse(readFileSync(param).toString())
-console.log(settings)
 const puppeteer = require(settings.modules.puppeteer)
 
 const { url, scripts, consoleLog } = settings
-const headless = !(settings.argv || []).some(arg => arg === '--visible')
+const headless = false // !(settings.argv || []).some(arg => arg === '--visible')
 
 let browser
 let page
