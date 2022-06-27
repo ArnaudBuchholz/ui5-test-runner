@@ -7,6 +7,7 @@ let lastTick = 0
 const ticks = ['\u280b', '\u2819', '\u2839', '\u2838', '\u283c', '\u2834', '\u2826', '\u2827', '\u2807', '\u280f']
 let job
 let lines = 1
+let reportIntervalId
 
 function write (...parts) {
   parts.forEach(part => process.stdout.write(part))
@@ -92,11 +93,14 @@ function progress (cleanFirst = true) {
   }
 }
 
-function wrap (write) {
+function wrap (callback, consoleApi) {
   if (job) {
     clean()
+    // if (consoleApi) {
+    //   process.stdout.write('\n')
+    // }
   }
-  write()
+  callback()
   if (job) {
     progress(false)
   }
@@ -104,7 +108,7 @@ function wrap (write) {
 
 Object.getOwnPropertyNames(console).forEach(name => {
   mockConsole[name] = function (...args) {
-    wrap(() => nativeConsole[name](...args))
+    wrap(() => nativeConsole[name](...args), true)
   }
 })
 
@@ -126,7 +130,7 @@ module.exports = {
     job = newJob
     if (interactive) {
       process.stdout.write('\n')
-      setInterval(progress, 250)
+      reportIntervalId = setInterval(progress, 250)
     }
   },
   browserStart (url) {
@@ -154,7 +158,7 @@ module.exports = {
   monitor (childProcess) {
     ['stdout', 'stderr'].forEach(channel => {
       childProcess[channel].on('data', chunk => {
-        wrap(() => process[channel].write(chunk))
+        wrap(() => process[channel].write(chunk), false)
       })
     })
   },
@@ -195,5 +199,13 @@ module.exports = {
   },
   results (pages) {
     console.table(pages)
+  },
+
+  stop () {
+    if (reportIntervalId) {
+      clearInterval(reportIntervalId)
+      clean()
+      // process.stdout.write('\n')
+    }
   }
 }
