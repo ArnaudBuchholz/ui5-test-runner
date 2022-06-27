@@ -49,6 +49,7 @@ async function probe (job) {
   const { modules } = capabilities
   const resolvedModules = {}
   if (modules.length) {
+    console.log('Getting NPM roots :')
     const [npmLocalRoot, npmGlobalRoot] = await Promise.all([npm('root'), npm('root', '--global')])
     for await (const name of capabilities.modules) {
       const localModule = join(npmLocalRoot, name)
