@@ -1,19 +1,24 @@
 'use strict'
 
-const { check, serve, log, body } = require('reserve')
+const { check, serve, body } = require('reserve')
 const { probe, start, screenshot, stop } = require('../src/browsers')
 const { fromCmdLine } = require('../src/job')
 const { join } = require('path')
 const output = require('../src/output')
 const EventEmitter = require('events')
 
+function exit (code) {
+  output.stop()
+  process.exit(code)
+}
+
 const tests = [{
   label: 'Loads a page',
   for: capabilities => true,
-  run: function * () {
-    const listener = yield 'basic.html'
-    return new Promise(resolve => listener.on('log', resolve))
-  }
+  url: 'basic.html',
+  run: listener => new Promise(resolve => listener.on('log', () => {
+    setTimeout(resolve, 5000)
+  }))
 }]
 
 async function main () {
@@ -28,9 +33,9 @@ async function main () {
     await probe(job)
   } catch (e) {
     console.error('Unable to probe', e)
-    process.exit(-1)
+    exit(-1)
   }
-  console.log('Capabilities :', job.browserCapabilities)
+  console.log('Resolved capabilities :', job.browserCapabilities)
 
   const listeners = []
 
@@ -50,47 +55,47 @@ async function main () {
       file: join(__dirname, '$1')
     }]
   })
-  await new Promise(resolve => {
-    log(serve(configuration))
-      .on('ready', ({ port }) => {
-        job.port = port
-        resolve()
-      })
-  })
+  await new Promise(resolve => serve(configuration)
+    .on('ready', ({ port }) => {
+      job.port = port
+      resolve()
+    })
+  )
 
   const filteredTests = tests.filter(test => test.for(job.browserCapabilities))
   console.log('Number of tests :', filteredTests.length)
+
   let errors = 0
 
   const next = async () => {
     if (tests.length === 0) {
       console.log('Done.')
-      process.exit(errors)
+      exit(errors)
     }
-    const { label, run } = tests.shift()
-    const test = run()
-    let url = test.next().value
+    const { label, url, run } = tests.shift()
 
     const listenerIndex = listeners.length
     const listener = new EventEmitter()
     listeners.push(listener)
+    let pageUrl = `http://localhost:${job.port}/${url}`
     if (url.includes('?')) {
-      url += `&listener=${listenerIndex}`
+      pageUrl += `&listener=${listenerIndex}`
     } else {
-      url += `?listener=${listenerIndex}`
+      pageUrl += `?listener=${listenerIndex}`
     }
 
-    test.next(listener).value
-      .then(() => true, () => false)
-      .then(success => {
-        console.log(success ? '' : '', label)
-        if (!success) {
-          ++errors
-        }
-      })
-      .then(next)
+    function done (succeeded) {
+      console.log(succeeded ? '✔️' : '❌', label)
+      if (!succeeded) {
+        ++errors
+      }
+      next()
+    }
 
-    await start(job, `http://localhost:${job.port}/${url}`)
+    run(listener)
+      .then(() => done(true), () => done(false))
+    start(job, pageUrl)
+      .catch(() => done(false))
   }
 
   for (let i = 0; i < 1; ++i) {
@@ -98,4 +103,8 @@ async function main () {
   }
 }
 
-main().catch(reason => console.error(reason))
+main()
+  .catch(reason => {
+    console.error(reason)
+    exit(-1)
+  })
