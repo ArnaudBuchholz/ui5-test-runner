@@ -25,6 +25,7 @@ let page
 process.on('message', async message => {
   try {
     if (message.command === 'stop') {
+      await page.close()
       await browser.close()
       process.exit(0)
     } else if (message.command === 'screenshot') {
@@ -40,7 +41,7 @@ process.on('message', async message => {
 })
 
 async function main () {
-  const browser = await puppeteer.launch({
+  browser = await puppeteer.launch({
     headless,
     defaultViewport: null,
     args: [
@@ -50,7 +51,7 @@ async function main () {
       '--disable-extensions'
     ]
   })
-  const page = (await browser.pages())[0]
+  page = (await browser.pages())[0]
   if (consoleLog) {
     const consoleStream = createWriteStream(consoleLog, 'utf-8')
     page.on('console', message => consoleStream.write(`${message.type().substr(0, 3).toUpperCase()} ${message.text()}\n`))
@@ -61,7 +62,7 @@ async function main () {
       await page.evaluateOnNewDocument(script)
     }
   }
-  page.goto(url)
+  await page.goto(url)
 }
 
 main().catch(e => {
