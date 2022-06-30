@@ -37,14 +37,14 @@ const tests = [{
 }, {
   label: 'timeout (100ms)',
   for: capabilities => true,
-  url: 'localStorage.html?rate=100&wait=1000',
+  url: 'timeout.html?rate=100&wait=1000',
   log: ({ steps }) => {
     assert(steps.length > 8, 'The right number of steps is generated')
   }
 }, {
   label: 'timeout (250ms)',
   for: capabilities => true,
-  url: 'localStorage.html?rate=250&wait=1250',
+  url: 'timeout.html?rate=250&wait=1250',
   log: ({ steps }) => {
     assert(steps.length > 3, 'The right number of steps is generated')
   }
