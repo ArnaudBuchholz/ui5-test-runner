@@ -21,10 +21,12 @@ const headless = !(settings.argv || []).some(arg => arg === '--visible')
 
 let browser
 let page
+let stopping = false
 
 process.on('message', async message => {
   try {
     if (message.command === 'stop') {
+      stopping = true
       await page.close()
       await browser.close()
       process.exit(0)
@@ -66,6 +68,9 @@ async function main () {
 }
 
 main().catch(e => {
-  console.error(e)
+  // Lots of threads on this message but no clear solution
+  if (!stopping || e.message !== 'Navigation failed because browser has disconnected!') {
+    console.error(e)
+  }
   process.exit(-1)
 })
