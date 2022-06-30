@@ -6,6 +6,7 @@ const { fromCmdLine } = require('../src/job')
 const { join } = require('path')
 const output = require('../src/output')
 const EventEmitter = require('events')
+const assert = require('assert')
 
 function exit (code) {
   output.stop()
@@ -16,9 +17,37 @@ const tests = [{
   label: 'Loads a page',
   for: capabilities => true,
   url: 'basic.html',
-  run: listener => new Promise(resolve => listener.on('log', () => {
-    setTimeout(resolve, 5000)
-  }))
+  log: () => {}
+}, {
+  label: 'Local storage (1)',
+  for: capabilities => true,
+  url: 'localStorage.html?value=1',
+  log: ({ initial, modified }) => {
+    assert(initial === undefined, 'The local storage starts empty')
+    assert(modified === '1', 'The local storage can be used')
+  }
+}, {
+  label: 'Local storage (2)',
+  for: capabilities => true,
+  url: 'localStorage.html?value=2',
+  log: ({ initial, modified }) => {
+    assert(initial === undefined, 'The local storage starts empty')
+    assert(modified === '2', 'The local storage can be used')
+  }
+}, {
+  label: 'timeout (100ms)',
+  for: capabilities => true,
+  url: 'localStorage.html?rate=100&wait=1000',
+  log: ({ steps }) => {
+    assert(steps.length > 8, 'The right number of steps is generated')
+  }
+}, {
+  label: 'timeout (250ms)',
+  for: capabilities => true,
+  url: 'localStorage.html?rate=250&wait=1250',
+  log: ({ steps }) => {
+    assert(steps.length > 3, 'The right number of steps is generated')
+  }
 }]
 
 async function main () {
@@ -67,12 +96,15 @@ async function main () {
 
   let errors = 0
 
-  const next = async () => {
+  const next = () => {
     if (tests.length === 0) {
-      console.log('Done.')
-      exit(errors)
+      if (Object.keys(job.browsers).length === 0) {
+        console.log('Done.')
+        exit(errors)
+      }
+      return
     }
-    const { label, url, run } = tests.shift()
+    const { label, url, log } = tests.shift()
 
     const listenerIndex = listeners.length
     const listener = new EventEmitter()
@@ -85,20 +117,37 @@ async function main () {
     }
 
     function done (succeeded) {
-      console.log(succeeded ? '✔️' : '❌', label)
+      stop(job, pageUrl)
       if (!succeeded) {
         ++errors
       }
       next()
     }
 
-    run(listener)
-      .then(() => done(true), () => done(false))
+    listener.on('log', data => {
+      try {
+        log(data)
+        console.log('✔️', label)
+        done(true)
+      } catch (e) {
+        console.log('❌', label)
+        console.log(e)
+        done(false)
+      }
+    })
+
     start(job, pageUrl)
       .catch(() => done(false))
   }
 
-  for (let i = 0; i < 1; ++i) {
+  let parallel
+  if (!job.browserCapabilities.parallel) {
+    parallel = 1
+  } else {
+    parallel = 2
+  }
+
+  for (let i = 0; i < parallel; ++i) {
     next()
   }
 }
