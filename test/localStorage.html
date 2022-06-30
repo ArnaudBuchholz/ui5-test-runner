@@ -1,20 +1,15 @@
 <html>
   <body>
     <H1>localStorage</H1>
-    <p>The goal is to check if the localStorage is isolated when executed in headless chrome</p>
+    <p>Check if the localStorage is isolated</p>
     <script>
-
-const check = () => {
-  let value = localStorage.value || 0
-  ++value
-  localStorage.value = value
-  const xhr = new XMLHttpRequest()
-  xhr.open('POST', '/trace')
-  xhr.send(JSON.stringify({ value }))
-}
-
-setInterval(check, 500)
-
+      const initial = localStorage.value
+      const parameters = new URLSearchParams(location.search)
+      localStorage.value = parameters.get('value')
+      const modified = localStorage.value
+      const xhr = new XMLHttpRequest()
+      xhr.open('POST', '/log')
+      xhr.send(JSON.stringify({initial, modified}))
     </script>
   </body>
 </html>
