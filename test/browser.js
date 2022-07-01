@@ -1,12 +1,15 @@
 'use strict'
 
 const { check, serve, body } = require('reserve')
-const { probe, start, /* screenshot, */ stop } = require('../src/browsers')
+const { probe, start, screenshot, stop } = require('../src/browsers')
 const { fromCmdLine } = require('../src/job')
 const { join } = require('path')
+const { stat } = require('fs/promises')
 const output = require('../src/output')
 const EventEmitter = require('events')
 const assert = require('assert')
+
+let job
 
 function exit (code) {
   output.stop()
@@ -15,12 +18,10 @@ function exit (code) {
 
 const tests = [{
   label: 'Loads a page',
-  for: capabilities => true,
   url: 'basic.html',
   log: () => {}
 }, {
   label: 'Local storage (1)',
-  for: capabilities => true,
   url: 'localStorage.html?value=1',
   log: ({ initial, modified }) => {
     assert(initial === undefined, 'The local storage starts empty')
@@ -28,31 +29,37 @@ const tests = [{
   }
 }, {
   label: 'Local storage (2)',
-  for: capabilities => true,
   url: 'localStorage.html?value=2',
   log: ({ initial, modified }) => {
     assert(initial === undefined, 'The local storage starts empty')
     assert(modified === '2', 'The local storage can be used')
   }
 }, {
-  label: 'timeout (100ms)',
-  for: capabilities => true,
+  label: 'Timeout (100ms)',
   url: 'timeout.html?rate=100&wait=1000',
   log: ({ steps }) => {
     assert(steps.length > 8, 'The right number of steps is generated')
   }
 }, {
-  label: 'timeout (250ms)',
-  for: capabilities => true,
+  label: 'Timeout (250ms)',
   url: 'timeout.html?rate=250&wait=1250',
   log: ({ steps }) => {
     assert(steps.length > 3, 'The right number of steps is generated')
+  }
+}, {
+  label: 'Screenshot',
+  for: capabilities => !!capabilities.screenshot,
+  url: 'screenshot.html',
+  log: async (data, url) => {
+    await screenshot(job, url, 'screenshot')
+
+    // assert(steps.length > 3, 'The right number of steps is generated')
   }
 }]
 
 async function main () {
   const [,, command] = process.argv
-  const job = fromCmdLine(process.cwd(), [
+  job = fromCmdLine(process.cwd(), [
     `-tmpDir:${join(__dirname, '..', 'tmp')}`,
     '-url: localhost:80',
     `-browser:${command}`
@@ -93,7 +100,7 @@ async function main () {
 
   job.status = 'Running tests'
 
-  const filteredTests = tests.filter(test => test.for(job.browserCapabilities))
+  const filteredTests = tests.filter((test) => !test.for || test.for(job.browserCapabilities))
   console.log('Number of tests :', filteredTests.length)
 
   let errors = 0
@@ -126,9 +133,9 @@ async function main () {
       next()
     }
 
-    listener.on('log', data => {
+    listener.on('log', async data => {
       try {
-        log(data)
+        await log(data, pageUrl)
         console.log('✔️', label)
         done(true)
       } catch (e) {
