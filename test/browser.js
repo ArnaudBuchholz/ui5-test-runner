@@ -1,7 +1,7 @@
 'use strict'
 
 const { check, serve, body } = require('reserve')
-const { probe, start, screenshot, stop } = require('../src/browsers')
+const { probe, start, /* screenshot, */ stop } = require('../src/browsers')
 const { fromCmdLine } = require('../src/job')
 const { join } = require('path')
 const output = require('../src/output')
@@ -90,6 +90,8 @@ async function main () {
       resolve()
     })
   )
+
+  job.status = 'Running tests'
 
   const filteredTests = tests.filter(test => test.for(job.browserCapabilities))
   console.log('Number of tests :', filteredTests.length)
