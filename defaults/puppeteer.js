@@ -5,7 +5,7 @@ const param = process.argv[2]
 if (param === 'capabilities') {
   console.log(JSON.stringify({
     modules: ['puppeteer'],
-    screenshot: true,
+    screenshot: '.png',
     console: true,
     scripts: true
   }))
@@ -32,7 +32,10 @@ process.on('message', async message => {
       process.exit(0)
     } else if (message.command === 'screenshot') {
       if (page) {
-        await page.screenshot({ path: message.filename })
+        await page.screenshot({
+          path: message.filename,
+          fullPage: true
+        })
         process.send(message)
       }
     }
