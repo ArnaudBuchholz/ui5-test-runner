@@ -4,12 +4,13 @@ const param = process.argv[2]
 
 if (param === 'capabilities') {
   console.log(JSON.stringify({
-    modules: ['selenium-webdriver']
+    modules: ['selenium-webdriver'],
+    screenshot: '.png'
   }))
   process.exit(0)
 }
 
-const { readFileSync } = require('fs')
+const { readFileSync, writeFileSync } = require('fs')
 const settings = JSON.parse(readFileSync(param).toString())
 const { Builder, Browser } = require(settings.modules['selenium-webdriver'])
 
@@ -22,6 +23,14 @@ process.on('message', async message => {
     if (message.command === 'stop') {
       await driver.quit()
       process.exit(0)
+    } else if (message.command === 'screenshot') {
+      if (driver) {
+        const data = await driver.takeScreenshot()
+        writeFileSync(message.filename, data.replace(/^data:image\/png;base64,/, ''), {
+          encoding: 'base64'
+        })
+        process.send(message)
+      }
     }
   } catch (e) {
     console.error(e)
