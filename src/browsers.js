@@ -40,7 +40,7 @@ async function probe (job) {
   await new Promise(resolve => childProcess.on('close', resolve))
   const capabilities = Object.assign({
     modules: [],
-    screenshot: false,
+    screenshot: null,
     console: false,
     scripts: false,
     parallel: true
@@ -137,7 +137,8 @@ async function screenshot (job, url, filename) {
   }
   const pageBrowser = job.browsers[url]
   if (pageBrowser) {
-    const { childProcess } = pageBrowser
+    const { childProcess, reportDir } = pageBrowser
+    const absoluteFilename = join(reportDir, filename + job.browserCapabilities.screenshot)
     if (childProcess.connected) {
       const id = ++lastScreenshotId
       const promise = new Promise(resolve => {
@@ -146,7 +147,7 @@ async function screenshot (job, url, filename) {
       childProcess.send({
         id,
         command: 'screenshot',
-        filename
+        filename: absoluteFilename
       })
       await promise
     }
