@@ -51,9 +51,10 @@ const tests = [{
   for: capabilities => !!capabilities.screenshot,
   url: 'screenshot.html',
   log: async (data, url) => {
-    await screenshot(job, url, 'screenshot')
-
-    // assert(steps.length > 3, 'The right number of steps is generated')
+    const fileName = await screenshot(job, url, 'screenshot')
+    const fileInfo = await stat(fileName)
+    assert(fileInfo.isFile(), 'The file was generated')
+    assert(fileInfo.size > 1024, 'The file contains something')
   }
 }]
 
