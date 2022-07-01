@@ -150,6 +150,7 @@ async function screenshot (job, url, filename) {
         filename: absoluteFilename
       })
       await promise
+      return absoluteFilename
     }
   }
 }
