@@ -2,7 +2,7 @@
 
 const { fork, exec } = require('child_process')
 const { join } = require('path')
-const { stat, writeFile } = require('fs/promises')
+const { stat, writeFile, readFile } = require('fs/promises')
 const { recreateDir, filename } = require('./tools')
 const { getPageTimeout } = require('./timeout')
 const output = require('./output')
@@ -68,16 +68,26 @@ async function probe (job) {
   job.browserCapabilities.modules = resolvedModules
 }
 
-function start (job, url, scripts = []) {
+async function start (job, url, scripts = []) {
   if (!job.browsers) {
     job.browsers = {}
   }
   output.browserStart(url)
   const reportDir = join(job.tstReportDir, filename(url))
+  const resolvedScripts = []
+  for await (const script of scripts) {
+    if (script.endsWith('.js')) {
+      const scriptFilename = join(__dirname, 'inject', script)
+      const scriptContent = (await readFile(scriptFilename)).toString()
+      resolvedScripts.push(scriptContent)
+    } else {
+      resolvedScripts.push(script)
+    }
+  }
   const pageBrowser = {
     url,
     reportDir,
-    scripts,
+    scripts: resolvedScripts,
     retry: 0
   }
   const promise = new Promise(resolve => {
@@ -85,13 +95,12 @@ function start (job, url, scripts = []) {
   })
   job.browsers[url] = pageBrowser
   run(job, pageBrowser)
-  return promise.then(() => {
-    output.browserStopped(url)
-  })
+  await promise
+  output.browserStopped(url)
 }
 
 async function run (job, pageBrowser) {
-  const { url, retry, reportDir } = pageBrowser
+  const { url, retry, reportDir, scripts } = pageBrowser
   if (retry) {
     output.browserRetry(url, retry)
   }
@@ -101,7 +110,9 @@ async function run (job, pageBrowser) {
   const browserConfig = {
     modules: job.browserCapabilities.modules,
     url,
-    retry
+    retry,
+    scripts,
+    args: job.browserArgs
   }
   const browserConfigPath = join(reportDir, 'browser.json')
   await writeFile(browserConfigPath, JSON.stringify(browserConfig))
