@@ -8,6 +8,7 @@ const { stat } = require('fs/promises')
 const output = require('../src/output')
 const EventEmitter = require('events')
 const assert = require('assert')
+const { performance } = require('perf_hooks')
 
 let job
 
@@ -56,14 +57,24 @@ const tests = [{
     assert(fileInfo.isFile(), 'The file was generated')
     assert(fileInfo.size > 1024, 'The file contains something')
   }
+}, {
+  label: 'Scripts (QUnit)',
+  for: capabilities => !!capabilities.scripts,
+  url: 'qunit.html',
+  scripts: ['qunit-intercept.js', 'qunit-hooks.js'],
+  log: () => {
+    console.log('QUNIT !!!')
+  }
 }]
 
 async function main () {
-  const [,, command] = process.argv
+  const [,, command, ...browserArgs] = process.argv
   job = fromCmdLine(process.cwd(), [
     `-tmpDir:${join(__dirname, '..', 'tmp')}`,
     '-url: localhost:80',
-    `-browser:${command}`
+    `-browser:${command}`,
+    '--',
+    ...browserArgs
   ])
   output.report(job)
   try {
@@ -79,7 +90,7 @@ async function main () {
   const configuration = await check({
     mappings: [{
       method: 'POST',
-      match: '/log$',
+      match: '^/log$',
       custom: async (request, response) => {
         const listenerIndex = request.headers.referer.match(/\blistener=(\d+)/)[1]
         const listener = listeners[listenerIndex]
@@ -114,7 +125,7 @@ async function main () {
       }
       return
     }
-    const { label, url, log } = tests.shift()
+    const { label, url, log, scripts } = tests.shift()
 
     const listenerIndex = listeners.length
     const listener = new EventEmitter()
@@ -126,10 +137,20 @@ async function main () {
       pageUrl += `?listener=${listenerIndex}`
     }
 
-    function done (succeeded) {
+    const now = performance.now()
+    const timeoutId = setTimeout(() => {
+      done('Timeout')
+    }, 10000)
+
+    function done (error) {
+      clearTimeout(timeoutId)
       stop(job, pageUrl)
-      if (!succeeded) {
+      const timeSpent = Math.floor(performance.now() - now)
+      if (error) {
+        console.log('❌', label, error)
         ++errors
+      } else {
+        console.log('✔️', label, timeSpent, 'ms')
       }
       next()
     }
@@ -137,17 +158,14 @@ async function main () {
     listener.on('log', async data => {
       try {
         await log(data, pageUrl)
-        console.log('✔️', label)
-        done(true)
+        done()
       } catch (e) {
-        console.log('❌', label)
-        console.log(e)
-        done(false)
+        done(e)
       }
     })
 
-    start(job, pageUrl)
-      .catch(() => done(false))
+    start(job, pageUrl, scripts)
+      .catch(reason => done(reason))
   }
 
   let parallel
