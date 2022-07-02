@@ -27,7 +27,7 @@ function allocate (cwd) {
     browser: join(__dirname, '../defaults/chromium.js'),
     browserRetry: 1,
     noScreenshot: false,
-    args: '__URL__ __REPORT__',
+    browserArgs: [],
 
     parallel: 2,
     tstReportDir: 'report',
@@ -112,7 +112,7 @@ function parseJobParam (job, arg) {
   const parsed = /-(\w+)(?::(.*))?/.exec(arg)
   if (parsed) {
     const [, name, value] = parsed
-    if (Object.prototype.hasOwnProperty.call(job, name)) {
+    if (name !== 'browserArgs' && Object.prototype.hasOwnProperty.call(job, name)) {
       const valueParser = paramParser[name] || valueParsers[typeof job[name]] || valueParsers.default
       try {
         job[name] = valueParser(value, job[name])
@@ -136,7 +136,7 @@ module.exports = {
     let inBrowserParams = false
     argv.forEach(arg => {
       if (inBrowserParams) {
-        job.args += ` ${arg}`
+        job.browserArgs.push(arg)
       } else if (arg === '--') {
         inBrowserParams = true
       } else {
