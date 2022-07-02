@@ -84,6 +84,10 @@ async function start (job, url, scripts = []) {
       resolvedScripts.push(script)
     }
   }
+  if (resolvedScripts.length) {
+    resolvedScripts.unshift(`window['ui5-test-runner/base-host'] = 'http://localhost:${job.port}'
+`)
+  }
   const pageBrowser = {
     url,
     reportDir,
