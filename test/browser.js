@@ -65,6 +65,14 @@ const tests = [{
   log: () => {
     console.log('QUNIT !!!')
   }
+}, {
+  label: 'Scripts (TestSuite)',
+  for: capabilities => !!capabilities.scripts,
+  url: 'testsuite.html',
+  scripts: ['qunit-redirect.js'],
+  log: () => {
+    console.log('QUNIT !!!')
+  }
 }]
 
 async function main () {
