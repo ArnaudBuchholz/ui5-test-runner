@@ -17,6 +17,24 @@ function exit (code) {
   process.exit(code)
 }
 
+function qUnitEndpoints (data) {
+  const { endpoint } = data
+  if (!this.calls) {
+    this.calls = {}
+  }
+  if (!this.calls[endpoint]) {
+    this.calls[endpoint] = 1
+  } else {
+    ++this.calls[endpoint]
+  }
+  if (endpoint === 'QUnit/done') {
+    assert(this.calls['QUnit/begin'], 'QUnit/begin was triggered')
+    assert(this.calls['QUnit/log'], 'QUnit/log was triggered')
+    assert(this.calls['QUnit/testDone'], 'QUnit/testDone was triggered')
+    return true
+  }
+}
+
 const tests = [{
   label: 'Loads a page',
   url: 'basic.html',
@@ -62,17 +80,28 @@ const tests = [{
   for: capabilities => !!capabilities.scripts,
   url: 'qunit.html',
   scripts: ['qunit-intercept.js', 'qunit-hooks.js'],
-  log: () => {
-    console.log('QUNIT !!!')
-  }
+  endpoint: qUnitEndpoints
 }, {
   label: 'Scripts (TestSuite)',
   for: capabilities => !!capabilities.scripts,
   url: 'testsuite.html',
   scripts: ['qunit-redirect.js'],
-  log: () => {
-    console.log('QUNIT !!!')
+  endpoint: function (data) {
+    assert(data.endpoint === 'addTestPages', 'addTestPages was triggered')
+    assert(data.body.length === 2, 'Two pages received')
+    const pages = [
+      '/unit/unitTests.qunit.html',
+      '/integration/opaTests.iframe.qunit.html'
+    ]
+    pages.forEach((page, index) => assert(data.body[index] === page, page))
+    return true
   }
+}, {
+  label: 'Scripts (External QUnit)',
+  for: capabilities => !!capabilities.scripts,
+  url: 'https://ui5.sap.com/test-resources/sap/m/demokit/orderbrowser/webapp/test/unit/unitTests.qunit.html',
+  scripts: ['qunit-intercept.js', 'qunit-hooks.js'],
+  endpoint: qUnitEndpoints
 }]
 
 async function main () {
@@ -96,6 +125,7 @@ async function main () {
   const listeners = []
 
   const configuration = await check({
+    port: 0,
     mappings: [{
       method: 'POST',
       match: '^/log$',
@@ -103,6 +133,19 @@ async function main () {
         const listenerIndex = request.headers.referer.match(/\blistener=(\d+)/)[1]
         const listener = listeners[listenerIndex]
         listener.emit('log', JSON.parse(await body(request)))
+        response.writeHead(200)
+        response.end()
+      }
+    }, {
+      method: 'POST',
+      match: '^/_/(.*)',
+      custom: async (request, response, endpoint) => {
+        const listenerIndex = request.headers.referer.match(/\blistener=(\d+)/)[1]
+        const listener = listeners[listenerIndex]
+        listener.emit('endpoint', {
+          endpoint,
+          body: JSON.parse(await body(request))
+        })
         response.writeHead(200)
         response.end()
       }
@@ -133,12 +176,17 @@ async function main () {
       }
       return
     }
-    const { label, url, log, scripts } = tests.shift()
+    const { label, url, log, scripts, endpoint } = tests.shift()
 
     const listenerIndex = listeners.length
     const listener = new EventEmitter()
     listeners.push(listener)
-    let pageUrl = `http://localhost:${job.port}/${url}`
+    let pageUrl
+    if (url.startsWith('http')) {
+      pageUrl = url
+    } else {
+      pageUrl = `http://localhost:${job.port}/${url}`
+    }
     if (url.includes('?')) {
       pageUrl += `&listener=${listenerIndex}`
     } else {
@@ -146,9 +194,7 @@ async function main () {
     }
 
     const now = performance.now()
-    const timeoutId = setTimeout(() => {
-      done('Timeout')
-    }, 10000)
+    const timeoutId = setTimeout(() => done('Timeout'), 10000)
 
     function done (error) {
       clearTimeout(timeoutId)
@@ -171,6 +217,19 @@ async function main () {
         done(e)
       }
     })
+
+    if (endpoint) {
+      const context = {}
+      listener.on('endpoint', async data => {
+        try {
+          if (await endpoint.call(context, data, pageUrl) === true) {
+            done()
+          }
+        } catch (e) {
+          done(e)
+        }
+      })
+    }
 
     start(job, pageUrl, scripts)
       .catch(reason => done(reason))
