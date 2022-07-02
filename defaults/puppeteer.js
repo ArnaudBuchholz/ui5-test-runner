@@ -17,7 +17,7 @@ const settings = JSON.parse(readFileSync(param).toString())
 const puppeteer = require(settings.modules.puppeteer)
 
 const { url, scripts, consoleLog } = settings
-const headless = !(settings.argv || []).some(arg => arg === '--visible')
+const headless = !(settings.args || []).some(arg => arg === '--visible')
 
 let browser
 let page
@@ -62,8 +62,7 @@ async function main () {
     page.on('console', message => consoleStream.write(`${message.type().substr(0, 3).toUpperCase()} ${message.text()}\n`))
   }
   if (scripts && scripts.length) {
-    for await (const scriptName of scripts) {
-      const script = readFileSync(scriptName).toString()
+    for await (const script of scripts) {
       await page.evaluateOnNewDocument(script)
     }
   }
