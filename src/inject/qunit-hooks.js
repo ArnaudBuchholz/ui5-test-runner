@@ -7,10 +7,12 @@
   }
   window['ui5-test-runner/qunit-hooks'] = true
 
+  const base = window['ui5-test-runner/base-host'] || ''
+
   function post (url, data) {
     return new Promise(function (resolve, reject) {
       const xhr = new XMLHttpRequest()
-      xhr.open('POST', '/_/' + url)
+      xhr.open('POST', base + '/_/' + url)
       xhr.send(JSON.stringify(data))
       xhr.onreadystatechange = function () {
         if (xhr.readyState === 4) {
