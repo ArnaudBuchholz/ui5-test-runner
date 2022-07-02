@@ -126,33 +126,34 @@ async function main () {
 
   const configuration = await check({
     port: 0,
-    mappings: [{
-      method: 'POST',
-      match: '^/log$',
-      custom: async (request, response) => {
-        const listenerIndex = request.headers.referer.match(/\blistener=(\d+)/)[1]
-        const listener = listeners[listenerIndex]
-        listener.emit('log', JSON.parse(await body(request)))
-        response.writeHead(200)
-        response.end()
-      }
-    }, {
-      method: 'POST',
-      match: '^/_/(.*)',
-      custom: async (request, response, endpoint) => {
-        const listenerIndex = request.headers.referer.match(/\blistener=(\d+)/)[1]
-        const listener = listeners[listenerIndex]
-        listener.emit('endpoint', {
-          endpoint,
-          body: JSON.parse(await body(request))
-        })
-        response.writeHead(200)
-        response.end()
-      }
-    }, {
-      match: '^/(.*)',
-      file: join(__dirname, '$1')
-    }]
+    mappings: [
+      require('../src/cors'), {
+        method: 'POST',
+        match: '^/log$',
+        custom: async (request, response) => {
+          const listenerIndex = request.headers.referer.match(/\blistener=(\d+)/)[1]
+          const listener = listeners[listenerIndex]
+          listener.emit('log', JSON.parse(await body(request)))
+          response.writeHead(200)
+          response.end()
+        }
+      }, {
+        method: 'POST',
+        match: '^/_/(.*)',
+        custom: async (request, response, endpoint) => {
+          const listenerIndex = request.headers.referer.match(/\blistener=(\d+)/)[1]
+          const listener = listeners[listenerIndex]
+          listener.emit('endpoint', {
+            endpoint,
+            body: JSON.parse(await body(request))
+          })
+          response.writeHead(200)
+          response.end()
+        }
+      }, {
+        match: '^/(.*)',
+        file: join(__dirname, '$1')
+      }]
   })
   await new Promise(resolve => serve(configuration)
     .on('ready', ({ port }) => {
