@@ -36,7 +36,6 @@ const cleanDir = async dir => {
   }
 }
 
-
 module.exports = {
   filename,
   cleanDir,
