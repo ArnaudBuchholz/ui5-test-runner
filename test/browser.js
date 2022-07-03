@@ -79,13 +79,13 @@ const tests = [{
   label: 'Scripts (QUnit)',
   for: capabilities => !!capabilities.scripts,
   url: 'qunit.html',
-  scripts: ['qunit-intercept.js', 'qunit-hooks.js'],
+  scripts: ['qunit-intercept.js', 'post.js', 'qunit-hooks.js'],
   endpoint: qUnitEndpoints
 }, {
   label: 'Scripts (TestSuite)',
   for: capabilities => !!capabilities.scripts,
   url: 'testsuite.html',
-  scripts: ['qunit-redirect.js'],
+  scripts: ['post.js', 'qunit-redirect.js'],
   endpoint: function (data) {
     assert(data.endpoint === 'addTestPages', 'addTestPages was triggered')
     assert(data.body.length === 2, 'Two pages received')
@@ -100,7 +100,7 @@ const tests = [{
   label: 'Scripts (External QUnit)',
   for: capabilities => !!capabilities.scripts,
   url: 'https://ui5.sap.com/test-resources/sap/m/demokit/orderbrowser/webapp/test/unit/unitTests.qunit.html',
-  scripts: ['qunit-intercept.js', 'qunit-hooks.js'],
+  scripts: ['qunit-intercept.js', 'post.js', 'qunit-hooks.js'],
   endpoint: qUnitEndpoints
 }]
 
@@ -141,7 +141,7 @@ async function main () {
         method: 'POST',
         match: '^/_/(.*)',
         custom: async (request, response, endpoint) => {
-          const listenerIndex = request.headers.referer.match(/\blistener=(\d+)/)[1]
+          const listenerIndex = request.headers['x-page-url'].match(/\blistener=(\d+)/)[1]
           const listener = listeners[listenerIndex]
           listener.emit('endpoint', {
             endpoint,
