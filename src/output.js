@@ -28,25 +28,32 @@ function clean () {
   }
 }
 
-const width = 10
+const BAR_WIDTH = 10
 
 function bar (ratio, msg) {
   write('[')
   if (typeof ratio === 'string') {
-    if (ratio.length > width) {
-      write(ratio.substring(0, width - 3), '...')
+    if (ratio.length > BAR_WIDTH) {
+      write(ratio.substring(0, BAR_WIDTH - 3), '...')
     } else {
-      const padded = ratio.padStart(width - Math.floor((width - ratio.length) / 2), '-').padEnd(width, '-')
+      const padded = ratio.padStart(BAR_WIDTH - Math.floor((BAR_WIDTH - ratio.length) / 2), '-').padEnd(BAR_WIDTH, '-')
       write(padded)
     }
     write(']     ')
   } else {
-    const filled = Math.floor(width * ratio)
-    write(''.padEnd(filled, '\u2588'), ''.padEnd(width - filled, '\u2591'))
+    const filled = Math.floor(BAR_WIDTH * ratio)
+    write(''.padEnd(filled, '\u2588'), ''.padEnd(BAR_WIDTH - filled, '\u2591'))
     const percent = Math.floor(100 * ratio).toString().padStart(3, ' ')
     write('] ', percent, '%')
   }
-  write(' ', msg, '\n')
+  write(' ')
+  const spaceLeft = process.stdout.columns - BAR_WIDTH - 14
+  if (msg.length > spaceLeft) {
+    write('...', msg.substring(msg.length - spaceLeft - 3))
+  } else {
+    write(msg)
+  }
+  write('\n')
 }
 
 function progress (cleanFirst = true) {
