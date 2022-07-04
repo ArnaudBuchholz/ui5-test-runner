@@ -170,14 +170,14 @@ async function main () {
   let errors = 0
 
   const next = () => {
-    if (tests.length === 0) {
+    if (filteredTests.length === 0) {
       if (Object.keys(job.browsers).length === 0) {
         console.log('Done.')
         exit(errors)
       }
       return
     }
-    const { label, url, log, scripts, endpoint } = tests.shift()
+    const { label, url, log, scripts, endpoint } = filteredTests.shift()
 
     const listenerIndex = listeners.length
     const listener = new EventEmitter()
