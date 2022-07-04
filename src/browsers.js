@@ -1,38 +1,15 @@
 'use strict'
 
-const { fork, exec } = require('child_process')
+const { fork } = require('child_process')
 const { join } = require('path')
-const { stat, writeFile, readFile, open } = require('fs/promises')
+const { writeFile, readFile, open } = require('fs/promises')
 const { recreateDir, filename } = require('./tools')
 const { getPageTimeout } = require('./timeout')
 const output = require('./output')
+const resolvePackage = require('./npm')
 
 let lastScreenshotId = 0
 const screenshots = {}
-
-function npm (...args) {
-  return new Promise((resolve, reject) => {
-    const childProcess = exec(`npm ${args.join(' ')}`, (err, stdout, stderr) => {
-      if (err) {
-        reject(stderr)
-      } else {
-        resolve(stdout.trim())
-      }
-    })
-    if (args[0] === 'install') {
-      output.monitor(childProcess)
-    }
-  })
-}
-
-async function folderExists (path) {
-  try {
-    const result = await stat(path)
-    return result.isDirectory()
-  } catch (e) {
-    return false
-  }
-}
 
 async function probe (job) {
   job.status = 'Probing browser instantiation command'
@@ -51,19 +28,8 @@ async function probe (job) {
   const { modules } = capabilities
   const resolvedModules = {}
   if (modules.length) {
-    const [npmLocalRoot, npmGlobalRoot] = await Promise.all([npm('root'), npm('root', '--global')])
     for await (const name of capabilities.modules) {
-      const localModule = join(npmLocalRoot, name)
-      if (await folderExists(localModule)) {
-        resolvedModules[name] = localModule
-      } else {
-        const globalModule = join(npmGlobalRoot, name)
-        if (!await folderExists(globalModule)) {
-          job.status = `Installing ${name}...`
-          await npm('install', name, '-g')
-        }
-        resolvedModules[name] = globalModule
-      }
+      resolvedModules[name] = await resolvePackage(job, name)
     }
   }
   job.browserCapabilities.modules = resolvedModules
