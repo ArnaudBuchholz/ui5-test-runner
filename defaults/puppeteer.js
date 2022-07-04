@@ -73,6 +73,7 @@ main().catch(e => {
   // Lots of threads on this message but no clear solution
   if (!stopping || e.message !== 'Navigation failed because browser has disconnected!') {
     console.error(e)
+    process.exit(-1)
   }
-  process.exit(-1)
+  process.exit(0)
 })
