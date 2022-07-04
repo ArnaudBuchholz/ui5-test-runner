@@ -198,6 +198,10 @@ async function main () {
     const timeoutId = setTimeout(() => done('Timeout'), 10000)
 
     function done (error) {
+      if (done.called) {
+        return
+      }
+      done.called = true
       clearTimeout(timeoutId)
       stop(job, pageUrl)
       const timeSpent = Math.floor(performance.now() - now)
@@ -234,6 +238,9 @@ async function main () {
 
     start(job, pageUrl, scripts)
       .catch(reason => done(reason))
+      .then(() => {
+        done('Failed')
+      })
   }
 
   let parallel
