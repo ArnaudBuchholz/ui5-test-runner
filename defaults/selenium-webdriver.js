@@ -5,16 +5,22 @@ const param = process.argv[2]
 if (param === 'capabilities') {
   console.log(JSON.stringify({
     modules: ['selenium-webdriver'],
-    screenshot: '.png'
+    screenshot: '.png',
+    scripts: true
   }))
   process.exit(0)
 }
 
 const { readFileSync, writeFileSync } = require('fs')
 const settings = JSON.parse(readFileSync(param).toString())
+const { join } = require('path')
 const { Builder, Browser } = require(settings.modules['selenium-webdriver'])
+const { Options: ChromeOptions } = require(join(settings.modules['selenium-webdriver'], 'chrome'))
 
-const { url } = settings
+const chromeOptions = new ChromeOptions()
+chromeOptions.excludeSwitches('enable-logging')
+
+const { url, scripts } = settings
 
 let driver
 
@@ -39,11 +45,24 @@ process.on('message', async message => {
 })
 
 async function main () {
-  driver = await new Builder().forBrowser(Browser.CHROME).build()
+  driver = await new Builder()
+    .forBrowser(Browser.CHROME)
+    .setChromeOptions(chromeOptions)
+    .build()
+  if (scripts && scripts.length) {
+    for await (const script of scripts) {
+      await driver.sendDevToolsCommand('Page.addScriptToEvaluateOnNewDocument', { source: script })
+    }
+  }
   await driver.get(url)
 }
 
-main().catch(e => {
-  console.error(e)
+main().catch(async error => {
+  console.error(error)
+  try {
+    await driver.quit()
+  } catch (e) {
+    // ignore
+  }
   process.exit(-1)
 })
