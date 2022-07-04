@@ -162,6 +162,11 @@ module.exports = {
   browserTimeout (url) {
     console.log('!! TIMEOUT', url)
   },
+  browserFailed (url, stdoutFilename, stderrFilename) {
+    console.log('!! BROWSER FAILED', url)
+    console.log('\tstdout:', stdoutFilename)
+    console.log('\tstderr:', stderrFilename)
+  },
   monitor (childProcess) {
     ['stdout', 'stderr'].forEach(channel => {
       childProcess[channel].on('data', chunk => {
