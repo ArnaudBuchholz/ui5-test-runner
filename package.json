@@ -57,13 +57,14 @@
   },
   "jest": {
     "setupFilesAfterEnv": [
-      "./__mocks__/setup.js"
+      "./test/setup.js"
     ],
     "collectCoverage": true,
     "collectCoverageFrom": [
       "src/*.js"
     ],
     "coveragePathIgnorePatterns": [
+      "\\.spec\\.js",
       "output\\.js"
     ],
     "coverageThreshold": {

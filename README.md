@@ -90,21 +90,21 @@ You may also use :
 
 **During** the test executions *(which can take some time)* you can monitor the progress by opening : http://localhost:8080/_/progress.html
 
-  ![progress](https://raw.githubusercontent.com/ArnaudBuchholz/ui5-test-runner/main/progress.png)
+  ![progress](https://raw.githubusercontent.com/ArnaudBuchholz/ui5-test-runner/main/doc/progress.png)
 
 **After** the tests are executed :
 
 * The command line output will provide a summary of executed pages and the corresponding failures :
 
-  ![cmd_report](https://raw.githubusercontent.com/ArnaudBuchholz/ui5-test-runner/main/cmd_report.png)
+  ![cmd_report](https://raw.githubusercontent.com/ArnaudBuchholz/ui5-test-runner/main/doc/cmd_report.png)
 
 * The detailed test report is available from http://localhost:8080/_/report.html *(since it uses requests to load the details, the report **must** be open through a web server, don't try to open the .html from the file system... it won't work)*
 
-  ![report](https://raw.githubusercontent.com/ArnaudBuchholz/ui5-test-runner/main/report.png)
+  ![report](https://raw.githubusercontent.com/ArnaudBuchholz/ui5-test-runner/main/doc/report.png)
 
 * The coverage report is available from http://localhost:8080/_/coverage/lcov-report/index.html
 
-  ![coverage](https://raw.githubusercontent.com/ArnaudBuchholz/ui5-test-runner/main/coverage.png)
+  ![coverage](https://raw.githubusercontent.com/ArnaudBuchholz/ui5-test-runner/main/doc/coverage.png)
 
 
 * Some folders are created to support execution, you may add them to your project `.gitignore` to exclude them from git :
@@ -138,7 +138,6 @@ You may also use :
 | logServer | `false` | Logs REserve traces |
 | browser | *String, see description* | Browser instantiation command, it should point to a node.js script *(absolute or relative to `cwd`)*.<br/>By default, a script will instantiate chromium through puppetteer |
 | browserRetry | `1` | Browser instantiation retries : if the command **fails** unexpectedly, it is re-executed *(`0` means no retry)*.<br/>The page **fails** if **all attempts** fail |
-| args | `'__URL__ __REPORT__'` | Browser instantiation arguments :<ul><li>`'__URL__'` is replaced with the URL to open</li><li>`'__REPORT__'` is replaced with a folder path that is associated with the current URL *(can be used to store additional traces such as console logs or screenshots)*</li><li>`'__RETRY__'` is replaced with the retry count *(0 for the first execution, can be used to put additional traces or change strategy)*</i>*</li></ul> |
 | noScreenshot | `false` | No screenshot is taken during the tests execution (faster if the browser command supports screenshot) |
 | -- | | Parameters given right after `--` are directly added to the browser instantiation arguments *(see below)* |
 | parallel | `2` | Number of parallel tests executions (`0` to ignore tests and keep alive) |

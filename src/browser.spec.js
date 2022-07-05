@@ -1,8 +1,8 @@
-const output = require('../../src/output')
+const output = require('./output')
 const { join } = require('path')
 const { _hook: hook } = require('child_process')
-const jobFactory = require('../../src/job')
-const { start, stop, screenshot } = require('../../src/browsers')
+const jobFactory = require('./job')
+const { start, stop, screenshot } = require('./browsers')
 
 const cwd = '/test/project'
 

@@ -6,10 +6,11 @@ const { cleanDir, createDir } = require('./tools')
 const { readdir, readFile, stat, writeFile } = require('fs').promises
 const { Readable } = require('stream')
 const output = require('./output')
+const resolvePackage = require('./npm')
 
-const nycScript = require.resolve('nyc/bin/nyc.js')
+let nycScript
 
-function nyc (...args) {
+async function nyc (...args) {
   output.nyc(...args)
   const childProcess = fork(nycScript, args, { stdio: 'pipe' })
   output.monitor(childProcess)
@@ -39,6 +40,10 @@ const customFileSystem = {
 
 async function instrument (job) {
   job.status = 'Instrumenting'
+  if (!nycScript) {
+    const nyc = await resolvePackage(job, 'nyc')
+    nycScript = join(nyc, 'bin/nyc.js')
+  }
   job.nycSettingsPath = join(job.covTempDir, 'settings/nyc.json')
   await cleanDir(job.covTempDir)
   await createDir(join(job.covTempDir, 'settings'))
