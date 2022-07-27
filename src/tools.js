@@ -41,5 +41,14 @@ module.exports = {
   cleanDir,
   createDir: dir => mkdir(dir, recursive),
   recreateDir: dir => cleanDir(dir).then(() => mkdir(dir, recursive)),
-  extractUrl: headers => headers.referer.match(/http:\/\/[^/]+(?::\d+)?(\/.*)/)[1]
+  extractUrl: headers => headers.referer.match(/http:\/\/[^/]+(?::\d+)?(\/.*)/)[1],
+  allocPromise: () => {
+    let resolve
+    let reject
+    const promise = new Promise((_resolve, _reject) => {
+      resolve = _resolve
+      reject = _reject
+    })
+    return { promise, resolve, reject }
+  }
 }
