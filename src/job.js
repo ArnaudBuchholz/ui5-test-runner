@@ -24,7 +24,7 @@ function allocate (cwd) {
     watch: false,
     logServer: false,
 
-    browser: join(__dirname, '../defaults/chromium.js'),
+    browser: join(__dirname, '../defaults/puppeteer.js'),
     browserRetry: 1,
     noScreenshot: false,
     browserArgs: [],
