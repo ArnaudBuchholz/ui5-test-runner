@@ -2,22 +2,54 @@ const output = require('./output')
 const { join } = require('path')
 const { _hook: hook } = require('child_process')
 const jobFactory = require('./job')
-const { start, stop, screenshot } = require('./browsers')
+const { probe, start, stop, screenshot } = require('./browsers')
+const { allocPromise } = require('./tools')
+const { readFile } = require('fs/promises')
 
 const cwd = '/test/project'
-
 describe('src/browser', () => {
-  let log
-  let warn
-  let error
   let job
 
   beforeAll(() => {
-    log = jest.spyOn(console, 'log').mockImplementation()
-    warn = jest.spyOn(console, 'warn').mockImplementation()
-    error = jest.spyOn(console, 'error').mockImplementation()
-    job = jobFactory.fromCmdLine(cwd, [0, 0, `-tstReportDir:${join(__dirname, '../../tmp/browser')}`])
+    job = jobFactory.fromCmdLine(cwd, ['-url:about:blank', `-tstReportDir:${join(__dirname, '../tmp/browser')}`])
   })
+
+  describe('probe', () => {
+    it('starts the command with a specific url', async () => {
+      const { promise, resolve, reject } = allocPromise()
+      hook.once('new', async childProcess => {
+        try {
+          const config = JSON.parse((await readFile(childProcess.args[0])).toString())
+          expect(config.url).toStrictEqual('about:capabilities')
+          resolve()
+        } catch (e) {
+          reject(e)
+        }
+      })
+      probe(job)
+      await promise
+    })
+
+    it('reads browser capabilities', async () => {
+      const { promise, resolve, reject } = allocPromise()
+      hook.once('new', async childProcess => {
+        try {
+          childProcess.log(JSON.stringify({
+            screenshot: false,
+            console: true
+          }))
+          resolve()
+        } catch (e) {
+          reject(e)
+        }
+      })
+      probe(job)
+      await promise
+      expect(job.browserCapabilities.console).toStrictEqual(true)
+    })
+  })
+
+  return
 
   it('starts returns a promise resolved on stop', () => {
     hook.once('new', childProcess => {
@@ -154,14 +186,5 @@ describe('src/browser', () => {
 
   it('ignores unstarted pages', () => {
     stop(job, 'unknown.html')
-  })
-
-  afterAll(() => {
-    expect(log.mock.calls.length).toStrictEqual(0)
-    expect(warn.mock.calls.length).toStrictEqual(0)
-    expect(error.mock.calls.length).toStrictEqual(0)
-    log.mockRestore()
-    warn.mockRestore()
-    error.mockRestore()
   })
 })
