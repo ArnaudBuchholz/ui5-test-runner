@@ -1,5 +1,4 @@
-jest.mock('child_process')
-jest.mock('fs')
+jest.mock('child_process', () => require('./child_process'))
 
 const EventEmitter = require('events')
 const mockedOutput = new EventEmitter()
