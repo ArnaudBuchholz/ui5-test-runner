@@ -3,7 +3,7 @@
 const { fork } = require('child_process')
 const { join } = require('path')
 const { writeFile, readFile, open } = require('fs/promises')
-const { recreateDir, filename } = require('./tools')
+const { recreateDir, filename, allocPromise } = require('./tools')
 const { getPageTimeout } = require('./timeout')
 const output = require('./output')
 const resolvePackage = require('./npm')
@@ -11,12 +11,46 @@ const resolvePackage = require('./npm')
 let lastScreenshotId = 0
 const screenshots = {}
 
+async function instantiate (job, config) {
+  const { dir } = config
+  await recreateDir(dir)
+  const browserConfig = {
+    ...config,
+    args: job.browserArgs
+  }
+  const browserConfigPath = join(dir, 'browser.json')
+  await writeFile(browserConfigPath, JSON.stringify(browserConfig))
+  const stdoutFilename = join(dir, 'stdout.txt')
+  const stderrFilename = join(dir, 'stderr.txt')
+  const stdout = await open(stdoutFilename, 'w')
+  const stderr = await open(stderrFilename, 'w')
+  const childProcess = fork(job.browser, [browserConfigPath], {
+    stdio: [0, stdout, stderr, 'ipc']
+  })
+  const { promise, resolve } = allocPromise()
+  childProcess.on('close', async code => {
+    await stdout.close()
+    await stderr.close()
+    if (code !== 0) {
+      output.browserFailed(dir, stdoutFilename, stderrFilename)
+    }
+    resolve(code)
+  })
+  childProcess.closed = promise
+  childProcess.stdoutFilename = stdoutFilename
+  childProcess.stderrFilename = stderrFilename
+  return childProcess
+}
+
 async function probe (job) {
   job.status = 'Probing browser instantiation command'
-  const childProcess = fork(job.browser, ['capabilities'], { stdio: 'pipe' })
-  const output = []
-  childProcess.stdout.on('data', chunk => output.push(chunk.toString()))
-  await new Promise(resolve => childProcess.on('close', resolve))
+  const dir = join(job.tstReportDir, 'probe')
+  const childProcess = await instantiate(job, {
+    url: 'about:capabilities',
+    dir
+  })
+  await childProcess.closed
+/*  
   const capabilities = Object.assign({
     modules: [],
     screenshot: null,
@@ -33,6 +67,7 @@ async function probe (job) {
     }
   }
   job.browserCapabilities.modules = resolvedModules
+*/
 }
 
 async function start (job, url, scripts = []) {
