@@ -30,7 +30,7 @@ async function notifyAndExecuteTests (job) {
 }
 
 async function main () {
-  const job = jobFactory.fromCmdLine(process.cwd(), process.argv)
+  const job = jobFactory.fromCmdLine(process.cwd(), process.argv.slice(2))
   const configuration = await reserveConfigurationFactory(job)
   const server = serve(configuration)
   if (job.logServer) {
