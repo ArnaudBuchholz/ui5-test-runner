@@ -21,6 +21,23 @@ class ChildProcess extends EventEmitter {
   get stdout () { return this._stdout }
   get stderr () { return this._stderr }
 
+  async log (text) {
+    return new Promise((resolve, reject) => {
+      this.stdout.on('data', text)
+      if (this._outStream) {
+        this._outStream.write(text, err => {
+          if (err) {
+            reject(err)
+          } else {
+            resolve()
+          }
+        })
+      } else {
+        resolve()
+      }
+    })
+  }
+
   constructor (scriptPath, args, options) {
     super()
     this._connected = true
@@ -29,6 +46,9 @@ class ChildProcess extends EventEmitter {
     this._options = options
     this._stdout = new Channel()
     this._stderr = new Channel()
+    const [, stdout/*, stderr*/] = options.stdio || []
+    this._outStream = stdout
+    // this._errStream = stderr
     _hook.emit('new', this)
   }
 }
