@@ -1,9 +1,10 @@
 'use strict'
 
-const param = process.argv[2]
+const { readFileSync, writeFileSync } = require('fs')
+const settings = JSON.parse(readFileSync(process.argv[2]).toString())
 
-if (param === 'capabilities') {
-  console.log(JSON.stringify({
+if (settings.capabilities) {
+  writeFileSync(settings.capabilities, JSON.stringify({
     modules: ['selenium-webdriver'],
     screenshot: '.png',
     scripts: true
@@ -11,8 +12,6 @@ if (param === 'capabilities') {
   process.exit(0)
 }
 
-const { readFileSync, writeFileSync } = require('fs')
-const settings = JSON.parse(readFileSync(param).toString())
 const { join } = require('path')
 const { Builder, Browser } = require(settings.modules['selenium-webdriver'])
 const { Options: ChromeOptions } = require(join(settings.modules['selenium-webdriver'], 'chrome'))
