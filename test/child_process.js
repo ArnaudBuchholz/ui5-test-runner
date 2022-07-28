@@ -49,7 +49,7 @@ class ChildProcess extends EventEmitter {
   get stdout () { return this._stdout }
   get stderr () { return this._stderr }
 
-  constructor (scriptPath, args, options) {
+  constructor (scriptPath, args, options = {}) {
     super()
     this._connected = true
     this._scriptPath = scriptPath
