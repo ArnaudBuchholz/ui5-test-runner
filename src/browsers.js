@@ -45,29 +45,29 @@ async function instantiate (job, config) {
 async function probe (job) {
   job.status = 'Probing browser instantiation command'
   const dir = join(job.tstReportDir, 'probe')
+  const capabilities = join(dir, 'capabilities.json')
   const childProcess = await instantiate(job, {
-    url: 'about:capabilities',
+    url: 'about:blank',
+    capabilities,
     dir
   })
   await childProcess.closed
-/*  
-  const capabilities = Object.assign({
+  const browserCapabilities = Object.assign({
     modules: [],
     screenshot: null,
     console: false,
     scripts: false,
     parallel: true
-  }, JSON.parse(output.join('')))
-  job.browserCapabilities = capabilities
-  const { modules } = capabilities
+  }, JSON.parse((await readFile(capabilities)).toString()))
+  job.browserCapabilities = browserCapabilities
+  const { modules } = browserCapabilities
   const resolvedModules = {}
   if (modules.length) {
-    for await (const name of capabilities.modules) {
+    for await (const name of browserCapabilities.modules) {
       resolvedModules[name] = await resolvePackage(job, name)
     }
   }
   job.browserCapabilities.modules = resolvedModules
-*/
 }
 
 async function start (job, url, scripts = []) {
