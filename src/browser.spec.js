@@ -3,8 +3,7 @@ const { join } = require('path')
 const { _hook: hook } = require('child_process')
 const jobFactory = require('./job')
 const { probe, start, stop, screenshot } = require('./browsers')
-const { allocPromise } = require('./tools')
-const { readFile } = require('fs/promises')
+const { readFile, writeFile } = require('fs/promises')
 
 const cwd = '/test/project'
 describe('src/browser', () => {
@@ -14,38 +13,48 @@ describe('src/browser', () => {
     job = jobFactory.fromCmdLine(cwd, ['-url:about:blank', `-tstReportDir:${join(__dirname, '../tmp/browser')}`])
   })
 
+  afterAll(() => {
+    hook.removeAllListeners('new')
+  })
+
   describe('probe', () => {
     it('starts the command with a specific url', async () => {
-      const { promise, resolve, reject } = allocPromise()
-      hook.once('new', async childProcess => {
-        try {
-          const config = JSON.parse((await readFile(childProcess.args[0])).toString())
-          expect(config.url).toStrictEqual('about:capabilities')
-          resolve()
-        } catch (e) {
-          reject(e)
-        }
+      hook.on('new', async childProcess => {
+        const config = JSON.parse((await readFile(childProcess.args[0])).toString())
+        expect(config.url).toStrictEqual('about:blank')
+        await writeFile(config.capabilities, '{}')
+        childProcess.close()
       })
-      probe(job)
-      await promise
+      await probe(job)
+      expect(job.browserCapabilities.console).toStrictEqual(false)
     })
 
     it('reads browser capabilities', async () => {
-      const { promise, resolve, reject } = allocPromise()
-      hook.once('new', async childProcess => {
-        try {
-          childProcess.log(JSON.stringify({
-            screenshot: false,
-            console: true
-          }))
-          resolve()
-        } catch (e) {
-          reject(e)
-        }
+      hook.on('new', async childProcess => {
+        const config = JSON.parse((await readFile(childProcess.args[0])).toString())
+        await writeFile(config.capabilities, JSON.stringify({
+          screenshot: false,
+          console: true
+        }))
+        childProcess.close()
       })
-      probe(job)
-      await promise
+      await probe(job)
       expect(job.browserCapabilities.console).toStrictEqual(true)
+    })
+
+    it('handles dependency modules', async () => {
+      hook.on('new', async childProcess => {
+        if (childProcess.scriptPath === 'npm') {
+        } else {
+          const config = JSON.parse((await readFile(childProcess.args[0])).toString())
+          await writeFile(config.capabilities, JSON.stringify({
+            modules: ['test']
+          }))
+        }
+        childProcess.close()
+      })
+      await probe(job)
+      expect(job.browserCapabilities.modules.test).toStrictEqual(true)
     })
   })
 
