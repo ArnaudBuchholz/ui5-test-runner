@@ -1,9 +1,10 @@
 'use strict'
 
-const param = process.argv[2]
+const { createWriteStream, readFileSync, writeFileSync } = require('fs')
+const settings = JSON.parse(readFileSync(process.argv[2]).toString())
 
-if (param === 'capabilities') {
-  console.log(JSON.stringify({
+if (settings.capabilities) {
+  writeFileSync(settings.capabilities, JSON.stringify({
     modules: ['puppeteer'],
     screenshot: '.png',
     console: true,
@@ -12,8 +13,6 @@ if (param === 'capabilities') {
   process.exit(0)
 }
 
-const { createWriteStream, readFileSync } = require('fs')
-const settings = JSON.parse(readFileSync(param).toString())
 const puppeteer = require(settings.modules.puppeteer)
 
 const { url, scripts, consoleLog } = settings
