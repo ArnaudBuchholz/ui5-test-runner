@@ -1,6 +1,8 @@
 const EventEmitter = require('events')
 const _hook = new EventEmitter()
 
+const $onClose = Symbol('on:close')
+
 class Channel extends EventEmitter {
   toString () {
     return this._buffer.join('')
@@ -60,6 +62,10 @@ class ChildProcess extends EventEmitter {
     const [, stdout, stderr] = options.stdio || []
     this._stdout.setStream(stdout)
     this._stderr.setStream(stderr)
+    const onClose = options[$onClose]
+    if (onClose) {
+      this.on('close', onClose)
+    }
     _hook.emit('new', this)
   }
 }
@@ -71,10 +77,12 @@ module.exports = {
 
   exec (command, callback) {
     const [scriptPath, ...args] = command.split(' ')
-    const childProcess = new ChildProcess(scriptPath, args)
-    childProcess.on('close', code => {
-      callback(code, childProcess.stdout.toString(), childProcess.stderr.toString())
+    const childProcess = new ChildProcess(scriptPath, args, {
+      [$onClose]: function (code) {
+        callback(code, this.stdout.toString(), this.stderr.toString())
+      }
     })
+    return childProcess
   },
 
   _hook
