@@ -4,21 +4,24 @@ const { _hook: hook } = require('child_process')
 const jobFactory = require('./job')
 const { probe, start, stop, screenshot } = require('./browsers')
 const { readFile, writeFile } = require('fs/promises')
+const { createDir } = require('./tools')
 
 const cwd = '/test/project'
+const tmp = join(__dirname, '../tmp')
+
 describe('src/browser', () => {
   let job
 
   beforeAll(() => {
-    job = jobFactory.fromCmdLine(cwd, ['-url:about:blank', `-tstReportDir:${join(__dirname, '../tmp/browser')}`])
+    job = jobFactory.fromCmdLine(cwd, ['-url:about:blank', `-tstReportDir:${join(tmp, 'browser')}`])
   })
 
-  afterAll(() => {
+  afterEach(() => {
     hook.removeAllListeners('new')
   })
 
   describe('probe', () => {
-    it('starts the command with a specific url', async () => {
+    it('starts the command with a specific config file', async () => {
       hook.on('new', async childProcess => {
         const config = JSON.parse((await readFile(childProcess.args[0])).toString())
         expect(config.url).toStrictEqual('about:blank')
@@ -29,7 +32,12 @@ describe('src/browser', () => {
       expect(job.browserCapabilities.console).toStrictEqual(false)
     })
 
-    it('reads browser capabilities', async () => {
+    it('fails if the browser does not generate capabilities', async () => {
+      hook.on('new', async childProcess => childProcess.close())
+      await expect(probe(job)).rejects
+    })
+
+    it('reads and merge browser capabilities', async () => {
       hook.on('new', async childProcess => {
         const config = JSON.parse((await readFile(childProcess.args[0])).toString())
         await writeFile(config.capabilities, JSON.stringify({
@@ -40,21 +48,36 @@ describe('src/browser', () => {
       })
       await probe(job)
       expect(job.browserCapabilities.console).toStrictEqual(true)
+      expect(job.browserCapabilities.parallel).toStrictEqual(true)
     })
 
-    it('handles dependency modules', async () => {
+    it('handles dependent modules', async () => {
+      const npmLocal = join(tmp, 'npm/local')
+      const npmGlobal = join(tmp, 'npm/global')
+      await createDir(join(npmLocal, 'localModule'))
+      await createDir(npmGlobal)
       hook.on('new', async childProcess => {
         if (childProcess.scriptPath === 'npm') {
+          if (childProcess.args[0] === 'root') {
+            if (childProcess.args[1] === '--global') {
+              childProcess.stdout.write(npmGlobal)
+            } else {
+              childProcess.stdout.write(npmLocal)
+            }
+          } else if (childProcess.args[0] === 'install') {
+            childProcess.stdout.write('OK')
+          }
         } else {
           const config = JSON.parse((await readFile(childProcess.args[0])).toString())
           await writeFile(config.capabilities, JSON.stringify({
-            modules: ['test']
+            modules: ['localModule', 'globalModule']
           }))
         }
         childProcess.close()
       })
       await probe(job)
-      expect(job.browserCapabilities.modules.test).toStrictEqual(true)
+      expect(job.browserCapabilities.modules.localModule).toStrictEqual(join(npmLocal, 'localModule'))
+      expect(job.browserCapabilities.modules.globalModule).toStrictEqual(join(npmGlobal, 'globalModule'))
     })
   })
 
