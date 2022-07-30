@@ -1,7 +1,44 @@
 const EventEmitter = require('events')
-const _hook = new EventEmitter()
 
-const $onClose = Symbol('on:close')
+const mocks = []
+
+function reset () {
+  mocks.length = 0
+}
+
+function mock (configuration) {
+  mocks.push(configuration)
+}
+
+function find (childProcess) {
+  return mocks.filter(candidate => {
+    if (candidate.api !== childProcess.api ||
+      (typeof candidate.scriptPath === 'string' && candidate.scriptPath !== childProcess.scriptPath) ||
+      (typeof candidate.scriptPath !== 'string' && !childProcess.scriptPath.match(candidate.scriptPath))) {
+      return false
+    }
+    if (candidate.args) {
+      return candidate.args.every((arg, index) => childProcess.args[index] === arg)
+    }
+    return true
+  })[0]
+}
+
+async function handle (childProcess) {
+  const mock = find(childProcess)
+  if (!mock) {
+    throw new Error(`Missing child_process mock for ${childProcess.scriptPath} ${JSON.stringify(childProcess.args)}`)
+  }
+  try {
+    await mock.exec(childProcess)
+    if (mock.close !== false) {
+      childProcess.close()
+    }
+  } catch (e) {
+    childProcess.stderr.write(e.toString())
+    childProcess.close(-1)
+  }
+}
 
 class Channel extends EventEmitter {
   toString () {
@@ -44,6 +81,7 @@ class ChildProcess extends EventEmitter {
     this.emit('close', code)
   }
 
+  get api () { return this._api }
   get scriptPath () { return this._scriptPath }
   get args () { return this._args }
   get options () { return this._options }
@@ -51,8 +89,9 @@ class ChildProcess extends EventEmitter {
   get stdout () { return this._stdout }
   get stderr () { return this._stderr }
 
-  constructor (scriptPath, args, options = {}) {
+  constructor ({ api, scriptPath, args, options = {} }) {
     super()
+    this._api = api
     this._connected = true
     this._scriptPath = scriptPath
     this._args = args
@@ -62,28 +101,35 @@ class ChildProcess extends EventEmitter {
     const [, stdout, stderr] = options.stdio || []
     this._stdout.setStream(stdout)
     this._stderr.setStream(stderr)
-    const onClose = options[$onClose]
-    if (onClose) {
-      this.on('close', onClose)
-    }
-    _hook.emit('new', this)
   }
 }
 
 module.exports = {
   fork (scriptPath, args, options) {
-    return new ChildProcess(scriptPath, args, options)
+    const childProcess = new ChildProcess({
+      api: 'fork',
+      scriptPath,
+      args,
+      options
+    })
+    handle(childProcess)
+    return childProcess
   },
 
   exec (command, callback) {
     const [scriptPath, ...args] = command.split(' ')
-    const childProcess = new ChildProcess(scriptPath, args, {
-      [$onClose]: function (code) {
-        callback(code, this.stdout.toString(), this.stderr.toString())
-      }
+    const childProcess = new ChildProcess({
+      api: 'exec',
+      scriptPath,
+      args
     })
+    childProcess.on('close', function (code) {
+      callback(code, this.stdout.toString(), this.stderr.toString())
+    })
+    handle(childProcess)
     return childProcess
   },
 
-  _hook
+  reset,
+  mock
 }
