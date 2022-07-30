@@ -1,13 +1,14 @@
 const { exec } = require('child_process')
 const { join } = require('path')
 const { stat } = require('fs/promises')
+const { UTRError } = require('./error')
 const output = require('./output')
 
 function npm (...args) {
   return new Promise((resolve, reject) => {
     const childProcess = exec(`npm ${args.join(' ')}`, (err, stdout, stderr) => {
       if (err) {
-        reject(stderr)
+        reject(UTRError.NPM_FAILED(stderr))
       } else {
         resolve(stdout.trim())
       }
