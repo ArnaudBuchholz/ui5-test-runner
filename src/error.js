@@ -15,6 +15,8 @@ const errors = [{
   name: 'GENERIC'
 }, {
   name: 'NPM_FAILED'
+}, {
+  name: 'MISSING_OR_INVALID_BROWSER_CAPABILITIES'
 }]
 
 errors.forEach((error, index) => {
