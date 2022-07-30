@@ -7,6 +7,7 @@ const { recreateDir, filename, allocPromise } = require('./tools')
 const { getPageTimeout } = require('./timeout')
 const output = require('./output')
 const resolvePackage = require('./npm')
+const { UTRError } = require('./error')
 
 let lastScreenshotId = 0
 const screenshots = {}
@@ -52,13 +53,18 @@ async function probe (job) {
     dir
   })
   await childProcess.closed
-  const browserCapabilities = Object.assign({
-    modules: [],
-    screenshot: null,
-    console: false,
-    scripts: false,
-    parallel: true
-  }, JSON.parse((await readFile(capabilities)).toString()))
+  let browserCapabilities
+  try {
+    browserCapabilities = Object.assign({
+      modules: [],
+      screenshot: null,
+      console: false,
+      scripts: false,
+      parallel: true
+    }, JSON.parse((await readFile(capabilities)).toString()))
+  } catch (e) {
+    throw UTRError.MISSING_OR_INVALID_BROWSER_CAPABILITIES(e.message)
+  }
   job.browserCapabilities = browserCapabilities
   const { modules } = browserCapabilities
   const resolvedModules = {}
