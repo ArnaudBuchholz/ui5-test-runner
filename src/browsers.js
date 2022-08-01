@@ -102,44 +102,29 @@ async function start (job, url, scripts = []) {
     scripts: resolvedScripts,
     retry: 0
   }
-  const promise = new Promise(resolve => {
-    pageBrowser.done = resolve
-  })
+  const { promise, resolve } = allocPromise()
+  pageBrowser.done = resolve
   job.browsers[url] = pageBrowser
-  run(job, pageBrowser)
+  await run(job, pageBrowser)
   await promise
   output.browserStopped(url)
 }
 
 async function run (job, pageBrowser) {
   const { url, retry, reportDir, scripts } = pageBrowser
+  let dir = reportDir
   if (retry) {
     output.browserRetry(url, retry)
+    dir = join(dir, retry)
   }
-  await recreateDir(reportDir)
+  await recreateDir(dir)
   delete pageBrowser.stopped
-  const browserConfig = {
+  const childProcess = await instantiate(job, {
     modules: job.browserCapabilities.modules,
     url,
     retry,
     scripts,
-    args: job.browserArgs
-  }
-  const browserConfigPath = join(reportDir, 'browser.json')
-  await writeFile(browserConfigPath, JSON.stringify(browserConfig))
-  let stdoutFilename
-  let stderrFilename
-  if (retry) {
-    stdoutFilename = join(reportDir, `stdout-${retry}.txt`)
-    stderrFilename = join(reportDir, `stderr-${retry}.txt`)
-  } else {
-    stdoutFilename = join(reportDir, 'stdout.txt')
-    stderrFilename = join(reportDir, 'stderr.txt')
-  }
-  const stdout = await open(stdoutFilename, 'w')
-  const stderr = await open(stderrFilename, 'w')
-  const childProcess = fork(job.browser, [browserConfigPath], {
-    stdio: [0, stdout, stderr, 'ipc']
+    dir
   })
   pageBrowser.childProcess = childProcess
   const timeout = getPageTimeout(job)
@@ -160,11 +145,6 @@ async function run (job, pageBrowser) {
     if (!pageBrowser.stopped) {
       output.browserClosed(url)
       stop(job, url, true)
-    }
-    await stdout.close()
-    await stderr.close()
-    if (code !== 0) {
-      output.browserFailed(url, stdoutFilename, stderrFilename)
     }
   })
 }
