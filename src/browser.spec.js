@@ -12,7 +12,7 @@ const tmp = join(__dirname, '../tmp')
 describe('src/browser', () => {
   let job
 
-  beforeAll(() => {
+  beforeEach(() => {
     job = jobFactory.fromCmdLine(cwd, [
       '-url:about:blank',
       `-tstReportDir:${join(tmp, 'browser')}`
@@ -139,16 +139,26 @@ describe('src/browser', () => {
   })
 
   describe('start and stop', () => {
+    beforeEach(() => {
+      job.browserCapabilities = {}
+    })
+
     it('returns a promise resolved on stop (even if the child process remains)', async () => {
+      let child
       mock({
         api: 'fork',
         scriptPath: job.browser,
         exec: async childProcess => {
+          child = childProcess
           setTimeout(() => stop(job, '/test.html'), 0)
         },
         close: false
       })
       await start(job, '/test.html')
+      const { promise: childClosed, resolve } = allocPromise()
+      child.on('close', resolve)
+      child.close()
+      await childClosed
     })
 
     it('stops automatically after a timeout', async () => {
@@ -171,7 +181,7 @@ describe('src/browser', () => {
         start(job, '/test.html'),
         waitingForStop
       ])
-    }, 50000)
+    })
 
     it('ignores unknown pages', async () => {
       await stop(job, '/unknown.html')
