@@ -18,7 +18,8 @@ function find (childProcess) {
       return false
     }
     if (candidate.args) {
-      return candidate.args.every((arg, index) => childProcess.args[index] === arg)
+      return candidate.args.length === childProcess.args.length &&
+        candidate.args.every((arg, index) => childProcess.args[index] === arg)
     }
     return true
   })[0]
