@@ -137,34 +137,44 @@ describe('src/browser', () => {
       })
     })
   })
-return
+
   describe('start and stop', () => {
-    it('returns a promise resolved on stop', async () => {
-      hook.once('new', childProcess => {
-        setTimeout(() => stop(job, 'test.html'), 0)
+    it('returns a promise resolved on stop (even if the child process remains)', async () => {
+      mock({
+        api: 'fork',
+        scriptPath: job.browser,
+        exec: async childProcess => {
+          setTimeout(() => stop(job, '/test.html'), 0)
+        },
+        close: false
       })
-      await start(job, 'test.html')
+      await start(job, '/test.html')
     })
 
-    it('stops automatically after a timeout', () => {
+    it('stops automatically after a timeout', async () => {
       const { promise: waitingForStop, resolve: stopReceived } = allocPromise()
-      hook.once('new', childProcess => {
-        childProcess.on('message.received', message => {
-          if (message.command === 'stop') {
-            childProcess.close()
-            stopReceived()
-          }
-        })
+      mock({
+        api: 'fork',
+        scriptPath: job.browser,
+        exec: async childProcess => {
+          childProcess.on('message.received', message => {
+            if (message.command === 'stop') {
+              childProcess.close()
+              stopReceived()
+            }
+          })
+        },
+        close: false
       })
       job.pageTimeout = 100
-      return Promise.all([
-        start(job, 'test.html'),
+      await Promise.all([
+        start(job, '/test.html'),
         waitingForStop
       ])
-    })
+    }, 50000)
 
     it('ignores unknown pages', async () => {
-      await stop(job, 'unknown.html')
+      await stop(job, '/unknown.html')
     })
   })
 
