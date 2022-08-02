@@ -102,8 +102,9 @@ async function start (job, url, scripts = []) {
     scripts: resolvedScripts,
     retry: 0
   }
-  const { promise, resolve } = allocPromise()
+  const { promise, resolve, reject } = allocPromise()
   pageBrowser.done = resolve
+  pageBrowser.failed = reject
   job.browsers[url] = pageBrowser
   await run(job, pageBrowser)
   await promise
@@ -177,15 +178,19 @@ async function stop (job, url, retry = false) {
   const pageBrowser = job.browsers[url]
   if (pageBrowser) {
     pageBrowser.stopped = true
-    const { childProcess, done, timeoutId } = pageBrowser
+    const { childProcess, done, failed, timeoutId } = pageBrowser
     if (timeoutId) {
       clearTimeout(timeoutId)
     }
     if (childProcess.connected) {
       childProcess.send({ command: 'stop' })
     }
-    if (retry && ++pageBrowser.retry <= job.browserRetry) {
-      run(job, pageBrowser)
+    if (retry) {
+      if (++pageBrowser.retry <= job.browserRetry) {
+        run(job, pageBrowser)
+      } else {
+        failed(UTRError.BROWSER_FAILED())
+      }
     } else {
       delete job.browsers[url]
       done()
