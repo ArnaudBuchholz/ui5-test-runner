@@ -5,6 +5,7 @@ const jobFactory = require('./job')
 const { probe, start, stop, screenshot } = require('./browsers')
 const { readFile, writeFile } = require('fs/promises')
 const { createDir, allocPromise } = require('./tools')
+const { read } = require('fs')
 
 const cwd = '/test/project'
 const tmp = join(__dirname, '../tmp')
@@ -15,7 +16,10 @@ describe('src/browser', () => {
   beforeEach(() => {
     job = jobFactory.fromCmdLine(cwd, [
       '-url:about:blank',
-      `-tstReportDir:${join(tmp, 'browser')}`
+      `-tstReportDir:${join(tmp, 'browser')}`,
+      '--',
+      'argument1',
+      'argument2'
     ])
   })
 
@@ -23,16 +27,17 @@ describe('src/browser', () => {
 
   describe('probe', () => {
     it('starts the command with a specific config file', async () => {
+      let config
       mock({
         api: 'fork',
         scriptPath: job.browser,
         exec: async childProcess => {
-          const config = JSON.parse((await readFile(childProcess.args[0])).toString())
-          expect(config.url).toStrictEqual('about:blank')
+          config = JSON.parse((await readFile(childProcess.args[0])).toString())
           await writeFile(config.capabilities, '{}')
         }
       })
       await probe(job)
+      expect(config.url).toStrictEqual('about:blank')
       expect(job.browserCapabilities.console).toStrictEqual(false)
     })
 
@@ -54,7 +59,6 @@ describe('src/browser', () => {
         scriptPath: job.browser,
         exec: async childProcess => {
           const config = JSON.parse((await readFile(childProcess.args[0])).toString())
-          expect(config.url).toStrictEqual('about:blank')
           await writeFile(config.capabilities, JSON.stringify({
             screenshot: false,
             console: true
@@ -139,26 +143,81 @@ describe('src/browser', () => {
   })
 
   describe('start and stop', () => {
+    let remainingChildProcess
+
     beforeEach(() => {
       job.browserCapabilities = {}
     })
 
+    afterEach(async () => {
+      if (remainingChildProcess) {
+        remainingChildProcess.close()
+        await remainingChildProcess.closed
+      }
+    })
+
     it('returns a promise resolved on stop (even if the child process remains)', async () => {
+      mock({
+        api: 'fork',
+        scriptPath: job.browser,
+        exec: async childProcess => {
+          remainingChildProcess = childProcess
+          setTimeout(() => stop(job, '/test.html'), 0)
+        },
+        close: false
+      })
+      await start(job, '/test.html')
+    })
+
+    it('passes URL to open', async () => {
+      let config
+      mock({
+        api: 'fork',
+        scriptPath: job.browser,
+        exec: async childProcess => {
+          remainingChildProcess = childProcess
+          config = JSON.parse((await readFile(childProcess.args[0])).toString())
+          setTimeout(() => stop(job, '/test.html'), 0)
+        },
+        close: false
+      })
+      await start(job, '/test.html')
+      expect(config.url).toStrictEqual('/test.html')
+    })
+
+    it('passes browser arguments', async () => {
+      let config
+      mock({
+        api: 'fork',
+        scriptPath: job.browser,
+        exec: async childProcess => {
+          remainingChildProcess = childProcess
+          config = JSON.parse((await readFile(childProcess.args[0])).toString())
+          setTimeout(() => stop(job, '/test.html'), 0)
+        },
+        close: false
+      })
+      await start(job, '/test.html')
+      expect(config.args).toEqual(['argument1', 'argument2'])
+    })
+
+    it('captures outputs', async () => {
       let child
       mock({
         api: 'fork',
         scriptPath: job.browser,
         exec: async childProcess => {
           child = childProcess
+          childProcess.stdout.write('stdout')
+          childProcess.stderr.write('stderr')
           setTimeout(() => stop(job, '/test.html'), 0)
-        },
-        close: false
+        }
       })
       await start(job, '/test.html')
-      const { promise: childClosed, resolve } = allocPromise()
-      child.on('close', resolve)
-      child.close()
-      await childClosed
+      const stdout = (await readFile(child.stdoutFilename)).toString()
+      expect(stdout).toStrictEqual('stdout')
+      const stderr = (await readFile(child.stderrFilename)).toString()
+      expect(stderr).toStrictEqual('stderr')
     })
 
     it('stops automatically after a timeout', async () => {
@@ -183,9 +242,31 @@ describe('src/browser', () => {
       ])
     })
 
+    it('retries on abnormal termination', async () => {
+      let config
+      mock({
+        api: 'fork',
+        scriptPath: job.browser,
+        exec: async childProcess => {
+          config = JSON.parse((await readFile(childProcess.args[0])).toString())
+          if (config.retry === 0) {
+            childProcess.close(-1)
+          }
+          setTimeout(() => stop(job, '/test.html'), 0)
+        },
+        close: false
+      })
+      await start(job, '/test.html')
+      expect(config.retry).toStrictEqual(1)
+    })
+
     it('ignores unknown pages', async () => {
+      job.browsers = {}
       await stop(job, '/unknown.html')
     })
+  })
+
+  describe('script injection', () => {
   })
 
   return
@@ -193,7 +274,6 @@ describe('src/browser', () => {
   describe('screenshot', () => {
 
   })
-
 
   it('supports screenshot', () => {
     hook.once('new', childProcess => {
