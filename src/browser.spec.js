@@ -252,12 +252,31 @@ describe('src/browser', () => {
           if (config.retry === 0) {
             childProcess.close(-1)
           } else {
+            remainingChildProcess = childProcess
             setTimeout(() => stop(job, '/test.html'), 0)
           }
         },
         close: false
       })
       await start(job, '/test.html')
+      expect(config.retry).toStrictEqual(1)
+    })
+
+    it('fails after all retries', async () => {
+      let config
+      mock({
+        api: 'fork',
+        scriptPath: job.browser,
+        exec: async childProcess => {
+          config = JSON.parse((await readFile(childProcess.args[0])).toString())
+          childProcess.close(-1)
+        },
+        close: false
+      })
+      await expect(start(job, '/test.html')).rejects.toMatchObject({
+        name: 'UTRError',
+        message: 'BROWSER_FAILED'
+      })
       expect(config.retry).toStrictEqual(1)
     })
 
