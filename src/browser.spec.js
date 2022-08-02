@@ -251,8 +251,9 @@ describe('src/browser', () => {
           config = JSON.parse((await readFile(childProcess.args[0])).toString())
           if (config.retry === 0) {
             childProcess.close(-1)
+          } else {
+            setTimeout(() => stop(job, '/test.html'), 0)
           }
-          setTimeout(() => stop(job, '/test.html'), 0)
         },
         close: false
       })
