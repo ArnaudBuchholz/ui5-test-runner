@@ -115,7 +115,7 @@ async function run (job, pageBrowser) {
   let dir = reportDir
   if (retry) {
     output.browserRetry(url, retry)
-    dir = join(dir, retry)
+    dir = join(dir, retry.toString())
   }
   await recreateDir(dir)
   delete pageBrowser.stopped
