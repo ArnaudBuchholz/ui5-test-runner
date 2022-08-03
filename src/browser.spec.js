@@ -5,13 +5,13 @@ const jobFactory = require('./job')
 const { probe, start, stop, screenshot } = require('./browsers')
 const { readFile, writeFile } = require('fs/promises')
 const { createDir, allocPromise } = require('./tools')
-const { read } = require('fs')
 
 const cwd = '/test/project'
 const tmp = join(__dirname, '../tmp')
 
 describe('src/browser', () => {
   let job
+  let remainingChildProcess
 
   beforeEach(() => {
     job = jobFactory.fromCmdLine(cwd, [
@@ -21,9 +21,16 @@ describe('src/browser', () => {
       'argument1',
       'argument2'
     ])
+    job.browserCapabilities = {}
   })
 
-  afterEach(reset)
+  afterEach(async () => {
+    reset()
+    if (remainingChildProcess) {
+      remainingChildProcess.close()
+      await remainingChildProcess.closed
+    }
+  })
 
   describe('probe', () => {
     it('starts the command with a specific config file', async () => {
@@ -143,19 +150,6 @@ describe('src/browser', () => {
   })
 
   describe('start and stop', () => {
-    let remainingChildProcess
-
-    beforeEach(() => {
-      job.browserCapabilities = {}
-    })
-
-    afterEach(async () => {
-      if (remainingChildProcess) {
-        remainingChildProcess.close()
-        await remainingChildProcess.closed
-      }
-    })
-
     it('returns a promise resolved on stop (even if the child process remains)', async () => {
       mock({
         api: 'fork',
@@ -287,32 +281,90 @@ describe('src/browser', () => {
   })
 
   describe('script injection', () => {
-  })
+    beforeEach(() => {
+      job.browserCapabilities.scripts = true
+    })
 
-  return
+    it('does not use any script by default', async () => {
+      let config
+      mock({
+        api: 'fork',
+        scriptPath: job.browser,
+        exec: async childProcess => {
+          remainingChildProcess = childProcess
+          config = JSON.parse((await readFile(childProcess.args[0])).toString())
+          setTimeout(() => stop(job, '/test.html'), 0)
+        },
+        close: false
+      })
+      await start(job, '/test.html')
+      expect(config.scripts).toEqual([])
+    })
+
+    it('injects window[\'ui5-test-runner/base-host\'] before any script', async () => {
+      let config
+      mock({
+        api: 'fork',
+        scriptPath: job.browser,
+        exec: async childProcess => {
+          remainingChildProcess = childProcess
+          config = JSON.parse((await readFile(childProcess.args[0])).toString())
+          setTimeout(() => stop(job, '/test.html'), 0)
+        },
+        close: false
+      })
+      await start(job, '/test.html', ['whatever'])
+      expect(config.scripts.length).toEqual(2)
+      expect(config.scripts[0]).toEqual('window[\'ui5-test-runner/base-host\'] = \'http://localhost:0\'\n')
+      expect(config.scripts[1]).toEqual('whatever')
+    })
+
+    it('translates pre-defined scripts', async () => {
+      let config
+      mock({
+        api: 'fork',
+        scriptPath: job.browser,
+        exec: async childProcess => {
+          remainingChildProcess = childProcess
+          config = JSON.parse((await readFile(childProcess.args[0])).toString())
+          setTimeout(() => stop(job, '/test.html'), 0)
+        },
+        close: false
+      })
+      await start(job, '/test.html', ['post.js'])
+      expect(config.scripts.length).toEqual(2)
+      expect(config.scripts[1]).toMatch(/ui5-test-runner\/base-host/)
+      expect(config.scripts[1]).toMatch(/ui5-test-runner\/post/)
+      expect(config.scripts[1]).toMatch(/function post \(url, data\)/)
+    })
+  })
 
   describe('screenshot', () => {
-
-  })
-
-  it('supports screenshot', () => {
-    hook.once('new', childProcess => {
-      childProcess.on('message.received', message => {
-        if (message.command === 'screenshot') {
-          expect(message.filename).toStrictEqual('screenshot.png')
-          setTimeout(() => {
-            childProcess.emit('message', message)
-          }, 0)
-        }
+    it('supports screenshot', () => {
+      job.browserCapabilities.screenshot = true
+      let fileName
+      mock({
+        api: 'fork',
+        scriptPath: job.browser,
+        exec: async childProcess => {
+          remainingChildProcess = childProcess
+          childProcess.on('message.received', message => {
+            if (message.command === 'screenshot') {
+              fileName = message.filename
+              setTimeout(() => {
+                childProcess.emit('message', message)
+                setTimeout(() => stop(job, '/test.html'), 0)
+              }, 0)
+            }
+          })
+        },
+        close: false
       })
-      setTimeout(async () => {
-        await screenshot(job, 'test.html', 'screenshot.png')
-        stop(job, 'test.html')
-      }, 0)
+      await start(job, '/test.html')
+      expect(fileName).toStrictEqual('screenshot.png')
     })
-    return start(job, 'test.html')
   })
-
+return
   it('supports screenshot (noScreenshot)', () => {
     job.noScreenshot = true
     hook.once('new', childProcess => {
