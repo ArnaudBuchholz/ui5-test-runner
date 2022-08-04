@@ -27,6 +27,7 @@ function allocate (cwd) {
     browser: join(__dirname, '../defaults/puppeteer.js'),
     browserRetry: 1,
     noScreenshot: false,
+    screenshotTimeout: 2000,
     browserArgs: [],
 
     parallel: 2,
@@ -88,6 +89,15 @@ function finalize (job) {
     output.unexpectedOptionValue('browserRetry', 'defaulting to 1')
     job.browserRetry = 1
   }
+
+  'pageTimeout,globalTimeout,screenshotTimeout'
+    .split(',')
+    .forEach(setting => {
+      if (job[setting] < 0) {
+        output.unexpectedOptionValue(setting, 'defaulting to 0')
+        job[setting] = 0
+      }
+    })
 }
 
 function parseJobParam (job, arg) {
