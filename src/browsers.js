@@ -160,13 +160,16 @@ async function screenshot (job, url, filename) {
     const absoluteFilename = join(reportDir, filename + job.browserCapabilities.screenshot)
     if (childProcess.connected) {
       const id = ++lastScreenshotId
-      const { promise, resolve } = allocPromise()
+      const { promise, resolve, reject } = allocPromise()
       screenshots[id] = resolve
       childProcess.send({
         id,
         command: 'screenshot',
         filename: absoluteFilename
       })
+      setTimeout(() => {
+        reject(UTRError.BROWSER_SCREENSHOT_TIMEOUT())
+      }, job.screenshotTimeout)
       await promise
       try {
         const result = await stat(absoluteFilename)
