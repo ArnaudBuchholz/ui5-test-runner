@@ -19,6 +19,10 @@ const errors = [{
   name: 'MISSING_OR_INVALID_BROWSER_CAPABILITIES'
 }, {
   name: 'BROWSER_FAILED'
+}, {
+  name: 'BROWSER_SCREENSHOT_FAILED'
+}, {
+  name: 'BROWSER_SCREENSHOT_TIMEOUT'
 }]
 
 errors.forEach((error, index) => {
