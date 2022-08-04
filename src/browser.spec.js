@@ -27,7 +27,8 @@ describe('src/browser', () => {
   afterEach(async () => {
     job.browserRetry = 0 // avoid retry in case of unexpected close
     if (remainingChildProcess) {
-      remainingChildProcess.close()
+      await stop(job, '/test.html')
+      remainingChildProcess.close() // stop command not implemented
       await remainingChildProcess.closed
     }
     reset()
@@ -340,7 +341,7 @@ describe('src/browser', () => {
     })
   })
 
-  describe.only('screenshot', () => {
+  describe('screenshot', () => {
     describe('supporting', () => {
       beforeEach(() => {
         job.browserCapabilities.screenshot = '.png'
@@ -401,6 +402,7 @@ describe('src/browser', () => {
 
       it('fails after a timeout', async () => {
         const { promise: ready, resolve: setReady } = allocPromise()
+        job.screenshotTimeout = 10
         mock({
           api: 'fork',
           scriptPath: job.browser,
@@ -421,6 +423,7 @@ describe('src/browser', () => {
       })
     })
   })
+
 return
   it('supports screenshot (noScreenshot)', () => {
     job.noScreenshot = true
