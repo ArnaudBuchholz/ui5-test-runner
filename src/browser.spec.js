@@ -25,11 +25,12 @@ describe('src/browser', () => {
   })
 
   afterEach(async () => {
-    reset()
+    job.browserRetry = 0 // avoid retry in case of unexpected close
     if (remainingChildProcess) {
       remainingChildProcess.close()
       await remainingChildProcess.closed
     }
+    reset()
   })
 
   describe('probe', () => {
@@ -339,29 +340,85 @@ describe('src/browser', () => {
     })
   })
 
-  describe('screenshot', () => {
-    it('supports screenshot', () => {
-      job.browserCapabilities.screenshot = true
-      let fileName
-      mock({
-        api: 'fork',
-        scriptPath: job.browser,
-        exec: async childProcess => {
-          remainingChildProcess = childProcess
-          childProcess.on('message.received', message => {
-            if (message.command === 'screenshot') {
-              fileName = message.filename
-              setTimeout(() => {
-                childProcess.emit('message', message)
-                setTimeout(() => stop(job, '/test.html'), 0)
-              }, 0)
-            }
-          })
-        },
-        close: false
+  describe.only('screenshot', () => {
+    describe('supporting', () => {
+      beforeEach(() => {
+        job.browserCapabilities.screenshot = '.png'
       })
-      await start(job, '/test.html')
-      expect(fileName).toStrictEqual('screenshot.png')
+
+      it('should generate a file', async () => {
+        const { promise: ready, resolve: setReady } = allocPromise()
+        let fileName
+        mock({
+          api: 'fork',
+          scriptPath: job.browser,
+          exec: async childProcess => {
+            remainingChildProcess = childProcess
+            childProcess.on('message.received', async message => {
+              if (message.command === 'screenshot') {
+                fileName = message.filename
+                await writeFile(fileName, 'some random content to avoid empty file')
+                childProcess.emit('message', message)
+              }
+            })
+            setReady()
+          },
+          close: false
+        })
+        const started = start(job, '/test.html')
+        await ready
+        await screenshot(job, '/test.html', 'screenshot')
+        expect(fileName).toMatch(/\bscreenshot\.png$/)
+        stop(job, '/test.html')
+        await started
+      })
+
+      it('fails if the file is missing', async () => {
+        const { promise: ready, resolve: setReady } = allocPromise()
+        mock({
+          api: 'fork',
+          scriptPath: job.browser,
+          exec: async childProcess => {
+            remainingChildProcess = childProcess
+            childProcess.on('message.received', async message => {
+              if (message.command === 'screenshot') {
+                childProcess.emit('message', message)
+              }
+            })
+            setReady()
+          },
+          close: false
+        })
+        const started = start(job, '/test.html')
+        await ready
+        await expect(screenshot(job, '/test.html', 'screenshot')).rejects.toMatchObject({
+          name: 'UTRError',
+          message: 'BROWSER_SCREENSHOT_FAILED'
+        })
+        stop(job, '/test.html')
+        await started
+      })
+
+      it('fails after a timeout', async () => {
+        const { promise: ready, resolve: setReady } = allocPromise()
+        mock({
+          api: 'fork',
+          scriptPath: job.browser,
+          exec: async childProcess => {
+            remainingChildProcess = childProcess
+            setReady()
+          },
+          close: false
+        })
+        const started = start(job, '/test.html')
+        await ready
+        await expect(screenshot(job, '/test.html', 'screenshot')).rejects.toMatchObject({
+          name: 'UTRError',
+          message: 'BROWSER_SCREENSHOT_TIMEOUT'
+        })
+        stop(job, '/test.html')
+        await started
+      })
     })
   })
 return
