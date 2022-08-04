@@ -31,6 +31,7 @@ async function handle (childProcess) {
     throw new Error(`Missing child_process mock for ${childProcess.scriptPath} ${JSON.stringify(childProcess.args)}`)
   }
   try {
+    await new Promise(resolve => setTimeout(resolve, 10)) // Simulate startup time
     await mock.exec(childProcess)
     if (mock.close !== false) {
       childProcess.close()
