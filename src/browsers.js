@@ -2,7 +2,7 @@
 
 const { fork } = require('child_process')
 const { join } = require('path')
-const { writeFile, readFile, open } = require('fs/promises')
+const { writeFile, readFile, open, stat } = require('fs/promises')
 const { recreateDir, filename, allocPromise } = require('./tools')
 const { getPageTimeout } = require('./timeout')
 const output = require('./output')
@@ -160,15 +160,22 @@ async function screenshot (job, url, filename) {
     const absoluteFilename = join(reportDir, filename + job.browserCapabilities.screenshot)
     if (childProcess.connected) {
       const id = ++lastScreenshotId
-      const promise = new Promise(resolve => {
-        screenshots[id] = resolve
-      })
+      const { promise, resolve } = allocPromise()
+      screenshots[id] = resolve
       childProcess.send({
         id,
         command: 'screenshot',
         filename: absoluteFilename
       })
       await promise
+      try {
+        const result = await stat(absoluteFilename)
+        if (!result.isFile() || result.size === 0) {
+          throw new Error('File expected')
+        }
+      } catch (e) {
+        throw UTRError.BROWSER_SCREENSHOT_FAILED(e.toString())
+      }
       return absoluteFilename
     }
   }
