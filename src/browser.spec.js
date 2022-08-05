@@ -198,21 +198,21 @@ describe('src/browser', () => {
     })
 
     it('captures outputs', async () => {
-      let child
       mock({
         api: 'fork',
         scriptPath: job.browser,
         exec: async childProcess => {
-          child = childProcess
-          childProcess.stdout.write('stdout')
-          childProcess.stderr.write('stderr')
+          remainingChildProcess = childProcess
+          await childProcess.stdout.write('stdout')
+          await childProcess.stderr.write('stderr')
           setTimeout(() => stop(job, '/test.html'), 0)
-        }
+        },
+        close: false
       })
       await start(job, '/test.html')
-      const stdout = (await readFile(child.stdoutFilename)).toString()
+      const stdout = (await readFile(remainingChildProcess.stdoutFilename)).toString()
       expect(stdout).toStrictEqual('stdout')
-      const stderr = (await readFile(child.stderrFilename)).toString()
+      const stderr = (await readFile(remainingChildProcess.stderrFilename)).toString()
       expect(stderr).toStrictEqual('stderr')
     })
 
@@ -390,14 +390,12 @@ describe('src/browser', () => {
           },
           close: false
         })
-        const started = start(job, '/test.html')
+        start(job, '/test.html')
         await ready
         await expect(screenshot(job, '/test.html', 'screenshot')).rejects.toMatchObject({
           name: 'UTRError',
           message: 'BROWSER_SCREENSHOT_FAILED'
         })
-        stop(job, '/test.html')
-        await started
       })
 
       it('fails after a timeout', async () => {
