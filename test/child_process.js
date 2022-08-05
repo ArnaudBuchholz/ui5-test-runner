@@ -47,23 +47,15 @@ class Channel extends EventEmitter {
     return this._buffer.join('')
   }
 
-  setStream (stream) {
-    this._stream = stream
+  setFileHandle (fileHandle) {
+    this._fileHandle = fileHandle
   }
 
   async write (text) {
     this._buffer.push(text)
     this.emit('data', text)
-    if (this._stream) {
-      await new Promise((resolve, reject) => {
-        this._stream.write(text, err => {
-          if (err) {
-            reject(err)
-          } else {
-            resolve()
-          }
-        })
-      })
+    if (this._fileHandle) {
+      this._fileHandle.write(text)
     }
   }
 
@@ -79,8 +71,10 @@ class ChildProcess extends EventEmitter {
   }
 
   close (code = 0) {
-    this._connected = false
-    this.emit('close', code)
+    if (this._connected) {
+      this._connected = false
+      this.emit('close', code)
+    }
   }
 
   get api () { return this._api }
@@ -101,8 +95,8 @@ class ChildProcess extends EventEmitter {
     this._stdout = new Channel()
     this._stderr = new Channel()
     const [, stdout, stderr] = options.stdio || []
-    this._stdout.setStream(stdout)
-    this._stderr.setStream(stderr)
+    this._stdout.setFileHandle(stdout)
+    this._stderr.setFileHandle(stderr)
   }
 }
 
