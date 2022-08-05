@@ -167,10 +167,11 @@ async function screenshot (job, url, filename) {
         command: 'screenshot',
         filename: absoluteFilename
       })
-      setTimeout(() => {
+      const timeoutId = setTimeout(() => {
         reject(UTRError.BROWSER_SCREENSHOT_TIMEOUT())
       }, job.screenshotTimeout)
       await promise
+      clearTimeout(timeoutId)
       try {
         const result = await stat(absoluteFilename)
         if (!result.isFile() || result.size === 0) {
