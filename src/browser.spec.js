@@ -276,6 +276,41 @@ describe('src/browser', () => {
       expect(config.retry).toStrictEqual(1)
     })
 
+    const parallels = [2, 3, 4, 6]
+    parallels.forEach(parallel =>
+      it(`can run more than one page simultaneously (${parallel})`, async () => {
+        let ready
+        let setReady
+        mock({
+          api: 'fork',
+          scriptPath: job.browser,
+          exec: async childProcess => {
+            childProcess.on('message.received', async message => {
+              if (message.command === 'stop') {
+                childProcess.close()
+              }
+            })
+            setReady()
+          },
+          close: false
+        })
+        const startPromises = []
+        for (let step = 0; step < parallel; ++step) {
+          const allocatedPromise = allocPromise()
+          ready = allocatedPromise.promise
+          setReady = allocatedPromise.resolve
+          const promise = start(job, `/test${step}.html`)
+          await ready
+          startPromises.push(promise)
+        }
+        for (let step = 0; step < parallel; ++step) {
+          const promise = startPromises[step]
+          await stop(job, `/test${step}.html`)
+          await promise
+        }
+      })
+    )
+
     it('ignores unknown pages', async () => {
       job.browsers = {}
       await stop(job, '/unknown.html')
@@ -368,8 +403,9 @@ describe('src/browser', () => {
         })
         const started = start(job, '/test.html')
         await ready
-        await screenshot(job, '/test.html', 'screenshot')
+        const result = await screenshot(job, '/test.html', 'screenshot')
         expect(fileName).toMatch(/\bscreenshot\.png$/)
+        expect(result).toStrictEqual(fileName)
         stop(job, '/test.html')
         await started
       })
@@ -383,6 +419,31 @@ describe('src/browser', () => {
             remainingChildProcess = childProcess
             childProcess.on('message.received', async message => {
               if (message.command === 'screenshot') {
+                childProcess.emit('message', message)
+              }
+            })
+            setReady()
+          },
+          close: false
+        })
+        start(job, '/test.html')
+        await ready
+        await expect(screenshot(job, '/test.html', 'screenshot')).rejects.toMatchObject({
+          name: 'UTRError',
+          message: 'BROWSER_SCREENSHOT_FAILED'
+        })
+      })
+
+      it('fails if the file is empty', async () => {
+        const { promise: ready, resolve: setReady } = allocPromise()
+        mock({
+          api: 'fork',
+          scriptPath: job.browser,
+          exec: async childProcess => {
+            remainingChildProcess = childProcess
+            childProcess.on('message.received', async message => {
+              if (message.command === 'screenshot') {
+                await writeFile(message.filename, '')
                 childProcess.emit('message', message)
               }
             })
@@ -420,78 +481,28 @@ describe('src/browser', () => {
         await started
       })
     })
-  })
 
-return
-  it('supports screenshot (noScreenshot)', () => {
-    job.noScreenshot = true
-    hook.once('new', childProcess => {
-      childProcess.on('message.received', message => {
-        expect(message.command).not.toStrictEqual('screenshot')
-      })
-      setTimeout(async () => {
-        await screenshot(job, 'test.html', 'screenshot.png')
-        job.noScreenshot = false
-        stop(job, 'test.html')
-      }, 0)
-    })
-    return start(job, 'test.html')
-  })
-
-  it('supports screenshot (page does not exist)', async () => {
-    await expect(screenshot(job, 'test2.html', 'screenshot.png')).resolve
-  })
-
-  it('supports screenshot (page disconnected)', async () => {
-    job.browserCapabilities = { screenshot: true }
-    hook.once('new', childProcess => {
-      childProcess.on('message.received', message => {
-        expect(message.command).not.toStrictEqual('screenshot')
-      })
-      setTimeout(async () => {
-        childProcess._connected = false
-        await screenshot(job, 'test.html', 'screenshot.png')
-        stop(job, 'test.html')
-      }, 0)
-    })
-    return start(job, 'test.html')
-  })
-
-  describe('automatic retry', () => {
-
-  })
-
-  it('retries automatically if the process crashes unexpectedly (second succeeds)', () => {
-    let step = 0
-    hook.once('new', childProcess => {
-      step = 1
-      setTimeout(() => childProcess.close(), 100)
-      hook.once('new', () => {
-        step = 2
-        setTimeout(() => stop(job, 'test.html'))
+    describe('not supporting', () => {
+      it('fails', async () => {
+        const { promise: ready, resolve: setReady } = allocPromise()
+        mock({
+          api: 'fork',
+          scriptPath: job.browser,
+          exec: async childProcess => {
+            remainingChildProcess = childProcess
+            setReady()
+          },
+          close: false
+        })
+        const started = start(job, '/test.html')
+        await ready
+        await expect(screenshot(job, '/test.html', 'screenshot')).rejects.toMatchObject({
+          name: 'UTRError',
+          message: 'BROWSER_SCREENSHOT_NOT_SUPPORTED'
+        })
+        stop(job, '/test.html')
+        await started
       })
     })
-    job.pageTimeout = 1000
-    return start(job, 'test.html')
-      .then(() => {
-        expect(step).toStrictEqual(2)
-      })
-  })
-
-  it('retries automatically if the process crashes unexpectedly (second also fails)', () => {
-    let step = 0
-    hook.once('new', childProcess => {
-      step = 1
-      setTimeout(() => childProcess.close(), 100)
-      hook.once('new', childProcess => {
-        step = 2
-        setTimeout(() => childProcess.close(), 100)
-      })
-    })
-    job.pageTimeout = 1000
-    return start(job, 'test.html')
-      .then(() => {
-        expect(step).toStrictEqual(2)
-      })
   })
 })
