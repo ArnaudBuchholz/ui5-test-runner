@@ -1,4 +1,3 @@
-const output = require('./output')
 const { join } = require('path')
 const { reset, mock } = require('child_process')
 const jobFactory = require('./job')
