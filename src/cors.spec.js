@@ -3,7 +3,7 @@
 const assert = require('assert')
 const Request = require('reserve/mock/Request')
 const Response = require('reserve/mock/Response')
-const cors = require('../../src/cors')
+const cors = require('./cors')
 
 const origin = 'npmjs.com'
 
@@ -23,7 +23,7 @@ describe('src/cors', () => {
     cors.custom(request, response)
     assert.strictEqual(response.statusCode, 200)
     assert.strictEqual(response.headers['Access-Control-Allow-Origin'], origin)
-    assert.strictEqual(response.headers['Access-Control-Allow-Headers'], 'content-type, content-length')
+    assert.strictEqual(response.headers['Access-Control-Allow-Headers'], 'content-type, content-length, x-page-url')
     assert.strictEqual(response.headers['Access-Control-Allow-Methods'], 'GET, POST, PUT, DELETE, OPTIONS')
     assert.strictEqual(response.headers['Access-Control-Allow-Credentials'], 'true')
   })
