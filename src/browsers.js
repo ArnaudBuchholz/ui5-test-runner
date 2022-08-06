@@ -151,8 +151,8 @@ async function run (job, pageBrowser) {
 }
 
 async function screenshot (job, url, filename) {
-  if (job.noScreenshot || !job.browserCapabilities || !job.browserCapabilities.screenshot) {
-    return
+  if (!job.browserCapabilities.screenshot) {
+    throw UTRError.BROWSER_SCREENSHOT_NOT_SUPPORTED()
   }
   const pageBrowser = job.browsers[url]
   if (pageBrowser) {
