@@ -23,6 +23,8 @@ const errors = [{
   name: 'BROWSER_SCREENSHOT_FAILED'
 }, {
   name: 'BROWSER_SCREENSHOT_TIMEOUT'
+}, {
+  name: 'BROWSER_SCREENSHOT_NOT_SUPPORTED'
 }]
 
 errors.forEach((error, index) => {
