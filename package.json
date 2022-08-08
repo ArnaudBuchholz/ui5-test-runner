@@ -39,6 +39,7 @@
   },
   "homepage": "https://github.com/ArnaudBuchholz/ui5-test-runner#readme",
   "dependencies": {
+    "commander": "^9.4.0",
     "mime": "^3.0.0",
     "reserve": "^1.15.1"
   },
