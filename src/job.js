@@ -78,7 +78,13 @@ function finalize (job) {
 
   job.libs.forEach(libMapping => {
     libMapping.source = toAbsolute(libMapping.source)
-    checkAccess(libMapping.source, `lib mapping of ${libMapping.relative}`)
+    let description
+    if (libMapping.relative) {
+      description = `lib mapping of ${libMapping.relative}`
+    } else {
+      description = 'generic lib mapping'
+    }
+    checkAccess(libMapping.source, `${description} (${libMapping.source})`)
   })
 
   if (job.parallel <= 0) {
