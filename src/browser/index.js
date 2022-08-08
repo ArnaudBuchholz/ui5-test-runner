@@ -1,11 +1,11 @@
 'use strict'
 
 const { check, serve, body } = require('reserve')
-const { probe, start, screenshot, stop } = require('../src/browsers')
-const { fromCmdLine } = require('../src/job')
+const { probe, start, screenshot, stop } = require('../browsers')
+const { fromCmdLine } = require('../job')
 const { join } = require('path')
 const { stat } = require('fs/promises')
-const output = require('../src/output')
+const output = require('../output')
 const EventEmitter = require('events')
 const assert = require('assert')
 const { performance } = require('perf_hooks')
@@ -127,7 +127,7 @@ async function main () {
   const configuration = await check({
     port: 0,
     mappings: [
-      require('../src/cors'), {
+      require('../cors'), {
         method: 'POST',
         match: '^/log$',
         custom: async (request, response) => {
