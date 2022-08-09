@@ -1,10 +1,21 @@
 'use strict'
 
+const { Command } = require('commander')
 const { accessSync } = require('fs')
 const { join, isAbsolute } = require('path')
 const output = require('./output')
+const { name, description, version } = require(join(__dirname, '../package.json'))
 
 function allocate (cwd) {
+  const job = new Command()
+  job
+    .name(name)
+    .description(description)
+    .version(version)
+    .option('-cwd <path>', 'Current working directory', cwd)
+    .option('-p, -port <port>', 'Port to use (0 to use a free one)', 0)
+    .option('-ui5 <url>', 'UI5 url', 'https://ui5.sap.com')
+
   return {
     initialCwd: cwd,
     cwd,
