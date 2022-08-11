@@ -120,6 +120,17 @@ function lowerCaseKeys (dictionary) {
   }, {})
 }
 
+function integer (value) {
+  return parseInt(value, 10)
+}
+
+function boolean (value, defaultValue) {
+  if (value === undefined) {
+    return true
+  }
+  return ['true', 'yes', 'on'].includes(value)
+}
+
 module.exports = {
   fromCmdLine (cwd, argv) {
     const command = new Command()
@@ -131,7 +142,7 @@ module.exports = {
         new Option('-cwd <path>', 'Current working directory')
           .default(cwd, 'current working directory')
       )
-      .option('-port <port>', 'Port to use (0 to use a free one)', 0)
+      .option('-port <port>', 'Port to use (0 to use a free one)', integer, 0)
       .option('-ui5 <url>', 'UI5 url', 'https://ui5.sap.com')
       .option('-lib <path...>', 'Library mapping')
       .option('-cache <path...>', 'Cache UI5 resources locally in the given folder (empty to disable)')
@@ -141,23 +152,23 @@ module.exports = {
 
       .option('-pageFilter <regexp>', 'Filters which pages to execute')
       .option('-pageParams <params>', 'Parameters added to each page URL')
-      .option('-pageTimeout <timeout>', 'Limit the page execution time (ms), fails the page if it takes longer than the timeout (0 to disable the timeout)', 0)
-      .option('-globalTimeout <timeout>', 'Limit the pages execution time (ms), fails the page if it takes longer than the timeout (0 to disable the timeout)', 0)
-      .option('-failFast', 'Stops the execution after the first failing page', false)
-      .option('-keepAlive', 'Keeps the server alive (enables debugging)', false)
-      .option('-watch', 'Monitors the webapp folder and re-execute tests on change', false)
-      .option('-logServer', 'Logs server traces', false)
+      .option('-pageTimeout <timeout>', 'Limit the page execution time (ms), fails the page if it takes longer than the timeout (0 to disable the timeout)', integer, 0)
+      .option('-globalTimeout <timeout>', 'Limit the pages execution time (ms), fails the page if it takes longer than the timeout (0 to disable the timeout)', integer, 0)
+      .option('-failFast [flag]', 'Stops the execution after the first failing page', boolean, false)
+      .option('-keepAlive [flag]', 'Keeps the server alive (enables debugging)', boolean, false)
+      .option('-watch [flag]', 'Monitors the webapp folder and re-execute tests on change', boolean, false)
+      .option('-logServer [flag]', 'Logs server traces', boolean, false)
 
       .option('-browser <command>', 'Browser instantiation command', join(__dirname, '../defaults/puppeteer.js'))
 
       .option('-browserRetry <count>', 'Browser instantiation retries : if the command fails unexpectedly, it is re-executed (0 means no retry)', 1)
-      .option('-noScreenshot', 'No screenshot is taken during the tests execution', false)
+      .option('-noScreenshot', 'No screenshot is taken during the tests execution', boolean, false)
       .option('-screenshotTimeout <timeout>', 'Maximum waiting time (ms) for browser screenshot', 2000)
 
       .option('-parallel <count>', 'Number of parallel tests executions (0 to ignore tests and keep alive)', 2)
       .option('-tstReportDir <path>', 'Directory to output test reports (relative to cwd)', 'report')
 
-      .option('-coverage <flag>', 'Enable or disable code coverage', true)
+      .option('-coverage [flag]', 'Enable or disable code coverage', boolean, true)
       .option('-covSettings <path>', 'Path to a custom nyc.json file providing settings for instrumentation (relative to cwd)', join(__dirname, '../defaults/nyc.json'))
       .option('-covTempDir <path>', 'Directory to output raw coverage information to (relative to cwd)', '.nyc_output')
       .option('-covReportDir <path>', 'Directory to store the coverage report files (relative to cwd)', 'coverage')
@@ -174,7 +185,7 @@ module.exports = {
       initialCwd: cwd
     }, defaults, lowerCaseKeys(command.opts()))
 
-/*
+    /*
     let defaultHasLibs = defaults.libs.length !== 0
     let inBrowserParams = false
     argv.forEach(arg => {
