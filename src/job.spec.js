@@ -12,10 +12,12 @@ function createJob (parameters) {
     }
     const value = parameters[name]
     args.push(`-${name}`)
-    if (Array.isArray(value)) {
-      args.push(...value)
-    } else {
-      args.push(value)
+    if (value !== null) {
+      if (Array.isArray(value)) {
+        args.push(...value)
+      } else {
+        args.push(value)
+      }
     }
   })
   if (parameters['--']) {
@@ -36,23 +38,29 @@ describe('job', () => {
       expect(normalizePath(job.webapp).endsWith('/test/project/webapp')).toStrictEqual(true)
       expect(job.keepAlive).toStrictEqual(false)
     })
-  })
 
-  it('parses parameters', () => {
-    const job = createJob(cwd, {
-      cwd: '../project2',
-      port: '8080',
-      keepAlive: true
+    it('parses parameters', () => {
+      const job = createJob({
+        cwd: '../project2',
+        port: 8080,
+        keepAlive: true
+      })
+      expect(normalizePath(job.cwd).endsWith('/test/project2')).toStrictEqual(true)
+      expect(job.port).toStrictEqual(8080)
+      expect(job.keepAlive).toStrictEqual(true)
+      expect(normalizePath(job.webapp).endsWith('/test/project2/webapp')).toStrictEqual(true)
     })
-    expect(normalizePath(job.cwd).endsWith('/test/project2')).toStrictEqual(true)
-    expect(job.port).toStrictEqual(8080)
-    expect(job.keepAlive).toStrictEqual(true)
-    expect(normalizePath(job.webapp).endsWith('/test/project2/webapp')).toStrictEqual(true)
-  })
 
-  it('implements boolean switch', () => {
-    const job = jobFactory.fromCmdLine(cwd, ['-cwd:../project2', '-port:8080', '-keepAlive'])
-    expect(job.keepAlive).toStrictEqual(true)
+    it('implements boolean flag', () => {
+      const job = createJob({
+        cwd: '../project2',
+        port: 8080,
+        keepAlive: false,
+        coverage: null
+      })
+      expect(job.keepAlive).toStrictEqual(false)
+      expect(job.coverage).toStrictEqual(true)
+    })
   })
 
   it('ignores unknown parameters', () => {
