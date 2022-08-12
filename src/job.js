@@ -1,6 +1,6 @@
 'use strict'
 
-const { Command, Option } = require('commander')
+const { Command, Option, InvalidArgumentError } = require('commander')
 const { accessSync } = require('fs')
 const { join, isAbsolute } = require('path')
 const output = require('./output')
@@ -75,39 +75,6 @@ function finalize (job) {
     })
 }
 
-function parseJobParam (job, arg) {
-  const valueParsers = {
-    boolean: (value, defaultValue) => value === undefined ? !defaultValue : value === 'true',
-    number: value => parseInt(value, 10),
-    default: value => { if (!value) { throw new Error('must not be empty') } return value }
-  }
-
-  const paramParser = {
-    libs: (value, defaultValue) => {
-      if (value.includes('=')) {
-        const [relative, source] = value.split('=')
-        defaultValue.push({ relative, source })
-      } else {
-        defaultValue.push({ relative: '', source: value })
-      }
-      return defaultValue
-    }
-  }
-
-  const parsed = /-(\w+)(?::(.*))?/.exec(arg)
-  if (parsed) {
-    const [, name, value] = parsed
-    if (name !== 'browserArgs' && Object.prototype.hasOwnProperty.call(job, name)) {
-      const valueParser = paramParser[name] || valueParsers[typeof job[name]] || valueParsers.default
-      try {
-        job[name] = valueParser(value, job[name])
-      } catch (error) {
-        output.unexpectedOptionValue(name, error.message)
-      }
-    }
-  }
-}
-
 function lowerCaseKeys (dictionary) {
   return Object.keys(dictionary).reduce((result, name) => {
     const value = dictionary[name]
@@ -121,19 +88,28 @@ function lowerCaseKeys (dictionary) {
 }
 
 function integer (value) {
-  return parseInt(value, 10)
+  const result = parseInt(value, 10)
+  if (result < 0) {
+    throw new InvalidArgumentError('Only >= 0')
+  }
+  return result
 }
 
-function boolean (value, defaultValue) {
+function boolean (value) {
   if (value === undefined) {
     return true
   }
   return ['true', 'yes', 'on'].includes(value)
 }
 
+function url (value) {
+  return value
+}
+
 module.exports = {
   fromCmdLine (cwd, argv) {
     const command = new Command()
+    command.exitOverride()
     command
       .name(name)
       .description(description)
@@ -144,11 +120,25 @@ module.exports = {
       )
       .option('-port <port>', 'Port to use (0 to use a free one)', integer, 0)
       .option('-ui5 <url>', 'UI5 url', 'https://ui5.sap.com')
-      .option('-lib <path...>', 'Library mapping')
-      .option('-cache <path...>', 'Cache UI5 resources locally in the given folder (empty to disable)')
-      .option('-webapp <path...>', 'Base folder of the web application (relative to cwd)', 'webapp')
-      .option('-testsuite <path...>', 'Path of the testsuite file (relative to webapp)', 'test/testsuite.qunit.html')
-      .option('-url <url...>', 'URL of the testsuite / page to test')
+      .option('-libs <path...>', 'Library mapping', function lib (value, previousValue) {
+        let result
+        if (previousValue === undefined) {
+          result = []
+        } else {
+          result = [].concat(previousValue)
+        }
+        if (value.includes('=')) {
+          const [relative, source] = value.split('=')
+          result.push({ relative, source })
+        } else {
+          result.push({ relative: '', source: value })
+        }
+        return result
+      })
+      .option('-cache <path>', 'Cache UI5 resources locally in the given folder (empty to disable)')
+      .option('-webapp <path>', 'Base folder of the web application (relative to cwd)', 'webapp')
+      .option('-testsuite <path>', 'Path of the testsuite file (relative to webapp)', 'test/testsuite.qunit.html')
+      .option('-url <url...>', 'URL of the testsuite / page to test', url)
 
       .option('-pageFilter <regexp>', 'Filters which pages to execute')
       .option('-pageParams <params>', 'Parameters added to each page URL')
