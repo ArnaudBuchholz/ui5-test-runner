@@ -65,7 +65,7 @@ describe('job', () => {
 
       describe('multi values', () => {
         const absoluteLibPath = join(__dirname, '../test/project/webapp/lib')
-        describe.only('lib', () => {
+        describe('lib', () => {
           it('accepts one library', () => {
             const job = createJob({
               libs: [absoluteLibPath]
@@ -90,9 +90,17 @@ describe('job', () => {
             }])
           })
         })
+
+        describe('browser parameters', () => {
+          it('allows passing extra parameters', () => {
+            const job = createJob({
+              '--': ['--visible']
+            })
+            expect(job.browserArgs).toEqual(['--visible'])
+          })
+        })
       })
     })
-    // it('supports complex parameter parsing')
   })
 
   describe('validation', () => {
@@ -105,17 +113,12 @@ describe('job', () => {
 
   describe('post processing', () => {
     it('sets keepAlive when parallel = 0', () => {
-      const job = jobFactory.fromCmdLine(cwd, ['-parallel:0'])
-      expect(job.keepAlive).toStrictEqual(true)
-    })
-  
-    it('sets keepAlive when parallel < 0', () => {
-      const job = jobFactory.fromCmdLine(cwd, ['-parallel:-1'])
+      const job = createJob({
+        parallel: 0
+      })
       expect(job.keepAlive).toStrictEqual(true)
     })
   })
-
-
 
   it('supports libs parameter (absolute)', () => {
     const absoluteLibPath = join(__dirname, '../test/project/webapp/lib')
@@ -141,16 +144,6 @@ describe('job', () => {
     expect(normalizePath(job.libs[0].source).endsWith('test/project/webapp/lib')).toStrictEqual(true)
     expect(job.libs[1].relative).toStrictEqual('project2/')
     expect(normalizePath(job.libs[1].source).endsWith('test/project2')).toStrictEqual(true)
-  })
-
-  it('ignores malformed parameters', () => {
-    const job = jobFactory.fromCmdLine(cwd, ['-ui5=abc'])
-    expect(job.ui5).toStrictEqual('https://ui5.sap.com')
-  })
-
-  it('allows passing parameters to the browser instantiation command line', () => {
-    const job = jobFactory.fromCmdLine(cwd, ['--', '--visible'])
-    expect(job.browserArgs).toEqual(['--visible'])
   })
 
   it('fixes invalid browserRetry value', () => {
