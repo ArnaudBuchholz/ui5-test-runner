@@ -27,7 +27,7 @@ function createJob (parameters) {
 }
 
 describe('job', () => {
-  describe.only('basic parameter parsing', () => {
+  describe('parameter parsing', () => {
     it('provides default values', () => {
       const job = createJob({})
       expect(job.cwd).toStrictEqual(cwd)
@@ -51,32 +51,71 @@ describe('job', () => {
       expect(normalizePath(job.webapp).endsWith('/test/project2/webapp')).toStrictEqual(true)
     })
 
-    it('implements boolean flag', () => {
-      const job = createJob({
-        cwd: '../project2',
-        port: 8080,
-        keepAlive: false,
-        coverage: null
+    describe('complex parameter parsing', () => {
+      it('implements boolean flag', () => {
+        const job = createJob({
+          cwd: '../project2',
+          port: 8080,
+          keepAlive: false,
+          coverage: null
+        })
+        expect(job.keepAlive).toStrictEqual(false)
+        expect(job.coverage).toStrictEqual(true)
       })
-      expect(job.keepAlive).toStrictEqual(false)
-      expect(job.coverage).toStrictEqual(true)
+
+      describe('multi values', () => {
+        const absoluteLibPath = join(__dirname, '../test/project/webapp/lib')
+        describe.only('lib', () => {
+          it('accepts one library', () => {
+            const job = createJob({
+              libs: [absoluteLibPath]
+            })
+            expect(job.libs).toMatchObject([{
+              relative: '',
+              source: absoluteLibPath
+            }])
+          })
+
+          it('accepts two libraries', () => {
+            const project2Path = join(__dirname, '../test/project2')
+            const job = createJob({
+              libs: [absoluteLibPath, 'project2/=../project2']
+            })
+            expect(job.libs).toMatchObject([{
+              relative: '',
+              source: absoluteLibPath
+            }, {
+              relative: 'project2/',
+              source: project2Path
+            }])
+          })
+        })
+      })
+    })
+    // it('supports complex parameter parsing')
+  })
+
+  describe('validation', () => {
+    it('fails on negative integers', () => {
+      expect(() => createJob({
+        port: -1
+      })).toThrow()
     })
   })
 
-  it('ignores unknown parameters', () => {
-    const job = jobFactory.fromCmdLine(cwd, ['-cwd2:../project2'])
-    expect(normalizePath(job.cwd).endsWith('/test/project')).toStrictEqual(true)
+  describe('post processing', () => {
+    it('sets keepAlive when parallel = 0', () => {
+      const job = jobFactory.fromCmdLine(cwd, ['-parallel:0'])
+      expect(job.keepAlive).toStrictEqual(true)
+    })
+  
+    it('sets keepAlive when parallel < 0', () => {
+      const job = jobFactory.fromCmdLine(cwd, ['-parallel:-1'])
+      expect(job.keepAlive).toStrictEqual(true)
+    })
   })
 
-  it('sets keepAlive when parallel = 0', () => {
-    const job = jobFactory.fromCmdLine(cwd, ['-parallel:0'])
-    expect(job.keepAlive).toStrictEqual(true)
-  })
 
-  it('sets keepAlive when parallel < 0', () => {
-    const job = jobFactory.fromCmdLine(cwd, ['-parallel:-1'])
-    expect(job.keepAlive).toStrictEqual(true)
-  })
 
   it('supports libs parameter (absolute)', () => {
     const absoluteLibPath = join(__dirname, '../test/project/webapp/lib')
