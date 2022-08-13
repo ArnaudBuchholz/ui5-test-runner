@@ -134,7 +134,7 @@ describe('job', () => {
     })
 
     describe('Path parameters validation', () => {
-      const parameters = 'webapp,browser,tstReportDir,covSettings,covTempDir,covReportDir'.split(',')
+      const parameters = ['webapp', 'browser', 'testsuite']
 
       parameters.forEach(parameter => {
         it(`fails on invalid path for ${parameter}`, () => {
@@ -168,7 +168,7 @@ describe('job', () => {
     })
   })
 
-  describe('Using ui5-test-runner.json', () => {
+  describe.only('Using ui5-test-runner.json', () => {
     const project2 = join(__dirname, '../test/project2')
 
     it('preloads settings', () => {
@@ -181,7 +181,7 @@ describe('job', () => {
       expect(job.failFast).toStrictEqual(true)
       expect(job.libs).toEqual([{
         relative: 'lib/',
-        source: join(cwd, 'webapp/lib')
+        source: join(project2, 'webapp')
       }])
       expect(job.ui5).toStrictEqual('https://ui5.sap.com')
     })
