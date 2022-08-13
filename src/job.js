@@ -150,6 +150,7 @@ module.exports = {
       .option('-logServer [flag]', 'Logs server traces', boolean, false)
 
       .option('-browser <command>', 'Browser instantiation command', join(__dirname, '../defaults/puppeteer.js'))
+      .option('-browserArgs <argument...>', 'Browser instantiation command parameters')
 
       .option('-browserRetry <count>', 'Browser instantiation retries : if the command fails unexpectedly, it is re-executed (0 means no retry)', 1)
       .option('-noScreenshot', 'No screenshot is taken during the tests execution', boolean, false)
@@ -164,16 +165,22 @@ module.exports = {
       .option('-covReportDir <path>', 'Directory to store the coverage report files (relative to cwd)', 'coverage')
       .option('-covReporters <reporter...>', 'List of reporters to use', ['lcov', 'cobertura'])
 
+    command.parse(argv, { from: 'user' })
+    const options = lowerCaseKeys(command.opts())
+
     let defaults
     try {
-      defaults = require(join(cwd, 'ui5-test-runner.json'))
+      defaults = require(join(options.cwd, 'ui5-test-runner.json'))
     } catch (e) {
       defaults = {}
     }
-    command.parse(argv, { from: 'user' })
-    const job = Object.assign({
-      initialCwd: cwd
-    }, defaults, lowerCaseKeys(command.opts()))
+
+    const job = Object.assign(
+      { initialCwd: cwd },
+      defaults,
+      options,
+      { browserArgs: command.args }
+    )
 
     /*
     let defaultHasLibs = defaults.libs.length !== 0
