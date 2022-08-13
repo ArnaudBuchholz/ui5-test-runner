@@ -4,6 +4,6 @@
   "failFast": true,
   "libs": [{
     "relative": "lib/",
-    "source": "webapp/lib"
+    "source": "webapp"
   }]
 }
