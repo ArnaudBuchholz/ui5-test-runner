@@ -4,7 +4,7 @@ const normalizePath = path => path.replace(/\\/g, '/') // win -> unix
 
 const cwd = join(__dirname, '../test/project')
 
-function createJob (parameters) {
+function buildArgs (parameters) {
   const args = []
   Object.keys(parameters).forEach(name => {
     if (name === '--') {
@@ -23,13 +23,29 @@ function createJob (parameters) {
   if (parameters['--']) {
     args.push('--', ...parameters['--'])
   }
-  return jobFactory.fromCmdLine(cwd, args.map(value => value.toString()))
+  return args.map(value => value.toString())
+}
+
+function buildJob (parameters) {
+  return jobFactory.fromCmdLine(cwd, buildArgs(parameters))
 }
 
 describe('job', () => {
+  describe('testing helper (buildArgs)', () => {
+    it('translates object into list of arguments', () => {
+      expect(buildArgs({
+        a: 1,
+        b: true,
+        c: 'string',
+        d: [1, true, 'string'],
+        '--': [1, true, 'string']
+      })).toEqual(['-a', '1', '-b', 'true', '-c', 'string', '-d', '1', 'true', 'string', '--', '1', 'true', 'string'])
+    })
+  })
+
   describe('parameter parsing', () => {
     it('provides default values', () => {
-      const job = createJob({})
+      const job = buildJob({})
       expect(job.cwd).toStrictEqual(cwd)
       expect(job.port).toStrictEqual(0)
       expect(job.ui5).toStrictEqual('https://ui5.sap.com')
@@ -40,7 +56,7 @@ describe('job', () => {
     })
 
     it('parses parameters', () => {
-      const job = createJob({
+      const job = buildJob({
         cwd: '../project2',
         port: 8080,
         keepAlive: true
@@ -53,7 +69,7 @@ describe('job', () => {
 
     describe('complex parameter parsing', () => {
       it('implements boolean flag', () => {
-        const job = createJob({
+        const job = buildJob({
           cwd: '../project2',
           port: 8080,
           keepAlive: false,
@@ -65,9 +81,9 @@ describe('job', () => {
 
       describe('multi values', () => {
         const absoluteLibPath = join(__dirname, '../test/project/webapp/lib')
-        describe('lib', () => {
+        describe('libs', () => {
           it('accepts one library', () => {
-            const job = createJob({
+            const job = buildJob({
               libs: [absoluteLibPath]
             })
             expect(job.libs).toMatchObject([{
@@ -78,7 +94,7 @@ describe('job', () => {
 
           it('accepts two libraries', () => {
             const project2Path = join(__dirname, '../test/project2')
-            const job = createJob({
+            const job = buildJob({
               libs: [absoluteLibPath, 'project2/=../project2']
             })
             expect(job.libs).toMatchObject([{
@@ -92,11 +108,18 @@ describe('job', () => {
         })
 
         describe('browser parameters', () => {
-          it('allows passing extra parameters', () => {
-            const job = createJob({
+          it('allows passing extra parameter', () => {
+            const job = buildJob({
               '--': ['--visible']
             })
             expect(job.browserArgs).toEqual(['--visible'])
+          })
+
+          it('allows passing extra parameters', () => {
+            const job = buildJob({
+              '--': ['--visible', '--verbose']
+            })
+            expect(job.browserArgs).toEqual(['--visible', '--verbose'])
           })
         })
       })
@@ -105,55 +128,54 @@ describe('job', () => {
 
   describe('validation', () => {
     it('fails on negative integers', () => {
-      expect(() => createJob({
+      expect(() => buildJob({
         port: -1
       })).toThrow()
+    })
+
+    describe('Path parameters validation', () => {
+      const parameters = 'webapp,browser,tstReportDir,covSettings,covTempDir,covReportDir'.split(',')
+
+      parameters.forEach(parameter => {
+        it(`fails on invalid path for ${parameter}`, () => {
+          expect(() => buildJob({ [parameter]: 'nope' })).toThrow()
+        })
+      })
+    })
+
+    describe('libs', () => {
+      it('fails on invalid lib path (absolute)', () => {
+        const absoluteLibPath = join(__dirname, '../test/project/webapp/lib2')
+        expect(() => buildJob({
+          libs: absoluteLibPath
+        })).toThrow()
+      })
+
+      it('fails on invalid lib path (relative)', () => {
+        expect(() => buildJob({
+          libs: '../project3'
+        })).toThrow()
+      })
     })
   })
 
   describe('post processing', () => {
     it('sets keepAlive when parallel = 0', () => {
-      const job = createJob({
+      const job = buildJob({
         parallel: 0
       })
       expect(job.keepAlive).toStrictEqual(true)
     })
   })
 
-  it('supports libs parameter (absolute)', () => {
-    const absoluteLibPath = join(__dirname, '../test/project/webapp/lib')
-    const job = jobFactory.fromCmdLine(cwd, [`-libs:${absoluteLibPath}`])
-    expect(job.libs.length).toStrictEqual(1)
-    expect(job.libs[0].relative).toStrictEqual('')
-    expect(job.libs[0].source).toStrictEqual(absoluteLibPath)
-  })
-
-  it('supports multiple libs parameter (relative)', () => {
-    const job = jobFactory.fromCmdLine(cwd, ['-libs:webapp/lib', '-libs:../project2'])
-    expect(job.libs.length).toStrictEqual(2)
-    expect(job.libs[0].relative).toStrictEqual('')
-    expect(normalizePath(job.libs[0].source).endsWith('test/project/webapp/lib')).toStrictEqual(true)
-    expect(job.libs[1].relative).toStrictEqual('')
-    expect(normalizePath(job.libs[1].source).endsWith('test/project2')).toStrictEqual(true)
-  })
-
-  it('supports complex libs parameter', () => {
-    const job = jobFactory.fromCmdLine(cwd, ['-libs:custom/lib/=webapp/lib', '-libs:project2/=../project2'])
-    expect(job.libs.length).toStrictEqual(2)
-    expect(job.libs[0].relative).toStrictEqual('custom/lib/')
-    expect(normalizePath(job.libs[0].source).endsWith('test/project/webapp/lib')).toStrictEqual(true)
-    expect(job.libs[1].relative).toStrictEqual('project2/')
-    expect(normalizePath(job.libs[1].source).endsWith('test/project2')).toStrictEqual(true)
-  })
-
-  it('fixes invalid browserRetry value', () => {
-    const job = jobFactory.fromCmdLine(cwd, ['-browserRetry: -1'])
-    expect(job.browserRetry).toStrictEqual(1)
-  })
-
   describe('Using ui5-test-runner.json', () => {
+    const project2 = join(__dirname, '../test/project2')
+
     it('preloads settings', () => {
-      const job = jobFactory.fromCmdLine(cwd, ['-globalTimeout:900000'])
+      const job = buildJob({
+        cwd: project2,
+        globalTimeout: 900000
+      })
       expect(job.pageTimeout).toStrictEqual(900000)
       expect(job.globalTimeout).toStrictEqual(900000)
       expect(job.failFast).toStrictEqual(true)
@@ -163,8 +185,14 @@ describe('job', () => {
       }])
       expect(job.ui5).toStrictEqual('https://ui5.sap.com')
     })
-    it('preloads and overrides command line settings from ui5-test-runner.json', () => {
-      const job = jobFactory.fromCmdLine(cwd, ['-pageTimeout:60000', '-libs:project2/=../project2'])
+
+    it('preloads and overrides command line settings', () => {
+      const job = buildJob({
+        cwd: project2,
+        pageTimeout: 60000,
+        globalTimeout: 900000,
+        libs: 'project2/=../project2'
+      })
       expect(job.pageTimeout).toStrictEqual(900000)
       expect(job.globalTimeout).toStrictEqual(3600000)
       expect(job.failFast).toStrictEqual(true)
@@ -173,28 +201,6 @@ describe('job', () => {
         source: join(cwd, '../project2')
       }])
       expect(job.ui5).toStrictEqual('https://ui5.sap.com')
-    })
-  })
-
-  describe('Path parameters validation', () => {
-    it('webapp', () => {
-      const cwd = join(__dirname, '../cwd')
-      expect(() => jobFactory.fromCmdLine(cwd, ['-webapp:$NOT_EXISTING$'])).toThrow()
-    })
-
-    it('browser', () => {
-      const cwd = join(__dirname, '../cwd')
-      expect(() => jobFactory.fromCmdLine(cwd, ['-browser:$NOT_EXISTING$/cmd.js'])).toThrow()
-    })
-
-    it('testsuite', () => {
-      const cwd = join(__dirname, '../cwd')
-      expect(() => jobFactory.fromCmdLine(cwd, ['-testsuite:$NOT_EXISTING$/testsuite.html'])).toThrow()
-    })
-
-    it('lib', () => {
-      const cwd = join(__dirname, '../cwd')
-      expect(() => jobFactory.fromCmdLine(cwd, ['-libs:c=$NOT_EXISTING$/c'])).toThrow()
     })
   })
 })
