@@ -103,7 +103,32 @@ function boolean (value) {
 }
 
 function url (value) {
+  if (!value.match(/^https?:\/\/[^ "]+$/)) {
+    throw new InvalidArgumentError('Invalid URL')
+  }
   return value
+}
+
+function buildArgs (parameters) {
+  const args = []
+  Object.keys(parameters).forEach(name => {
+    if (name === '--') {
+      return
+    }
+    const value = parameters[name]
+    args.push(`-${name}`)
+    if (value !== null) {
+      if (Array.isArray(value)) {
+        args.push(...value)
+      } else {
+        args.push(value)
+      }
+    }
+  })
+  if (parameters['--']) {
+    args.push('--', ...parameters['--'])
+  }
+  return args.map(value => value.toString());
 }
 
 module.exports = {
@@ -119,7 +144,7 @@ module.exports = {
           .default(cwd, 'current working directory')
       )
       .option('-port <port>', 'Port to use (0 to use a free one)', integer, 0)
-      .option('-ui5 <url>', 'UI5 url', 'https://ui5.sap.com')
+      .option('-ui5 <url>', 'UI5 url', url, 'https://ui5.sap.com')
       .option('-libs <path...>', 'Library mapping', function lib (value, previousValue) {
         let result
         if (previousValue === undefined) {
@@ -171,6 +196,7 @@ module.exports = {
     let defaults
     try {
       defaults = require(join(options.cwd, 'ui5-test-runner.json'))
+
     } catch (e) {
       defaults = {}
     }
@@ -202,5 +228,9 @@ module.exports = {
 
     finalize(job)
     return job
+  },
+
+  fromObject (cwd, parameters) {
+    return this.fromCmdLine(cwd, buildArgs(parameters))
   }
 }
