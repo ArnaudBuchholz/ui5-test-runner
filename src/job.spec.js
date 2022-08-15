@@ -4,45 +4,11 @@ const normalizePath = path => path.replace(/\\/g, '/') // win -> unix
 
 const cwd = join(__dirname, '../test/project')
 
-function buildArgs (parameters) {
-  const args = []
-  Object.keys(parameters).forEach(name => {
-    if (name === '--') {
-      return
-    }
-    const value = parameters[name]
-    args.push(`-${name}`)
-    if (value !== null) {
-      if (Array.isArray(value)) {
-        args.push(...value)
-      } else {
-        args.push(value)
-      }
-    }
-  })
-  if (parameters['--']) {
-    args.push('--', ...parameters['--'])
-  }
-  return args.map(value => value.toString())
-}
-
 function buildJob (parameters) {
-  return jobFactory.fromCmdLine(cwd, buildArgs(parameters))
+  return jobFactory.fromObject(cwd, parameters)
 }
 
 describe('job', () => {
-  describe('testing helper (buildArgs)', () => {
-    it('translates object into list of arguments', () => {
-      expect(buildArgs({
-        a: 1,
-        b: true,
-        c: 'string',
-        d: [1, true, 'string'],
-        '--': [1, true, 'string']
-      })).toEqual(['-a', '1', '-b', 'true', '-c', 'string', '-d', '1', 'true', 'string', '--', '1', 'true', 'string'])
-    })
-  })
-
   describe('parameter parsing', () => {
     it('provides default values', () => {
       const job = buildJob({})
@@ -171,7 +137,20 @@ describe('job', () => {
   describe.only('Using ui5-test-runner.json', () => {
     const project2 = join(__dirname, '../test/project2')
 
-    it('preloads settings', () => {
+    it('preload settings', () => {
+      const job = buildJob({
+        cwd: project2
+      })
+      expect(job.pageTimeout).toStrictEqual(900000)
+      expect(job.globalTimeout).toStrictEqual(3600000)
+      expect(job.failFast).toStrictEqual(true)
+      expect(job.libs).toEqual([{
+        relative: 'lib/',
+        source: join(project2, 'webapp')
+      }])
+    })
+
+    it('allows command line override', () => {
       const job = buildJob({
         cwd: project2,
         globalTimeout: 900000
