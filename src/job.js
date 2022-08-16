@@ -110,12 +110,21 @@ function url (value) {
 }
 
 function buildArgs (parameters) {
-  const args = []
+  const before = []
+  const after = []
+  let browser = []
   Object.keys(parameters).forEach(name => {
     if (name === '--') {
       return
     }
     const value = parameters[name]
+    let args
+    if (name.startsWith('!')) {
+      args = after
+      name = name.substring(1)
+    } else {
+      args = before
+    }
     args.push(`-${name}`)
     if (value !== null) {
       if (Array.isArray(value)) {
@@ -126,9 +135,19 @@ function buildArgs (parameters) {
     }
   })
   if (parameters['--']) {
-    args.push('--', ...parameters['--'])
+    browser = parameters['--']
   }
-  return args.map(value => value.toString());
+  function stringify (args) {
+    if (!Array.isArray(args)) {
+      args = [args]
+    }
+    return args.map(value => value.toString())
+  }
+  return {
+    before: stringify(before),
+    after: stringify(after),
+    browser: stringify(browser)
+  }
 }
 
 module.exports = {
@@ -191,46 +210,34 @@ module.exports = {
       .option('-covReporters <reporter...>', 'List of reporters to use', ['lcov', 'cobertura'])
 
     command.parse(argv, { from: 'user' })
-    const options = lowerCaseKeys(command.opts())
+    let options = lowerCaseKeys(command.opts())
 
-    let defaults
     try {
-      defaults = require(join(options.cwd, 'ui5-test-runner.json'))
-
+      const defaults = require(join(options.cwd, 'ui5-test-runner.json'))
+      const { before, after, browser } = buildArgs(defaults)
+      const sep = argv.indexOf('--')
+      if (sep === -1) {
+        argv = [...before, ...argv, ...after, '--', ...browser]
+      } else {
+        argv = [...before, ...argv.slice(0, sep), ...after, '--', ...browser, ...argv.slice(sep + 1)]
+      }
+      command.parse(argv, { from: 'user' })
+      options = lowerCaseKeys(command.opts())
     } catch (e) {
-      defaults = {}
     }
 
     const job = Object.assign(
       { initialCwd: cwd },
-      defaults,
       options,
       { browserArgs: command.args }
     )
-
-    /*
-    let defaultHasLibs = defaults.libs.length !== 0
-    let inBrowserParams = false
-    argv.forEach(arg => {
-      if (inBrowserParams) {
-        job.browserArgs.push(arg)
-      } else if (arg === '--') {
-        inBrowserParams = true
-      } else {
-        if (arg.toString().startsWith('-libs:') && defaultHasLibs) {
-          defaultHasLibs = false
-          job.libs = []
-        }
-        parseJobParam(job, arg)
-      }
-    })
-*/
 
     finalize(job)
     return job
   },
 
   fromObject (cwd, parameters) {
-    return this.fromCmdLine(cwd, buildArgs(parameters))
+    const { before, browser } = buildArgs(parameters)
+    return this.fromCmdLine(cwd, [...before, '--', ...browser])
   }
 }
