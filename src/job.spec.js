@@ -134,8 +134,19 @@ describe('job', () => {
     })
   })
 
-  describe.only('Using ui5-test-runner.json', () => {
+  describe('Using ui5-test-runner.json', () => {
     const project2 = join(__dirname, '../test/project2')
+
+    it('enables option overriding at the command level', () => {
+      const job = jobFactory.fromCmdLine(cwd, [
+        '-port', '1',
+        '-port', '2',
+        '-keepAlive', 'true',
+        '-keepAlive', 'false'
+      ])
+      expect(job.port).toStrictEqual(2)
+      expect(job.keepAlive).toStrictEqual(false)
+    })
 
     it('preload settings', () => {
       const job = buildJob({
@@ -165,7 +176,7 @@ describe('job', () => {
       expect(job.ui5).toStrictEqual('https://ui5.sap.com')
     })
 
-    it('preloads and overrides command line settings', () => {
+    it.only('preloads and overrides command line settings', () => {
       const job = buildJob({
         cwd: project2,
         pageTimeout: 60000,
@@ -173,9 +184,12 @@ describe('job', () => {
         libs: 'project2/=../project2'
       })
       expect(job.pageTimeout).toStrictEqual(900000)
-      expect(job.globalTimeout).toStrictEqual(3600000)
+      expect(job.globalTimeout).toStrictEqual(900000)
       expect(job.failFast).toStrictEqual(true)
       expect(job.libs).toEqual([{
+        relative: 'lib/',
+        source: join(project2, 'webapp')
+      }, {
         relative: 'project2/',
         source: join(cwd, '../project2')
       }])
