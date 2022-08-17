@@ -176,7 +176,7 @@ describe('job', () => {
       expect(job.ui5).toStrictEqual('https://ui5.sap.com')
     })
 
-    it.only('preloads and overrides command line settings', () => {
+    it('preloads and overrides command line settings', () => {
       const job = buildJob({
         cwd: project2,
         pageTimeout: 60000,
