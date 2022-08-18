@@ -25,11 +25,13 @@ describe('job', () => {
       const job = buildJob({
         cwd: '../project2',
         port: 8080,
-        keepAlive: true
+        keepAlive: null,
+        ui5: 'http://localhost:8088/ui5'
       })
       expect(normalizePath(job.cwd).endsWith('/test/project2')).toStrictEqual(true)
       expect(job.port).toStrictEqual(8080)
       expect(job.keepAlive).toStrictEqual(true)
+      expect(job.ui5).toStrictEqual('http://localhost:8088/ui5')
       expect(normalizePath(job.webapp).endsWith('/test/project2/webapp')).toStrictEqual(true)
     })
 
@@ -99,6 +101,12 @@ describe('job', () => {
       })).toThrow()
     })
 
+    it('fails on invalid URL', () => {
+      expect(() => buildJob({
+        ui5: 'not_an_url'
+      })).toThrow()
+    })
+
     describe('Path parameters validation', () => {
       const parameters = ['webapp', 'browser', 'testsuite']
 
@@ -159,6 +167,7 @@ describe('job', () => {
         relative: 'lib/',
         source: join(project2, 'webapp')
       }])
+      expect(job.browserArgs).toEqual(['-1'])
     })
 
     it('allows command line override', () => {
@@ -194,6 +203,14 @@ describe('job', () => {
         source: join(cwd, '../project2')
       }])
       expect(job.ui5).toStrictEqual('https://ui5.sap.com')
+    })
+
+    it('preloads and concatenates browser settings', () => {
+      const job = buildJob({
+        cwd: project2,
+        '--': [-2]
+      })
+      expect(job.browserArgs).toEqual(['-1', '-2'])
     })
   })
 })
