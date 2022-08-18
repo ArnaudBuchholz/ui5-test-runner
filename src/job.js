@@ -130,7 +130,7 @@ function parse (cwd, args) {
   })
 }
 
-function checkAccess ({ path, label, file /*, write*/ }) {
+function checkAccess ({ path, label, file /*, write */ }) {
   try {
     const mode = constants.R_OK
     // if (write) {
