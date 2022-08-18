@@ -47,6 +47,15 @@ describe('job', () => {
         expect(job.coverage).toStrictEqual(true)
       })
 
+      describe('-url disables webapp & testsuite checking', () => {
+        const job = buildJob({
+          testsuite: 'not_a_file',
+          webapp: 'not_a_folder',
+          url: 'http://localhost:8080'
+        })
+        expect(job.url).toStrictEqual('http://localhost:8080')
+      })
+
       describe('multi values', () => {
         const absoluteLibPath = join(__dirname, '../test/project/webapp/lib')
         describe('libs', () => {
@@ -104,6 +113,30 @@ describe('job', () => {
     it('fails on invalid URL', () => {
       expect(() => buildJob({
         ui5: 'not_an_url'
+      })).toThrow()
+    })
+
+    it('fails on a missing file (does not exist)', () => {
+      expect(() => buildJob({
+        testsuite: 'not_a_file'
+      })).toThrow()
+    })
+
+    it('fails on a missing file (points to a folder)', () => {
+      expect(() => buildJob({
+        testsuite: 'lib'
+      })).toThrow()
+    })
+
+    it('fails on a missing folder (does not exist)', () => {
+      expect(() => buildJob({
+        webapp: 'not_a_folder'
+      })).toThrow()
+    })
+
+    it('fails on a missing folder (points to a file)', () => {
+      expect(() => buildJob({
+        webapp: 'webapp/lib/README.md'
       })).toThrow()
     })
 
