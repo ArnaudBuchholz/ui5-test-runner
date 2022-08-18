@@ -34,12 +34,7 @@ function buildArgs (parameters) {
   if (parameters['--']) {
     browser = parameters['--']
   }
-  function stringify (args) {
-    if (!Array.isArray(args)) {
-      args = [args]
-    }
-    return args.map(value => value.toString())
-  }
+  const stringify = args => args.map(value => value.toString())
   return {
     before: stringify(before),
     after: stringify(after),
@@ -57,9 +52,6 @@ function parse (cwd, args) {
   }
 
   function boolean (value) {
-    if (value === undefined) {
-      return true
-    }
     return ['true', 'yes', 'on'].includes(value)
   }
 
@@ -130,12 +122,7 @@ function parse (cwd, args) {
   command.parse(args, { from: 'user' })
   const options = command.opts()
   return Object.keys(options).reduce((result, name) => {
-    const value = options[name]
-    if (name.startsWith('!')) {
-      result[name] = value
-    } else {
-      result[name.charAt(0).toLocaleLowerCase() + name.substring(1)] = value
-    }
+    result[name.charAt(0).toLocaleLowerCase() + name.substring(1)] = options[name]
     return result
   }, {
     initialCwd: cwd,
@@ -143,12 +130,12 @@ function parse (cwd, args) {
   })
 }
 
-function checkAccess ({ path, label, file, write }) {
+function checkAccess ({ path, label, file /*, write*/ }) {
   try {
-    let mode = constants.R_OK
-    if (write) {
-      mode |= constants.W_OK
-    }
+    const mode = constants.R_OK
+    // if (write) {
+    //   mode |= constants.W_OK
+    // }
     accessSync(path, mode)
   } catch (error) {
     throw new Error(`Unable to access ${label}, check your settings`)
@@ -166,10 +153,6 @@ function checkAccess ({ path, label, file, write }) {
 }
 
 function finalize (job) {
-  Object.keys(job)
-    .filter(name => name.startsWith('!'))
-    .forEach(name => { job[name.substring(1)] = job[name] })
-
   function toAbsolute (path, from = job.cwd) {
     if (!isAbsolute(path)) {
       return join(from, path)
@@ -210,20 +193,6 @@ function finalize (job) {
   if (job.parallel <= 0) {
     job.keepAlive = true
   }
-
-  if (job.browserRetry < 0) {
-    output.unexpectedOptionValue('browserRetry', 'defaulting to 1')
-    job.browserRetry = 1
-  }
-
-  'pageTimeout,globalTimeout,screenshotTimeout'
-    .split(',')
-    .forEach(setting => {
-      if (job[setting] < 0) {
-        output.unexpectedOptionValue(setting, 'defaulting to 0')
-        job[setting] = 0
-      }
-    })
 }
 
 module.exports = {
@@ -256,6 +225,9 @@ module.exports = {
 
   fromObject (cwd, parameters) {
     const { before, browser } = buildArgs(parameters)
-    return this.fromCmdLine(cwd, [...before, '--', ...browser])
+    if (browser.length) {
+      return this.fromCmdLine(cwd, [...before, '--', ...browser])
+    }
+    return this.fromCmdLine(cwd, [...before])
   }
 }
