@@ -3,7 +3,6 @@
 const { Command, Option, InvalidArgumentError } = require('commander')
 const { statSync, accessSync, constants } = require('fs')
 const { join, isAbsolute } = require('path')
-const output = require('./output')
 const { name, description, version } = require(join(__dirname, '../package.json'))
 
 function buildArgs (parameters) {
