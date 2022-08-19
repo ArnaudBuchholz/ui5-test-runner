@@ -31,20 +31,22 @@ async function folderExists (path) {
 let localRoot
 let globalRoot
 
-module.exports = async function (job, name) {
-  if (!localRoot) {
-    [localRoot, globalRoot] = await Promise.all([npm('root'), npm('root', '--global')])
+module.exports = {
+  async resolvePackage (job, name) {
+    if (!localRoot) {
+      [localRoot, globalRoot] = await Promise.all([npm('root'), npm('root', '--global')])
+    }
+    const localModule = join(localRoot, name)
+    if (await folderExists(localModule)) {
+      return localModule
+    }
+    const globalModule = join(globalRoot, name)
+    if (!await folderExists(globalModule)) {
+      const previousStatus = job.status
+      job.status = `Installing ${name}...`
+      await npm('install', name, '-g')
+      job.status = previousStatus
+    }
+    return globalModule
   }
-  const localModule = join(localRoot, name)
-  if (await folderExists(localModule)) {
-    return localModule
-  }
-  const globalModule = join(globalRoot, name)
-  if (!await folderExists(globalModule)) {
-    const previousStatus = job.status
-    job.status = `Installing ${name}...`
-    await npm('install', name, '-g')
-    job.status = previousStatus
-  }
-  return globalModule
 }
