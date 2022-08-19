@@ -1,6 +1,9 @@
-const output = require('../../src/output')
-const jobFactory = require('../../src/job')
-const mappingFactory = require('../../src/unhandled')
+const { join } = require('path')
+const output = require('./output')
+const jobFactory = require('./job')
+const mappingFactory = require('./unhandled')
+
+const cwd = join(__dirname, '../test/project')
 
 describe('src/unhandled', () => {
   let log
@@ -22,7 +25,7 @@ describe('src/unhandled', () => {
   })
 
   beforeEach(() => {
-    const job = jobFactory.fromCmdLine('/', [])
+    const job = jobFactory.fromCmdLine(cwd, [])
     unhandled = mappingFactory(job)[0].custom
     unhandledCall = 0
   })
