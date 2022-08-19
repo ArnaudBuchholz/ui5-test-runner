@@ -6,7 +6,7 @@ const { writeFile, readFile, open, stat } = require('fs/promises')
 const { recreateDir, filename, allocPromise } = require('./tools')
 const { getPageTimeout } = require('./timeout')
 const output = require('./output')
-const resolvePackage = require('./npm')
+const { resolvePackage } = require('./npm')
 const { UTRError } = require('./error')
 
 let lastScreenshotId = 0
