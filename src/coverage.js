@@ -6,7 +6,7 @@ const { cleanDir, createDir } = require('./tools')
 const { readdir, readFile, stat, writeFile } = require('fs').promises
 const { Readable } = require('stream')
 const output = require('./output')
-const resolvePackage = require('./npm')
+const { resolvePackage } = require('./npm')
 
 let nycScript
 
