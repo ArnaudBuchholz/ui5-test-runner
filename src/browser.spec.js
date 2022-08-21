@@ -13,13 +13,11 @@ describe('src/browser', () => {
   let remainingChildProcess
 
   beforeEach(() => {
-    job = jobFactory.fromCmdLine(cwd, [
-      '-url:about:blank',
-      `-tstReportDir:${join(tmp, 'browser')}`,
-      '--',
-      'argument1',
-      'argument2'
-    ])
+    job = jobFactory.fromObject(cwd, {
+      url: 'http://localhost:8080',
+      tstReportDir: join(tmp, 'browser'),
+      '--': ['argument1', 'argument2']
+    })
     job.browserCapabilities = {}
   })
 
@@ -314,6 +312,30 @@ describe('src/browser', () => {
       job.browsers = {}
       await stop(job, '/unknown.html')
     })
+
+    it('ignores unknown messages', async () => {
+      const { promise: waitingForReady, resolve: ready } = allocPromise()
+      mock({
+        api: 'fork',
+        scriptPath: job.browser,
+        exec: async childProcess => {
+          childProcess.emit('message', {
+            command: 'unknown'
+          })
+          childProcess.on('message.received', async message => {
+            if (message.command === 'stop') {
+              childProcess.close()
+            }
+          })
+          ready()
+        },
+        close: false
+      })
+      const started = start(job, '/test.html')
+      await waitingForReady
+      await stop(job, '/test.html')
+      await started
+    })
   })
 
   describe('script injection', () => {
@@ -478,6 +500,25 @@ describe('src/browser', () => {
         })
         stop(job, '/test.html')
         await started
+      })
+
+      describe('edge cases', () => {
+        it('ignores unknown pages', async () => {
+          job.browsers = {}
+          expect(await screenshot(job, '/unknown.html')).toBeUndefined()
+        })
+
+        it('ignores disconnected child processes', async () => {
+          job.browsers = {
+            '/disconnected.html': {
+              childProcess: {
+                connected: false
+              },
+              reportDir: job.tstReportDir
+            }
+          }
+          expect(await screenshot(job, '/disconnected.html')).toBeUndefined()
+        })
       })
     })
 
