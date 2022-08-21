@@ -1,6 +1,6 @@
 'use strict'
 
-const { extractUrl } = require('./tools')
+const { extractUrl, noop } = require('./tools')
 const { join } = require('path')
 const { writeFile } = require('fs')
 const output = require('./output')
@@ -25,7 +25,7 @@ module.exports = job => {
       }
       writeFile(unhandled, `${extractUrl(headers)} ${status} ${method} ${url}\n`, {
         flag: 'a'
-      }, () => {})
+      }, noop)
       return status
     }
   }]
