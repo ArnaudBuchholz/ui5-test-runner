@@ -17,14 +17,13 @@ let warn
 let error
 
 const tmp = join(__dirname, '../tmp')
-const npmLocal = join(tmp, 'npm/local')
+const npmLocal = join(__dirname, '../node_modules')
 const npmGlobal = join(tmp, 'npm/global')
 
 beforeAll(async () => {
   log = jest.spyOn(console, 'log').mockImplementation()
   warn = jest.spyOn(console, 'warn').mockImplementation()
   error = jest.spyOn(console, 'error').mockImplementation()
-  await createDir(npmLocal)
   await createDir(npmGlobal)
   mock({
     api: 'exec',
