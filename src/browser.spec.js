@@ -1,5 +1,5 @@
 const { join } = require('path')
-const { reset, mock } = require('child_process')
+const { mock } = require('child_process')
 const jobFactory = require('./job')
 const { probe, start, stop, screenshot } = require('./browsers')
 const { readFile, writeFile } = require('fs/promises')
@@ -28,7 +28,6 @@ describe('src/browser', () => {
       remainingChildProcess.close() // stop command not implemented
       await remainingChildProcess.closed
     }
-    reset()
   })
 
   describe('probe', () => {
@@ -81,20 +80,7 @@ describe('src/browser', () => {
       const npmGlobal = join(tmp, 'npm/global')
 
       beforeEach(async () => {
-        await createDir(npmGlobal)
-        mock({
-          api: 'exec',
-          scriptPath: 'npm',
-          args: ['root', '--global'],
-          exec: childProcess => childProcess.stdout.write(npmGlobal)
-        })
         await createDir(join(npmLocal, 'localModule'))
-        mock({
-          api: 'exec',
-          scriptPath: 'npm',
-          args: ['root'],
-          exec: childProcess => childProcess.stdout.write(npmLocal)
-        })
       })
 
       it('handles dependent modules', async () => {
