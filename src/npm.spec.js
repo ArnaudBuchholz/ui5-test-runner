@@ -4,36 +4,18 @@ const { reset, mock } = require('child_process')
 const { createDir } = require('./tools')
 
 const tmp = join(__dirname, '../tmp')
-const npmLocal = join(tmp, 'npm/local')
 const npmGlobal = join(tmp, 'npm/global')
 
 describe('src/npm', () => {
   afterEach(() => reset())
 
   beforeAll(async () => {
-    await createDir(npmLocal)
-    await createDir(join(npmLocal, 'existing_local'))
-    await createDir(npmGlobal)
     await createDir(join(npmGlobal, 'existing_global'))
-
-    mock({
-      api: 'exec',
-      scriptPath: 'npm',
-      args: ['root', '--global'],
-      exec: childProcess => childProcess.stdout.write(npmGlobal)
-    })
-    await createDir(join(npmLocal, 'localModule'))
-    mock({
-      api: 'exec',
-      scriptPath: 'npm',
-      args: ['root'],
-      exec: childProcess => childProcess.stdout.write(npmLocal)
-    })
   })
 
   it('detects already installed local package', async () => {
-    const path = await resolvePackage({}, 'existing_local')
-    expect(path).toStrictEqual(join(npmLocal, 'existing_local'))
+    const path = await resolvePackage({}, 'reserve')
+    expect(path).toStrictEqual(join(__dirname, '../node_modules/reserve'))
   })
 
   it('detects already installed global package', async () => {
