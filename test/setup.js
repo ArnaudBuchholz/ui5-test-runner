@@ -26,22 +26,24 @@ beforeAll(async () => {
   error = jest.spyOn(console, 'error').mockImplementation()
   await createDir(npmLocal)
   await createDir(npmGlobal)
-})
-
-beforeEach(() => {
-  reset()
   mock({
     api: 'exec',
     scriptPath: 'npm',
     args: ['root', '--global'],
-    exec: childProcess => childProcess.stdout.write(npmGlobal)
+    exec: childProcess => childProcess.stdout.write(npmGlobal),
+    persist: true
   })
   mock({
     api: 'exec',
     scriptPath: 'npm',
     args: ['root'],
-    exec: childProcess => childProcess.stdout.write(npmLocal)
+    exec: childProcess => childProcess.stdout.write(npmLocal),
+    persist: true
   })
+})
+
+beforeEach(() => {
+  reset()
 })
 
 afterAll(() => {
