@@ -3,7 +3,7 @@ const EventEmitter = require('events')
 let mocks = []
 
 function reset () {
-  mocks = mocks.filter(({ persist }) => !persist)
+  mocks = mocks.filter(({ persist }) => !!persist)
 }
 
 function mock (configuration) {
