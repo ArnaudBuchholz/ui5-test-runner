@@ -1,9 +1,9 @@
 const EventEmitter = require('events')
 
-const mocks = []
+let mocks = []
 
 function reset () {
-  mocks.length = 0
+  mocks = mocks.filter(({ persist }) => !persist)
 }
 
 function mock (configuration) {
@@ -25,21 +25,22 @@ function find (childProcess) {
   })[0]
 }
 
-async function handle (childProcess) {
+function handle (childProcess) {
   const mock = find(childProcess)
   if (!mock) {
     throw new Error(`Missing child_process mock for ${childProcess.scriptPath} ${JSON.stringify(childProcess.args)}`)
   }
-  try {
-    await new Promise(resolve => setTimeout(resolve, 10)) // Simulate startup time
-    await mock.exec(childProcess)
-    if (mock.close !== false) {
-      childProcess.close()
+  setTimeout(async () => {
+    try {
+      await mock.exec(childProcess)
+      if (mock.close !== false) {
+        childProcess.close()
+      }
+    } catch (e) {
+      childProcess.stderr.write(e.toString())
+      childProcess.close(-1)
     }
-  } catch (e) {
-    childProcess.stderr.write(e.toString())
-    childProcess.close(-1)
-  }
+  }, 10) // Simulate startup time
 }
 
 class Channel extends EventEmitter {
