@@ -44,6 +44,9 @@ async function instantiate (job, config) {
 }
 
 async function probe (job) {
+  if (job.browserCapabilities) {
+    return
+  }
   job.status = 'Probing browser instantiation command'
   const dir = join(job.tstReportDir, 'probe')
   const capabilities = join(dir, 'capabilities.json')
@@ -195,6 +198,13 @@ async function stop (job, url, retry = false) {
     }
     if (childProcess.connected) {
       childProcess.send({ command: 'stop' })
+      const { promise: closeTimeout, resolve } = allocPromise()
+      const timeoutId = setTimeout(resolve, job.browserCloseTimeout)
+      await Promise.race([
+        childProcess.closed,
+        closeTimeout
+      ])
+      clearTimeout(timeoutId)
     }
     if (retry) {
       if (++pageBrowser.retry <= job.browserRetry) {
