@@ -1,3 +1,4 @@
+const actualChildProcess = jest.requireActual('child_process')
 const EventEmitter = require('events')
 
 let mocks = []
@@ -11,7 +12,7 @@ function mock (configuration) {
 }
 
 function find (childProcess) {
-  return mocks.filter(candidate => {
+  const mock = mocks.filter(candidate => {
     if (candidate.api !== childProcess.api ||
       (typeof candidate.scriptPath === 'string' && candidate.scriptPath !== childProcess.scriptPath) ||
       (typeof candidate.scriptPath !== 'string' && !childProcess.scriptPath.match(candidate.scriptPath))) {
@@ -23,13 +24,13 @@ function find (childProcess) {
     }
     return true
   })[0]
+  if (!mock) {
+    throw new Error(`Missing child_process mock for ${childProcess.api} ${childProcess.scriptPath} ${JSON.stringify(childProcess.args)}`)
+  }
+  return mock
 }
 
-function handle (childProcess) {
-  const mock = find(childProcess)
-  if (!mock) {
-    throw new Error(`Missing child_process mock for ${childProcess.scriptPath} ${JSON.stringify(childProcess.args)}`)
-  }
+function handle (childProcess, mock) {
   setTimeout(async () => {
     try {
       await mock.exec(childProcess)
@@ -109,7 +110,11 @@ module.exports = {
       args,
       options
     })
-    handle(childProcess)
+    const mock = find(childProcess)
+    if (mock.actual) {
+      return actualChildProcess.fork(scriptPath, args, options)
+    }
+    handle(childProcess, mock)
     return childProcess
   },
 
@@ -120,10 +125,14 @@ module.exports = {
       scriptPath,
       args
     })
+    const mock = find(childProcess)
+    if (mock.actual) {
+      return actualChildProcess.exec(command, callback)
+    }
     childProcess.on('close', function (code) {
       callback(code, this.stdout.toString(), this.stderr.toString())
     })
-    handle(childProcess)
+    handle(childProcess, mock)
     return childProcess
   },
 
