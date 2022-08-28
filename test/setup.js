@@ -39,6 +39,12 @@ beforeAll(async () => {
     exec: childProcess => childProcess.stdout.write(npmLocal),
     persist: true
   })
+  mock({
+    api: 'fork',
+    scriptPath: /nyc\.js$/,
+    actual: true,
+    persist: true
+  })
 })
 
 beforeEach(() => {
