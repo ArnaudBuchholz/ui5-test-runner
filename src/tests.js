@@ -1,6 +1,6 @@
 'use strict'
 
-const { start } = require('./browsers')
+const { probe, start } = require('./browsers')
 const { instrument, generateCoverageReport } = require('./coverage')
 const { filename, recreateDir } = require('./tools')
 const { join } = require('path')
@@ -99,8 +99,9 @@ async function generateReport (job) {
   job.status = 'Done'
 }
 
-module.exports = job => {
-  if (job.parallel) {
+module.exports = {
+  async execute (job) {
+    await probe(job)
     return extractTestPages(job)
   }
 }
