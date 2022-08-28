@@ -105,9 +105,10 @@ function parse (cwd, args) {
     .option('-browser <command>', 'Browser instantiation command', join(__dirname, '../defaults/puppeteer.js'))
     .option('-browserArgs <argument...>', 'Browser instantiation command parameters')
 
+    .option('-browserCloseTimeout <timeout>', 'Maximum waiting time (ms) for browser close', integer, 2000)
     .option('-browserRetry <count>', 'Browser instantiation retries : if the command fails unexpectedly, it is re-executed (0 means no retry)', 1)
     .option('-noScreenshot', 'No screenshot is taken during the tests execution', boolean, false)
-    .option('-screenshotTimeout <timeout>', 'Maximum waiting time (ms) for browser screenshot', 2000)
+    .option('-screenshotTimeout <timeout>', 'Maximum waiting time (ms) for browser screenshot', integer, 2000)
 
     .option('-parallel <count>', 'Number of parallel tests executions', 2)
     .option('-tstReportDir <path>', 'Directory to output test reports (relative to cwd)', 'report')
