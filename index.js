@@ -6,7 +6,7 @@ const output = require('./src/output')
 const { log, serve } = require('reserve')
 const jobFactory = require('./src/job')
 const reserveConfigurationFactory = require('./src/reserve')
-const executeTests = require('./src/tests')
+const { execute } = require('./src/tests')
 const { watch } = require('fs')
 
 function send (message) {
@@ -21,7 +21,7 @@ function send (message) {
 async function notifyAndExecuteTests (job) {
   send({ msg: 'begin' })
   try {
-    await executeTests(job)
+    await execute(job)
     send({ msg: 'end', status: job.failed || 0 })
   } catch (error) {
     output.genericError(error)
