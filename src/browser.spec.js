@@ -3,7 +3,7 @@ const { mock } = require('child_process')
 const jobFactory = require('./job')
 const { probe, start, stop, screenshot } = require('./browsers')
 const { readFile, writeFile } = require('fs/promises')
-const { createDir, allocPromise } = require('./tools')
+const { allocPromise } = require('./tools')
 
 const cwd = '/test/project'
 const tmp = join(__dirname, '../tmp')
@@ -16,9 +16,9 @@ describe('src/browser', () => {
     job = jobFactory.fromObject(cwd, {
       url: 'http://localhost:8080',
       tstReportDir: join(tmp, 'browser'),
+      browserCloseTimeout: 100,
       '--': ['argument1', 'argument2']
     })
-    job.browserCapabilities = {}
   })
 
   afterEach(async () => {
@@ -75,13 +75,25 @@ describe('src/browser', () => {
       expect(job.browserCapabilities.parallel).toStrictEqual(true)
     })
 
-    describe('dependent modules', () => {
-      const npmLocal = join(tmp, 'npm/local')
-      const npmGlobal = join(tmp, 'npm/global')
-
-      beforeEach(async () => {
-        await createDir(join(npmLocal, 'localModule'))
+    it('probes only once', async () => {
+      let count = 0
+      mock({
+        api: 'fork',
+        scriptPath: job.browser,
+        exec: async childProcess => {
+          ++count
+          const config = JSON.parse((await readFile(childProcess.args[0])).toString())
+          await writeFile(config.capabilities, '{}')
+        }
       })
+      await probe(job)
+      expect(count).toStrictEqual(1)
+      await probe(job)
+      expect(count).toStrictEqual(1)
+    })
+
+    describe('dependent modules', () => {
+      const npmGlobal = join(tmp, 'npm/global')
 
       it('handles dependent modules', async () => {
         mock({
@@ -96,12 +108,12 @@ describe('src/browser', () => {
           exec: async childProcess => {
             const config = JSON.parse((await readFile(childProcess.args[0])).toString())
             await writeFile(config.capabilities, JSON.stringify({
-              modules: ['localModule', 'globalModule']
+              modules: ['reserve', 'globalModule']
             }))
           }
         })
         await probe(job)
-        expect(job.browserCapabilities.modules.localModule).toStrictEqual(join(npmLocal, 'localModule'))
+        expect(job.browserCapabilities.modules.reserve).toStrictEqual(join(__dirname, '../node_modules/reserve'))
         expect(job.browserCapabilities.modules.globalModule).toStrictEqual(join(npmGlobal, 'globalModule'))
       })
 
@@ -122,7 +134,7 @@ describe('src/browser', () => {
           exec: async childProcess => {
             const config = JSON.parse((await readFile(childProcess.args[0])).toString())
             await writeFile(config.capabilities, JSON.stringify({
-              modules: ['localModule', 'globalModule']
+              modules: ['reserve', 'globalModule']
             }))
           }
         })
@@ -135,6 +147,10 @@ describe('src/browser', () => {
   })
 
   describe('start and stop', () => {
+    beforeEach(() => {
+      job.browserCapabilities = {}
+    })
+
     it('returns a promise resolved on stop (even if the child process remains)', async () => {
       mock({
         api: 'fork',
@@ -189,6 +205,11 @@ describe('src/browser', () => {
           await childProcess.stdout.write('stdout')
           await childProcess.stderr.write('stderr')
           setTimeout(() => stop(job, '/test.html'), 0)
+          childProcess.on('message.received', message => {
+            if (message.command === 'stop') {
+              childProcess.close()
+            }
+          })
         },
         close: false
       })
@@ -326,7 +347,9 @@ describe('src/browser', () => {
 
   describe('script injection', () => {
     beforeEach(() => {
-      job.browserCapabilities.scripts = true
+      job.browserCapabilities = {
+        scripts: true
+      }
     })
 
     it('does not use any script by default', async () => {
@@ -386,7 +409,9 @@ describe('src/browser', () => {
   describe('screenshot', () => {
     describe('supporting', () => {
       beforeEach(() => {
-        job.browserCapabilities.screenshot = '.png'
+        job.browserCapabilities = {
+          screenshot: '.png'
+        }
       })
 
       it('should generate a file', async () => {
@@ -509,6 +534,10 @@ describe('src/browser', () => {
     })
 
     describe('not supporting', () => {
+      beforeEach(() => {
+        job.browserCapabilities = {}
+      })
+
       it('fails', async () => {
         const { promise: ready, resolve: setReady } = allocPromise()
         mock({
