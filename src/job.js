@@ -109,7 +109,7 @@ function parse (cwd, args) {
     .option('-noScreenshot', 'No screenshot is taken during the tests execution', boolean, false)
     .option('-screenshotTimeout <timeout>', 'Maximum waiting time (ms) for browser screenshot', 2000)
 
-    .option('-parallel <count>', 'Number of parallel tests executions (0 to ignore tests and keep alive)', 2)
+    .option('-parallel <count>', 'Number of parallel tests executions', 2)
     .option('-tstReportDir <path>', 'Directory to output test reports (relative to cwd)', 'report')
 
     .option('-coverage [flag]', 'Enable or disable code coverage', boolean, true)
