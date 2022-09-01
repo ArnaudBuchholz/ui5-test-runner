@@ -2,13 +2,14 @@
 
 const { check, serve, body } = require('reserve')
 const { probe, start, screenshot, stop } = require('../browsers')
-const { fromCmdLine } = require('../job')
+const { fromObject } = require('../job')
 const { join } = require('path')
 const { stat } = require('fs/promises')
 const output = require('../output')
 const EventEmitter = require('events')
-const assert = require('assert')
+const assert = require('assert/strict')
 const { performance } = require('perf_hooks')
+const { cleanDir, allocPromise } = require('../tools')
 
 let job
 
@@ -66,6 +67,42 @@ const tests = [{
     assert(steps.length > 3, 'The right number of steps is generated')
   }
 }, {
+  label: 'Console logs',
+  for: capabilities => !!capabilities.console,
+  url: 'console.html',
+  log: async (data, url) => {
+    const pageBrowser = job.browsers[url]
+    assert(!!pageBrowser)
+    const { logs } = pageBrowser
+    const { promise, resolve } = allocPromise()
+    function waitForConsoleLogs () {
+      if (logs.length === 5) {
+        logs.forEach(log => delete log.timestamp)
+        assert.deepEqual(logs, [{
+          type: 'log',
+          args: ['A simple string']
+        }, {
+          type: 'log',
+          args: ['complex parameters', 1, true, { property: 'value' }]
+        }, {
+          type: 'warning',
+          args: ['A warning']
+        }, {
+          type: 'error',
+          args: ['An error']
+        }, {
+          type: 'info',
+          args: ['An info']
+        }])
+        resolve()
+      } else {
+        setTimeout(waitForConsoleLogs, 250)
+      }
+    }
+    waitForConsoleLogs()
+    return promise
+  }
+}, {
   label: 'Screenshot',
   for: capabilities => !!capabilities.screenshot,
   url: 'screenshot.html',
@@ -105,14 +142,15 @@ const tests = [{
 }]
 
 async function main () {
-  const [,, command, ...browserArgs] = process.argv
-  job = fromCmdLine(process.cwd(), [
-    `-tmpDir:${join(__dirname, '..', 'tmp')}`,
-    '-url: localhost:80',
-    `-browser:${command}`,
-    '--',
-    ...browserArgs
-  ])
+  const [,, browser, ...browserArgs] = process.argv
+  const cwd = process.cwd()
+  const reportDir = join(cwd, '.utr-capabilities')
+  job = fromObject(cwd, {
+    reportDir,
+    url: 'http://localhost:80',
+    browser,
+    '--': browserArgs
+  })
   output.report(job)
   try {
     await probe(job)
@@ -169,10 +207,11 @@ async function main () {
 
   let errors = 0
 
-  const next = () => {
+  const next = async () => {
     if (filteredTests.length === 0) {
       if (Object.keys(job.browsers).length === 0) {
         console.log('Done.')
+        await cleanDir(reportDir)
         exit(errors)
       }
       return
@@ -197,13 +236,13 @@ async function main () {
     const now = performance.now()
     const timeoutId = setTimeout(() => done('Timeout'), 10000)
 
-    function done (error) {
+    async function done (error) {
       if (done.called) {
         return
       }
       done.called = true
       clearTimeout(timeoutId)
-      stop(job, pageUrl)
+      await stop(job, pageUrl)
       const timeSpent = Math.floor(performance.now() - now)
       if (error) {
         console.log('❌', label, error)
@@ -211,7 +250,7 @@ async function main () {
       } else {
         console.log('✔️', label, timeSpent, 'ms')
       }
-      next()
+      await next()
     }
 
     listener.on('log', async data => {
@@ -250,7 +289,8 @@ async function main () {
     parallel = 2
   }
 
-  for (let i = 0; i < parallel; ++i) {
+  const testsCount = filteredTests.length
+  for (let i = 0; i < Math.min(parallel, testsCount); ++i) {
     next()
   }
 }
