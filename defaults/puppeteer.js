@@ -1,6 +1,6 @@
 'use strict'
 
-const { createWriteStream, readFileSync, writeFileSync } = require('fs')
+const { readFileSync, writeFileSync } = require('fs')
 const settings = JSON.parse(readFileSync(process.argv[2]).toString())
 
 if (settings.capabilities) {
@@ -15,7 +15,7 @@ if (settings.capabilities) {
 
 const puppeteer = require(settings.modules.puppeteer)
 
-const { url, scripts, consoleLog } = settings
+const { url, scripts } = settings
 const headless = !(settings.args || []).some(arg => arg === '--visible')
 
 let browser
@@ -56,10 +56,23 @@ async function main () {
     ]
   })
   page = (await browser.pages())[0]
-  if (consoleLog) {
-    const consoleStream = createWriteStream(consoleLog, 'utf-8')
-    page.on('console', message => consoleStream.write(`${message.type().substr(0, 3).toUpperCase()} ${message.text()}\n`))
-  }
+  let consoleSequence = Promise.resolve()
+  page.on('console', message => {
+    const t = Date.now()
+    consoleSequence = consoleSequence
+      .then(async () => {
+        const args = []
+        for await (const arg of message.args()) {
+          args.push(await arg.jsonValue())
+        }
+        process.send({
+          command: 'console',
+          t,
+          api: message.type(),
+          args
+        })
+      })
+  })
   if (scripts && scripts.length) {
     for await (const script of scripts) {
       await page.evaluateOnNewDocument(script)
