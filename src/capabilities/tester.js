@@ -4,7 +4,7 @@ const { check, serve, body } = require('reserve')
 const { probe, start, screenshot, stop } = require('../browsers')
 const { fromObject } = require('../job')
 const { join } = require('path')
-const { stat } = require('fs/promises')
+const { stat, readFile } = require('fs/promises')
 const output = require('../output')
 const EventEmitter = require('events')
 const assert = require('assert/strict')
@@ -73,28 +73,42 @@ const tests = [{
   log: async (data, url) => {
     const pageBrowser = job.browsers[url]
     assert(!!pageBrowser)
-    const { logs } = pageBrowser
-    const { promise, resolve } = allocPromise()
+    const { promise, resolve, reject } = allocPromise()
     function waitForConsoleLogs () {
-      if (logs.length === 5) {
-        logs.forEach(log => delete log.timestamp)
-        assert.deepEqual(logs, [{
-          type: 'log',
-          args: ['A simple string']
-        }, {
-          type: 'log',
-          args: ['complex parameters', 1, true, { property: 'value' }]
-        }, {
-          type: 'warning',
-          args: ['A warning']
-        }, {
-          type: 'error',
-          args: ['An error']
-        }, {
-          type: 'info',
-          args: ['An info']
-        }])
-        resolve()
+      if (pageBrowser.console.count === 5) {
+        pageBrowser.console.flush
+          .then(async () => {
+            const jsont = (await readFile(join(pageBrowser.reportDir, 'console.jsont'))).toString()
+            const logs = jsont
+              .split('\n')
+              .filter(line => !!line)
+              .map(line => {
+                const json = JSON.parse(line)
+                delete json.t
+                return json
+              })
+            try {
+              assert.deepEqual(logs, [{
+                api: 'log',
+                args: ['A simple string']
+              }, {
+                api: 'log',
+                args: ['complex parameters', 1, true, { property: 'value' }]
+              }, {
+                api: 'warning',
+                args: ['A warning']
+              }, {
+                api: 'error',
+                args: ['An error']
+              }, {
+                api: 'info',
+                args: ['An info']
+              }])
+              resolve()
+            } catch (e) {
+              reject(e)
+            }
+          })
       } else {
         setTimeout(waitForConsoleLogs, 250)
       }
