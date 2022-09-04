@@ -15,11 +15,14 @@ if (process.version > 'v14.14') {
 const recursive = { recursive: true }
 
 const filename = url => {
-  const hash = createHash('sha256')
+  const hash = createHash('shake256', {
+    outputLength: 8
+  })
   hash.update(url)
   return hash.digest('base64')
     .replace(/=/g, '')
-    .replace(/\//g, '_')
+    .replace(/\+/g, '_')
+    .replace(/\//g, '$')
 }
 
 const cleanDir = async dir => {
