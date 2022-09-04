@@ -9,7 +9,7 @@ const { globallyTimedOut } = require('./timeout')
 const output = require('./output')
 
 async function saveJob (job) {
-  await writeFile(join(job.tstReportDir, 'job.json'), JSON.stringify({
+  await writeFile(join(job.reportDir, 'job.json'), JSON.stringify({
     ...job,
     // Following members are useless because already serialized or not relevant
     status: undefined,
@@ -22,7 +22,7 @@ async function saveJob (job) {
 async function extractTestPages (job) {
   job.start = new Date()
   await instrument(job)
-  await recreateDir(job.tstReportDir)
+  await recreateDir(job.reportDir)
   await saveJob(job)
   job.status = 'Extracting test pages'
   job.testPageUrls = []
@@ -62,7 +62,7 @@ async function runTestPage (job) {
     await start(job, url)
     const page = job.testPages[url]
     if (page) {
-      const reportFileName = join(job.tstReportDir, `${filename(url)}.json`)
+      const reportFileName = join(job.reportDir, `${filename(url)}.json`)
       await writeFile(reportFileName, JSON.stringify(page))
     }
   }
@@ -93,7 +93,7 @@ async function generateReport (job) {
   }
   output.results(pages)
   await saveJob(job)
-  await copyFile(join(__dirname, 'report.html'), join(job.tstReportDir, 'report.html'))
+  await copyFile(join(__dirname, 'report.html'), join(job.reportDir, 'report.html'))
   await generateCoverageReport(job)
   output.timeSpent(job.start)
   job.status = 'Done'
