@@ -2,7 +2,7 @@
 
 const { fork } = require('child_process')
 const { join } = require('path')
-const { writeFile, readFile, open, stat } = require('fs/promises')
+const { writeFile, readFile, open, stat, unlink } = require('fs/promises')
 const { recreateDir, filename, allocPromise } = require('./tools')
 const { getPageTimeout } = require('./timeout')
 const output = require('./output')
@@ -19,8 +19,12 @@ async function instantiate (job, config) {
     ...config,
     args: job.browserArgs
   }
+  if (job.browserCapabilities) {
+    const { modules } = job.browserCapabilities
+    browserConfig.modules = modules
+  }
   const browserConfigPath = join(dir, 'browser.json')
-  await writeFile(browserConfigPath, JSON.stringify(browserConfig))
+  await writeFile(browserConfigPath, JSON.stringify(browserConfig, undefined, 2))
   const stdoutFilename = join(dir, 'stdout.txt')
   const stderrFilename = join(dir, 'stderr.txt')
   const stdout = await open(stdoutFilename, 'w')
@@ -48,27 +52,37 @@ async function probe (job) {
     return
   }
   job.status = 'Probing browser instantiation command'
-  const dir = join(job.tstReportDir, 'probe')
-  const capabilities = join(dir, 'capabilities.json')
-  const childProcess = await instantiate(job, {
-    url: 'about:blank',
-    capabilities,
-    dir
-  })
-  await childProcess.closed
-  let browserCapabilities
-  try {
-    browserCapabilities = Object.assign({
-      modules: [],
-      screenshot: null,
-      console: false,
-      scripts: false,
-      parallel: true
-    }, JSON.parse((await readFile(capabilities)).toString()))
-  } catch (e) {
-    throw UTRError.MISSING_OR_INVALID_BROWSER_CAPABILITIES(e.message)
+
+  async function execute (folder) {
+    const dir = join(job.reportDir, folder)
+    const capabilities = join(dir, 'capabilities.json')
+    const childProcess = await instantiate(job, {
+      url: 'about:blank',
+      capabilities,
+      dir
+    })
+    const code = await childProcess.closed
+    if (code !== 0) {
+      throw UTRError.BROWSER_PROBE_FAILED(code.toString())
+    }
+    let browserCapabilities
+    try {
+      browserCapabilities = Object.assign({
+        modules: [],
+        screenshot: null,
+        console: false,
+        scripts: false,
+        parallel: true
+      }, JSON.parse((await readFile(capabilities)).toString()))
+    } catch (e) {
+      throw UTRError.MISSING_OR_INVALID_BROWSER_CAPABILITIES(e.message)
+    }
+    return browserCapabilities
   }
+
+  const browserCapabilities = await execute('probe')
   job.browserCapabilities = browserCapabilities
+
   const { modules } = browserCapabilities
   const resolvedModules = {}
   if (modules.length) {
@@ -77,6 +91,10 @@ async function probe (job) {
     }
   }
   job.browserCapabilities.modules = resolvedModules
+  if (browserCapabilities['probe-with-modules']) {
+    job.browserCapabilities = await execute('probe-with-modules')
+    job.browserCapabilities.modules = resolvedModules
+  }
 }
 
 async function start (job, url, scripts = []) {
@@ -84,7 +102,7 @@ async function start (job, url, scripts = []) {
     job.browsers = {}
   }
   output.browserStart(url)
-  const reportDir = join(job.tstReportDir, filename(url))
+  const reportDir = join(job.reportDir, filename(url))
   const resolvedScripts = []
   for await (const script of scripts) {
     if (script.endsWith('.js')) {
@@ -120,11 +138,23 @@ async function run (job, pageBrowser) {
   if (retry) {
     output.browserRetry(url, retry)
     dir = join(dir, retry.toString())
+    if (pageBrowser.console.count) {
+      try {
+        await pageBrowser.console.flush
+          .then(() => unlink(join(reportDir, 'console.jsont')))
+      } catch (e) {
+        // ignore
+      }
+    }
+  }
+  pageBrowser.console = {
+    count: 0,
+    byApi: {},
+    flush: Promise.resolve()
   }
   await recreateDir(dir)
   delete pageBrowser.stopped
   const childProcess = await instantiate(job, {
-    modules: job.browserCapabilities.modules,
     url,
     retry,
     scripts,
@@ -143,6 +173,21 @@ async function run (job, pageBrowser) {
       const { id } = message
       screenshots[id]()
       delete screenshots[id]
+    } else if (message.command === 'console') {
+      ++pageBrowser.console.count
+      if (!pageBrowser.console.byApi[message.api]) {
+        pageBrowser.console.byApi[message.api] = 1
+      } else {
+        ++pageBrowser.console.byApi[message.api]
+      }
+      pageBrowser.console.flush = pageBrowser.console.flush
+        .then(() => writeFile(join(reportDir, 'console.jsont'), JSON.stringify({
+          t: message.t,
+          api: message.api,
+          args: message.args
+        }) + '\n', {
+          flag: 'a+'
+        }))
     }
   })
   childProcess.on('close', async code => {
@@ -206,6 +251,7 @@ async function stop (job, url, retry = false) {
       ])
       clearTimeout(timeoutId)
     }
+    await pageBrowser.console.flush
     if (retry) {
       if (++pageBrowser.retry <= job.browserRetry) {
         run(job, pageBrowser)

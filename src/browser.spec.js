@@ -15,7 +15,7 @@ describe('src/browser', () => {
   beforeEach(() => {
     job = jobFactory.fromObject(cwd, {
       url: 'http://localhost:8080',
-      tstReportDir: join(tmp, 'browser'),
+      reportDir: join(tmp, 'browser'),
       browserCloseTimeout: 100,
       '--': ['argument1', 'argument2']
     })
@@ -92,6 +92,20 @@ describe('src/browser', () => {
       expect(count).toStrictEqual(1)
     })
 
+    it('handles failure during probe', async () => {
+      mock({
+        api: 'fork',
+        scriptPath: job.browser,
+        exec: async childProcess => {
+          childProcess.close(-1)
+        }
+      })
+      await expect(probe(job)).rejects.toMatchObject({
+        name: 'UTRError',
+        message: 'BROWSER_PROBE_FAILED'
+      })
+    })
+
     describe('dependent modules', () => {
       const npmGlobal = join(tmp, 'npm/global')
 
@@ -141,6 +155,60 @@ describe('src/browser', () => {
         await expect(probe(job)).rejects.toMatchObject({
           name: 'UTRError',
           message: 'NPM_FAILED'
+        })
+      })
+    })
+
+    describe('probe with modules', () => {
+      it('enables a second call if dependent modules were expected', async () => {
+        let config
+        let count = 0
+        mock({
+          api: 'fork',
+          scriptPath: job.browser,
+          exec: async childProcess => {
+            ++count
+            config = JSON.parse((await readFile(childProcess.args[0])).toString())
+            if (!config.modules) {
+              await writeFile(config.capabilities, JSON.stringify({
+                modules: ['reserve'],
+                'probe-with-modules': true,
+                screenshot: true
+              }))
+            } else {
+              await writeFile(config.capabilities, JSON.stringify({
+                modules: ['reserve'],
+                screenshot: false
+              }))
+            }
+          }
+        })
+        await probe(job)
+        expect(count).toStrictEqual(2)
+        expect(config.modules.reserve).not.toBeUndefined()
+        expect(job.browserCapabilities.screenshot).toStrictEqual(false)
+      })
+
+      it('handles failure on second probe', async () => {
+        mock({
+          api: 'fork',
+          scriptPath: job.browser,
+          exec: async childProcess => {
+            const config = JSON.parse((await readFile(childProcess.args[0])).toString())
+            if (!config.modules) {
+              await writeFile(config.capabilities, JSON.stringify({
+                modules: ['reserve'],
+                'probe-with-modules': true,
+                screenshot: true
+              }))
+            } else {
+              childProcess.close(-1)
+            }
+          }
+        })
+        await expect(probe(job)).rejects.toMatchObject({
+          name: 'UTRError',
+          message: 'BROWSER_PROBE_FAILED'
         })
       })
     })
@@ -525,7 +593,7 @@ describe('src/browser', () => {
               childProcess: {
                 connected: false
               },
-              reportDir: job.tstReportDir
+              reportDir: job.reportDir
             }
           }
           expect(await screenshot(job, '/disconnected.html')).toBeUndefined()
