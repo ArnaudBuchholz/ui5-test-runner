@@ -3,11 +3,12 @@
 const { readFileSync, writeFileSync } = require('fs')
 const settings = JSON.parse(readFileSync(process.argv[2]).toString())
 
-if (settings.capabilities) {
+if (settings.capabilities && !settings.modules) {
   writeFileSync(settings.capabilities, JSON.stringify({
     modules: ['selenium-webdriver'],
     screenshot: '.png',
-    scripts: true
+    scripts: true,
+    'probe-with-modules': true
   }))
   process.exit(0)
 }
@@ -48,6 +49,16 @@ async function main () {
     .forBrowser(Browser.CHROME)
     .setChromeOptions(chromeOptions)
     .build()
+
+  if (settings.capabilities) {
+    writeFileSync(settings.capabilities, JSON.stringify({
+      modules: ['selenium-webdriver'],
+      screenshot: '.png',
+      scripts: true
+    }))
+    return
+  }
+
   if (scripts && scripts.length) {
     for await (const script of scripts) {
       await driver.sendDevToolsCommand('Page.addScriptToEvaluateOnNewDocument', { source: script })
@@ -56,12 +67,21 @@ async function main () {
   await driver.get(url)
 }
 
-main().catch(async error => {
-  console.error(error)
-  try {
-    await driver.quit()
-  } catch (e) {
-    // ignore
-  }
-  process.exit(-1)
-})
+main()
+  .catch(async error => {
+    if (error.name === 'SessionNotCreatedError') {
+      console.error(error.message)
+      console.error('Please check https://www.npmjs.com/package/selenium-webdriver#installation for browser driver')
+    } else {
+      console.error(error)
+    }
+    return -1
+  })
+  .then(async (code = 0) => {
+    try {
+      await driver.quit()
+    } catch (e) {
+      // ignore
+    }
+    process.exit(code)
+  })
