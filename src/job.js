@@ -5,6 +5,10 @@ const { statSync, accessSync, constants } = require('fs')
 const { join, isAbsolute } = require('path')
 const { name, description, version } = require(join(__dirname, '../package.json'))
 
+function toLongName (name) {
+  return name.replace(/([A-Z])([a-z]+)/g, (match, firstLetter, reminder) => `-${firstLetter.toLowerCase()}${reminder}`)
+}
+
 function buildArgs (parameters) {
   const before = []
   const after = []
@@ -21,7 +25,7 @@ function buildArgs (parameters) {
     } else {
       args = before
     }
-    args.push(`-${name}`)
+    args.push(`--${toLongName(name)}`)
     if (value !== null) {
       if (Array.isArray(value)) {
         args.push(...value)
@@ -68,12 +72,12 @@ function parse (cwd, args) {
     .description(description)
     .version(version)
     .addOption(
-      new Option('-cwd <path>', 'Current working directory')
+      new Option('-c, --cwd <path>', 'Current working directory')
         .default(cwd, 'current working directory')
     )
-    .option('-port <port>', 'Port to use (0 to use a free one)', integer, 0)
-    .option('-ui5 <url>', 'UI5 url', url, 'https://ui5.sap.com')
-    .option('-libs <path...>', 'Library mapping', function lib (value, previousValue) {
+    .option('--port <port>', 'Port to use (0 to use a free one)', integer, 0)
+    .option('--ui5 <url>', 'UI5 url', url, 'https://ui5.sap.com')
+    .option('--libs <path...>', 'Library mapping', function lib (value, previousValue) {
       let result
       if (previousValue === undefined) {
         result = []
@@ -88,36 +92,36 @@ function parse (cwd, args) {
       }
       return result
     })
-    .option('-cache <path>', 'Cache UI5 resources locally in the given folder (empty to disable)')
-    .option('-webapp <path>', 'Base folder of the web application (relative to cwd)', 'webapp')
-    .option('-testsuite <path>', 'Path of the testsuite file (relative to webapp)', 'test/testsuite.qunit.html')
-    .option('-url <url...>', 'URL of the testsuite / page to test', url)
+    .option('--cache <path>', 'Cache UI5 resources locally in the given folder (empty to disable)')
+    .option('--webapp <path>', 'Base folder of the web application (relative to cwd)', 'webapp')
+    .option('--testsuite <path>', 'Path of the testsuite file (relative to webapp)', 'test/testsuite.qunit.html')
+    .option('-u, --url <url...>', 'URL of the testsuite / page to test', url)
 
-    .option('-pageFilter <regexp>', 'Filters which pages to execute')
-    .option('-pageParams <params>', 'Parameters added to each page URL')
-    .option('-pageTimeout <timeout>', 'Limit the page execution time (ms), fails the page if it takes longer than the timeout (0 to disable the timeout)', integer, 0)
-    .option('-globalTimeout <timeout>', 'Limit the pages execution time (ms), fails the page if it takes longer than the timeout (0 to disable the timeout)', integer, 0)
-    .option('-failFast [flag]', 'Stops the execution after the first failing page', boolean, false)
-    .option('-keepAlive [flag]', 'Keeps the server alive (enables debugging)', boolean, false)
-    .option('-watch [flag]', 'Monitors the webapp folder and re-execute tests on change', boolean, false)
-    .option('-logServer [flag]', 'Logs server traces', boolean, false)
+    .option('-pf, --page-filter <regexp>', 'Filters which pages to execute')
+    .option('-pp, --page-params <params>', 'Parameters added to each page URL')
+    .option('-pt, --page-timeout <timeout>', 'Limit the page execution time (ms), fails the page if it takes longer than the timeout (0 to disable the timeout)', integer, 0)
+    .option('-t, --global-timeout <timeout>', 'Limit the pages execution time (ms), fails the page if it takes longer than the timeout (0 to disable the timeout)', integer, 0)
+    .option('-f, --fail-fast [flag]', 'Stops the execution after the first failing page', boolean, false)
+    .option('-k, --keep-alive [flag]', 'Keeps the server alive (enables debugging)', boolean, false)
+    .option('-w, --watch [flag]', 'Monitors the webapp folder and re-execute tests on change', boolean, false)
+    .option('-l, --log-server [flag]', 'Logs server traces', boolean, false)
 
-    .option('-browser <command>', 'Browser instantiation command', join(__dirname, '../defaults/puppeteer.js'))
-    .option('-browserArgs <argument...>', 'Browser instantiation command parameters')
+    .option('-b, --browser <command>', 'Browser instantiation command', join(__dirname, '../defaults/puppeteer.js'))
+    .option('--browser-args <argument...>', 'Browser instantiation command parameters')
 
-    .option('-browserCloseTimeout <timeout>', 'Maximum waiting time (ms) for browser close', integer, 2000)
-    .option('-browserRetry <count>', 'Browser instantiation retries : if the command fails unexpectedly, it is re-executed (0 means no retry)', 1)
-    .option('-noScreenshot', 'No screenshot is taken during the tests execution', boolean, false)
-    .option('-screenshotTimeout <timeout>', 'Maximum waiting time (ms) for browser screenshot', integer, 2000)
+    .option('-bt, --browser-close-timeout <timeout>', 'Maximum waiting time (ms) for browser close', integer, 2000)
+    .option('-br, --browser-retry <count>', 'Browser instantiation retries : if the command fails unexpectedly, it is re-executed (0 means no retry)', 1)
+    .option('--no-screenshot', 'No screenshot is taken during the tests execution', boolean, false)
+    .option('-st, --screenshot-timeout <timeout>', 'Maximum waiting time (ms) for browser screenshot', integer, 2000)
 
-    .option('-parallel <count>', 'Number of parallel tests executions', 2)
-    .option('-tstReportDir <path>', 'Directory to output test reports (relative to cwd)', 'report')
+    .option('-p, --parallel <count>', 'Number of parallel tests executions', 2)
+    .option('-r, --report-dir <path>', 'Directory to output test reports (relative to cwd)', 'report')
 
-    .option('-coverage [flag]', 'Enable or disable code coverage', boolean, true)
-    .option('-covSettings <path>', 'Path to a custom nyc.json file providing settings for instrumentation (relative to cwd)', join(__dirname, '../defaults/nyc.json'))
-    .option('-covTempDir <path>', 'Directory to output raw coverage information to (relative to cwd)', '.nyc_output')
-    .option('-covReportDir <path>', 'Directory to store the coverage report files (relative to cwd)', 'coverage')
-    .option('-covReporters <reporter...>', 'List of reporters to use', ['lcov', 'cobertura'])
+    .option('--coverage [flag]', 'Enable or disable code coverage', boolean, true)
+    .option('-cs, --coverage-settings <path>', 'Path to a custom nyc.json file providing settings for instrumentation (relative to cwd)', join(__dirname, '../defaults/nyc.json'))
+    .option('-ct, --coverage-temp <path>', 'Directory to output raw coverage information to (relative to cwd)', '.nyc_output')
+    .option('-cr, --coverage-report <path>', 'Directory to store the coverage report files (relative to cwd)', 'coverage')
+    .option('-cr, --coverage-reporters <reporter...>', 'List of reporters to use', ['lcov', 'cobertura'])
 
   command.parse(args, { from: 'user' })
   const options = command.opts()
@@ -165,7 +169,7 @@ function finalize (job) {
   }
 
   updateToAbsolute('cwd', job.initialCwd)
-  'webapp,browser,tstReportDir,covSettings,covTempDir,covReportDir'
+  'webapp,browser,reportDir,coverageSettings,coverageTemp,coverageReport'
     .split(',')
     .forEach(setting => updateToAbsolute(setting))
   if (!job.url) {
@@ -189,45 +193,44 @@ function finalize (job) {
       checkAccess({ path: libMapping.source, label: `${description} (${libMapping.source})` })
     })
   }
+}
 
-  if (job.parallel <= 0) {
-    job.keepAlive = true
+function fromCmdLine (cwd, args) {
+  let job = parse(cwd, args)
+
+  const defaultPath = join(job.cwd, 'ui5-test-runner.json')
+  let hasDefaultSettings = false
+  try {
+    checkAccess({ path: defaultPath, file: true })
+    hasDefaultSettings = true
+  } catch (e) {
+    // ignore
   }
+  if (hasDefaultSettings) {
+    const defaults = require(defaultPath)
+    const { before, after, browser } = buildArgs(defaults)
+    const sep = args.indexOf('--')
+    if (sep === -1) {
+      args = [...before, ...args, ...after, '--', ...browser]
+    } else {
+      args = [...before, ...args.slice(0, sep), ...after, '--', ...browser, ...args.slice(sep + 1)]
+    }
+    job = parse(cwd, args)
+  }
+
+  finalize(job)
+  return job
+}
+
+function fromObject (cwd, parameters) {
+  const { before, browser } = buildArgs(parameters)
+  if (browser.length) {
+    return fromCmdLine(cwd, [...before, '--', ...browser])
+  }
+  return fromCmdLine(cwd, [...before])
 }
 
 module.exports = {
-  fromCmdLine (cwd, args) {
-    let job = parse(cwd, args)
-
-    const defaultPath = join(job.cwd, 'ui5-test-runner.json')
-    let hasDefaultSettings = false
-    try {
-      checkAccess({ path: defaultPath, file: true })
-      hasDefaultSettings = true
-    } catch (e) {
-      // ignore
-    }
-    if (hasDefaultSettings) {
-      const defaults = require(defaultPath)
-      const { before, after, browser } = buildArgs(defaults)
-      const sep = args.indexOf('--')
-      if (sep === -1) {
-        args = [...before, ...args, ...after, '--', ...browser]
-      } else {
-        args = [...before, ...args.slice(0, sep), ...after, '--', ...browser, ...args.slice(sep + 1)]
-      }
-      job = parse(cwd, args)
-    }
-
-    finalize(job)
-    return job
-  },
-
-  fromObject (cwd, parameters) {
-    const { before, browser } = buildArgs(parameters)
-    if (browser.length) {
-      return this.fromCmdLine(cwd, [...before, '--', ...browser])
-    }
-    return this.fromCmdLine(cwd, [...before])
-  }
+  fromCmdLine,
+  fromObject
 }

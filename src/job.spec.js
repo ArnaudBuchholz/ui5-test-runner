@@ -166,24 +166,15 @@ describe('job', () => {
     })
   })
 
-  describe('post processing', () => {
-    it('sets keepAlive when parallel = 0', () => {
-      const job = buildJob({
-        parallel: 0
-      })
-      expect(job.keepAlive).toStrictEqual(true)
-    })
-  })
-
   describe('Using ui5-test-runner.json', () => {
     const project2 = join(__dirname, '../test/project2')
 
     it('enables option overriding at the command level', () => {
       const job = jobFactory.fromCmdLine(cwd, [
-        '-port', '1',
-        '-port', '2',
-        '-keepAlive', 'true',
-        '-keepAlive', 'false'
+        '--port', '1',
+        '--port', '2',
+        '-k', 'true',
+        '-k', 'false'
       ])
       expect(job.port).toStrictEqual(2)
       expect(job.keepAlive).toStrictEqual(false)
