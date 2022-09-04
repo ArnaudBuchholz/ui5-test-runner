@@ -19,6 +19,7 @@ const { Options: ChromeOptions } = require(join(settings.modules['selenium-webdr
 
 const chromeOptions = new ChromeOptions()
 chromeOptions.excludeSwitches('enable-logging')
+chromeOptions.addArguments('headless')
 
 const { url, scripts } = settings
 
@@ -71,10 +72,10 @@ main()
   .catch(async error => {
     if (error.name === 'SessionNotCreatedError') {
       console.error(error.message)
-      console.error('Please check https://www.npmjs.com/package/selenium-webdriver#installation for browser driver')
     } else {
       console.error(error)
     }
+    console.error('Please check https://www.npmjs.com/package/selenium-webdriver#installation for browser driver')
     return -1
   })
   .then(async (code = 0) => {
