@@ -77,7 +77,7 @@ module.exports = job => {
             mapping[page] = filename(page)
             return mapping
           }, {})
-          const pagesFileName = join(job.tstReportDir, 'pages.json')
+          const pagesFileName = join(job.reportDir, 'pages.json')
           await writeFile(pagesFileName, JSON.stringify(pages))
           job.testPageUrls = Object.keys(pages) // filter out duplicates
           stop(job, url)
@@ -205,7 +205,7 @@ module.exports = job => {
       }, {
       // Endpoint to report files
         match: '^/_/(.*)',
-        file: join(job.tstReportDir, '$1')
+        file: join(job.reportDir, '$1')
       }]
     : []
 }
