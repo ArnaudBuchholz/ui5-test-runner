@@ -13,7 +13,7 @@ let lastScreenshotId = 0
 const screenshots = {}
 
 async function instantiate (job, config) {
-  const { dir } = config
+  const { dir, url } = config
   await recreateDir(dir)
   const browserConfig = {
     ...config,
@@ -37,7 +37,7 @@ async function instantiate (job, config) {
     await stdout.close()
     await stderr.close()
     if (code !== 0) {
-      output.browserFailed(dir, stdoutFilename, stderrFilename)
+      output.browserFailed(url, code, dir)
     }
     resolve(code)
   })
@@ -92,7 +92,7 @@ async function probe (job) {
   }
   job.browserCapabilities.modules = resolvedModules
   if (browserCapabilities['probe-with-modules']) {
-    job.browserCapabilities = await execute('probe-with-modules')
+    job.browserCapabilities = await execute('probe/with-modules')
     job.browserCapabilities.modules = resolvedModules
   }
 }
@@ -164,7 +164,7 @@ async function run (job, pageBrowser) {
   const timeout = getPageTimeout(job)
   if (timeout) {
     pageBrowser.timeoutId = setTimeout(() => {
-      output.browserTimeout(url)
+      output.browserTimeout(url, dir)
       stop(job, url)
     }, timeout)
   }
@@ -192,7 +192,7 @@ async function run (job, pageBrowser) {
   })
   childProcess.on('close', async code => {
     if (!pageBrowser.stopped) {
-      output.browserClosed(url)
+      output.browserClosed(url, code, dir)
       stop(job, url, true)
     }
   })
