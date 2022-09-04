@@ -6,7 +6,7 @@ const { writeFile } = require('fs')
 const output = require('./output')
 
 module.exports = job => {
-  const unhandled = join(job.tstReportDir, 'unhandled.txt')
+  const unhandled = join(job.reportDir, 'unhandled.txt')
   let outputUnhandled = true
   return [{
     custom: ({ headers, method, url }) => {
