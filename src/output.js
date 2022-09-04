@@ -1,5 +1,7 @@
 'use strict'
 
+const { readFileSync } = require('fs')
+
 const nativeConsole = console
 const mockConsole = {}
 const interactive = process.stdout.columns !== undefined
@@ -164,8 +166,22 @@ module.exports = {
   },
   browserFailed (url, stdoutFilename, stderrFilename) {
     console.log('!! BROWSER FAILED', url)
-    console.log('\tstdout:', stdoutFilename)
-    console.log('\tstderr:', stderrFilename)
+    if (interactive) {
+      const stderr = readFileSync(stderrFilename).toString()
+      if (stderr.trim().length !== 0) {
+        console.log('-8<-stderr'.padEnd((process.stdout.columns || 80) - 10, '-'))
+        stderr.split(/\r?\n/).forEach(line => console.log(line))
+        console.log('-8<-------'.padEnd((process.stdout.columns || 80) - 10, '-'))
+      } else {
+        const stdout = readFileSync(stdoutFilename).toString()
+        console.log('-8<-stdout'.padEnd((process.stdout.columns || 80) - 10, '-'))
+        stdout.split(/\r?\n/).slice(-10).forEach(line => console.log(line))
+        console.log('-8<-------'.padEnd((process.stdout.columns || 80) - 10, '-'))
+      }
+    } else {
+      console.log('\tstderr:', stderrFilename)
+      console.log('\tstdout:', stdoutFilename)
+    }
   },
   monitor (childProcess) {
     ['stdout', 'stderr'].forEach(channel => {
