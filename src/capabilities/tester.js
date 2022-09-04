@@ -169,7 +169,7 @@ async function main () {
   try {
     await probe(job)
   } catch (e) {
-    console.error('Unable to probe', e)
+    console.error('Unable to probe')
     exit(-1)
   }
   console.log('Resolved capabilities :', job.browserCapabilities)
