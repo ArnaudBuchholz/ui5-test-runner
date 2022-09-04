@@ -56,7 +56,7 @@ async function instrument (job) {
   if (job.cache) {
     settings.exclude.push(join(job.cache, '**'))
   }
-  settings.exclude.push(join(job.tstReportDir, '**'))
+  settings.exclude.push(join(job.reportDir, '**'))
   settings.exclude.push(join(job.covReportDir, '**'))
   await writeFile(job.nycSettingsPath, JSON.stringify(settings))
   await nyc('instrument', job.webapp, join(job.covTempDir, 'instrumented'), '--nycrc-path', job.nycSettingsPath)
