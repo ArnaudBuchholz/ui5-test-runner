@@ -1,6 +1,7 @@
 'use strict'
 
 const { readFileSync } = require('fs')
+const { join } = require('path')
 
 const nativeConsole = console
 const mockConsole = {}
@@ -125,6 +126,69 @@ if (interactive) {
   global.console = mockConsole
 }
 
+function browserIssue ({
+  type,
+  url,
+  code,
+  dir
+}) {
+  const width = process.stdout.columns || 80
+  console.log('┌'.padEnd(width - 1, '─') + '┐')
+  console.log(('│ BROWSER ' + type.toUpperCase()).padEnd(width - 1, ' ') + '│')
+  console.log('├──────┬'.padEnd(width - 1, '─') + '┤')
+  function show (label, value) {
+    let truncValue
+    if (value.length > width - 11) {
+      truncValue = '...' + value.substring(value.length - width + 15)
+    } else {
+      truncValue = value
+    }
+    console.log((`│ ${label}  │ ` + truncValue).padEnd(width - 2) + ' │')
+  }
+  show('url', url)
+  console.log('├──────┼'.padEnd(width - 1, '─') + '┤')
+  console.log(('│ code │ 0x' + code.toString(16).toUpperCase()).padEnd(width - 1) + '│')
+  console.log('├──────┼'.padEnd(width - 1, '─') + '┤')
+  show('dir', dir)
+  console.log('├──────┴'.padEnd(width - 1, '─') + '┤')
+  function render (text) {
+    if (interactive) {
+      text
+        .split(/\r?\n/)
+        .forEach(line => {
+          if (line < width - 4) {
+            console.log(`│ ${line}`.padEnd(width - 2) + ' │')
+          } else {
+            const chars = line.split('')
+            for (let offset = 0; offset < line.length; offset += width - 4) {
+              const part = chars.slice(offset, offset + width - 4)
+              console.log(`│ ${part.join('')}`.padEnd(width - 2) + `${offset + width - 4 < chars.length ? '↵' : ' '}│`)
+            }
+          }
+        })
+    } else {
+      console.log('┆'.padEnd(width - 1, ' ') + '┆')
+      console.log(text)
+      console.log('┆'.padEnd(width - 1, ' ') + '┆')
+    }
+  }
+
+  const stderr = readFileSync(join(dir, 'stderr.txt')).toString().trim()
+  if (stderr.length !== 0) {
+    console.log(`│ Error output (${stderr.length}) `.padEnd(width - 1) + '│')
+    render(stderr)
+  } else {
+    const stdout = readFileSync(join(dir, 'stdout.txt')).toString()
+    if (stdout.length !== 0) {
+      console.log(`│ Standard output (${stdout.length}), last 10 lines... `.padEnd(width - 1) + '│')
+      render(stdout.split(/\r?\n/).slice(-10).join('\n'))
+    } else {
+      console.log('│ No output'.padEnd(width - 1) + '│')
+    }
+  }
+  console.log('└'.padEnd(width - 1, '─') + '┘')
+}
+
 module.exports = {
   serving (url) {
     console.log(`Server running at ${url}`)
@@ -155,33 +219,17 @@ module.exports = {
       console.log('<<', url)
     }
   },
-  browserClosed (url) {
-    console.log('!! BROWSER CLOSED', url)
+  browserClosed (url, code, dir) {
+    browserIssue({ type: 'closed', url, code, dir })
   },
   browserRetry (url, retry) {
     console.log('>> RETRY', retry, url)
   },
-  browserTimeout (url) {
-    console.log('!! TIMEOUT', url)
+  browserTimeout (url, dir) {
+    browserIssue({ type: 'timeout', url, code: 0, dir })
   },
-  browserFailed (url, stdoutFilename, stderrFilename) {
-    console.log('!! BROWSER FAILED', url)
-    if (interactive) {
-      const stderr = readFileSync(stderrFilename).toString()
-      if (stderr.trim().length !== 0) {
-        console.log('-8<-stderr'.padEnd((process.stdout.columns || 80) - 10, '-'))
-        stderr.split(/\r?\n/).forEach(line => console.log(line))
-        console.log('-8<-------'.padEnd((process.stdout.columns || 80) - 10, '-'))
-      } else {
-        const stdout = readFileSync(stdoutFilename).toString()
-        console.log('-8<-stdout'.padEnd((process.stdout.columns || 80) - 10, '-'))
-        stdout.split(/\r?\n/).slice(-10).forEach(line => console.log(line))
-        console.log('-8<-------'.padEnd((process.stdout.columns || 80) - 10, '-'))
-      }
-    } else {
-      console.log('\tstderr:', stderrFilename)
-      console.log('\tstdout:', stdoutFilename)
-    }
+  browserFailed (url, code, dir) {
+    browserIssue({ type: 'failed', url, code, dir })
   },
   monitor (childProcess) {
     ['stdout', 'stderr'].forEach(channel => {
