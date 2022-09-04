@@ -18,6 +18,8 @@ const errors = [{
 }, {
   name: 'MISSING_OR_INVALID_BROWSER_CAPABILITIES'
 }, {
+  name: 'BROWSER_PROBE_FAILED'
+}, {
   name: 'BROWSER_FAILED'
 }, {
   name: 'BROWSER_SCREENSHOT_FAILED'
