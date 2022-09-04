@@ -119,40 +119,13 @@ You may also use :
 
 ## Parameters
 
-| name | default | description |
-|---|---|---|
-| cwd | `process.cwd()` | Current working directory |
-| port | `0` | port to use (`0` to let REserve allocate one) |
-| ui5 | `'https://ui5.sap.com'` | UI5 url |
-| libs | | Folder(s) containing dependent libraries *(relative to `cwd`)*.<br/>Might be used multiple times, two syntaxes are supported :<ul><li>`-libs:path` adds `path` to the list of libraries, mapped directly under `/resources/`</li><li>`-libs:rel/=path` adds the `path` to the list of libraries, mapped under `/resources/rel/`</li></ul> |
-| cache | `''` | Cache UI5 resources locally in the given folder *(empty to disable)* |
-| webapp | `'webapp'` | base folder of the web application *(relative to `cwd`)* |
-| testsuite | `'test/testsuite.qunit.html'` | path / URL to the testsuite file *(relative to `webapp`)* |
-| pageFilter | `''` | [regexp](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/RegExp) to select which pages to execute |
-| pageParams | `''` | Parameters added to each page URL.<br/>For instance : `'sap-ui-theme=sap_belize&sap-ui-debug=true'` |
-| pageTimeout | `0` | Limit the page execution time (ms), fails the page if it takes longer than the timeout (`0` to disable the timeout) |
-| globalTimeout | `0` | Limit the pages execution time (ms), fails the execution if it takes longer than the timeout (`0` to disable the timeout) |
-| failFast | `false` | Stops the execution after the first failing page |
-| keepAlive | `false` | Keeps the server alive *(enables debugging)* |
-| watch | `false` | Monitors the webapp folder and re-execute tests on change |
-| logServer | `false` | Logs REserve traces |
-| browser | *String, see description* | Browser instantiation command, it should point to a node.js script *(absolute or relative to `cwd`)*.<br/>By default, a script will instantiate chromium through puppetteer |
-| browserRetry | `1` | Browser instantiation retries : if the command **fails** unexpectedly, it is re-executed *(`0` means no retry)*.<br/>The page **fails** if **all attempts** fail |
-| noScreenshot | `false` | No screenshot is taken during the tests execution (faster if the browser command supports screenshot) |
-| -- | | Parameters given right after `--` are directly added to the browser instantiation arguments *(see below)* |
-| parallel | `2` | Number of parallel tests executions (`0` to ignore tests and keep alive) |
-| tstReportDir | `'report'` | Directory to output test reports *(relative to `cwd`)* |
-| coverage | `true` | Enables code coverage |
-| covSettings | *String, see description* | Path to a custom `nyc.json` file providing settings for instrumentation *(relative to `cwd`)* |
-| covTempDir | `'.nyc_output'` | Directory to output raw coverage information to *(relative to `cwd`)* |
-| covReportDir | `'coverage'` | Where to put the coverage report files *(relative to `cwd`)* |
-| covReporters | `'lcov,cobertura'` | Comma separated list of reporters to use |
+To access the list of parameters, use `ui5-test-runner --help`.
 
 These two commands are equivalent :
 
 ```text
-ui5-test-runner "-args:__URL__ __REPORT__ --visible"
-ui5-test-runner -- --visible
+ui5-test-runner "--browser-args __URL__ __REPORT__ --visible"
+ui5-test-runner -- __URL__ __REPORT__ --visible
 ```
 
 ### Configuration file
