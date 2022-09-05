@@ -225,7 +225,11 @@ async function main () {
     if (filteredTests.length === 0) {
       if (Object.keys(job.browsers).length === 0) {
         console.log('Done.')
-        await cleanDir(reportDir)
+        if (errors) {
+          console.error('Temporary folder', reportDir, 'not cleaned because of errors.')
+        } else {
+          await cleanDir(reportDir)
+        }
         exit(errors)
       }
       return
