@@ -57,7 +57,7 @@ async function main () {
       screenshot: '.png',
       scripts: true
     }))
-    return
+    process.exit(0)
   }
 
   if (scripts && scripts.length) {
@@ -68,21 +68,17 @@ async function main () {
   await driver.get(url)
 }
 
-main()
-  .catch(async error => {
-    if (error.name === 'SessionNotCreatedError') {
-      console.error(error.message)
-    } else {
-      console.error(error)
-    }
-    console.error('Please check https://www.npmjs.com/package/selenium-webdriver#installation for browser driver')
-    return -1
-  })
-  .then(async (code = 0) => {
-    try {
-      await driver.quit()
-    } catch (e) {
-      // ignore
-    }
-    process.exit(code)
-  })
+main().catch(async error => {
+  if (error.name === 'SessionNotCreatedError') {
+    console.error(error.message)
+  } else {
+    console.error(error)
+  }
+  console.error('Please check https://www.npmjs.com/package/selenium-webdriver#installation for browser driver')
+  try {
+    await driver.quit()
+  } catch (e) {
+    // ignore
+  }
+  process.exit(-1)
+})
