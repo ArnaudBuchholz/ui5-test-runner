@@ -9,7 +9,7 @@ const output = require('../output')
 const EventEmitter = require('events')
 const assert = require('assert/strict')
 const { performance } = require('perf_hooks')
-const { cleanDir, allocPromise } = require('../tools')
+const { cleanDir, allocPromise, filename } = require('../tools')
 
 let job
 
@@ -263,7 +263,7 @@ async function main () {
       await stop(job, pageUrl)
       const timeSpent = Math.floor(performance.now() - now)
       if (error) {
-        console.log('❌', label, error)
+        console.log('❌', label, `[${filename(pageUrl)}]`, error)
         ++errors
       } else {
         console.log('✔️', label, timeSpent, 'ms')
