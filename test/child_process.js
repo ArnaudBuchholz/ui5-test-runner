@@ -38,6 +38,7 @@ function handle (childProcess, mock) {
         childProcess.close()
       }
     } catch (e) {
+      childProcess.exception = e
       childProcess.stderr.write(e.toString())
       childProcess.close(-1)
     }
