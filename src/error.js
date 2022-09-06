@@ -31,6 +31,7 @@ const errors = [{
 
 errors.forEach((error, index) => {
   error.code = -1 - index
+  UTRError[`${error.name}_CODE`] = error.code
   UTRError[error.name] = function (details = '') {
     return new UTRError(error, details)
   }
