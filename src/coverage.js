@@ -44,30 +44,30 @@ async function instrument (job) {
     const nyc = await resolvePackage(job, 'nyc')
     nycScript = join(nyc, 'bin/nyc.js')
   }
-  job.nycSettingsPath = join(job.covTempDir, 'settings/nyc.json')
-  await cleanDir(job.covTempDir)
-  await createDir(join(job.covTempDir, 'settings'))
-  const settings = JSON.parse((await readFile(job.covSettings)).toString())
+  job.nycSettingsPath = join(job.coverageTempDir, 'settings/nyc.json')
+  await cleanDir(job.coverageTempDir)
+  await createDir(join(job.coverageTempDir, 'settings'))
+  const settings = JSON.parse((await readFile(job.coverageSettings)).toString())
   settings.cwd = job.cwd
   if (!settings.exclude) {
     settings.exclude = []
   }
-  settings.exclude.push(join(job.covTempDir, '**'))
+  settings.exclude.push(join(job.coverageTempDir, '**'))
   if (job.cache) {
     settings.exclude.push(join(job.cache, '**'))
   }
   settings.exclude.push(join(job.reportDir, '**'))
-  settings.exclude.push(join(job.covReportDir, '**'))
+  settings.exclude.push(join(job.coverageReportDir, '**'))
   await writeFile(job.nycSettingsPath, JSON.stringify(settings))
-  await nyc('instrument', job.webapp, join(job.covTempDir, 'instrumented'), '--nycrc-path', job.nycSettingsPath)
+  await nyc('instrument', job.webapp, join(job.coverageTempDir, 'instrumented'), '--nycrc-path', job.nycSettingsPath)
 }
 
 async function generateCoverageReport (job) {
   job.status = 'Generating coverage report'
-  await cleanDir(job.covReportDir)
-  await nyc('merge', job.covTempDir, join(job.covTempDir, 'coverage.json'))
-  const reporters = job.covReporters.split(',').map(reporter => `--reporter=${reporter}`)
-  await nyc('report', ...reporters, '--temp-dir', job.covTempDir, '--report-dir', job.covReportDir, '--nycrc-path', job.nycSettingsPath)
+  await cleanDir(job.coverageReportDir)
+  await nyc('merge', job.coverageTempDir, join(job.coverageTempDir, 'coverage.json'))
+  const reporters = job.coverageReporters.split(',').map(reporter => `--reporter=${reporter}`)
+  await nyc('report', ...reporters, '--temp-dir', job.coverageTempDir, '--report-dir', job.coverageReportDir, '--nycrc-path', job.nycSettingsPath)
 }
 
 module.exports = {
@@ -76,7 +76,7 @@ module.exports = {
   mappings: job => job.coverage
     ? [{
         match: /^\/(.*\.js)$/,
-        file: join(job.covTempDir, 'instrumented', '$1'),
+        file: join(job.coverageTempDir, 'instrumented', '$1'),
         'ignore-if-not-found': true,
         'custom-file-system': customFileSystem
       }]
