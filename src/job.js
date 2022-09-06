@@ -119,8 +119,8 @@ function parse (cwd, args) {
 
     .option('--coverage [flag]', 'Enable or disable code coverage', boolean, true)
     .option('-cs, --coverage-settings <path>', 'Path to a custom nyc.json file providing settings for instrumentation (relative to cwd)', join(__dirname, '../defaults/nyc.json'))
-    .option('-ct, --coverage-temp <path>', 'Directory to output raw coverage information to (relative to cwd)', '.nyc_output')
-    .option('-cr, --coverage-report <path>', 'Directory to store the coverage report files (relative to cwd)', 'coverage')
+    .option('-ct, --coverage-temp-dir <path>', 'Directory to output raw coverage information to (relative to cwd)', '.nyc_output')
+    .option('-cr, --coverage-report-dir <path>', 'Directory to store the coverage report files (relative to cwd)', 'coverage')
     .option('-cr, --coverage-reporters <reporter...>', 'List of reporters to use', ['lcov', 'cobertura'])
 
   command.parse(args, { from: 'user' })
@@ -169,7 +169,7 @@ function finalize (job) {
   }
 
   updateToAbsolute('cwd', job.initialCwd)
-  'webapp,browser,reportDir,coverageSettings,coverageTemp,coverageReport'
+  'webapp,browser,reportDir,coverageSettings,coverageTempDir,coverageReportDir'
     .split(',')
     .forEach(setting => updateToAbsolute(setting))
   if (!job.url) {
