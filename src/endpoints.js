@@ -163,7 +163,7 @@ module.exports = job => {
           if (page) {
             await screenshot(job, url, 'screenshot.png')
             if (report.__coverage__) {
-              const coverageFileName = join(job.covTempDir, `${filename(url)}.json`)
+              const coverageFileName = join(job.coverageTempDir, `${filename(url)}.json`)
               await writeFile(coverageFileName, JSON.stringify(report.__coverage__))
               delete report.__coverage__
             }
@@ -197,7 +197,7 @@ module.exports = job => {
       }, {
       // Endpoint to coverage files
         match: '^/_/coverage/(.*)',
-        file: join(job.covReportDir, '$1')
+        file: join(job.coverageReportDir, '$1')
       }, {
       // Endpoint to report
         match: '^/_/report.html',
