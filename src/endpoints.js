@@ -4,13 +4,13 @@ const { join } = require('path')
 const { body } = require('reserve')
 const { screenshot, stop } = require('./browsers')
 const { writeFile } = require('fs').promises
-const { extractUrl, filename } = require('./tools')
+const { extractPageUrl, filename } = require('./tools')
 const { Request, Response } = require('reserve')
 const output = require('./output')
 
 module.exports = job => {
   async function endpointImpl (implementation, request) {
-    const url = extractUrl(request.headers)
+    const url = extractPageUrl(request.headers)
     const data = JSON.parse(await body(request))
     if (job.parallel === -1) {
       output.endpoint(url, data)
