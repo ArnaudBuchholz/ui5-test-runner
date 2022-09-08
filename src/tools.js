@@ -39,7 +39,7 @@ module.exports = {
   cleanDir,
   createDir: dir => mkdir(dir, recursive),
   recreateDir: dir => cleanDir(dir).then(() => mkdir(dir, recursive)),
-  extractUrl: headers => headers.referer.match(/http:\/\/[^/]+(?::\d+)?(\/.*)/)[1],
+  extractPageUrl: headers => headers['x-page-url'],
   allocPromise () {
     let resolve
     let reject
