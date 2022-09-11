@@ -1,3 +1,8 @@
+jest.mock('./browsers.js', () => ({
+  screenshot: jest.fn()
+}))
+const { screenshot } = require('./browsers')
+
 const {
   begin,
   log
@@ -74,7 +79,7 @@ describe('src/qunit-hooks', () => {
       await log(job, url, {})
     })
 
-    it('does nothing when screenshot is not available', async () => {
+    it('triggers a screenshot for OPA tests', async () => {
       const job = {
         browserCapabilities: {
           screenshot: '.png'
@@ -90,7 +95,19 @@ describe('src/qunit-hooks', () => {
           }]
         }]
       })
-      await log(job, url, { testId: '1a', timestamp: 'timestamp' })
+      await log(job, url, { testId: '1a', runtime: 'timestamp' })
+      expect(screenshot).toHaveBeenCalledWith(job, url, '1a-timestamp')
+      expect(job.qunitPages[url]).toEqual({
+        isOpa: true,
+        failed: 0,
+        passed: 0,
+        tests: [{
+          id: '1a',
+          screenshots: ['timestamp']
+        }, {
+          id: '2b'
+        }]
+      })
     })
   })
 })
