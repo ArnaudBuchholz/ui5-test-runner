@@ -202,9 +202,8 @@ async function screenshot (job, url, filename) {
   if (!job.browserCapabilities.screenshot) {
     throw UTRError.BROWSER_SCREENSHOT_NOT_SUPPORTED()
   }
-  const pageBrowser = job.browsers[url]
-  if (pageBrowser) {
-    const { childProcess, reportDir } = pageBrowser
+  try {
+    const { childProcess, reportDir } = job.browsers[url]
     const absoluteFilename = join(reportDir, filename + job.browserCapabilities.screenshot)
     if (childProcess.connected) {
       const id = ++lastScreenshotId
@@ -220,16 +219,17 @@ async function screenshot (job, url, filename) {
       }, job.screenshotTimeout)
       await promise
       clearTimeout(timeoutId)
-      try {
-        const result = await stat(absoluteFilename)
-        if (!result.isFile() || result.size === 0) {
-          throw new Error('File expected')
-        }
-      } catch (e) {
-        throw UTRError.BROWSER_SCREENSHOT_FAILED(e.toString())
+      const result = await stat(absoluteFilename)
+      if (!result.isFile() || result.size === 0) {
+        throw new Error('File expected')
       }
       return absoluteFilename
     }
+  } catch (e) {
+    if (e.code === UTRError.BROWSER_SCREENSHOT_TIMEOUT_CODE) {
+      throw e
+    }
+    throw UTRError.BROWSER_SCREENSHOT_FAILED(e.toString())
   }
 }
 
