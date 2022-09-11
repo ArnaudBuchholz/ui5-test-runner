@@ -582,11 +582,6 @@ describe('src/browser', () => {
       })
 
       describe('edge cases', () => {
-        it('ignores unknown pages', async () => {
-          job.browsers = {}
-          expect(await screenshot(job, '/unknown.html')).toBeUndefined()
-        })
-
         it('ignores disconnected child processes', async () => {
           job.browsers = {
             '/disconnected.html': {
