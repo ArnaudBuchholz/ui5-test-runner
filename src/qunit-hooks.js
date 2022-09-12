@@ -1,6 +1,6 @@
 'use strict'
 
-const { screenshot } = require('./browsers')
+const { screenshot, stop } = require('./browsers')
 
 function getTest ({ tests }, testId) {
   let test = tests.find(({ id }) => id === testId)
@@ -40,5 +40,34 @@ module.exports = {
       test.screenshots.push(runtime)
       await screenshot(job, url, `${testId}-${runtime}`)
     }
+  },
+
+  async testDone (job, url, report) {
+    const qunitPage = job.qunitPages[url]
+    const { testId, failed } = report
+    if (failed) {
+      if (job.browserCapabilities.screenshot) {
+        await screenshot(job, url, testId)
+      }
+      job.failed = true
+      ++qunitPage.failed
+    } else {
+      ++qunitPage.passed
+    }
+    getTest(qunitPage, testId).report = report
+  },
+
+  async done (job, url, report) {
+    const qunitPage = job.qunitPages[url]
+    if (job.browserCapabilities.screenshot) {
+      await screenshot(job, url, 'done')
+    }
+    if (report.__coverage__) {
+      const coverageFileName = join(job.coverageTempDir, `${filename(url)}.json`)
+      await writeFile(coverageFileName, JSON.stringify(report.__coverage__))
+      delete report.__coverage__
+    }
+    qunitPage.report = report
+    stop(job, url)
   }
 }
