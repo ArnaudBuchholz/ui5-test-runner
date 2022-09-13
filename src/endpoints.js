@@ -7,6 +7,7 @@ const { writeFile } = require('fs').promises
 const { extractPageUrl, filename } = require('./tools')
 const { Request, Response } = require('reserve')
 const output = require('./output')
+const { begin, log, testDone, done } = require('./qunit-hooks')
 
 module.exports = job => {
   async function endpointImpl (implementation, request) {
@@ -115,62 +116,19 @@ module.exports = job => {
       }, {
       // Endpoint to receive QUnit.begin
         match: '^/_/QUnit/begin',
-        custom: endpoint((url, details) => {
-          const page = {
-            isOpa: details.isOpa,
-            total: details.totalTests,
-            failed: 0,
-            passed: 0,
-            tests: {},
-            order: []
-          }
-          details.modules.forEach(module => {
-            module.tests.forEach(test => getPageTest(page, test.testId))
-          })
-          job.testPages[url] = page
-        })
+        custom: endpoint((url, details) => begin(job, url, details))
       }, {
       // Endpoint to receive QUnit.log
         match: '^/_/QUnit/log',
-        custom: synchronousEndpoint(async (url, report) => {
-          const page = job.testPages[url]
-          if (page.isOpa) {
-            const { testId, runtime } = report
-            getPageTest(page, testId).timestamps.push(runtime)
-            await screenshot(job, url, `${testId}-${runtime}.png`)
-          }
-        })
+        custom: synchronousEndpoint(async (url, report) => log(job, url, report))
       }, {
       // Endpoint to receive QUnit.testDone
         match: '^/_/QUnit/testDone',
-        custom: synchronousEndpoint(async (url, report) => {
-          const page = job.testPages[url]
-          const { testId } = report
-          if (report.failed) {
-            await screenshot(job, url, `${testId}.png`)
-            job.failed = true
-            ++page.failed
-          } else {
-            ++page.passed
-          }
-          getPageTest(page, testId).report = report
-        })
+        custom: synchronousEndpoint(async (url, report) => testDone(job, url, report))
       }, {
       // Endpoint to receive QUnit.done
         match: '^/_/QUnit/done',
-        custom: endpoint(async (url, report) => {
-          const page = job.testPages[url]
-          if (page) {
-            await screenshot(job, url, 'screenshot.png')
-            if (report.__coverage__) {
-              const coverageFileName = join(job.coverageTempDir, `${filename(url)}.json`)
-              await writeFile(coverageFileName, JSON.stringify(report.__coverage__))
-              delete report.__coverage__
-            }
-            page.report = report
-          }
-          stop(job, url)
-        })
+        custom: endpoint(async (url, report) => done(job, url, report))
       }, {
       // UI to follow progress
         match: '^/_/progress.html',
