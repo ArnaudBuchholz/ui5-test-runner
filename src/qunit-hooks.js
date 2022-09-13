@@ -1,6 +1,7 @@
 'use strict'
 
 const { screenshot, stop } = require('./browsers')
+const { collect } = require('./coverage')
 
 function getTest ({ tests }, testId) {
   let test = tests.find(({ id }) => id === testId)
@@ -63,8 +64,7 @@ module.exports = {
       await screenshot(job, url, 'done')
     }
     if (report.__coverage__) {
-      const coverageFileName = join(job.coverageTempDir, `${filename(url)}.json`)
-      await writeFile(coverageFileName, JSON.stringify(report.__coverage__))
+      collect(job, url, report.__coverage__)
       delete report.__coverage__
     }
     qunitPage.report = report
