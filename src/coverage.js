@@ -2,7 +2,7 @@
 
 const { join } = require('path')
 const { fork } = require('child_process')
-const { cleanDir, createDir } = require('./tools')
+const { cleanDir, createDir, filename } = require('./tools')
 const { readdir, readFile, stat, writeFile } = require('fs').promises
 const { Readable } = require('stream')
 const output = require('./output')
@@ -72,6 +72,10 @@ async function generateCoverageReport (job) {
 
 module.exports = {
   instrument: job => job.coverage && instrument(job),
+  async collect (job, url, coverageData) {
+    const coverageFileName = join(job.coverageTempDir, `${filename(url)}.json`)
+    await writeFile(coverageFileName, JSON.stringify(coverageData))
+  },
   generateCoverageReport: job => job.coverage && generateCoverageReport(job),
   mappings: job => job.coverage
     ? [{
