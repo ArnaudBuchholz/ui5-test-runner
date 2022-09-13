@@ -4,6 +4,11 @@ jest.mock('./browsers.js', () => ({
 }))
 const { screenshot, stop } = require('./browsers')
 
+jest.mock('./coverage.js', () => ({
+  collect: jest.fn()
+}))
+const { collect } = require('./coverage')
+
 const {
   begin,
   log,
@@ -25,6 +30,7 @@ describe('src/qunit-hooks', () => {
         modules: []
       })
       expect(job.qunitPages).not.toBeUndefined()
+      expect(job.qunitPages[url]).not.toBeUndefined()
     })
 
     it('associates url to a structure', async () => {
@@ -144,15 +150,17 @@ describe('src/qunit-hooks', () => {
           }]
         }]
       })
-      await log(job, url, { testId: '1a', runtime: 'timestamp' })
-      expect(screenshot).toHaveBeenCalledWith(job, url, '1a-timestamp')
+      await log(job, url, { testId: '1a', runtime: 't1' })
+      expect(screenshot).toHaveBeenCalledWith(job, url, '1a-t1')
+      await log(job, url, { testId: '1a', runtime: 't2' })
+      expect(screenshot).toHaveBeenCalledWith(job, url, '1a-t2')
       expect(job.qunitPages[url]).toEqual({
         isOpa: true,
         failed: 0,
         passed: 0,
         tests: [{
           id: '1a',
-          screenshots: ['timestamp']
+          screenshots: ['t1', 't2']
         }, {
           id: '2b'
         }]
@@ -161,8 +169,12 @@ describe('src/qunit-hooks', () => {
   })
 
   describe('testDone', () => {
-    it('increases passed count when successful', async () => {
-      const job = {}
+    let job
+
+    beforeEach(async () => {
+      job = {
+        browserCapabilities: {}
+      }
       await begin(job, url, {
         isOpa: false,
         modules: [{
@@ -173,9 +185,12 @@ describe('src/qunit-hooks', () => {
           }]
         }]
       })
+    })
+
+    it('increases passed count when successful', async () => {
       const report = { testId: '2b', failed: false }
       await testDone(job, url, report)
-      expect(screenshot).not.toHaveBeenCalled()
+      expect(screenshot).not.toHaveBeenCalledWith(job, url, '2b')
       expect(job.qunitPages[url]).toEqual({
         isOpa: false,
         failed: 0,
@@ -191,21 +206,7 @@ describe('src/qunit-hooks', () => {
 
     describe('failure', () => {
       it('increases failed count and takes a screenshot', async () => {
-        const job = {
-          browserCapabilities: {
-            screenshot: '.png'
-          }
-        }
-        await begin(job, url, {
-          isOpa: false,
-          modules: [{
-            tests: [{
-              testId: '1a'
-            }, {
-              testId: '2b'
-            }]
-          }]
-        })
+        job.browserCapabilities.screenshot = '.png'
         const report = { testId: '2b', failed: true }
         await testDone(job, url, report)
         expect(screenshot).toHaveBeenCalledWith(job, url, '2b')
@@ -223,20 +224,7 @@ describe('src/qunit-hooks', () => {
         expect(job.failed).toStrictEqual(true)
       })
 
-      it('increases failed count', async () => {
-        const job = {
-          browserCapabilities: {}
-        }
-        await begin(job, url, {
-          isOpa: false,
-          modules: [{
-            tests: [{
-              testId: '1a'
-            }, {
-              testId: '2b'
-            }]
-          }]
-        })
+      it('increases failed count only (no screenshot)', async () => {
         const report = { testId: '2b', failed: true }
         await testDone(job, url, report)
         expect(screenshot).not.toHaveBeenCalled()
@@ -257,8 +245,47 @@ describe('src/qunit-hooks', () => {
   })
 
   describe('done', () => {
-    const job = {
+    let job
 
-    }
+    beforeEach(() => {
+      job = {
+        browserCapabilities: {},
+        qunitPages: {
+          [url]: {}
+        }
+      }
+    })
+
+    it('stops the browser', async () => {
+      await done(job, url, {})
+      expect(stop).toHaveBeenCalledWith(job, url)
+    })
+
+    it('takes a screenshot if enabled', async () => {
+      job.browserCapabilities.screenshot = '.png'
+      await done(job, url, {})
+      expect(screenshot).toHaveBeenCalledWith(job, url, 'done')
+    })
+
+    it('takes no screenshot if disabled', async () => {
+      await done(job, url, {})
+      expect(screenshot).not.toHaveBeenCalled()
+    })
+
+    it('associates the report to the qunitPage', async () => {
+      const report = {}
+      await done(job, url, report)
+      expect(job.qunitPages[url].report).toStrictEqual(report)
+    })
+
+    it('collects and strips coverage information', async () => {
+      const coverage = {}
+      const report = {
+        __coverage__: coverage
+      }
+      await done(job, url, report)
+      expect(collect).toHaveBeenCalledWith(job, url, coverage)
+      expect(report).toMatchObject({})
+    })
   })
 })
