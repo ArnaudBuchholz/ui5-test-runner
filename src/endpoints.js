@@ -2,12 +2,11 @@
 
 const { join } = require('path')
 const { body } = require('reserve')
-const { screenshot, stop } = require('./browsers')
-const { writeFile } = require('fs').promises
-const { extractPageUrl, filename } = require('./tools')
+const { extractPageUrl } = require('./tools')
 const { Request, Response } = require('reserve')
 const output = require('./output')
 const { begin, log, testDone, done } = require('./qunit-hooks')
+const { addTestPages } = require('./add-test-pages')
 
 module.exports = job => {
   async function endpointImpl (implementation, request) {
@@ -39,17 +38,6 @@ module.exports = job => {
     }
   }
 
-  function getPageTest (page, testId) {
-    const { tests, order } = page
-    if (!tests[testId]) {
-      tests[testId] = {
-        timestamps: []
-      }
-      order.push(testId)
-    }
-    return tests[testId]
-  }
-
   return job.parallel
     ? [{
       // Substitute qunit-redirect to extract test pages
@@ -58,31 +46,7 @@ module.exports = job => {
       }, {
       // Endpoint to receive test pages
         match: '^/_/addTestPages',
-        custom: endpoint(async (url, data) => {
-          let testPageUrls
-          if (job.pageFilter) {
-            const filter = new RegExp(job.pageFilter)
-            testPageUrls = data.filter(name => name.match(filter))
-          } else {
-            testPageUrls = data
-          }
-          if (job.pageParams) {
-            testPageUrls = testPageUrls.map(url => {
-              if (url.includes('?')) {
-                return url + '&' + job.pageParams
-              }
-              return url + '?' + job.pageParams
-            })
-          }
-          const pages = testPageUrls.reduce((mapping, page) => {
-            mapping[page] = filename(page)
-            return mapping
-          }, {})
-          const pagesFileName = join(job.reportDir, 'pages.json')
-          await writeFile(pagesFileName, JSON.stringify(pages))
-          job.testPageUrls = Object.keys(pages) // filter out duplicates
-          stop(job, url)
-        })
+        custom: endpoint((url, pages) => addTestPages(job, url, pages))
       }, {
       // QUnit hooks
         match: '^/_/qunit-hooks.js',
