@@ -21,6 +21,7 @@ describe('src/qunit-hooks', () => {
 
   beforeEach(() => {
     screenshot.mockClear()
+    stop.mockClear()
   })
 
   describe('begin', () => {
