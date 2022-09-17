@@ -30,7 +30,7 @@ async function refresh () {
           tr.id = url
           tr.querySelector('td').appendChild(document.createTextNode(url))
         }
-        const page = job.testPages[url]
+        const page = job.qunitPages && job.qunitPages[url]
         if (page) {
           const progress = tr.querySelector('progress')
           if (page.total) {
