@@ -1,29 +1,17 @@
 'use strict'
 
 const { probe, start } = require('./browsers')
-const { instrument, generateCoverageReport } = require('./coverage')
-const { filename, recreateDir } = require('./tools')
-const { join } = require('path')
-const { copyFile, writeFile } = require('fs').promises
+const { instrument } = require('./coverage')
+const { recreateDir } = require('./tools')
 const { globallyTimedOut } = require('./timeout')
+const { save, generate } = require('./report')
 const output = require('./output')
-
-async function saveJob (job) {
-  await writeFile(join(job.reportDir, 'job.json'), JSON.stringify({
-    ...job,
-    // Following members are useless because already serialized or not relevant
-    status: undefined,
-    testPageUrls: undefined,
-    browsers: undefined,
-    testPages: undefined
-  }))
-}
 
 async function extractTestPages (job) {
   job.start = new Date()
   await instrument(job)
   await recreateDir(job.reportDir)
-  await saveJob(job)
+  await save(job)
   job.status = 'Extracting test pages'
   job.testPageUrls = []
   await start(job, `http://localhost:${job.port}/${job.testsuite}`)
@@ -47,7 +35,7 @@ async function extractTestPages (job) {
 async function runTestPage (job) {
   const { length } = job.testPageUrls
   if (job.testPagesCompleted === length) {
-    return generateReport(job)
+    return await generate(job)
   }
   if (job.testPagesStarted === length) {
     return
@@ -60,43 +48,9 @@ async function runTestPage (job) {
     output.failFast(url)
   } else {
     await start(job, url)
-    const page = job.testPages[url]
-    if (page) {
-      const reportFileName = join(job.reportDir, `${filename(url)}.json`)
-      await writeFile(reportFileName, JSON.stringify(page))
-    }
   }
   ++job.testPagesCompleted
   return runTestPage(job)
-}
-
-async function generateReport (job) {
-  job.status = 'Finalizing'
-  // Simple report
-  job.failed = 0
-  const pages = []
-  for (const url of job.testPageUrls) {
-    const page = job.testPages[url]
-    if (page && page.report) {
-      pages.push({
-        url,
-        failed: page.report.failed
-      })
-      job.failed += page.report.failed
-    } else {
-      pages.push({
-        url,
-        failed: -1
-      })
-      job.failed += 1
-    }
-  }
-  output.results(pages)
-  await saveJob(job)
-  await copyFile(join(__dirname, 'report.html'), join(job.reportDir, 'report.html'))
-  await generateCoverageReport(job)
-  output.timeSpent(job.start)
-  job.status = 'Done'
 }
 
 module.exports = {
