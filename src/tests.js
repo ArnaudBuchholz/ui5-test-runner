@@ -22,7 +22,6 @@ async function extractTestPages (job) {
   }
   job.testPagesStarted = 0
   job.testPagesCompleted = 0
-  job.testPages = {}
   job.status = 'Executing test pages'
   delete job.failed
   const promises = []
