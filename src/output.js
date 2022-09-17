@@ -65,10 +65,10 @@ function progress (cleanFirst = true) {
   }
   lines = 1
   let progressRatio
-  if (job.testPageUrls && job.testPages && job.parallel > 0) {
+  if (job.testPageUrls && job.qunitPages && job.parallel > 0) {
     const total = job.testPageUrls.length
-    const done = Object.keys(job.testPages)
-      .filter(pageUrl => !!job.testPages[pageUrl].report)
+    const done = Object.keys(job.qunitPages)
+      .filter(pageUrl => !!job.qunitPages[pageUrl].report)
       .length
     if (done < total) {
       progressRatio = done / total
@@ -79,8 +79,8 @@ function progress (cleanFirst = true) {
     lines += runningPages.length
     runningPages.forEach(pageUrl => {
       let starting = true
-      if (job.testPages) {
-        const page = job.testPages[pageUrl]
+      if (job.qunitPages) {
+        const page = job.qunitPages[pageUrl]
         if (page) {
           const { total, passed, failed } = page
           if (total) {
