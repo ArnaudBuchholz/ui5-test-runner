@@ -101,14 +101,7 @@ module.exports = job => {
       // Endpoint to follow progress
         match: '^/_/progress',
         custom: async (request, response) => {
-          const json = JSON.stringify(job, (key, value) => {
-            if (((key === 'tests' || key === 'browsers') && typeof value === 'object') ||
-                (key === 'order' && Array.isArray(value))
-            ) {
-              return undefined // Filter out
-            }
-            return value
-          })
+          const json = JSON.stringify(job, undefined, 2)
           const length = (new TextEncoder().encode(json)).length
           response.writeHead(200, {
             'Content-Type': 'application/json',
