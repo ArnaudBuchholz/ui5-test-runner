@@ -8,6 +8,8 @@ const { Readable } = require('stream')
 const output = require('./output')
 const { resolvePackage } = require('./npm')
 
+const $nycSettingsPath = Symbol('nycSettingsPath')
+
 let nycScript
 
 async function nyc (...args) {
@@ -44,7 +46,7 @@ async function instrument (job) {
     const nyc = await resolvePackage(job, 'nyc')
     nycScript = join(nyc, 'bin/nyc.js')
   }
-  job.nycSettingsPath = join(job.coverageTempDir, 'settings/nyc.json')
+  job[$nycSettingsPath] = join(job.coverageTempDir, 'settings/nyc.json')
   await cleanDir(job.coverageTempDir)
   await createDir(join(job.coverageTempDir, 'settings'))
   const settings = JSON.parse((await readFile(job.coverageSettings)).toString())
@@ -58,8 +60,8 @@ async function instrument (job) {
   }
   settings.exclude.push(join(job.reportDir, '**'))
   settings.exclude.push(join(job.coverageReportDir, '**'))
-  await writeFile(job.nycSettingsPath, JSON.stringify(settings))
-  await nyc('instrument', job.webapp, join(job.coverageTempDir, 'instrumented'), '--nycrc-path', job.nycSettingsPath)
+  await writeFile(job[$nycSettingsPath], JSON.stringify(settings))
+  await nyc('instrument', job.webapp, join(job.coverageTempDir, 'instrumented'), '--nycrc-path', job[$nycSettingsPath])
 }
 
 async function generateCoverageReport (job) {
@@ -67,7 +69,7 @@ async function generateCoverageReport (job) {
   await cleanDir(job.coverageReportDir)
   await nyc('merge', job.coverageTempDir, join(job.coverageTempDir, 'coverage.json'))
   const reporters = job.coverageReporters.map(reporter => `--reporter=${reporter}`)
-  await nyc('report', ...reporters, '--temp-dir', job.coverageTempDir, '--report-dir', job.coverageReportDir, '--nycrc-path', job.nycSettingsPath)
+  await nyc('report', ...reporters, '--temp-dir', job.coverageTempDir, '--report-dir', job.coverageReportDir, '--nycrc-path', job[$nycSettingsPath])
 }
 
 module.exports = {
