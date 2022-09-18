@@ -2,6 +2,7 @@ const { join } = require('path')
 const { mock } = require('child_process')
 const jobFactory = require('./job')
 const { probe, start, stop, screenshot } = require('./browsers')
+const { $browsers } = require('./symbols')
 const { readFile, writeFile } = require('fs/promises')
 const { allocPromise } = require('./tools')
 
@@ -384,7 +385,7 @@ describe('src/browser', () => {
     )
 
     it('ignores unknown pages', async () => {
-      job.browsers = {}
+      job[$browsers] = {}
       await stop(job, '/unknown.html')
     })
 
@@ -583,7 +584,7 @@ describe('src/browser', () => {
 
       describe('edge cases', () => {
         it('ignores disconnected child processes', async () => {
-          job.browsers = {
+          job[$browsers] = {
             '/disconnected.html': {
               childProcess: {
                 connected: false
