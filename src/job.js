@@ -106,7 +106,7 @@ function parse (cwd, args) {
     .option('-w, --watch [flag]', 'Monitors the webapp folder and re-execute tests on change', boolean, false)
     .option('-l, --log-server [flag]', 'Logs server traces', boolean, false)
 
-    .option('-b, --browser <command>', 'Browser instantiation command', join(__dirname, '../defaults/puppeteer.js'))
+    .option('-b, --browser <command>', 'Browser instantiation command (relative to cwd)', join(__dirname, '../defaults/puppeteer.js'))
     .option('--browser-args <argument...>', 'Browser instantiation command parameters')
 
     .option('-bt, --browser-close-timeout <timeout>', 'Maximum waiting time (ms) for browser close', integer, 2000)
@@ -122,6 +122,8 @@ function parse (cwd, args) {
     .option('-ct, --coverage-temp-dir <path>', 'Directory to output raw coverage information to (relative to cwd)', '.nyc_output')
     .option('-cr, --coverage-report-dir <path>', 'Directory to store the coverage report files (relative to cwd)', 'coverage')
     .option('-cr, --coverage-reporters <reporter...>', 'List of reporters to use', ['lcov', 'cobertura'])
+
+    .option('-rg, --report-generator <path...>', 'Path to a report generator (relative to cwd)', [join(__dirname, '../defaults/report.js')])
 
   command.parse(args, { from: 'user' })
   const options = command.opts()
@@ -178,6 +180,11 @@ function finalize (job) {
     checkAccess({ path: testsuitePath, label: 'testsuite', file: true })
   }
   checkAccess({ path: job.browser, label: 'browser command', file: true })
+  job.reportGenerator = job.reportGenerator.map(setting => {
+    const path = toAbsolute(setting, job.cwd)
+    checkAccess({ path, label: 'report generator', file: true })
+    return path
+  })
 
   if (!job.libs) {
     job.libs = []
