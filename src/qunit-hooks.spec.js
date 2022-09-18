@@ -53,7 +53,8 @@ describe('src/qunit-hooks', () => {
           }]
         }]
       })
-      expect(job.qunitPages[url]).toEqual({
+      const qunitPage = job.qunitPages[url]
+      expect(qunitPage).toMatchObject({
         isOpa: false,
         failed: 0,
         passed: 0,
@@ -67,9 +68,11 @@ describe('src/qunit-hooks', () => {
           id: '4d'
         }]
       })
+      expect(qunitPage.start).toBeInstanceOf(Date)
     })
 
     it('resets the existing structure (retry)', async () => {
+      const start = 'Not a date'
       const job = {
         qunitPages: {
           [url]: {
@@ -82,7 +85,8 @@ describe('src/qunit-hooks', () => {
             }, {
               id: '2b',
               before: true
-            }]
+            }],
+            start
           }
         }
       }
@@ -97,7 +101,8 @@ describe('src/qunit-hooks', () => {
           }]
         }]
       })
-      expect(job.qunitPages[url]).toEqual({
+      const qunitPage = job.qunitPages[url]
+      expect(job.qunitPages[url]).toMatchObject({
         isOpa: false,
         failed: 0,
         passed: 0,
@@ -107,6 +112,8 @@ describe('src/qunit-hooks', () => {
           id: '2b'
         }]
       })
+      expect(qunitPage.start).toBeInstanceOf(Date)
+      expect(qunitPage.start).not.toEqual(start)
     })
   })
 
@@ -155,7 +162,7 @@ describe('src/qunit-hooks', () => {
       expect(screenshot).toHaveBeenCalledWith(job, url, '1a-t1')
       await log(job, url, { testId: '1a', runtime: 't2' })
       expect(screenshot).toHaveBeenCalledWith(job, url, '1a-t2')
-      expect(job.qunitPages[url]).toEqual({
+      expect(job.qunitPages[url]).toMatchObject({
         isOpa: true,
         failed: 0,
         passed: 0,
@@ -192,7 +199,8 @@ describe('src/qunit-hooks', () => {
       const report = { testId: '2b', failed: false }
       await testDone(job, url, report)
       expect(screenshot).not.toHaveBeenCalledWith(job, url, '2b')
-      expect(job.qunitPages[url]).toEqual({
+      const qunitPage = job.qunitPages[url]
+      expect(qunitPage).toMatchObject({
         isOpa: false,
         failed: 0,
         passed: 1,
@@ -200,9 +208,11 @@ describe('src/qunit-hooks', () => {
           id: '1a'
         }, {
           id: '2b',
+          // end,
           report
         }]
       })
+      expect(qunitPage.tests[1].end).toBeInstanceOf(Date)
     })
 
     describe('failure', () => {
@@ -211,7 +221,8 @@ describe('src/qunit-hooks', () => {
         const report = { testId: '2b', failed: true }
         await testDone(job, url, report)
         expect(screenshot).toHaveBeenCalledWith(job, url, '2b')
-        expect(job.qunitPages[url]).toEqual({
+        const qunitPage = job.qunitPages[url]
+        expect(qunitPage).toMatchObject({
           isOpa: false,
           failed: 1,
           passed: 0,
@@ -219,9 +230,11 @@ describe('src/qunit-hooks', () => {
             id: '1a'
           }, {
             id: '2b',
+            // end,
             report
           }]
         })
+        expect(qunitPage.tests[1].end).toBeInstanceOf(Date)
         expect(job.failed).toStrictEqual(true)
       })
 
@@ -229,7 +242,7 @@ describe('src/qunit-hooks', () => {
         const report = { testId: '2b', failed: true }
         await testDone(job, url, report)
         expect(screenshot).not.toHaveBeenCalled()
-        expect(job.qunitPages[url]).toEqual({
+        expect(job.qunitPages[url]).toMatchObject({
           isOpa: false,
           failed: 1,
           passed: 0,
@@ -287,6 +300,11 @@ describe('src/qunit-hooks', () => {
       await done(job, url, report)
       expect(collect).toHaveBeenCalledWith(job, url, coverage)
       expect(report).toMatchObject({})
+    })
+
+    it('documents when the page ended', async () => {
+      await done(job, url, {})
+      expect(job.qunitPages[url].end).toBeInstanceOf(Date)
     })
   })
 })
