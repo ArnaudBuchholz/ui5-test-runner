@@ -20,6 +20,7 @@ module.exports = {
       job.qunitPages = {}
     }
     const qunitPage = {
+      start: new Date(),
       isOpa,
       failed: 0,
       passed: 0,
@@ -55,7 +56,9 @@ module.exports = {
     } else {
       ++qunitPage.passed
     }
-    getTest(qunitPage, testId).report = report
+    const test = getTest(qunitPage, testId)
+    test.end = new Date()
+    test.report = report
   },
 
   async done (job, url, report) {
@@ -67,6 +70,7 @@ module.exports = {
       collect(job, url, report.__coverage__)
       delete report.__coverage__
     }
+    qunitPage.end = new Date()
     qunitPage.report = report
     stop(job, url)
   }
