@@ -2,6 +2,7 @@
 
 const { readFileSync } = require('fs')
 const { join } = require('path')
+const { $browsers } = require('./symbols')
 
 const nativeConsole = console
 const mockConsole = {}
@@ -74,8 +75,8 @@ function progress (cleanFirst = true) {
       progressRatio = done / total
     }
   }
-  if (job.browsers) {
-    const runningPages = Object.keys(job.browsers)
+  if (job[$browsers]) {
+    const runningPages = Object.keys(job[$browsers])
     lines += runningPages.length
     runningPages.forEach(pageUrl => {
       let starting = true
