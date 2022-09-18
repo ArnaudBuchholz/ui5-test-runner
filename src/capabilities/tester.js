@@ -10,6 +10,7 @@ const EventEmitter = require('events')
 const assert = require('assert/strict')
 const { performance } = require('perf_hooks')
 const { cleanDir, allocPromise, filename } = require('../tools')
+const { $browsers } = require('./symbols')
 
 let job
 
@@ -71,7 +72,7 @@ const tests = [{
   for: capabilities => !!capabilities.console,
   url: 'console.html',
   log: async (data, url) => {
-    const pageBrowser = job.browsers[url]
+    const pageBrowser = job[$browsers][url]
     assert(!!pageBrowser)
     const { promise, resolve, reject } = allocPromise()
     function waitForConsoleLogs () {
@@ -223,7 +224,7 @@ async function main () {
 
   const next = async () => {
     if (filteredTests.length === 0) {
-      if (Object.keys(job.browsers).length === 0) {
+      if (Object.keys(job[$browsers]).length === 0) {
         console.log('Done.')
         if (errors) {
           console.error('Temporary folder', reportDir, 'not cleaned because of errors.')
