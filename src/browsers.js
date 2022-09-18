@@ -8,6 +8,7 @@ const { getPageTimeout } = require('./timeout')
 const output = require('./output')
 const { resolvePackage } = require('./npm')
 const { UTRError } = require('./error')
+const { $browsers } = require('./symbols')
 
 let lastScreenshotId = 0
 const screenshots = {}
@@ -98,8 +99,8 @@ async function probe (job) {
 }
 
 async function start (job, url, scripts = []) {
-  if (!job.browsers) {
-    job.browsers = {}
+  if (!job[$browsers]) {
+    job[$browsers] = {}
   }
   output.browserStart(url)
   const reportDir = join(job.reportDir, filename(url))
@@ -126,7 +127,7 @@ async function start (job, url, scripts = []) {
   const { promise, resolve, reject } = allocPromise()
   pageBrowser.done = resolve
   pageBrowser.failed = reject
-  job.browsers[url] = pageBrowser
+  job[$browsers][url] = pageBrowser
   await run(job, pageBrowser)
   await promise
   output.browserStopped(url)
@@ -203,7 +204,7 @@ async function screenshot (job, url, filename) {
     throw UTRError.BROWSER_SCREENSHOT_NOT_SUPPORTED()
   }
   try {
-    const { childProcess, reportDir } = job.browsers[url]
+    const { childProcess, reportDir } = job[$browsers][url]
     const absoluteFilename = join(reportDir, filename + job.browserCapabilities.screenshot)
     if (childProcess.connected) {
       const id = ++lastScreenshotId
@@ -234,7 +235,7 @@ async function screenshot (job, url, filename) {
 }
 
 async function stop (job, url, retry = false) {
-  const pageBrowser = job.browsers[url]
+  const pageBrowser = job[$browsers][url]
   if (pageBrowser) {
     pageBrowser.stopped = true
     const { childProcess, done, failed, timeoutId } = pageBrowser
@@ -259,7 +260,7 @@ async function stop (job, url, retry = false) {
         failed(UTRError.BROWSER_FAILED())
       }
     } else {
-      delete job.browsers[url]
+      delete job[$browsers][url]
       done()
     }
   }
