@@ -7,6 +7,9 @@ const { globallyTimedOut } = require('./timeout')
 const { save, generate } = require('./report')
 const output = require('./output')
 
+const $testPagesStarted = Symbol('testPagesStarted')
+const $testPagesCompleted = Symbol('testPagesCompleted')
+
 async function extractTestPages (job) {
   job.start = new Date()
   await instrument(job)
@@ -20,8 +23,8 @@ async function extractTestPages (job) {
     job.failed = true
     return Promise.resolve()
   }
-  job.testPagesStarted = 0
-  job.testPagesCompleted = 0
+  job[$testPagesStarted] = 0
+  job[$testPagesCompleted] = 0
   job.status = 'Executing test pages'
   delete job.failed
   const promises = []
@@ -33,13 +36,13 @@ async function extractTestPages (job) {
 
 async function runTestPage (job) {
   const { length } = job.testPageUrls
-  if (job.testPagesCompleted === length) {
+  if (job[$testPagesCompleted] === length) {
     return await generate(job)
   }
-  if (job.testPagesStarted === length) {
+  if (job[$testPagesStarted] === length) {
     return
   }
-  const index = job.testPagesStarted++
+  const index = job[$testPagesStarted]++
   const url = job.testPageUrls[index]
   if (globallyTimedOut(job)) {
     output.globalTimeout(url)
@@ -48,7 +51,7 @@ async function runTestPage (job) {
   } else {
     await start(job, url)
   }
-  ++job.testPagesCompleted
+  ++job[$testPagesCompleted]
   return runTestPage(job)
 }
 
