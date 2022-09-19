@@ -115,6 +115,16 @@ describe('src/qunit-hooks', () => {
       expect(qunitPage.start).toBeInstanceOf(Date)
       expect(qunitPage.start).not.toEqual(start)
     })
+
+    it('validates expected structure', async () => {
+      const job = {}
+      await expect(() => begin(job, url, {
+        isOpa: false,
+        totalTests: 1
+        // missing modules
+      })).rejects.toThrow()
+      expect(stop).toHaveBeenCalledWith(job, url)
+    })
   })
 
   describe('log', () => {
