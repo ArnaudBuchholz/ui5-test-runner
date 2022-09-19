@@ -16,6 +16,10 @@ function getTest ({ tests }, testId) {
 
 module.exports = {
   async begin (job, url, { isOpa, totalTests, modules }) {
+    if (!modules) {
+      stop(job, url)
+      throw new Error('Unexpected begin call, missing modules')
+    }
     if (!job.qunitPages) {
       job.qunitPages = {}
     }
