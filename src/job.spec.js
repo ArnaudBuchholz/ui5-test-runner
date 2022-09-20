@@ -100,6 +100,16 @@ describe('job', () => {
           })
         })
       })
+
+      describe('parameters using @/', () => {
+        const job = buildJob({
+          cwd,
+          browser: '@/selenium-webdriver.js'
+        })
+        expect(job.browser).toStrictEqual(join(__dirname, '../defaults/selenium-webdriver.js'))
+        expect(job.coverageSettings).toStrictEqual(join(__dirname, '../defaults/nyc.json'))
+        expect(job.reportGenerator).toEqual([join(__dirname, '../defaults/report.js')])
+      })
     })
   })
 
