@@ -34,6 +34,61 @@ const cleanDir = async dir => {
   }
 }
 
+const $op = Symbol('pad.op')
+const $x = Symbol('pad.x')
+const $lt = Symbol('pad.lt')
+
+function pad (width) {
+  if (!width) {
+    width = process.stdout.columns || 80
+  }
+  return (strings, ...values) => {
+    const result = []
+    let op
+    let opIndex
+    const length = strings.reduce((total, string, index) => {
+      result.push(string)
+      total += string.length
+      let value = values[index]
+      if (value === null || value === undefined) {
+        return total
+      }
+      if (value[$op]) {
+        if (opIndex !== undefined) {
+          throw new Error('Only one operator is allowed')
+        }
+        op = value
+        opIndex = result.length
+        result.push(value)
+      } else {
+        if (typeof value !== 'string') {
+          value = value.toString()
+        }
+        result.push(value)
+        total += value.length
+      }
+      return total
+    }, 0)
+    if (op !== undefined) {
+      const widthLeft = width - length
+      if (op[$op] === $x) {
+        result[opIndex] = ''.padStart(widthLeft, op.text)
+      } else if (op[$op] === $lt) {
+        const { text, padding } = op
+        if (text.length <= widthLeft) {
+          result[opIndex] = text.padEnd(widthLeft, padding)
+        } else {
+          result[opIndex] = '...' + text.substring(text.length - widthLeft + 3)
+        }
+      }
+    }
+    return result.join('')
+  }
+}
+
+pad.x = (text) => ({ [$op]: $x, text })
+pad.lt = (text, padding = ' ') => ({ [$op]: $lt, text, padding })
+
 module.exports = {
   filename,
   cleanDir,
@@ -49,5 +104,6 @@ module.exports = {
     })
     return { promise, resolve, reject }
   },
-  noop () {}
+  noop () {},
+  pad
 }
