@@ -38,11 +38,23 @@ describe('src/tools', () => {
     })
 
     it('left trims a string', () => {
-      expect(pad(20)`+${pad.lt('abcdefghijklmnopqrstuvwxyz')}+`).toStrictEqual('+...lmnopqrstuvwxyz+')
+      expect(pad(20)`1${pad.lt('abcdefghijklmnopqrstuvwxyz')}2`).toStrictEqual('1...lmnopqrstuvwxyz2')
     })
 
     it('left trims a small string', () => {
-      expect(pad(20)`+${pad.lt('abcdef')}+`).toStrictEqual('+abcdef            +')
+      expect(pad(20)`1${pad.lt('abcdef')}2`).toStrictEqual('1abcdef            2')
+    })
+
+    it('wraps text (small enough)', () => {
+      expect(pad(20)`1${pad.w('abcdef')}2`).toStrictEqual('1abcdef            2')
+    })
+
+    it('wraps multiline / long text', () => {
+      expect(pad(20)`1${pad.w('first line\nsecond longer line to wrap\nfits exactly width')}2`)
+        .toStrictEqual(`1first line        2
+1second longer lin↵2
+1e to wrap         2
+1fits exactly width2`)
     })
   })
 })
