@@ -22,7 +22,13 @@ async function notifyAndExecuteTests (job) {
   send({ msg: 'begin' })
   try {
     await execute(job)
-    send({ msg: 'end', status: job.failed || 0 })
+    let status
+    if (job.failed) {
+      status = -1
+    } else {
+      status = 0
+    }
+    send({ msg: 'end', status })
   } catch (error) {
     output.genericError(error)
     send({ msg: 'error', error })
@@ -59,8 +65,10 @@ async function main () {
         }
       } else if (job.keepAlive) {
         job.status = 'Serving'
+      } else if (job.failed) {
+        process.exit(-1)
       } else {
-        process.exit(job.failed || 0)
+        process.exit(0)
       }
     })
     .on('error', error => {
