@@ -37,10 +37,46 @@ const cleanDir = async dir => {
 const $op = Symbol('pad.op')
 const $x = Symbol('pad.x')
 const $lt = Symbol('pad.lt')
-
+const $w = Symbol('pad.w')
 function pad (width) {
   if (!width) {
     width = process.stdout.columns || 80
+  }
+  const ops = {
+    [$x] (widthLeft) {
+      return ''.padStart(widthLeft, this.text)
+    },
+    [$lt] (widthLeft) {
+      const { text, padding } = this
+      if (text.length <= widthLeft) {
+        return text.padEnd(widthLeft, padding)
+      }
+      return '...' + text.substring(text.length - widthLeft + 3)
+    },
+    [$w] (widthLeft, result, opIndex) {
+      const { text } = this
+      if (text.length < widthLeft) {
+        return text.padEnd(widthLeft, ' ')
+      }
+      const lines = []
+      text.split('\n').forEach(line => {
+        if (line.length <= widthLeft) {
+          lines.push(line.padEnd(widthLeft, ' '))
+        } else {
+          for (let offset = 0; offset < line.length; offset += widthLeft - 1) {
+            const part = line.slice(offset, offset + widthLeft - 1)
+            if (part.length < widthLeft - 1) {
+              lines.push(part.padEnd(widthLeft, ' '))
+            } else {
+              lines.push(`${part}↵`)
+            }
+          }
+        }
+      })
+      const before = result.slice(0, opIndex).join('')
+      const after = result.slice(opIndex + 1).join('')
+      return lines.join(after + '\n' + before)
+    }
   }
   return (strings, ...values) => {
     const result = []
@@ -71,16 +107,7 @@ function pad (width) {
     }, 0)
     if (op !== undefined) {
       const widthLeft = width - length
-      if (op[$op] === $x) {
-        result[opIndex] = ''.padStart(widthLeft, op.text)
-      } else if (op[$op] === $lt) {
-        const { text, padding } = op
-        if (text.length <= widthLeft) {
-          result[opIndex] = text.padEnd(widthLeft, padding)
-        } else {
-          result[opIndex] = '...' + text.substring(text.length - widthLeft + 3)
-        }
-      }
+      result[opIndex] = ops[op[$op]].call(op, widthLeft, result, opIndex)
     }
     return result.join('')
   }
@@ -88,6 +115,7 @@ function pad (width) {
 
 pad.x = (text) => ({ [$op]: $x, text })
 pad.lt = (text, padding = ' ') => ({ [$op]: $lt, text, padding })
+pad.w = (text) => ({ [$op]: $w, text })
 
 module.exports = {
   filename,
