@@ -25,6 +25,10 @@ describe('src/tools', () => {
       expect(pad(20)`1${pad.x('-')}2`).toStrictEqual('1------------------2')
     })
 
+    it('extends a string (multiple interpolation)', () => {
+      expect(pad(20)`1${'3'}${pad.x('-')}${'4'}2`).toStrictEqual('13----------------42')
+    })
+
     it('extends a string (end)', () => {
       expect(pad(20)`12${pad.x('-')}`).toStrictEqual('12------------------')
     })
