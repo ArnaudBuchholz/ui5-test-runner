@@ -9,29 +9,29 @@ const { begin, log, testDone, done } = require('./qunit-hooks')
 const { addTestPages } = require('./add-test-pages')
 
 module.exports = job => {
-  async function endpointImpl (implementation, request) {
+  async function endpointImpl (api, implementation, request) {
     const url = extractPageUrl(request.headers)
     const data = JSON.parse(await body(request))
     try {
       await implementation.call(this, url, data)
-    } catch (e) {
-      getOutput(job).endpointError(url, data, e)
+    } catch (error) {
+      getOutput(job).endpointError({ api, url, data, error })
     }
   }
 
-  function synchronousEndpoint (implementation) {
+  function synchronousEndpoint (api, implementation) {
     return async function (request, response) {
-      await endpointImpl(implementation, request)
+      await endpointImpl(api, implementation, request)
       response.writeHead(200)
       response.end()
     }
   }
 
-  function endpoint (implementation) {
+  function endpoint (api, implementation) {
     return async function (request, response) {
       response.writeHead(200)
       response.end()
-      await endpointImpl(implementation, request)
+      await endpointImpl(api, implementation, request)
     }
   }
 
@@ -43,7 +43,7 @@ module.exports = job => {
       }, {
       // Endpoint to receive test pages
         match: '^/_/addTestPages',
-        custom: endpoint((url, pages) => addTestPages(job, url, pages))
+        custom: endpoint('addTestPages', (url, pages) => addTestPages(job, url, pages))
       }, {
       // QUnit hooks
         match: '^/_/qunit-hooks.js',
@@ -77,19 +77,19 @@ module.exports = job => {
       }, {
       // Endpoint to receive QUnit.begin
         match: '^/_/QUnit/begin',
-        custom: endpoint((url, details) => begin(job, url, details))
+        custom: endpoint('QUnit/begin', (url, details) => begin(job, url, details))
       }, {
       // Endpoint to receive QUnit.log
         match: '^/_/QUnit/log',
-        custom: synchronousEndpoint(async (url, report) => log(job, url, report))
+        custom: synchronousEndpoint('QUnit/log', async (url, report) => log(job, url, report))
       }, {
       // Endpoint to receive QUnit.testDone
         match: '^/_/QUnit/testDone',
-        custom: synchronousEndpoint(async (url, report) => testDone(job, url, report))
+        custom: synchronousEndpoint('QUnit/testDone', async (url, report) => testDone(job, url, report))
       }, {
       // Endpoint to receive QUnit.done
         match: '^/_/QUnit/done',
-        custom: endpoint(async (url, report) => done(job, url, report))
+        custom: endpoint('QUnit/done', async (url, report) => done(job, url, report))
       }, {
       // UI to follow progress
         match: '^/_/progress.html',
