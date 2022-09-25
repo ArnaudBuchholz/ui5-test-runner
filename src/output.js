@@ -154,9 +154,9 @@ function browserIssue (job, { type, url, code, dir }) {
   log(job, p`│ BROWSER ${type.toUpperCase()} ${pad.x(' ')} │`)
   log(job, p`├──────┬─${pad.x('─')}──┤`)
   log(job, p`│ url  │ ${pad.lt(url)} │`)
-  log(job, p`├──────┬─${pad.x('─')}──┤`)
+  log(job, p`├──────┼─${pad.x('─')}──┤`)
   log(job, p`│ code │ 0x${code.toString(16).toUpperCase()}${pad.x(' ')} │`)
-  log(job, p`├──────┬─${pad.x('─')}──┤`)
+  log(job, p`├──────┼─${pad.x('─')}──┤`)
   log(job, p`│ dir  │ ${pad.lt(dir)} │`)
   log(job, p`├──────┴─${pad.x('─')}──┤`)
 
@@ -304,12 +304,14 @@ function build (job) {
       log(job, p80()`nyc ${args.map(arg => arg.toString()).join(' ')}`)
     },
 
-    endpointError (url, data, error) {
+    endpointError ({ api, url, data, error }) {
       const p = p80()
       log(job, p`┌──────────${pad.x('─')}┐`)
       log(job, p`│ UNEXPECTED ENDPOINT ERROR ${pad.x(' ')} │`)
       log(job, p`├──────┬─${pad.x('─')}──┤`)
-      log(job, p`│ url  │ ${pad.lt(url)} │`)
+      log(job, p`│ api  │ ${pad.lt(api)} │`)
+      log(job, p`├──────┼─${pad.x('─')}──┤`)
+      log(job, p`│ from │ ${pad.lt(url)} │`)
       log(job, p`├──────┴─${pad.x('─')}──┤`)
       log(job, p`│ data  (${JSON.stringify(data).length}) ${pad.x(' ')} │`)
       wrap(job, JSON.stringify(data, undefined, 2))
