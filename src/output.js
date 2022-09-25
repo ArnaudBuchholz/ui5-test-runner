@@ -359,8 +359,10 @@ function build (job) {
         let message
         if (!page || !page.report) {
           message = 'Unable to run the page'
-        } else if (page.report.failed) {
+        } else if (page.report.failed > 1) {
           message = `${page.report.failed} tests failed`
+        } else if (page.report.failed === 1) {
+          message = '1 test failed'
         }
         if (message) {
           log(job, p`│ ${(messages.length + 1).toString().padStart(3, ' ')} │ ${pad.lt(url)} │`)
