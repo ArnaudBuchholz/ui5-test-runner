@@ -137,17 +137,6 @@ function err (job, ...texts) {
 
 const p80 = () => pad(process.stdout.columns || 80)
 
-function wrap (job, text) {
-  const p = p80()
-  if (interactive) {
-    log(job, p`│ ${pad.w(text)} │`)
-  } else {
-    log(job, p`┆${pad.x(' ')}┆`)
-    log(job, text)
-    log(job, p`┆${pad.x(' ')}┆`)
-  }
-}
-
 function browserIssue (job, { type, url, code, dir }) {
   const p = p80()
   log(job, p`┌──────────${pad.x('─')}┐`)
@@ -163,12 +152,13 @@ function browserIssue (job, { type, url, code, dir }) {
   const stderr = readFileSync(join(dir, 'stderr.txt')).toString().trim()
   if (stderr.length !== 0) {
     log(p`│ Error output (${stderr.length}) ${pad.x(' ')} │`)
-    wrap(job, stderr)
+    log(job, p`│ ${pad.w(stderr)} │`)
   } else {
     const stdout = readFileSync(join(dir, 'stdout.txt')).toString()
     if (stdout.length !== 0) {
       log(p`│ Standard output (${stderr.length}), last 10 lines... ${pad.x(' ')} │`)
-      wrap(job, stdout.split(/\r?\n/).slice(-10).join('\n'))
+      log(job, p`│ ${pad.w('...')} │`)
+      log(job, p`│ ${pad.w(stdout.split(/\r?\n/).slice(-10).join('\n'))} │`)
     } else {
       log(p`│ No output ${pad.x(' ')} │`)
     }
@@ -314,10 +304,13 @@ function build (job) {
       log(job, p`│ from │ ${pad.lt(url)} │`)
       log(job, p`├──────┴─${pad.x('─')}──┤`)
       log(job, p`│ data  (${JSON.stringify(data).length}) ${pad.x(' ')} │`)
-      wrap(job, JSON.stringify(data, undefined, 2))
+      log(job, p`│ ${pad.w(JSON.stringify(data, undefined, 2))} │`)
       log(job, p`├────────${pad.x('─')}──┤`)
-      log(job, p`│ error ${pad.x(' ')} │`)
-      wrap(job, error.toString())
+      if (error.stack) {
+        log(job, p`│ ${pad.w(error.stack)} │`)
+      } else {
+        log(job, p`│ ${pad.w(error.toString())} │`)
+      }
       log(job, p`└──────────${pad.x('─')}┘`)
     },
 
