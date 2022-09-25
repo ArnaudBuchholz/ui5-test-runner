@@ -5,7 +5,7 @@ const { join } = require('path')
 const { writeFile, readFile, open, stat, unlink } = require('fs/promises')
 const { recreateDir, filename, allocPromise } = require('./tools')
 const { getPageTimeout } = require('./timeout')
-const output = require('./output')
+const { getOutput } = require('./output')
 const { resolvePackage } = require('./npm')
 const { UTRError } = require('./error')
 const { $browsers } = require('./symbols')
@@ -38,7 +38,7 @@ async function instantiate (job, config) {
     await stdout.close()
     await stderr.close()
     if (code !== 0) {
-      output.browserFailed(url, code, dir)
+      getOutput(job).browserFailed(url, code, dir)
     }
     resolve(code)
   })
@@ -52,6 +52,7 @@ async function probe (job) {
   if (job.browserCapabilities) {
     return
   }
+  const output = getOutput(job)
   job.status = 'Probing browser instantiation command'
 
   async function execute (folder) {
@@ -96,9 +97,12 @@ async function probe (job) {
     job.browserCapabilities = await execute('probe/with-modules')
     job.browserCapabilities.modules = resolvedModules
   }
+
+  output.browserCapabilities(job.browserCapabilities)
 }
 
 async function start (job, url, scripts = []) {
+  const output = getOutput(job)
   if (!job[$browsers]) {
     job[$browsers] = {}
   }
@@ -134,6 +138,7 @@ async function start (job, url, scripts = []) {
 }
 
 async function run (job, pageBrowser) {
+  const output = getOutput(job)
   const { url, retry, reportDir, scripts } = pageBrowser
   let dir = reportDir
   if (retry) {
