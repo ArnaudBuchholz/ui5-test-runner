@@ -3,7 +3,7 @@
 const { extractPageUrl, noop } = require('./tools')
 const { join } = require('path')
 const { writeFile } = require('fs')
-const output = require('./output')
+const { getOutput } = require('./output')
 
 module.exports = job => {
   const unhandled = join(job.reportDir, 'unhandled.txt')
@@ -20,7 +20,7 @@ module.exports = job => {
         status = 500
       }
       if (outputUnhandled) {
-        output.unhandled()
+        getOutput(job).unhandled()
         outputUnhandled = false
       }
       writeFile(unhandled, `${extractPageUrl(headers)} ${status} ${method} ${url}\n`, {
