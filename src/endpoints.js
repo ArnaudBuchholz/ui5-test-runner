@@ -4,7 +4,7 @@ const { join } = require('path')
 const { body } = require('reserve')
 const { extractPageUrl } = require('./tools')
 const { Request, Response } = require('reserve')
-const output = require('./output')
+const { getOutput } = require('./output')
 const { begin, log, testDone, done } = require('./qunit-hooks')
 const { addTestPages } = require('./add-test-pages')
 
@@ -12,13 +12,10 @@ module.exports = job => {
   async function endpointImpl (implementation, request) {
     const url = extractPageUrl(request.headers)
     const data = JSON.parse(await body(request))
-    if (job.parallel === -1) {
-      output.endpoint(url, data)
-    }
     try {
       await implementation.call(this, url, data)
     } catch (e) {
-      output.endpointError(url, data, e)
+      getOutput(job).endpointError(url, data, e)
     }
   }
 
