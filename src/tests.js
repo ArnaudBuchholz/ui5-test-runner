@@ -5,7 +5,7 @@ const { instrument } = require('./coverage')
 const { recreateDir } = require('./tools')
 const { globallyTimedOut } = require('./timeout')
 const { save, generate } = require('./report')
-const output = require('./output')
+const { getOutput } = require('./output')
 
 const $testPagesStarted = Symbol('testPagesStarted')
 const $testPagesCompleted = Symbol('testPagesCompleted')
@@ -13,13 +13,12 @@ const $testPagesCompleted = Symbol('testPagesCompleted')
 async function extractTestPages (job) {
   job.start = new Date()
   await instrument(job)
-  await recreateDir(job.reportDir)
   await save(job)
   job.status = 'Extracting test pages'
   job.testPageUrls = []
   await start(job, `http://localhost:${job.port}/${job.testsuite}`)
   if (job.testPageUrls.length === 0) {
-    output.noTestPageFound()
+    getOutput(job).noTestPageFound()
     job.failed = true
     return Promise.resolve()
   }
@@ -45,9 +44,9 @@ async function runTestPage (job) {
   const index = job[$testPagesStarted]++
   const url = job.testPageUrls[index]
   if (globallyTimedOut(job)) {
-    output.globalTimeout(url)
+    getOutput(job).globalTimeout(url)
   } else if (job.failFast && job.failed) {
-    output.failFast(url)
+    getOutput(job).failFast(url)
   } else {
     await start(job, url)
   }
@@ -57,6 +56,7 @@ async function runTestPage (job) {
 
 module.exports = {
   async execute (job) {
+    await recreateDir(job.reportDir)
     await probe(job)
     return extractTestPages(job)
   }
