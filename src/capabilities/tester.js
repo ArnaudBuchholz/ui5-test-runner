@@ -5,7 +5,7 @@ const { probe, start, screenshot, stop } = require('../browsers')
 const { fromObject } = require('../job')
 const { join } = require('path')
 const { stat, readFile } = require('fs/promises')
-const output = require('../output')
+const { getOutput } = require('../output')
 const EventEmitter = require('events')
 const assert = require('assert/strict')
 const { performance } = require('perf_hooks')
@@ -13,6 +13,7 @@ const { cleanDir, allocPromise, filename } = require('../tools')
 const { $browsers } = require('./symbols')
 
 let job
+let output
 
 function exit (code) {
   output.stop()
@@ -166,7 +167,8 @@ async function main () {
     browser,
     '--': browserArgs
   })
-  output.report(job)
+  output = getOutput(job)
+  output.reportOnJobProgress()
   try {
     await probe(job)
   } catch (e) {
