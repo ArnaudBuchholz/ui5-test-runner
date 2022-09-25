@@ -49,6 +49,12 @@ describe('src/tools', () => {
       expect(pad(20)`1${pad.w('abcdef')}2`).toStrictEqual('1abcdef            2')
     })
 
+    it('wraps multiline', () => {
+      expect(pad(20)`1${pad.w('a\nb')}2`)
+        .toStrictEqual(`1a                 2
+1b                 2`)
+    })
+
     it('wraps multiline / long text', () => {
       expect(pad(20)`1${pad.w('first line\nsecond longer line to wrap\nfits exactly width')}2`)
         .toStrictEqual(`1first line        2
