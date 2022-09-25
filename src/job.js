@@ -4,6 +4,9 @@ const { Command, Option, InvalidArgumentError } = require('commander')
 const { statSync, accessSync, constants } = require('fs')
 const { join, isAbsolute } = require('path')
 const { name, description, version } = require(join(__dirname, '../package.json'))
+const { getOutput } = require('./output')
+
+const $status = Symbol('status')
 
 function toLongName (name) {
   return name.replace(/([A-Z])([a-z]+)/g, (match, firstLetter, reminder) => `-${firstLetter.toLowerCase()}${reminder}`)
@@ -209,6 +212,19 @@ function finalize (job) {
       checkAccess({ path: libMapping.source, label: `${description} (${libMapping.source})` })
     })
   }
+
+  const output = getOutput(job)
+  Object.defineProperty(job, 'status', {
+    get () {
+      return job[$status]
+    },
+    set (value) {
+      job[$status] = value
+      output.status(value)
+    },
+    enumerable: false,
+    configurable: false
+  })
 }
 
 function fromCmdLine (cwd, args) {
