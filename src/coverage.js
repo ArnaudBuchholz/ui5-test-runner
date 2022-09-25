@@ -5,14 +5,15 @@ const { fork } = require('child_process')
 const { cleanDir, createDir, filename } = require('./tools')
 const { readdir, readFile, stat, writeFile } = require('fs').promises
 const { Readable } = require('stream')
-const output = require('./output')
+const { getOutput } = require('./output')
 const { resolvePackage } = require('./npm')
 
 const $nycSettingsPath = Symbol('nycSettingsPath')
 
 let nycScript
 
-async function nyc (...args) {
+async function nyc (job, ...args) {
+  const output = getOutput(job)
   output.nyc(...args)
   const childProcess = fork(nycScript, args, { stdio: 'pipe' })
   output.monitor(childProcess)
@@ -61,15 +62,15 @@ async function instrument (job) {
   settings.exclude.push(join(job.reportDir, '**'))
   settings.exclude.push(join(job.coverageReportDir, '**'))
   await writeFile(job[$nycSettingsPath], JSON.stringify(settings))
-  await nyc('instrument', job.webapp, join(job.coverageTempDir, 'instrumented'), '--nycrc-path', job[$nycSettingsPath])
+  await nyc(job, 'instrument', job.webapp, join(job.coverageTempDir, 'instrumented'), '--nycrc-path', job[$nycSettingsPath])
 }
 
 async function generateCoverageReport (job) {
   job.status = 'Generating coverage report'
   await cleanDir(job.coverageReportDir)
-  await nyc('merge', job.coverageTempDir, join(job.coverageTempDir, 'coverage.json'))
+  await nyc(job, 'merge', job.coverageTempDir, join(job.coverageTempDir, 'coverage.json'))
   const reporters = job.coverageReporters.map(reporter => `--reporter=${reporter}`)
-  await nyc('report', ...reporters, '--temp-dir', job.coverageTempDir, '--report-dir', job.coverageReportDir, '--nycrc-path', job[$nycSettingsPath])
+  await nyc(job, 'report', ...reporters, '--temp-dir', job.coverageTempDir, '--report-dir', job.coverageReportDir, '--nycrc-path', job[$nycSettingsPath])
 }
 
 module.exports = {
