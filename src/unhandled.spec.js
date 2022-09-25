@@ -1,33 +1,23 @@
 const { join } = require('path')
-const output = require('./output')
+const { getOutput } = require('./output')
 const jobFactory = require('./job')
 const mappingFactory = require('./unhandled')
 
 const cwd = join(__dirname, '../test/project')
 
 describe('src/unhandled', () => {
-  let log
-  let warn
-  let error
   let unhandled
-
-  let unhandledCall = 0
-
-  function incUnhandledCall () {
-    ++unhandledCall
-  }
-
-  beforeAll(() => {
-    log = jest.spyOn(console, 'log').mockImplementation()
-    warn = jest.spyOn(console, 'warn').mockImplementation()
-    error = jest.spyOn(console, 'error').mockImplementation()
-    output.on('unhandled', incUnhandledCall)
-  })
+  let output
+  let unhandledCall
 
   beforeEach(() => {
     const job = jobFactory.fromCmdLine(cwd, [])
-    unhandled = mappingFactory(job)[0].custom
+    output = getOutput(job)
     unhandledCall = 0
+    output.unhandled = () => {
+      ++unhandledCall
+    }
+    unhandled = mappingFactory(job)[0].custom
   })
 
   const expectedIgnores = [
@@ -69,15 +59,5 @@ describe('src/unhandled', () => {
     expect(unhandled({ method: 'POST', url: '/any_url', headers: { referer: 'http://localhost:3475/test.html' } })).toStrictEqual(500)
     expect(unhandled({ method: 'POST', url: '/any_other_url', headers: { referer: 'http://localhost:3475/test.html' } })).toStrictEqual(500)
     expect(unhandledCall).toStrictEqual(1)
-  })
-
-  afterAll(() => {
-    output.off('unhandled', incUnhandledCall)
-    expect(log.mock.calls.length).toStrictEqual(0)
-    expect(warn.mock.calls.length).toStrictEqual(0)
-    expect(error.mock.calls.length).toStrictEqual(0)
-    log.mockRestore()
-    warn.mockRestore()
-    error.mockRestore()
   })
 })
