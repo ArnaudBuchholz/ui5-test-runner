@@ -2,9 +2,9 @@ const { exec } = require('child_process')
 const { join } = require('path')
 const { stat } = require('fs/promises')
 const { UTRError } = require('./error')
-const output = require('./output')
+const { getOutput } = require('./output')
 
-function npm (...args) {
+function npm (job, ...args) {
   return new Promise((resolve, reject) => {
     const childProcess = exec(`npm ${args.join(' ')}`, (err, stdout, stderr) => {
       if (err) {
@@ -14,7 +14,7 @@ function npm (...args) {
       }
     })
     if (args[0] === 'install') {
-      output.monitor(childProcess)
+      getOutput(job).monitor(childProcess)
     }
   })
 }
@@ -34,7 +34,10 @@ let globalRoot
 module.exports = {
   async resolvePackage (job, name) {
     if (!localRoot) {
-      [localRoot, globalRoot] = await Promise.all([npm('root'), npm('root', '--global')])
+      [localRoot, globalRoot] = await Promise.all([
+        npm(job, 'root'),
+        npm(job, 'root', '--global')
+      ])
     }
     const localModule = join(localRoot, name)
     if (await folderExists(localModule)) {
@@ -44,7 +47,7 @@ module.exports = {
     if (!await folderExists(globalModule)) {
       const previousStatus = job.status
       job.status = `Installing ${name}...`
-      await npm('install', name, '-g')
+      await npm(job, 'install', name, '-g')
       job.status = previousStatus
     }
     return globalModule
