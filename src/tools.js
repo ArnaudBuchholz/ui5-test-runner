@@ -55,7 +55,7 @@ function pad (width) {
     },
     [$w] (widthLeft, result, opIndex) {
       const { text } = this
-      if (text.length < widthLeft) {
+      if (text.length < widthLeft && !text.includes('\n')) {
         return text.padEnd(widthLeft, ' ')
       }
       const lines = []
