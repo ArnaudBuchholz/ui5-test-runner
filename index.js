@@ -2,9 +2,9 @@
 
 'use strict'
 
-const output = require('./src/output')
-const { log, serve } = require('reserve')
-const jobFactory = require('./src/job')
+const { serve } = require('reserve')
+const { fromCmdLine } = require('./src/job')
+const { getOutput } = require('./src/output')
 const reserveConfigurationFactory = require('./src/reserve')
 const { execute } = require('./src/tests')
 const { watch } = require('fs')
@@ -18,7 +18,7 @@ function send (message) {
   }
 }
 
-async function notifyAndExecuteTests (job) {
+async function notifyAndExecuteTests (job, output) {
   send({ msg: 'begin' })
   try {
     await execute(job)
@@ -35,21 +35,23 @@ async function notifyAndExecuteTests (job) {
   }
 }
 
+let job
+let output
+
 async function main () {
-  const job = jobFactory.fromCmdLine(process.cwd(), process.argv.slice(2))
+  job = fromCmdLine(process.cwd(), process.argv.slice(2))
+  output = getOutput(job)
   const configuration = await reserveConfigurationFactory(job)
   const server = serve(configuration)
   if (job.logServer) {
-    log(server)
+    server.on('redirected', output.redirected)
   }
   server
     .on('ready', async ({ url, port }) => {
       job.port = port
       send({ msg: 'ready', port: job.port })
-      if (!job.logServer) {
-        output.serving(url)
-      }
-      output.report(job)
+      output.serving(url)
+      output.reportOnJobProgress()
       await notifyAndExecuteTests(job)
       if (job.watch) {
         delete job.start
@@ -66,8 +68,10 @@ async function main () {
       } else if (job.keepAlive) {
         job.status = 'Serving'
       } else if (job.failed) {
+        output.stop()
         process.exit(-1)
       } else {
+        output.stop()
         process.exit(0)
       }
     })
@@ -77,4 +81,12 @@ async function main () {
     })
 }
 
-main().catch(reason => output.genericError(reason))
+main()
+  .catch(reason => {
+    output.genericError(reason)
+    return -1
+  })
+  .then((code = 0) => {
+    output.stop()
+    process.exit(code)
+  })
