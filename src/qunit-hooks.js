@@ -50,9 +50,9 @@ module.exports = {
   },
 
   async testDone (job, url, report) {
-    const qunitPage = job.qunitPages[url]
     const { testId, failed } = report
-    const test = getTest(qunitPage, testId)
+    const qunitPage = job.qunitPages[url]
+    const test = qunitPage && getTest(qunitPage, testId)
     if (!test) {
       stop(job, url)
       throw UTRError.QUNIT_ERROR()
