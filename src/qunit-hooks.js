@@ -2,10 +2,11 @@
 
 const { screenshot, stop } = require('./browsers')
 const { collect } = require('./coverage')
+const { UTRError } = require('./error')
 
-function getTest ({ tests }, testId) {
+function getTest ({ tests }, testId, create = false) {
   let test = tests.find(({ id }) => id === testId)
-  if (!test) {
+  if (!test && create) {
     test = {
       id: testId
     }
@@ -18,7 +19,7 @@ module.exports = {
   async begin (job, url, { isOpa, totalTests, modules }) {
     if (!modules) {
       stop(job, url)
-      throw new Error('Unexpected begin call, missing modules')
+      throw UTRError.QUNIT_ERROR()
     }
     if (!job.qunitPages) {
       job.qunitPages = {}
@@ -31,7 +32,7 @@ module.exports = {
       tests: []
     }
     modules.forEach(module => {
-      module.tests.forEach(test => getTest(qunitPage, test.testId))
+      module.tests.forEach(test => getTest(qunitPage, test.testId, true))
     })
     job.qunitPages[url] = qunitPage
   },
@@ -51,6 +52,11 @@ module.exports = {
   async testDone (job, url, report) {
     const qunitPage = job.qunitPages[url]
     const { testId, failed } = report
+    const test = getTest(qunitPage, testId)
+    if (!test) {
+      stop(job, url)
+      throw UTRError.QUNIT_ERROR()
+    }
     if (failed) {
       if (job.browserCapabilities.screenshot) {
         await screenshot(job, url, testId)
@@ -60,13 +66,16 @@ module.exports = {
     } else {
       ++qunitPage.passed
     }
-    const test = getTest(qunitPage, testId)
     test.end = new Date()
     test.report = report
   },
 
   async done (job, url, report) {
     const qunitPage = job.qunitPages[url]
+    if (!qunitPage) {
+      stop(job, url)
+      throw UTRError.QUNIT_ERROR()
+    }
     if (job.browserCapabilities.screenshot) {
       await screenshot(job, url, 'done')
     }
