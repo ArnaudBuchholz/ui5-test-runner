@@ -368,7 +368,7 @@ function build (job) {
           log(job, p`│ ${(messages.length + 1).toString().padStart(3, ' ')} │ ${pad.lt(url)} │`)
           messages.push(message)
         } else {
-          log(job, p`│     │ ${pad.lt(url)} │`)
+          log(job, p`│ OK  │ ${pad.lt(url)} │`)
         }
       })
       log(job, p`└─────┴───${pad.x('─')}┘`)
