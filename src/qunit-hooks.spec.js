@@ -267,6 +267,15 @@ describe('src/qunit-hooks', () => {
     })
 
     it('fails if tests not started', async () => {
+      delete job.qunitPages
+      expect(testDone(job, url, {
+        testId: '1a',
+        failed: false
+      })).rejects.toThrow(UTRError.QUNIT_ERROR())
+      expect(stop).toHaveBeenCalledWith(job, url)
+    })
+
+    it('fails if URL does not exist', async () => {
       job.qunitPages = {}
       expect(testDone(job, url, {
         testId: '1a',
@@ -334,6 +343,12 @@ describe('src/qunit-hooks', () => {
     })
 
     it('fails if tests not started', async () => {
+      delete job.qunitPages
+      expect(done(job, url, {})).rejects.toThrow(UTRError.QUNIT_ERROR())
+      expect(stop).toHaveBeenCalledWith(job, url)
+    })
+
+    it('fails if URL does not exist', async () => {
       job.qunitPages = {}
       expect(done(job, url, {})).rejects.toThrow(UTRError.QUNIT_ERROR())
       expect(stop).toHaveBeenCalledWith(job, url)
