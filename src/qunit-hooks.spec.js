@@ -15,6 +15,7 @@ const {
   testDone,
   done
 } = require('./qunit-hooks.js')
+const { UTRError } = require('./error')
 
 describe('src/qunit-hooks', () => {
   const url = 'http://localhost:80/page1.html'
@@ -118,11 +119,11 @@ describe('src/qunit-hooks', () => {
 
     it('validates expected structure', async () => {
       const job = {}
-      await expect(() => begin(job, url, {
+      await expect(begin(job, url, {
         isOpa: false,
         totalTests: 1
         // missing modules
-      })).rejects.toThrow()
+      })).rejects.toThrow(UTRError.QUNIT_ERROR())
       expect(stop).toHaveBeenCalledWith(job, url)
     })
   })
@@ -225,46 +226,52 @@ describe('src/qunit-hooks', () => {
       expect(qunitPage.tests[1].end).toBeInstanceOf(Date)
     })
 
-    describe('failure', () => {
-      it('increases failed count and takes a screenshot', async () => {
-        job.browserCapabilities.screenshot = '.png'
-        const report = { testId: '2b', failed: true }
-        await testDone(job, url, report)
-        expect(screenshot).toHaveBeenCalledWith(job, url, '2b')
-        const qunitPage = job.qunitPages[url]
-        expect(qunitPage).toMatchObject({
-          isOpa: false,
-          failed: 1,
-          passed: 0,
-          tests: [{
-            id: '1a'
-          }, {
-            id: '2b',
-            // end,
-            report
-          }]
-        })
-        expect(qunitPage.tests[1].end).toBeInstanceOf(Date)
-        expect(job.failed).toStrictEqual(true)
+    it('increases failed count and takes a screenshot', async () => {
+      job.browserCapabilities.screenshot = '.png'
+      const report = { testId: '2b', failed: true }
+      await testDone(job, url, report)
+      expect(screenshot).toHaveBeenCalledWith(job, url, '2b')
+      const qunitPage = job.qunitPages[url]
+      expect(qunitPage).toMatchObject({
+        isOpa: false,
+        failed: 1,
+        passed: 0,
+        tests: [{
+          id: '1a'
+        }, {
+          id: '2b',
+          // end,
+          report
+        }]
       })
+      expect(qunitPage.tests[1].end).toBeInstanceOf(Date)
+      expect(job.failed).toStrictEqual(true)
+    })
 
-      it('increases failed count only (no screenshot)', async () => {
-        const report = { testId: '2b', failed: true }
-        await testDone(job, url, report)
-        expect(screenshot).not.toHaveBeenCalled()
-        expect(job.qunitPages[url]).toMatchObject({
-          isOpa: false,
-          failed: 1,
-          passed: 0,
-          tests: [{
-            id: '1a'
-          }, {
-            id: '2b',
-            report
-          }]
-        })
-        expect(job.failed).toStrictEqual(true)
+    it('increases failed count only (no screenshot)', async () => {
+      const report = { testId: '2b', failed: true }
+      await testDone(job, url, report)
+      expect(screenshot).not.toHaveBeenCalled()
+      expect(job.qunitPages[url]).toMatchObject({
+        isOpa: false,
+        failed: 1,
+        passed: 0,
+        tests: [{
+          id: '1a'
+        }, {
+          id: '2b',
+          report
+        }]
       })
+      expect(job.failed).toStrictEqual(true)
+    })
+
+    it('fails on invalid test id', async () => {
+      expect(testDone(job, url, {
+        testId: '3c',
+        failed: false
+      })).rejects.toThrow(UTRError.QUNIT_ERROR())
+      expect(stop).toHaveBeenCalledWith(job, url)
     })
   })
 
@@ -315,6 +322,12 @@ describe('src/qunit-hooks', () => {
     it('documents when the page ended', async () => {
       await done(job, url, {})
       expect(job.qunitPages[url].end).toBeInstanceOf(Date)
+    })
+
+    it('fails if test not started', async () => {
+      job.qunitPages = {}
+      expect(done(job, url, {})).rejects.toThrow(UTRError.QUNIT_ERROR())
+      expect(stop).toHaveBeenCalledWith(job, url)
     })
   })
 })
