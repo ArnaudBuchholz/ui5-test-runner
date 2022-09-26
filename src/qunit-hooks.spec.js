@@ -266,6 +266,15 @@ describe('src/qunit-hooks', () => {
       expect(job.failed).toStrictEqual(true)
     })
 
+    it('fails if tests not started', async () => {
+      job.qunitPages = {}
+      expect(testDone(job, url, {
+        testId: '1a',
+        failed: false
+      })).rejects.toThrow(UTRError.QUNIT_ERROR())
+      expect(stop).toHaveBeenCalledWith(job, url)
+    })
+
     it('fails on invalid test id', async () => {
       expect(testDone(job, url, {
         testId: '3c',
@@ -324,7 +333,7 @@ describe('src/qunit-hooks', () => {
       expect(job.qunitPages[url].end).toBeInstanceOf(Date)
     })
 
-    it('fails if test not started', async () => {
+    it('fails if tests not started', async () => {
       job.qunitPages = {}
       expect(done(job, url, {})).rejects.toThrow(UTRError.QUNIT_ERROR())
       expect(stop).toHaveBeenCalledWith(job, url)
