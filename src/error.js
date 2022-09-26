@@ -27,6 +27,8 @@ const errors = [{
   name: 'BROWSER_SCREENSHOT_TIMEOUT'
 }, {
   name: 'BROWSER_SCREENSHOT_NOT_SUPPORTED'
+}, {
+  name: 'QUNIT_ERROR'
 }]
 
 errors.forEach((error, index) => {
