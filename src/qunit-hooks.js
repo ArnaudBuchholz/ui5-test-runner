@@ -4,6 +4,15 @@ const { screenshot, stop } = require('./browsers')
 const { collect } = require('./coverage')
 const { UTRError } = require('./error')
 
+function getPage (job, url) {
+  const qunitPage = job.qunitPages && job.qunitPages[url]
+  if (!qunitPage) {
+    stop(job, url)
+    throw UTRError.QUNIT_ERROR()
+  }
+  return qunitPage
+}
+
 function getTest ({ tests }, testId, create = false) {
   let test = tests.find(({ id }) => id === testId)
   if (!test && create) {
@@ -38,7 +47,7 @@ module.exports = {
   },
 
   async log (job, url, { testId, runtime }) {
-    const qunitPage = job.qunitPages[url]
+    const qunitPage = getPage(job, url)
     if (qunitPage.isOpa && job.browserCapabilities.screenshot) {
       const test = getTest(qunitPage, testId)
       if (!test.screenshots) {
@@ -51,8 +60,8 @@ module.exports = {
 
   async testDone (job, url, report) {
     const { testId, failed } = report
-    const qunitPage = job.qunitPages[url]
-    const test = qunitPage && getTest(qunitPage, testId)
+    const qunitPage = getPage(job, url)
+    const test = getTest(qunitPage, testId)
     if (!test) {
       stop(job, url)
       throw UTRError.QUNIT_ERROR()
@@ -71,11 +80,7 @@ module.exports = {
   },
 
   async done (job, url, report) {
-    const qunitPage = job.qunitPages[url]
-    if (!qunitPage) {
-      stop(job, url)
-      throw UTRError.QUNIT_ERROR()
-    }
+    const qunitPage = getPage(job, url)
     if (job.browserCapabilities.screenshot) {
       await screenshot(job, url, 'done')
     }
