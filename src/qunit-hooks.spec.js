@@ -125,7 +125,7 @@ describe('src/qunit-hooks', () => {
         // missing modules
       })).rejects.toThrow(UTRError.QUNIT_ERROR())
       expect(stop).toHaveBeenCalledWith(job, url)
-      expect(job.failed).toBe(true)
+      expect(job.failed).toStrictEqual(true)
     })
   })
 
@@ -208,7 +208,7 @@ describe('src/qunit-hooks', () => {
         runtime: 't1'
       })).rejects.toThrow(UTRError.QUNIT_ERROR())
       expect(stop).toHaveBeenCalledWith(job, url)
-      expect(job.failed).toBe(true)
+      expect(job.failed).toStrictEqual(true)
     })
   })
 
@@ -298,7 +298,7 @@ describe('src/qunit-hooks', () => {
         failed: false
       })).rejects.toThrow(UTRError.QUNIT_ERROR())
       expect(stop).toHaveBeenCalledWith(job, url)
-      expect(job.failed).toBe(true)
+      expect(job.failed).toStrictEqual(true)
     })
 
     it('fails if URL does not exist', async () => {
@@ -308,7 +308,7 @@ describe('src/qunit-hooks', () => {
         failed: false
       })).rejects.toThrow(UTRError.QUNIT_ERROR())
       expect(stop).toHaveBeenCalledWith(job, url)
-      expect(job.failed).toBe(true)
+      expect(job.failed).toStrictEqual(true)
     })
 
     it('fails on invalid test id', async () => {
@@ -317,7 +317,7 @@ describe('src/qunit-hooks', () => {
         failed: false
       })).rejects.toThrow(UTRError.QUNIT_ERROR())
       expect(stop).toHaveBeenCalledWith(job, url)
-      expect(job.failed).toBe(true)
+      expect(job.failed).toStrictEqual(true)
     })
   })
 
@@ -374,14 +374,14 @@ describe('src/qunit-hooks', () => {
       delete job.qunitPages
       expect(done(job, url, {})).rejects.toThrow(UTRError.QUNIT_ERROR())
       expect(stop).toHaveBeenCalledWith(job, url)
-      expect(job.failed).toBe(true)
+      expect(job.failed).toStrictEqual(true)
     })
 
     it('fails if URL does not exist', async () => {
       job.qunitPages = {}
       expect(done(job, url, {})).rejects.toThrow(UTRError.QUNIT_ERROR())
       expect(stop).toHaveBeenCalledWith(job, url)
-      expect(job.failed).toBe(true)
+      expect(job.failed).toStrictEqual(true)
     })
   })
 })
