@@ -45,6 +45,7 @@ async function runTestPage (job) {
   const url = job.testPageUrls[index]
   if (globallyTimedOut(job)) {
     getOutput(job).globalTimeout(url)
+    job.failed = true
   } else if (job.failFast && job.failed) {
     getOutput(job).failFast(url)
   } else {
