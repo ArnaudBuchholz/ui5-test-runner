@@ -274,18 +274,38 @@ function build (job) {
 
     monitor (childProcess) {
       ['stdout', 'stderr'].forEach(channel => {
+        const defaults = {
+          stdout: { buffer: [], method: log },
+          stderr: { buffer: [], method: err }
+        }
         childProcess[channel].on('data', chunk => {
+          const { buffer, method } = defaults[channel]
+          const text = chunk.toString()
+          if (!text.includes('\n')) {
+            buffer.push(text)
+            return
+          }
+          const cached = buffer.join('')
+          const last = text.split('\n').slice(-1)
+          buffer.length = 0
+          if (last) {
+            buffer.push(last)
+          }
           if (job && interactive) {
             clean(job)
           }
-          if (channel === 'stdout') {
-            log(job, chunk)
-          } else {
-            err(job, chunk)
-          }
+          method(job, cached + text.split('\n').slice(0, -1).join('\n'))
           if (job && interactive) {
             progress(job, false)
           }
+        })
+        childProcess.on('close', () => {
+          ['stdout', 'stderr'].forEach(channel => {
+            const { buffer, method } = defaults[channel]
+            if (buffer.length) {
+              method(job, buffer.join(''))
+            }
+          })
         })
       })
     },
@@ -339,8 +359,11 @@ function build (job) {
       log(job, p`┌──────────${pad.x('─')}┐`)
       log(job, p`│ UNEXPECTED ERROR ${pad.x(' ')} │`)
       log(job, p`├────────${pad.x('─')}──┤`)
-      log(job, p`│ error ${pad.x(' ')} │`)
-      wrap(job, error.toString())
+      if (error.stack) {
+        log(job, p`│ ${pad.w(error.stack)} │`)
+      } else {
+        log(job, p`│ ${pad.w(error.toString())} │`)
+      }
       log(job, p`└──────────${pad.x('─')}┘`)
     },
 
