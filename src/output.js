@@ -151,16 +151,16 @@ function browserIssue (job, { type, url, code, dir }) {
 
   const stderr = readFileSync(join(dir, 'stderr.txt')).toString().trim()
   if (stderr.length !== 0) {
-    log(p`│ Error output (${stderr.length}) ${pad.x(' ')} │`)
+    log(job, p`│ Error output (${stderr.length}) ${pad.x(' ')} │`)
     log(job, p`│ ${pad.w(stderr)} │`)
   } else {
     const stdout = readFileSync(join(dir, 'stdout.txt')).toString()
     if (stdout.length !== 0) {
-      log(p`│ Standard output (${stderr.length}), last 10 lines... ${pad.x(' ')} │`)
+      log(job, p`│ Standard output (${stderr.length}), last 10 lines... ${pad.x(' ')} │`)
       log(job, p`│ ${pad.w('...')} │`)
       log(job, p`│ ${pad.w(stdout.split(/\r?\n/).slice(-10).join('\n'))} │`)
     } else {
-      log(p`│ No output ${pad.x(' ')} │`)
+      log(job, p`│ No output ${pad.x(' ')} │`)
     }
   }
   log(job, p`└──────────${pad.x('─')}┘`)
