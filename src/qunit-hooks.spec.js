@@ -186,6 +186,30 @@ describe('src/qunit-hooks', () => {
         }]
       })
     })
+
+    it('fails on invalid test', async () => {
+      const job = {
+        browserCapabilities: {
+          screenshot: '.png'
+        }
+      }
+      await begin(job, url, {
+        isOpa: true,
+        modules: [{
+          tests: [{
+            testId: '1a'
+          }, {
+            testId: '2b'
+          }]
+        }]
+      })
+      await expect(log(job, url, {
+        testId: '3c',
+        runtime: 't1'
+      })).rejects.toThrow(UTRError.QUNIT_ERROR())
+      expect(stop).toHaveBeenCalledWith(job, url)
+      expect(job.failed).toBe(true)
+    })
   })
 
   describe('testDone', () => {
