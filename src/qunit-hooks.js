@@ -4,31 +4,28 @@ const { screenshot, stop } = require('./browsers')
 const { collect } = require('./coverage')
 const { UTRError } = require('./error')
 
+function error (job, url) {
+  stop(job, url)
+  job.failed = true
+  throw UTRError.QUNIT_ERROR()
+}
+
 function getPage (job, url) {
   const qunitPage = job.qunitPages && job.qunitPages[url]
   if (!qunitPage) {
-    stop(job, url)
-    throw UTRError.QUNIT_ERROR()
+    error(job, url)
   }
   return qunitPage
 }
 
-function getTest ({ tests }, testId, create = false) {
-  let test = tests.find(({ id }) => id === testId)
-  if (!test && create) {
-    test = {
-      id: testId
-    }
-    tests.push(test)
-  }
-  return test
+function getTest ({ tests }, testId) {
+  return tests.find(({ id }) => id === testId)
 }
 
 module.exports = {
   async begin (job, url, { isOpa, totalTests, modules }) {
     if (!modules) {
-      stop(job, url)
-      throw UTRError.QUNIT_ERROR()
+      error(job, url)
     }
     if (!job.qunitPages) {
       job.qunitPages = {}
@@ -41,7 +38,11 @@ module.exports = {
       tests: []
     }
     modules.forEach(module => {
-      module.tests.forEach(test => getTest(qunitPage, test.testId, true))
+      module.tests.forEach(test => {
+        qunitPage.tests.push({
+          id: test.testId
+        })
+      })
     })
     job.qunitPages[url] = qunitPage
   },
@@ -50,6 +51,9 @@ module.exports = {
     const qunitPage = getPage(job, url)
     if (qunitPage.isOpa && job.browserCapabilities.screenshot) {
       const test = getTest(qunitPage, testId)
+      if (!test) {
+        error(job, url)
+      }
       if (!test.screenshots) {
         test.screenshots = []
       }
@@ -63,8 +67,7 @@ module.exports = {
     const qunitPage = getPage(job, url)
     const test = getTest(qunitPage, testId)
     if (!test) {
-      stop(job, url)
-      throw UTRError.QUNIT_ERROR()
+      error(job, url)
     }
     if (failed) {
       if (job.browserCapabilities.screenshot) {
