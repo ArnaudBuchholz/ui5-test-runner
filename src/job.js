@@ -183,7 +183,7 @@ function finalize (job) {
     .split(',')
     .forEach(setting => { job[setting] = checkDefault(job[setting]) })
   updateToAbsolute('cwd', job.initialCwd)
-  'webapp,browser,reportDir,coverageSettings,coverageTempDir,coverageReportDir'
+  'cache,webapp,browser,reportDir,coverageSettings,coverageTempDir,coverageReportDir'
     .split(',')
     .forEach(setting => updateToAbsolute(setting))
   if (!job.url) {
