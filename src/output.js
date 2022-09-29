@@ -144,7 +144,8 @@ function browserIssue (job, { type, url, code, dir }) {
   log(job, p`├──────┬─${pad.x('─')}──┤`)
   log(job, p`│ url  │ ${pad.lt(url)} │`)
   log(job, p`├──────┼─${pad.x('─')}──┤`)
-  log(job, p`│ code │ 0x${code.toString(16).toUpperCase()}${pad.x(' ')} │`)
+  const unsignedCode = new Uint32Array([code])[0]
+  log(job, p`│ code │ 0x${unsignedCode.toString(16).toUpperCase()}${pad.x(' ')} │`)
   log(job, p`├──────┼─${pad.x('─')}──┤`)
   log(job, p`│ dir  │ ${pad.lt(dir)} │`)
   log(job, p`├──────┴─${pad.x('─')}──┤`)
@@ -253,7 +254,7 @@ function build (job) {
     },
 
     browserClosed (url, code, dir) {
-      browserIssue(job, { type: 'closed', url, code, dir })
+      browserIssue(job, { type: 'unexpected closed', url, code, dir })
     },
 
     browserRetry (url, retry) {
