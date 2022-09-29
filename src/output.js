@@ -272,6 +272,21 @@ function build (job) {
       browserIssue(job, { type: 'failed', url, code, dir })
     },
 
+    startFailed (url, error) {
+      const p = p80()
+      log(job, p`┌──────────${pad.x('─')}┐`)
+      log(job, p`│ UNABLE TO START THE URL ${pad.x(' ')} │`)
+      log(job, p`├──────┬─${pad.x('─')}──┤`)
+      log(job, p`│ url  │ ${pad.lt(url)} │`)
+      log(job, p`├──────┴─${pad.x('─')}──┤`)
+      if (error.stack) {
+        log(job, p`│ ${pad.w(error.stack)} │`)
+      } else {
+        log(job, p`│ ${pad.w(error.toString())} │`)
+      }
+      log(job, p`└──────────${pad.x('─')}┘`)
+    },
+
     monitor (childProcess) {
       ['stdout', 'stderr'].forEach(channel => {
         const defaults = {
@@ -347,11 +362,11 @@ function build (job) {
     },
 
     noTestPageFound () {
-      err(log, p80()`No test page found (or all filtered out)`)
+      err(job, p80()`No test page found (or all filtered out)`)
     },
 
     failedToCacheUI5resource (path, statusCode) {
-      err(log, p80()`Unable to cache '${pad.lt(path)}' (status ${statusCode})`)
+      err(job, p80()`Unable to cache '${pad.lt(path)}' (status ${statusCode})`)
     },
 
     genericError (error) {
