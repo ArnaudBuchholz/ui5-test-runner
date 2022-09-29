@@ -11,14 +11,20 @@ const $testPagesStarted = Symbol('testPagesStarted')
 const $testPagesCompleted = Symbol('testPagesCompleted')
 
 async function extractTestPages (job) {
+  const output = getOutput(job)
   job.start = new Date()
   await instrument(job)
   await save(job)
   job.status = 'Extracting test pages'
   job.testPageUrls = []
-  await start(job, `http://localhost:${job.port}/${job.testsuite}`)
+  const url = `http://localhost:${job.port}/${job.testsuite}`
+  try {
+    await start(job, url)
+  } catch (error) {
+    output.startFailed(url, error)
+  }
   if (job.testPageUrls.length === 0) {
-    getOutput(job).noTestPageFound()
+    output.noTestPageFound()
     job.failed = true
     return Promise.resolve()
   }
@@ -35,6 +41,7 @@ async function extractTestPages (job) {
 
 async function runTestPage (job) {
   const { length } = job.testPageUrls
+  const output = getOutput(job)
   if (job[$testPagesCompleted] === length) {
     return await generate(job)
   }
@@ -44,12 +51,17 @@ async function runTestPage (job) {
   const index = job[$testPagesStarted]++
   const url = job.testPageUrls[index]
   if (globallyTimedOut(job)) {
-    getOutput(job).globalTimeout(url)
+    output.globalTimeout(url)
     job.failed = true
   } else if (job.failFast && job.failed) {
-    getOutput(job).failFast(url)
+    output.failFast(url)
   } else {
-    await start(job, url)
+    try {
+      await start(job, url)
+    } catch (error) {
+      output.startFailed(url, error)
+      job.failed = true
+    }
   }
   ++job[$testPagesCompleted]
   return runTestPage(job)
