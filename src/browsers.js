@@ -198,8 +198,10 @@ async function run (job, pageBrowser) {
   })
   childProcess.on('close', async code => {
     if (!pageBrowser.stopped) {
-      output.browserClosed(url, code, dir)
-      stop(job, url, true)
+      if (code === 0) {
+        output.browserClosed(url, code, dir)
+      }
+      childProcess.closed.then(() => stop(job, url, true))
     }
   })
 }
