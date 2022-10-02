@@ -183,9 +183,12 @@ function finalize (job) {
     .split(',')
     .forEach(setting => { job[setting] = checkDefault(job[setting]) })
   updateToAbsolute('cwd', job.initialCwd)
-  'cache,webapp,browser,reportDir,coverageSettings,coverageTempDir,coverageReportDir'
+  'webapp,browser,reportDir,coverageSettings,coverageTempDir,coverageReportDir'
     .split(',')
     .forEach(setting => updateToAbsolute(setting))
+  if (job.cache) {
+    updateToAbsolute('cache')
+  }
   if (!job.url) {
     checkAccess({ path: job.webapp, label: 'webapp folder' })
     const testsuitePath = toAbsolute(job.testsuite, job.webapp)
