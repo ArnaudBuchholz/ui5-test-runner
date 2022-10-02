@@ -1,4 +1,4 @@
-const { join } = require('path')
+const { join, dirname } = require('path')
 const { mock } = require('reserve')
 const jobFactory = require('./job')
 const reserveConfigurationFactory = require('./reserve')
@@ -350,86 +350,86 @@ describe('simulate', () => {
         expect(job.failed).toStrictEqual(false)
       })
     })
+
+    describe('error and failFast (stop after first failure)', () => {
+      beforeAll(async () => {
+        await setup('fail_fast', {
+          parallel: 1,
+          failFast: null
+        })
+        pages = {
+          'testsuite.qunit.html': async headers => {
+            await post('/_/addTestPages', headers, [
+              '/page1.html',
+              '/page2.html',
+              '/page3.html',
+              '/page4.html'
+            ])
+          },
+          'page1.html': async referer => {
+            simulateOK(referer)
+          },
+          'page2.html': async referer => {
+            await post('/_/QUnit/begin', referer, { totalTests: 1 })
+            await post('/_/QUnit/testDone', referer, { failed: 1, passed: 0 })
+            await post('/_/QUnit/done', referer, { failed: 1 })
+          }
+          // Should not try to run page 3 & 4
+        }
+        await execute(job)
+      })
+
+      it('failed', () => {
+        expect(job.failed).toStrictEqual(true)
+      })
+    })
+
+    describe('error when no page found', () => {
+      beforeAll(async () => {
+        await setup('no_page', {
+          parallel: 1
+        })
+        pages = {
+          'testsuite.qunit.html': async referer => {
+            await post('/_/addTestPages', referer, [])
+          }
+        }
+        await execute(job)
+      })
+
+      it('failed', () => {
+        expect(job.failed).toStrictEqual(true)
+      })
+    })
+
+    describe('ui5 libraries', () => {
+      beforeAll(async () => {
+        await setup('libs', {
+          ui5: 'https://any.cdn.com/',
+          libs: [dirname(__dirname), `inject/=${join(__dirname, 'inject')}`]
+        })
+        pages = {
+          'testsuite.qunit.html': async referer => {
+            await post('/_/addTestPages', referer, [
+              '/page1.html'
+            ])
+          },
+          'page1.html': async referer => {
+            const response1 = await get('/resources/inject/qunit-hooks.js', referer)
+            expect(response1.statusCode).toStrictEqual(200)
+            expect(response1.toString().includes('/* Injected QUnit hooks */')).toStrictEqual(true)
+            const response2 = await get('/resources/src/inject/qunit-hooks.js', referer)
+            expect(response2.statusCode).toStrictEqual(200)
+            expect(response2.toString().includes('/* Injected QUnit hooks */')).toStrictEqual(true)
+            simulateOK(referer)
+          }
+        }
+        await execute(job)
+      })
+
+      it('succeeded', () => {
+        expect(job.failed).toStrictEqual(false)
+      })
+    })
   })
-
-  //   describe('error and failFast (stop after first failure)', () => {
-  //     beforeAll(async () => {
-  //       await setup('fail_fast', {
-  //         parallel: 1,
-  //         failFast: null
-  //       })
-  //       pages = {
-  //         'testsuite.qunit.html': async headers => {
-  //           await mocked.request('POST', '/_/addTestPages', headers, JSON.stringify([
-  //             '/page1.html',
-  //             '/page2.html',
-  //             '/page3.html',
-  //             '/page4.html'
-  //           ]))
-  //         },
-  //         'page1.html': async headers => {
-  //           simulateOK(headers)
-  //         },
-  //         'page2.html': async headers => {
-  //           await mocked.request('POST', '/_/QUnit/begin', headers, JSON.stringify({ totalTests: 1 }))
-  //           await mocked.request('POST', '/_/QUnit/testDone', headers, JSON.stringify({ failed: 1, passed: 0 }))
-  //           await mocked.request('POST', '/_/QUnit/done', headers, JSON.stringify({ failed: 1 }))
-  //         }
-  //         // Should not try to run page 3 & 4
-  //       }
-  //       await execute(job)
-  //     })
-
-  //     it('failed', () => {
-  //       expect(job.failed).toStrictEqual(3) // page2 + other pages that didn't run
-  //     })
-  //   })
-
-  //   describe('error when no page found', () => {
-  //     beforeAll(async () => {
-  //       await setup('no_page', {
-  //         parallel: 1
-  //       })
-  //       pages = {
-  //         'testsuite.qunit.html': async headers => {
-  //           await mocked.request('POST', '/_/addTestPages', headers, JSON.stringify([]))
-  //         }
-  //       }
-  //       await execute(job)
-  //     })
-
-  //     it('failed', () => {
-  //       expect(job.failed).toStrictEqual(true) // page2 + other pages that didn't run
-  //     })
-  //   })
-
-  //   describe('ui5 libraries', () => {
-  //     beforeAll(async () => {
-  //       await setup('ui5', {
-  //         ui5: 'https://any.cdn.com/',
-  //         libs: [join(__dirname, '../..'), `inject/=${join(__dirname, '../../src/inject')}`]
-  //       })
-  //       pages = {
-  //         'testsuite.qunit.html': async headers => {
-  //           await mocked.request('POST', '/_/addTestPages', headers, JSON.stringify([
-  //             '/page1.html'
-  //           ]))
-  //         },
-  //         'page1.html': async headers => {
-  //           const response1 = await mocked.request('GET', '/resources/inject/qunit-hooks.js', headers)
-  //           expect(response1.statusCode).toStrictEqual(200)
-  //           expect(response1.toString().includes('/* Injected QUnit hooks */')).toStrictEqual(true)
-  //           const response2 = await mocked.request('GET', '/resources/src/inject/qunit-hooks.js', headers)
-  //           expect(response2.statusCode).toStrictEqual(200)
-  //           expect(response2.toString().includes('/* Injected QUnit hooks */')).toStrictEqual(true)
-  //           simulateOK(headers)
-  //         }
-  //       }
-  //       await execute(job)
-  //     })
-
-//     it('succeeded', () => {
-//       expect(job.failed).toStrictEqual(0)
-//     })
-//   })
 })
