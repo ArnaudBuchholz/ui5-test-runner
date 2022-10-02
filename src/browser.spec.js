@@ -3,8 +3,8 @@ const { mock } = require('child_process')
 const jobFactory = require('./job')
 const { probe, start, stop, screenshot } = require('./browsers')
 const { $browsers } = require('./symbols')
-const { readFile, writeFile } = require('fs/promises')
-const { allocPromise } = require('./tools')
+const { readFile, writeFile, stat } = require('fs/promises')
+const { recreateDir, allocPromise, filename } = require('./tools')
 
 const cwd = '/test/project'
 const tmp = join(__dirname, '../tmp')
@@ -13,10 +13,12 @@ describe('src/browser', () => {
   let job
   let remainingChildProcess
 
-  beforeEach(() => {
+  beforeEach(async () => {
+    const reportDir = join(tmp, 'browser')
+    await recreateDir(reportDir)
     job = jobFactory.fromObject(cwd, {
       url: 'http://localhost:8080',
-      reportDir: join(tmp, 'browser'),
+      reportDir,
       browserCloseTimeout: 100,
       '--': ['argument1', 'argument2']
     })
@@ -622,6 +624,80 @@ describe('src/browser', () => {
         stop(job, '/test.html')
         await started
       })
+    })
+  })
+
+  describe('console', () => {
+    it('aggregate console logs in a .jsont file', async () => {
+      const { promise: ready, resolve: setReady } = allocPromise()
+      mock({
+        api: 'fork',
+        scriptPath: job.browser,
+        exec: async childProcess => {
+          childProcess.on('message.received', async message => {
+            if (message.command === 'stop') {
+              childProcess.close(0)
+            }
+          })
+          childProcess.emit('message', {
+            command: 'console',
+            t: Date.now(),
+            api: 'log',
+            args: ['Hello']
+          })
+          childProcess.emit('message', {
+            command: 'console',
+            t: Date.now(),
+            api: 'log',
+            args: ['World !']
+          })
+          setReady()
+        },
+        close: false
+      })
+      const started = start(job, '/test.html')
+      await ready
+      stop(job, '/test.html')
+      await started
+      const consoleFilename = join(job.reportDir, filename('/test.html'), 'console.jsont')
+      const consoleStat = await stat(consoleFilename)
+      expect(consoleStat.isFile()).toStrictEqual(true)
+      const consoleContent = (await readFile(consoleFilename)).toString()
+      const [firstTrace, secondTrace] = consoleContent.split('\n')
+      expect(JSON.parse(firstTrace)).toMatchObject({
+        api: 'log',
+        args: ['Hello']
+      })
+      expect(JSON.parse(secondTrace)).toMatchObject({
+        api: 'log',
+        args: ['World !']
+      })
+    })
+
+    it('resets .jsont file on retry', async () => {
+      mock({
+        api: 'fork',
+        scriptPath: job.browser,
+        exec: async childProcess => {
+          childProcess.on('message.received', async message => {
+            if (message.command === 'stop') {
+              childProcess.close(0)
+            }
+          })
+          childProcess.emit('message', {
+            command: 'console',
+            t: Date.now(),
+            api: 'log',
+            args: ['Hello World !']
+          })
+          childProcess.close(-1)
+        },
+        close: false
+      })
+      await expect(start(job, '/test.html')).rejects.toThrowError()
+      const consoleFilename = join(job.reportDir, filename('/test.html'), 'console.jsont')
+      const consoleContent = (await readFile(consoleFilename)).toString()
+      expect(consoleContent.split('\n').length).toStrictEqual(2)
     })
   })
 })
