@@ -9,6 +9,7 @@ const { readFile, stat, writeFile } = require('fs').promises
 const { cleanDir, createDir } = require('./tools')
 const { UTRError } = require('./error')
 const { $browsers } = require('./symbols')
+const { getOutput } = require('./output')
 
 describe('simulate', () => {
   const simulatePath = join(__dirname, '../tmp/simulate')
@@ -53,7 +54,7 @@ describe('simulate', () => {
     await post('/_/QUnit/done', referer, { failed: 0, __coverage__ })
   }
 
-  async function setup (name, ...args) {
+  async function setup (name, parameters) {
     mockChildProcess({
       api: 'fork',
       scriptPath: /puppeteer\.js$/,
@@ -97,7 +98,7 @@ describe('simulate', () => {
       reportDir: join(simulatePath, name, 'report'),
       coverageTempDir: join(simulatePath, name, 'coverage/temp'),
       coverageReportDir: join(simulatePath, name, 'coverage/report'),
-      ...args
+      ...parameters
     })
     const configuration = await reserveConfigurationFactory(job)
     mocked = await mock(configuration)
@@ -105,6 +106,7 @@ describe('simulate', () => {
 
   async function safeExecute () {
     try {
+      getOutput(job).reportOnJobProgress()
       await execute(job)
     } catch (e) {
       if (e instanceof UTRError && e.code === UTRError.BROWSER_FAILED_CODE) {
@@ -151,7 +153,7 @@ describe('simulate', () => {
       })
 
       it('succeeded', () => {
-        expect(job.failed).toStrictEqual(0)
+        expect(job.failed).toStrictEqual(false)
       })
 
       it('provides a progress endpoint', async () => {
@@ -181,9 +183,98 @@ describe('simulate', () => {
       })
     })
 
-    describe('error (test fail)', () => {
+    describe('error', () => {
+      describe('one test fail', () => {
+        beforeAll(async () => {
+          await setup('error1')
+          pages = {
+            'testsuite.qunit.html': async referer => {
+              await post('/_/addTestPages', referer, [
+                '/page1.html',
+                '/page2.html'
+              ])
+            },
+            'page1.html': referer => simulateOK(referer),
+            'page2.html': async referer => {
+              await post('/_/QUnit/begin', referer, { totalTests: 1, modules: [{ tests: [{ testId: '1' }] }] })
+              await post('/_/QUnit/testDone', referer, { testId: '1', failed: 1, passed: 0 })
+              await post('/_/QUnit/done', referer, { failed: 1 })
+            }
+          }
+          await safeExecute()
+        })
+
+        it('failed', () => {
+          expect(job.failed).toStrictEqual(true)
+        })
+      })
+
+      describe('several tests fail', () => {
+        beforeAll(async () => {
+          await setup('errorN')
+          pages = {
+            'testsuite.qunit.html': async referer => {
+              await post('/_/addTestPages', referer, [
+                '/page1.html',
+                '/page2.html',
+                '/page3.html'
+              ])
+            },
+            'page1.html': referer => simulateOK(referer),
+            'page2.html': async referer => {
+              await post('/_/QUnit/begin', referer, { totalTests: 1, modules: [{ tests: [{ testId: '1' }] }] })
+              await post('/_/QUnit/testDone', referer, { testId: '1', failed: 1, passed: 0 })
+              await post('/_/QUnit/done', referer, { failed: 1 })
+            },
+            'page3.html': async referer => {
+              await post('/_/QUnit/begin', referer, { totalTests: 2, modules: [{ tests: [{ testId: '2' }, { testId: '3' }] }] })
+              await post('/_/QUnit/testDone', referer, { testId: '2', failed: 2, passed: 0 })
+              await post('/_/QUnit/testDone', referer, { testId: '3', failed: 1, passed: 0 })
+              await post('/_/QUnit/done', referer, { failed: 3 })
+            }
+          }
+          await safeExecute()
+        })
+
+        it('failed', () => {
+          expect(job.failed).toStrictEqual(true)
+        })
+      })
+
+      describe('invalid QUnit hooks', () => {
+        beforeAll(async () => {
+          await setup('errorQunit')
+          pages = {
+            'testsuite.qunit.html': async referer => {
+              await post('/_/addTestPages', referer, [
+                '/page1.html',
+                '/page2.html'
+              ])
+            },
+            'page1.html': async referer => {
+              simulateOK(referer)
+            },
+            'page2.html': async referer => {
+              // The next call will dump an error because the missing /_/QUnit/begin call generates the page structure
+              await post('/_/QUnit/testDone', referer, { failed: 1, passed: 0 })
+              await post('/_/QUnit/done', referer, { failed: 1 })
+            }
+          }
+          await safeExecute()
+        })
+
+        it('failed', () => {
+          expect(job.failed).toStrictEqual(true)
+        })
+      })
+    })
+
+    describe('global timeout', () => {
       beforeAll(async () => {
-        await setup('error')
+        await setup('timeout', {
+          parallel: 1,
+          globalTimeout: 10000
+        })
         pages = {
           'testsuite.qunit.html': async referer => {
             await post('/_/addTestPages', referer, [
@@ -191,137 +282,75 @@ describe('simulate', () => {
               '/page2.html'
             ])
           },
-          'page1.html': referer => simulateOK(referer),
-          'page2.html': async referer => {
-            await post('/_/QUnit/begin', referer, { totalTests: 1, modules: [{ tests: [{ testId: '1' }] }] })
-            await post('/_/QUnit/testDone', referer, { testId: '1', failed: 1, passed: 0 })
-            await post('/_/QUnit/done', referer, { failed: 1 })
+          'page1.html': async headers => {
+            job.globalTimeout = 1 // Update to ensure the code will globally time out *after* page1
+            simulateOK(headers)
+          },
+          'page2.html': async headers => {
+            expect(false).toStrictEqual(true) // Should not be executed
           }
         }
         await safeExecute()
       })
 
       it('failed', () => {
-        expect(job.failed).toStrictEqual(1)
+        expect(job.failed).toStrictEqual(true)
+      })
+    })
+
+    describe('coverage substitution and ui5 cache', () => {
+      let ui5Cache
+
+      beforeAll(async () => {
+        ui5Cache = join(__dirname, '../tmp/simulate/coverage_and_cache/ui5')
+        await cleanDir(ui5Cache)
+        await setup('coverage_and_cache', {
+          cache: ui5Cache,
+          browserRetry: 0
+        })
+        pages = {
+          'testsuite.qunit.html': async referer => {
+            const cachedResponses = await Promise.all([
+              get('/resources/sap-ui-core.js', referer),
+              get('/resources/sap-ui-core.js', referer)
+            ])
+            expect(cachedResponses[0].statusCode).toStrictEqual(200)
+            expect(cachedResponses[0].toString().includes('sap-ui-core.js */')).toStrictEqual(true)
+            const notFoundResponse = await get('/resources/not-found.js', referer)
+            expect(notFoundResponse.statusCode).toStrictEqual(404)
+            const errorResponse = await get('/resources/error.js', referer)
+            expect(errorResponse.statusCode).toStrictEqual(500)
+            await post('/_/addTestPages', referer, [
+              '/page1.html',
+              '/page2.html'
+            ])
+          },
+          'page1.html': async referer => {
+            const coverageResponse = await get('/component.js', referer)
+            expect(coverageResponse.statusCode).toStrictEqual(200)
+            expect(coverageResponse.toString().includes('UIComponent.extend(\'app.Component\'')).toStrictEqual(true)
+            expect(coverageResponse.toString().includes('var global=new Function("return this")();')).toStrictEqual(false)
+            expect(coverageResponse.toString().includes('var global=window.top;')).toStrictEqual(true)
+            const cachedResponse = await get('/resources/sap/ui/thirdparty/qunit.js', referer)
+            expect(cachedResponse.statusCode).toStrictEqual(200)
+            expect(cachedResponse.toString().includes('qunit.js */')).toStrictEqual(true)
+            expect(cachedResponse.toString().includes('QUnit/begin')).toStrictEqual(true)
+            simulateOK(referer)
+          },
+          'page2.html': async referer => {
+            const cachedResponse = await get('/resources/not-found.js', referer)
+            expect(cachedResponse.statusCode).toStrictEqual(404)
+            simulateOK(referer)
+          }
+        }
+        await safeExecute()
+      })
+
+      it('succeeded', () => {
+        expect(job.failed).toStrictEqual(false)
       })
     })
   })
-
-  //   describe('error (invalid QUnit hooks)', () => {
-  //     jest.setTimeout(500000)
-  //     beforeAll(async () => {
-  //       await setup('error')
-  //       pages = {
-  //         'testsuite.qunit.html': async headers => {
-  //           await mocked.request('POST', '/_/addTestPages', headers, JSON.stringify([
-  //             '/page1.html',
-  //             '/page2.html'
-  //           ]))
-  //         },
-  //         'page1.html': async headers => {
-  //           simulateOK(headers)
-  //         },
-  //         'page2.html': async headers => {
-  //           // The next call will dump an error because the missing /_/QUnit/begin call generates the page structure
-  //           await mocked.request('POST', '/_/QUnit/testDone', headers, JSON.stringify({ failed: 1, passed: 0 }))
-  //           await mocked.request('POST', '/_/QUnit/done', headers, JSON.stringify({ failed: 1 }))
-  //         }
-  //       }
-  //       await execute(job)
-  //     })
-
-  //     it('failed', () => {
-  //       expect(job.failed).toStrictEqual(1)
-  //     })
-  //   })
-
-  //   describe('global timeout', () => {
-  //     beforeAll(async () => {
-  //       await setup('timeout', {
-  //         parallel: 1,
-  //         globalTimeout: 10000
-  //       })
-  //       pages = {
-  //         'testsuite.qunit.html': async headers => {
-  //           await mocked.request('POST', '/_/addTestPages', headers, JSON.stringify([
-  //             '/page1.html',
-  //             '/page2.html'
-  //           ]))
-  //         },
-  //         'page1.html': async headers => {
-  //           job.globalTimeout = 1 // Update to ensure the code will globally time out *after* page1
-  //           simulateOK(headers)
-  //         },
-  //         'page2.html': async headers => {
-  //           expect(false).toStrictEqual(true) // Should not be executed
-  //         }
-  //       }
-  //       await execute(job)
-  //     })
-
-  //     it('failed', () => {
-  //       expect(job.failed).not.toStrictEqual(0)
-  //     })
-  //   })
-
-  //   describe('coverage substitution and ui5 cache', () => {
-  //     let ui5Cache
-
-  //     beforeAll(async () => {
-  //       await setup('coverage_and_cache', {
-  //         cache: 'ui5'
-  //       })
-  //       ui5Cache = join(__dirname, '../../tmp/simulate/coverage_and_cache/ui5')
-  //       await cleanDir(ui5Cache)
-  //       pages = {
-  //         'testsuite.qunit.html': async headers => {
-  //           const instrumentedPath = join(__dirname, '../../tmp/simulate/coverage_and_cache/coverage/temp/instrumented')
-  //           await createDir(instrumentedPath)
-  //           const instrumentedComponentPath = join(instrumentedPath, 'component.js')
-  //           await writeFile(instrumentedComponentPath, `/* component.js */
-  // var global=new Function("return this")();
-  // // code from component.js
-  // `)
-  //           const cachedResponses = await Promise.all([
-  //             mocked.request('GET', '/resources/sap-ui-core.js', headers),
-  //             mocked.request('GET', '/resources/sap-ui-core.js', headers)
-  //           ])
-  //           expect(cachedResponses[0].statusCode).toStrictEqual(200)
-  //           expect(cachedResponses[0].toString().includes('sap-ui-core.js */')).toStrictEqual(true)
-  //           const notFoundResponse = await mocked.request('GET', '/resources/not-found.js', headers)
-  //           expect(notFoundResponse.statusCode).toStrictEqual(404)
-  //           const errorResponse = await mocked.request('GET', '/resources/error.js', headers)
-  //           expect(errorResponse.statusCode).toStrictEqual(500)
-  //           await mocked.request('POST', '/_/addTestPages', headers, JSON.stringify([
-  //             '/page1.html',
-  //             '/page2.html'
-  //           ]))
-  //         },
-  //         'page1.html': async headers => {
-  //           const coverageResponse = await mocked.request('GET', '/component.js', headers)
-  //           expect(coverageResponse.statusCode).toStrictEqual(200)
-  //           expect(coverageResponse.toString().includes('component.js */')).toStrictEqual(true)
-  //           expect(coverageResponse.toString().includes('var global=new Function("return this")();')).toStrictEqual(false)
-  //           expect(coverageResponse.toString().includes('var global=window.top;')).toStrictEqual(true)
-  //           const cachedResponse = await mocked.request('GET', '/resources/sap/ui/thirdparty/qunit.js', headers)
-  //           expect(cachedResponse.statusCode).toStrictEqual(200)
-  //           expect(cachedResponse.toString().includes('qunit.js */')).toStrictEqual(true)
-  //           expect(cachedResponse.toString().includes('QUnit/begin')).toStrictEqual(true)
-  //           simulateOK(headers)
-  //         },
-  //         'page2.html': async headers => {
-  //           const cachedResponse = await mocked.request('GET', '/resources/not-found.js', headers)
-  //           expect(cachedResponse.statusCode).toStrictEqual(404)
-  //           simulateOK(headers)
-  //         }
-  //       }
-  //       await execute(job)
-  //     })
-
-  //     it('succeeded', () => {
-  //       expect(job.failed).toStrictEqual(0)
-  //     })
-  //   })
 
   //   describe('error and failFast (stop after first failure)', () => {
   //     beforeAll(async () => {
