@@ -1,4 +1,4 @@
-const { getPageTimeout, globallyTimedOut } = require('../../src/timeout')
+const { getPageTimeout, globallyTimedOut } = require('./timeout')
 
 describe('src/timeout', () => {
   describe('getPageTimeout', () => {
