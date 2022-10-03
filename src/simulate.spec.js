@@ -98,6 +98,7 @@ describe('simulate', () => {
       reportDir: join(simulatePath, name, 'report'),
       coverageTempDir: join(simulatePath, name, 'coverage/temp'),
       coverageReportDir: join(simulatePath, name, 'coverage/report'),
+      coverage: false,
       ...parameters
     })
     const configuration = await reserveConfigurationFactory(job)
@@ -139,7 +140,7 @@ describe('simulate', () => {
             expect(response.statusCode).toStrictEqual(200)
             expect(response.toString().includes('qunit.js */')).toStrictEqual(true)
             expect(response.toString().includes('QUnit/begin')).toStrictEqual(true)
-            simulateOK(referer, {})
+            simulateOK(referer)
           },
           'page2.html': async referer => {
             const response = await get('/resources/sap/ui/thirdparty/qunit-2.js', referer)
@@ -306,6 +307,7 @@ describe('simulate', () => {
         await cleanDir(ui5Cache)
         await setup('coverage_and_cache', {
           cache: ui5Cache,
+          coverage: true,
           browserRetry: 0
         })
         pages = {
@@ -335,12 +337,12 @@ describe('simulate', () => {
             expect(cachedResponse.statusCode).toStrictEqual(200)
             expect(cachedResponse.toString().includes('qunit.js */')).toStrictEqual(true)
             expect(cachedResponse.toString().includes('QUnit/begin')).toStrictEqual(true)
-            simulateOK(referer)
+            simulateOK(referer, {})
           },
           'page2.html': async referer => {
             const cachedResponse = await get('/resources/not-found.js', referer)
             expect(cachedResponse.statusCode).toStrictEqual(404)
-            simulateOK(referer)
+            simulateOK(referer, {})
           }
         }
         await safeExecute()
