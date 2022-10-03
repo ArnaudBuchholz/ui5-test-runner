@@ -83,10 +83,16 @@ async function main () {
 
 main()
   .catch(reason => {
-    output.genericError(reason)
+    if (output) {
+      output.genericError(reason)
+    } else if (reason.name !== 'CommanderError') {
+      console.error(reason)
+    }
     return -1
   })
   .then((code = 0) => {
-    output.stop()
+    if (output) {
+      output.stop()
+    }
     process.exit(code)
   })
