@@ -14,12 +14,16 @@ if (settings.capabilities && !settings.modules) {
 }
 
 const { join } = require('path')
-const { Builder, Browser } = require(settings.modules['selenium-webdriver'])
+const { Builder, Browser, logging } = require(settings.modules['selenium-webdriver'])
 const { Options: ChromeOptions } = require(join(settings.modules['selenium-webdriver'], 'chrome'))
 
 const chromeOptions = new ChromeOptions()
 chromeOptions.excludeSwitches('enable-logging')
 chromeOptions.addArguments('headless')
+
+const prefs = new logging.Preferences()
+prefs.setLevel(logging.Type.BROWSER, logging.Level.DEBUG)
+chromeOptions.setLoggingPrefs(prefs)
 
 const { url, scripts } = settings
 
@@ -51,11 +55,18 @@ async function main () {
     .setChromeOptions(chromeOptions)
     .build()
 
+  logging.getLogger().setLevel(logging.Level.ALL)
+  logging.getLogger(logging.Type.BROWSER).setLevel(logging.Level.ALL)
+  logging.installConsoleHandler(entry => {
+    console.log(entry)
+  })
+
   if (settings.capabilities) {
     writeFileSync(settings.capabilities, JSON.stringify({
       modules: ['selenium-webdriver'],
       screenshot: '.png',
-      scripts: true
+      scripts: true,
+      console: true
     }))
     process.exit(0)
   }
