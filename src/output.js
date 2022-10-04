@@ -168,15 +168,32 @@ function browserIssue (job, { type, url, code, dir }) {
 }
 
 function build (job) {
+  let wrap
+  if (interactive) {
+    wrap = method => function () {
+      clean(job)
+      try {
+        method.call(this, ...arguments)
+      } finally {
+        progress(job, false)
+      }
+    }
+  } else {
+    wrap = method => method
+  }
+
   return {
     lastTick: 0,
     reportIntervalId: undefined,
+    lines: 0,
 
-    serving (url) {
+    wrap: wrap(callback => callback()),
+
+    serving: wrap(url => {
       log(job, p80()`Server running at ${pad.lt(url)}`)
-    },
+    }),
 
-    redirected ({ method, url, statusCode, timeSpent }) {
+    redirected: wrap(({ method, url, statusCode, timeSpent }) => {
       let statusText
       if (!statusCode) {
         statusText = 'N/A'
@@ -184,7 +201,7 @@ function build (job) {
         statusText = statusCode
       }
       log(job, p80()`${method} ${pad.lt(url)} ${statusText} ${timeSpent}ms`)
-    },
+    }),
 
     status (status) {
       if (!interactive) {
@@ -194,13 +211,13 @@ function build (job) {
       }
     },
 
-    watching (path) {
+    watching: wrap(path => {
       log(job, p80()`Watching changes on ${pad.lt(path)}`)
-    },
+    }),
 
-    changeDetected (eventType, filename) {
+    changeDetected: wrap((eventType, filename) => {
       log(job, p80()`${eventType} ${pad.lt(filename)}`)
-    },
+    }),
 
     reportOnJobProgress () {
       if (interactive) {
@@ -209,7 +226,7 @@ function build (job) {
       }
     },
 
-    browserCapabilities (capabilities) {
+    browserCapabilities: wrap(capabilities => {
       log(job, p80()`Browser capabilities :`)
       const { modules } = capabilities
       if (modules.length) {
@@ -235,13 +252,13 @@ function build (job) {
           }
           log(job, p80()`${prefix} ${key}: ${JSON.stringify(capabilities[key])}`)
         })
-    },
+    }),
 
     browserStart (url) {
       if (interactive) {
         output(job, '>>', url)
       } else {
-        log(job, p80()`>> ${pad.lt(url)}`)
+        wrap(() => log(job, p80()`>> ${pad.lt(url)}`))
       }
     },
 
@@ -249,31 +266,31 @@ function build (job) {
       if (interactive) {
         output(job, '<<', url)
       } else {
-        log(job, p80()`<< ${pad.lt(url)}`)
+        wrap(() => log(job, p80()`<< ${pad.lt(url)}`))
       }
     },
 
-    browserClosed (url, code, dir) {
+    browserClosed: wrap((url, code, dir) => {
       browserIssue(job, { type: 'unexpected closed', url, code, dir })
-    },
+    }),
 
     browserRetry (url, retry) {
       if (interactive) {
         output(job, '>>', url)
       } else {
-        log(job, p80()`>> RETRY ${retry} ${pad.lt(url)}`)
+        wrap(() => log(job, p80()`>> RETRY ${retry} ${pad.lt(url)}`))
       }
     },
 
-    browserTimeout (url, dir) {
+    browserTimeout: wrap((url, dir) => {
       browserIssue(job, { type: 'timeout', url, code: 0, dir })
-    },
+    }),
 
-    browserFailed (url, code, dir) {
+    browserFailed: wrap((url, code, dir) => {
       browserIssue(job, { type: 'failed', url, code, dir })
-    },
+    }),
 
-    startFailed (url, error) {
+    startFailed: wrap((url, error) => {
       const p = p80()
       log(job, p`┌──────────${pad.x('─')}┐`)
       log(job, p`│ UNABLE TO START THE URL ${pad.x(' ')} │`)
@@ -286,7 +303,7 @@ function build (job) {
         log(job, p`│ ${pad.w(error.toString())} │`)
       }
       log(job, p`└──────────${pad.x('─')}┘`)
-    },
+    }),
 
     monitor (childProcess) {
       ['stdout', 'stderr'].forEach(channel => {
@@ -307,13 +324,7 @@ function build (job) {
           if (last) {
             buffer.push(last)
           }
-          if (job && interactive) {
-            clean(job)
-          }
-          method(job, cached + text.split('\n').slice(0, -1).join('\n'))
-          if (job && interactive) {
-            progress(job, false)
-          }
+          wrap(() => method(job, cached + text.split('\n').slice(0, -1).join('\n')))
         })
         childProcess.on('close', () => {
           ['stdout', 'stderr'].forEach(channel => {
@@ -326,11 +337,11 @@ function build (job) {
       })
     },
 
-    nyc (...args) {
+    nyc: wrap((...args) => {
       log(job, p80()`nyc ${args.map(arg => arg.toString()).join(' ')}`)
-    },
+    }),
 
-    endpointError ({ api, url, data, error }) {
+    endpointError: wrap(({ api, url, data, error }) => {
       const p = p80()
       log(job, p`┌──────────${pad.x('─')}┐`)
       log(job, p`│ UNEXPECTED ENDPOINT ERROR ${pad.x(' ')} │`)
@@ -348,29 +359,29 @@ function build (job) {
         log(job, p`│ ${pad.w(error.toString())} │`)
       }
       log(job, p`└──────────${pad.x('─')}┘`)
-    },
+    }),
 
-    globalTimeout (url) {
+    globalTimeout: wrap(url => {
       log(job, p80()`!! TIMEOUT ${pad.lt(url)}`)
-    },
+    }),
 
-    failFast (url) {
+    failFast: wrap(url => {
       log(job, p80()`!! FAILFAST ${pad.lt(url)}`)
-    },
+    }),
 
-    timeSpent (start, end = new Date()) {
+    timeSpent: wrap((start, end = new Date()) => {
       log(job, p80()`Time spent: ${end - start}ms`)
-    },
+    }),
 
-    noTestPageFound () {
+    noTestPageFound: wrap(() => {
       err(job, p80()`No test page found (or all filtered out)`)
-    },
+    }),
 
-    failedToCacheUI5resource (path, statusCode) {
+    failedToCacheUI5resource: wrap((path, statusCode) => {
       err(job, p80()`Unable to cache '${pad.lt(path)}' (status ${statusCode})`)
-    },
+    }),
 
-    genericError (error) {
+    genericError: wrap(error => {
       const p = p80()
       log(job, p`┌──────────${pad.x('─')}┐`)
       log(job, p`│ UNEXPECTED ERROR ${pad.x(' ')} │`)
@@ -381,13 +392,13 @@ function build (job) {
         log(job, p`│ ${pad.w(error.toString())} │`)
       }
       log(job, p`└──────────${pad.x('─')}┘`)
-    },
+    }),
 
-    unhandled () {
+    unhandled: wrap(() => {
       warn(job, p80()`Some requests are not handled properly, check the unhandled.txt report for more info`)
-    },
+    }),
 
-    results () {
+    results: wrap(() => {
       const p = p80()
       log(job, p`┌──────────${pad.x('─')}┐`)
       log(job, p`│ RESULTS ${pad.x(' ')} │`)
@@ -417,12 +428,12 @@ function build (job) {
       if (!messages.length) {
         log(job, p`Success !`)
       }
-    },
+    }),
 
     stop () {
       if (this.reportIntervalId) {
         clearInterval(this.reportIntervalId)
-        clean()
+        clean(job)
       }
     }
   }
