@@ -85,14 +85,9 @@ main()
   .catch(reason => {
     if (output) {
       output.genericError(reason)
+      output.stop()
     } else if (reason.name !== 'CommanderError') {
       console.error(reason)
     }
-    return -1
-  })
-  .then((code = 0) => {
-    if (output) {
-      output.stop()
-    }
-    process.exit(code)
+    process.exit(-1)
   })
