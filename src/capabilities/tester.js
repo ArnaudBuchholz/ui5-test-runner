@@ -10,7 +10,7 @@ const EventEmitter = require('events')
 const assert = require('assert/strict')
 const { performance } = require('perf_hooks')
 const { cleanDir, allocPromise, filename } = require('../tools')
-const { $browsers } = require('./symbols')
+const { $browsers } = require('../symbols')
 
 let job
 let output
@@ -172,10 +172,9 @@ async function main () {
   try {
     await probe(job)
   } catch (e) {
-    console.error('Unable to probe')
+    output.wrap(() => console.error('Unable to probe'))
     exit(-1)
   }
-  console.log('Resolved capabilities :', job.browserCapabilities)
 
   const listeners = []
 
@@ -220,16 +219,16 @@ async function main () {
   job.status = 'Running tests'
 
   const filteredTests = tests.filter((test) => !test.for || test.for(job.browserCapabilities))
-  console.log('Number of tests :', filteredTests.length)
+  output.wrap(() => console.log('Number of tests :', filteredTests.length))
 
   let errors = 0
 
   const next = async () => {
     if (filteredTests.length === 0) {
       if (Object.keys(job[$browsers]).length === 0) {
-        console.log('Done.')
+        output.wrap(() => console.log('Done.'))
         if (errors) {
-          console.error('Temporary folder', reportDir, 'not cleaned because of errors.')
+          output.wrap(() => console.error('Temporary folder', reportDir, 'not cleaned because of errors.'))
         } else {
           await cleanDir(reportDir)
         }
@@ -266,10 +265,10 @@ async function main () {
       await stop(job, pageUrl)
       const timeSpent = Math.floor(performance.now() - now)
       if (error) {
-        console.log('❌', label, `[${filename(pageUrl)}]`, error)
+        output.wrap(() => console.log('❌', label, `[${filename(pageUrl)}]`, error))
         ++errors
       } else {
-        console.log('✔️', label, timeSpent, 'ms')
+        output.wrap(() => console.log('✔️', label, timeSpent, 'ms'))
       }
       await next()
     }
@@ -318,6 +317,6 @@ async function main () {
 
 main()
   .catch(reason => {
-    console.error(reason)
+    output.wrap(() => console.error(reason))
     exit(-1)
   })
