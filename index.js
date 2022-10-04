@@ -8,6 +8,7 @@ const { getOutput } = require('./src/output')
 const reserveConfigurationFactory = require('./src/reserve')
 const { execute } = require('./src/tests')
 const { watch } = require('fs')
+const { recreateDir } = require('./src/tools')
 
 function send (message) {
   if (process.send) {
@@ -41,6 +42,7 @@ let output
 async function main () {
   job = fromCmdLine(process.cwd(), process.argv.slice(2))
   output = getOutput(job)
+  await recreateDir(job.reportDir)
   const configuration = await reserveConfigurationFactory(job)
   const server = serve(configuration)
   if (job.logServer) {
