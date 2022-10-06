@@ -217,6 +217,7 @@ function finalize (job) {
   }
 
   const output = getOutput(job)
+  job[$status] = 'Starting'
   Object.defineProperty(job, 'status', {
     get () {
       return job[$status]
