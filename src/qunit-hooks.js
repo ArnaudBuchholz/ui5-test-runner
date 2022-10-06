@@ -3,6 +3,7 @@
 const { screenshot, stop } = require('./browsers')
 const { collect } = require('./coverage')
 const { UTRError } = require('./error')
+const { getOutput } = require('./output')
 
 function error (job, url) {
   stop(job, url)
@@ -57,8 +58,12 @@ module.exports = {
       if (!test.screenshots) {
         test.screenshots = []
       }
-      test.screenshots.push(runtime)
-      await screenshot(job, url, `${testId}-${runtime}`)
+      try {
+        await screenshot(job, url, `${testId}-${runtime}`)
+        test.screenshots.push(runtime)
+      } catch (error) {
+        getOutput(job).genericError(error, url)
+      }
     }
   },
 
@@ -71,7 +76,11 @@ module.exports = {
     }
     if (failed) {
       if (job.browserCapabilities.screenshot) {
-        await screenshot(job, url, testId)
+        try {
+          await screenshot(job, url, testId)
+        } catch (error) {
+          getOutput(job).genericError(error, url)
+        }
       }
       job.failed = true
       ++qunitPage.failed
@@ -85,7 +94,11 @@ module.exports = {
   async done (job, url, report) {
     const qunitPage = getPage(job, url)
     if (job.browserCapabilities.screenshot) {
-      await screenshot(job, url, 'done')
+      try {
+        await screenshot(job, url, 'done')
+      } catch (error) {
+        getOutput(job).genericError(error, url)
+      }
     }
     if (report.__coverage__) {
       collect(job, url, report.__coverage__)
