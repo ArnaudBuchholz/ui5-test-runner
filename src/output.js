@@ -207,11 +207,15 @@ function build (job) {
     }),
 
     status (status) {
-      if (!interactive) {
-        log(job, '')
-        log(job, status)
-        log(job, ''.padStart(status.length, '─'))
+      let method
+      if (interactive) {
+        method = output
+      } else {
+        method = log
       }
+      method(job, '')
+      method(job, status)
+      method(job, ''.padStart(status.length, '─'))
     },
 
     watching: wrap(path => {
@@ -400,11 +404,17 @@ function build (job) {
       err(job, p80()`Unable to cache '${pad.lt(path)}' (status ${statusCode})`)
     }),
 
-    genericError: wrap(error => {
+    genericError: wrap((error, url) => {
       const p = p80()
       log(job, p`┌──────────${pad.x('─')}┐`)
       log(job, p`│ UNEXPECTED ERROR ${pad.x(' ')} │`)
-      log(job, p`├────────${pad.x('─')}──┤`)
+      if (url) {
+        log(job, p`├──────┼─${pad.x('─')}──┤`)
+        log(job, p`│ url  │ ${pad.lt(url)} │`)
+        log(job, p`├──────┴─${pad.x('─')}──┤`)
+      } else {
+        log(job, p`├────────${pad.x('─')}──┤`)
+      }
       if (error.stack) {
         log(job, p`│ ${pad.w(error.stack)} │`)
       } else {
