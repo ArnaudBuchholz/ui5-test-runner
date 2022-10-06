@@ -24,6 +24,9 @@ const write = (...parts) => parts.forEach(part => process.stdout.write(part))
 
 function clean (job) {
   const { lines } = job[$output]
+  if (!lines) {
+    return
+  }
   write(`\x1b[${lines.toString()}F`)
   for (let line = 0; line < lines; ++line) {
     if (line > 1) {
@@ -221,7 +224,6 @@ function build (job) {
 
     reportOnJobProgress () {
       if (interactive) {
-        process.stdout.write('\n')
         this.reportIntervalId = setInterval(progress.bind(null, job), 250)
       }
     },
@@ -357,6 +359,23 @@ function build (job) {
         log(job, p`│ ${pad.w(error.stack)} │`)
       } else {
         log(job, p`│ ${pad.w(error.toString())} │`)
+      }
+      log(job, p`└──────────${pad.x('─')}┘`)
+    }),
+
+    serverError: wrap(({ method, url, reason }) => {
+      const p = p80()
+      log(job, p`┌──────────${pad.x('─')}┐`)
+      log(job, p`│ UNEXPECTED SERVER ERROR ${pad.x(' ')} │`)
+      log(job, p`├──────┬─${pad.x('─')}──┤`)
+      log(job, p`│ verb │ ${pad.lt(method)} │`)
+      log(job, p`├──────┼─${pad.x('─')}──┤`)
+      log(job, p`│ url  │ ${pad.lt(url)} │`)
+      log(job, p`├──────┴─${pad.x('─')}──┤`)
+      if (reason.stack) {
+        log(job, p`│ ${pad.w(reason.stack)} │`)
+      } else {
+        log(job, p`│ ${pad.w(reason.toString())} │`)
       }
       log(job, p`└──────────${pad.x('─')}┘`)
     }),
