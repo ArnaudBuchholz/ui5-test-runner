@@ -31,7 +31,7 @@ async function notifyAndExecuteTests (job, output) {
     }
     send({ msg: 'end', status })
   } catch (error) {
-    output.genericError(error)
+    getOutput(job).genericError(error)
     send({ msg: 'error', error })
   }
 }
@@ -78,7 +78,7 @@ async function main () {
       }
     })
     .on('error', error => {
-      output.genericError(error)
+      output.serverError(error)
       send({ msg: 'error', error })
     })
 }
