@@ -147,7 +147,7 @@ async function run (job, pageBrowser) {
     if (pageBrowser.console.count) {
       try {
         await pageBrowser.console.flush
-          .then(() => unlink(join(reportDir, 'console.jsont')))
+          .then(() => unlink(join(reportDir, 'console.jsonl')))
       } catch (e) {
         // ignore
       }
@@ -187,7 +187,7 @@ async function run (job, pageBrowser) {
         ++pageBrowser.console.byApi[message.api]
       }
       pageBrowser.console.flush = pageBrowser.console.flush
-        .then(() => writeFile(join(reportDir, 'console.jsont'), JSON.stringify({
+        .then(() => writeFile(join(reportDir, 'console.jsonl'), JSON.stringify({
           t: message.t,
           api: message.api,
           args: message.args
