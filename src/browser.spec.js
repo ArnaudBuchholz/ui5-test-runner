@@ -628,7 +628,7 @@ describe('src/browser', () => {
   })
 
   describe('console', () => {
-    it('aggregate console logs in a .jsont file', async () => {
+    it('aggregate console logs in a .jsonl file', async () => {
       const { promise: ready, resolve: setReady } = allocPromise()
       mock({
         api: 'fork',
@@ -659,7 +659,7 @@ describe('src/browser', () => {
       await ready
       stop(job, '/test.html')
       await started
-      const consoleFilename = join(job.reportDir, filename('/test.html'), 'console.jsont')
+      const consoleFilename = join(job.reportDir, filename('/test.html'), 'console.jsonl')
       const consoleStat = await stat(consoleFilename)
       expect(consoleStat.isFile()).toStrictEqual(true)
       const consoleContent = (await readFile(consoleFilename)).toString()
@@ -674,7 +674,7 @@ describe('src/browser', () => {
       })
     })
 
-    it('resets .jsont file on retry', async () => {
+    it('resets .jsonl file on retry', async () => {
       mock({
         api: 'fork',
         scriptPath: job.browser,
@@ -695,7 +695,7 @@ describe('src/browser', () => {
         close: false
       })
       await expect(start(job, '/test.html')).rejects.toThrowError()
-      const consoleFilename = join(job.reportDir, filename('/test.html'), 'console.jsont')
+      const consoleFilename = join(job.reportDir, filename('/test.html'), 'console.jsonl')
       const consoleContent = (await readFile(consoleFilename)).toString()
       expect(consoleContent.split('\n').length).toStrictEqual(2)
     })
