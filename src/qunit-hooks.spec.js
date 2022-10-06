@@ -9,6 +9,14 @@ jest.mock('./coverage.js', () => ({
 }))
 const { collect } = require('./coverage')
 
+const mockGenericError = jest.fn()
+
+jest.mock('./output.js', () => ({
+  getOutput: () => ({
+    genericError: mockGenericError
+  })
+}))
+
 const {
   begin,
   log,
@@ -21,8 +29,9 @@ describe('src/qunit-hooks', () => {
   const url = 'http://localhost:80/page1.html'
 
   beforeEach(() => {
-    screenshot.mockClear()
+    screenshot.mockReset()
     stop.mockClear()
+    mockGenericError.mockClear()
   })
 
   describe('begin', () => {
@@ -187,6 +196,35 @@ describe('src/qunit-hooks', () => {
       })
     })
 
+    it('does not fail if screenshot failed', async () => {
+      const job = {
+        browserCapabilities: {
+          screenshot: '.png'
+        }
+      }
+      await begin(job, url, {
+        isOpa: true,
+        modules: [{
+          tests: [{
+            testId: '1a'
+          }]
+        }]
+      })
+      screenshot.mockImplementation(() => Promise.reject(new Error()))
+      await log(job, url, { testId: '1a', runtime: 't1' })
+      expect(mockGenericError).toHaveBeenCalled()
+      expect(job.failed).not.toStrictEqual(true)
+      expect(job.qunitPages[url]).toMatchObject({
+        isOpa: true,
+        failed: 0,
+        passed: 0,
+        tests: [{
+          id: '1a',
+          screenshots: []
+        }]
+      })
+    })
+
     it('fails on invalid test', async () => {
       const job = {
         browserCapabilities: {
@@ -273,6 +311,29 @@ describe('src/qunit-hooks', () => {
       expect(job.failed).toStrictEqual(true)
     })
 
+    it('does not fail if screenshot failed', async () => {
+      job.browserCapabilities.screenshot = '.png'
+      const report = { testId: '2b', failed: true }
+      screenshot.mockImplementation(() => Promise.reject(new Error()))
+      await testDone(job, url, report)
+      expect(mockGenericError).toHaveBeenCalled()
+      const qunitPage = job.qunitPages[url]
+      expect(qunitPage).toMatchObject({
+        isOpa: false,
+        failed: 1,
+        passed: 0,
+        tests: [{
+          id: '1a'
+        }, {
+          id: '2b',
+          // end,
+          report
+        }]
+      })
+      expect(qunitPage.tests[1].end).toBeInstanceOf(Date)
+      expect(job.failed).toStrictEqual(true)
+    })
+
     it('increases failed count only (no screenshot)', async () => {
       const report = { testId: '2b', failed: true }
       await testDone(job, url, report)
@@ -342,6 +403,15 @@ describe('src/qunit-hooks', () => {
       job.browserCapabilities.screenshot = '.png'
       await done(job, url, {})
       expect(screenshot).toHaveBeenCalledWith(job, url, 'done')
+    })
+
+    it('does not fail if screenshot failed', async () => {
+      job.browserCapabilities.screenshot = '.png'
+      screenshot.mockImplementation(() => Promise.reject(new Error()))
+      await done(job, url, {})
+      expect(mockGenericError).toHaveBeenCalled()
+      expect(stop).toHaveBeenCalledWith(job, url)
+      expect(job.failed).not.toStrictEqual(true)
     })
 
     it('takes no screenshot if disabled', async () => {
