@@ -7,6 +7,8 @@ const { Request, Response } = require('reserve')
 const { getOutput } = require('./output')
 const { begin, log, testDone, done } = require('./qunit-hooks')
 const { addTestPages } = require('./add-test-pages')
+const { readFile } = require('fs/promises')
+const { TextEncoder } = require('util')
 
 module.exports = job => {
   async function endpointImpl (api, implementation, request) {
@@ -35,11 +37,32 @@ module.exports = job => {
     }
   }
 
+  async function getInjects (...names) {
+    return '\n;\n' + (await Promise.all(names.map(name => readFile(join(__dirname, 'inject', `${name}.js`)))))
+      .map(buffer => buffer.toString())
+      .join('\n;\n')
+  }
+
+  function contentLength (content) {
+    return new TextEncoder().encode(content).length
+  }
+
+  function sendScript (response, content) {
+    response.writeHead(200, {
+      'content-type': 'text/javascript',
+      'content-length': contentLength(content),
+      'cache-control': 'no-store'
+    })
+    response.end(content)
+  }
+
   return job.parallel
     ? [{
       // Substitute qunit-redirect to extract test pages
         match: '/resources/sap/ui/qunit/qunit-redirect.js',
-        file: join(__dirname, './inject/qunit-redirect.js')
+        custom: async (request, response) => {
+          sendScript(response, await getInjects('post', 'qunit-redirect'))
+        }
       }, {
       // Endpoint to receive test pages
         match: '^/_/addTestPages',
@@ -58,13 +81,11 @@ module.exports = job => {
           const ui5Request = new Request('GET', request.url)
           ui5Request.internal = true
           const ui5Response = new Response()
-          const hooksRequest = new Request('GET', '/_/qunit-hooks.js')
-          const hooksResponse = new Response()
-          await Promise.all([
-            this.configuration.dispatch(ui5Request, ui5Response),
-            this.configuration.dispatch(hooksRequest, hooksResponse)
+          const [inject] = await Promise.all([
+            getInjects('post', 'qunit-hooks'),
+            this.configuration.dispatch(ui5Request, ui5Response)
           ])
-          const hooksLength = parseInt(hooksResponse.headers['content-length'], 10)
+          const hooksLength = contentLength(inject)
           const ui5Length = parseInt(ui5Response.headers['content-length'], 10)
           response.writeHead(ui5Response.statusCode, {
             ...ui5Response.headers,
@@ -72,7 +93,7 @@ module.exports = job => {
             'cache-control': 'no-store' // for debugging purpose
           })
           response.write(ui5Response.toString())
-          response.end(hooksResponse.toString())
+          response.end(inject)
         }
       }, {
       // Endpoint to receive QUnit.begin
