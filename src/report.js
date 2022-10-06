@@ -22,7 +22,7 @@ module.exports = {
     const output = getOutput(job)
     job.end = new Date()
     job.failed = !!job.failed
-    job.status = 'Generating report'
+    job.status = 'Generating reports'
     output.results()
     job.testPageHashes = job.testPageUrls.map(url => filename(url))
     await save(job)
