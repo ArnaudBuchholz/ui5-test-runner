@@ -1,6 +1,5 @@
 const { join } = require('path')
 const { fromObject } = require('./job')
-const { _hook: hook } = require('child_process')
 const { instrument, generateCoverageReport, mappings } = require('./coverage')
 const { stat } = require('fs/promises')
 const { cleanDir, createDir } = require('./tools')
