@@ -1,10 +1,15 @@
 'use strict'
 
 const { stop } = require('./browsers')
+const { URL } = require('url')
 
 module.exports = {
   async addTestPages (job, url, pages) {
     let testPageUrls
+    pages = pages.map(relativeUrl => {
+      const absoluteUrl = new URL(relativeUrl, url)
+      return absoluteUrl.toString()
+    })
     if (job.pageFilter) {
       const filter = new RegExp(job.pageFilter)
       testPageUrls = pages.filter(name => name.match(filter))
