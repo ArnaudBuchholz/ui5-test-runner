@@ -80,8 +80,8 @@ const tests = [{
       if (pageBrowser.console.count === 5) {
         pageBrowser.console.flush
           .then(async () => {
-            const jsont = (await readFile(join(pageBrowser.reportDir, 'console.jsont'))).toString()
-            const logs = jsont
+            const jsonl = (await readFile(join(pageBrowser.reportDir, 'console.jsonl'))).toString()
+            const logs = jsonl
               .split('\n')
               .filter(line => !!line)
               .map(line => {
