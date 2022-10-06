@@ -409,7 +409,7 @@ function build (job) {
       log(job, p`┌──────────${pad.x('─')}┐`)
       log(job, p`│ UNEXPECTED ERROR ${pad.x(' ')} │`)
       if (url) {
-        log(job, p`├──────┼─${pad.x('─')}──┤`)
+        log(job, p`├──────┬─${pad.x('─')}──┤`)
         log(job, p`│ url  │ ${pad.lt(url)} │`)
         log(job, p`├──────┴─${pad.x('─')}──┤`)
       } else {
