@@ -2,7 +2,7 @@
 
 const { readFileSync, writeFileSync } = require('fs')
 const { join } = require('path')
-const { $browsers } = require('./symbols')
+const { $browsers, $testPagesCompleted } = require('./symbols')
 const { noop, pad } = require('./tools')
 
 const inJest = typeof jest !== 'undefined'
@@ -78,13 +78,10 @@ function progress (job, cleanFirst = true) {
   const output = job[$output]
   output.lines = 1
   let progressRatio
-  if (job.testPageUrls && job.qunitPages && job.parallel > 0) {
+  if (job.testPageUrls) {
     const total = job.testPageUrls.length
-    const done = Object.keys(job.qunitPages)
-      .filter(pageUrl => !!job.qunitPages[pageUrl].report)
-      .length
-    if (done < total) {
-      progressRatio = done / total
+    if (job[$testPagesCompleted] !== undefined && job[$testPagesCompleted] !== total) {
+      progressRatio = job[$testPagesCompleted] / total
     }
   }
   if (job[$browsers]) {
