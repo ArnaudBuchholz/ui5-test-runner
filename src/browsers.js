@@ -129,8 +129,14 @@ async function start (job, url, scripts = []) {
     retry: 0
   }
   const { promise, resolve, reject } = allocPromise()
-  pageBrowser.done = resolve
-  pageBrowser.failed = reject
+  pageBrowser.done = value => {
+    delete job[$browsers][url]
+    resolve(value)
+  }
+  pageBrowser.failed = reason => {
+    delete job[$browsers][url]
+    reject(reason)
+  }
   job[$browsers][url] = pageBrowser
   await run(job, pageBrowser)
   await promise
@@ -267,7 +273,6 @@ async function stop (job, url, retry = false) {
         failed(UTRError.BROWSER_FAILED())
       }
     } else {
-      delete job[$browsers][url]
       done()
     }
   }
