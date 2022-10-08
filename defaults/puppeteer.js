@@ -78,6 +78,7 @@ async function main () {
       await page.evaluateOnNewDocument(script)
     }
   }
+  await page.setDefaultNavigationTimeout(0)
   await page.goto(url)
 }
 
