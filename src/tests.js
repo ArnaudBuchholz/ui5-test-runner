@@ -6,9 +6,7 @@ const { recreateDir } = require('./tools')
 const { globallyTimedOut } = require('./timeout')
 const { save, generate } = require('./report')
 const { getOutput } = require('./output')
-
-const $testPagesStarted = Symbol('testPagesStarted')
-const $testPagesCompleted = Symbol('testPagesCompleted')
+const { $testPagesStarted, $testPagesCompleted } = require('./symbols')
 
 async function extractTestPages (job) {
   const output = getOutput(job)
