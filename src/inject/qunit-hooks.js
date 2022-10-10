@@ -22,12 +22,8 @@
     return post('QUnit/begin', details)
   })
 
-  QUnit.log(function (report) {
+  QUnit.log(function (log) {
     let ready = false
-    const log = {
-      testId: report.testId,
-      runtime: report.runtime
-    }
     post('QUnit/log', log)
       .then(undefined, function () {
         console.error('Failed to POST to QUnit/log (no timestamp)', log)
