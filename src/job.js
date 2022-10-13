@@ -115,7 +115,7 @@ function parse (cwd, args) {
     .option('-bt, --browser-close-timeout <timeout>', 'Maximum waiting time (ms) for browser close', integer, 2000)
     .option('-br, --browser-retry <count>', 'Browser instantiation retries : if the command fails unexpectedly, it is re-executed (0 means no retry)', 1)
     .option('--no-screenshot', 'No screenshot is taken during the tests execution', boolean, false)
-    .option('-st, --screenshot-timeout <timeout>', 'Maximum waiting time (ms) for browser screenshot', integer, 2000)
+    .option('-st, --screenshot-timeout <timeout>', 'Maximum waiting time (ms) for browser screenshot', integer, 5000)
 
     .option('-p, --parallel <count>', 'Number of parallel tests executions', 2)
     .option('-r, --report-dir <path>', 'Directory to output test reports (relative to cwd)', 'report')
