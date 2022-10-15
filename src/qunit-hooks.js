@@ -4,28 +4,37 @@ const { screenshot, stop } = require('./browsers')
 const { collect } = require('./coverage')
 const { UTRError } = require('./error')
 const { getOutput } = require('./output')
+const { basename } = require('path')
 
-function error (job, url) {
+function error (job, url, details = '') {
   stop(job, url)
   job.failed = true
-  throw UTRError.QUNIT_ERROR()
+  throw UTRError.QUNIT_ERROR(details)
 }
 
-function getPage (job, url) {
-  const qunitPage = job.qunitPages && job.qunitPages[url]
-  if (!qunitPage) {
-    error(job, url)
+function get (job, url, testId) {
+  const page = job.qunitPages && job.qunitPages[url]
+  if (!page) {
+    error(job, url, `No QUnit page found for ${url}`)
   }
-  return qunitPage
-}
-
-function getTest ({ tests }, testId) {
-  return tests.find(({ id }) => id === testId)
+  let test
+  if (testId !== undefined) {
+    page.modules.every(module => {
+      test = module.tests.find(test => test.testId === testId)
+      return test === undefined
+    })
+    if (!test) {
+      error(job, url, `No QUnit unit test found with id ${testId}`)
+    }
+  }
+  return { page, test }
 }
 
 module.exports = {
+  get,
+
   async begin (job, url, { isOpa, totalTests, modules }) {
-    if (!modules) {
+    if (!totalTests || !modules) {
       error(job, url)
     }
     if (!job.qunitPages) {
@@ -33,47 +42,34 @@ module.exports = {
     }
     const qunitPage = {
       start: new Date(),
-      isOpa,
+      isOpa: !!isOpa,
       failed: 0,
       passed: 0,
-      tests: []
+      count: totalTests,
+      modules
     }
-    modules.forEach(module => {
-      module.tests.forEach(test => {
-        qunitPage.tests.push({
-          id: test.testId
-        })
-      })
-    })
     job.qunitPages[url] = qunitPage
   },
 
-  async log (job, url, { testId, runtime }) {
-    const qunitPage = getPage(job, url)
-    if (qunitPage.isOpa && job.browserCapabilities.screenshot) {
-      const test = getTest(qunitPage, testId)
-      if (!test) {
-        error(job, url)
-      }
-      if (!test.screenshots) {
-        test.screenshots = []
-      }
+  async log (job, url, { module, name, testId, ...log }) {
+    const { page, test } = get(job, url, testId)
+    if (!test.logs) {
+      test.logs = []
+    }
+    test.logs.push(log)
+    if (page.isOpa && job.browserCapabilities.screenshot) {
       try {
-        await screenshot(job, url, `${testId}-${runtime}`)
-        test.screenshots.push(runtime)
+        const absoluteName = await screenshot(job, url, `${testId}-${log.runtime}`)
+        log.screenshot = basename(absoluteName)
       } catch (error) {
         getOutput(job).genericError(error, url)
       }
     }
   },
 
-  async testDone (job, url, report) {
-    const { testId, failed } = report
-    const qunitPage = getPage(job, url)
-    const test = getTest(qunitPage, testId)
-    if (!test) {
-      error(job, url)
-    }
+  async testDone (job, url, { name, module, testId, assertions, ...report }) {
+    const { failed } = report
+    const { page, test } = get(job, url, testId)
     if (failed) {
       if (job.browserCapabilities.screenshot) {
         try {
@@ -82,17 +78,17 @@ module.exports = {
           getOutput(job).genericError(error, url)
         }
       }
+      ++page.failed
       job.failed = true
-      ++qunitPage.failed
     } else {
-      ++qunitPage.passed
+      ++page.passed
     }
     test.end = new Date()
     test.report = report
   },
 
   async done (job, url, report) {
-    const qunitPage = getPage(job, url)
+    const { page } = get(job, url)
     if (job.browserCapabilities.screenshot) {
       try {
         await screenshot(job, url, 'done')
@@ -104,8 +100,8 @@ module.exports = {
       collect(job, url, report.__coverage__)
       delete report.__coverage__
     }
-    qunitPage.end = new Date()
-    qunitPage.report = report
+    page.end = new Date()
+    page.report = report
     stop(job, url)
   }
 }
