@@ -5,6 +5,7 @@ const { statSync, accessSync, constants } = require('fs')
 const { join, isAbsolute } = require('path')
 const { name, description, version } = require(join(__dirname, '../package.json'))
 const { getOutput } = require('./output')
+const { $valueSources } = require('./symbols')
 
 const $status = Symbol('status')
 
@@ -130,13 +131,15 @@ function parse (cwd, args) {
 
   command.parse(args, { from: 'user' })
   const options = command.opts()
-  return Object.keys(options).reduce((result, name) => {
-    result[name.charAt(0).toLocaleLowerCase() + name.substring(1)] = options[name]
-    return result
-  }, {
+
+  return Object.assign({
     initialCwd: cwd,
-    browserArgs: command.args
-  })
+    browserArgs: command.args,
+    [$valueSources]: Object.keys(options).reduce((valueSources, name) => {
+      valueSources[name] = command.getOptionValueSource(name)
+      return valueSources
+    }, {})
+  }, options)
 }
 
 function checkAccess ({ path, label, file /*, write */ }) {
