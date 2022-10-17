@@ -1,12 +1,12 @@
 const { dirname, join } = require('path')
-const jobFactory = require('./job')
+const { fromObject, fromCmdLine } = require('./job')
 const normalizePath = path => path.replace(/\\/g, '/') // win -> unix
 const { $valueSources } = require('./symbols')
 
 const cwd = join(__dirname, '../test/project')
 
 function buildJob (parameters) {
-  return jobFactory.fromObject(cwd, parameters)
+  return fromObject(cwd, parameters)
 }
 
 describe('job', () => {
@@ -194,7 +194,7 @@ describe('job', () => {
     const project2 = join(__dirname, '../test/project2')
 
     it('enables option overriding at the command level', () => {
-      const job = jobFactory.fromCmdLine(cwd, [
+      const job = fromCmdLine(cwd, [
         '--port', '1',
         '--port', '2',
         '-k', 'true',
