@@ -1,6 +1,7 @@
 const { dirname, join } = require('path')
 const jobFactory = require('./job')
 const normalizePath = path => path.replace(/\\/g, '/') // win -> unix
+const { $valueSources } = require('./symbols')
 
 const cwd = join(__dirname, '../test/project')
 
@@ -19,6 +20,12 @@ describe('job', () => {
       expect(normalizePath(job.browser).endsWith('defaults/puppeteer.js')).toStrictEqual(true)
       expect(normalizePath(job.webapp).endsWith('/test/project/webapp')).toStrictEqual(true)
       expect(job.keepAlive).toStrictEqual(false)
+      expect(job[$valueSources]).toMatchObject({
+        cwd: 'default',
+        port: 'default',
+        ui5: 'default',
+        browser: 'default'
+      })
     })
 
     it('parses parameters', () => {
@@ -33,6 +40,13 @@ describe('job', () => {
       expect(job.keepAlive).toStrictEqual(true)
       expect(job.ui5).toStrictEqual('http://localhost:8088/ui5')
       expect(normalizePath(job.webapp).endsWith('/test/project2/webapp')).toStrictEqual(true)
+      expect(job[$valueSources]).toMatchObject({
+        cwd: 'cli',
+        port: 'cli',
+        keepAlive: 'cli',
+        ui5: 'cli',
+        browser: 'default'
+      })
     })
 
     describe('complex parameter parsing', () => {
