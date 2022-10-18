@@ -2,6 +2,7 @@ const { dirname, join } = require('path')
 const { fromObject, fromCmdLine } = require('./job')
 const normalizePath = path => path.replace(/\\/g, '/') // win -> unix
 const { $valueSources } = require('./symbols')
+const { UTRError } = require('./error')
 
 const cwd = join(__dirname, '../test/project')
 
@@ -259,6 +260,70 @@ describe('job', () => {
         '--': [-2]
       })
       expect(job.browserArgs).toEqual(['-1', '-2'])
+    })
+  })
+
+  describe('mode', () => {
+    it('returns legacy by default', () => {
+      expect(fromObject(cwd, {}).mode).toStrictEqual('legacy')
+    })
+
+    describe('url', () => {
+      it('enables testing external projects', () => {
+        expect(fromObject(cwd, {
+          url: ['http://myserver.remote.url/ui5-app.html']
+        }).mode).toStrictEqual('url')
+      })
+
+      // does not support cache?, watch, coverage...
+    })
+
+    describe('capabilities', () => {
+      it('triggers the capabilities tester', () => {
+        expect(fromObject(cwd, {
+          capabilities: true
+        }).mode).toStrictEqual('capabilities')
+      })
+
+      it('supports cwd, port, browser, parallel and reportDir', () => {
+        expect(fromObject('.', {
+          capabilities: true,
+          cwd,
+          port: 8080,
+          browser: '@/selenium-webdriver.js',
+          parallel: 2,
+          reportDir: join(cwd, '.report')
+        }).mode).toStrictEqual('capabilities')
+      })
+
+      // pageTimeout, globalTimeout, failFast ?
+
+      describe('incompatible options', () => {
+        const incompatible = {
+          libs: '../project2',
+          ui5: 'http://localhost:8088/ui5',
+          keepAlive: true,
+          cache: join(cwd, '.cache'),
+          webapp: 'webapp',
+          testsuite: 'test/testsuite.qunit.html',
+          pageFilter: '.*',
+          pageParams: 'sap-ui-debug=true',
+          coverage: true,
+          coverageSettings: '@/nyc.json',
+          coverageTempDir: '.nyc_output',
+          coverageReportDir: 'coverage',
+          coverageReporters: 'lcov'
+        }
+
+        Object.keys(incompatible).forEach(option => {
+          it(`is incompatible with ${option}`, () => {
+            expect(() => fromObject(cwd, {
+              capabilities: true,
+              [option]: incompatible[option]
+            })).toThrow(UTRError.MODE_INCOMPATIBLE_OPTION())
+          })
+        })
+      })
     })
   })
 })
