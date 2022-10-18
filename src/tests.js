@@ -7,6 +7,7 @@ const { globallyTimedOut } = require('./timeout')
 const { save, generate } = require('./report')
 const { getOutput } = require('./output')
 const { $testPagesStarted, $testPagesCompleted } = require('./symbols')
+const { capabilities } = require('./capabilities')
 
 async function extractTestPages (job) {
   const output = getOutput(job)
@@ -68,7 +69,13 @@ async function runTestPage (job) {
 module.exports = {
   async execute (job) {
     await recreateDir(job.reportDir)
+    if (job.mode === 'capabilities') {
+      return capabilities(job)
+    }
     await probe(job)
+    if (job.mode !== 'legacy') {
+      throw new Error('Not implemented')
+    }
     return extractTestPages(job)
   }
 }
