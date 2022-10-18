@@ -6,6 +6,7 @@ const { join, isAbsolute } = require('path')
 const { name, description, version } = require(join(__dirname, '../package.json'))
 const { getOutput } = require('./output')
 const { $valueSources } = require('./symbols')
+const { buildAndCheckMode } = require('./job-mode')
 
 const $status = Symbol('status')
 
@@ -129,6 +130,8 @@ function parse (cwd, args) {
 
     .option('-rg, --report-generator <path...>', 'Path to a report generator (relative to cwd or use @/ for provided ones)', ['@/report.js'])
 
+    .option('--capabilities [flag]', 'Capabilities tester for browser', boolean, false)
+
   command.parse(args, { from: 'user' })
   const options = command.opts()
 
@@ -192,7 +195,8 @@ function finalize (job) {
   if (job.cache) {
     updateToAbsolute('cache')
   }
-  if (!job.url) {
+  job.mode = buildAndCheckMode(job)
+  if (job.mode === 'legacy') {
     checkAccess({ path: job.webapp, label: 'webapp folder' })
     const testsuitePath = toAbsolute(job.testsuite, job.webapp)
     checkAccess({ path: testsuitePath, label: 'testsuite', file: true })
