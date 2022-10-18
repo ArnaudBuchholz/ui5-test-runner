@@ -2,7 +2,6 @@
 
 const { check, serve, body } = require('reserve')
 const { probe, start, screenshot, stop } = require('../browsers')
-const { fromObject } = require('../job')
 const { join } = require('path')
 const { stat, readFile } = require('fs/promises')
 const { getOutput } = require('../output')
@@ -11,14 +10,6 @@ const assert = require('assert/strict')
 const { performance } = require('perf_hooks')
 const { cleanDir, allocPromise, filename } = require('../tools')
 const { $browsers } = require('../symbols')
-
-let job
-let output
-
-function exit (code) {
-  output.stop()
-  process.exit(code)
-}
 
 function qUnitEndpoints (data) {
   const { endpoint } = data
@@ -38,7 +29,7 @@ function qUnitEndpoints (data) {
   }
 }
 
-const tests = [{
+const getTests = job => [{
   label: 'Loads a page',
   url: 'basic.html',
   log: () => {}
@@ -157,166 +148,171 @@ const tests = [{
   endpoint: qUnitEndpoints
 }]
 
-async function main () {
-  const [,, browser, ...browserArgs] = process.argv
-  const cwd = process.cwd()
-  const reportDir = join(cwd, '.utr-capabilities')
-  job = fromObject(cwd, {
-    reportDir,
-    url: 'http://localhost:80',
-    browser,
-    '--': browserArgs
-  })
-  output = getOutput(job)
-  output.reportOnJobProgress()
-  try {
-    await probe(job)
-  } catch (e) {
-    output.wrap(() => console.error('Unable to probe'))
-    exit(-1)
+async function capabilities (job) {
+  const output = getOutput(job)
+
+  function exit (code) {
+    output.stop()
+    process.exit(code)
   }
 
-  const listeners = []
+  try {
+    output.reportOnJobProgress()
+    try {
+      await probe(job)
+    } catch (e) {
+      output.wrap(() => console.error('Unable to probe'))
+      exit(-1)
+    }
 
-  const configuration = await check({
-    port: 0,
-    mappings: [
-      require('../cors'), {
-        method: 'POST',
-        match: '^/log$',
-        custom: async (request, response) => {
-          const listenerIndex = request.headers.referer.match(/\blistener=(\d+)/)[1]
-          const listener = listeners[listenerIndex]
-          listener.emit('log', JSON.parse(await body(request)))
-          response.writeHead(200)
-          response.end()
-        }
-      }, {
-        method: 'POST',
-        match: '^/_/(.*)',
-        custom: async (request, response, endpoint) => {
-          const listenerIndex = request.headers['x-page-url'].match(/\blistener=(\d+)/)[1]
-          const listener = listeners[listenerIndex]
-          listener.emit('endpoint', {
-            endpoint,
-            body: JSON.parse(await body(request))
-          })
-          response.writeHead(200)
-          response.end()
-        }
-      }, {
-        match: '^/(.*)',
-        file: join(__dirname, '$1')
-      }]
-  })
-  await new Promise(resolve => serve(configuration)
-    .on('ready', ({ port }) => {
-      job.port = port
-      resolve()
+    const listeners = []
+
+    const configuration = await check({
+      port: 0,
+      mappings: [
+        require('../cors'), {
+          method: 'POST',
+          match: '^/log$',
+          custom: async (request, response) => {
+            const listenerIndex = request.headers.referer.match(/\blistener=(\d+)/)[1]
+            const listener = listeners[listenerIndex]
+            listener.emit('log', JSON.parse(await body(request)))
+            response.writeHead(200)
+            response.end()
+          }
+        }, {
+          method: 'POST',
+          match: '^/_/(.*)',
+          custom: async (request, response, endpoint) => {
+            const listenerIndex = request.headers['x-page-url'].match(/\blistener=(\d+)/)[1]
+            const listener = listeners[listenerIndex]
+            listener.emit('endpoint', {
+              endpoint,
+              body: JSON.parse(await body(request))
+            })
+            response.writeHead(200)
+            response.end()
+          }
+        }, {
+          match: '^/(.*)',
+          file: join(__dirname, '$1')
+        }]
     })
-  )
+    await new Promise(resolve => serve(configuration)
+      .on('ready', ({ port }) => {
+        job.port = port
+        resolve()
+      })
+    )
 
-  job.status = 'Running tests'
+    job.status = 'Running tests'
 
-  const filteredTests = tests.filter((test) => !test.for || test.for(job.browserCapabilities))
-  output.wrap(() => console.log('Number of tests :', filteredTests.length))
+    const filteredTests = getTests(job).filter((test) => !test.for || test.for(job.browserCapabilities))
+    output.wrap(() => console.log('Number of tests :', filteredTests.length))
 
-  let errors = 0
+    let errors = 0
 
-  const next = async () => {
-    if (filteredTests.length === 0) {
-      if (Object.keys(job[$browsers]).length === 0) {
-        output.wrap(() => console.log('Done.'))
-        if (errors) {
-          output.wrap(() => console.error('Temporary folder', reportDir, 'not cleaned because of errors.'))
-        } else {
-          await cleanDir(reportDir)
+    const { promise: allTests, resolve: allTestsDone } = allocPromise()
+
+    const next = async () => {
+      if (filteredTests.length === 0) {
+        if (Object.keys(job[$browsers]).length === 0) {
+          output.wrap(() => console.log('Done.'))
+          if (errors) {
+            output.wrap(() => console.error('Report folder', job.reportDir, 'not cleaned because of errors.'))
+          } else {
+            await cleanDir(job.reportDir)
+          }
+          exit(errors)
         }
-        exit(errors)
-      }
-      return
-    }
-    const { label, url, log, scripts, endpoint } = filteredTests.shift()
-
-    const listenerIndex = listeners.length
-    const listener = new EventEmitter()
-    listeners.push(listener)
-    let pageUrl
-    if (url.startsWith('http')) {
-      pageUrl = url
-    } else {
-      pageUrl = `http://localhost:${job.port}/${url}`
-    }
-    if (url.includes('?')) {
-      pageUrl += `&listener=${listenerIndex}`
-    } else {
-      pageUrl += `?listener=${listenerIndex}`
-    }
-
-    const now = performance.now()
-    const timeoutId = setTimeout(() => done('Timeout'), 10000)
-
-    async function done (error) {
-      if (done.called) {
+        allTestsDone()
         return
       }
-      done.called = true
-      clearTimeout(timeoutId)
-      await stop(job, pageUrl)
-      const timeSpent = Math.floor(performance.now() - now)
-      if (error) {
-        output.wrap(() => console.log('❌', label, `[${filename(pageUrl)}]`, error))
-        ++errors
+      const { label, url, log, scripts, endpoint } = filteredTests.shift()
+
+      const listenerIndex = listeners.length
+      const listener = new EventEmitter()
+      listeners.push(listener)
+      let pageUrl
+      if (url.startsWith('http')) {
+        pageUrl = url
       } else {
-        output.wrap(() => console.log('✔️', label, timeSpent, 'ms'))
+        pageUrl = `http://localhost:${job.port}/${url}`
       }
-      await next()
-    }
-
-    listener.on('log', async data => {
-      try {
-        await log(data, pageUrl)
-        done()
-      } catch (e) {
-        done(e)
+      if (url.includes('?')) {
+        pageUrl += `&listener=${listenerIndex}`
+      } else {
+        pageUrl += `?listener=${listenerIndex}`
       }
-    })
 
-    if (endpoint) {
-      const context = {}
-      listener.on('endpoint', async data => {
+      const now = performance.now()
+      const timeoutId = setTimeout(() => done('Timeout'), 10000)
+
+      async function done (error) {
+        if (done.called) {
+          return
+        }
+        done.called = true
+        clearTimeout(timeoutId)
+        await stop(job, pageUrl)
+        const timeSpent = Math.floor(performance.now() - now)
+        if (error) {
+          output.wrap(() => console.log('❌', label, `[${filename(pageUrl)}]`, error))
+          ++errors
+        } else {
+          output.wrap(() => console.log('✔️', label, timeSpent, 'ms'))
+        }
+        await next()
+      }
+
+      listener.on('log', async data => {
         try {
-          if (await endpoint.call(context, data, pageUrl) === true) {
-            done()
-          }
+          await log(data, pageUrl)
+          done()
         } catch (e) {
           done(e)
         }
       })
+
+      if (endpoint) {
+        const context = {}
+        listener.on('endpoint', async data => {
+          try {
+            if (await endpoint.call(context, data, pageUrl) === true) {
+              done()
+            }
+          } catch (e) {
+            done(e)
+          }
+        })
+      }
+
+      start(job, pageUrl, scripts)
+        .catch(reason => done(reason))
+        .then(() => {
+          done('Failed')
+        })
     }
 
-    start(job, pageUrl, scripts)
-      .catch(reason => done(reason))
-      .then(() => {
-        done('Failed')
-      })
-  }
+    let parallel
+    if (!job.browserCapabilities.parallel) {
+      parallel = 1
+    } else {
+      parallel = job.parallel
+    }
 
-  let parallel
-  if (!job.browserCapabilities.parallel) {
-    parallel = 1
-  } else {
-    parallel = 2
-  }
+    const testsCount = filteredTests.length
+    for (let i = 0; i < Math.min(parallel, testsCount); ++i) {
+      next()
+    }
 
-  const testsCount = filteredTests.length
-  for (let i = 0; i < Math.min(parallel, testsCount); ++i) {
-    next()
+    await allTests
+  } catch (error) {
+    output.wrap(() => console.error(error))
+    exit(-1)
   }
 }
 
-main()
-  .catch(reason => {
-    output.wrap(() => console.error(reason))
-    exit(-1)
-  })
+module.exports = {
+  capabilities
+}
