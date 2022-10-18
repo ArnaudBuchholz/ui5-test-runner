@@ -212,7 +212,7 @@ async function capabilities (job) {
 
     let errors = 0
 
-    const { promise: allTests, resolve: allTestsDone } = allocPromise()
+    const { promise: forEver } = allocPromise()
 
     const next = async () => {
       if (filteredTests.length === 0) {
@@ -225,7 +225,6 @@ async function capabilities (job) {
           }
           exit(errors)
         }
-        allTestsDone()
         return
       }
       const { label, url, log, scripts, endpoint } = filteredTests.shift()
@@ -306,7 +305,7 @@ async function capabilities (job) {
       next()
     }
 
-    await allTests
+    await forEver
   } catch (error) {
     output.wrap(() => console.error(error))
     exit(-1)
