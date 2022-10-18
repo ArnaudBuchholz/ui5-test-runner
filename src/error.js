@@ -29,6 +29,8 @@ const errors = [{
   name: 'BROWSER_SCREENSHOT_NOT_SUPPORTED'
 }, {
   name: 'QUNIT_ERROR'
+}, {
+  name: 'MODE_INCOMPATIBLE_OPTION'
 }]
 
 errors.forEach((error, index) => {
