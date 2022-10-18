@@ -67,7 +67,8 @@
     ],
     "coveragePathIgnorePatterns": [
       "\\.spec\\.js",
-      "output\\.js"
+      "output\\.js",
+      "capabilities\\"
     ],
     "coverageThreshold": {
       "global": {
