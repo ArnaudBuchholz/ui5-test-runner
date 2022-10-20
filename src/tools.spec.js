@@ -62,5 +62,13 @@ describe('src/tools', () => {
 1e to wrap         2
 1fits exactly width2`)
     })
+
+    it('wraps multiline / long text (DOS carriage return)', () => {
+      expect(pad(20)`1${pad.w('first line\r\nsecond longer line to wrap\r\nfits exactly width')}2`)
+        .toStrictEqual(`1first line        2
+1second longer lin↵2
+1e to wrap         2
+1fits exactly width2`)
+    })
   })
 })
