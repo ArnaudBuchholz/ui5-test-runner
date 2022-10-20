@@ -275,7 +275,7 @@ describe('job', () => {
         }).mode).toStrictEqual('url')
       })
 
-      // does not support cache?, watch, coverage...
+      // Assuming url could be  used to access 'local' server, all options are supported
     })
 
     describe('capabilities', () => {
@@ -292,11 +292,11 @@ describe('job', () => {
           port: 8080,
           browser: '@/selenium-webdriver.js',
           parallel: 2,
-          reportDir: join(cwd, '.report')
+          reportDir: join(cwd, '.report'),
+          pageTimeout: 1000,
+          failFast: true
         }).mode).toStrictEqual('capabilities')
       })
-
-      // pageTimeout, globalTimeout, failFast ?
 
       describe('incompatible options', () => {
         const incompatible = {
@@ -312,7 +312,8 @@ describe('job', () => {
           coverageSettings: '@/nyc.json',
           coverageTempDir: '.nyc_output',
           coverageReportDir: 'coverage',
-          coverageReporters: 'lcov'
+          coverageReporters: 'lcov',
+          globalTimeout: 1000
         }
 
         Object.keys(incompatible).forEach(option => {
