@@ -278,7 +278,7 @@ describe('job', () => {
 
       describe('incompatible options', () => {
         const incompatible = {
-          testsuite: '../project2',
+          testsuite: '../project2'
         }
 
         Object.keys(incompatible).forEach(option => {
