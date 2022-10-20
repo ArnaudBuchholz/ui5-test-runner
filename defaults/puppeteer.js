@@ -26,8 +26,12 @@ process.on('message', async message => {
   try {
     if (message.command === 'stop') {
       stopping = true
-      await page.close()
-      await browser.close()
+      if (page) {
+        await page.close()
+      }
+      if (browser) {
+        await browser.close()
+      }
       process.exit(0)
     } else if (message.command === 'screenshot') {
       if (page) {
