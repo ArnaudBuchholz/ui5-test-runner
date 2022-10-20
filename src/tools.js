@@ -59,7 +59,7 @@ function pad (width) {
         return text.padEnd(widthLeft, ' ')
       }
       const lines = []
-      text.split('\n').forEach(line => {
+      text.split(/\r?\n/).forEach(line => {
         if (line.length <= widthLeft) {
           lines.push(line.padEnd(widthLeft, ' '))
         } else {
