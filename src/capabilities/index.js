@@ -151,7 +151,12 @@ const getTests = job => [{
 async function capabilities (job) {
   const output = getOutput(job)
 
-  function exit (code) {
+  async function exit (code) {
+    if (code !== 0) {
+      output.wrap(() => console.error('Report folder', job.reportDir, 'not cleaned because of errors.'))
+    } else {
+      await cleanDir(job.reportDir)
+    }
     output.stop()
     process.exit(code)
   }
@@ -218,11 +223,6 @@ async function capabilities (job) {
       if (filteredTests.length === 0) {
         if (Object.keys(job[$browsers]).length === 0) {
           output.wrap(() => console.log('Done.'))
-          if (errors) {
-            output.wrap(() => console.error('Report folder', job.reportDir, 'not cleaned because of errors.'))
-          } else {
-            await cleanDir(job.reportDir)
-          }
           exit(errors)
         }
         return
@@ -257,6 +257,9 @@ async function capabilities (job) {
         const timeSpent = Math.floor(performance.now() - now)
         if (error) {
           output.wrap(() => console.log('❌', label, `[${filename(pageUrl)}]`, error))
+          if (job.failFast) {
+            exit(1)
+          }
           ++errors
         } else {
           output.wrap(() => console.log('✔️', label, timeSpent, 'ms'))
