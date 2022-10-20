@@ -62,9 +62,8 @@ describe('job', () => {
         expect(job.coverage).toStrictEqual(true)
       })
 
-      describe('-url disables webapp & testsuite checking', () => {
+      it('url disables webapp checking', () => {
         const job = buildJob({
-          testsuite: 'not_a_file',
           webapp: 'not_a_folder',
           url: 'http://localhost:8080'
         })
@@ -275,7 +274,22 @@ describe('job', () => {
         }).mode).toStrictEqual('url')
       })
 
-      // Assuming url could be  used to access 'local' server, all options are supported
+      // Assuming url could be  used to access 'local' server, most options are supported
+
+      describe('incompatible options', () => {
+        const incompatible = {
+          testsuite: '../project2',
+        }
+
+        Object.keys(incompatible).forEach(option => {
+          it(`is incompatible with ${option}`, () => {
+            expect(() => fromObject(cwd, {
+              url: ['http://myserver.remote.url/ui5-app.html'],
+              [option]: incompatible[option]
+            })).toThrow(UTRError.MODE_INCOMPATIBLE_OPTION())
+          })
+        })
+      })
     })
 
     describe('capabilities', () => {
