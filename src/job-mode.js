@@ -14,7 +14,7 @@ function only (job, allowed) {
 
 function buildAndCheckMode (job) {
   if (job.capabilities) {
-    only(job, ['capabilities', 'cwd', 'port', 'browser', 'parallel', 'reportDir'])
+    only(job, ['capabilities', 'cwd', 'port', 'browser', 'parallel', 'reportDir', 'pageTimeout', 'failFast'])
     return 'capabilities'
   }
   if (job.url && job.url.length) {
