@@ -1,6 +1,11 @@
 (function () {
   'use strict'
 
+  if (window['ui5-test-runner/qunit-redirect']) {
+    return // already installed
+  }
+  window['ui5-test-runner/qunit-redirect'] = true
+
   /* global suite */
 
   const post = window['ui5-test-runner/post']
