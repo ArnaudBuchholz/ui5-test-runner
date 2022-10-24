@@ -67,7 +67,7 @@ describe('job', () => {
           webapp: 'not_a_folder',
           url: 'http://localhost:8080'
         })
-        expect(job.url).toStrictEqual('http://localhost:8080')
+        expect(job.url).toStrictEqual(['http://localhost:8080'])
       })
 
       describe('multi values', () => {
