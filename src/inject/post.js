@@ -1,6 +1,10 @@
 (function () {
   'use strict'
 
+  if (window['ui5-test-runner/post']) {
+    return
+  }
+
   const base = window['ui5-test-runner/base-host'] || ''
 
   let lastPost = Promise.resolve()
