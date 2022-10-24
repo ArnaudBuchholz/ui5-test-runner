@@ -82,7 +82,7 @@ function parse (cwd, args) {
     )
     .option('--port <port>', 'Port to use (0 to use a free one)', integer, 0)
     .option('--ui5 <url>', 'UI5 url', url, 'https://ui5.sap.com')
-    .option('--libs <path...>', 'Library mapping', function lib (value, previousValue) {
+    .option('--libs <path...>', 'Library mapping', function addLib (value, previousValue) {
       let result
       if (previousValue === undefined) {
         result = []
@@ -100,7 +100,17 @@ function parse (cwd, args) {
     .option('--cache <path>', 'Cache UI5 resources locally in the given folder (empty to disable)')
     .option('--webapp <path>', 'Base folder of the web application (relative to cwd)', 'webapp')
     .option('--testsuite <path>', 'Path of the testsuite file (relative to webapp)', 'test/testsuite.qunit.html')
-    .option('-u, --url <url...>', 'URL of the testsuite / page to test', url)
+    .option('-u, --url <url...>', 'URL of the testsuite / page to test', function addUrl (value, previousValue) {
+      url(value)
+      let result
+      if (previousValue === undefined) {
+        result = []
+      } else {
+        result = [...previousValue]
+      }
+      result.push(value)
+      return result
+    })
 
     .option('-pf, --page-filter <regexp>', 'Filters which pages to execute')
     .option('-pp, --page-params <params>', 'Parameters added to each page URL')
