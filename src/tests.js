@@ -56,7 +56,8 @@ async function probeUrl (job, url) {
       scripts = [
         'post.js',
         'qunit-intercept.js',
-        'qunit-hooks.js'
+        'qunit-hooks.js',
+        'qunit-redirect.js'
       ]
     }
     await start(job, url, scripts)
@@ -69,7 +70,15 @@ async function probeUrl (job, url) {
 async function runTestPage (job, url) {
   const output = getOutput(job)
   try {
-    await start(job, url)
+    let scripts
+    if (job.mode === 'url' && job.browserCapabilities.scripts) {
+      scripts = [
+        'post.js',
+        'qunit-intercept.js',
+        'qunit-hooks.js'
+      ]
+    }
+    await start(job, url, scripts)
   } catch (error) {
     output.startFailed(url, error)
     throw error
