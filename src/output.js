@@ -430,7 +430,7 @@ function build (job) {
       log(job, p`│ RESULTS ${pad.x(' ')} │`)
       log(job, p`├─────┬─${pad.x('─')}──┤`)
       const messages = []
-      job.testPageUrls.forEach(url => {
+      function result (url) {
         const page = job.qunitPages[url]
         let message
         if (!page || !page.report) {
@@ -445,6 +445,12 @@ function build (job) {
           messages.push(message)
         } else {
           log(job, p`│ OK  │ ${pad.lt(url)} │`)
+        }
+      }
+      job.testPageUrls.forEach(result)
+      Object.keys(job.qunitPages).forEach(url => {
+        if (!job.testPageUrls.includes(url)) {
+          result(url)
         }
       })
       log(job, p`└─────┴───${pad.x('─')}┘`)
