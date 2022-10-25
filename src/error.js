@@ -1,13 +1,15 @@
 class UTRError extends Error {
   get code () { return this._code }
-  get details () { return this._details }
 
   constructor (error, details) {
     super()
-    this.name = 'UTRError'
+    this.name = `UTRError:${error.name}`
     this._code = error.code
-    this.message = error.name
-    this._details = details
+    if (details) {
+      this.message = details
+    } else {
+      this.message = error.name
+    }
   }
 }
 
