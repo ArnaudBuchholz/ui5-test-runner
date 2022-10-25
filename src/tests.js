@@ -6,49 +6,32 @@ const { recreateDir } = require('./tools')
 const { globallyTimedOut } = require('./timeout')
 const { save, generate } = require('./report')
 const { getOutput } = require('./output')
-const { $testPagesStarted, $testPagesCompleted } = require('./symbols')
+const {
+  $probeUrlsStarted,
+  $probeUrlsCompleted,
+  $testPagesStarted,
+  $testPagesCompleted
+} = require('./symbols')
 const { capabilities } = require('./capabilities')
 
-async function extractTestPages (job) {
+async function run (task, job) {
+  const {
+    urlsMember,
+    startedMember,
+    completedMember,
+    method
+  } = task
   const output = getOutput(job)
-  job.start = new Date()
-  await instrument(job)
-  await save(job)
-  job.status = 'Extracting test pages'
-  job.testPageUrls = []
-  const url = `http://localhost:${job.port}/${job.testsuite}`
-  try {
-    await start(job, url)
-  } catch (error) {
-    output.startFailed(url, error)
-  }
-  if (job.testPageUrls.length === 0) {
-    output.noTestPageFound()
-    job.failed = true
-    return Promise.resolve()
-  }
-  job[$testPagesStarted] = 0
-  job[$testPagesCompleted] = 0
-  job.status = 'Executing test pages'
-  delete job.failed
-  const promises = []
-  for (let i = 0; i < Math.min(job.parallel, job.testPageUrls.length); ++i) {
-    promises.push(runTestPage(job))
-  }
-  return Promise.all(promises)
-}
-
-async function runTestPage (job) {
-  const { length } = job.testPageUrls
-  const output = getOutput(job)
-  if (job[$testPagesCompleted] === length) {
-    return await generate(job)
-  }
-  if (job[$testPagesStarted] === length) {
+  const urls = job[urlsMember]
+  const { length } = urls
+  if (job[completedMember] === length) {
     return
   }
-  const index = job[$testPagesStarted]++
-  const url = job.testPageUrls[index]
+  if (job[startedMember] === length) {
+    return
+  }
+  const index = job[startedMember]++
+  const url = urls[index]
   if (globallyTimedOut(job)) {
     output.globalTimeout(url)
     job.failed = true
@@ -56,14 +39,89 @@ async function runTestPage (job) {
     output.failFast(url)
   } else {
     try {
-      await start(job, url)
+      await method(job, url)
     } catch (error) {
-      output.startFailed(url, error)
       job.failed = true
     }
   }
-  ++job[$testPagesCompleted]
-  return runTestPage(job)
+  ++job[completedMember]
+  return run(task, job)
+}
+
+async function probeUrl (job, url) {
+  const output = getOutput(job)
+  try {
+    let scripts
+    if (job.mode === 'url' && job.browserCapabilities.scripts) {
+      scripts = [
+        'post.js',
+        'qunit-intercept.js',
+        'qunit-hooks.js'
+      ]
+    }
+    await start(job, url, scripts)
+  } catch (error) {
+    output.startFailed(url, error)
+    throw error
+  }
+}
+
+async function runTestPage (job, url) {
+  const output = getOutput(job)
+  try {
+    await start(job, url)
+  } catch (error) {
+    output.startFailed(url, error)
+    throw error
+  }
+}
+
+function parallelize (task, job) {
+  const {
+    urlsMember,
+    completedMember,
+    startedMember
+  } = task
+  job[startedMember] = 0
+  job[completedMember] = 0
+  const max = Math.min(job.parallel, job[urlsMember].length)
+  const promises = []
+  for (let i = 0; i < max; ++i) {
+    promises.push(run(task, job))
+  }
+  return Promise.all(promises)
+}
+
+async function process (job) {
+  const output = getOutput(job)
+  job.start = new Date()
+  delete job.failed
+  await instrument(job)
+  await save(job)
+  job.testPageUrls = []
+
+  job.status = 'Probing urls'
+  await parallelize({
+    urlsMember: 'url',
+    startedMember: $probeUrlsStarted,
+    completedMember: $probeUrlsCompleted,
+    method: probeUrl
+  }, job)
+
+  if (job.testPageUrls.length !== 0) {
+    job.status = 'Executing test pages'
+    await parallelize({
+      urlsMember: 'testPageUrls',
+      startedMember: $testPagesStarted,
+      completedMember: $testPagesCompleted,
+      method: runTestPage
+    }, job)
+  } else if (Object.keys(job.qunitPages).length === 0) {
+    output.noTestPageFound()
+    job.failed = true
+  }
+
+  await generate(job)
 }
 
 module.exports = {
@@ -73,9 +131,9 @@ module.exports = {
       return capabilities(job)
     }
     await probe(job)
-    if (job.mode !== 'legacy') {
-      throw new Error('Not implemented')
+    if (job.mode !== 'url') {
+      job.url = [`http://localhost:${job.port}/${job.testsuite}`]
     }
-    return extractTestPages(job)
+    return process(job)
   }
 }
