@@ -124,6 +124,27 @@ describe('job', () => {
         expect(job.coverageSettings).toStrictEqual(join(__dirname, '../defaults/nyc.json'))
         expect(job.reportGenerator).toEqual([join(__dirname, '../defaults/report.js')])
       })
+
+      describe('custom mappings', () => {
+        it('offers custom mappings', () => {
+          const job = buildJob({
+            cwd,
+            mappings: [
+              '^/otherlib/(.+)=file(./otherfolder/otherlib/$1)',
+              '^/ui/oDataService/v1/odata/v4/ServiceName/(.+)=url(http://localhost:18082/odata/v4/ServiceName/$1)'
+            ]
+          })
+          expect(job.mappings).toEqual([
+            {
+              match: '^/otherlib/(.+)',
+              file: './otherfolder/otherlib/$1'
+            }, {
+              match: '^/ui/oDataService/v1/odata/v4/ServiceName/(.+)',
+              url: 'http://localhost:18082/odata/v4/ServiceName/$1'
+            }
+          ])
+        })
+      })
     })
   })
 
@@ -286,7 +307,7 @@ describe('job', () => {
             expect(() => fromObject(cwd, {
               url: ['http://myserver.remote.url/ui5-app.html'],
               [option]: incompatible[option]
-            })).toThrow(UTRError.MODE_INCOMPATIBLE_OPTION())
+            })).toThrow(UTRError.MODE_INCOMPATIBLE_OPTION(option))
           })
         })
       })
@@ -335,7 +356,7 @@ describe('job', () => {
             expect(() => fromObject(cwd, {
               capabilities: true,
               [option]: incompatible[option]
-            })).toThrow(UTRError.MODE_INCOMPATIBLE_OPTION())
+            })).toThrow(UTRError.MODE_INCOMPATIBLE_OPTION(option))
           })
         })
       })
