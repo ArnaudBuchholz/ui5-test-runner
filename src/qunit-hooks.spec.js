@@ -147,14 +147,14 @@ describe('src/qunit-hooks', () => {
         await expect(begin(job, url, {
           isOpa: false,
           modules: getModules()
-        })).rejects.toThrow(UTRError.QUNIT_ERROR())
+        })).rejects.toThrow(UTRError.QUNIT_ERROR('Invalid begin hook details'))
       })
 
       it('requires modules', async () => {
         await expect(begin(job, url, {
           isOpa: false,
           totalTests: 1
-        })).rejects.toThrow(UTRError.QUNIT_ERROR())
+        })).rejects.toThrow(UTRError.QUNIT_ERROR('Invalid begin hook details'))
       })
     })
   })
@@ -298,7 +298,7 @@ describe('src/qunit-hooks', () => {
         expected: true,
         testId: 'unk',
         runtime: 1000
-      })).rejects.toThrow(UTRError.QUNIT_ERROR())
+      })).rejects.toThrow(UTRError.QUNIT_ERROR('No QUnit unit test found with id unk'))
       expect(stop).toHaveBeenCalledWith(job, url)
       expect(job.failed).toStrictEqual(true)
     })
@@ -479,26 +479,26 @@ describe('src/qunit-hooks', () => {
 
     it('fails if tests not started', async () => {
       delete job.qunitPages
-      expect(testDone(job, url, getTestDoneFor1a()))
-        .rejects.toThrow(UTRError.QUNIT_ERROR())
+      await expect(testDone(job, url, getTestDoneFor1a()))
+        .rejects.toThrow(UTRError.QUNIT_ERROR('No QUnit page found for http://localhost:80/page1.html'))
       expect(stop).toHaveBeenCalledWith(job, url)
       expect(job.failed).toStrictEqual(true)
     })
 
     it('fails if URL does not exist', async () => {
       job.qunitPages = {}
-      expect(testDone(job, url, getTestDoneFor1a()))
-        .rejects.toThrow(UTRError.QUNIT_ERROR())
+      await expect(testDone(job, url, getTestDoneFor1a()))
+        .rejects.toThrow(UTRError.QUNIT_ERROR('No QUnit page found for http://localhost:80/page1.html'))
       expect(stop).toHaveBeenCalledWith(job, url)
       expect(job.failed).toStrictEqual(true)
     })
 
     it('fails on invalid test id', async () => {
-      expect(testDone(job, url, {
+      await expect(testDone(job, url, {
         ...getTestDoneFor1a(),
         testId: '1c'
       }))
-        .rejects.toThrow(UTRError.QUNIT_ERROR())
+        .rejects.toThrow(UTRError.QUNIT_ERROR('No QUnit unit test found with id 1c'))
       expect(stop).toHaveBeenCalledWith(job, url)
       expect(job.failed).toStrictEqual(true)
     })
@@ -568,14 +568,14 @@ describe('src/qunit-hooks', () => {
 
     it('fails if tests not started', async () => {
       delete job.qunitPages
-      expect(done(job, url, getDoneInfo())).rejects.toThrow(UTRError.QUNIT_ERROR())
+      await expect(done(job, url, getDoneInfo())).rejects.toThrow(UTRError.QUNIT_ERROR('No QUnit page found for http://localhost:80/page1.html'))
       expect(stop).toHaveBeenCalledWith(job, url)
       expect(job.failed).toStrictEqual(true)
     })
 
     it('fails if URL does not exist', async () => {
       job.qunitPages = {}
-      expect(done(job, url, {})).rejects.toThrow(UTRError.QUNIT_ERROR())
+      await expect(done(job, url, {})).rejects.toThrow(UTRError.QUNIT_ERROR('No QUnit page found for http://localhost:80/page1.html'))
       expect(stop).toHaveBeenCalledWith(job, url)
       expect(job.failed).toStrictEqual(true)
     })
