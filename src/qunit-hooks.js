@@ -5,7 +5,6 @@ const { collect } = require('./coverage')
 const { UTRError } = require('./error')
 const { getOutput } = require('./output')
 const { basename } = require('path')
-const { URL } = require('url')
 
 function error (job, url, details = '') {
   stop(job, url)
