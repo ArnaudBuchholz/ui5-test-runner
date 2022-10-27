@@ -29,13 +29,13 @@ describe('src/coverage', () => {
 
     it('does not instrument sources', async () => {
       await instrument(job)
-      expect(() => stat(join(basePath, 'coverage/temp/settings/nyc.json'))).rejects.toThrow()
+      await expect(() => stat(join(basePath, 'coverage/temp/settings/nyc.json'))).rejects.toThrow()
     })
 
     it('does not generate a report', async () => {
       await generateCoverageReport(job)
-      expect(() => stat(join(basePath, 'coverage/temp/coverage.json'))).rejects.toThrow()
-      expect(() => stat(join(basePath, 'coverage/report'))).rejects.toThrow()
+      await expect(() => stat(join(basePath, 'coverage/temp/coverage.json'))).rejects.toThrow()
+      await expect(() => stat(join(basePath, 'coverage/report'))).rejects.toThrow()
     })
 
     it('does not create a mapping', async () => {
