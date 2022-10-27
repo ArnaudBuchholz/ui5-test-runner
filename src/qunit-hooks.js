@@ -5,6 +5,7 @@ const { collect } = require('./coverage')
 const { UTRError } = require('./error')
 const { getOutput } = require('./output')
 const { basename } = require('path')
+const { URL } = require('url')
 
 function error (job, url, details = '') {
   stop(job, url)
@@ -12,10 +13,13 @@ function error (job, url, details = '') {
   throw UTRError.QUNIT_ERROR(details)
 }
 
-function get (job, url, testId) {
+const stripHash = url => url.split('#')[0]
+
+function get (job, urlWithHash, testId) {
+  const url = stripHash(urlWithHash)
   const page = job.qunitPages && job.qunitPages[url]
   if (!page) {
-    error(job, url, `No QUnit page found for ${url}`)
+    error(job, url, `No QUnit page found for ${urlWithHash}`)
   }
   let test
   if (testId !== undefined) {
@@ -27,13 +31,14 @@ function get (job, url, testId) {
       error(job, url, `No QUnit unit test found with id ${testId}`)
     }
   }
-  return { page, test }
+  return { url, page, test }
 }
 
 module.exports = {
   get,
 
-  async begin (job, url, { isOpa, totalTests, modules }) {
+  async begin (job, urlWithHash, { isOpa, totalTests, modules }) {
+    const url = stripHash(urlWithHash)
     if (!totalTests || !modules) {
       error(job, url, 'Invalid begin hook details')
     }
@@ -51,8 +56,8 @@ module.exports = {
     job.qunitPages[url] = qunitPage
   },
 
-  async log (job, url, { module, name, testId, ...log }) {
-    const { page, test } = get(job, url, testId)
+  async log (job, urlWithHash, { module, name, testId, ...log }) {
+    const { url, page, test } = get(job, urlWithHash, testId)
     if (!test.logs) {
       test.logs = []
     }
@@ -67,9 +72,9 @@ module.exports = {
     }
   },
 
-  async testDone (job, url, { name, module, testId, assertions, ...report }) {
+  async testDone (job, urlWithHash, { name, module, testId, assertions, ...report }) {
     const { failed } = report
-    const { page, test } = get(job, url, testId)
+    const { url, page, test } = get(job, urlWithHash, testId)
     if (failed) {
       if (job.browserCapabilities.screenshot) {
         try {
@@ -87,8 +92,8 @@ module.exports = {
     test.report = report
   },
 
-  async done (job, url, report) {
-    const { page } = get(job, url)
+  async done (job, urlWithHash, report) {
+    const { url, page } = get(job, urlWithHash)
     if (job.browserCapabilities.screenshot) {
       try {
         await screenshot(job, url, 'done')
