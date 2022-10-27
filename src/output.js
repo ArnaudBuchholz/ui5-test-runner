@@ -448,7 +448,7 @@ function build (job) {
         }
       }
       job.testPageUrls.forEach(result)
-      Object.keys(job.qunitPages).forEach(url => {
+      Object.keys(job.qunitPages || []).forEach(url => {
         if (!job.testPageUrls.includes(url)) {
           result(url)
         }
