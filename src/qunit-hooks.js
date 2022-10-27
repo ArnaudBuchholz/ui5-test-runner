@@ -35,7 +35,7 @@ module.exports = {
 
   async begin (job, url, { isOpa, totalTests, modules }) {
     if (!totalTests || !modules) {
-      error(job, url)
+      error(job, url, 'Invalid begin hook details')
     }
     if (!job.qunitPages) {
       job.qunitPages = {}
