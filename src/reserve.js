@@ -19,6 +19,7 @@ module.exports = job => check({
       strict: true,
       'ignore-if-not-found': true
     },
+    ...job.mappings ?? [],
     ...unhandled(job)
   ]
 })
