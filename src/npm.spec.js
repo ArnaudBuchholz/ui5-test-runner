@@ -4,6 +4,7 @@ const { mock } = require('child_process')
 const { createDir, recreateDir } = require('./tools')
 const { fromObject } = require('./job')
 const { getOutput } = require('./output')
+const { UTRError } = require('./error')
 
 const tmp = join(__dirname, '../tmp')
 const npmGlobal = join(tmp, 'npm/global')
@@ -60,10 +61,7 @@ describe('src/npm', () => {
       args: ['install', 'not_existing', '-g'],
       exec: childProcess => { throw new Error('KO failed') }
     })
-    await expect(resolvePackage(job, 'not_existing')).rejects.toMatchObject({
-      name: 'UTRError',
-      message: 'NPM_FAILED'
-    })
+    await expect(resolvePackage(job, 'not_existing')).rejects.toThrowError(UTRError.NPM_FAILED('Error: KO failed'))
     expect(output.status).toHaveBeenCalledTimes(1) // Won't restore previous status
   })
 })
