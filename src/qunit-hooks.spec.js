@@ -137,6 +137,32 @@ describe('src/qunit-hooks', () => {
       expect(start).toBeInstanceOf(Date)
     })
 
+    describe('ignoring hash variation', () => {
+      it('starts empty, receives #any_hash', async () => {
+        await begin(job, url, getBeginInfo())
+        const { page } = get(job, url + '#any_hash')
+        expect(page).not.toBeUndefined()
+      })
+
+      it('starts with #any_hash, receives #any_hash', async () => {
+        await begin(job, url, getBeginInfo())
+        const { page } = get(job, url + '#any_hash')
+        expect(page).not.toBeUndefined()
+      })
+
+      it('starts with #any_hash, receives #another_hash', async () => {
+        await begin(job, url, getBeginInfo())
+        const { page } = get(job, url + '#another_hash')
+        expect(page).not.toBeUndefined()
+      })
+
+      it('starts with #any_hash, receives empty', async () => {
+        await begin(job, url, getBeginInfo())
+        const { page } = get(job, url)
+        expect(page).not.toBeUndefined()
+      })
+    })
+
     describe('validation', () => {
       afterEach(() => {
         expect(stop).toHaveBeenCalledWith(job, url)
@@ -257,6 +283,16 @@ describe('src/qunit-hooks', () => {
         runtime: 1419,
         screenshot: '1a-1419.png'
       })
+    })
+
+    it('takes a screenshot for OPA tests (hash changing)', async () => {
+      job.browserCapabilities.screenshot = '.png'
+      await begin(job, url, {
+        isOpa: true,
+        ...getBeginInfo()
+      })
+      await log(job, url + '#any_hash', getLogFor1a())
+      expect(screenshot).toHaveBeenCalledWith(job, url, '1a-1419')
     })
 
     it('does not fail if screenshot failed', async () => {
@@ -463,6 +499,16 @@ describe('src/qunit-hooks', () => {
           expect(screenshot).toHaveBeenCalledWith(job, url, '1a')
         })
 
+        it('takes a screenshot (hash changing)', async () => {
+          await testDone(job, url + '#any_hash', {
+            ...getTestDoneFor1a(),
+            passed: 0,
+            failed: 1,
+            total: 1
+          })
+          expect(screenshot).toHaveBeenCalledWith(job, url, '1a')
+        })
+
         it('does not stop if screenshot failed', async () => {
           screenshot.mockImplementation(() => Promise.reject(new Error()))
           await testDone(job, url, {
@@ -527,6 +573,12 @@ describe('src/qunit-hooks', () => {
     it('takes a screenshot if enabled', async () => {
       job.browserCapabilities.screenshot = '.png'
       await done(job, url, getDoneInfo())
+      expect(screenshot).toHaveBeenCalledWith(job, url, 'done')
+    })
+
+    it('takes a screenshot if enabled (hash changing)', async () => {
+      job.browserCapabilities.screenshot = '.png'
+      await done(job, url + '#any_hash', getDoneInfo())
       expect(screenshot).toHaveBeenCalledWith(job, url, 'done')
     })
 
