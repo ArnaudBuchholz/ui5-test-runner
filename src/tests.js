@@ -125,7 +125,7 @@ async function process (job) {
       completedMember: $testPagesCompleted,
       method: runTestPage
     }, job)
-  } else if (Object.keys(job.qunitPages).length === 0) {
+  } else if (Object.keys(job.qunitPages || []).length === 0) {
     output.noTestPageFound()
     job.failed = true
   }
