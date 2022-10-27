@@ -5,6 +5,7 @@ const { probe, start, stop, screenshot } = require('./browsers')
 const { $browsers } = require('./symbols')
 const { readFile, writeFile, stat } = require('fs/promises')
 const { recreateDir, allocPromise, filename } = require('./tools')
+const { UTRError } = require('./error')
 
 const cwd = '/test/project'
 const tmp = join(__dirname, '../tmp')
@@ -56,8 +57,7 @@ describe('src/browser', () => {
         exec: () => {}
       })
       await expect(probe(job)).rejects.toMatchObject({
-        name: 'UTRError',
-        message: 'MISSING_OR_INVALID_BROWSER_CAPABILITIES'
+        name: 'UTRError:MISSING_OR_INVALID_BROWSER_CAPABILITIES'
       })
     })
 
@@ -103,10 +103,7 @@ describe('src/browser', () => {
           childProcess.close(-1)
         }
       })
-      await expect(probe(job)).rejects.toMatchObject({
-        name: 'UTRError',
-        message: 'BROWSER_PROBE_FAILED'
-      })
+      await expect(probe(job)).rejects.toThrowError(UTRError.BROWSER_PROBE_FAILED('-1'))
     })
 
     describe('dependent modules', () => {
@@ -156,8 +153,7 @@ describe('src/browser', () => {
           }
         })
         await expect(probe(job)).rejects.toMatchObject({
-          name: 'UTRError',
-          message: 'NPM_FAILED'
+          name: 'UTRError:NPM_FAILED'
         })
       })
     })
@@ -209,10 +205,7 @@ describe('src/browser', () => {
             }
           }
         })
-        await expect(probe(job)).rejects.toMatchObject({
-          name: 'UTRError',
-          message: 'BROWSER_PROBE_FAILED'
-        })
+        await expect(probe(job)).rejects.toThrowError(UTRError.BROWSER_PROBE_FAILED('-1'))
       })
     })
   })
@@ -345,8 +338,7 @@ describe('src/browser', () => {
         close: false
       })
       await expect(start(job, '/test.html')).rejects.toMatchObject({
-        name: 'UTRError',
-        message: 'BROWSER_FAILED'
+        name: 'UTRError:BROWSER_FAILED'
       })
       expect(config.retry).toStrictEqual(1)
     })
@@ -532,8 +524,7 @@ describe('src/browser', () => {
         start(job, '/test.html')
         await ready
         await expect(screenshot(job, '/test.html', 'screenshot')).rejects.toMatchObject({
-          name: 'UTRError',
-          message: 'BROWSER_SCREENSHOT_FAILED'
+          name: 'UTRError:BROWSER_SCREENSHOT_FAILED'
         })
       })
 
@@ -557,8 +548,7 @@ describe('src/browser', () => {
         start(job, '/test.html')
         await ready
         await expect(screenshot(job, '/test.html', 'screenshot')).rejects.toMatchObject({
-          name: 'UTRError',
-          message: 'BROWSER_SCREENSHOT_FAILED'
+          name: 'UTRError:BROWSER_SCREENSHOT_FAILED'
         })
       })
 
@@ -577,8 +567,7 @@ describe('src/browser', () => {
         const started = start(job, '/test.html')
         await ready
         await expect(screenshot(job, '/test.html', 'screenshot')).rejects.toMatchObject({
-          name: 'UTRError',
-          message: 'BROWSER_SCREENSHOT_TIMEOUT'
+          name: 'UTRError:BROWSER_SCREENSHOT_TIMEOUT'
         })
         stop(job, '/test.html')
         await started
@@ -617,10 +606,7 @@ describe('src/browser', () => {
         })
         const started = start(job, '/test.html')
         await ready
-        await expect(screenshot(job, '/test.html', 'screenshot')).rejects.toMatchObject({
-          name: 'UTRError',
-          message: 'BROWSER_SCREENSHOT_NOT_SUPPORTED'
-        })
+        await expect(screenshot(job, '/test.html', 'screenshot')).rejects.toThrowError(UTRError.BROWSER_SCREENSHOT_NOT_SUPPORTED())
         stop(job, '/test.html')
         await started
       })
