@@ -97,6 +97,24 @@ function parse (cwd, args) {
       }
       return result
     })
+    .option('--mappings <mapping...>', 'Custom mapping', function addMapping (value, previousValue) {
+      let result
+      if (previousValue === undefined) {
+        result = []
+      } else {
+        result = [...previousValue]
+      }
+      try {
+        const [, match, handler, mapping] = /([^=]*)=(file|url)\((.*)\)/.exec(value)
+        result.push({
+          match,
+          [handler]: mapping
+        })
+      } catch (e) {
+        throw new InvalidArgumentError('Invalid mapping')
+      }
+      return result
+    })
     .option('--cache <path>', 'Cache UI5 resources locally in the given folder (empty to disable)')
     .option('--webapp <path>', 'Base folder of the web application (relative to cwd)', 'webapp')
     .option('--testsuite <path>', 'Path of the testsuite file (relative to webapp)', 'test/testsuite.qunit.html')
