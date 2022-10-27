@@ -12,7 +12,7 @@ function check (job, allowed, forbidden) {
     )
   })
   if (incompatible.length) {
-    throw UTRError.MODE_INCOMPATIBLE_OPTION(incompatible)
+    throw UTRError.MODE_INCOMPATIBLE_OPTION(incompatible.join(','))
   }
 }
 
