@@ -65,15 +65,11 @@ async function main () {
     const t = Date.now()
     consoleSequence = consoleSequence
       .then(async () => {
-        const args = []
-        for await (const arg of message.args()) {
-          args.push(await arg.jsonValue())
-        }
         process.send({
           command: 'console',
           t,
           api: message.type(),
-          args
+          text: message.text()
         })
       })
   })
