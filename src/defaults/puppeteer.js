@@ -5,13 +5,17 @@ const { join } = require('path')
 const { Command } = require('commander')
 const { boolean } = require('../options')
 
+const append = (fileName, line) => writeFile(fileName, line + '\n', { flag: 'a+' })
+
 const command = new Command()
 command
   .name('ui5-test-runner/@/puppeteer')
   .description('Browser instantiation command for puppeteer')
-  .version('1.0.0')
-  .addHelpCommand(false)
+  .helpOption(false)
   .option('--visible [flag]', 'Show the browser', boolean, false)
+
+let consoleReady = Promise.resolve()
+let networkReady = Promise.resolve()
 
 let browser
 let page
@@ -19,11 +23,20 @@ let stopping = false
 
 async function exit (code) {
   stopping = true
+  await Promise.all([consoleReady, networkReady])
   if (page) {
-    await page.close()
+    try {
+      await page.close()
+    } catch (error) {
+      // ignore
+    }
   }
   if (browser) {
-    await browser.close()
+    try {
+      await browser.close()
+    } catch (error) {
+      // ignore
+    }
   }
   process.exit(0)
 }
@@ -78,6 +91,7 @@ async function main () {
   const { url, scripts, dir } = settings
 
   browser = await puppeteer.launch({
+    dumpio: true,
     headless: !options.visible,
     defaultViewport: null,
     args: [
@@ -90,35 +104,26 @@ async function main () {
   page = (await browser.pages())[0]
 
   const consoleFilename = join(dir, 'console.txt')
-  let consoleReady = Promise.resolve()
   const networkFilename = join(dir, 'network.txt')
-  let networkReady = Promise.resolve()
 
   page
     .on('console', message => {
       const t = Date.now()
       consoleReady = consoleReady
-        .then(() => writeFile(
+        .then(() => append(
           consoleFilename,
           `${t}\t${message.type()}\t${message.text().replace(/\r|\n|\t/g, match => ({ '\r': '\\r', '\n': '\\n', '\t': '\\t' }[match]))}`
         ))
         .catch(() => {})
     })
-    .on('request', request => {
+    .on('response', response => {
       const t = Date.now()
+      const request = response.request()
+      const method = request.method()
       networkReady = networkReady
-        .then(() => writeFile(
-          consoleFilename,
-          `${t}\t${request.verb()}\t${request.url()}`
-        ))
-        .catch(() => {})
-    })
-    .on('request', response => {
-      const t = Date.now()
-      networkReady = networkReady
-        .then(() => writeFile(
+        .then(() => append(
           networkFilename,
-          `${t}\t${response.status()}\t${response.url()}`
+          `${t}\t${response.status()}\t${method}\t${response.url()}`
         ))
         .catch(() => {})
     })
