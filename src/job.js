@@ -7,6 +7,7 @@ const { name, description, version } = require(join(__dirname, '../package.json'
 const { getOutput } = require('./output')
 const { $valueSources } = require('./symbols')
 const { buildAndCheckMode } = require('./job-mode')
+const { boolean, integer, url } = require('./options')
 
 const $status = Symbol('status')
 
@@ -51,25 +52,6 @@ function buildArgs (parameters) {
 }
 
 function parse (cwd, args) {
-  function integer (value) {
-    const result = parseInt(value, 10)
-    if (result < 0) {
-      throw new InvalidArgumentError('Only >= 0')
-    }
-    return result
-  }
-
-  function boolean (value) {
-    return ['true', 'yes', 'on'].includes(value)
-  }
-
-  function url (value) {
-    if (!value.match(/^https?:\/\/[^ "]+$/)) {
-      throw new InvalidArgumentError('Invalid URL')
-    }
-    return value
-  }
-
   const command = new Command()
   command.exitOverride()
   command
@@ -205,7 +187,7 @@ function finalize (job) {
 
   function checkDefault (path) {
     if (path.startsWith('@/')) {
-      return join(__dirname, '../defaults', path.replace('@/', ''))
+      return join(__dirname, './defaults', path.replace('@/', ''))
     }
     return path
   }
