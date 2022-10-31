@@ -4,8 +4,7 @@ const { readFile, writeFile } = require('fs/promises')
 const { join } = require('path')
 const { Command } = require('commander')
 const { boolean } = require('../options')
-
-const append = (fileName, line) => writeFile(fileName, line + '\n', { flag: 'a+' })
+const { buildCsvWriter } = require('../csv-writer')
 
 const command = new Command()
 command
@@ -14,29 +13,24 @@ command
   .helpOption(false)
   .option('--visible [flag]', 'Show the browser', boolean, false)
 
-let consoleReady = Promise.resolve()
-let networkReady = Promise.resolve()
+let consoleWriter = { ready: Promise.resolve() }
+let networkWriter = { ready: Promise.resolve() }
 
 let browser
 let page
 let stopping = false
 
 async function exit (code) {
+  if (stopping) {
+    return
+  }
   stopping = true
-  await Promise.all([consoleReady, networkReady])
+  await Promise.all([consoleWriter.ready, networkWriter.ready])
   if (page) {
-    try {
-      await page.close()
-    } catch (error) {
-      // ignore
-    }
+    await page.close()
   }
   if (browser) {
-    try {
-      await browser.close()
-    } catch (error) {
-      // ignore
-    }
+    await browser.close()
   }
   process.exit(0)
 }
@@ -78,10 +72,7 @@ async function main () {
       modules: ['puppeteer'],
       screenshot: '.png',
       scripts: true,
-      traces: {
-        console: true,
-        network: true
-      }
+      traces: ['console', 'network']
     }))
     return exit(0)
   }
@@ -91,7 +82,6 @@ async function main () {
   const { url, scripts, dir } = settings
 
   browser = await puppeteer.launch({
-    dumpio: true,
     headless: !options.visible,
     defaultViewport: null,
     args: [
@@ -103,29 +93,21 @@ async function main () {
   })
   page = (await browser.pages())[0]
 
-  const consoleFilename = join(dir, 'console.txt')
-  const networkFilename = join(dir, 'network.txt')
+  consoleWriter = buildCsvWriter(join(dir, 'console.csv'))
+  networkWriter = buildCsvWriter(join(dir, 'network.csv'))
 
   page
-    .on('console', message => {
-      const t = Date.now()
-      consoleReady = consoleReady
-        .then(() => append(
-          consoleFilename,
-          `${t}\t${message.type()}\t${message.text().replace(/\r|\n|\t/g, match => ({ '\r': '\\r', '\n': '\\n', '\t': '\\t' }[match]))}`
-        ))
-        .catch(() => {})
-    })
+    .on('console', message => consoleWriter.append({
+      type: message.type(),
+      text: message.text()
+    }))
     .on('response', response => {
-      const t = Date.now()
       const request = response.request()
-      const method = request.method()
-      networkReady = networkReady
-        .then(() => append(
-          networkFilename,
-          `${t}\t${response.status()}\t${method}\t${response.url()}`
-        ))
-        .catch(() => {})
+      networkWriter.append({
+        method: request.method(),
+        url: response.url(),
+        status: response.status()
+      })
     })
 
   if (scripts && scripts.length) {
