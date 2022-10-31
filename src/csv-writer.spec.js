@@ -48,7 +48,7 @@ describe('src/csv-writer', () => {
     await writer.ready
     expect(writeFile.mock.calls).toEqual([
       ['test.csv', 'timestamp\ttext\n', { flag: 'a+' }],
-      ['test.csv', `${now}\t"test\\t1\\n"\n`, { flag: 'a+' }],
+      ['test.csv', `${now}\t"test\\t1\\n"\n`, { flag: 'a+' }]
     ])
   })
 })
