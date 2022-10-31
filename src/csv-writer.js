@@ -1,3 +1,5 @@
+'use strict'
+
 const { writeFile } = require('fs/promises')
 
 const append = (fileName, line) => writeFile(fileName, line + '\n', { flag: 'a+' })
