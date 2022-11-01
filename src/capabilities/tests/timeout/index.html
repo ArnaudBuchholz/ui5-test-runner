@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html>
+  <body>
+    <H1>timeout</H1>
+    <p>Check if the ping rate is ensured</p>
+    <script>
+      const parameters = new URLSearchParams(location.search)
+      const rate = parseInt(parameters.get('rate'), 10)
+      const wait = parseInt(parameters.get('wait'), 10)
+      const steps = []
+      setTimeout(() => {
+        const xhr = new XMLHttpRequest()
+        xhr.open('POST', '/_/log')
+        xhr.send(JSON.stringify({ steps }))
+      }, wait)
+      setInterval(() => {
+        steps.push(Date.now())
+      }, rate)
+    </script>
+  </body>
+</html>
