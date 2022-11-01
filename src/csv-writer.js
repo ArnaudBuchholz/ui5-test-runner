@@ -4,10 +4,11 @@ const { writeFile } = require('fs/promises')
 
 const append = (fileName, line) => writeFile(fileName, line + '\n', { flag: 'a+' })
 const escape = value => {
-  if (value.match(/\r|\n|\t|"/)) {
-    return JSON.stringify(value)
+  const stringValue = value.toString()
+  if (stringValue.match(/\r|\n|\t|"/)) {
+    return JSON.stringify(stringValue)
   }
-  return value
+  return stringValue
 }
 
 class CsvWriter {
