@@ -44,11 +44,11 @@ describe('src/csv-writer', () => {
 
   it('escapes automatically complex values', async () => {
     const writer = buildCsvWriter('test.csv')
-    writer.append({ text: 'test\t1\n' })
+    writer.append({ number: 1, text: 'test\t1\n' })
     await writer.ready
     expect(writeFile.mock.calls).toEqual([
-      ['test.csv', 'timestamp\ttext\n', { flag: 'a+' }],
-      ['test.csv', `${now}\t"test\\t1\\n"\n`, { flag: 'a+' }]
+      ['test.csv', 'timestamp\tnumber\ttext\n', { flag: 'a+' }],
+      ['test.csv', `${now}\t1\t"test\\t1\\n"\n`, { flag: 'a+' }]
     ])
   })
 })
