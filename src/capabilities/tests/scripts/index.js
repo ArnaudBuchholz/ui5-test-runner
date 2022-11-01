@@ -1,0 +1,50 @@
+'use strict'
+
+const assert = require('assert/strict')
+
+function qUnitEndpoints (data) {
+  const { endpoint } = data
+  if (!this.calls) {
+    this.calls = {}
+  }
+  if (!this.calls[endpoint]) {
+    this.calls[endpoint] = 1
+  } else {
+    ++this.calls[endpoint]
+  }
+  if (endpoint === 'QUnit/done') {
+    assert(this.calls['QUnit/begin'], 'QUnit/begin was triggered')
+    assert(this.calls['QUnit/log'], 'QUnit/log was triggered')
+    assert(this.calls['QUnit/testDone'], 'QUnit/testDone was triggered')
+    return true
+  }
+  return false
+}
+
+module.exports = [{
+  label: 'Scripts (QUnit)',
+  for: capabilities => !!capabilities.scripts,
+  url: 'scripts/qunit.html',
+  scripts: ['qunit-intercept.js', 'post.js', 'qunit-hooks.js'],
+  endpoint: qUnitEndpoints
+}, {
+  label: 'Scripts (TestSuite)',
+  for: capabilities => !!capabilities.scripts,
+  url: 'scripts/testsuite.html',
+  scripts: ['post.js', 'qunit-redirect.js'],
+  endpoint: function (data) {
+    assert(data.endpoint === 'addTestPages', 'addTestPages was triggered')
+    assert(data.body.length === 2, 'Two pages received')
+    const pages = [
+      '/unit/unitTests.qunit.html',
+      '/integration/opaTests.iframe.qunit.html'
+    ]
+    pages.forEach((page, index) => assert(data.body[index].endsWith(page), page))
+  }
+}, {
+  label: 'Scripts (External QUnit)',
+  for: capabilities => !!capabilities.scripts,
+  url: 'https://ui5.sap.com/test-resources/sap/m/demokit/orderbrowser/webapp/test/unit/unitTests.qunit.html',
+  scripts: ['qunit-intercept.js', 'post.js', 'qunit-hooks.js'],
+  endpoint: qUnitEndpoints
+}]
