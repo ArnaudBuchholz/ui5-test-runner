@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html>
+  <body>
+    <H1>localStorage</H1>
+    <p>Check if the localStorage is isolated</p>
+    <script>
+      const initial = localStorage.value
+      const parameters = new URLSearchParams(location.search)
+      localStorage.value = parameters.get('value')
+      const modified = localStorage.value
+      const xhr = new XMLHttpRequest()
+      xhr.open('POST', '/_/log')
+      xhr.send(JSON.stringify({initial, modified}))
+    </script>
+  </body>
+</html>
