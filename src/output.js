@@ -92,10 +92,10 @@ function progress (job, cleanFirst = true) {
       if (job.qunitPages) {
         const page = job.qunitPages[pageUrl]
         if (page) {
-          const { tests, passed, failed } = page
-          if (tests) {
+          const { count, passed, failed } = page
+          if (count) {
             const progress = passed + failed
-            bar(progress / tests.length, pageUrl)
+            bar(progress / count, pageUrl)
             starting = false
           }
         }
