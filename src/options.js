@@ -3,10 +3,14 @@
 const { InvalidArgumentError } = require('commander')
 
 module.exports = {
-  boolean (value) {
+  boolean (value, defaultValue) {
+    if (value === undefined) {
+      return !defaultValue
+    }
     if (['true', 'yes', 'on'].includes(value)) {
       return true
-    } else if (['false', 'no', 'off'].includes(value)) {
+    }
+    if (['false', 'no', 'off'].includes(value)) {
       return false
     }
     throw new InvalidArgumentError('Invalid boolean')
@@ -16,7 +20,8 @@ module.exports = {
     const result = parseInt(value, 10)
     if (isNaN(result)) {
       throw new InvalidArgumentError('Invalid integer')
-    } else if (result < 0) {
+    }
+    if (result < 0) {
       throw new InvalidArgumentError('Only >= 0')
     }
     return result
