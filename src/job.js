@@ -112,27 +112,29 @@ function parse (cwd, args) {
       return result
     })
 
-    .option('-pf, --page-filter <regexp>', 'Filters which pages to execute')
+    .option('-pf, --page-filter <regexp>', 'Filter which pages to execute')
     .option('-pp, --page-params <params>', 'Parameters added to each page URL')
     .option('-pt, --page-timeout <timeout>', 'Limit the page execution time (ms), fails the page if it takes longer than the timeout (0 to disable the timeout)', integer, 0)
     .option('-t, --global-timeout <timeout>', 'Limit the pages execution time (ms), fails the page if it takes longer than the timeout (0 to disable the timeout)', integer, 0)
-    .option('-f, --fail-fast [flag]', 'Stops the execution after the first failing page', boolean, false)
-    .option('-k, --keep-alive [flag]', 'Keeps the server alive (enables debugging)', boolean, false)
-    .option('-w, --watch [flag]', 'Monitors the webapp folder and re-execute tests on change', boolean, false)
-    .option('-l, --log-server [flag]', 'Logs server traces', boolean, false)
+    .option('-f, --fail-fast [flag]', 'Stop the execution after the first failing page', boolean, false)
+    .option('-k, --keep-alive [flag]', 'Keep the server alive (enables debugging)', boolean, false)
+    .option('-w, --watch [flag]', 'Monitor the webapp folder and re-execute tests on change', boolean, false)
+    .option('-l, --log-server [flag]', 'Log server traces', boolean, false)
 
     .option('-b, --browser <command>', 'Browser instantiation command (relative to cwd or use @/ for provided ones)', '@/puppeteer.js')
     .option('--browser-args <argument...>', 'Browser instantiation command parameters')
 
     .option('-bt, --browser-close-timeout <timeout>', 'Maximum waiting time (ms) for browser close', integer, 2000)
     .option('-br, --browser-retry <count>', 'Browser instantiation retries : if the command fails unexpectedly, it is re-executed (0 means no retry)', 1)
-    .option('--no-screenshot', 'No screenshot is taken during the tests execution', boolean, false)
+    .option('--screenshot [flag]', 'Take screenshots during the tests execution (if supported by the browser)', boolean, true)
+    .option('--no-screenshot', 'Disable screenshots')
     .option('-st, --screenshot-timeout <timeout>', 'Maximum waiting time (ms) for browser screenshot', integer, 5000)
 
     .option('-p, --parallel <count>', 'Number of parallel tests executions', 2)
     .option('-r, --report-dir <path>', 'Directory to output test reports (relative to cwd)', 'report')
 
     .option('--coverage [flag]', 'Enable or disable code coverage', boolean, true)
+    .option('--no-coverage', 'Disable code coverage')
     .option('-cs, --coverage-settings <path>', 'Path to a custom nyc.json file providing settings for instrumentation (relative to cwd or use @/ for provided ones)', '@/nyc.json')
     .option('-ct, --coverage-temp-dir <path>', 'Directory to output raw coverage information to (relative to cwd)', '.nyc_output')
     .option('-cr, --coverage-report-dir <path>', 'Directory to store the coverage report files (relative to cwd)', 'coverage')
