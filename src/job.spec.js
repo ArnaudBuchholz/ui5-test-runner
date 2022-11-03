@@ -21,6 +21,7 @@ describe('job', () => {
       expect(normalizePath(job.browser).endsWith('defaults/puppeteer.js')).toStrictEqual(true)
       expect(normalizePath(job.webapp).endsWith('/test/project/webapp')).toStrictEqual(true)
       expect(job.keepAlive).toStrictEqual(false)
+      expect(job.screenshot).toStrictEqual(true)
       expect(job[$valueSources]).toMatchObject({
         cwd: 'default',
         port: 'default',
@@ -53,13 +54,22 @@ describe('job', () => {
     describe('complex parameter parsing', () => {
       it('implements boolean flag', () => {
         const job = buildJob({
-          cwd: '../project2',
-          port: 8080,
           keepAlive: false,
-          coverage: null
+          coverage: null,
+          logServer: null
         })
         expect(job.keepAlive).toStrictEqual(false)
         expect(job.coverage).toStrictEqual(true)
+        expect(job.logServer).toStrictEqual(true)
+      })
+
+      it('implements boolean switch off', () => {
+        const job = buildJob({
+          noCoverage: null,
+          noScreenshot: null
+        })
+        expect(job.coverage).toStrictEqual(false)
+        expect(job.screenshot).toStrictEqual(false)
       })
 
       it('url disables webapp checking', () => {
@@ -120,9 +130,9 @@ describe('job', () => {
           cwd,
           browser: '@/selenium-webdriver.js'
         })
-        expect(job.browser).toStrictEqual(join(__dirname, '../defaults/selenium-webdriver.js'))
-        expect(job.coverageSettings).toStrictEqual(join(__dirname, '../defaults/nyc.json'))
-        expect(job.reportGenerator).toEqual([join(__dirname, '../defaults/report.js')])
+        expect(job.browser).toStrictEqual(join(__dirname, './defaults/selenium-webdriver.js'))
+        expect(job.coverageSettings).toStrictEqual(join(__dirname, './defaults/nyc.json'))
+        expect(job.reportGenerator).toEqual([join(__dirname, './defaults/report.js')])
       })
 
       describe('custom mappings', () => {
