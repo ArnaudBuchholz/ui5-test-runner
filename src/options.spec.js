@@ -40,6 +40,16 @@ describe('src/options', () => {
     ]
   })
 
+  describe('boolean (invert)', () => {
+    it('inverts default value (false)', () => {
+      expect(boolean(undefined, false)).toBe(true)
+    })
+
+    it('inverts default value (true)', () => {
+      expect(boolean(undefined, true)).toBe(false)
+    })
+  })
+
   checkType({
     method: integer,
     validValues: {
