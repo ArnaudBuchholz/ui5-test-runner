@@ -15,7 +15,10 @@ describe('src/inject/post', () => {
         false,
         true,
         [],
-        [1, 2]
+        [1, 2],
+        { a: 'a' },
+        { a: 'a', b: { b: 'b' } },
+        [{ a: 'a' }, { a: 'a', b: { b: 'b' } }]
       ]
 
       simpleValues.forEach(simpleValue => {
@@ -26,25 +29,18 @@ describe('src/inject/post', () => {
     })
 
     describe('circular references', () => {
-      it('converts simple circular reference', () => {
+      it('converts simple circular reference (object)', () => {
         const a = { a: 'a' }
         const b = { b: 'b' }
         a.b = b
         b.a = a
-        const stringified = stringify(a)
-        let simplified
-        try {
-          simplified = JSON.parse(stringified)
-        } catch (e) {
-          expect(stringified).toBe('')
-        }
-        expect(simplified).toStrictEqual({
-          __circular_id__: 0,
+        expect(JSON.parse(stringify(a))).toStrictEqual({
+          'circular:id': 0,
           a: 'a',
           b: {
             b: 'b',
             a: {
-              __circular_ref__: 0
+              'circular:ref': 0
             }
           }
         })
@@ -63,27 +59,37 @@ describe('src/inject/post', () => {
         }
         a.b.c.push(a.b)
         a.b.d.a = a
-        const stringified = stringify(a)
-        let simplified
-        try {
-          simplified = JSON.parse(stringified)
-        } catch (e) {
-          expect(stringified).toBe('')
-        }
-        expect(simplified).toStrictEqual({
-          __circular_id__: 0,
+        expect(JSON.parse(stringify(a))).toStrictEqual({
+          'circular:id': 0,
           a: 'a',
           b: {
-            __circular_id__: 1,
+            'circular:id': 1,
             b: 'b',
-            c: ['c', { __circular_ref__: 1 }],
+            c: ['c', { 'circular:ref': 1 }],
             d: {
               d: 'd',
               a: {
-                __circular_ref__: 0
+                'circular:ref': 0
               }
             }
           }
+        })
+      })
+
+      it('converts simple circular reference (array)', () => {
+        const a = ['a']
+        const b = ['b']
+        a.push(b)
+        b.push(a)
+        expect(JSON.parse(stringify(a))).toStrictEqual({
+          'circular:id': 0,
+          'circular:array': [
+            'a',
+            [
+              'b',
+              { 'circular:ref': 0 }
+            ]
+          ]
         })
       })
     })
