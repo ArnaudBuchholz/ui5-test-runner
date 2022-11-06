@@ -11,39 +11,43 @@
 
   function stringify (data) {
     const objects = []
-
-    function store (value) {
-      objects.push(value)
-      value.__circular_uses__ = 0
-      value.__circular_id__ = objects.length - 1
-    }
-
-    if (typeof data === 'object' && data) {
-      store(data)
-    }
-
-    let result = JSON.stringify(data, function (key, value) {
-      if (typeof value === 'object' && value && key) {
+    const referenced = []
+    const simple = JSON.stringify(data, function (key, value) {
+      if (typeof value === 'object' && value) {
         const id = objects.indexOf(value)
-        if (id === -1) {
-          store(value)
-          return value
+        if (id !== -1) {
+          referenced[id] = true
+          return null // Skip error and check all references
         }
-        ++objects[id].__circular_uses__
-        return {
-          __circular_ref__: id
+        objects.push(value)
+      }
+      return value
+    })
+    if (referenced.length === 0) {
+      return simple
+    }
+    const stringified = []
+    return JSON.stringify(data, function (key, value) {
+      if (typeof value === 'object' && value) {
+        const id = objects.indexOf(value)
+        if (referenced[id]) {
+          if (stringified[id]) {
+            return { 'circular:ref': id }
+          }
+          stringified[id] = true
+          if (Array.isArray(value)) {
+            return {
+              'circular:id': id,
+              'circular:array': [].concat(value) // 'new' object
+            }
+          }
+          return Object.assign({
+            'circular:id': id
+          }, value)
         }
       }
       return value
-    }).replace(/"__circular_uses__":\d+,/g, '')
-
-    objects.forEach((object, id) => {
-      if (object.__circular_uses__ === 0) {
-        result = result.replace(new RegExp(',?"__circular_id__":' + id), '')
-      }
     })
-
-    return result // .replace(/,}/g, '}')
   }
 
   window['ui5-test-runner/stringify'] = stringify
