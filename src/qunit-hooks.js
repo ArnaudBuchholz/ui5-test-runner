@@ -5,6 +5,7 @@ const { collect } = require('./coverage')
 const { UTRError } = require('./error')
 const { getOutput } = require('./output')
 const { basename } = require('path')
+const { filename, stripUrlHash } = require('./tools')
 
 function error (job, url, details = '') {
   stop(job, url)
@@ -12,10 +13,8 @@ function error (job, url, details = '') {
   throw UTRError.QUNIT_ERROR(details)
 }
 
-const stripHash = url => url.split('#')[0]
-
 function get (job, urlWithHash, testId) {
-  const url = stripHash(urlWithHash)
+  const url = stripUrlHash(urlWithHash)
   const page = job.qunitPages && job.qunitPages[url]
   if (!page) {
     error(job, url, `No QUnit page found for ${urlWithHash}`)
@@ -37,7 +36,7 @@ module.exports = {
   get,
 
   async begin (job, urlWithHash, { isOpa, totalTests, modules }) {
-    const url = stripHash(urlWithHash)
+    const url = stripUrlHash(urlWithHash)
     if (!totalTests || !modules) {
       error(job, url, 'Invalid begin hook details')
     }
@@ -45,6 +44,7 @@ module.exports = {
       job.qunitPages = {}
     }
     const qunitPage = {
+      id: filename(url),
       start: new Date(),
       isOpa: !!isOpa,
       failed: 0,
