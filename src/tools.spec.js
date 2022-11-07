@@ -1,6 +1,22 @@
-const { noop, pad } = require('./tools')
+const { filename, noop, pad } = require('./tools')
 
 describe('src/tools', () => {
+  describe('filename', () => {
+    const baseUrl = 'http://localhost:8085/test.html'
+
+    it('generates unique IDs for different search param', () => {
+      const id1 = filename(baseUrl + '?param1')
+      const id2 = filename(baseUrl + '?param2')
+      expect(id1).not.toBe(id2)
+    })
+
+    it('generates similar IDs for different hashes', () => {
+      const id1 = filename(baseUrl + '#param1')
+      const id2 = filename(baseUrl + '#param2')
+      expect(id1).toBe(id2)
+    })
+  })
+
   describe('noop', () => {
     it('is an empty function', () => {
       expect(noop()).toBeUndefined()
