@@ -72,11 +72,17 @@ describe('src/qunit-hooks', () => {
       expect(page).not.toBeUndefined()
     })
 
+    it('allocates an id for the page', async () => {
+      await begin(job, url, getBeginInfo())
+      const { page } = get(job, url)
+      expect(page.id).not.toBeUndefined()
+    })
+
     it('stores test information and keeps track of when it starts', async () => {
       await begin(job, url, getBeginInfo())
       const { page } = get(job, url)
-      const { start, ...pageWithoutStart } = page
-      expect(pageWithoutStart).toStrictEqual({
+      const { start, id, ...pageWithoutVariableInfos } = page
+      expect(pageWithoutVariableInfos).toStrictEqual({
         isOpa: false,
         failed: 0,
         passed: 0,
@@ -84,6 +90,7 @@ describe('src/qunit-hooks', () => {
         modules: getModules()
       })
       expect(start).toBeInstanceOf(Date)
+      expect(id).not.toBeUndefined()
     })
 
     it('resets the existing structure on retry', async () => {
@@ -126,8 +133,8 @@ describe('src/qunit-hooks', () => {
         ...getBeginInfo()
       })
       const { page } = get(job, url)
-      const { start, ...pageWithoutStart } = page
-      expect(pageWithoutStart).toStrictEqual({
+      const { start, id, ...pageWithoutVariableInfos } = page
+      expect(pageWithoutVariableInfos).toStrictEqual({
         isOpa: true,
         failed: 0,
         passed: 0,
@@ -135,6 +142,7 @@ describe('src/qunit-hooks', () => {
         modules: getModules()
       })
       expect(start).toBeInstanceOf(Date)
+      expect(id).not.toBeUndefined()
     })
 
     describe('ignoring hash variation', () => {
