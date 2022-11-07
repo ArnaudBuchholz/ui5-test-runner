@@ -14,11 +14,13 @@ if (process.version > 'v14.14') {
 
 const recursive = { recursive: true }
 
+const stripUrlHash = url => url.split('#')[0]
+
 const filename = url => {
   const hash = createHash('shake256', {
     outputLength: 8
   })
-  hash.update(url)
+  hash.update(stripUrlHash(url))
   return hash.digest('base64')
     .replace(/=/g, '')
     .replace(/\+/g, '_')
@@ -118,6 +120,7 @@ pad.lt = (text, padding = ' ') => ({ [$op]: $lt, text, padding })
 pad.w = (text) => ({ [$op]: $w, text })
 
 module.exports = {
+  stripUrlHash,
   filename,
   cleanDir,
   createDir: dir => mkdir(dir, recursive),
