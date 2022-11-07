@@ -2,12 +2,22 @@
 
 const { readFileSync, writeFileSync } = require('fs')
 const { join } = require('path')
-const { $browsers, $testPagesCompleted } = require('./symbols')
+const {
+  $browsers,
+  $probeUrlsStarted,
+  $probeUrlsCompleted,
+  $testPagesCompleted
+} = require('./symbols')
 const { noop, pad } = require('./tools')
 
 const inJest = typeof jest !== 'undefined'
 const interactive = process.stdout.columns !== undefined && !inJest
 const $output = Symbol('output')
+
+if (!interactive) {
+  const UTF8_BOM_CODE = '\ufeff'
+  process.stdout.write(UTF8_BOM_CODE)
+}
 
 let cons
 if (inJest) {
@@ -78,10 +88,10 @@ function progress (job, cleanFirst = true) {
   const output = job[$output]
   output.lines = 1
   let progressRatio
-  if (job.testPageUrls) {
-    const total = job.testPageUrls.length
-    if (job[$testPagesCompleted] !== undefined && job[$testPagesCompleted] !== total) {
-      progressRatio = job[$testPagesCompleted] / total
+  if (job[$probeUrlsStarted]) {
+    const total = job.url.length + job.testPageUrls.length
+    if (job[$testPagesCompleted] !== total) {
+      progressRatio = (job[$probeUrlsCompleted] + (job[$testPagesCompleted] || 0)) / total
     }
   }
   if (job[$browsers]) {
