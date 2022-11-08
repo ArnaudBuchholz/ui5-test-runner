@@ -133,7 +133,7 @@ function parse (cwd, args) {
     .option('-p, --parallel <count>', 'Number of parallel tests executions', 2)
     .option('-r, --report-dir <path>', 'Directory to output test reports (relative to cwd)', 'report')
 
-    .option('--coverage [flag]', 'Enable or disable code coverage', boolean, true)
+    .option('--coverage [flag]', 'Enable or disable code coverage (default to false if url is used, true otherwise)', boolean)
     .option('--no-coverage', 'Disable code coverage')
     .option('-cs, --coverage-settings <path>', 'Path to a custom nyc.json file providing settings for instrumentation (relative to cwd or use @/ for provided ones)', '@/nyc.json')
     .option('-ct, --coverage-temp-dir <path>', 'Directory to output raw coverage information to (relative to cwd)', '.nyc_output')
@@ -141,6 +141,7 @@ function parse (cwd, args) {
     .option('-cr, --coverage-reporters <reporter...>', 'List of reporters to use', ['lcov', 'cobertura'])
 
     .option('-rg, --report-generator <path...>', 'Path to a report generator (relative to cwd or use @/ for provided ones)', ['@/report.js'])
+    .option('-pp, --progress-page <path>', 'Path to progress page (relative to cwd or use @/ for provided ones)', '@/progress.html')
 
     .option('--capabilities [flag]', 'Capabilities tester for browser', boolean, false)
 
@@ -197,7 +198,7 @@ function finalize (job) {
   function updateToAbsolute (member, from = job.cwd) {
     job[member] = toAbsolute(job[member], from)
   }
-  'browser,coverageSettings'
+  'browser,coverageSettings,progressPage'
     .split(',')
     .forEach(setting => { job[setting] = checkDefault(job[setting]) })
   updateToAbsolute('cwd', job.initialCwd)
@@ -212,6 +213,10 @@ function finalize (job) {
     checkAccess({ path: job.webapp, label: 'webapp folder' })
     const testsuitePath = toAbsolute(job.testsuite, job.webapp)
     checkAccess({ path: testsuitePath, label: 'testsuite', file: true })
+  } else if (job.mode === 'url') {
+    if (job[$valueSources].coverage !== 'cli') {
+      job.coverage = false
+    }
   }
   checkAccess({ path: job.browser, label: 'browser command', file: true })
   job.reportGenerator = job.reportGenerator.map(setting => {
