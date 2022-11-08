@@ -72,16 +72,43 @@ describe('job', () => {
         expect(job.screenshot).toStrictEqual(false)
       })
 
-      it('url disables webapp checking', () => {
+      it('url disables webapp checking and coverage', () => {
         const job = buildJob({
           webapp: 'not_a_folder',
           url: 'http://localhost:8080'
         })
         expect(job.url).toStrictEqual(['http://localhost:8080'])
+        expect(job.coverage).toStrictEqual(false)
+      })
+
+      it('url still allows coverage', () => {
+        const job = buildJob({
+          webapp: 'not_a_folder',
+          url: 'http://localhost:8080',
+          coverage: true
+        })
+        expect(job.url).toStrictEqual(['http://localhost:8080'])
+        expect(job.coverage).toStrictEqual(true)
       })
 
       describe('multi values', () => {
         const absoluteLibPath = join(__dirname, '../test/project/webapp/lib')
+
+        describe('url', () => {
+          it('accepts multiple urls', () => {
+            const job = buildJob({
+              url: [
+                'http://localhost:8080/page1.html',
+                'http://localhost:8080/page2.html'
+              ]
+            })
+            expect(job.url).toMatchObject([
+              'http://localhost:8080/page1.html',
+              'http://localhost:8080/page2.html'
+            ])
+          })
+        })
+
         describe('libs', () => {
           it('accepts one library', () => {
             const job = buildJob({
@@ -153,6 +180,15 @@ describe('job', () => {
               url: 'http://localhost:18082/odata/v4/ServiceName/$1'
             }
           ])
+        })
+
+        it('rejects invalid mapping', () => {
+          expect(() => buildJob({
+            cwd,
+            mappings: [
+              '^/otherlib/(.+)=custom(./otherfolder/otherlib/$1)'
+            ]
+          })).toThrowError()
         })
       })
     })
