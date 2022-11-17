@@ -116,6 +116,10 @@ module.exports = job => {
         match: '^/_/progress.html',
         file: job.progressPage
       }, {
+      // punybind
+        match: '^/_/punybind.js',
+        file: join(__dirname, '../node_modules/punybind/dist/punybind.js')
+      }, {
       // Endpoint to follow progress
         match: '^/_/progress(:?\\?page=(.*))?',
         custom: async (request, response, pageId) => {
