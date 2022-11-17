@@ -1,0 +1,67 @@
+<html>
+  <head>
+    <title>ui5-test-runner progress</title>
+    <style>
+body {
+  font-family: 'Courier New', Courier, monospace;
+}
+
+progress {
+  width: 5rem;
+}
+   </style>
+    <script src="/_/punybind.js"></script>
+  </head>
+  <body>
+    <h1>{{ status }}</h1>
+    <div class="elapsed">{{ elapsed }} ms</div>
+    <table style="display: {{ qunitPagesUrl.length > 0 ? 'block' : 'none' }};">
+      <tr>
+        <th>url</th>
+        <th>progress</th>
+        <th>count</th>
+        <th>passed</th>
+        <th>failed</th>
+      </tr>
+      <tr {{for}}="url of qunitPagesUrl">
+        <td>{{ url }}</td>
+        <td>
+          <progress max="{{ qunitPages[url].count }}" value="{{ qunitPages[url].failed + qunitPages[url].passed }}"></progress>
+        </td>
+        <td>{{ qunitPages[url].count }}</td>
+        <td>{{ qunitPages[url].passed }}</td>
+        <td>{{ qunitPages[url].failed }}</td>
+      </tr>
+    </table>
+    <div style="display: {{ disconnected ? 'block' : 'none' }};">
+      &#10060; Disconnected
+    </div>
+  <script>
+(async () => {
+  const update = await punybind(document.body)
+  let lastState = {};
+  async function refresh () {
+    let json
+    try {
+      const response = await fetch('/_/progress')
+      json = await response.json()
+    } catch (e) {
+      update({
+        ...lastState,
+        disconnected: true
+      })
+    }
+    lastState = {
+      ...json,
+      disconnected: false,
+      qunitPagesUrl: Object.keys(json.qunitPages || {}),
+      elapsed: (Date.now() - new Date(json.start).getTime())
+    }
+    update(lastState)
+    setTimeout(refresh, 250)
+  }
+  refresh()
+})()
+    </script>
+  </body>
+</html>
