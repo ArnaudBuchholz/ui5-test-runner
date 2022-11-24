@@ -9,28 +9,46 @@ body {
 progress {
   width: 5rem;
 }
+
+.truncate {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-align: left;
+  width: 40rem;
+}
    </style>
     <script src="/_/punybind.js"></script>
   </head>
   <body>
     <h1>{{ status }}</h1>
-    <div class="elapsed">{{ elapsed }} ms</div>
-    <table style="display: {{ qunitPagesUrl.length > 0 ? 'block' : 'none' }};">
+    <div class="elapsed">{{ elapsed(start) }}</div>
+    <table style="display: {{ qunitPagesUrl.length > 0 ? 'block' : 'none' }}; width: 100%;">
       <tr>
         <th>url</th>
-        <th>progress</th>
+        <th>status</th>
         <th>count</th>
         <th>passed</th>
         <th>failed</th>
+        <th>elapsed</th>
       </tr>
       <tr {{for}}="url of qunitPagesUrl">
-        <td>{{ url }}</td>
+        <td class="truncate">{{ url }}</td>
         <td>
-          <progress max="{{ qunitPages[url].count }}" value="{{ qunitPages[url].failed + qunitPages[url].passed }}"></progress>
+          <span {{if}}="qunitPages[url].failed">&#10060;</span>
+          <span {{elseif}}="qunitPages[url].end">&#10004;&#65039;</span>
+          <span {{if}}="!qunitPages[url].end">
+            <progress max="{{ qunitPages[url].count }}" value="{{ qunitPages[url].failed + qunitPages[url].passed }}"></progress>
+            {{ Math.ceil(1000 * (qunitPages[url].failed + qunitPages[url].passed) / qunitPages[url].count) / 10 }}%
+          </span>
         </td>
         <td>{{ qunitPages[url].count }}</td>
         <td>{{ qunitPages[url].passed }}</td>
         <td>{{ qunitPages[url].failed }}</td>
+        <td>
+          <span {{if}}="qunitPages[url].end === undefined">{{ elapsed(qunitPages[url].start) }}</span>
+          <span {{else}}>{{ elapsed(qunitPages[url].start, qunitPages[url].end) }}</span>
+        </td>
       </tr>
     </table>
     <div style="display: {{ disconnected ? 'block' : 'none' }};">
@@ -38,6 +56,24 @@ progress {
     </div>
   <script>
 (async () => {
+  function elapsed (start, end = Date.now()) {
+    if (typeof end === 'string') {
+      end = new Date(end).getTime()
+    }
+    if (typeof start === 'string') {
+      start = new Date(start).getTime()
+    }
+    const ms = end - start
+    if (isNaN(ms)) {
+      return '-'
+    }
+    if (ms > 5000) {
+      const mins = Math.floor(ms / 60000)
+      const secs = Math.floor((ms % 60000) / 1000)
+      return `${mins.toString().padStart(2, 0)}:${secs.toString().padStart(2, 0)}`
+    }
+    return `${ms} ms`
+  }
   const update = await punybind(document.body)
   let lastState = {};
   async function refresh () {
@@ -54,10 +90,12 @@ progress {
     lastState = {
       ...json,
       disconnected: false,
-      qunitPagesUrl: Object.keys(json.qunitPages || {}),
-      elapsed: (Date.now() - new Date(json.start).getTime())
+      qunitPagesUrl: Object.keys(json.qunitPages || {})
     }
-    update(lastState)
+    update({
+      ...lastState,
+      elapsed
+  })
     setTimeout(refresh, 250)
   }
   refresh()
