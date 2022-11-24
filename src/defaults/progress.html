@@ -3,37 +3,46 @@
     <title>ui5-test-runner progress</title>
     <style>
 body {
-  font-family: 'Courier New', Courier, monospace;
+  font-family: "Segoe UI", Arial, sans-serif;
 }
 
 progress {
   width: 5rem;
 }
 
-.truncate {
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+th {
   text-align: left;
-  width: 40rem;
 }
+
+th.count {
+  width: 5rem;
+}
+
+th.elapsed {
+  width: 6rem;
+}
+
+th.status {
+  width: 10rem;
+}
+
    </style>
     <script src="/_/punybind.js"></script>
   </head>
   <body>
     <h1>{{ status }}</h1>
     <div class="elapsed">{{ elapsed(start) }}</div>
-    <table style="display: {{ qunitPagesUrl.length > 0 ? 'block' : 'none' }}; width: 100%;">
+    <table style="visibility: {{ qunitPagesUrl.length > 0 ? 'visible' : 'hidden' }};" width="100%">
       <tr>
-        <th>url</th>
-        <th>status</th>
-        <th>count</th>
-        <th>passed</th>
-        <th>failed</th>
-        <th>elapsed</th>
+        <th>&nbsp;</th>
+        <th class="status" style="width: 10rem;"><div><span>Status</span></div></th>
+        <th class="count">Tests</th>
+        <th class="count">Passed</th>
+        <th class="count">Failed</th>
+        <th class="elapsed">Elapsed</th>
       </tr>
       <tr {{for}}="url of qunitPagesUrl">
-        <td class="truncate">{{ url }}</td>
+        <td>{{ url }}</td>
         <td>
           <span {{if}}="qunitPages[url].failed">&#10060;</span>
           <span {{elseif}}="qunitPages[url].end">&#10004;&#65039;</span>
