@@ -27,4 +27,5 @@ node_modules/
 # generated during tests
 tmp/
 report/
+!src/defaults/report/
 .utr-capabilities/
