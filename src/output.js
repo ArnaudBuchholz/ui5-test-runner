@@ -267,11 +267,18 @@ function build (job) {
         })
     }),
 
+    resolvedPackage (name, path, version) {
+      if (!name.match(/@\d+\.\d+\.\d+$/)) {
+        name += `@${version}`
+      }
+      wrap(() => log(job, p80()`${name} in ${pad.lt(path)}`))()
+    },
+
     browserStart (url) {
       if (interactive) {
         output(job, '>>', url)
       } else {
-        wrap(() => log(job, p80()`>> ${pad.lt(url)}`))
+        wrap(() => log(job, p80()`>> ${pad.lt(url)}`))()
       }
     },
 
@@ -279,7 +286,7 @@ function build (job) {
       if (interactive) {
         output(job, '<<', url)
       } else {
-        wrap(() => log(job, p80()`<< ${pad.lt(url)}`))
+        wrap(() => log(job, p80()`<< ${pad.lt(url)}`))()
       }
     },
 
@@ -291,7 +298,7 @@ function build (job) {
       if (interactive) {
         output(job, '>>', url)
       } else {
-        wrap(() => log(job, p80()`>> RETRY ${retry} ${pad.lt(url)}`))
+        wrap(() => log(job, p80()`>> RETRY ${retry} ${pad.lt(url)}`))()
       }
     },
 
@@ -337,7 +344,7 @@ function build (job) {
           if (last) {
             buffer.push(last)
           }
-          wrap(() => method(job, cached + text.split('\n').slice(0, -1).join('\n')))
+          wrap(() => method(job, cached + text.split('\n').slice(0, -1).join('\n')))()
         })
         childProcess.on('close', () => {
           ['stdout', 'stderr'].forEach(channel => {
