@@ -54,6 +54,9 @@ function buildArgs (parameters) {
 function parse (cwd, args) {
   const command = new Command()
   command.exitOverride()
+
+  const DEBUG_OPTION = '(For debugging purpose)'
+
   command
     .name(name)
     .description(description)
@@ -144,6 +147,8 @@ function parse (cwd, args) {
     .option('-pp, --progress-page <path>', 'Path to progress page (relative to cwd or use @/ for provided ones)', '@/progress.html')
 
     .option('--capabilities [flag]', 'Capabilities tester for browser', boolean, false)
+
+    .option('--debug-keep-browser-open', DEBUG_OPTION, boolean)
 
   command.parse(args, { from: 'user' })
   const options = command.opts()
