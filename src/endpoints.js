@@ -116,12 +116,24 @@ module.exports = job => {
         match: '^/_/progress.html',
         file: job.progressPage
       }, {
+      // Report 'main' substituted for progress
+        match: '^/_/report/main.js',
+        file: join(__dirname, 'defaults/report/progress.js')
+      }, {
+      // Other report resources
+        match: '^/_/report/(.*)',
+        file: join(__dirname, 'defaults/report/$1')
+      }, {
       // punybind
         match: '^/_/punybind.js',
         file: join(__dirname, '../node_modules/punybind/dist/punybind.js')
       }, {
+      // punyexpr
+        match: '^/_/punyexpr.js',
+        file: join(__dirname, '../node_modules/punyexpr/dist/punyexpr.js')
+      }, {
       // Endpoint to follow progress
-        match: '^/_/progress(:?\\?page=(.*))?',
+        match: '^/_/progress(?:\\?page=(.*))?',
         custom: async (request, response, pageId) => {
           let json
           if (pageId) {
