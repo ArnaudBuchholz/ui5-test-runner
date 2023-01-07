@@ -1,6 +1,6 @@
 const { exec } = require('child_process')
 const { join } = require('path')
-const { stat } = require('fs/promises')
+const { stat, readFile } = require('fs/promises')
 const { UTRError } = require('./error')
 const { getOutput } = require('./output')
 
@@ -31,6 +31,13 @@ async function folderExists (path) {
 let localRoot
 let globalRoot
 
+async function outputPackage (job, name, path) {
+  const packageTxt = (await readFile(join(path, 'package.json'))).toString()
+  const packageJson = JSON.parse(packageTxt)
+  const { version } = packageJson
+  getOutput(job).resolvedPackage(name, path, version)
+}
+
 module.exports = {
   async resolvePackage (job, name) {
     if (!localRoot) {
@@ -41,6 +48,7 @@ module.exports = {
     }
     const localModule = join(localRoot, name)
     if (await folderExists(localModule)) {
+      await outputPackage(job, name, localModule)
       return localModule
     }
     const globalModule = join(globalRoot, name)
@@ -50,6 +58,7 @@ module.exports = {
       await npm(job, 'install', name, '-g')
       job.status = previousStatus
     }
+    await outputPackage(job, name, globalModule)
     return globalModule
   }
 }
