@@ -37,6 +37,7 @@ function clean (job) {
   if (!lines) {
     return
   }
+  write('\x1b[?12l')
   write(`\x1b[${lines.toString()}F`)
   for (let line = 0; line < lines; ++line) {
     if (line > 1) {
