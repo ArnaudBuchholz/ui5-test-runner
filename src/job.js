@@ -144,7 +144,7 @@ function parse (cwd, args) {
     .option('-cr, --coverage-reporters <reporter...>', 'List of reporters to use', ['lcov', 'cobertura'])
 
     .option('-rg, --report-generator <path...>', 'Path to a report generator (relative to cwd or use @/ for provided ones)', ['@/report.js'])
-    .option('-pp, --progress-page <path>', 'Path to progress page (relative to cwd or use @/ for provided ones)', '@/progress.html')
+    .option('-pp, --progress-page <path>', 'Path to progress page (relative to cwd or use @/ for provided ones)', '@/report/default.html')
 
     .option('--capabilities [flag]', 'Capabilities tester for browser', boolean, false)
 
