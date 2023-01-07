@@ -1,0 +1,27 @@
+body {
+  font-family: "Segoe UI", Arial, sans-serif;
+}
+
+progress {
+  width: 5rem;
+}
+
+th {
+  text-align: left;
+}
+
+th.count {
+  width: 5rem;
+}
+
+th.elapsed {
+  width: 6rem;
+}
+
+th.status {
+  width: 10rem;
+}
+
+a, a:hover {
+  color: black;
+}
