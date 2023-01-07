@@ -256,7 +256,10 @@ async function stop (job, url, retry = false) {
       clearTimeout(timeoutId)
     }
     if (childProcess.connected) {
-      childProcess.send({ command: 'stop' })
+      /* istanbul ignore else */
+      if (!job.debugKeepBrowserOpen) {
+        childProcess.send({ command: 'stop' })
+      }
       const { promise: closeTimeout, resolve } = allocPromise()
       const timeoutId = setTimeout(resolve, job.browserCloseTimeout)
       await Promise.race([
