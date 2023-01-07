@@ -24,7 +24,9 @@
   window.jsUnitTestSuite = jsUnitTestSuite
 
   window.addEventListener('load', function () {
-    suite()
-    post('addTestPages', pages)
+    if (typeof suite === 'function') {
+      suite()
+      post('addTestPages', pages)
+    }
   })
 }())
