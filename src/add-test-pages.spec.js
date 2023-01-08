@@ -73,5 +73,14 @@ describe('src/add-test-pages', () => {
       ])
       expect(stop).toHaveBeenCalledWith(job, url)
     })
+
+    it('supports multiple calls', async () => {
+      await addTestPages(job, url, ['/page1.html'])
+      await addTestPages(job, url, ['/page1.html', '/page2.html'])
+      expect(job.testPageUrls).toEqual([
+        'http://localhost:8045/page1.html',
+        'http://localhost:8045/page2.html'
+      ])
+    })
   })
 })
