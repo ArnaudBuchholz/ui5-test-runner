@@ -2,6 +2,7 @@
 
 const { readFileSync, writeFileSync } = require('fs')
 const { join } = require('path')
+const { memoryUsage } = require('process')
 const {
   $browsers,
   $probeUrlsStarted,
@@ -89,6 +90,12 @@ function progress (job, cleanFirst = true) {
   const output = job[$output]
   output.lines = 1
   let progressRatio
+  if (job.debugMemory) {
+    ++output.lines
+    const { rss, heapTotal, heapUsed, external, arrayBuffers } = memoryUsage()
+    const fmt = size => `${ (size / (1024 * 1024)).toFixed(2) }M`
+    write(`MEM r:${fmt(rss)}, h:${fmt(heapUsed)}/${fmt(heapTotal)}, x:${fmt(external)}\n`)
+  }
   if (job[$probeUrlsStarted]) {
     const total = job.url.length + job.testPageUrls.length
     if (job[$testPagesCompleted] !== total) {
