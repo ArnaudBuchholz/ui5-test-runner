@@ -55,8 +55,6 @@ async function probeUrl (job, url) {
     if (job.mode === 'url' && job.browserCapabilities.scripts) {
       scripts = [
         'post.js',
-        'qunit-intercept.js',
-        'qunit-hooks.js',
         'qunit-redirect.js'
       ]
     }
