@@ -29,7 +29,7 @@ module.exports = {
         uniques.push(url)
       }
       return uniques
-    }, [])
+    }, job.testPageUrls || [])
     stop(job, url)
   }
 }
