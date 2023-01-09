@@ -115,17 +115,20 @@ async function process (job) {
     method: probeUrl
   }, job)
 
-  if (job.testPageUrls.length !== 0) {
-    job.status = 'Executing test pages'
-    await parallelize({
-      urlsMember: 'testPageUrls',
-      startedMember: $testPagesStarted,
-      completedMember: $testPagesCompleted,
-      method: runTestPage
-    }, job)
-  } else if (Object.keys(job.qunitPages || []).length === 0) {
-    output.noTestPageFound()
-    job.failed = true
+  /* istanbul ignore else */
+  if (!job.debugProbeOnly) {
+    if (job.testPageUrls.length !== 0) {
+      job.status = 'Executing test pages'
+      await parallelize({
+        urlsMember: 'testPageUrls',
+        startedMember: $testPagesStarted,
+        completedMember: $testPagesCompleted,
+        method: runTestPage
+      }, job)
+    } else if (Object.keys(job.qunitPages || []).length === 0) {
+      output.noTestPageFound()
+      job.failed = true
+    }
   }
 
   await generate(job)
