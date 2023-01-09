@@ -1,4 +1,14 @@
-global.window = {}
+class UI5Object {}
+global.window = {
+  sap: {
+    ui: {
+      base: {
+        Object: UI5Object
+      }
+    }
+  }
+}
+
 require('./post')
 
 describe('src/inject/post', () => {
@@ -24,6 +34,46 @@ describe('src/inject/post', () => {
       simpleValues.forEach(simpleValue => {
         it(JSON.stringify(simpleValue), () => {
           expect(stringify(simpleValue)).toBe(JSON.stringify(simpleValue))
+        })
+      })
+    })
+
+    describe('UI5 objects', () => {
+      it('reduces UI5 objects to their simplest form (no ID)', () => {
+        const obj = new UI5Object()
+        obj.getMetadata = () => ({
+          getName: () => 'sap.m.Button'
+        })
+        expect(JSON.parse(stringify(obj))).toStrictEqual({
+          'ui5:class': 'sap.m.Button'
+        })
+      })
+
+      it('reduces UI5 objects to their simplest form (with ID)', () => {
+        const obj = new UI5Object()
+        obj.getId = () => 'test'
+        obj.getMetadata = () => ({
+          getName: () => 'sap.m.Button'
+        })
+        expect(JSON.parse(stringify(obj))).toStrictEqual({
+          'ui5:id': 'test',
+          'ui5:class': 'sap.m.Button'
+        })
+      })
+
+      it('works on a complex object', () => {
+        const obj = new UI5Object()
+        obj.getId = () => 'test'
+        obj.getMetadata = () => ({
+          getName: () => 'sap.m.Button'
+        })
+        expect(JSON.parse(stringify({
+          complex: obj
+        }))).toStrictEqual({
+          complex: {
+            'ui5:id': 'test',
+            'ui5:class': 'sap.m.Button'
+          }
         })
       })
     })
