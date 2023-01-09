@@ -456,7 +456,7 @@ function build (job) {
       log(job, p`├─────┬─${pad.x('─')}──┤`)
       const messages = []
       function result (url) {
-        const page = job.qunitPages[url]
+        const page = job.qunitPages && job.qunitPages[url]
         let message
         if (!page || !page.report) {
           message = 'Unable to run the page'
