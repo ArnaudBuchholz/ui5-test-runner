@@ -148,8 +148,9 @@ function parse (cwd, args) {
 
     .option('--capabilities [flag]', 'Capabilities tester for browser', boolean, false)
 
-    .option('--debug-keep-browser-open', DEBUG_OPTION, boolean)
-    .option('--debug-memory', DEBUG_OPTION, boolean)
+    .addOption(new Option('--debug-probe-only', DEBUG_OPTION, boolean).hideHelp())
+    .addOption(new Option('--debug-keep-browser-open', DEBUG_OPTION, boolean).hideHelp())
+    .addOption(new Option('--debug-memory', DEBUG_OPTION, boolean).hideHelp())
 
   command.parse(args, { from: 'user' })
   const options = command.opts()
