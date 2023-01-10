@@ -19,11 +19,12 @@
           ...lastState,
           disconnected: true
         })
+        return
       }
       if (hash) {
         lastState = {
           ...json,
-          hash
+          pageId: hash
         }
       } else {
         lastState = {
@@ -31,6 +32,7 @@
           qunitPagesUrl: Object.keys(json.qunitPages || {})
         }
       }
+      console.log(lastState)
       update({
         ...lastState,
         disconnected: false,
