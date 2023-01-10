@@ -1,4 +1,6 @@
 (function () {
+  /* global punybind, punyexpr */
+
   const report = {}
 
   report.elapsed = function (start, end = Date.now()) {
