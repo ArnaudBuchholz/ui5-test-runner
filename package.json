@@ -17,7 +17,8 @@
   "scripts": {
     "lint": "standard --fix",
     "test": "jest",
-    "test:debug": "jest --runInBand"
+    "test:debug": "jest --runInBand",
+    "test:report": "reserve --config ./test/report/reserve.json"
   },
   "repository": {
     "type": "git",
@@ -39,7 +40,7 @@
   },
   "homepage": "https://github.com/ArnaudBuchholz/ui5-test-runner#readme",
   "dependencies": {
-    "commander": "^9.4.1",
+    "commander": "^9.5.0",
     "mime": "^3.0.0",
     "punybind": "^1.2.0",
     "punyexpr": "^1.0.3",
