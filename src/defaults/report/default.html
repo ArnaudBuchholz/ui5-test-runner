@@ -8,8 +8,9 @@
     <script src="/_/report/main.js"></script>
   </head>
   <body>
-    <h1>{{ status }}</h1>
-    <div class="elapsed">{{ elapsed(start) }}</div>
+    <h1>{{ status || 'Test report' }}</h1>
+    <div {{if}}="end === undefined" class="elapsed">{{ elapsed(start) }}</div>
+    <div {{else}} class="elapsed">{{ elapsed(start, end) }}</div>
     <table style="visibility: {{ qunitPagesUrl.length > 0 ? 'visible' : 'hidden' }};" width="100%">
       <tr>
         <th>&nbsp;</th>
