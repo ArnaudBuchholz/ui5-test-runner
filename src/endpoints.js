@@ -7,6 +7,7 @@ const { Request, Response } = require('reserve')
 const { getOutput } = require('./output')
 const { begin, log, testDone, done } = require('./qunit-hooks')
 const { addTestPages } = require('./add-test-pages')
+const { getJobProgress } = require('./get-job-progress')
 const { readFile } = require('fs/promises')
 const { TextEncoder } = require('util')
 
@@ -134,34 +135,7 @@ module.exports = job => {
       }, {
       // Endpoint to follow progress
         match: '^/_/progress(?:\\?page=(.*))?',
-        custom: async (request, response, pageId) => {
-          let json
-          if (pageId) {
-            const pageUrl = Object.keys(job.qunitPages).find(url => job.qunitPages[url].id === pageId)
-            if (pageUrl === undefined) {
-              response.writeHead(404)
-              response.end()
-              return
-            }
-            json = JSON.stringify(job.qunitPages[pageUrl], undefined, 2)
-          } else {
-            json = JSON.stringify({
-              ...job,
-              status: job.status
-            }, (key, value) => {
-              if (key === 'modules') {
-                return undefined
-              }
-              return value
-            }, 2)
-          }
-          const length = (new TextEncoder().encode(json)).length
-          response.writeHead(200, {
-            'Content-Type': 'application/json',
-            'Content-Length': length
-          })
-          response.end(json)
-        }
+        custom: (request, response, pageId) => getJobProgress(job, request, response, pageId)
       }, {
       // Endpoint to coverage files
         match: '^/_/coverage/(.*)',
