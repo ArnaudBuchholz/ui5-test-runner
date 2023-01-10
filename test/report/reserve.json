@@ -1,0 +1,22 @@
+{
+  "port": 8082,
+  "mappings": [{
+    "match": "^/_/progress.html",
+    "file": "../../src/defaults/report/default.html"
+  }, {
+    "match": "^/_/report/main.js",
+    "file": "../../src/defaults/report/progress.js"
+  }, {
+    "match": "^/_/report/(.*)",
+    "file": "../../src/defaults/report/$1"
+  }, {
+    "match": "^/_/punybind.js",
+    "file": "../../node_modules/punybind/dist/punybind.js"
+  }, {
+    "match": "^/_/punyexpr.js",
+    "file": "../../node_modules/punyexpr/dist/punyexpr.js"
+  }, {
+    "match": "^/_/progress(?:\\?page=(.*))?",
+    "custom": "./progress.js"
+  }]
+}
