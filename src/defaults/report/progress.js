@@ -1,10 +1,18 @@
 (function () {
+  /* global report */
+
   report.ready.then(update => {
     let lastState = {}
     async function refresh () {
       let json
+      const hash = location.hash ? location.hash.substring(1) : ''
       try {
-        const response = await fetch('/_/progress')
+        let response
+        if (hash) {
+          response = await fetch(`/_/progress?page=${hash}`)
+        } else {
+          response = await fetch('/_/progress')
+        }
         json = await response.json()
       } catch (e) {
         update({
@@ -12,15 +20,22 @@
           disconnected: true
         })
       }
-      lastState = {
-        ...json,
-        disconnected: false,
-        qunitPagesUrl: Object.keys(json.qunitPages || {})
+      if (hash) {
+        lastState = {
+          ...json,
+          hash
+        }
+      } else {
+        lastState = {
+          ...json,
+          qunitPagesUrl: Object.keys(json.qunitPages || {})
+        }
       }
       update({
         ...lastState,
+        disconnected: false,
         elapsed: report.elapsed
-    })
+      })
       setTimeout(refresh, 250)
     }
     refresh()
