@@ -93,8 +93,8 @@ function progress (job, cleanFirst = true) {
   if (job.debugMemory) {
     ++output.lines
     const { rss, heapTotal, heapUsed, external, arrayBuffers } = memoryUsage()
-    const fmt = size => `${ (size / (1024 * 1024)).toFixed(2) }M`
-    write(`MEM r:${fmt(rss)}, h:${fmt(heapUsed)}/${fmt(heapTotal)}, x:${fmt(external)}\n`)
+    const fmt = size => `${(size / (1024 * 1024)).toFixed(2)}M`
+    write(`MEM r:${fmt(rss)}, h:${fmt(heapUsed)}/${fmt(heapTotal)}, x:${fmt(external)}, a:${fmt(arrayBuffers)}\n`)
   }
   if (job[$probeUrlsStarted]) {
     const total = job.url.length + job.testPageUrls.length
