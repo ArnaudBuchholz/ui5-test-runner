@@ -57,6 +57,7 @@ module.exports = {
   },
   start: '2023-01-09T12:49:23.648Z',
   testPageUrls: [
+    'https://ui5.sap.com/test-resources/sap/m/non_working/unitTests.qunit.html',
     'https://ui5.sap.com/test-resources/sap/m/demokit/orderbrowser/webapp/test/unit/unitTests.qunit.html',
     'https://ui5.sap.com/test-resources/sap/m/demokit/orderbrowser/webapp/test/integration/opaTests.qunit.html',
     'https://ui5.sap.com/test-resources/sap/m/demokit/orderbrowser/webapp/test/integration/opaTestsNavigation.qunit.html',
