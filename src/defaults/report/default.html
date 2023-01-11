@@ -8,11 +8,11 @@
     <script src="/_/report/main.js"></script>
   </head>
   <body>
-    <div {{if}}="!pageId">
+    <div {{if}}="!qunitPage">
       <h1>{{ status || 'Test report' }}</h1>
       <div {{if}}="end === undefined" class="elapsed">In progress since {{ elapsed(start) }}</div>
       <div {{else}} class="elapsed">Duration : {{ elapsed(start, end) }}</div>
-      <table style="visibility: {{ qunitPagesUrl.length > 0 ? 'visible' : 'hidden' }};" width="100%">
+      <table style="visibility: {{ testPageUrls.length > 0 ? 'visible' : 'hidden' }};" width="100%">
         <tr>
           <th>&nbsp;</th>
           <th class="status" style="width: 10rem;"><div><span>Status</span></div></th>
@@ -21,29 +21,34 @@
           <th class="count">Failed</th>
           <th class="elapsed">Elapsed</th>
         </tr>
-        <tr {{for}}="url of qunitPagesUrl">
-          <td><a href="#{{ qunitPages[url].id }}">{{ url }}</a></td>
+        <tr {{for}}="url of testPageUrls">
           <td>
-            <span {{if}}="qunitPages[url].failed">&#10060;</span>
+              <span {{if}}="!qunitPages[url]">{{ url }}</span>
+              <a {{else}} href="#{{ qunitPages[url].id }}">{{ url }}</a>
+          </td>
+          <td>
+            <span {{if}}="!qunitPages[url]">-</span>
+            <span {{elseif}}="qunitPages[url].failed">&#10060;</span>
             <span {{elseif}}="qunitPages[url].end">&#10004;&#65039;</span>
             <span {{if}}="!qunitPages[url].end">
               <progress max="{{ qunitPages[url].count }}" value="{{ qunitPages[url].failed + qunitPages[url].passed }}"></progress>
             </span>
           </td>
-          <td>{{ qunitPages[url].count }}</td>
-          <td>{{ qunitPages[url].passed }}</td>
-          <td>{{ qunitPages[url].failed }}</td>
+          <td>{{ qunitPages[url] ? qunitPages[url].count : '-' }}</td>
+          <td>{{ qunitPages[url] ? qunitPages[url].passed : '-' }}</td>
+          <td>{{ qunitPages[url] ? qunitPages[url].failed : '-' }}</td>
           <td>
-            <span {{if}}="qunitPages[url].end === undefined">{{ elapsed(qunitPages[url].start) }}</span>
+            <span {{if}}="!qunitPages[url]">-</span>
+            <span {{elseif}}="qunitPages[url].end === undefined">{{ elapsed(qunitPages[url].start) }}</span>
             <span {{else}}>{{ elapsed(qunitPages[url].start, qunitPages[url].end) }}</span>
           </td>
         </tr>
       </table>
     </div>
-    <div {{elseif}}="pageId">
-      <h1>{{ url }}</h1>
-      <div {{if}}="end === undefined" class="elapsed">In progress since {{ elapsed(start) }}</div>
-      <div {{else}} class="elapsed">Duration : {{ elapsed(start, end) }}</div>
+    <div {{elseif}}="qunitPage">
+      <h1>{{ qunitPage.url }}</h1>
+      <div {{if}}="qunitPage.end === undefined" class="elapsed">In progress since {{ elapsed(start) }}</div>
+      <div {{else}} class="elapsed">Duration : {{ elapsed(qunitPage.start, qunitPage.end) }}</div>
     </div>
     <div style="display: {{ disconnected ? 'block' : 'none' }};">
       &#10060; Disconnected
