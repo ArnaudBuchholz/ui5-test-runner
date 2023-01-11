@@ -23,13 +23,11 @@
       }
       if (hash) {
         lastState = {
-          ...json,
-          pageId: hash
+          qunitPage: json
         }
       } else {
         lastState = {
-          ...json,
-          qunitPagesUrl: Object.keys(json.qunitPages || {})
+          ...json
         }
       }
       console.log(lastState)
