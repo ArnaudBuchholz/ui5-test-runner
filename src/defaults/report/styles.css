@@ -31,3 +31,16 @@ a:hover {
   text-decoration: underline;
   text-decoration-style: dotted;
 }
+
+table {
+    table-layout: fixed;
+    width: 100%;
+}
+
+.truncated {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  direction: rtl;
+  text-align: left;
+}
