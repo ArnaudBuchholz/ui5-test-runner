@@ -12,7 +12,7 @@
       <h1>{{ status || 'Test report' }}</h1>
       <div {{if}}="end === undefined" class="elapsed">In progress since {{ elapsed(start) }}</div>
       <div {{else}} class="elapsed">Duration : {{ elapsed(start, end) }}</div>
-      <table style="visibility: {{ testPageUrls.length > 0 ? 'visible' : 'hidden' }};" width="100%">
+      <table style="visibility: {{ testPageUrls.length > 0 ? 'visible' : 'hidden' }};">
         <tr>
           <th>&nbsp;</th>
           <th class="status" style="width: 10rem;"><div><span>Status</span></div></th>
@@ -22,7 +22,7 @@
           <th class="elapsed">Elapsed</th>
         </tr>
         <tr {{for}}="url of testPageUrls">
-          <td>
+          <td class="truncated">
               <span {{if}}="!qunitPages[url]">{{ url }}</span>
               <a {{else}} href="#{{ qunitPages[url].id }}">{{ url }}</a>
           </td>
@@ -46,9 +46,17 @@
       </table>
     </div>
     <div {{elseif}}="qunitPage">
-      <h1>{{ qunitPage.url }}</h1>
+      <h1 class="truncated">{{ qunitPage.url }}</h1>
       <div {{if}}="qunitPage.end === undefined" class="elapsed">In progress since {{ elapsed(start) }}</div>
       <div {{else}} class="elapsed">Duration : {{ elapsed(qunitPage.start, qunitPage.end) }}</div>
+      <div {{for}}="module of qunitPage.modules">
+        <h2>{{ module.name }}</h2>
+        <div {{for}}="test of module.tests">
+          <span>{{ test.name }}</span>
+          <span {{if}}="test.report && test.report.passed">&#10004;&#65039;</span>
+          <span {{elseif}}="test.report">&#10060;</span>
+        </div>
+      </div>
     </div>
     <div style="display: {{ disconnected ? 'block' : 'none' }};">
       &#10060; Disconnected
