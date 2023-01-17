@@ -5,7 +5,7 @@ const { body } = require('reserve')
 const { extractPageUrl } = require('./tools')
 const { Request, Response } = require('reserve')
 const { getOutput } = require('./output')
-const { begin, log, testDone, done } = require('./qunit-hooks')
+const { begin, testStart, log, testDone, done } = require('./qunit-hooks')
 const { addTestPages } = require('./add-test-pages')
 const { getJobProgress } = require('./get-job-progress')
 const { readFile } = require('fs/promises')
@@ -100,6 +100,10 @@ module.exports = job => {
       // Endpoint to receive QUnit.begin
         match: '^/_/QUnit/begin',
         custom: endpoint('QUnit/begin', (url, details) => begin(job, url, details))
+      }, {
+      // Endpoint to receive QUnit.testStart
+        match: '^/_/QUnit/testStart',
+        custom: endpoint('QUnit/testStart', (url, details) => testStart(job, url, details))
       }, {
       // Endpoint to receive QUnit.log
         match: '^/_/QUnit/log',
