@@ -2820,7 +2820,7 @@ module.exports = {
             {
               name: 'Should press the image and see the LightBox item',
               testId: '430f2fd5',
-              skip: false,
+              skip: true,
               logs: [
                 {
                   result: true,
