@@ -22,6 +22,10 @@
     return post('QUnit/begin', details)
   })
 
+  QUnit.testStart(function (details) {
+    return post('QUnit/testStart', details)
+  })
+
   QUnit.log(function (log) {
     let ready = false
     post('QUnit/log', log)
