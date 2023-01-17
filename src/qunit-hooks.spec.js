@@ -20,6 +20,7 @@ jest.mock('./output.js', () => ({
 const {
   get,
   begin,
+  testStart,
   log,
   testDone,
   done
@@ -190,6 +191,26 @@ describe('src/qunit-hooks', () => {
           totalTests: 1
         })).rejects.toThrow(UTRError.QUNIT_ERROR('Invalid begin hook details'))
       })
+    })
+  })
+
+  describe('testStart', () => {
+    beforeEach(async () => {
+      await begin(job, url, {
+        isOpa: false,
+        ...getBeginInfo()
+      })
+    })
+
+    it('signals test start', async () => {
+      await testStart(job, url, {
+        module: 'module 1',
+        name: 'test 1a',
+        testId: '1a'
+      })
+
+      const { test } = get(job, url, '1a')
+      expect(test.start).toBeInstanceOf(Date)
     })
   })
 
