@@ -47,14 +47,17 @@
     </div>
     <div {{elseif}}="qunitPage">
       <h1 class="truncated">{{ qunitPage.url }}</h1>
-      <div {{if}}="qunitPage.end === undefined" class="elapsed">In progress since {{ elapsed(start) }}</div>
+      <a href="#">&#9204; back to report</a>
+      <div {{if}}="qunitPage.end === undefined" class="elapsed">In progress since {{ elapsed(qunitPage.start) }}</div>
       <div {{else}} class="elapsed">Duration : {{ elapsed(qunitPage.start, qunitPage.end) }}</div>
       <div {{for}}="module of qunitPage.modules">
         <h2>{{ module.name }}</h2>
         <div {{for}}="test of module.tests">
           <span>{{ test.name }}</span>
-          <span {{if}}="test.report && test.report.passed">&#10004;&#65039;</span>
-          <span {{elseif}}="test.report">&#10060;</span>
+          <span {{if}}="test.skip">&#9208;&#65039;</span>
+          <span {{elseif}}="!test.end" class="elapsed">{{ elapsed(test.start) }}</span>
+          <span {{elseif}}="test.report && test.report.passed">&#10004;&#65039; {{ elapsed(test.start, test.end) }}</span>
+          <span {{elseif}}="test.report">&#10060;  {{ elapsed(test.start, test.end) }}</span>
         </div>
       </div>
     </div>
