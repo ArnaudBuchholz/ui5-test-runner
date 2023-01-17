@@ -55,6 +55,11 @@ module.exports = {
     job.qunitPages[url] = qunitPage
   },
 
+  async testStart (job, urlWithHash, { module, name, testId }) {
+    const { test } = get(job, urlWithHash, testId)
+    test.start = new Date()
+  },
+
   async log (job, urlWithHash, { module, name, testId, ...log }) {
     const { url, page, test } = get(job, urlWithHash, testId)
     if (!test.logs) {
