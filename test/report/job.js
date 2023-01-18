@@ -1,10 +1,10 @@
 module.exports = {
-  initialCwd: 'E:\\Nano et Nono\\Arnaud\\dev\\GitHub\\ui5-test-runner',
+  initialCwd: 'C:\\dev\\GitHub\\ui5-test-runner',
   browserArgs: [],
-  cwd: 'E:\\Nano et Nono\\Arnaud\\dev\\GitHub\\ui5-test-runner',
+  cwd: 'C:\\dev\\GitHub\\ui5-test-runner',
   port: 8081,
   ui5: 'https://ui5.sap.com',
-  webapp: 'E:\\Nano et Nono\\Arnaud\\dev\\GitHub\\ui5-test-runner\\webapp',
+  webapp: 'C:\\dev\\GitHub\\ui5-test-runner\\webapp',
   testsuite: 'test/testsuite.qunit.html',
   pageTimeout: 0,
   globalTimeout: 0,
@@ -12,24 +12,24 @@ module.exports = {
   keepAlive: false,
   watch: false,
   logServer: false,
-  browser: 'E:\\Nano et Nono\\Arnaud\\dev\\GitHub\\ui5-test-runner\\src\\defaults\\puppeteer.js',
+  browser: 'C:\\dev\\GitHub\\ui5-test-runner\\src\\defaults\\puppeteer.js',
   browserCloseTimeout: 2000,
   browserRetry: 1,
   screenshot: true,
   screenshotTimeout: 5000,
   parallel: '2',
-  reportDir: 'E:\\Nano et Nono\\Arnaud\\dev\\GitHub\\ui5-test-runner\\report',
-  coverageSettings: 'E:\\Nano et Nono\\Arnaud\\dev\\GitHub\\ui5-test-runner\\src\\defaults\\nyc.json',
-  coverageTempDir: 'E:\\Nano et Nono\\Arnaud\\dev\\GitHub\\ui5-test-runner\\.nyc_output',
-  coverageReportDir: 'E:\\Nano et Nono\\Arnaud\\dev\\GitHub\\ui5-test-runner\\coverage',
+  reportDir: 'C:\\dev\\GitHub\\ui5-test-runner\\report',
+  coverageSettings: 'C:\\dev\\GitHub\\ui5-test-runner\\src\\defaults\\nyc.json',
+  coverageTempDir: 'C:\\dev\\GitHub\\ui5-test-runner\\.nyc_output',
+  coverageReportDir: 'C:\\dev\\GitHub\\ui5-test-runner\\coverage',
   coverageReporters: [
     'lcov',
     'cobertura'
   ],
   reportGenerator: [
-    'E:\\Nano et Nono\\Arnaud\\dev\\GitHub\\ui5-test-runner\\src\\defaults\\report.js'
+    'C:\\dev\\GitHub\\ui5-test-runner\\src\\defaults\\report.js'
   ],
-  progressPage: 'E:\\Nano et Nono\\Arnaud\\dev\\GitHub\\ui5-test-runner\\src\\defaults\\report\\default.html',
+  progressPage: 'C:\\dev\\GitHub\\ui5-test-runner\\src\\defaults\\report\\default.html',
   capabilities: false,
   debugMemory: true,
   url: [
