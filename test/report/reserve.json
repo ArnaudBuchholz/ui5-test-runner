@@ -16,7 +16,7 @@
     "match": "^/_/punyexpr.js",
     "file": "../../node_modules/punyexpr/dist/punyexpr.js"
   }, {
-    "match": "^/_/progress(?:\\?page=(.*))?",
+    "match": "^/_/progress(?:\\?page=([^&]*)(?:&test=([^&]*))?)?",
     "custom": "./progress.js"
   }]
 }
