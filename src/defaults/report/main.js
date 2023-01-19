@@ -1,6 +1,5 @@
 report.ready.then(update => {
-  update(job)
-  window.addEventListener('hashchange', () => {
+  const hashChange = () => {
     const [, pageId, testId] = location.hash.match(/#?([^-]*)(?:-(.*))?/)
     job.qunitPage = null
     job.qunitTest = null
@@ -32,7 +31,10 @@ report.ready.then(update => {
       } else {
         job.qunitPage = qunitPage
       }
-      update(job)
     }
-  })
+    update(job)
+  }
+
+  window.addEventListener('hashchange', hashChange)
+  hashChange()
 })
