@@ -150,6 +150,7 @@ describe('src/get-job-progress', () => {
     const json = JSON.parse(response.toString())
     expect(json).toStrictEqual({
       url,
+      pageId: id,
       module: 'module',
       name: 'First test',
       testId: firstTestId,
