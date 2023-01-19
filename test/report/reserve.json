@@ -10,9 +10,6 @@
     "match": "^/_/report/main.js",
     "custom": "./main.js"
   }, {
-    "match": "^/_/report/report.js",
-    "file": "../../src/defaults/report/main.js"
-  }, {
     "match": "^/_/report/progress.js",
     "file": "../../src/defaults/report/progress.js"
   }, {
