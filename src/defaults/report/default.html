@@ -8,7 +8,7 @@
     <script src="/_/report/main.js"></script>
   </head>
   <body>
-    <div {{if}}="!qunitPage">
+    <div {{if}}="testPageUrls">
       <h1>{{ status || 'Test report' }}</h1>
       <div {{if}}="end === undefined" class="elapsed">In progress since {{ elapsed(start) }}</div>
       <div {{else}} class="elapsed">Duration : {{ elapsed(start, end) }}</div>
@@ -45,7 +45,7 @@
         </tr>
       </table>
     </div>
-    <div {{elseif}}="qunitPage">
+    <div {{if}}="qunitPage">
       <h1 class="truncated">{{ qunitPage.url }}</h1>
       <a href="#">&#9204; back to report</a>
       <div {{if}}="qunitPage.end === undefined" class="elapsed">In progress since {{ elapsed(qunitPage.start) }}</div>
@@ -53,12 +53,29 @@
       <div {{for}}="module of qunitPage.modules">
         <h2>{{ module.name }}</h2>
         <div {{for}}="test of module.tests">
-          <span>{{ test.name }}</span>
+          <a {{if}}="!test.skip" href="#{{ qunitPage.id }}-{{ test.testId }}">{{ test.name }}</a>
+          <span {{else}}>{{ test.name }}</span>
           <span {{if}}="test.skip">&#9208;&#65039;</span>
           <span {{elseif}}="!test.end" class="elapsed">{{ elapsed(test.start) }}</span>
           <span {{elseif}}="test.report && test.report.passed">&#10004;&#65039; {{ elapsed(test.start, test.end) }}</span>
           <span {{elseif}}="test.report">&#10060;  {{ elapsed(test.start, test.end) }}</span>
         </div>
+      </div>
+    </div>
+    <div {{elseif}}="qunitTest">
+      <h1 class="truncated">{{ qunitTest.url }}</h1>
+      <a href="#">&#9204; back to report</a>
+      <h2>{{ qunitTest.module }}</h2>
+      <a href="#{{ qunitTest.pageId }}">&#9204; back to page</a>
+      <h3>{{ qunitTest.name }}
+        <span {{if}}="qunitTest.report && qunitTest.report.passed">&#10004;&#65039;</span>
+        <span {{elseif}}="qunitTest.report">&#10060;</span>
+      </h3>
+      <div {{if}}="qunitTest.end === undefined" class="elapsed">In progress since {{ elapsed(qunitTest.start) }}</div>
+      <div {{else}} class="elapsed">Duration : {{ elapsed(qunitTest.start, qunitTest.end) }}</div>
+      <div {{for}}="log of qunitTest.logs">
+        <pre {{if}}="log.result">&#10004;&#65039; {{ log.message }}</pre>
+        <pre {{else}}>&#10060; {{ log.message }}</pre>
       </div>
     </div>
     <div style="display: {{ disconnected ? 'block' : 'none' }};">
