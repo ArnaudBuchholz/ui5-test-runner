@@ -3,16 +3,19 @@
 
   report.ready.then(update => {
     let lastState = {}
+
     async function refresh () {
-      let json
-      const hash = location.hash ? location.hash.substring(1) : ''
-      try {
-        let response
-        if (hash) {
-          response = await fetch(`/_/progress?page=${hash}`)
-        } else {
-          response = await fetch('/_/progress')
+      const [, page, test] = location.hash.match(/#?([^-]*)(?:-(.*))?/)
+      let url = '/_/progress'
+      if (page) {
+        url += `?page=${page}`
+        if (test) {
+          url += `&test=${test}`
         }
+      }
+      let json
+      try {
+        const response = await fetch(url)
         json = await response.json()
       } catch (e) {
         update({
@@ -21,7 +24,11 @@
         })
         return
       }
-      if (hash) {
+      if (test) {
+        lastState = {
+          qunitTest: json
+        }
+      } else if (page) {
         lastState = {
           qunitPage: json
         }
@@ -30,7 +37,6 @@
           ...json
         }
       }
-      console.log(lastState)
       update({
         ...lastState,
         disconnected: false,
