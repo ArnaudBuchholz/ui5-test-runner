@@ -138,8 +138,8 @@ module.exports = job => {
         file: join(__dirname, '../node_modules/punyexpr/dist/punyexpr.js')
       }, {
       // Endpoint to follow progress
-        match: '^/_/progress(?:\\?page=(.*))?',
-        custom: (request, response, pageId) => getJobProgress(job, request, response, pageId)
+        match: '^/_/progress(?:\\?page=([^&]*)(?:&test=([^&]*))?)?',
+        custom: (request, response, pageId, testId) => getJobProgress(job, request, response, pageId, testId)
       }, {
       // Endpoint to coverage files
         match: '^/_/coverage/(.*)',
