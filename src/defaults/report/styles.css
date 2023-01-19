@@ -2,6 +2,18 @@ body {
   font-family: "Segoe UI", Arial, sans-serif;
 }
 
+h1 {
+  margin-bottom: 0;
+}
+
+h2 {
+  margin-bottom: 0;
+}
+
+h3 {
+  margin-bottom: 0;
+}
+
 progress {
   width: 5rem;
 }
