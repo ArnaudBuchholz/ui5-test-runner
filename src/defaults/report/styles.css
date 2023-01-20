@@ -56,3 +56,7 @@ table {
   direction: rtl;
   text-align: left;
 }
+
+img.log {
+  width: 50%;
+}
