@@ -3,7 +3,7 @@
 const { readFile, writeFile } = require('fs/promises')
 const { join } = require('path')
 const { Command } = require('commander')
-const { boolean } = require('../options')
+const { boolean, integer } = require('../options')
 const { buildCsvWriter } = require('../csv-writer')
 
 const command = new Command()
@@ -12,6 +12,8 @@ command
   .description('Browser instantiation command for puppeteer')
   .helpOption(false)
   .option('--visible [flag]', 'Show the browser', boolean, false)
+  .option('-w, --viewport-width <width>', 'Viewport width', integer, 1920)
+  .option('-h, --viewport-height <height>', 'Viewport height', integer, 1080)
 
 let consoleWriter = { ready: Promise.resolve() }
 let networkWriter = { ready: Promise.resolve() }
@@ -88,7 +90,8 @@ async function main () {
       '--start-maximized',
       '--no-sandbox',
       '--disable-gpu',
-      '--disable-extensions'
+      '--disable-extensions',
+      `--window-size=${options.viewportWidth},${options.viewportHeight}`
     ]
   })
   page = (await browser.pages())[0]
