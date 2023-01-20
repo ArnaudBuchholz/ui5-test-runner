@@ -57,7 +57,7 @@
           <span {{else}}>{{ test.name }}</span>
           <span {{if}}="test.skip">&#9208;&#65039;</span>
           <span {{elseif}}="!test.end" class="elapsed">{{ elapsed(test.start) }}</span>
-          <span {{elseif}}="test.report && test.report.passed">&#10004;&#65039; {{ elapsed(test.start, test.end) }}</span>
+          <span {{elseif}}="test.report && !test.report.failed">&#10004;&#65039; {{ elapsed(test.start, test.end) }}</span>
           <span {{elseif}}="test.report">&#10060;  {{ elapsed(test.start, test.end) }}</span>
         </div>
       </div>
@@ -76,6 +76,10 @@
       <div {{for}}="log of qunitTest.logs">
         <pre {{if}}="log.result">&#10004;&#65039; {{ log.message }}</pre>
         <pre {{else}}>&#10060; {{ log.message }}</pre>
+        <img {{if}}="log.screenshot" loading="lazy" class="log"
+          src="{{ qunitTest.pageId }}/{{ log.screenshot }}"
+          alt="Copy folder '{{ qunitTest.pageId }}' from the job report"
+        >
       </div>
     </div>
     <div style="display: {{ disconnected ? 'block' : 'none' }};">
