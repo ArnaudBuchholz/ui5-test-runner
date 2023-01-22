@@ -14,6 +14,7 @@ command
   .option('--visible [flag]', 'Show the browser', boolean, false)
   .option('-w, --viewport-width <width>', 'Viewport width', integer, 1920)
   .option('-h, --viewport-height <height>', 'Viewport height', integer, 1080)
+  .option('-l, --language <lang...>', 'Language(s)', ['en-US'])
 
 let consoleWriter = { ready: Promise.resolve() }
 let networkWriter = { ready: Promise.resolve() }
@@ -91,7 +92,8 @@ async function main () {
       '--no-sandbox',
       '--disable-gpu',
       '--disable-extensions',
-      `--window-size=${options.viewportWidth},${options.viewportHeight}`
+      `--window-size=${options.viewportWidth},${options.viewportHeight}`,
+      `--lang=${options.language.join(',')}`
     ]
   })
   page = (await browser.pages())[0]
