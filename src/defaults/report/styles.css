@@ -45,8 +45,8 @@ a:hover {
 }
 
 table {
-    table-layout: fixed;
-    width: 100%;
+  table-layout: fixed;
+  width: 100%;
 }
 
 .truncated {
