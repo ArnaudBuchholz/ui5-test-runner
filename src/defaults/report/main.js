@@ -1,14 +1,14 @@
+/* global report, job */
 report.ready.then(update => {
   const hashChange = () => {
     const [, pageId, testId] = location.hash.match(/#?([^-]*)(?:-(.*))?/)
-    job.qunitPage = null
-    job.qunitTest = null
+    let [qunitPage, qunitTest] = [null, null]
     if (pageId) {
       const url = Object.keys(job.qunitPages).find(pageUrl => job.qunitPages[pageUrl].id === pageId)
       if (!url) {
         return
       }
-      const qunitPage = { url, ...job.qunitPages[url] }
+      qunitPage = { url, ...job.qunitPages[url] }
       if (testId) {
         let test
         let moduleName
@@ -20,19 +20,23 @@ report.ready.then(update => {
           }
           return true
         }))
+        qunitPage = null
         if (test) {
-          job.qunitTest = {
+          qunitTest = {
             url,
             pageId,
             module: moduleName,
             ...test
           }
         }
-      } else {
-        job.qunitPage = qunitPage
       }
     }
-    update(job)
+    update({
+      ...job,
+      qunitPage,
+      qunitTest,
+      elapsed: report.elapsed
+    })
   }
 
   window.addEventListener('hashchange', hashChange)
