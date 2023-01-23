@@ -14,33 +14,48 @@ async function readDependency (name) {
   return (await readFile(join(__dirname, '../../node_modules', name, 'dist', `${name}.js`))).toString()
 }
 
+function minifyJs (src) {
+  return src
+    .replace(/\/\*.*\*\//g, '')
+    .replace(/\{\r?\n\s*/g, '{')
+    .replace(/\r?\n\s*\}/g, '}')
+    .replace(/,?\r?\n\s*\.?/g, match => {
+      let result = ''
+      if (match.startsWith(',')) {
+        result = ','
+      }
+      if (match.endsWith('.')) {
+        result += '.'
+      }
+      return result || ';'
+    })
+}
+
 async function main () {
   const html = await readDefault('default.html')
   const styles = (await readDefault('styles.css'))
     .replace(/\{\r?\n\s+/g, '{')
     .replace(/\}(\r?\n)+/g, '} ')
-    .replace(/;\r?\n/g, ';')
+    .replace(/;\r?\n\s*/g, ';')
+    .replace(/(:|,)\s*/g, (_, c) => c)
 
   const punyexpr = await readDependency('punyexpr')
   const punybind = await readDependency('punybind')
-  const common = await readDefault('common.js')
-  const main = await readDefault('main.js')
+  const common = minifyJs(await readDefault('common.js'))
+  const main = minifyJs(await readDefault('main.js'))
 
   const job = (await readFile(join(reportDir, 'job.js'))).toString()
-    .replace(/(\{|,|\[)\r?\n\s+/g, (_, c) => c)
-    .replace(/\r?\n\s+(\}|\])/g, (_, c) => c)
+    .replace(/(\{|,|\[)\r?\n\s*/g, (_, c) => c)
+    .replace(/\r?\n\s*(\}|\])/g, (_, c) => c)
     .replace(/": "/g, '":"')
 
   return await writeFile(join(reportDir, 'report.html'), html
+    .replace(/(>|\}\})\r?\n\s*</g, (_, c) => `${c}<`)
     .replace('<link rel="stylesheet" href="/_/report/styles.css">', `<style>${styles}</style>`)
     .replace('<script src="/_/punyexpr.js"></script>', `<script>${punyexpr}</script>`)
     .replace('<script src="/_/punybind.js"></script>', `<script>${punybind}</script>`)
     .replace('<script src="/_/report/common.js"></script>', `<script>${common}</script>`)
-    .replace('<script src="/_/report/main.js"></script>', `<script>const module = {}
-${job}
-const job = module.exports
-${main}
-</script>`)
+    .replace('<script src="/_/report/main.js"></script>', `<script>const module={};${job};const job=module.exports;${main}</script>`)
   )
 }
 
