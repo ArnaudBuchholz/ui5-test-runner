@@ -76,14 +76,9 @@
       <div {{for}}="log of qunitTest.logs">
         <pre {{if}}="log.result">&#10004;&#65039; {{ log.message }}</pre>
         <pre {{else}}>&#10060; {{ log.message }}</pre>
-        <img {{if}}="log.screenshot" loading="lazy" class="log"
-          src="{{ qunitTest.pageId }}/{{ log.screenshot }}"
-          alt="Copy folder '{{ qunitTest.pageId }}' from the job report"
-        >
+        <img {{if}}="log.screenshot" loading="lazy" class="log" src="{{ qunitTest.pageId }}/{{ log.screenshot }}" alt="Copy folder '{{ qunitTest.pageId }}' from the job report">
       </div>
     </div>
-    <div style="display: {{ disconnected ? 'block' : 'none' }};">
-      &#10060; Disconnected
-    </div>
+    <div style="display: {{ disconnected ? 'block' : 'none' }};">&#10060; Disconnected</div>
   </body>
 </html>
