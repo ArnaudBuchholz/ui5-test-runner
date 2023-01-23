@@ -4,7 +4,7 @@ const jobFactory = require('./job')
 const { probe, start, stop, screenshot } = require('./browsers')
 const { $browsers } = require('./symbols')
 const { readFile, writeFile, stat } = require('fs/promises')
-const { recreateDir, allocPromise, filename } = require('./tools')
+const { createDir, recreateDir, allocPromise, filename } = require('./tools')
 const { UTRError } = require('./error')
 
 const cwd = '/test/project'
@@ -113,8 +113,14 @@ describe('src/browser', () => {
         mock({
           api: 'exec',
           scriptPath: 'npm',
-          args: ['install', 'globalModule', '-g'],
-          exec: childProcess => childProcess.stdout.write('OK')
+          args: ['install', 'dependentModule', '-g'],
+          exec: async childProcess => {
+            await createDir(join(npmGlobal, 'dependentModule'))
+            await writeFile(join(npmGlobal, 'dependentModule', 'package.json'), `{
+  "version": "1.0.0"
+}`)
+            childProcess.stdout.write('OK')
+          }
         })
         mock({
           api: 'fork',
@@ -122,20 +128,20 @@ describe('src/browser', () => {
           exec: async childProcess => {
             const config = JSON.parse((await readFile(childProcess.args[0])).toString())
             await writeFile(config.capabilities, JSON.stringify({
-              modules: ['reserve', 'globalModule']
+              modules: ['reserve', 'dependentModule']
             }))
           }
         })
         await probe(job)
         expect(job.browserCapabilities.modules.reserve).toStrictEqual(join(__dirname, '../node_modules/reserve'))
-        expect(job.browserCapabilities.modules.globalModule).toStrictEqual(join(npmGlobal, 'globalModule'))
+        expect(job.browserCapabilities.modules.dependentModule).toStrictEqual(join(npmGlobal, 'dependentModule'))
       })
 
       it('fails if a dependent module cannot be installed', async () => {
         mock({
           api: 'exec',
           scriptPath: 'npm',
-          args: ['install', 'globalModule', '-g'],
+          args: ['install', 'dependentModuleNotInstallable', '-g'],
           exec: childProcess => {
             childProcess.stdout.write('KO')
             childProcess.close(-1)
@@ -148,7 +154,7 @@ describe('src/browser', () => {
           exec: async childProcess => {
             const config = JSON.parse((await readFile(childProcess.args[0])).toString())
             await writeFile(config.capabilities, JSON.stringify({
-              modules: ['reserve', 'globalModule']
+              modules: ['reserve', 'dependentModuleNotInstallable']
             }))
           }
         })
