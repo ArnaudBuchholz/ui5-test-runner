@@ -6,6 +6,8 @@
 [![ui5-test-runner](https://badge.fury.io/js/ui5-test-runner.svg)](https://www.npmjs.org/package/ui5-test-runner)
 [![MIT License](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2FArnaudBuchholz%2Fui5-test-runner.svg?type=shield)](https://app.fossa.com/projects/git%2Bgithub.com%2FArnaudBuchholz%2Fui5-test-runner?ref=badge_shield)
+[![Documentation](https://img.shields.io/badge/-📚documentation-blueviolet)](https://github.com/ArnaudBuchholz/ui5-test-runner/tree/master/doc/README.md)
+
 
 A self-sufficient test runner for UI5 applications enabling parallel execution of tests.
 
@@ -13,202 +15,41 @@ A self-sufficient test runner for UI5 applications enabling parallel execution o
 
 > This tool is designed and built as a **substitute** of the [UI5 karma runner](https://github.com/SAP/karma-ui5). It executes all the tests in **parallel** thanks to several browser instances *(which also **reduces the total execution time**)*.
 
-## Documentation
+## 📚 Documentation
 
 * Initial concept is detailed in the  article [REserve - Testing UI5](https://arnaud-buchholz.medium.com/reserve-testing-ui5-85187d5eb7f1)
 * Tool was presented during UI5Con'21 : [A different approach to UI5 tests execution](https://youtu.be/EBp0bdIqu4s)
+* Up-to-date documentation : [README](https://github.com/ArnaudBuchholz/ui5-test-runner/tree/master/doc/README.md)
 
-## How to install
+## 💿 How to install
 
 * Install the [LTS version of Node.js](https://nodejs.org/en/download/)
-* `npm install -g ui5-test-runner` *(takes a while because [puppeteer](https://github.com/puppeteer/puppeteer) is big)*
+* `npm install -g ui5-test-runner`
 
-## How to demo
+**NOTE** : additional packages might be needed when running (`puppeteer`, `selenium-webdriver`, `nyc`...), they are installed **globally** if missing. They can be installed and used **locally** within your project.
+
+## 🖥️ How to demo
 
 * Clone the project [training-ui5con18-opa](https://github.com/ArnaudBuchholz/training-ui5con18-opa) and run `npm install`
-* Inside the project, use `npm run karma` to test with the karma runner
-* Inside the project, use `ui5-test-runner -port:8080 -ui5:https://ui5.sap.com/1.87.0/ -cache:.ui5 -keepAlive`
-* Follow the progress of the test executions using http://localhost:8080/_/progress.html
-* When the tests are completed, inspect the results by opening :
-  - http://localhost:8080/_/report.html
-  - http://localhost:8080/_/coverage/lcov-report/index.html
-
-## How to use
-
-* Clone the project you want to test
-* If the project owns library dependencies *(other than UI5)*, you must also clone them.<br/>
-  To check for project dependencies, you may look into :
-  - `POM.xml` *(for maven based builds)* :
-  ```xml
-	<dependencies>
-		<dependency>
-			<groupId>com.sap.fiori</groupId>
-			<artifactId>my.namespace.feature.project.lib</artifactId>
-			<version>...</version>
-		</dependency>
-
-  ```
-  - `manifest.json` file :
-  ```json
-  {
-    "sap.ui5": {
-		"dependencies": {
-			"libs": {
-				"my.namespace.feature.lib": {
-					"lazy": true
-				}
-	```
-
-> The following assumes that the project and its dependencies are cloned in **the same** folder. You **must** handle the **differences** between the library **project name** / **structure** and the **namespace** it implements.
-
-* In the project root folder, run the following command :
-
-`ui5-test-runner -port:8080 -cache:.ui5 -libs:my/namespace/feature/lib/=../my.namespace.feature.project.lib/src/my/namespace/feature/lib/`
-
-The list of options is detailed below but to explain the command :
-* `-port:8080` : uses the fixed http port `8080`
-
-* `-cache:.ui5` : caches UI5 resources to boost loading of pages. It stores resources in a project folder named `.ui5` *(you may use an absolute path if preferred)*.
-
-* `-libs:my/namespace/feature/lib/=../my.namespace.feature.project.lib/src/my/namespace/feature/lib/` : maps the library path (access to URL `/resources/my/namespace/feature/lib/library.js` will be mapped to the file path `../my.namespace.feature.project.lib/src/my/namespace/feature/lib/library.js`)
-
-You may also use :
-* `-ui5:https://ui5.sap.com/1.92.1/` : uses a specific version of UI5
-
-* `-coverage:false` : **ignores**  code coverage measurement *(if you don’t need it, it speeds up a bit the startup)*
-
-* `"-args:__URL__ __REPORT__ --visible"` : changes the browser spawning command line to make the browser windows **visible**
-
-* `-parallel:3` : increases *(changes)* the number of parallel execution *(by default it uses 2)*. You may even use `0` to only serve the application *(the tests are not executed)*.
-
-* `-keepAlive` : the server remains active after executing the tests
-
-  - It is a nice way to run the tests in your own browser.<br/>For instance, open http://localhost:8080/test/unit/unitTests.qunit.html
-
-  - It might be interesting to keep it running to access the detailed report *(see below)*
+* Use `npm run karma` to test with the karma runner
+* *Hosting the application (a.k.a. legacy mode)*
+  * `ui5-test-runner --port 8081 --ui5 https://ui5.sap.com/1.109.0/ --cache .ui5 --keep-alive`
+  * Follow the progress of the test executions using http://localhost:8081/_/progress.html
+  * When the tests are completed, check the code coverage with http://localhost:8081/_/coverage/lcov-report/index.html
+* *Running the application with `@ui5/cli`*
+  * Use `npm start` to serve the application with `@ui5/cli`
+  * `ui5-test-runner --port 8081 --url http://localhost:8080/test/testsuite.qunit.html --keep-alive`
+  * Follow the progress of the test executions using http://localhost:8081/_/progress.html
 
 
-**During** the test executions *(which can take some time)* you can monitor the progress by opening : http://localhost:8080/_/progress.html
-
-  ![progress](https://raw.githubusercontent.com/ArnaudBuchholz/ui5-test-runner/main/doc/progress.png)
-
-**After** the tests are executed :
-
-* The command line output will provide a summary of executed pages and the corresponding failures :
-
-  ![cmd_report](https://raw.githubusercontent.com/ArnaudBuchholz/ui5-test-runner/main/doc/cmd_report.png)
-
-* The detailed test report is available from http://localhost:8080/_/report.html *(since it uses requests to load the details, the report **must** be open through a web server, don't try to open the .html from the file system... it won't work)*
-
-  ![report](https://raw.githubusercontent.com/ArnaudBuchholz/ui5-test-runner/main/doc/report.png)
-
-* The coverage report is available from http://localhost:8080/_/coverage/lcov-report/index.html
-
-  ![coverage](https://raw.githubusercontent.com/ArnaudBuchholz/ui5-test-runner/main/doc/coverage.png)
-
-
-* Some folders are created to support execution, you may add them to your project `.gitignore` to exclude them from git :
-
-  - `.nyc_output/` : contains coverage information
-
-  - `report/` : contains test report *(as well as screenshots and console log outputs)*
-
-  - `.ui5/` : contains cached UI5 resources
-
-  - These folder names can be changed through parameters *(see the list below)*
-
-## Parameters
-
-To access the list of parameters, use `ui5-test-runner --help`.
-
-These two commands are equivalent :
-
-```text
-ui5-test-runner "--browser-args __URL__ __REPORT__ --visible"
-ui5-test-runner -- __URL__ __REPORT__ --visible
-```
-
-### Configuration file
-
-It is also possible to set these parameters by creating a JSON file named `ui5-test-runner.json` where the **runner is executed** *(i.e. `process.cwd()`)*.
-
-The file is applied **before** parsing the command line parameters, hence some parameters might be **overridden**.
-
-If you want the parameters to be **forced** *(and not be overridden by the command line)*, prefix the parameter name with `!`.
-
-For example :
-```json
-{
-  "!pageTimeout": 900000,
-  "globalTimeout": 3600000,
-  "failFast": true
-}
-```
-
-> The `pageTimeout` setting cannot be overridden by the command line parameters
-
-**NOTE** : the `libs` parameters must be converted to an array of pairs associating `relative` URL and `source` path.
-
-For instance :
-
-```json
-{
-  "libs": [{
-    "relative": "my/namespace/feature/lib/",
-    "source": "../my.namespace.feature.project.lib/src/my/namespace/feature/lib/"
-  }]
-}
-```
-
-> Structure of the `libs` parameter
-
-## Tips & tricks
-
-* The runner takes a screenshot for **every** OPA assertion (`Opa5.assert.ok`)
-* To benefit from **parallelization**, split the OPA test pages per journey.<br> An example pattern :
-  - **Declare** the list of journeys in a json file : [`AllJourneys.json`](https://github.com/ArnaudBuchholz/training-ui5con18-opa/blob/master/webapp/test/integration/AllJourneys.json)
-  - **Enumerate** `AllJourneys.json` in [`testsuite.qunit.html`](https://github.com/ArnaudBuchholz/training-ui5con18-opa/blob/master/webapp/test/testsuite.qunit.html#L17) to declare as many pages as journeys
-  - **Modify** [`AllJourneys.js`](https://github.com/ArnaudBuchholz/training-ui5con18-opa/blob/master/webapp/test/integration/AllJourneys.js#L26) to support a `journey=` parameter and list all declared journeys
-
-## Building a custom browser instantiation command
-
-* You may follow the pattern being used by [`pupepeteer.js`](https://github.com/ArnaudBuchholz/ui5-test-runner/blob/main/defaults/pupepeteer.js)
-
-* The command accepts only one parameter
-* When the command is invoked with `capabilities` : it should dump the list of capabilities and stop. The expected result is a valid JSON that must be written on the standard output.
-  The expected members are :
-  - `modules` *(optional, array of strings, default is `[]`)* : the list of NPM modules the command dynamically depends on (see below).
-  - `screenshot` *(optional, boolean, default is `false`)* : does the command support the `screenshot` message.
-  - `console` *(optional, boolean, default is `false`)* : does the command support saving the console output.
-  - `scripts` *(optional, boolean, default is `false`)* : does the command support scripts injection.
-
-For instance : 
-```json
-{
-  "modules": ["puppeteer"],
-  "screenshot": true,
-  "console": true,
-  "scripts": true
-}
-```
-
-* Otherwise the command is invoked with a path to a JSON file : it must load the settings and start the browser accordingly.
-  The expected JSON syntax includes :
-  
-
-* During execution, the child process will receive messages that must be handled appropriately :
-  - `message.command === 'stop'` : the browser must be closed and the command line must exit
-  - `message.command === 'screenshot'` : should generate a screenshot (the message contains a `filename` member with an absolute path). To indicate that the screenshot is done, the command line must send back the same message (`process.send(message)`).
-* It is **mandatory** to ensure that the child process explicitly exits at some point *(see this [thread](https://github.com/nodejs/node-v0.x-archive/issues/2605) explaining the fork behavior with Node.js)*
-
-## License
+## ⚖️ License
 [![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2FArnaudBuchholz%2Fui5-test-runner.svg?type=large)](https://app.fossa.com/projects/git%2Bgithub.com%2FArnaudBuchholz%2Fui5-test-runner?ref=badge_large)
 
-## Breaking change
+## ⚠️ Breaking change
 
-### From 1.x.y to 2.y.z
+### From `1.x.y` to `2.y.z`
 
-* The following dependencies are no more static : they are installed *if used* (expect some delay when the tests are starting).
-  * [`puppeteer`](https://www.npmjs.com/package/puppeteer)
-  * [`nyc`](https://www.npmjs.com/package/nyc)
-* Browser instantiation command evolved in an incompatible way.
+* Command line **syntax** has changed *(as well as configuration file structure)*
+* Dependencies are installed **on demand**
+* Browser instantiation command evolved in an **incompatible way** (see [documentation](https://github.com/ArnaudBuchholz/ui5-test-runner/tree/master/doc/browser.md)).
+* Output is different (report, traces)
