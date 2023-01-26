@@ -540,6 +540,17 @@ describe('src/qunit-hooks', () => {
           expect(screenshot).toHaveBeenCalledWith(job, url, '1a')
         })
 
+        it('takes a screenshot (even if disabled)', async () => {
+          job.screenshot = false
+          await testDone(job, url, {
+            ...getTestDoneFor1a(),
+            passed: 0,
+            failed: 1,
+            total: 1
+          })
+          expect(screenshot).toHaveBeenCalledWith(job, url, '1a')
+        })
+
         it('takes a screenshot (hash changing)', async () => {
           await testDone(job, url + '#any_hash', {
             ...getTestDoneFor1a(),
