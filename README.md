@@ -52,7 +52,7 @@ A self-sufficient test runner for UI5 applications enabling parallel execution o
 
 ## ⚠️ Breaking change
 
-### From `1.x.y` to `2.y.z`
+### v2
 
 * Command line **parameters** as well as configuration file **syntax** have changed
 * Dependencies are installed **on demand**
