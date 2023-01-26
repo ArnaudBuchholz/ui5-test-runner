@@ -97,10 +97,3 @@ You may also use :
 ## Parameters
 
 To access the list of parameters, use `ui5-test-runner --help`.
-
-These two commands are equivalent :
-
-```text
-ui5-test-runner "--browser-args __URL__ __REPORT__ --visible"
-ui5-test-runner -- __URL__ __REPORT__ --visible
-```
