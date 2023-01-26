@@ -55,21 +55,21 @@ You may also use :
 
 **During** the test executions *(which can take some time)* you can monitor the progress by opening : http://localhost:8080/_/progress.html
 
-  ![progress](https://raw.githubusercontent.com/ArnaudBuchholz/ui5-test-runner/main/doc/progress.png)
+  ![progress](progress.png)
 
 **After** the tests are executed :
 
 * The command line output will provide a summary of executed pages and the corresponding failures :
 
-  ![cmd_report](https://raw.githubusercontent.com/ArnaudBuchholz/ui5-test-runner/main/doc/cmd_report.png)
+  ![cmd_report](cmd_report.png)
 
 * The detailed test report is available from http://localhost:8080/_/report.html *(since it uses requests to load the details, the report **must** be open through a web server, don't try to open the .html from the file system... it won't work)*
 
-  ![report](https://raw.githubusercontent.com/ArnaudBuchholz/ui5-test-runner/main/doc/report.png)
+  ![report](report.png)
 
 * The coverage report is available from http://localhost:8080/_/coverage/lcov-report/index.html
 
-  ![coverage](https://raw.githubusercontent.com/ArnaudBuchholz/ui5-test-runner/main/doc/coverage.png)
+  ![coverage](coverage.png)
 
 
 * Some folders are created to support execution, you may add them to your project `.gitignore` to exclude them from git :
