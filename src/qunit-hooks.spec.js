@@ -36,6 +36,7 @@ describe('src/qunit-hooks', () => {
     stop.mockClear()
     mockGenericError.mockClear()
     job = {
+      screenshot: true,
       browserCapabilities: {
         screenshot: false
       }
@@ -286,6 +287,17 @@ describe('src/qunit-hooks', () => {
     })
 
     it('does not take a screenshot if not available', async () => {
+      await begin(job, url, {
+        isOpa: true,
+        ...getBeginInfo()
+      })
+      await log(job, url, getLogFor1a())
+      expect(screenshot).not.toHaveBeenCalled()
+    })
+
+    it('does not take a screenshot if not disabled', async () => {
+      job.browserCapabilities.screenshot = '.png'
+      job.screenshot = false
       await begin(job, url, {
         isOpa: true,
         ...getBeginInfo()
