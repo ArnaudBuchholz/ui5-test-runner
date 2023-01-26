@@ -60,3 +60,7 @@ table {
 img.log {
   width: 50%;
 }
+
+img.log:hover {
+  width: unset;
+}
