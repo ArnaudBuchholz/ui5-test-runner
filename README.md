@@ -4,10 +4,10 @@
 [![Package Quality](https://npm.packagequality.com/shield/ui5-test-runner.svg)](https://packagequality.com/#?package=ui5-test-runner)
 [![Known Vulnerabilities](https://snyk.io/test/github/ArnaudBuchholz/ui5-test-runner/badge.svg?targetFile=package.json)](https://snyk.io/test/github/ArnaudBuchholz/ui5-test-runner?targetFile=package.json)
 [![ui5-test-runner](https://badge.fury.io/js/ui5-test-runner.svg)](https://www.npmjs.org/package/ui5-test-runner)
+[![PackagePhobia](https://img.shields.io/badge/%F0%9F%93%A6package-phobia-lightgrey)](https://packagephobia.com/result?p=ui5-test-runner)
 [![MIT License](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2FArnaudBuchholz%2Fui5-test-runner.svg?type=shield)](https://app.fossa.com/projects/git%2Bgithub.com%2FArnaudBuchholz%2Fui5-test-runner?ref=badge_shield)
-[![Documentation](https://img.shields.io/badge/-📚documentation-blueviolet)](https://github.com/ArnaudBuchholz/ui5-test-runner/tree/master/doc/README.md)
-
+[![Documentation](https://img.shields.io/badge/-%F0%9F%93%9Adocumentation-blueviolet)](https://github.com/ArnaudBuchholz/ui5-test-runner/tree/master/doc/README.md)
 
 A self-sufficient test runner for UI5 applications enabling parallel execution of tests.
 
