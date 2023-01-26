@@ -66,7 +66,7 @@ module.exports = {
       test.logs = []
     }
     test.logs.push(log)
-    if (page.isOpa && job.browserCapabilities.screenshot) {
+    if (page.isOpa && job.browserCapabilities.screenshot && job.screenshot) {
       try {
         const absoluteName = await screenshot(job, url, `${testId}-${log.runtime}`)
         log.screenshot = basename(absoluteName)
