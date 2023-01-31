@@ -27,7 +27,7 @@ describe('src/add-test-pages', () => {
     it('keeps track of added test pages and stops browser', async () => {
       await addTestPages(job, url, [
         '/page1.html',
-        '/page2.html'
+        'page2.html'
       ])
       expect(job.testPageUrls).toEqual([
         'http://localhost:8045/page1.html',
@@ -40,8 +40,8 @@ describe('src/add-test-pages', () => {
       job.pageFilter = 'page(1|3)'
       await addTestPages(job, url, [
         '/page1.html',
-        '/page2.html',
-        '/page3.html'
+        'page2.html',
+        'page3.html'
       ])
       expect(job.testPageUrls).toEqual([
         'http://localhost:8045/page1.html',
@@ -54,7 +54,7 @@ describe('src/add-test-pages', () => {
       job.pageParams = 'a&b'
       await addTestPages(job, url, [
         '/page1.html',
-        '/page2.html?test'
+        'page2.html?test'
       ])
       expect(job.testPageUrls).toEqual([
         'http://localhost:8045/page1.html?a&b',
@@ -66,7 +66,7 @@ describe('src/add-test-pages', () => {
     it('filters out duplicates', async () => {
       await addTestPages(job, url, [
         '/page1.html',
-        '/page1.html'
+        'page1.html'
       ])
       expect(job.testPageUrls).toEqual([
         'http://localhost:8045/page1.html'
@@ -76,7 +76,16 @@ describe('src/add-test-pages', () => {
 
     it('supports multiple calls', async () => {
       await addTestPages(job, url, ['/page1.html'])
-      await addTestPages(job, url, ['/page1.html', '/page2.html'])
+      await addTestPages(job, url, ['page1.html', '/page2.html'])
+      expect(job.testPageUrls).toEqual([
+        'http://localhost:8045/page1.html',
+        'http://localhost:8045/page2.html'
+      ])
+    })
+
+    it('supports absolute urls', async () => {
+      await addTestPages(job, url, ['/page1.html'])
+      await addTestPages(job, url, ['http://localhost:8045/page2.html'])
       expect(job.testPageUrls).toEqual([
         'http://localhost:8045/page1.html',
         'http://localhost:8045/page2.html'
