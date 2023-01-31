@@ -207,9 +207,9 @@ function build (job) {
 
     wrap: wrap(callback => callback()),
 
-    serving: wrap(url => {
+    serving: url => {
       log(job, p80()`Server running at ${pad.lt(url)}`)
-    }),
+    },
 
     redirected: wrap(({ method, url, statusCode, timeSpent }) => {
       let statusText
