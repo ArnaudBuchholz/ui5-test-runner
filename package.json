@@ -52,6 +52,9 @@
     "nyc": "^15.1.0",
     "standard": "^17.0.0"
   },
+  "optionalDependencies": {
+    "fsevents": "^2.3.2"
+  },
   "standard": {
     "env": [
       "browser",
