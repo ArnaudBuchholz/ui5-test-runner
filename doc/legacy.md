@@ -1,4 +1,4 @@
-# Running and testing the application *(a.k.a. legacy mode)*
+# Serving and testing the application *(a.k.a. legacy mode)*
 
 ## Overview
 
@@ -9,6 +9,8 @@ This mode offers interesting and unique capabilities :
 * Caching the UI5 resources to speed up the tests,
 * Mapping of libraries,
 * Code coverage measurement.
+
+**NOTE** : by extension, `ui5-test-runner` can be used to only serve the application without testing it. Use `--serve-only`.
 
 ## Step by step
 
