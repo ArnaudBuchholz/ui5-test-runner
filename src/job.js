@@ -115,6 +115,8 @@ function parse (cwd, args) {
       return result
     })
 
+    .option('-s, --serve-only [flag]', 'Serve only', boolean, false)
+
     .option('-pf, --page-filter <regexp>', 'Filter which pages to execute')
     .option('-pp, --page-params <params>', 'Parameters added to each page URL')
     .option('-pt, --page-timeout <timeout>', 'Limit the page execution time (ms), fails the page if it takes longer than the timeout (0 to disable the timeout)', integer, 0)
