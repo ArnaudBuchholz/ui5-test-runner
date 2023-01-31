@@ -2,15 +2,16 @@
 
 ## Overview
 
-`ui5-test-runner` can **serve** the application while testing it. It means that it delivers the application files through its **web server**.
+`ui5-test-runner` can **serve** the application while testing it.
+The application files are delivered through its **web server**.
 
-This mode offers interesting and unique capabilities :
+This mode offers unique capabilities :
 * Selecting the UI5 version to use,
 * Caching the UI5 resources to speed up the tests,
 * Mapping of libraries,
-* Code coverage measurement.
+* Measuring the code coverage.
 
-**NOTE** : by extension, `ui5-test-runner` can be used to only serve the application without testing it. Use `--serve-only`.
+**NOTE** : `ui5-test-runner` can be used to only serve the application without testing it with the option `--serve-only`.
 
 ## Step by step
 
@@ -56,16 +57,9 @@ You may also use :
 
 * `--no-coverage` : **ignores**  code coverage measurement *(if you don’t need it, it speeds up a bit the startup)*
 
-* `"-args:__URL__ __REPORT__ --visible"` : changes the browser spawning command line to make the browser windows **visible**
+* `"--browser-args --visible"` : changes the browser spawning command line to make the browser windows **visible** *(for puppeteer)*
 
-* `--parallel 3` : increases *(changes)* the number of parallel execution *(by default it uses 2)*. You may even use `0` to only serve the application *(the tests are not executed)*.
-
-* `--keep-alive` : the server remains active after executing the tests
-
-  - It is a nice way to run the tests in your own browser.<br/>For instance, open http://localhost:8080/test/unit/unitTests.qunit.html
-
-  - It might be interesting to keep it running to access the detailed report *(see below)*
-
+* `--parallel 3` : increases the number of parallel execution *(default is 2)*
 
 **During** the test executions *(which can take some time)* you can monitor the progress by opening : http://localhost:8080/_/progress.html
 
@@ -77,7 +71,7 @@ You may also use :
 
   ![cmd_report](cmd_report.png)
 
-* The detailed test report is available from http://localhost:8080/_/report.html *(since it uses requests to load the details, the report **must** be open through a web server, don't try to open the .html from the file system... it won't work)*
+* The detailed test report is available in the report folder
 
   ![report](report.png)
 
@@ -94,7 +88,7 @@ You may also use :
 
   - `.ui5/` : contains cached UI5 resources
 
-  - These folder names can be changed through parameters *(see the list below)*
+  - These folder names can be changed through parameters
 
 ## Parameters
 
