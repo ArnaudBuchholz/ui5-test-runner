@@ -2,12 +2,13 @@
 
 'use strict'
 
-const output = require('./src/output')
-const { log, serve } = require('reserve')
-const jobFactory = require('./src/job')
+const { serve } = require('reserve')
+const { fromCmdLine } = require('./src/job')
+const { getOutput } = require('./src/output')
 const reserveConfigurationFactory = require('./src/reserve')
-const executeTests = require('./src/tests')
+const { execute } = require('./src/tests')
 const { watch } = require('fs')
+const { recreateDir } = require('./src/tools')
 
 function send (message) {
   if (process.send) {
@@ -18,32 +19,44 @@ function send (message) {
   }
 }
 
-async function notifyAndExecuteTests (job) {
+async function notifyAndExecuteTests (job, output) {
   send({ msg: 'begin' })
   try {
-    await executeTests(job)
-    send({ msg: 'end', status: job.failed || 0 })
+    await execute(job)
+    let status
+    if (job.failed) {
+      status = -1
+    } else {
+      status = 0
+    }
+    send({ msg: 'end', status })
   } catch (error) {
-    output.genericError(error)
+    getOutput(job).genericError(error)
     send({ msg: 'error', error })
   }
 }
 
+let job
+let output
+
 async function main () {
-  const job = jobFactory.fromCmdLine(process.cwd(), process.argv)
+  job = fromCmdLine(process.cwd(), process.argv.slice(2))
+  output = getOutput(job)
+  await recreateDir(job.reportDir)
   const configuration = await reserveConfigurationFactory(job)
   const server = serve(configuration)
   if (job.logServer) {
-    log(server)
+    server.on('redirected', output.redirected)
   }
   server
     .on('ready', async ({ url, port }) => {
       job.port = port
       send({ msg: 'ready', port: job.port })
-      if (!job.logServer) {
-        output.serving(url)
+      output.serving(url)
+      if (job.serveOnly) {
+        return
       }
-      output.report(job)
+      output.reportOnJobProgress()
       await notifyAndExecuteTests(job)
       if (job.watch) {
         delete job.start
@@ -59,14 +72,27 @@ async function main () {
         }
       } else if (job.keepAlive) {
         job.status = 'Serving'
+      } else if (job.failed) {
+        output.stop()
+        process.exit(-1)
       } else {
-        process.exit(job.failed || 0)
+        output.stop()
+        process.exit(0)
       }
     })
     .on('error', error => {
-      output.genericError(error)
+      output.serverError(error)
       send({ msg: 'error', error })
     })
 }
 
-main().catch(reason => output.genericError(reason))
+main()
+  .catch(reason => {
+    if (output) {
+      output.genericError(reason)
+      output.stop()
+    } else if (reason.name !== 'CommanderError') {
+      console.error(reason)
+    }
+    process.exit(-1)
+  })

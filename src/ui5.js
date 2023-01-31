@@ -4,12 +4,12 @@ const { dirname, join } = require('path')
 const { createWriteStream } = require('fs')
 const { mkdir, unlink } = require('fs').promises
 const { capture } = require('reserve')
-const output = require('./output')
+const { getOutput } = require('./output')
 
 module.exports = job => {
   const [, hostName] = /https?:\/\/([^/]*)/.exec(job.ui5)
   const [, version] = /(\d+\.\d+\.\d+)?$/.exec(job.ui5)
-  const cacheBase = join(job.cwd, job.cache, hostName.replace(':', '_'), version || '')
+  const cacheBase = join(job.cache || '', hostName.replace(':', '_'), version || '')
   const match = /\/((?:test-)?resources\/.*)/
   const ifCacheEnabled = (request, url, match) => job.cache ? match : false
   const uncachable = {}
@@ -59,7 +59,7 @@ module.exports = job => {
           file.end()
           uncachable[path] = true
           if (response.statusCode !== 404) {
-            output.failedToCacheUI5resource(path, response.statusCode)
+            getOutput(job).failedToCacheUI5resource(path, response.statusCode)
           }
           return unlink(cachePath)
         })

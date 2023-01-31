@@ -1,0 +1,7 @@
+{
+  "!pageTimeout": 900000,
+  "globalTimeout": 3600000,
+  "failFast": true,
+  "libs": ["lib/=webapp"],
+  "--": [-1]
+}

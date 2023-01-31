@@ -7,22 +7,7 @@
   }
   window['ui5-test-runner/qunit-hooks'] = true
 
-  function post (url, data) {
-    return new Promise(function (resolve, reject) {
-      const xhr = new XMLHttpRequest()
-      xhr.open('POST', '/_/' + url)
-      xhr.send(JSON.stringify(data))
-      xhr.onreadystatechange = function () {
-        if (xhr.readyState === 4) {
-          if (xhr.status === 200) {
-            resolve(xhr.responseText)
-          } else {
-            reject(xhr.statusText)
-          }
-        }
-      }
-    })
-  }
+  const post = window['ui5-test-runner/post']
 
   function isOpa () {
     try {
@@ -37,12 +22,12 @@
     return post('QUnit/begin', details)
   })
 
-  QUnit.log(function (report) {
+  QUnit.testStart(function (details) {
+    return post('QUnit/testStart', details)
+  })
+
+  QUnit.log(function (log) {
     let ready = false
-    const log = {
-      testId: report.testId,
-      runtime: report.runtime
-    }
     post('QUnit/log', log)
       .then(undefined, function () {
         console.error('Failed to POST to QUnit/log (no timestamp)', log)

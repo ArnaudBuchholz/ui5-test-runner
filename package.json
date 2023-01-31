@@ -1,6 +1,6 @@
 {
   "name": "ui5-test-runner",
-  "version": "1.1.5",
+  "version": "2.0.0",
   "description": "Standalone test runner for UI5",
   "main": "index.js",
   "files": [
@@ -17,7 +17,8 @@
   "scripts": {
     "lint": "standard --fix",
     "test": "jest",
-    "test:debug": "jest --runInBand"
+    "test:debug": "jest --runInBand",
+    "test:report": "reserve --config ./test/report/reserve.json"
   },
   "repository": {
     "type": "git",
@@ -39,15 +40,20 @@
   },
   "homepage": "https://github.com/ArnaudBuchholz/ui5-test-runner#readme",
   "dependencies": {
+    "commander": "^10.0.0",
     "mime": "^3.0.0",
-    "nyc": "^15.1.0",
-    "puppeteer": "^19.2.0",
+    "punybind": "^1.2.1",
+    "punyexpr": "^1.0.3",
     "reserve": "^1.15.2"
   },
   "devDependencies": {
-    "jest": "^29.2.2",
-    "nock": "^13.2.9",
+    "jest": "^29.4.1",
+    "nock": "^13.3.0",
+    "nyc": "^15.1.0",
     "standard": "^17.0.0"
+  },
+  "optionalDependencies": {
+    "fsevents": "^2.3.2"
   },
   "standard": {
     "env": [
@@ -59,14 +65,16 @@
   },
   "jest": {
     "setupFilesAfterEnv": [
-      "./__mocks__/setup.js"
+      "./test/setup.js"
     ],
     "collectCoverage": true,
     "collectCoverageFrom": [
       "src/*.js"
     ],
     "coveragePathIgnorePatterns": [
-      "output\\.js"
+      "\\.spec\\.js",
+      "output\\.js",
+      "b\\capabilities\\b"
     ],
     "coverageThreshold": {
       "global": {

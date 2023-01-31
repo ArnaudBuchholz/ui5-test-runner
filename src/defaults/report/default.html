@@ -1,0 +1,84 @@
+<html>
+  <head>
+    <title>ui5-test-runner</title>
+    <link rel="stylesheet" href="/_/report/styles.css">
+    <script src="/_/punyexpr.js"></script>
+    <script src="/_/punybind.js"></script>
+    <script src="/_/report/common.js"></script>
+    <script src="/_/report/main.js"></script>
+  </head>
+  <body>
+    <div {{if}}="!(qunitPage || qunitTest)">
+      <h1>{{ status || 'Test report' }}</h1>
+      <div {{if}}="end === undefined" class="elapsed">In progress since {{ elapsed(start) }}</div>
+      <div {{else}} class="elapsed">Duration : {{ elapsed(start, end) }}</div>
+      <table style="visibility: {{ testPageUrls.length > 0 ? 'visible' : 'hidden' }};">
+        <tr>
+          <th>&nbsp;</th>
+          <th class="status" style="width: 10rem;"><div><span>Status</span></div></th>
+          <th class="count">Tests</th>
+          <th class="count">Passed</th>
+          <th class="count">Failed</th>
+          <th class="elapsed">Elapsed</th>
+        </tr>
+        <tr {{for}}="url of testPageUrls">
+          <td class="truncated">
+              <span {{if}}="!qunitPages[url]">{{ url }}</span>
+              <a {{else}} href="#{{ qunitPages[url].id }}">{{ url }}</a>
+          </td>
+          <td>
+            <span {{if}}="!qunitPages[url]">-</span>
+            <span {{elseif}}="qunitPages[url].failed">&#10060;</span>
+            <span {{elseif}}="qunitPages[url].end">&#10004;&#65039;</span>
+            <span {{if}}="!qunitPages[url].end">
+              <progress max="{{ qunitPages[url].count }}" value="{{ qunitPages[url].failed + qunitPages[url].passed }}"></progress>
+            </span>
+          </td>
+          <td>{{ qunitPages[url] ? qunitPages[url].count : '-' }}</td>
+          <td>{{ qunitPages[url] ? qunitPages[url].passed : '-' }}</td>
+          <td>{{ qunitPages[url] ? qunitPages[url].failed : '-' }}</td>
+          <td>
+            <span {{if}}="!qunitPages[url]">-</span>
+            <span {{elseif}}="qunitPages[url].end === undefined">{{ elapsed(qunitPages[url].start) }}</span>
+            <span {{else}}>{{ elapsed(qunitPages[url].start, qunitPages[url].end) }}</span>
+          </td>
+        </tr>
+      </table>
+    </div>
+    <div {{if}}="qunitPage">
+      <h1 class="truncated">{{ qunitPage.url }}</h1>
+      <a href="#">&#9204; back to report</a>
+      <div {{if}}="qunitPage.end === undefined" class="elapsed">In progress since {{ elapsed(qunitPage.start) }}</div>
+      <div {{else}} class="elapsed">Duration : {{ elapsed(qunitPage.start, qunitPage.end) }}</div>
+      <div {{for}}="module of qunitPage.modules">
+        <h2>{{ module.name }}</h2>
+        <div {{for}}="test of module.tests">
+          <a {{if}}="!test.skip" href="#{{ qunitPage.id }}-{{ test.testId }}">{{ test.name }}</a>
+          <span {{else}}>{{ test.name }}</span>
+          <span {{if}}="test.skip">&#9208;&#65039;</span>
+          <span {{elseif}}="!test.end" class="elapsed">{{ elapsed(test.start) }}</span>
+          <span {{elseif}}="test.report && !test.report.failed">&#10004;&#65039; {{ elapsed(test.start, test.end) }}</span>
+          <span {{elseif}}="test.report">&#10060;  {{ elapsed(test.start, test.end) }}</span>
+        </div>
+      </div>
+    </div>
+    <div {{elseif}}="qunitTest">
+      <h1 class="truncated">{{ qunitTest.url }}</h1>
+      <a href="#">&#9204; back to report</a>
+      <h2>{{ qunitTest.module }}</h2>
+      <a href="#{{ qunitTest.pageId }}">&#9204; back to page</a>
+      <h3>{{ qunitTest.name }}
+        <span {{if}}="qunitTest.report && qunitTest.report.passed">&#10004;&#65039;</span>
+        <span {{elseif}}="qunitTest.report">&#10060;</span>
+      </h3>
+      <div {{if}}="qunitTest.end === undefined" class="elapsed">In progress since {{ elapsed(qunitTest.start) }}</div>
+      <div {{else}} class="elapsed">Duration : {{ elapsed(qunitTest.start, qunitTest.end) }}</div>
+      <div {{for}}="log of qunitTest.logs">
+        <pre {{if}}="log.result">&#10004;&#65039; {{ log.message }}</pre>
+        <pre {{else}}>&#10060; {{ log.message }}</pre>
+        <img {{if}}="log.screenshot" loading="lazy" class="log" src="{{ qunitTest.pageId }}/{{ log.screenshot }}" alt="Copy folder '{{ qunitTest.pageId }}' from the job report">
+      </div>
+    </div>
+    <div style="display: {{ disconnected ? 'block' : 'none' }};">&#10060; Disconnected</div>
+  </body>
+</html>

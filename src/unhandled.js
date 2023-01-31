@@ -1,12 +1,12 @@
 'use strict'
 
-const { extractUrl } = require('./tools')
+const { extractPageUrl, noop } = require('./tools')
 const { join } = require('path')
 const { writeFile } = require('fs')
-const output = require('./output')
+const { getOutput } = require('./output')
 
 module.exports = job => {
-  const unhandled = join(job.tstReportDir, 'unhandled.txt')
+  const unhandled = join(job.reportDir, 'unhandled.txt')
   let outputUnhandled = true
   return [{
     custom: ({ headers, method, url }) => {
@@ -20,12 +20,12 @@ module.exports = job => {
         status = 500
       }
       if (outputUnhandled) {
-        output.unhandled()
+        getOutput(job).unhandled()
         outputUnhandled = false
       }
-      writeFile(unhandled, `${extractUrl(headers)} ${status} ${method} ${url}\n`, {
+      writeFile(unhandled, `${extractPageUrl(headers)} ${status} ${method} ${url}\n`, {
         flag: 'a'
-      }, () => {})
+      }, noop)
       return status
     }
   }]

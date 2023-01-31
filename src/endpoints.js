@@ -2,86 +2,72 @@
 
 const { join } = require('path')
 const { body } = require('reserve')
-const { screenshot, stop } = require('./browsers')
-const { writeFile } = require('fs').promises
-const { extractUrl, filename } = require('./tools')
+const { extractPageUrl } = require('./tools')
 const { Request, Response } = require('reserve')
-const output = require('./output')
+const { getOutput } = require('./output')
+const { begin, testStart, log, testDone, done } = require('./qunit-hooks')
+const { addTestPages } = require('./add-test-pages')
+const { getJobProgress } = require('./get-job-progress')
+const { readFile } = require('fs/promises')
+const { TextEncoder } = require('util')
 
 module.exports = job => {
-  async function endpointImpl (implementation, request) {
-    const url = extractUrl(request.headers)
+  async function endpointImpl (api, implementation, request) {
+    const url = extractPageUrl(request.headers)
     const data = JSON.parse(await body(request))
-    if (job.parallel === -1) {
-      output.endpoint(url, data)
-    }
     try {
       await implementation.call(this, url, data)
-    } catch (e) {
-      output.endpointError(url, data, e)
+    } catch (error) {
+      getOutput(job).endpointError({ api, url, data, error })
     }
   }
 
-  function synchronousEndpoint (implementation) {
+  function synchronousEndpoint (api, implementation) {
     return async function (request, response) {
-      await endpointImpl(implementation, request)
+      await endpointImpl(api, implementation, request)
       response.writeHead(200)
       response.end()
     }
   }
 
-  function endpoint (implementation) {
+  function endpoint (api, implementation) {
     return async function (request, response) {
       response.writeHead(200)
       response.end()
-      await endpointImpl(implementation, request)
+      await endpointImpl(api, implementation, request)
     }
   }
 
-  function getPageTest (page, testId) {
-    const { tests, order } = page
-    if (!tests[testId]) {
-      tests[testId] = {
-        timestamps: []
-      }
-      order.push(testId)
-    }
-    return tests[testId]
+  async function getInjects (...names) {
+    return '\n;\n' + (await Promise.all(names.map(name => readFile(join(__dirname, 'inject', `${name}.js`)))))
+      .map(buffer => buffer.toString())
+      .join('\n;\n')
+  }
+
+  function contentLength (content) {
+    return new TextEncoder().encode(content).length
+  }
+
+  function sendScript (response, content) {
+    response.writeHead(200, {
+      'content-type': 'text/javascript',
+      'content-length': contentLength(content),
+      'cache-control': 'no-store'
+    })
+    response.end(content)
   }
 
   return job.parallel
     ? [{
       // Substitute qunit-redirect to extract test pages
         match: '/resources/sap/ui/qunit/qunit-redirect.js',
-        file: join(__dirname, './inject/qunit-redirect.js')
+        custom: async (request, response) => {
+          sendScript(response, await getInjects('post', 'qunit-redirect'))
+        }
       }, {
       // Endpoint to receive test pages
         match: '^/_/addTestPages',
-        custom: endpoint(async (url, data) => {
-          let testPageUrls
-          if (job.pageFilter) {
-            const filter = new RegExp(job.pageFilter)
-            testPageUrls = data.filter(name => name.match(filter))
-          } else {
-            testPageUrls = data
-          }
-          if (job.pageParams) {
-            testPageUrls = testPageUrls.map(url => {
-              if (url.includes('?')) {
-                return url + '&' + job.pageParams
-              }
-              return url + '?' + job.pageParams
-            })
-          }
-          const pages = testPageUrls.reduce((mapping, page) => {
-            mapping[page] = filename(page)
-            return mapping
-          }, {})
-          const pagesFileName = join(job.tstReportDir, 'pages.json')
-          await writeFile(pagesFileName, JSON.stringify(pages))
-          job.testPageUrls = Object.keys(pages) // filter out duplicates
-          stop(job, url)
-        })
+        custom: endpoint('addTestPages', (url, pages) => addTestPages(job, url, pages))
       }, {
       // QUnit hooks
         match: '^/_/qunit-hooks.js',
@@ -96,13 +82,11 @@ module.exports = job => {
           const ui5Request = new Request('GET', request.url)
           ui5Request.internal = true
           const ui5Response = new Response()
-          const hooksRequest = new Request('GET', '/_/qunit-hooks.js')
-          const hooksResponse = new Response()
-          await Promise.all([
-            this.configuration.dispatch(ui5Request, ui5Response),
-            this.configuration.dispatch(hooksRequest, hooksResponse)
+          const [inject] = await Promise.all([
+            getInjects('post', 'qunit-hooks'),
+            this.configuration.dispatch(ui5Request, ui5Response)
           ])
-          const hooksLength = parseInt(hooksResponse.headers['content-length'], 10)
+          const hooksLength = contentLength(inject)
           const ui5Length = parseInt(ui5Response.headers['content-length'], 10)
           response.writeHead(ui5Response.statusCode, {
             ...ui5Response.headers,
@@ -110,94 +94,56 @@ module.exports = job => {
             'cache-control': 'no-store' // for debugging purpose
           })
           response.write(ui5Response.toString())
-          response.end(hooksResponse.toString())
+          response.end(inject)
         }
       }, {
       // Endpoint to receive QUnit.begin
         match: '^/_/QUnit/begin',
-        custom: endpoint((url, details) => {
-          const page = {
-            isOpa: details.isOpa,
-            total: details.totalTests,
-            failed: 0,
-            passed: 0,
-            tests: {},
-            order: []
-          }
-          details.modules.forEach(module => {
-            module.tests.forEach(test => getPageTest(page, test.testId))
-          })
-          job.testPages[url] = page
-        })
+        custom: endpoint('QUnit/begin', (url, details) => begin(job, url, details))
+      }, {
+      // Endpoint to receive QUnit.testStart
+        match: '^/_/QUnit/testStart',
+        custom: endpoint('QUnit/testStart', (url, details) => testStart(job, url, details))
       }, {
       // Endpoint to receive QUnit.log
         match: '^/_/QUnit/log',
-        custom: synchronousEndpoint(async (url, report) => {
-          const page = job.testPages[url]
-          if (page.isOpa) {
-            const { testId, runtime } = report
-            getPageTest(page, testId).timestamps.push(runtime)
-            await screenshot(job, url, `${testId}-${runtime}.png`)
-          }
-        })
+        custom: synchronousEndpoint('QUnit/log', async (url, report) => log(job, url, report))
       }, {
       // Endpoint to receive QUnit.testDone
         match: '^/_/QUnit/testDone',
-        custom: synchronousEndpoint(async (url, report) => {
-          const page = job.testPages[url]
-          const { testId } = report
-          if (report.failed) {
-            await screenshot(job, url, `${testId}.png`)
-            job.failed = true
-            ++page.failed
-          } else {
-            ++page.passed
-          }
-          getPageTest(page, testId).report = report
-        })
+        custom: synchronousEndpoint('QUnit/testDone', async (url, report) => testDone(job, url, report))
       }, {
       // Endpoint to receive QUnit.done
         match: '^/_/QUnit/done',
-        custom: endpoint(async (url, report) => {
-          const page = job.testPages[url]
-          if (page) {
-            await screenshot(job, url, 'screenshot.png')
-            if (report.__coverage__) {
-              const coverageFileName = join(job.covTempDir, `${filename(url)}.json`)
-              await writeFile(coverageFileName, JSON.stringify(report.__coverage__))
-              delete report.__coverage__
-            }
-            page.report = report
-          }
-          stop(job, url)
-        })
+        custom: endpoint('QUnit/done', async (url, report) => done(job, url, report))
       }, {
       // UI to follow progress
         match: '^/_/progress.html',
-        file: join(__dirname, 'progress.html')
+        file: job.progressPage
+      }, {
+      // Report 'main' substituted for progress
+        match: '^/_/report/main.js',
+        file: join(__dirname, 'defaults/report/progress.js')
+      }, {
+      // Other report resources
+        match: '^/_/report/(.*)',
+        file: join(__dirname, 'defaults/report/$1')
+      }, {
+      // punybind
+        match: '^/_/punybind.js',
+        file: join(__dirname, '../node_modules/punybind/dist/punybind.js')
+      }, {
+      // punyexpr
+        match: '^/_/punyexpr.js',
+        file: join(__dirname, '../node_modules/punyexpr/dist/punyexpr.js')
       }, {
       // Endpoint to follow progress
-        match: '^/_/progress',
-        custom: async (request, response) => {
-          const json = JSON.stringify(job, (key, value) => {
-            if (((key === 'tests' || key === 'browsers') && typeof value === 'object') ||
-                (key === 'order' && Array.isArray(value))
-            ) {
-              return undefined // Filter out
-            }
-            return value
-          })
-          const length = (new TextEncoder().encode(json)).length
-          response.writeHead(200, {
-            'Content-Type': 'application/json',
-            'Content-Length': length
-          })
-          response.end(json)
-        }
+        match: '^/_/progress(?:\\?page=([^&]*)(?:&test=([^&]*))?)?',
+        custom: (request, response, pageId, testId) => getJobProgress(job, request, response, pageId, testId)
       }, {
       // Endpoint to coverage files
         match: '^/_/coverage/(.*)',
-        file: join(job.covReportDir, '$1')
+        file: join(job.coverageReportDir, '$1')
       }, {
       // Endpoint to report
         match: '^/_/report.html',
@@ -205,7 +151,7 @@ module.exports = job => {
       }, {
       // Endpoint to report files
         match: '^/_/(.*)',
-        file: join(job.tstReportDir, '$1')
+        file: join(job.reportDir, '$1')
       }]
     : []
 }
