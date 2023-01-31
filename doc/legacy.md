@@ -57,7 +57,7 @@ You may also use :
 
 * `--no-coverage` : **ignores**  code coverage measurement *(if you don’t need it, it speeds up a bit the startup)*
 
-* `"--browser-args --visible"` : changes the browser spawning command line to make the browser windows **visible** *(for puppeteer)*
+* `--browser-args --visible` : changes the browser spawning command line to make the browser windows **visible** *(for puppeteer)*
 
 * `--parallel 3` : increases the number of parallel execution *(default is 2)*
 
