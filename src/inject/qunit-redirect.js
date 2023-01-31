@@ -15,9 +15,6 @@
   function jsUnitTestSuite () {}
 
   jsUnitTestSuite.prototype.addTestPage = function (url) {
-    if (!url.startsWith('/')) {
-      url = '/' + url
-    }
     pages.push(url)
   }
 
