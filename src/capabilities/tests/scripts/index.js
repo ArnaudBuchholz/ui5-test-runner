@@ -1,6 +1,6 @@
 'use strict'
 
-const assert = require('assert/strict')
+const assert = require('assert')
 
 function qUnitEndpoints (data) {
   const { endpoint } = data
@@ -13,9 +13,9 @@ function qUnitEndpoints (data) {
     ++this.calls[endpoint]
   }
   if (endpoint === 'QUnit/done') {
-    assert(this.calls['QUnit/begin'], 'QUnit/begin was triggered')
-    assert(this.calls['QUnit/log'], 'QUnit/log was triggered')
-    assert(this.calls['QUnit/testDone'], 'QUnit/testDone was triggered')
+    assert.ok(this.calls['QUnit/begin'], 'QUnit/begin was triggered')
+    assert.ok(this.calls['QUnit/log'], 'QUnit/log was triggered')
+    assert.ok(this.calls['QUnit/testDone'], 'QUnit/testDone was triggered')
     return true
   }
   return false
