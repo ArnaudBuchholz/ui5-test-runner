@@ -5,7 +5,7 @@ const { join } = require('path')
 const { stat } = require('fs/promises')
 const { stop } = require('../../../browsers')
 const { buildCsvReader } = require('../../../csv-reader')
-const assert = require('assert/strict')
+const assert = require('assert')
 
 module.exports = {
   label: 'Console logs',
