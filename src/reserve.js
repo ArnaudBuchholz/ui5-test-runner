@@ -10,9 +10,9 @@ module.exports = job => check({
   port: job.port,
   mappings: [
     cors,
-    ...endpoints(job),
+    ...job.serveOnly ? [] : endpoints(job),
     ...ui5(job),
-    ...coverage(job), {
+    ...job.serveOnly ? [] : coverage(job), {
       // Project mapping
       match: /^\/(.*)/,
       file: join(job.webapp, '$1'),
