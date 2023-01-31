@@ -53,6 +53,9 @@ async function main () {
       job.port = port
       send({ msg: 'ready', port: job.port })
       output.serving(url)
+      if (job.serveOnly) {
+        return
+      }
       output.reportOnJobProgress()
       await notifyAndExecuteTests(job)
       if (job.watch) {
