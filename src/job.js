@@ -153,6 +153,7 @@ function parse (cwd, args) {
     .addOption(new Option('--debug-probe-only', DEBUG_OPTION, boolean).hideHelp())
     .addOption(new Option('--debug-keep-browser-open', DEBUG_OPTION, boolean).hideHelp())
     .addOption(new Option('--debug-memory', DEBUG_OPTION, boolean).hideHelp())
+    .addOption(new Option('--debug-keep-report', DEBUG_OPTION, boolean).hideHelp())
 
   command.parse(args, { from: 'user' })
   const options = command.opts()
