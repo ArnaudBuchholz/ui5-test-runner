@@ -14,7 +14,9 @@ async function capabilities (job) {
   const output = getOutput(job)
 
   async function exit (code) {
-    if (code !== 0) {
+    if (job.debugKeepReport) {
+      output.wrap(() => console.log('Report folder', job.reportDir, 'not cleaned because of --debug-keep-report.'))
+    } else if (code !== 0) {
       output.wrap(() => console.error('Report folder', job.reportDir, 'not cleaned because of errors.'))
     } else {
       await cleanDir(job.reportDir)
