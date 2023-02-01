@@ -12,6 +12,7 @@ command
   .helpOption(false)
 
 let consoleWriter = { ready: Promise.resolve() }
+let networkWriter = { ready: Promise.resolve() }
 
 let stopping = false
 
@@ -20,7 +21,7 @@ async function exit (code) {
     return
   }
   stopping = true
-  await consoleWriter.ready
+  await Promise.all([consoleWriter.ready, networkWriter.ready])
   process.exit(0)
 }
 
@@ -52,8 +53,9 @@ async function main () {
   const { url, dir } = settings
 
   consoleWriter = buildCsvWriter(join(dir, 'console.csv'))
+  networkWriter = buildCsvWriter(join(dir, 'network.csv'))
 
-  const { JSDOM, VirtualConsole } = require(settings.modules.jsdom)
+  const { JSDOM, VirtualConsole, ResourceLoader } = require(settings.modules.jsdom)
   const { default: got } = await import(join(settings.modules.got, 'dist/source/index.js'))
   const html = await got.get(url).text()
   
@@ -63,13 +65,25 @@ async function main () {
   virtualConsole.on('info', (...args) => consoleWriter.append({ type: 'info', text: args.join(' ') }));
   virtualConsole.on('log', (...args) => consoleWriter.append({ type: 'log', text: args.join(' ') }));
 
+  class CustomResourceLoader extends ResourceLoader {
+    fetch(url, options) {
+      networkWriter.append({
+        method: 'GET',
+        url: url,
+        status: 'UNK'
+      })
+      return super.fetch(url, options)
+    }
+  }
+
   const dom = new JSDOM(html, {
     url,
     contentType: 'text/html',
     runScripts: 'dangerously',
     resources: 'usable',
     pretendToBeVisual: true,
-    virtualConsole
+    virtualConsole,
+    resources: new CustomResourceLoader()
   })
 }
 
