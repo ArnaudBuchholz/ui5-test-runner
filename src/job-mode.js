@@ -5,7 +5,7 @@ function check (job, allowed, forbidden) {
   const valueSources = job[$valueSources]
   const incompatible = Object.keys(valueSources).filter(option => {
     const source = valueSources[option]
-    return source === 'cli' &&
+    return source === 'cli' && !option.startsWith('debug') &&
     (
       (allowed && !allowed.includes(option)) ||
       (forbidden && forbidden.includes(option))
