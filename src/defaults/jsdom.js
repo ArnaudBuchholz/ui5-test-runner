@@ -1,6 +1,7 @@
 const { readFile, writeFile } = require('fs/promises')
 const { join } = require('path')
 const { Command } = require('commander')
+const { boolean } = require('../options')
 const { buildCsvWriter } = require('../csv-writer')
 
 const command = new Command()
@@ -8,6 +9,7 @@ command
   .name('ui5-test-runner/@/jsdom')
   .description('Browser instantiation command for jsdom')
   .helpOption(false)
+  .option('--debug [flag]', 'Enable more traces', boolean, false)
 
 let consoleWriter = { ready: Promise.resolve() }
 let networkWriter = { ready: Promise.resolve() }
@@ -38,7 +40,7 @@ async function main () {
 
   const settings = JSON.parse((await readFile(process.argv[2])).toString())
   command.parse(settings.args, { from: 'user' })
-  //   const options = command.opts()
+  const options = command.opts()
 
   if (settings.capabilities) {
     await writeFile(settings.capabilities, JSON.stringify({
@@ -74,11 +76,41 @@ async function main () {
   }
 
   JSDOM.fromURL(url, {
+    includeNodeLocations: true,
+    storageQuota: 10000000,
     runScripts: 'dangerously',
     pretendToBeVisual: true,
     virtualConsole,
     resources: new CustomResourceLoader(),
     beforeParse (window) {
+      // Compatibility layer (see https://developer.mozilla.org/en-US/docs/Web/API/PerformanceTiming/fetchStart)
+      window.performance.timing = {
+        navigationStart: new Date().getTime(),
+        fetchStart: new Date().getTime()
+      }
+      if (options.debug) {
+        // Proxify sap.ui to hook the loader
+        window.sap = {
+          ui: new Proxy({}, {
+            get (obj, prop) {
+              return obj[prop]
+            },
+            set (obj, prop, value) {
+              obj[prop] = value
+              if (prop === 'loader') {
+                value._.logger = {
+                  debug: (...args) => console.log('LOADER', ...args),
+                  info: (...args) => console.info('LOADER', ...args),
+                  warning: (...args) => console.warn('LOADER', ...args),
+                  error: (...args) => console.error('LOADER', ...args),
+                  isLoggable: () => true
+                }
+              }
+              return true
+            }
+          })
+        }
+      }
       scripts.forEach(script => window.eval(script))
     }
   })
