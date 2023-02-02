@@ -13,6 +13,7 @@ const {
   $testPagesCompleted
 } = require('./symbols')
 const { capabilities } = require('./capabilities')
+const { UTRError } = require('./error')
 
 async function run (task, job) {
   const {
@@ -143,6 +144,8 @@ module.exports = {
     await probe(job)
     if (job.mode !== 'url') {
       job.url = [`http://localhost:${job.port}/${job.testsuite}`]
+    } else if (!job.browserCapabilities.scripts) {
+      throw UTRError.BROWSER_MISS_SCRIPTS_CAPABILITY()
     }
     return process(job)
   }
