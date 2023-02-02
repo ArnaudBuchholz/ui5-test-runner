@@ -33,6 +33,8 @@ const errors = [{
   name: 'QUNIT_ERROR'
 }, {
   name: 'MODE_INCOMPATIBLE_OPTION'
+}, {
+  name: 'BROWSER_MISS_SCRIPTS_CAPABILITY'
 }]
 
 errors.forEach((error, index) => {
