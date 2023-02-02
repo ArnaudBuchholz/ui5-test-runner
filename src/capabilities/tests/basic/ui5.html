@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html>
+  <body>
+    <H1>UI5 example</H1>
+    <p>Checks if the browser can load a page</p>
+    <script
+        src="https://ui5.sap.com/resources/sap-ui-core.js"
+        id="sap-ui-bootstrap"
+        data-sap-ui-libs="sap.m"
+        data-sap-ui-theme="sap_fiori_3"
+        data-sap-ui-compatVersion="edge">
+    </script>
+    <script>
+        sap.ui.getCore().attachInit(function() {
+            const xhr = new XMLHttpRequest()
+            xhr.open('POST', '/_/log')
+            xhr.send('{"sap.m.Button":' + !!sap.m.Button + '}')
+        });
+    </script>
+  </body>
+</html>
