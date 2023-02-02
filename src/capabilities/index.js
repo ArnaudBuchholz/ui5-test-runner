@@ -67,7 +67,9 @@ async function capabilities (job) {
 
     job.status = 'Running tests'
 
-    const filteredTests = tests.filter((test) => !test.for || test.for(job.browserCapabilities))
+    const filteredTests = tests
+      .filter((test) => !test.for || test.for(job.browserCapabilities))
+      .filter(({ name }) => !job.debugCapabilitiesTest || name.startsWith(job.debugCapabilitiesTest))
     output.wrap(() => console.log('Number of tests :', filteredTests.length))
 
     let errors = 0
@@ -82,7 +84,7 @@ async function capabilities (job) {
         }
         return
       }
-      const { label, url, scripts, endpoint = () => {} } = filteredTests.shift()
+      const { name, label, url, scripts, endpoint = () => {} } = filteredTests.shift()
 
       const listenerIndex = listeners.length
       const listener = new EventEmitter()
