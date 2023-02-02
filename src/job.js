@@ -155,6 +155,7 @@ function parse (cwd, args) {
     .addOption(new Option('--debug-memory', DEBUG_OPTION, boolean).hideHelp())
     .addOption(new Option('--debug-keep-report', DEBUG_OPTION, boolean).hideHelp())
     .addOption(new Option('--debug-capabilities-test <name>', DEBUG_OPTION).hideHelp())
+    .addOption(new Option('--debug-capabilities-no-timeout', DEBUG_OPTION, boolean).hideHelp())
 
   command.parse(args, { from: 'user' })
   const options = command.opts()
