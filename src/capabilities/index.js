@@ -102,14 +102,19 @@ async function capabilities (job) {
       }
 
       const now = performance.now()
-      const timeoutId = setTimeout(() => done('Timeout'), 10000)
+      let timeoutId
+      if (!job.debugCapabilitiesNoTimeout) {
+        timeoutId = setTimeout(() => done('Timeout'), 10000)
+      }
 
       async function done (error) {
         if (done.called) {
           return
         }
         done.called = true
-        clearTimeout(timeoutId)
+        if (timeoutId) {
+          clearTimeout(timeoutId)
+        }
         await stop(job, pageUrl)
         const timeSpent = Math.floor(performance.now() - now)
         if (error) {
