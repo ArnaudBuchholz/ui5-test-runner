@@ -1,8 +1,6 @@
-import { readFile, writeFile } from 'fs/promises'
-import { join } from 'path'
-import { Command } from 'commander'
-import { createRequire } from 'module'
-const require = createRequire(import.meta.url)
+const { readFile, writeFile } = require('fs/promises')
+const { join } = require('path')
+const { Command } = require('commander')
 const { buildCsvWriter } = require('../csv-writer')
 
 const command = new Command()
@@ -44,46 +42,45 @@ async function main () {
 
   if (settings.capabilities) {
     await writeFile(settings.capabilities, JSON.stringify({
-      modules: ['jsdom', 'got'],
-      traces: ['console']
+      modules: ['jsdom'],
+      traces: ['console'],
+      scripts: true
     }))
     exit(0)
   }
 
-  const { url, dir } = settings
+  const { url, dir, scripts } = settings
 
   consoleWriter = buildCsvWriter(join(dir, 'console.csv'))
   networkWriter = buildCsvWriter(join(dir, 'network.csv'))
 
   const { JSDOM, VirtualConsole, ResourceLoader } = require(settings.modules.jsdom)
-  const { default: got } = await import(join(settings.modules.got, 'dist/source/index.js'))
-  const html = await got.get(url).text()
-  
-  const virtualConsole = new VirtualConsole();
-  virtualConsole.on('error', (...args) => consoleWriter.append({ type: 'error', text: args.join(' ') }));
-  virtualConsole.on('warn', (...args) => consoleWriter.append({ type: 'warning', text: args.join(' ') }));
-  virtualConsole.on('info', (...args) => consoleWriter.append({ type: 'info', text: args.join(' ') }));
-  virtualConsole.on('log', (...args) => consoleWriter.append({ type: 'log', text: args.join(' ') }));
+
+  const virtualConsole = new VirtualConsole()
+  virtualConsole.on('error', (...args) => consoleWriter.append({ type: 'error', text: args.join(' ') }))
+  virtualConsole.on('warn', (...args) => consoleWriter.append({ type: 'warning', text: args.join(' ') }))
+  virtualConsole.on('info', (...args) => consoleWriter.append({ type: 'info', text: args.join(' ') }))
+  virtualConsole.on('log', (...args) => consoleWriter.append({ type: 'log', text: args.join(' ') }))
 
   class CustomResourceLoader extends ResourceLoader {
-    fetch(url, options) {
+    fetch (url, options) {
       networkWriter.append({
         method: 'GET',
-        url: url,
+        url,
         status: 'UNK'
       })
       return super.fetch(url, options)
     }
   }
 
-  const dom = new JSDOM(html, {
-    url,
-    contentType: 'text/html',
+  JSDOM.fromURL(url, {
     runScripts: 'dangerously',
-    resources: 'usable',
     pretendToBeVisual: true,
     virtualConsole,
-    resources: new CustomResourceLoader()
+    resources: new CustomResourceLoader(),
+    beforeParse (window) {
+      scripts.forEach(script => window.eval(script))
+    }
   })
 }
 
