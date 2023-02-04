@@ -4,7 +4,8 @@
     <H1>basic</H1>
     <p>Checks if the browser can load a script inserted with document.write</p>
     <script>
-      document.write('<script src="include.js"><' + '/script>');
+      window.test = true
+      document.write('<script src="post.js"><' + '/script>');
     </script>
   </body>
 </html>

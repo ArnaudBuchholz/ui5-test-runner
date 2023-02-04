@@ -1,0 +1,11 @@
+<!DOCTYPE html>
+<html>
+  <body>
+    <H1>basic</H1>
+    <p>Checks if the browser can load sequentially scripts inserted with document.write</p>
+    <script>
+      document.write('<script src="test.js?wait=1000"><' + '/script>'); // wait 1s before delivering
+      document.write('<script src="post.js"><' + '/script>');
+    </script>
+  </body>
+</html>

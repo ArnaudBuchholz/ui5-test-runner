@@ -1,0 +1,11 @@
+<!DOCTYPE html>
+<html>
+  <body>
+    <H1>basic</H1>
+    <p>Checks if the browser can mix static script with a dynamic script inserted with document.write</p>
+    <script>
+      document.write('<script src="test.js?wait=1000"><' + '/script>'); // wait 1s before delivering
+    </script>
+    <script src="post.js"></script>
+  </body>
+</html>
