@@ -59,7 +59,8 @@ async function main () {
   consoleWriter = buildCsvWriter(join(dir, 'console.csv'))
   networkWriter = buildCsvWriter(join(dir, 'network.csv'))
 
-  const { JSDOM, VirtualConsole, ResourceLoader } = require(settings.modules.jsdom)
+  const jsdom = require(settings.modules.jsdom)
+  const { JSDOM, VirtualConsole } = jsdom
 
   const virtualConsole = new VirtualConsole()
   virtualConsole.on('error', (...args) => consoleWriter.append({ type: 'error', text: args.join(' ') }))
@@ -67,24 +68,16 @@ async function main () {
   virtualConsole.on('info', (...args) => consoleWriter.append({ type: 'info', text: args.join(' ') }))
   virtualConsole.on('log', (...args) => consoleWriter.append({ type: 'log', text: args.join(' ') }))
 
-  class CustomResourceLoader extends ResourceLoader {
-    fetch (url, options) {
-      networkWriter.append({
-        method: 'GET',
-        url,
-        status: 'UNK'
-      })
-      return super.fetch(url, options)
-    }
-  }
-
   JSDOM.fromURL(url, {
     includeNodeLocations: true,
     storageQuota: 10000000,
     runScripts: 'dangerously',
     pretendToBeVisual: true,
     virtualConsole,
-    resources: new CustomResourceLoader(),
+    resources: require('./jsdom/resource-loader')({
+      jsdom,
+      networkWriter
+    }),
     beforeParse (window) {
       window[$networkWriter] = networkWriter
       require('./jsdom/compatibility')(window)
