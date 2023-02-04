@@ -21,8 +21,12 @@ async function capabilities (job) {
     } else {
       await cleanDir(job.reportDir)
     }
-    output.stop()
-    process.exit(code)
+    if (job.keepAlive) {
+      job.status = 'Serving'
+    } else {
+      output.stop()
+      process.exit(code)
+    }
   }
 
   try {
@@ -37,7 +41,7 @@ async function capabilities (job) {
     const listeners = []
 
     const configuration = await check({
-      port: 0,
+      port: job.port,
       mappings: [
         require('../cors'), {
           method: 'POST',
@@ -84,7 +88,7 @@ async function capabilities (job) {
         }
         return
       }
-      const { name, label, url, scripts, endpoint = () => {} } = filteredTests.shift()
+      const { label, url, scripts, endpoint = () => {} } = filteredTests.shift()
 
       const listenerIndex = listeners.length
       const listener = new EventEmitter()
