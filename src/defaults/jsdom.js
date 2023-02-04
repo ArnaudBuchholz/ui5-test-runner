@@ -28,14 +28,14 @@ async function exit (code) {
 process.on('message', async message => {
   const { command } = message
   if (command === 'stop') {
-    exit(0)
+    return exit(0)
   }
 })
 
 async function main () {
   if (process.argv.length !== 3) {
     command.outputHelp()
-    exit(0)
+    return exit(0)
   }
 
   const settings = JSON.parse((await readFile(process.argv[2])).toString())
@@ -48,7 +48,7 @@ async function main () {
       traces: ['console'],
       scripts: true
     }))
-    exit(0)
+    return exit(0)
   }
 
   const { url, dir, scripts } = settings
@@ -83,33 +83,9 @@ async function main () {
     virtualConsole,
     resources: new CustomResourceLoader(),
     beforeParse (window) {
-      // Compatibility layer (see https://developer.mozilla.org/en-US/docs/Web/API/PerformanceTiming/fetchStart)
-      window.performance.timing = {
-        navigationStart: new Date().getTime(),
-        fetchStart: new Date().getTime()
-      }
+      require('./jsdom/compatibility')(window)
       if (options.debug) {
-        // Proxify sap.ui to hook the loader
-        window.sap = {
-          ui: new Proxy({}, {
-            get (obj, prop) {
-              return obj[prop]
-            },
-            set (obj, prop, value) {
-              obj[prop] = value
-              if (prop === 'loader') {
-                value._.logger = {
-                  debug: (...args) => console.log('LOADER', ...args),
-                  info: (...args) => console.info('LOADER', ...args),
-                  warning: (...args) => console.warn('LOADER', ...args),
-                  error: (...args) => console.error('LOADER', ...args),
-                  isLoggable: () => true
-                }
-              }
-              return true
-            }
-          })
-        }
+        require('./jsdom/debug')(window)
       }
       scripts.forEach(script => window.eval(script))
     }
