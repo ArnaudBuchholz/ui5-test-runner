@@ -7,6 +7,7 @@ const { fromCmdLine } = require('./src/job')
 const { getOutput } = require('./src/output')
 const reserveConfigurationFactory = require('./src/reserve')
 const { execute } = require('./src/tests')
+const { capabilities } = require('./src/capabilities')
 const { watch } = require('fs')
 const { recreateDir } = require('./src/tools')
 
@@ -43,6 +44,9 @@ async function main () {
   job = fromCmdLine(process.cwd(), process.argv.slice(2))
   output = getOutput(job)
   await recreateDir(job.reportDir)
+  if (job.mode === 'capabilities') {
+    return capabilities(job)
+  }
   const configuration = await reserveConfigurationFactory(job)
   const server = serve(configuration)
   if (job.logServer) {
