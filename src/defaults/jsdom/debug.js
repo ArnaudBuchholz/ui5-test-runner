@@ -1,9 +1,4 @@
 module.exports = window => {
-  window.addEventListener('error', event => {
-    const { message, filename, lineno, colno } = event
-    window.console.error(`${filename}@${lineno}:${colno}: ${message}`)
-  })
-
   // Proxify sap.ui to hook the loader and enable traces
   window.sap = {
     ui: new Proxy({}, {
