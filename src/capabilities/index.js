@@ -44,6 +44,12 @@ async function capabilities (job) {
       port: job.port,
       mappings: [
         require('../cors'), {
+          match: /wait=(\d+)/,
+          custom: async (request, response, waitTime) => {
+            response.setHeader('x-wait-time', waitTime)
+            await new Promise(resolve => setTimeout(resolve, parseInt(waitTime)))
+          }
+        }, {
           method: 'POST',
           match: '^/_/(.*)',
           custom: async (request, response, endpoint) => {
