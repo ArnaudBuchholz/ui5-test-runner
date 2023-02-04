@@ -13,7 +13,7 @@
   function stringify (data) {
     const objects = []
     const referenced = []
-    if (!UI5Object && typeof window.sap === 'object') {
+    if (!UI5Object && window.sap && window.sap.ui && window.sap.ui.base) {
       UI5Object = window.sap.ui.base.Object
     }
     const ui5Summary = obj => {
