@@ -12,7 +12,6 @@ const {
   $testPagesStarted,
   $testPagesCompleted
 } = require('./symbols')
-const { capabilities } = require('./capabilities')
 const { UTRError } = require('./error')
 
 async function run (task, job) {
@@ -138,9 +137,6 @@ async function process (job) {
 module.exports = {
   async execute (job) {
     await recreateDir(job.reportDir)
-    if (job.mode === 'capabilities') {
-      return capabilities(job)
-    }
     await probe(job)
     if (job.mode !== 'url') {
       job.url = [`http://localhost:${job.port}/${job.testsuite}`]
