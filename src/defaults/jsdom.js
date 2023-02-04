@@ -3,6 +3,9 @@ const { join } = require('path')
 const { Command } = require('commander')
 const { boolean } = require('../options')
 const { buildCsvWriter } = require('../csv-writer')
+const {
+  $networkWriter
+} = require('./jsdom/symbols')
 
 const command = new Command()
 command
@@ -83,6 +86,7 @@ async function main () {
     virtualConsole,
     resources: new CustomResourceLoader(),
     beforeParse (window) {
+      window[$networkWriter] = networkWriter
       require('./jsdom/compatibility')(window)
       if (options.debug) {
         require('./jsdom/debug')(window)
