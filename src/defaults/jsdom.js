@@ -48,7 +48,7 @@ async function main () {
   if (settings.capabilities) {
     await writeFile(settings.capabilities, JSON.stringify({
       modules: ['jsdom'],
-      traces: ['console'],
+      traces: ['console', 'network'],
       scripts: true
     }))
     return exit(0)
