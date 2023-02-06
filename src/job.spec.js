@@ -366,7 +366,7 @@ describe('job', () => {
         }).mode).toStrictEqual('capabilities')
       })
 
-      it('supports cwd, port, browser, parallel and reportDir', () => {
+      it('supports cwd, port, browser, parallel, reportDir, failFast and keepAlive', () => {
         expect(fromObject('.', {
           capabilities: true,
           cwd,
@@ -375,7 +375,8 @@ describe('job', () => {
           parallel: 2,
           reportDir: join(cwd, '.report'),
           pageTimeout: 1000,
-          failFast: true
+          failFast: true,
+          keepAlive: true
         }).mode).toStrictEqual('capabilities')
       })
 
@@ -383,7 +384,6 @@ describe('job', () => {
         const incompatible = {
           libs: '../project2',
           ui5: 'http://localhost:8088/ui5',
-          keepAlive: true,
           cache: join(cwd, '.cache'),
           webapp: 'webapp',
           testsuite: 'test/testsuite.qunit.html',
