@@ -114,7 +114,7 @@ async function capabilities (job) {
       const now = performance.now()
       let timeoutId
       if (!job.debugCapabilitiesNoTimeout) {
-        timeoutId = setTimeout(() => done('Timeout'), 10000)
+        timeoutId = setTimeout(() => done('Timeout'), job.pageTimeout || 120000)
       }
 
       async function done (error) {
