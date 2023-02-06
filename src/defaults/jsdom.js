@@ -3,9 +3,6 @@ const { join } = require('path')
 const { Command } = require('commander')
 const { boolean } = require('../options')
 const { buildCsvWriter } = require('../csv-writer')
-const {
-  $networkWriter
-} = require('./jsdom/symbols')
 
 const command = new Command()
 command
@@ -80,8 +77,7 @@ async function main () {
       consoleWriter
     }),
     beforeParse (window) {
-      window[$networkWriter] = networkWriter
-      require('./jsdom/compatibility')(window)
+      require('./jsdom/compatibility')({ window, networkWriter })
       if (options.debug) {
         require('./jsdom/debug')(window)
       }
