@@ -50,7 +50,7 @@ function adjustXPathResult (window) {
 module.exports = ({
   window,
   networkWriter
- }) => {
+}) => {
   window.addEventListener('error', event => {
     const { message, filename, lineno, colno } = event
     window.console.error(`${filename}@${lineno}:${colno}: ${message}`)
