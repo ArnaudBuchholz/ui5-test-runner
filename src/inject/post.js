@@ -83,7 +83,6 @@
         xhr.open('POST', base + '/_/' + url)
         xhr.setRequestHeader('x-page-url', location)
         xhr.send(stringify(data))
-
       })
     }
     lastPost = lastPost
