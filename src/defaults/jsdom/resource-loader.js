@@ -1,18 +1,33 @@
-module.exports = ({ jsdom, networkWriter }) => {
+module.exports = ({
+  jsdom,
+  networkWriter,
+  consoleWriter
+}) => {
   const { ResourceLoader: JSDOMResourceLoader } = jsdom
 
   class ResourceLoader extends JSDOMResourceLoader {
     fetch (url, options) {
-      const req = super.fetch(url, options)
-      const log = res => {
+      const request = super.fetch(url, options)
+      const log = reason => {
+        const { response } = request
+        let status
+        if (response === undefined) {
+          consoleWriter.append({
+            type: 'error',
+            message: reason.toString()
+          })
+          status = 599
+        } else {
+          status = response.statusCode
+        }
         networkWriter.append({
           method: 'GET',
           url,
-          status: res.statusCode
+          status
         })
       }
-      req.then(() => log(req.response), () => log(req.response))
-      return req
+      request.then(log, log)
+      return request
     }
   }
 
