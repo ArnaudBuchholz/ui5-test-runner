@@ -366,7 +366,7 @@ describe('job', () => {
         }).mode).toStrictEqual('capabilities')
       })
 
-      it('supports cwd, port, browser, parallel, reportDir, failFast and keepAlive', () => {
+      it('supports cwd, port, browser, parallel, reportDir, pageTimeout, failFast and keepAlive', () => {
         expect(fromObject('.', {
           capabilities: true,
           cwd,
