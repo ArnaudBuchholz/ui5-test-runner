@@ -76,7 +76,8 @@ async function main () {
     virtualConsole,
     resources: require('./jsdom/resource-loader')({
       jsdom,
-      networkWriter
+      networkWriter,
+      consoleWriter
     }),
     beforeParse (window) {
       window[$networkWriter] = networkWriter
