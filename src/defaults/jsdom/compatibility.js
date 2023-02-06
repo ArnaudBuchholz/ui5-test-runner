@@ -1,7 +1,3 @@
-const {
-  $networkWriter
-} = require('./symbols')
-
 const noop = () => {}
 
 function fakeMatchMedia () {
@@ -12,14 +8,14 @@ function fakeMatchMedia () {
   }
 }
 
-function wrapXHR (window) {
+function wrapXHR (window, networkWriter) {
   const { XMLHttpRequest } = window
   const { open } = XMLHttpRequest.prototype
   XMLHttpRequest.prototype.open = function (method, url, asynchronous) {
     this.addEventListener('readystatechange', () => {
       if (this.readyState === XMLHttpRequest.DONE) {
         const { status } = this
-        window[$networkWriter].append({
+        networkWriter.append({
           method,
           url,
           status
@@ -30,7 +26,31 @@ function wrapXHR (window) {
   }
 }
 
-module.exports = window => {
+function adjustXPathResult (window) {
+  /* https://ui5.sap.com/resources/sap/ui/model/odata/AnnotationParser-dbg.js
+     getXPath: function() {
+       xmlNodes.length = xmlNodes.snapshotLength;
+  */
+  const { Document } = window
+  const evaluate = Document.prototype.evaluate
+  Document.prototype.evaluate = function () {
+    const result = evaluate.apply(this, arguments)
+    let length = result.length
+    Object.defineProperty(result, 'length', {
+      get: () => length,
+      set: (value) => {
+        length = value
+        return true
+      }
+    })
+    return result
+  }
+}
+
+module.exports = ({
+  window,
+  networkWriter
+ }) => {
   window.addEventListener('error', event => {
     const { message, filename, lineno, colno } = event
     window.console.error(`${filename}@${lineno}:${colno}: ${message}`)
@@ -42,5 +62,6 @@ module.exports = window => {
   }
   window.matchMedia = window.matchMedia || fakeMatchMedia
 
-  wrapXHR(window)
+  wrapXHR(window, networkWriter)
+  adjustXPathResult(window)
 }
