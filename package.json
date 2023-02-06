@@ -67,6 +67,10 @@
     "setupFilesAfterEnv": [
       "./test/setup.js"
     ],
+    "testPathIgnorePatterns": [
+      "/node_modules/",
+      "/capabilities/"
+    ],
     "collectCoverage": true,
     "collectCoverageFrom": [
       "src/*.js"
