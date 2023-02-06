@@ -12,16 +12,16 @@ function wrapXHR (window, networkWriter) {
   const { XMLHttpRequest } = window
   const { open } = XMLHttpRequest.prototype
   XMLHttpRequest.prototype.open = function (method, url, asynchronous) {
-    this.addEventListener('readystatechange', () => {
-      if (this.readyState === XMLHttpRequest.DONE) {
-        const { status } = this
-        networkWriter.append({
-          method,
-          url,
-          status
-        })
-      }
-    })
+    const log = () => {
+      const { status } = this
+      networkWriter.append({
+        method,
+        url,
+        status
+      })
+    }
+    this.addEventListener('load', log)
+    this.addEventListener('error', log)
     return open.call(this, method, url, asynchronous)
   }
 }
