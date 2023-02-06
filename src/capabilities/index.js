@@ -14,16 +14,16 @@ async function capabilities (job) {
   const output = getOutput(job)
 
   async function exit (code) {
-    if (job.debugKeepReport) {
-      output.wrap(() => console.log('Report folder', job.reportDir, 'not cleaned because of --debug-keep-report.'))
-    } else if (code !== 0) {
-      output.wrap(() => console.error('Report folder', job.reportDir, 'not cleaned because of errors.'))
-    } else {
-      await cleanDir(job.reportDir)
-    }
     if (job.keepAlive) {
       job.status = 'Serving'
     } else {
+      if (job.debugKeepReport) {
+        output.wrap(() => console.log('Report folder', job.reportDir, 'not cleaned because of --debug-keep-report.'))
+      } else if (code !== 0) {
+        output.wrap(() => console.error('Report folder', job.reportDir, 'not cleaned because of errors.'))
+      } else {
+        await cleanDir(job.reportDir)
+      }
       output.stop()
       process.exit(code)
     }
