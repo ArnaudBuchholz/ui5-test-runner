@@ -26,16 +26,22 @@ class CsvWriter {
     return this.#ready
   }
 
-  append (record) {
+  append (records) {
+    if (!Array.isArray(records)) {
+      records = [records]
+    }
     if (this.#fields.length === 0) {
-      this.#fields = Object.keys(record)
+      this.#fields = Object.keys(records[0]).filter(name => name !== 'timestamp')
       this.#ready = this.#ready.then(() => append(this.#fileName, `timestamp\t${this.#fields.join('\t')}`))
     }
-    const line = [
-      Date.now(),
-      ...this.#fields.map(name => escape(record[name]))
-    ].join('\t')
-    this.#ready = this.#ready.then(() => append(this.#fileName, line))
+    const lines = records.map(record => {
+      const { timestamp = Date.now() } = record
+      return [
+        timestamp,
+        ...this.#fields.map(name => escape(record[name]))
+      ].join('\t')
+    }).join('\n')
+    this.#ready = this.#ready.then(() => append(this.#fileName, lines))
   }
 }
 
