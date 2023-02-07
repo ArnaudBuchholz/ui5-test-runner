@@ -120,8 +120,7 @@ async function main () {
   browserOptions.setLoggingPrefs(prefs)
 
   driver = await new Builder()
-    .forBrowser(browser)
-    [setOptions](browserOptions)
+    .forBrowser(browser)[setOptions](browserOptions)
     .build()
 
   if (settings.capabilities) {
@@ -133,8 +132,11 @@ async function main () {
     }))
     process.exit(0)
   }
-  
-  const { url, scripts } = settings
+
+  const { url, scripts, dir } = settings
+
+  consoleWriter = buildCsvWriter(join(dir, 'console.csv'))
+  networkWriter = buildCsvWriter(join(dir, 'network.csv'))
 
   if (scripts && scripts.length) {
     for await (const script of scripts) {
