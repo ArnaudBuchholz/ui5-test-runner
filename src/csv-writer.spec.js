@@ -51,4 +51,27 @@ describe('src/csv-writer', () => {
       ['test.csv', `${now}\t1\t"test\\t1\\n"\n`, { flag: 'a+' }]
     ])
   })
+
+  it('handles provided timestamp', async () => {
+    const writer = buildCsvWriter('test.csv')
+    writer.append({ timestamp: 456, number: 1, text: 'test\t1\n' })
+    await writer.ready
+    expect(writeFile.mock.calls).toEqual([
+      ['test.csv', 'timestamp\tnumber\ttext\n', { flag: 'a+' }],
+      ['test.csv', '456\t1\t"test\\t1\\n"\n', { flag: 'a+' }]
+    ])
+  })
+
+  it('handles record array', async () => {
+    const writer = buildCsvWriter('test.csv')
+    await writer.append([
+      { number: 1, text: 'test\t1\n' },
+      { number: 2, text: 'test\t2\n' }
+    ])
+    await writer.ready
+    expect(writeFile.mock.calls).toEqual([
+      ['test.csv', 'timestamp\tnumber\ttext\n', { flag: 'a+' }],
+      ['test.csv', `${now}\t1\t"test\\t1\\n"\n${now}\t2\t"test\\t2\\n"\n`, { flag: 'a+' }]
+    ])
+  })
 })
