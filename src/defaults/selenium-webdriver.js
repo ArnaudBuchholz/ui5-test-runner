@@ -22,6 +22,7 @@ function browser (value, defaultValue) {
   if (browserMappings[value] === undefined) {
     throw new InvalidArgumentError('Browser name')
   }
+  return value
 }
 
 const command = new Command()
@@ -29,23 +30,37 @@ command
   .name('ui5-test-runner/@/selenium-webdriver')
   .description('Browser instantiation command for selenium-webdriver')
   .helpOption(false)
-  .option('-b, --browser <name>', 'Browser', browser, 'chrome')
+  .option('-b, --browser <name>', 'Browser driver', browser, 'chrome')
   .option('--visible [flag]', 'Show the browser', boolean, false)
   .option('-w, --viewport-width <width>', 'Viewport width', integer, 1920)
   .option('-h, --viewport-height <height>', 'Viewport height', integer, 1080)
   .option('-l, --language <lang...>', 'Language(s)', ['en-US'])
 
-let consoleWriter = { ready: Promise.resolve() }
-let networkWriter = { ready: Promise.resolve() }
+const append = () => { }
+let consoleWriter = { ready: Promise.resolve(), append }
+let networkWriter = { ready: Promise.resolve(), append }
 
 let driver
+let logging
 let stopping = false
 
-async function exit (code) {
+async function exit(code) {
   if (stopping) {
     return
   }
   stopping = true
+  if (driver) {
+    const logs = await driver.manage().logs().get(logging.Type.BROWSER)
+    if (logs.length) {
+      consoleWriter.append(logs.map(({ timestamp, message, level }) => {
+        return {
+          timestamp,
+          type: level.toString().toLowerCase(),
+          message
+        }
+      }))
+    }
+  }
   await Promise.all([consoleWriter.ready, networkWriter.ready])
   if (driver) {
     try {
@@ -79,7 +94,7 @@ process.on('message', async message => {
   }
 })
 
-async function main () {
+async function main() {
   if (process.argv.length !== 3) {
     command.outputHelp()
     return exit(0)
@@ -100,7 +115,9 @@ async function main () {
     return exit(0)
   }
 
-  const { Builder, logging } = require(settings.modules['selenium-webdriver'])
+  const seleniumWebdriver = require(settings.modules['selenium-webdriver'])
+  const { Builder } = seleniumWebdriver
+  logging = seleniumWebdriver.logging
   const { Options: BrowserOptions } = require(join(settings.modules['selenium-webdriver'], subModule))
 
   const browserOptions = new BrowserOptions()
@@ -109,19 +126,13 @@ async function main () {
     browserOptions.addArguments('headless')
   }
 
-  logging.getLogger().setLevel(logging.Level.ALL)
-  logging.getLogger(logging.Type.BROWSER).setLevel(logging.Level.ALL)
-  logging.installConsoleHandler(entry => {
-    console.log(entry)
-  })
-
   const prefs = new logging.Preferences()
   prefs.setLevel(logging.Type.BROWSER, logging.Level.DEBUG)
   browserOptions.setLoggingPrefs(prefs)
 
-  driver = await new Builder()
-    .forBrowser(browser)[setOptions](browserOptions)
-    .build()
+  logging.getLogger(logging.Type.BROWSER).setLevel(logging.Level.ALL)
+
+  driver = await new Builder().forBrowser(browser)[setOptions](browserOptions).build()
 
   if (settings.capabilities) {
     await writeFile(settings.capabilities, JSON.stringify({
@@ -130,7 +141,7 @@ async function main () {
       scripts: true,
       traces: ['console', 'network']
     }))
-    process.exit(0)
+    return exit(0)
   }
 
   const { url, scripts, dir } = settings
