@@ -14,7 +14,7 @@ module.exports = ({
         if (response === undefined) {
           consoleWriter.append({
             type: 'error',
-            message: 'NETWORK ERROR : ' + reason ? reason.toString() : 'unknown reason'
+            message: 'NETWORK ERROR : ' + (reason ? reason.toString() : 'unknown reason')
           })
           status = 599
         } else {
