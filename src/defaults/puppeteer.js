@@ -35,7 +35,7 @@ async function exit (code) {
   if (browser) {
     await browser.close()
   }
-  process.exit(0)
+  process.exit(code)
 }
 
 process.on('message', async message => {
