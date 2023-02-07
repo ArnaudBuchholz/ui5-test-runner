@@ -18,7 +18,18 @@ function check (job, allowed, forbidden) {
 
 function buildAndCheckMode (job) {
   if (job.capabilities) {
-    check(job, ['capabilities', 'cwd', 'port', 'browser', 'parallel', 'reportDir', 'pageTimeout', 'failFast', 'keepAlive'])
+    check(job, [
+      'capabilities',
+      'cwd',
+      'port',
+      'browser',
+      'parallel',
+      'reportDir',
+      'pageTimeout',
+      'browserCloseTimeout',
+      'failFast',
+      'keepAlive'
+    ])
     return 'capabilities'
   }
   if (job.url && job.url.length) {
