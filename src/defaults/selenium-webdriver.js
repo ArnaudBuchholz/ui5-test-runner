@@ -44,7 +44,7 @@ let driver
 let logging
 let stopping = false
 
-async function exit(code) {
+async function exit (code) {
   if (stopping) {
     return
   }
@@ -94,7 +94,7 @@ process.on('message', async message => {
   }
 })
 
-async function main() {
+async function main () {
   if (process.argv.length !== 3) {
     command.outputHelp()
     return exit(0)
