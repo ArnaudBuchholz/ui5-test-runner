@@ -72,9 +72,9 @@ async function probe (job) {
       browserCapabilities = Object.assign({
         modules: [],
         screenshot: null,
-        console: false,
         scripts: false,
-        parallel: true
+        parallel: true,
+        traces: []
       }, JSON.parse((await readFile(capabilities)).toString()))
     } catch (e) {
       throw UTRError.MISSING_OR_INVALID_BROWSER_CAPABILITIES(e.message)
