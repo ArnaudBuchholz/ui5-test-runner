@@ -1,0 +1,14 @@
+{
+  "browserMappings": {
+    "chrome": {
+      "browser": "chrome",
+      "setOptions": "setChromeOptions",
+      "subModule": "chrome"
+    },
+    "firefox": {
+      "browser": "firefox",
+      "setOptions": "setFirefoxOptions",
+      "subModule": "firefox"
+    }
+  }
+}
