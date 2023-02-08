@@ -44,7 +44,7 @@ async function capabilities (job) {
       port: job.port,
       mappings: [
         require('../cors'), {
-          match: /wait=(\d+)/,
+          match: /x-wait-time=(\d+)/,
           custom: async (request, response, waitTime) => {
             response.setHeader('x-wait-time', waitTime)
             await new Promise(resolve => setTimeout(resolve, parseInt(waitTime)))
@@ -88,13 +88,13 @@ async function capabilities (job) {
 
     const next = async () => {
       if (filteredTests.length === 0) {
-        if (Object.keys(job[$browsers]).length === 0) {
+        if (!job[$browsers] || Object.keys(job[$browsers]).length === 0) {
           output.wrap(() => console.log('Done.'))
           exit(errors)
         }
         return
       }
-      const { label, url, scripts, endpoint = () => {} } = filteredTests.shift()
+      const { label, url, scripts, endpoint = () => { } } = filteredTests.shift()
 
       const listenerIndex = listeners.length
       const listener = new EventEmitter()
@@ -169,7 +169,7 @@ async function capabilities (job) {
     }
 
     const testsCount = filteredTests.length
-    for (let i = 0; i < Math.min(parallel, testsCount); ++i) {
+    for (let i = 0; i < Math.max(Math.min(parallel, testsCount), 1); ++i) {
       next()
     }
 
