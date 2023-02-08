@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html>
+  <body>
+    <H1>console</H1>
+    <p>Checks if the browser supports traces</p>
+    <script>
+      console.log('A simple string')
+      console.log('A quoted "string"')
+      console.log('complex parameters', 1, true, { property: 'value' })
+      console.warn('A warning')
+      console.error('An error')
+      console.info('An info')
+      const xhr = new XMLHttpRequest()
+      xhr.open('POST', '/_/log')
+      xhr.send('{}')
+    </script>
+  </body>
+</html>
