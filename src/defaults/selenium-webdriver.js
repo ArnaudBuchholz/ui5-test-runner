@@ -6,20 +6,13 @@ const { Command } = require('commander')
 const { boolean, integer } = require('../options')
 const { buildCsvWriter } = require('../csv-writer')
 const { InvalidArgumentError } = require('commander')
-
-const browserMappings = {
-  chrome: {
-    browser: 'chrome',
-    setOptions: 'setChromeOptions',
-    subModule: 'chrome'
-  }
-}
+const config = require('./selenium-webdriver.json')
 
 function browser (value, defaultValue) {
   if (value === undefined) {
     return defaultValue
   }
-  if (browserMappings[value] === undefined) {
+  if (config.browserMappings[value] === undefined) {
     throw new InvalidArgumentError('Browser name')
   }
   return value
@@ -51,12 +44,17 @@ async function exit (code) {
   stopping = true
   if (driver) {
     const logs = await driver.manage().logs().get(logging.Type.BROWSER)
+    const logLevelMapping = {
+      INFO: 'log',
+      WARNING: 'warning',
+      SEVERE: 'error'
+    }
     if (logs.length) {
       consoleWriter.append(logs.map(({ timestamp, message, level }) => {
         return {
           timestamp,
-          type: level.toString().toLowerCase(),
-          message
+          type: logLevelMapping[level.toString()],
+          text: message
         }
       }))
     }
@@ -103,7 +101,7 @@ async function main () {
   const settings = JSON.parse((await readFile(process.argv[2])).toString())
   command.parse(settings.args, { from: 'user' })
   const options = command.opts()
-  const { browser, setOptions, subModule } = browserMappings[options.browser]
+  const { browser, setOptions, subModule } = config.browserMappings[options.browser]
 
   if (settings.capabilities && !settings.modules) {
     await writeFile(settings.capabilities, JSON.stringify({
@@ -121,7 +119,7 @@ async function main () {
   const { Options: BrowserOptions } = require(join(settings.modules['selenium-webdriver'], subModule))
 
   const browserOptions = new BrowserOptions()
-  browserOptions.excludeSwitches('enable-logging')
+  // browserOptions.excludeSwitches('enable-logging')
   if (!options.visible) {
     browserOptions.addArguments('headless')
   }
