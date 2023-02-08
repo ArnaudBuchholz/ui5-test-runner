@@ -47,7 +47,7 @@ describe('src/browser', () => {
       })
       await probe(job)
       expect(config.url).toStrictEqual('about:blank')
-      expect(job.browserCapabilities.console).toStrictEqual(false)
+      expect(job.browserCapabilities.parallel).toStrictEqual(true)
     })
 
     it('fails if the browser does not generate capabilities', async () => {
@@ -69,12 +69,12 @@ describe('src/browser', () => {
           const config = JSON.parse((await readFile(childProcess.args[0])).toString())
           await writeFile(config.capabilities, JSON.stringify({
             screenshot: false,
-            console: true
+            traces: ['console']
           }))
         }
       })
       await probe(job)
-      expect(job.browserCapabilities.console).toStrictEqual(true)
+      expect(job.browserCapabilities.traces).toStrictEqual(['console'])
       expect(job.browserCapabilities.parallel).toStrictEqual(true)
     })
 
