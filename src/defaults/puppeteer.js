@@ -24,7 +24,6 @@ require('./browser')({
       })
       return true
     }
-    return false
   },
 
   async beforeExit () {
