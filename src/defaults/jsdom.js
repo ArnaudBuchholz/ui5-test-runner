@@ -42,7 +42,7 @@ require('./browser')({
         networkWriter,
         consoleWriter
       }),
-      beforeParse(window) {
+      beforeParse (window) {
         require('./jsdom/compatibility')({ window, networkWriter })
         if (options.debug) {
           require('./jsdom/debug')(window)
