@@ -3,7 +3,7 @@ const { join } = require('path')
 const { Command } = require('commander')
 const { buildCsvWriter } = require('../csv-writer')
 
-const noop = () => {}
+const noop = () => { }
 
 module.exports = ({
   name,
@@ -33,9 +33,16 @@ module.exports = ({
       return
     }
     stopping = true
-    await flush()
+    await flush({
+      consoleWriter,
+      networkWriter
+    })
     await Promise.all([consoleWriter.ready, networkWriter.ready])
-    await beforeExit()
+    try {
+      await beforeExit()
+    } catch (e) {
+      // ignore
+    }
     process.exit(code)
   }
 
@@ -68,7 +75,7 @@ module.exports = ({
     const options = command.opts()
 
     if (settings.capabilities) {
-      const attributes = await capabilities(settings)
+      const attributes = await capabilities({ settings, options })
       await writeFile(settings.capabilities, JSON.stringify(attributes))
       return exit(0)
     }
