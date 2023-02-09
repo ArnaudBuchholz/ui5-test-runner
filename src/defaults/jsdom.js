@@ -1,3 +1,5 @@
+'use strict'
+
 const { boolean } = require('../options')
 
 require('./browser')({
