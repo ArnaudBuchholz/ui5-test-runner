@@ -1,172 +1,130 @@
 'use strict'
 
-const { readFile, writeFile } = require('fs/promises')
-const { join } = require('path')
-const { Command } = require('commander')
-const { boolean, integer } = require('../options')
-const { buildCsvWriter } = require('../csv-writer')
 const { InvalidArgumentError } = require('commander')
-const config = require('./selenium-webdriver.json')
+const { boolean, integer } = require('../options')
+const { writeFile } = require('fs/promises')
+
+let logging
+let driver
 
 function browser (value, defaultValue) {
   if (value === undefined) {
-    return defaultValue
+    return 'chrome'
   }
-  if (config.browserMappings[value] === undefined) {
+  if (!['chrome'].includes(value)) {
     throw new InvalidArgumentError('Browser name')
   }
   return value
 }
 
-const command = new Command()
-command
-  .name('ui5-test-runner/@/selenium-webdriver')
-  .description('Browser instantiation command for selenium-webdriver')
-  .helpOption(false)
-  .option('-b, --browser <name>', 'Browser driver', browser, 'chrome')
-  .option('--visible [flag]', 'Show the browser', boolean, false)
-  .option('-w, --viewport-width <width>', 'Viewport width', integer, 1920)
-  .option('-h, --viewport-height <height>', 'Viewport height', integer, 1080)
-  .option('-l, --language <lang...>', 'Language(s)', ['en-US'])
-
-const append = () => { }
-let consoleWriter = { ready: Promise.resolve(), append }
-let networkWriter = { ready: Promise.resolve(), append }
-
-let driver
-let logging
-let stopping = false
-
-async function exit (code) {
-  if (stopping) {
-    return
-  }
-  stopping = true
-  if (driver) {
-    const logs = await driver.manage().logs().get(logging.Type.BROWSER)
-    const logLevelMapping = {
-      INFO: 'log',
-      WARNING: 'warning',
-      SEVERE: 'error'
-    }
-    if (logs.length) {
-      consoleWriter.append(logs.map(({ timestamp, message, level }) => {
-        return {
-          timestamp,
-          type: logLevelMapping[level.toString()],
-          text: message
-        }
-      }))
-    }
-  }
-  await Promise.all([consoleWriter.ready, networkWriter.ready])
-  if (driver) {
-    try {
-      await driver.quit()
-    } catch (e) {
-      // ignore
-    }
-  }
-  process.exit(code)
-}
-
-process.on('message', async message => {
-  const { command } = message
-  try {
-    if (command === 'stop') {
-      await exit(0)
-    } else if (command === 'screenshot') {
-      if (driver) {
-        const data = await driver.takeScreenshot()
-        await writeFile(message.filename, data.replace(/^data:image\/png;base64,/, ''), {
-          encoding: 'base64'
-        })
-        process.send(message)
-      } else {
-        throw new Error('screenshot command received but page not ready')
-      }
-    }
-  } catch (e) {
-    console.error(e)
-    exit(-2)
-  }
-})
-
-async function main () {
-  if (process.argv.length !== 3) {
-    command.outputHelp()
-    return exit(0)
-  }
-
-  const settings = JSON.parse((await readFile(process.argv[2])).toString())
-  command.parse(settings.args, { from: 'user' })
-  const options = command.opts()
-  const { browser, setOptions, subModule } = config.browserMappings[options.browser]
-
-  if (settings.capabilities && !settings.modules) {
-    await writeFile(settings.capabilities, JSON.stringify({
-      modules: ['selenium-webdriver'],
-      screenshot: '.png',
-      traces: ['console', 'network'],
-      'probe-with-modules': true
-    }))
-    return exit(0)
-  }
-
+async function buildDriver (settings, options) {
   const seleniumWebdriver = require(settings.modules['selenium-webdriver'])
-  const { Builder } = seleniumWebdriver
+
   logging = seleniumWebdriver.logging
-  const { Options: BrowserOptions } = require(join(settings.modules['selenium-webdriver'], subModule))
-
-  const browserOptions = new BrowserOptions()
-  // browserOptions.excludeSwitches('enable-logging')
-  if (!options.visible) {
-    browserOptions.addArguments('headless')
-  }
-
-  const prefs = new logging.Preferences()
-  prefs.setLevel(logging.Type.BROWSER, logging.Level.DEBUG)
-  browserOptions.setLoggingPrefs(prefs)
-
   logging.getLogger(logging.Type.BROWSER).setLevel(logging.Level.ALL)
 
-  driver = await new Builder().forBrowser(browser)[setOptions](browserOptions).build()
+  const loggingPreferences = new logging.Preferences()
+  loggingPreferences.setLevel(logging.Type.BROWSER, logging.Level.DEBUG)
 
-  if (settings.capabilities) {
-    await writeFile(settings.capabilities, JSON.stringify({
+  driver = await require('./selenium-webdriver/' + options.browser)({
+    seleniumWebdriver,
+    settings,
+    options,
+    loggingPreferences
+  })
+}
+
+require('./browser')({
+  name: 'selenium-webdriver',
+
+  options (command) {
+    command
+      .option('-b, --browser <name>', 'Browser driver', browser, 'chrome')
+      .option('--visible [flag]', 'Show the browser', boolean, false)
+      .option('-w, --viewport-width <width>', 'Viewport width', integer, 1920)
+      .option('-h, --viewport-height <height>', 'Viewport height', integer, 1080)
+      .option('-l, --language <lang...>', 'Language(s)', ['en-US'])
+  },
+
+  async screenshot (filename) {
+    if (driver) {
+      const data = await driver.takeScreenshot()
+      await writeFile(filename, data.replace(/^data:image\/png;base64,/, ''), {
+        encoding: 'base64'
+      })
+      return true
+    }
+  },
+
+  async flush ({
+    consoleWriter
+  }) {
+    if (driver) {
+      const logs = await driver.manage().logs().get(logging.Type.BROWSER)
+      const logLevelMapping = {
+        INFO: 'log',
+        WARNING: 'warning',
+        SEVERE: 'error'
+      }
+      if (logs.length) {
+        consoleWriter.append(logs.map(({ timestamp, message, level }) => {
+          return {
+            timestamp,
+            type: logLevelMapping[level.toString()],
+            text: message
+          }
+        }))
+      }
+    }
+  },
+
+  async beforeExit () {
+    if (driver) {
+      await driver.quit()
+    }
+  },
+
+  async capabilities ({ settings, options }) {
+    if (!settings.modules) {
+      return {
+        modules: ['selenium-webdriver'],
+        screenshot: '.png',
+        traces: ['console', 'network'],
+        'probe-with-modules': true
+      }
+    }
+    await buildDriver(settings, options)
+    return {
       modules: ['selenium-webdriver'],
       screenshot: '.png',
       scripts: true,
       traces: ['console', 'network']
-    }))
-    return exit(0)
-  }
-
-  const { url, scripts, dir } = settings
-
-  consoleWriter = buildCsvWriter(join(dir, 'console.csv'))
-  networkWriter = buildCsvWriter(join(dir, 'network.csv'))
-
-  if (scripts && scripts.length) {
-    for await (const script of scripts) {
-      await driver.sendDevToolsCommand('Page.addScriptToEvaluateOnNewDocument', { source: script })
     }
-  }
+  },
 
-  await driver.get(url)
-}
+  async run ({
+    settings,
+    options
+  }) {
+    await buildDriver(settings, options)
 
-main().catch(async error => {
-  if (error.name === 'SessionNotCreatedError') {
-    console.error(error.message)
-  } else {
-    console.error(error)
+    const { url, scripts } = settings
+
+    if (scripts && scripts.length) {
+      for await (const script of scripts) {
+        await driver.sendDevToolsCommand('Page.addScriptToEvaluateOnNewDocument', { source: script })
+      }
+    }
+
+    await driver.get(url)
+  },
+
+  async error (e, exit) {
+    if (e.name === 'SessionNotCreatedError') {
+      console.error(e.message)
+    } else {
+      console.error(e)
+    }
+    console.error('Please check https://www.npmjs.com/package/selenium-webdriver#installation for browser driver')
   }
-  console.error('Please check https://www.npmjs.com/package/selenium-webdriver#installation for browser driver')
-  try {
-    await driver.quit()
-  } catch (e) {
-    // ignore
-  }
-  process.exit(-1)
 })
