@@ -76,7 +76,7 @@ module.exports = ({
 
     if (settings.capabilities) {
       const attributes = await capabilities({ settings, options })
-      await writeFile(settings.capabilities, JSON.stringify(attributes))
+      await writeFile(settings.capabilities, JSON.stringify(attributes, undefined, 2))
       return exit(0)
     }
 
