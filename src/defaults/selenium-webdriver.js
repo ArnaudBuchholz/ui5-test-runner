@@ -1,7 +1,7 @@
 'use strict'
 
 const { InvalidArgumentError } = require('commander')
-const { boolean, integer } = require('../options')
+const { boolean, /* integer, */ url } = require('../options')
 const { writeFile } = require('fs/promises')
 
 let logging
@@ -11,7 +11,7 @@ function browser (value, defaultValue) {
   if (value === undefined) {
     return 'chrome'
   }
-  if (!['chrome'].includes(value)) {
+  if (!['chrome', 'firefox'].includes(value)) {
     throw new InvalidArgumentError('Browser name')
   }
   return value
@@ -41,9 +41,11 @@ require('./browser')({
     command
       .option('-b, --browser <name>', 'Browser driver', browser, 'chrome')
       .option('--visible [flag]', 'Show the browser', boolean, false)
-      .option('-w, --viewport-width <width>', 'Viewport width', integer, 1920)
-      .option('-h, --viewport-height <height>', 'Viewport height', integer, 1080)
-      .option('-l, --language <lang...>', 'Language(s)', ['en-US'])
+      // .option('-w, --viewport-width <width>', 'Viewport width', integer, 1920)
+      // .option('-h, --viewport-height <height>', 'Viewport height', integer, 1080)
+      // .option('-l, --language <lang...>', 'Language(s)', ['en-US'])
+      .option('-s, --server <server>', 'Selenium server URL', url)
+      .option('--binary <binary>', 'Binary path')
   },
 
   async screenshot (filename) {
@@ -85,21 +87,23 @@ require('./browser')({
   },
 
   async capabilities ({ settings, options }) {
+    const capabilities = {
+      modules: ['selenium-webdriver'],
+      screenshot: '.png',
+      scripts: true,
+      traces: ['console', 'network'],
+      'selenium-webdriver:browser': options.browser,
+      'selenium-webdriver:server': options.server,
+      'selenium-webdriver:binary': options.binary
+    }
     if (!settings.modules) {
       return {
-        modules: ['selenium-webdriver'],
-        screenshot: '.png',
-        traces: ['console', 'network'],
+        ...capabilities,
         'probe-with-modules': true
       }
     }
     await buildDriver(settings, options)
-    return {
-      modules: ['selenium-webdriver'],
-      screenshot: '.png',
-      scripts: true,
-      traces: ['console', 'network']
-    }
+    return capabilities
   },
 
   async run ({
