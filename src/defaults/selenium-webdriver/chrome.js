@@ -17,9 +17,17 @@ module.exports = async ({
   chromeOptions.addArguments('start-maximized')
   chromeOptions.addArguments('disable-extensions')
   chromeOptions.setLoggingPrefs(loggingPreferences)
+  if (options.binary) {
+    chromeOptions.setBinary(options.binary)
+  }
 
-  return await new Builder()
+  const builder = new Builder()
     .forBrowser(Browser.CHROME)
     .setChromeOptions(chromeOptions)
-    .build()
+
+  if (options.server) {
+    builder.usingServer(options.server)
+  }
+
+  return await builder.build()
 }
