@@ -33,15 +33,21 @@ module.exports = ({
       return
     }
     stopping = true
-    await flush({
-      consoleWriter,
-      networkWriter
-    })
+    try {
+      await flush({
+        consoleWriter,
+        networkWriter
+      })
+    } catch (e) {
+      console.error('[exit:flush]', e)
+      code = -3
+    }
     await Promise.all([consoleWriter.ready, networkWriter.ready])
     try {
       await beforeExit()
     } catch (e) {
-      // ignore
+      console.error('[exit:beforeExit]', e)
+      // but ignore
     }
     process.exit(code)
   }
