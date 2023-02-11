@@ -4,6 +4,8 @@ const { InvalidArgumentError } = require('commander')
 const { boolean, /* integer, */ url } = require('../options')
 const { writeFile } = require('fs/promises')
 
+const $capabilities = Symbol('capabilities')
+
 let logging
 let driver
 
@@ -11,7 +13,7 @@ function browser (value, defaultValue) {
   if (value === undefined) {
     return 'chrome'
   }
-  if (!['chrome', 'firefox'].includes(value)) {
+  if (!['chrome', 'firefox', 'ie', 'edge'].includes(value)) {
     throw new InvalidArgumentError('Browser name')
   }
   return value
@@ -24,13 +26,14 @@ async function buildDriver (settings, options) {
   logging.getLogger(logging.Type.BROWSER).setLevel(logging.Level.ALL)
 
   const loggingPreferences = new logging.Preferences()
-  loggingPreferences.setLevel(logging.Type.BROWSER, logging.Level.DEBUG)
+  loggingPreferences.setLevel(logging.Type.BROWSER, logging.Level.ALL)
 
   driver = await require('./selenium-webdriver/' + options.browser)({
     seleniumWebdriver,
     settings,
     options,
-    loggingPreferences
+    loggingPreferences,
+    $capabilities
   })
 }
 
@@ -103,7 +106,10 @@ require('./browser')({
       }
     }
     await buildDriver(settings, options)
-    return capabilities
+    return Object.assign(
+      capabilities,
+      driver[$capabilities] || {} // Enable override
+    )
   },
 
   async run ({
