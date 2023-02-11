@@ -4,7 +4,8 @@ module.exports = async ({
   seleniumWebdriver,
   settings,
   options,
-  loggingPreferences
+  loggingPreferences,
+  $capabilities
 }) => {
   const { Browser, Builder } = seleniumWebdriver
   const firefox = require(join(settings.modules['selenium-webdriver'], 'firefox'))
@@ -26,5 +27,13 @@ module.exports = async ({
     builder.usingServer(options.server)
   }
 
-  return await builder.build()
+
+  const driver = await builder.build()
+
+  // https://github.com/mozilla/geckodriver/issues/330
+  driver[$capabilities] = {
+    traces: ['network']
+  }
+
+  return driver
 }
