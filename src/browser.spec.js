@@ -133,8 +133,9 @@ describe('src/browser', () => {
           }
         })
         await probe(job)
-        expect(job.browserCapabilities.modules.reserve).toStrictEqual(join(__dirname, '../node_modules/reserve'))
-        expect(job.browserCapabilities.modules.dependentModule).toStrictEqual(join(npmGlobal, 'dependentModule'))
+        expect(job.browserCapabilities.modules).toStrictEqual(['reserve', 'dependentModule'])
+        expect(job.browserModules.reserve).toStrictEqual(join(__dirname, '../node_modules/reserve'))
+        expect(job.browserModules.dependentModule).toStrictEqual(join(npmGlobal, 'dependentModule'))
       })
 
       it('fails if a dependent module cannot be installed', async () => {
@@ -217,8 +218,12 @@ describe('src/browser', () => {
   })
 
   describe('start and stop', () => {
+    const capabilities = {
+      whatever: 'is passed'
+    }
+
     beforeEach(() => {
-      job.browserCapabilities = {}
+      job.browserCapabilities = capabilities
     })
 
     it('returns a promise resolved on stop (even if the child process remains)', async () => {
@@ -232,6 +237,22 @@ describe('src/browser', () => {
         close: false
       })
       await start(job, '/test.html')
+    })
+
+    it('passes the provided capabilities', async () => {
+      let config
+      mock({
+        api: 'fork',
+        scriptPath: job.browser,
+        exec: async childProcess => {
+          remainingChildProcess = childProcess
+          config = JSON.parse((await readFile(childProcess.args[0])).toString())
+          setTimeout(() => stop(job, '/test.html'), 0)
+        },
+        close: false
+      })
+      await start(job, '/test.html')
+      expect(config.capabilities).toStrictEqual(capabilities)
     })
 
     it('passes URL to open', async () => {
