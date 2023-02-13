@@ -12,9 +12,11 @@ const npmLocal = join(__dirname, '../node_modules')
 const npmGlobal = join(tmp, 'npm/global')
 
 beforeAll(async () => {
-  log = jest.spyOn(console, 'log').mockImplementation()
-  warn = jest.spyOn(console, 'warn').mockImplementation()
-  error = jest.spyOn(console, 'error').mockImplementation()
+  if (process.env.TEST_CONSOLE !== 'allow') {
+    log = jest.spyOn(console, 'log').mockImplementation()
+    warn = jest.spyOn(console, 'warn').mockImplementation()
+    error = jest.spyOn(console, 'error').mockImplementation()
+  }
   await createDir(npmGlobal)
   mock({
     api: 'exec',
@@ -43,10 +45,12 @@ beforeEach(() => {
 })
 
 afterAll(() => {
-  expect(log.mock.calls.length).toStrictEqual(0)
-  expect(warn.mock.calls.length).toStrictEqual(0)
-  expect(error.mock.calls.length).toStrictEqual(0)
-  log.mockRestore()
-  warn.mockRestore()
-  error.mockRestore()
+  if (process.env.TEST_CONSOLE !== 'allow') {
+    expect(log.mock.calls.length).toStrictEqual(0)
+    expect(warn.mock.calls.length).toStrictEqual(0)
+    expect(error.mock.calls.length).toStrictEqual(0)
+    log.mockRestore()
+    warn.mockRestore()
+    error.mockRestore()
+  }
 })
