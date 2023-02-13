@@ -61,7 +61,7 @@ describe('simulate', () => {
       exec: async childProcess => {
         const config = JSON.parse((await readFile(childProcess.args[0])).toString())
         const { capabilities, url: referer } = config
-        if (capabilities) {
+        if (typeof capabilities === 'string') {
           await writeFile(capabilities, JSON.stringify({
             console: true,
             scripts: true
