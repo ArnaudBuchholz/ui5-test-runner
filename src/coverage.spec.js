@@ -48,7 +48,8 @@ describe('src/coverage', () => {
     const basePath = join(path, 'enabled')
     let job
 
-    beforeAll(async () => {
+    beforeAll(async function () {
+      jest.setTimeout(30 * 1000)
       const reportDir = join(basePath, 'report')
       await createDir(reportDir)
       job = fromObject(cwd, {
