@@ -17,12 +17,10 @@ async function instantiate (job, config) {
   const { dir, url } = config
   await recreateDir(dir)
   const browserConfig = {
+    capabilities: job.browserCapabilities,
+    modules: job.browserModules,
     ...config,
     args: job.browserArgs
-  }
-  if (job.browserCapabilities) {
-    const { modules } = job.browserCapabilities
-    browserConfig.modules = modules
   }
   const browserConfigPath = join(dir, 'browser.json')
   await writeFile(browserConfigPath, JSON.stringify(browserConfig, undefined, 2))
@@ -92,10 +90,9 @@ async function probe (job) {
       resolvedModules[name] = await resolvePackage(job, name)
     }
   }
-  job.browserCapabilities.modules = resolvedModules
+  job.browserModules = resolvedModules
   if (browserCapabilities['probe-with-modules']) {
     job.browserCapabilities = await execute('probe/with-modules')
-    job.browserCapabilities.modules = resolvedModules
   }
 
   output.browserCapabilities(job.browserCapabilities)
