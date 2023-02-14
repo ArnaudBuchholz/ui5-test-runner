@@ -2,49 +2,70 @@ const { readFile, writeFile } = require('fs/promises')
 const { join } = require('path')
 const { Command } = require('commander')
 const { buildCsvWriter } = require('../csv-writer')
+const { any, boolean, integer } = require('../options')
 
 const noop = () => { }
 
 module.exports = ({
-  name,
-  options,
+  metadata,
   flush = noop,
   beforeExit = noop,
   screenshot,
-  capabilities,
+  capabilities: computeCapabilities,
   run,
   error = noop
 }) => {
   const command = new Command()
   command
-    .name(`ui5-test-runner/@/${name}`)
-    .description(`Browser instantiation command for ${name}`)
+    .name(`ui5-test-runner/@/${metadata.name}`)
+    .description(`Browser instantiation command for ${metadata.name}`)
     .helpOption(false)
-  options(command)
+  metadata.options.forEach(([label, description, parser, defaultValue]) => {
+    if (defaultValue === undefined && typeof parser !== 'function') {
+      defaultValue = parser
+      if (typeof defaultValue === 'number') {
+        parser = integer
+      } else if (typeof defaultValue === 'boolean') {
+        parser = boolean
+      } else {
+        parser = any
+      }
+    }
+    command.option(label, description, parser, defaultValue)
+  })
 
   const append = () => { }
   let consoleWriter = { ready: Promise.resolve(), append }
   let networkWriter = { ready: Promise.resolve(), append }
 
   let stopping = false
+  let settings
+  let options
 
   async function exit (code) {
     if (stopping) {
       return
     }
     stopping = true
-    try {
-      await flush({
-        consoleWriter,
-        networkWriter
-      })
-    } catch (e) {
-      console.error('[exit:flush]', e)
-      code = -3
+    if (settings && typeof settings.capabilities !== 'string' && settings.capabilities.traces.length) {
+      try {
+        await flush({
+          settings,
+          options,
+          consoleWriter,
+          networkWriter
+        })
+      } catch (e) {
+        console.error('[exit:flush]', e)
+        code = -3
+      }
+      await Promise.all([consoleWriter.ready, networkWriter.ready])
     }
-    await Promise.all([consoleWriter.ready, networkWriter.ready])
     try {
-      await beforeExit()
+      await beforeExit({
+        settings,
+        options
+      })
     } catch (e) {
       console.error('[exit:beforeExit]', e)
       // but ignore
@@ -58,7 +79,11 @@ module.exports = ({
       if (command === 'stop') {
         await exit(0)
       } else if (command === 'screenshot') {
-        if (screenshot && await screenshot(message.filename)) {
+        if (settings.capabilities.screenshot && screenshot && await screenshot({
+          settings,
+          options,
+          filename: message.filename
+        })) {
           process.send(message)
         } else {
           throw new Error('screenshot command failed')
@@ -76,13 +101,18 @@ module.exports = ({
   }
 
   async function main () {
-    const settings = JSON.parse((await readFile(process.argv[2])).toString())
+    settings = JSON.parse((await readFile(process.argv[2])).toString())
     command.parse(settings.args, { from: 'user' })
-    const options = command.opts()
+    options = command.opts()
 
-    if (settings.capabilities) {
-      const attributes = await capabilities({ settings, options })
-      await writeFile(settings.capabilities, JSON.stringify(attributes, undefined, 2))
+    if (typeof settings.capabilities === 'string') {
+      let capabilities
+      if (computeCapabilities !== undefined) {
+        capabilities = await computeCapabilities({ settings, options })
+      } else {
+        capabilities = metadata.capabilities
+      }
+      await writeFile(settings.capabilities, JSON.stringify(capabilities, undefined, 2))
       return exit(0)
     }
 
@@ -101,7 +131,12 @@ module.exports = ({
   main()
     .catch(async e => {
       if (!stopping) {
-        await error(e)
+        await error({
+          settings,
+          options,
+          error: e,
+          exit
+        })
         console.error(e)
       }
       exit(-1)
