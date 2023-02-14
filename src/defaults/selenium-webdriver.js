@@ -1,10 +1,8 @@
 'use strict'
 
 const { InvalidArgumentError } = require('commander')
-const { boolean, /* integer, */ url } = require('../options')
+const { url } = require('../options')
 const { writeFile } = require('fs/promises')
-
-const $capabilities = Symbol('capabilities')
 
 let logging
 let driver
@@ -13,7 +11,7 @@ function browser (value, defaultValue) {
   if (value === undefined) {
     return 'chrome'
   }
-  if (!['chrome', 'firefox', 'ie', 'edge'].includes(value)) {
+  if (!['chrome', 'firefox', 'edge'].includes(value)) {
     throw new InvalidArgumentError('Browser name')
   }
   return value
@@ -32,26 +30,48 @@ async function buildDriver (settings, options) {
     seleniumWebdriver,
     settings,
     options,
-    loggingPreferences,
-    $capabilities
+    loggingPreferences
   })
 }
 
 require('./browser')({
-  name: 'selenium-webdriver',
-
-  options (command) {
-    command
-      .option('-b, --browser <name>', 'Browser driver', browser, 'chrome')
-      .option('--visible [flag]', 'Show the browser', boolean, false)
-      // .option('-w, --viewport-width <width>', 'Viewport width', integer, 1920)
-      // .option('-h, --viewport-height <height>', 'Viewport height', integer, 1080)
-      // .option('-l, --language <lang...>', 'Language(s)', ['en-US'])
-      .option('-s, --server <server>', 'Selenium server URL', url)
-      .option('--binary <binary>', 'Binary path')
+  metadata: {
+    name: 'selenium-webdriver',
+    options: [
+      ['-b, --browser <name>', 'Browser driver', browser, 'chrome'],
+      ['--visible [flag]', 'Show the browser', false],
+      ['-s, --server <server>', 'Selenium server URL', url],
+      ['--binary <binary>', 'Binary path']
+    ]
   },
 
-  async screenshot (filename) {
+  async capabilities ({ settings, options }) {
+    const capabilities = {
+      modules: ['selenium-webdriver'],
+      screenshot: '.png',
+      scripts: false,
+      traces: []
+    }
+    if (!settings.modules) {
+      return {
+        ...capabilities,
+        'probe-with-modules': true
+      }
+    }
+    await buildDriver(settings, options)
+    if (driver.__console__) {
+      capabilities.traces.push('console')
+    }
+    if (driver.__network__) {
+      capabilities.traces.push('network')
+    }
+    if (driver.__addScript__) {
+      capabilities.scripts = true
+    }
+    return capabilities
+  },
+
+  async screenshot ({ filename }) {
     if (driver) {
       const data = await driver.takeScreenshot()
       await writeFile(filename, data.replace(/^data:image\/png;base64,/, ''), {
@@ -62,9 +82,10 @@ require('./browser')({
   },
 
   async flush ({
+    settings,
     consoleWriter
   }) {
-    if (driver) {
+    if (driver && settings.capabilities.traces.includes('console')) {
       const logs = await driver.manage().logs().get(logging.Type.BROWSER)
       const logLevelMapping = {
         INFO: 'log',
@@ -89,29 +110,6 @@ require('./browser')({
     }
   },
 
-  async capabilities ({ settings, options }) {
-    const capabilities = {
-      modules: ['selenium-webdriver'],
-      screenshot: '.png',
-      scripts: true,
-      traces: ['console', 'network'],
-      'selenium-webdriver:browser': options.browser,
-      'selenium-webdriver:server': options.server,
-      'selenium-webdriver:binary': options.binary
-    }
-    if (!settings.modules) {
-      return {
-        ...capabilities,
-        'probe-with-modules': true
-      }
-    }
-    await buildDriver(settings, options)
-    return Object.assign(
-      capabilities,
-      driver[$capabilities] || {} // Enable override
-    )
-  },
-
   async run ({
     settings,
     options
@@ -122,14 +120,14 @@ require('./browser')({
 
     if (scripts && scripts.length) {
       for await (const script of scripts) {
-        await driver.sendDevToolsCommand('Page.addScriptToEvaluateOnNewDocument', { source: script })
+        await driver.__addScript__(script)
       }
     }
 
     await driver.get(url)
   },
 
-  async error (e, exit) {
+  async error ({ error: e }) {
     if (e.name === 'SessionNotCreatedError') {
       console.error(e.message)
     } else {
