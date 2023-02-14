@@ -3,6 +3,10 @@
 const { InvalidArgumentError } = require('commander')
 
 module.exports = {
+  any (value) {
+    return value
+  },
+
   boolean (value, defaultValue) {
     if (value === undefined) {
       return !defaultValue
