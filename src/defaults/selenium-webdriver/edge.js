@@ -21,11 +21,5 @@ module.exports = async ({
     builder.usingServer(options.server)
   }
 
-  const driver = await builder.build()
-
-  driver[$capabilities] = {
-    traces: ['network'] // console misses info/log
-  }
-
-  return driver
+  return await builder.build()
 }
