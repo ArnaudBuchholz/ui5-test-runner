@@ -1,17 +1,12 @@
 'use strict'
 
-const { boolean } = require('../options')
-
 require('./browser')({
-  name: 'jsdom',
-
-  options (command) {
-    command
-      .option('--debug [flag]', 'Enable more traces', boolean, false)
-  },
-
-  capabilities () {
-    return {
+  metadata: {
+    name: 'jsdom',
+    options: [
+      ['--debug [flag]', 'Enable more traces', false]
+    ],
+    capabilities: {
       modules: ['jsdom'],
       scripts: true,
       traces: ['console', 'network']
