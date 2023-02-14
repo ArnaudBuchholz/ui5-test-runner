@@ -27,13 +27,5 @@ module.exports = async ({
     builder.usingServer(options.server)
   }
 
-
-  const driver = await builder.build()
-
-  // https://github.com/mozilla/geckodriver/issues/330
-  driver[$capabilities] = {
-    traces: ['network']
-  }
-
-  return driver
+  return await builder.build()
 }
