@@ -1,22 +1,26 @@
 'use strict'
 
-const { boolean, integer } = require('../options')
-
 let browser
 let page
 
 require('./browser')({
-  name: 'puppeteer',
-
-  options (command) {
-    command
-      .option('--visible [flag]', 'Show the browser', boolean, false)
-      .option('-w, --viewport-width <width>', 'Viewport width', integer, 1920)
-      .option('-h, --viewport-height <height>', 'Viewport height', integer, 1080)
-      .option('-l, --language <lang...>', 'Language(s)', ['en-US'])
+  metadata: {
+    name: 'puppeteer',
+    options: [
+      ['--visible [flag]', 'Show the browser', false],
+      ['-w, --viewport-width <width>', 'Viewport width', 1920],
+      ['-h, --viewport-height <height>', 'Viewport height', 1080],
+      ['-l, --language <lang...>', 'Language(s)', ['en-US']]
+    ],
+    capabilities: {
+      modules: ['puppeteer'],
+      screenshot: '.png',
+      scripts: true,
+      traces: ['console', 'network']
+    }
   },
 
-  async screenshot (filename) {
+  async screenshot ({ filename }) {
     if (page) {
       await page.screenshot({
         path: filename,
@@ -32,15 +36,6 @@ require('./browser')({
     }
     if (browser) {
       await browser.close()
-    }
-  },
-
-  capabilities () {
-    return {
-      modules: ['puppeteer'],
-      screenshot: '.png',
-      scripts: true,
-      traces: ['console', 'network']
     }
   },
 
@@ -91,7 +86,7 @@ require('./browser')({
     await page.goto(url)
   },
 
-  async error (e, exit) {
+  async error ({ error: e, exit }) {
     // Lots of threads on this message but no clear solution
     if (e.message === 'Navigation failed because browser has disconnected!') {
       await exit(0)
