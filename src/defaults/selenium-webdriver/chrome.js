@@ -29,5 +29,10 @@ module.exports = async ({
     builder.usingServer(options.server)
   }
 
-  return await builder.build()
+  const driver = await builder.build()
+  driver.__console__ = true
+  driver.__addScript__ = async function (source) {
+    return await driver.sendDevToolsCommand('Page.addScriptToEvaluateOnNewDocument', { source })
+  }
+  return driver
 }
