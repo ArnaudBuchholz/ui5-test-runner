@@ -14,6 +14,9 @@
         sap.ui.getCore().attachInit(function() {
             const xhr = new XMLHttpRequest()
             xhr.open('POST', '/_/log')
+            if (parent !== window) {
+              xhr.setRequestHeader('x-page-url', parent.document.location.toString())
+            }
             xhr.send('{"sap.m.Button":' + !!sap.m.Button + '}')
         });
     </script>
