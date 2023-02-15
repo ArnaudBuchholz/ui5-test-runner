@@ -11,4 +11,10 @@ module.exports = [{
   endpoint: ({ body }) => {
     assert.strictEqual(body['sap.m.Button'], true)
   }
+}, {
+  label: 'Loads a UI5 inside an iframe',
+  url: 'basic/iframe.html',
+  endpoint: ({ body }) => {
+    assert.strictEqual(body['sap.m.Button'], true)
+  }
 }]
