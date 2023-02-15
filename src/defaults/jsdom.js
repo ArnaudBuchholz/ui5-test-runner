@@ -1,5 +1,7 @@
 'use strict'
 
+const { join } = require('path')
+
 require('./browser')({
   metadata: {
     name: 'jsdom',
@@ -28,6 +30,23 @@ require('./browser')({
     virtualConsole.on('info', (...args) => consoleWriter.append({ type: 'info', text: args.join(' ') }))
     virtualConsole.on('log', (...args) => consoleWriter.append({ type: 'log', text: args.join(' ') }))
 
+    const beforeParse = (window) => {
+      require('./jsdom/compatibility')({ window, networkWriter })
+      if (options.debug) {
+        require('./jsdom/debug')(window)
+      }
+      scripts.forEach(script => window.eval(script))
+    }
+
+    // https://github.com/jsdom/jsdom/issues/2920
+    const Window = require(join(modules.jsdom, 'lib/jsdom/browser/Window.js'))
+    const origCreate = Window.createWindow.bind(Window)
+    Window.createWindow = (...args) => {
+      const window = origCreate(...args)
+      beforeParse(window)
+      return window
+    }
+
     JSDOM.fromURL(url, {
       includeNodeLocations: true,
       storageQuota: 10000000,
@@ -39,13 +58,7 @@ require('./browser')({
         networkWriter,
         consoleWriter
       }),
-      beforeParse (window) {
-        require('./jsdom/compatibility')({ window, networkWriter })
-        if (options.debug) {
-          require('./jsdom/debug')(window)
-        }
-        scripts.forEach(script => window.eval(script))
-      }
+      beforeParse
     })
   }
 })
