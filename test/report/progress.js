@@ -1,4 +1,7 @@
-const job = require('./job.js')
 const { getJobProgress } = require('../../src/get-job-progress')
 
-module.exports = (request, response, pageId, testId) => getJobProgress(job, request, response, pageId, testId)
+module.exports = async (request, response, pageId, testId) => {
+  delete require.cache[require.resolve('./job.js')]
+  const job = require('./job.js')
+  return getJobProgress(job, request, response, pageId, testId)
+}
