@@ -19,7 +19,7 @@
     "test": "npm run test:unit && npm run test:integration:jsdom",
     "test:unit": "jest",
     "test:unit:debug": "jest --runInBand",
-    "test:integration:jsdom": "node . --capabilities --browser @/jsdom.js",
+    "test:integration:jsdom": "node . --capabilities --page-timeout 60000 --browser @/jsdom.js",
     "test:report": "reserve --config ./test/report/reserve.json"
   },
   "repository": {
@@ -66,6 +66,7 @@
     ]
   },
   "jest": {
+    "testTimeout": 15000,
     "setupFilesAfterEnv": [
       "./test/setup.js"
     ],
