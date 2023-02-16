@@ -23,7 +23,7 @@
         </tr>
         <tr {{for}}="url of testPageUrls">
           <td class="truncated">
-              <span {{if}}="!qunitPages[url]">{{ url }}</span>
+              <span {{if}}="qunitPages === undefined || !qunitPages[url]">{{ url }}</span>
               <a {{else}} href="#{{ qunitPages[url].id }}">{{ url }}</a>
           </td>
           <td>
