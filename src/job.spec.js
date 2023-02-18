@@ -366,11 +366,12 @@ describe('job', () => {
         }).mode).toStrictEqual('capabilities')
       })
 
-      it('supports cwd, port, browser, parallel, reportDir, pageTimeout, browserCloseTimeout, failFast and keepAlive', () => {
+      it('supports cwd, port, logServer, browser, parallel, reportDir, pageTimeout, browserCloseTimeout, failFast and keepAlive', () => {
         expect(fromObject('.', {
           capabilities: true,
           cwd,
           port: 8080,
+          logServer: true,
           browser: '@/selenium-webdriver.js',
           parallel: 2,
           reportDir: join(cwd, '.report'),
