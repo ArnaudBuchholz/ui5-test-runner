@@ -22,6 +22,7 @@ function buildAndCheckMode (job) {
       'capabilities',
       'cwd',
       'port',
+      'logServer',
       'browser',
       'parallel',
       'reportDir',
