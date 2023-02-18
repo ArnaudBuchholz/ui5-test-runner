@@ -44,6 +44,10 @@ async function capabilities (job) {
       port: job.port,
       mappings: [
         require('../cors'), {
+          custom: async (request, response) => {
+            response.setHeader('x-ui5-test-runner', 'capabilities')
+          }
+        }, {
           match: /x-wait-time=(\d+)/,
           custom: async (request, response, waitTime) => {
             response.setHeader('x-wait-time', waitTime)
@@ -68,7 +72,11 @@ async function capabilities (job) {
           file: join(__dirname, '$1')
         }]
     })
-    await new Promise(resolve => serve(configuration)
+    const server = serve(configuration)
+    if (job.logServer) {
+      server.on('redirected', output.redirected)
+    }
+    await new Promise(resolve => server
       .on('ready', ({ port }) => {
         job.port = port
         resolve()
