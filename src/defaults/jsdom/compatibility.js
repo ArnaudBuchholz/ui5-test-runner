@@ -11,7 +11,8 @@ function fakeMatchMedia () {
 function wrapXHR (window, networkWriter) {
   const { XMLHttpRequest } = window
   const { open } = XMLHttpRequest.prototype
-  XMLHttpRequest.prototype.open = function (method, url, asynchronous) {
+  XMLHttpRequest.prototype.open = function (...args) {
+    const [method, url] = args
     const log = () => {
       const { status } = this
       networkWriter.append({
@@ -22,7 +23,7 @@ function wrapXHR (window, networkWriter) {
     }
     this.addEventListener('load', log)
     this.addEventListener('error', log)
-    return open.call(this, method, url, asynchronous)
+    return open.call(this, ...args)
   }
 }
 
