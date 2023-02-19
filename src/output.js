@@ -282,6 +282,10 @@ function build (job) {
       wrap(() => log(job, p80()`${name} in ${pad.lt(path)}`))()
     },
 
+    packageNotLatest (name, latestVersion) {
+      wrap(() => log(job, `/!\\ latest version of ${name} is ${latestVersion}`))()
+    },
+
     browserStart (url) {
       if (interactive) {
         output(job, '>>', url)
