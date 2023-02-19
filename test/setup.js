@@ -38,6 +38,24 @@ beforeAll(async () => {
     actual: true,
     persist: true
   })
+  const versionOf = name => {
+    const { version } = require(join(__dirname, '../node_modules', name, 'package.json'))
+    return version
+  }
+  mock({
+    api: 'exec',
+    scriptPath: 'npm',
+    args: ['view', 'reserve', 'version'],
+    exec: async childProcess => childProcess.stdout.write(versionOf('reserve') + '\n'),
+    persist: true
+  })
+  mock({
+    api: 'exec',
+    scriptPath: 'npm',
+    args: ['view', 'nyc', 'version'],
+    exec: async childProcess => childProcess.stdout.write(versionOf('nyc') + '\n'),
+    persist: true
+  })
 })
 
 beforeEach(() => {
