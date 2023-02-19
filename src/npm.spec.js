@@ -1,7 +1,7 @@
 const { join } = require('path')
 const { resolvePackage } = require('./npm')
 const { mock } = require('child_process')
-const { createDir, recreateDir } = require('./tools')
+const { cleanDir, createDir, recreateDir } = require('./tools')
 const { writeFile } = require('fs/promises')
 const { fromObject } = require('./job')
 const { getOutput } = require('./output')
@@ -23,6 +23,7 @@ describe('src/npm', () => {
   "version": "1.0.0"
 }`)
     await recreateDir(reportDir)
+    await cleanDir(join(npmGlobal, 'not_existing'))
   })
 
   beforeEach(() => {
@@ -34,19 +35,31 @@ describe('src/npm', () => {
     output = getOutput(job)
     jest.spyOn(output, 'status')
     jest.spyOn(output, 'resolvedPackage')
+    jest.spyOn(output, 'packageNotLatest')
   })
 
   it('detects already installed local package', async () => {
     const path = await resolvePackage(job, 'reserve')
     expect(path).toStrictEqual(join(__dirname, '../node_modules/reserve'))
+    expect(output.resolvedPackage).toHaveBeenCalledTimes(1)
+    expect(output.packageNotLatest).not.toHaveBeenCalled()
   })
 
-  it('detects already installed global package', async () => {
+  it('detects already installed global package (but warn as not the latest)', async () => {
+    mock({
+      api: 'exec',
+      scriptPath: 'npm',
+      args: ['view', 'existing_global', 'version'],
+      exec: async childProcess => childProcess.stdout.write('1.0.1\n'),
+      persist: true
+    })
     const path = await resolvePackage(job, 'existing_global')
     expect(path).toStrictEqual(join(npmGlobal, 'existing_global'))
+    expect(output.resolvedPackage).toHaveBeenCalledTimes(1)
+    expect(output.packageNotLatest).toHaveBeenCalled()
   })
 
-  it('installs missing package globally', async () => {
+  it.only('installs missing package globally', async () => {
     mock({
       api: 'exec',
       scriptPath: 'npm',
@@ -62,6 +75,7 @@ describe('src/npm', () => {
     const path = await resolvePackage(job, 'not_existing')
     expect(path).toStrictEqual(join(npmGlobal, 'not_existing'))
     expect(output.resolvedPackage).toHaveBeenCalledTimes(1)
+    expect(output.packageNotLatest).not.toHaveBeenCalled()
   })
 
   it('fails if the package cannot be installed', async () => {
