@@ -218,7 +218,7 @@ function build (job) {
       } else {
         statusText = statusCode
       }
-      log(job, p80()`${method} ${pad.lt(url)} ${statusText} ${timeSpent}ms`)
+      log(job, p80()`${method.padEnd(7, ' ')} ${pad.lt(url)} ${statusText} ${timeSpent.toString().padStart(4, ' ')}ms`)
     }),
 
     status (status) {
