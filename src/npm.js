@@ -31,13 +31,6 @@ async function folderExists (path) {
 let localRoot
 let globalRoot
 
-async function outputPackage (job, name, path) {
-  const packageTxt = (await readFile(join(path, 'package.json'))).toString()
-  const packageJson = JSON.parse(packageTxt)
-  const { version } = packageJson
-  getOutput(job).resolvedPackage(name, path, version)
-}
-
 module.exports = {
   async resolvePackage (job, name) {
     if (!localRoot) {
@@ -46,19 +39,32 @@ module.exports = {
         npm(job, 'root', '--global')
       ])
     }
-    const localModule = join(localRoot, name)
-    if (await folderExists(localModule)) {
-      await outputPackage(job, name, localModule)
-      return localModule
+    let modulePath
+    let justInstalled = false
+    const localPath = join(localRoot, name)
+    if (await folderExists(localPath)) {
+      modulePath = localPath
+    } else {
+      const globalPath = join(globalRoot, name)
+      if (!await folderExists(globalPath)) {
+        const previousStatus = job.status
+        job.status = `Installing ${name}...`
+        await npm(job, 'install', name, '-g')
+        justInstalled = true
+        job.status = previousStatus
+      }
+      modulePath = globalPath
     }
-    const globalModule = join(globalRoot, name)
-    if (!await folderExists(globalModule)) {
-      const previousStatus = job.status
-      job.status = `Installing ${name}...`
-      await npm(job, 'install', name, '-g')
-      job.status = previousStatus
+    const output = getOutput(job)
+    const installedPackage = JSON.parse((await readFile(join(modulePath, 'package.json'))).toString())
+    const { version: installedVersion } = installedPackage
+    output.resolvedPackage(name, modulePath, installedVersion)
+    if (!justInstalled) {
+      const latestVersion = await npm(job, 'view', name, 'version')
+      if (latestVersion !== installedVersion) {
+        output.packageNotLatest(name, latestVersion)
+      }
     }
-    await outputPackage(job, name, globalModule)
-    return globalModule
+    return modulePath
   }
 }
