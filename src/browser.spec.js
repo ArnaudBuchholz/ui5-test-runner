@@ -123,6 +123,14 @@ describe('src/browser', () => {
           }
         })
         mock({
+          api: 'exec',
+          scriptPath: 'npm',
+          args: ['view', 'dependentModule', 'version'],
+          exec: async childProcess => {
+            childProcess.stdout.write('1.0.0\n')
+          }
+        })
+        mock({
           api: 'fork',
           scriptPath: job.browser,
           exec: async childProcess => {
