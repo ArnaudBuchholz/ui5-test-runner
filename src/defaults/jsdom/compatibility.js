@@ -48,6 +48,32 @@ function adjustXPathResult (window) {
   }
 }
 
+function fixMatchesDontThrow (window) {
+  // https://github.com/jsdom/jsdom/issues/3057
+  // Fix _nwsapiDontThrow which throws :-(
+  const { document } = window
+  const [impl] = Object.getOwnPropertySymbols(document)
+  const documentImpl = document[impl]
+  let _nwsapiDontThrow
+  Object.defineProperty(documentImpl, '_nwsapiDontThrow', {
+    get () {
+      return _nwsapiDontThrow
+    },
+    set (nwsapiDontThrow) {
+      _nwsapiDontThrow = nwsapiDontThrow
+      const { match } = nwsapiDontThrow
+      _nwsapiDontThrow.match = function () {
+        try {
+          return match.apply(this, arguments)
+        } catch (e) {
+          return false
+        }
+      }
+      return true
+    }
+  })
+}
+
 module.exports = ({
   window,
   networkWriter
@@ -65,4 +91,5 @@ module.exports = ({
 
   wrapXHR(window, networkWriter)
   adjustXPathResult(window)
+  fixMatchesDontThrow(window)
 }
