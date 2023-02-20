@@ -212,6 +212,9 @@ function build (job) {
     },
 
     redirected: wrap(({ method, url, statusCode, timeSpent }) => {
+      if (url.startsWith('/_/progress')) {
+        return // avoids pollution
+      }
       let statusText
       if (!statusCode) {
         statusText = 'N/A'
