@@ -207,6 +207,11 @@ function build (job) {
 
     wrap: wrap(callback => callback()),
 
+    version: () => {
+      const { name, version } = require(join(__dirname, '../package.json'))
+      log(job, p80()`${name}@${version}`)
+    },
+
     serving: url => {
       log(job, p80()`Server running at ${pad.lt(url)}`)
     },
