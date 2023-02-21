@@ -137,6 +137,7 @@ async function process (job) {
 module.exports = {
   async execute (job) {
     await recreateDir(job.reportDir)
+    getOutput(job).version()
     await probe(job)
     if (job.mode !== 'url') {
       job.url = [`http://localhost:${job.port}/${job.testsuite}`]
