@@ -45,6 +45,7 @@ async function main () {
   output = getOutput(job)
   await recreateDir(job.reportDir)
   if (job.mode === 'capabilities') {
+    output.version()
     return capabilities(job)
   }
   const configuration = await reserveConfigurationFactory(job)
