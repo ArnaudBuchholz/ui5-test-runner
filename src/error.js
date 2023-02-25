@@ -35,6 +35,8 @@ const errors = [{
   name: 'MODE_INCOMPATIBLE_OPTION'
 }, {
   name: 'BROWSER_MISS_SCRIPTS_CAPABILITY'
+}, {
+  name: 'NPM_DEPENDENCY_NOT_FOUND'
 }]
 
 errors.forEach((error, index) => {
