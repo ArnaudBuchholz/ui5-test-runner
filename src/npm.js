@@ -47,6 +47,9 @@ module.exports = {
     } else {
       const globalPath = join(globalRoot, name)
       if (!await folderExists(globalPath)) {
+        if (!job.npmInstall) {
+          throw UTRError.NPM_DEPENDENCY_NOT_FOUND(name)
+        }
         const previousStatus = job.status
         job.status = `Installing ${name}...`
         await npm(job, 'install', name, '-g')
