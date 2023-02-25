@@ -59,7 +59,14 @@ describe('src/npm', () => {
     expect(output.packageNotLatest).toHaveBeenCalled()
   })
 
-  it.only('installs missing package globally', async () => {
+  it('fails if --no-npm-install is set', async () => {
+    await expect(resolvePackage({
+      ...job,
+      npmInstall: false
+    }, 'not_existing')).rejects.toThrowError(UTRError.NPM_DEPENDENCY_NOT_FOUND('not_existing'))
+  })
+
+  it('installs missing package globally', async () => {
     mock({
       api: 'exec',
       scriptPath: 'npm',
