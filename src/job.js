@@ -128,6 +128,7 @@ function parse (cwd, args) {
 
     .option('-b, --browser <command>', 'Browser instantiation command (relative to cwd or use @/ for provided ones)', '@/puppeteer.js')
     .option('--browser-args <argument...>', 'Browser instantiation command parameters')
+    .option('--no-npm-install', 'Prevent any NPM install (runner may fail if dependency is missing)')
 
     .option('-bt, --browser-close-timeout <timeout>', 'Maximum waiting time (ms) for browser close', integer, 2000)
     .option('-br, --browser-retry <count>', 'Browser instantiation retries : if the command fails unexpectedly, it is re-executed (0 means no retry)', 1)
