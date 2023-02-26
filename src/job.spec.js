@@ -152,10 +152,10 @@ describe('job', () => {
         })
       })
 
-      describe('parameters using @/', () => {
+      describe('parameters using $/', () => {
         const job = buildJob({
           cwd,
-          browser: '@/selenium-webdriver.js'
+          browser: '$/selenium-webdriver.js'
         })
         expect(job.browser).toStrictEqual(join(__dirname, './defaults/selenium-webdriver.js'))
         expect(job.coverageSettings).toStrictEqual(join(__dirname, './defaults/nyc.json'))
@@ -372,7 +372,7 @@ describe('job', () => {
           cwd,
           port: 8080,
           logServer: true,
-          browser: '@/selenium-webdriver.js',
+          browser: '$/selenium-webdriver.js',
           parallel: 2,
           reportDir: join(cwd, '.report'),
           pageTimeout: 1000,
@@ -392,7 +392,7 @@ describe('job', () => {
           pageFilter: '.*',
           pageParams: 'sap-ui-debug=true',
           coverage: true,
-          coverageSettings: '@/nyc.json',
+          coverageSettings: '$/nyc.json',
           coverageTempDir: '.nyc_output',
           coverageReportDir: 'coverage',
           coverageReporters: 'lcov',
