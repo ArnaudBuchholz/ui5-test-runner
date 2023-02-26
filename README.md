@@ -15,11 +15,8 @@ A self-sufficient test runner for UI5 applications enabling parallel execution o
 
 > This tool is designed and built as a **substitute** of the [UI5 karma runner](https://github.com/SAP/karma-ui5). It executes all the tests in **parallel** thanks to several browser instances *(which also **reduces the total execution time**)*.
 
-## 📚 Documentation
+## 📚 [Documentation](https://arnaudbuchholz.github.io/ui5-test-runner/)
 
-* Initial concept *(v1)* is detailed in the article [REserve - Testing UI5](https://arnaud-buchholz.medium.com/reserve-testing-ui5-85187d5eb7f1)
-* Tool was presented during UI5Con'21 : [A different approach to UI5 tests execution](https://youtu.be/EBp0bdIqu4s)
-* Up-to-date documentation : [README](https://github.com/ArnaudBuchholz/ui5-test-runner/tree/master/doc/README.md)
 
 ## 💿 How to install
 
@@ -31,7 +28,7 @@ A self-sufficient test runner for UI5 applications enabling parallel execution o
   * `npm install --global ui5-test-runner`
   * Trigger with `ui5-test-runner`
 
-**NOTE** : additional packages might be needed during the execution (`puppeteer`, `selenium-webdriver`, `nyc`...) . If they can be found installed **locally** in the tested project, they are used. Otherwise, they are installed **globally**.
+**NOTE** : additional packages might be needed during the execution (`puppeteer`, `selenium-webdriver`, `nyc`...) . If they are found installed **locally** in the tested project, they are used. Otherwise, they are installed **globally**.
 
 ## 🖥️ How to demo
 
@@ -56,5 +53,5 @@ A self-sufficient test runner for UI5 applications enabling parallel execution o
 
 * Command line **parameters** as well as configuration file **syntax** have changed
 * Dependencies are installed **on demand**
-* Browser instantiation command evolved in an **incompatible way** (see [documentation](https://github.com/ArnaudBuchholz/ui5-test-runner/tree/master/doc/browser.md)).
+* Browser instantiation command evolved in an **incompatible way** (see [documentation](https://arnaudbuchholz.github.io/ui5-test-runner/browser.html)).
 * Output is different (report, traces)
