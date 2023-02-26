@@ -7,7 +7,7 @@ const { name, description, version } = require(join(__dirname, '../package.json'
 const { getOutput } = require('./output')
 const { $valueSources } = require('./symbols')
 const { buildAndCheckMode } = require('./job-mode')
-const { boolean, integer, url } = require('./options')
+const { boolean, integer, timeout, url, arrayOf } = require('./options')
 
 const $status = Symbol('status')
 
@@ -51,7 +51,28 @@ function buildArgs (parameters) {
   }
 }
 
-function parse (cwd, args) {
+function lib (value) {
+  if (value.includes('=')) {
+    const [relative, source] = value.split('=')
+    return { relative, source }
+  } else {
+    return { relative: '', source: value }
+  }
+}
+
+function mapping (value) {
+  try {
+    const [, match, handler, mapping] = /([^=]*)=(file|url)\((.*)\)/.exec(value)
+    return {
+      match,
+      [handler]: mapping
+    }
+  } catch (e) {
+    throw new InvalidArgumentError('Invalid mapping')
+  }
+}
+
+function getCommand (cwd) {
   const command = new Command()
   command.exitOverride()
 
@@ -61,95 +82,53 @@ function parse (cwd, args) {
     .name(name)
     .description(description)
     .version(version)
+
+    .option('--capabilities', '🧪 Capabilities tester for browser')
+    .option('-u, --url <url...>', '🔗 URL of the testsuite / page to test', arrayOf(url))
+
+    // Common to all modes
     .addOption(
-      new Option('-c, --cwd <path>', 'Current working directory')
+      new Option('-c, --cwd <path>', '[💻🔗🧪] Set working directory')
         .default(cwd, 'current working directory')
     )
-    .option('--port <port>', 'Port to use (0 to use a free one)', integer, 0)
-    .option('--ui5 <url>', 'UI5 url', url, 'https://ui5.sap.com')
-    .option('--libs <path...>', 'Library mapping', function addLib (value, previousValue) {
-      let result
-      if (previousValue === undefined) {
-        result = []
-      } else {
-        result = [...previousValue]
-      }
-      if (value.includes('=')) {
-        const [relative, source] = value.split('=')
-        result.push({ relative, source })
-      } else {
-        result.push({ relative: '', source: value })
-      }
-      return result
-    })
-    .option('--mappings <mapping...>', 'Custom mapping', function addMapping (value, previousValue) {
-      let result
-      if (previousValue === undefined) {
-        result = []
-      } else {
-        result = [...previousValue]
-      }
-      try {
-        const [, match, handler, mapping] = /([^=]*)=(file|url)\((.*)\)/.exec(value)
-        result.push({
-          match,
-          [handler]: mapping
-        })
-      } catch (e) {
-        throw new InvalidArgumentError('Invalid mapping')
-      }
-      return result
-    })
-    .option('--cache <path>', 'Cache UI5 resources locally in the given folder (empty to disable)')
-    .option('--webapp <path>', 'Base folder of the web application (relative to cwd)', 'webapp')
-    .option('--testsuite <path>', 'Path of the testsuite file (relative to webapp)', 'test/testsuite.qunit.html')
-    .option('-u, --url <url...>', 'URL of the testsuite / page to test', function addUrl (value, previousValue) {
-      url(value)
-      let result
-      if (previousValue === undefined) {
-        result = []
-      } else {
-        result = [...previousValue]
-      }
-      result.push(value)
-      return result
-    })
+    .option('--port <port>', '[💻🔗🧪] Port to use (0 to use any free one)', integer, 0)
+    .option('-r, --report-dir <path>', '[💻🔗🧪] Directory to output test reports (relative to cwd)', 'report')
+    .option('-pt, --page-timeout <timeout>', '[💻🔗🧪] Limit the page execution time, fails the page if it takes longer than the timeout (0 means no timeout)', timeout, 0)
+    .option('-f, --fail-fast [flag]', '[💻🔗🧪] Stop the execution after the first failing page', boolean, false)
+    .option('-k, --keep-alive [flag]', '[💻🔗🧪] Keep the server alive', boolean, false)
+    .option('-l, --log-server [flag]', '[💻🔗🧪] Log inner server traces', boolean, false)
+    .option('-p, --parallel <count>', '[💻🔗🧪] Number of parallel tests executions', 2)
+    .option('-b, --browser <command>', '[💻🔗🧪] Browser instantiation command (relative to cwd or use $/ for provided ones)', '$/puppeteer.js')
+    .option('--browser-args <argument...>', '[💻🔗🧪] Browser instantiation command parameters (use -- instead)')
+    .option('--no-npm-install', '[💻🔗🧪] Prevent any NPM install (execution may fail if a dependency is missing)')
+    .option('-bt, --browser-close-timeout <timeout>', '[💻🔗🧪] Maximum waiting time for browser close', timeout, 2000)
+    .option('-br, --browser-retry <count>', '[💻🔗🧪] Browser instantiation retries : if the command fails unexpectedly, it is re-executed (0 means no retry)', 1)
 
-    .option('-s, --serve-only [flag]', 'Serve only', boolean, false)
+    // Common to legacy and testing
+    .option('-pf, --page-filter <regexp>', '[💻🔗] Filter out pages not matching the regexp')
+    .option('-pp, --page-params <params>', '[💻🔗] Add parameters to page URL')
+    .option('-t, --global-timeout <timeout>', '[💻🔗] Limit the pages execution time, fail the page if it takes longer than the timeout (0 means no timeout)', timeout, 0)
+    .option('--screenshot [flag]', '[💻🔗] Take screenshots during the tests execution (if supported by the browser)', boolean, true)
+    .option('--no-screenshot', '[💻🔗] Disable screenshots')
+    .option('-st, --screenshot-timeout <timeout>', '[💻🔗] Maximum waiting time for browser screenshot', timeout, 5000)
+    .option('-rg, --report-generator <path...>', '[💻🔗] Report generator paths (relative to cwd or use $/ for provided ones)', ['$/report.js'])
+    .option('-pp, --progress-page <path>', '[💻🔗] progress page path (relative to cwd or use $/ for provided ones)', '$/report/default.html')
 
-    .option('-pf, --page-filter <regexp>', 'Filter which pages to execute')
-    .option('-pp, --page-params <params>', 'Parameters added to each page URL')
-    .option('-pt, --page-timeout <timeout>', 'Limit the page execution time (ms), fails the page if it takes longer than the timeout (0 to disable the timeout)', integer, 0)
-    .option('-t, --global-timeout <timeout>', 'Limit the pages execution time (ms), fails the page if it takes longer than the timeout (0 to disable the timeout)', integer, 0)
-    .option('-f, --fail-fast [flag]', 'Stop the execution after the first failing page', boolean, false)
-    .option('-k, --keep-alive [flag]', 'Keep the server alive (enables debugging)', boolean, false)
-    .option('-w, --watch [flag]', 'Monitor the webapp folder and re-execute tests on change', boolean, false)
-    .option('-l, --log-server [flag]', 'Log server traces', boolean, false)
-
-    .option('-b, --browser <command>', 'Browser instantiation command (relative to cwd or use @/ for provided ones)', '@/puppeteer.js')
-    .option('--browser-args <argument...>', 'Browser instantiation command parameters')
-    .option('--no-npm-install', 'Prevent any NPM install (runner may fail if dependency is missing)')
-
-    .option('-bt, --browser-close-timeout <timeout>', 'Maximum waiting time (ms) for browser close', integer, 2000)
-    .option('-br, --browser-retry <count>', 'Browser instantiation retries : if the command fails unexpectedly, it is re-executed (0 means no retry)', 1)
-    .option('--screenshot [flag]', 'Take screenshots during the tests execution (if supported by the browser)', boolean, true)
-    .option('--no-screenshot', 'Disable screenshots')
-    .option('-st, --screenshot-timeout <timeout>', 'Maximum waiting time (ms) for browser screenshot', integer, 5000)
-
-    .option('-p, --parallel <count>', 'Number of parallel tests executions', 2)
-    .option('-r, --report-dir <path>', 'Directory to output test reports (relative to cwd)', 'report')
-
-    .option('--coverage [flag]', 'Enable or disable code coverage (default to false if url is used, true otherwise)', boolean)
-    .option('--no-coverage', 'Disable code coverage')
-    .option('-cs, --coverage-settings <path>', 'Path to a custom nyc.json file providing settings for instrumentation (relative to cwd or use @/ for provided ones)', '@/nyc.json')
-    .option('-ct, --coverage-temp-dir <path>', 'Directory to output raw coverage information to (relative to cwd)', '.nyc_output')
-    .option('-cr, --coverage-report-dir <path>', 'Directory to store the coverage report files (relative to cwd)', 'coverage')
-    .option('-cr, --coverage-reporters <reporter...>', 'List of reporters to use', ['lcov', 'cobertura'])
-
-    .option('-rg, --report-generator <path...>', 'Path to a report generator (relative to cwd or use @/ for provided ones)', ['@/report.js'])
-    .option('-pp, --progress-page <path>', 'Path to progress page (relative to cwd or use @/ for provided ones)', '@/report/default.html')
-
-    .option('--capabilities [flag]', 'Capabilities tester for browser', boolean, false)
+    // Specific to legacy
+    .option('--ui5 <url>', '[💻] UI5 url', url, 'https://ui5.sap.com')
+    .option('--libs <lib...>', '[💻] Library mapping (<relative>=<path> or <path>)', arrayOf(lib))
+    .option('--mappings <mapping...>', '[💻] Custom mapping (<match>=<file|url>(<config>))', arrayOf(mapping))
+    .option('--cache <path>', '[💻] Cache UI5 resources locally in the given folder (empty to disable)')
+    .option('--webapp <path>', '[💻] Base folder of the web application (relative to cwd)', 'webapp')
+    .option('--testsuite <path>', '[💻] Path of the testsuite file (relative to webapp)', 'test/testsuite.qunit.html')
+    .option('-s, --serve-only [flag]', '[💻] Serve only', boolean, false)
+    .option('-w, --watch [flag]', '[💻] Monitor the webapp folder and re-execute tests on change', boolean, false)
+    .option('--coverage [flag]', '[💻] Enable or disable code coverage', boolean)
+    .option('--no-coverage', '[💻] Disable code coverage')
+    .option('-cs, --coverage-settings <path>', '[💻] Path to a custom nyc.json file providing settings for instrumentation (relative to cwd or use $/ for provided ones)', '$/nyc.json')
+    .option('-ct, --coverage-temp-dir <path>', '[💻] Directory to output raw coverage information to (relative to cwd)', '.nyc_output')
+    .option('-cr, --coverage-report-dir <path>', '[💻] Directory to store the coverage report files (relative to cwd)', 'coverage')
+    .option('-cr, --coverage-reporters <reporter...>', '[💻] List of nyc reporters to use', ['lcov', 'cobertura'])
 
     .addOption(new Option('--debug-probe-only', DEBUG_OPTION, boolean).hideHelp())
     .addOption(new Option('--debug-keep-browser-open', DEBUG_OPTION, boolean).hideHelp())
@@ -158,6 +137,12 @@ function parse (cwd, args) {
     .addOption(new Option('--debug-capabilities-test <name>', DEBUG_OPTION).hideHelp())
     .addOption(new Option('--debug-capabilities-no-timeout', DEBUG_OPTION, boolean).hideHelp())
 
+  return command
+}
+
+function parse (cwd, args) {
+  const command = getCommand(cwd)
+
   command.parse(args, { from: 'user' })
   const options = command.opts()
 
@@ -165,7 +150,9 @@ function parse (cwd, args) {
     initialCwd: cwd,
     browserArgs: command.args,
     [$valueSources]: Object.keys(options).reduce((valueSources, name) => {
-      valueSources[name] = command.getOptionValueSource(name)
+      if (name !== 'browserArgs') {
+        valueSources[name] = command.getOptionValueSource(name)
+      }
       return valueSources
     }, {})
   }, options)
@@ -202,8 +189,8 @@ function finalize (job) {
   }
 
   function checkDefault (path) {
-    if (path.startsWith('@/')) {
-      return join(__dirname, './defaults', path.replace('@/', ''))
+    if (path.startsWith('$/')) {
+      return join(__dirname, './defaults', path.replace('$/', ''))
     }
     return path
   }
@@ -304,6 +291,7 @@ function fromObject (cwd, parameters) {
 }
 
 module.exports = {
+  getCommand,
   fromCmdLine,
   fromObject
 }
