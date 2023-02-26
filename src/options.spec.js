@@ -117,7 +117,7 @@ describe('src/options', () => {
 
   describe('arrayOf', () => {
     it('builds a type validator that aggregates validated values in an array', () => {
-      const validator = arrayOf(integer);
+      const validator = arrayOf(integer)
       const value = validator('2', validator('1'))
       expect(value).toStrictEqual([1, 2])
     })
