@@ -1,4 +1,4 @@
-const { boolean, integer, url } = require('./options')
+const { any, boolean, integer, timeout, url, arrayOf } = require('./options')
 const { InvalidArgumentError } = require('commander')
 
 function checkType ({ method, validValues, invalidValues }) {
@@ -24,6 +24,16 @@ function checkType ({ method, validValues, invalidValues }) {
 }
 
 describe('src/options', () => {
+  checkType({
+    method: any,
+    validValues: {
+      true: 'true',
+      123: '123'
+    },
+    invalidValues: [
+    ]
+  })
+
   checkType({
     method: boolean,
     validValues: {
@@ -69,6 +79,29 @@ describe('src/options', () => {
   })
 
   checkType({
+    method: timeout,
+    validValues: {
+      0: 0,
+      1: 1,
+      10: 10,
+      100: 100,
+      1000: 1000,
+      10000: 10000,
+      '10ms': 10,
+      '10s': 10000,
+      '10sec': 10000,
+      '10m': 600000,
+      '10min': 600000
+    },
+    invalidValues: [
+      '',
+      '1abc',
+      '1msec',
+      '1mins'
+    ]
+  })
+
+  checkType({
     method: url,
     validValues: [
       'https://ui5.sap.com/test-resources/sap/m/demokit/orderbrowser/webapp/test/testsuite.qunit.html',
@@ -80,5 +113,13 @@ describe('src/options', () => {
       'abc',
       'ftp://server.com/path'
     ]
+  })
+
+  describe('arrayOf', () => {
+    it('builds a type validator that aggregates validated values in an array', () => {
+      const validator = arrayOf(integer);
+      const value = validator('2', validator('1'))
+      expect(value).toStrictEqual([1, 2])
+    })
   })
 })
