@@ -7,7 +7,7 @@
 ## 📖 Detailed documentation
 * [Command line usage](usage.md)
 * [Serving and testing the application *(a.k.a. legacy mode)*](legacy.md)
-* [Testing a 'remote' application](testing.md)
+* [Testing a "remote" application](testing.md)
 * [Configuration file](configuration.md)
 * [Browser instantiation command](browser.md)
 * [Tips & tricks](tipsNtricks.md)

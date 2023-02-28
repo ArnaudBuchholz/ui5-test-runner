@@ -1,4 +1,4 @@
-﻿# ⚡ Command line usage
+﻿# Command line usage
 
 Use `ui5-test-runner --help` to display the list of options.
 

@@ -2,8 +2,8 @@
 
 ## Overview
 
-`ui5-test-runner` can **serve** the application while testing it.
-The application files are delivered through its **web server**.
+`ui5-test-runner` can **serve** the application to test it.
+The application files are delivered through its inner **web server**.
 
 This mode offers unique capabilities :
 * Selecting the UI5 version to use,
@@ -11,7 +11,7 @@ This mode offers unique capabilities :
 * Mapping of libraries,
 * Measuring the code coverage.
 
-**NOTE** : `ui5-test-runner` can be used to only serve the application without testing it with the option `--serve-only`.
+**NOTE** : `ui5-test-runner` can serve the application without testing it with the option `--serve-only`.
 
 ## Step by step
 
@@ -43,10 +43,10 @@ This mode offers unique capabilities :
 
 * In the project root folder, run the following command :
 
-`ui5-test-runner --port 8080 --cache .ui5 --libs my/namespace/feature/lib/=../my.namespace.feature.project.lib/src/my/namespace/feature/lib/`
+`ui5-test-runner --port 8081 --cache .ui5 --libs my/namespace/feature/lib/=../my.namespace.feature.project.lib/src/my/namespace/feature/lib/`
 
 The list of options is available using `ui5-test-runner --help` but to explain the command :
-* `--port 8080` : uses the fixed http port `8080`
+* `--port 8081` : uses the fixed http port `8081`
 
 * `--cache .ui5` : caches UI5 resources to boost loading of pages. It stores resources in a project folder named `.ui5` *(you may use an absolute path if preferred)*.
 
@@ -61,7 +61,7 @@ You may also use :
 
 * `--parallel 3` : increases the number of parallel execution *(default is 2)*
 
-**During** the test executions *(which can take some time)* you can monitor the progress by opening : http://localhost:8080/_/progress.html
+**During** the test executions *(which can take some time)* you can monitor the progress by opening : http://localhost:8081/_/progress.html
 
   ![progress](progress.png)
 
@@ -75,7 +75,7 @@ You may also use :
 
   ![report](report.png)
 
-* The coverage report is available from http://localhost:8080/_/coverage/lcov-report/index.html
+* The coverage report is available from http://localhost:8081/_/coverage/lcov-report/index.html
 
   ![coverage](coverage.png)
 
@@ -89,7 +89,3 @@ You may also use :
   - `.ui5/` : contains cached UI5 resources
 
   - These folder names can be changed through parameters
-
-## Parameters
-
-To access the list of parameters, use `ui5-test-runner --help`.

@@ -1,8 +1,10 @@
-### Configuration file
+# Configuration file
 
-> Insist on the fact that the property names match the option names, it is true for v1 as well as v2
+It is also possible to preset parameters by creating a JSON file named `ui5-test-runner.json` where the **runner is executed** *(i.e. `process.cwd()`)*.
 
-It is also possible to set these parameters by creating a JSON file named `ui5-test-runner.json` where the **runner is executed** *(i.e. `process.cwd()`)*.
+> The property names match the [option names](usage.md), converted to [lowerCamelCase](https://wiki.c2.com/?LowerCamelCase).
+> Files written for v1 are **not** compatible with v2
+
 
 The file is applied **before** parsing the command line parameters, hence some parameters might be **overridden**.
 
