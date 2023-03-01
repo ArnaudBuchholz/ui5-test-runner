@@ -2,7 +2,7 @@
 
 ## Capabilities
 
-|  |  |
+| `--browser` | `$/puppeteer.js` |
 |---|---|
 | Module | [puppeteer](https://www.npmjs.com/package/puppeteer) |
 | Screenshots | ✔️ `.png` |
@@ -10,3 +10,5 @@
 | Traces | `console`, `network` |
 
 ## Implementation notes
+
+N/A
