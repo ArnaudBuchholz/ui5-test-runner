@@ -3,7 +3,7 @@
 It is also possible to preset parameters by creating a JSON file named `ui5-test-runner.json` where the **runner is executed** *(i.e. `process.cwd()`)*.
 
 > The property names match the [option names](usage.md), converted to [lowerCamelCase](https://wiki.c2.com/?LowerCamelCase).
-> Files written for v1 are **not** compatible with v2
+> Files written for v1 may **not** by compatible with v2, check [mapping](mapping_v1_v2.md).
 
 
 The file is applied **before** parsing the command line parameters, hence some parameters might be **overridden**.
