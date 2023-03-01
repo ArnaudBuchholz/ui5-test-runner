@@ -1,6 +1,6 @@
 ﻿# Command line usage
 
-Use `ui5-test-runner --help` to display the list of options.
+Use `ui5-test-runner --help` to display the list of options. The mapping between v1 options and v2 can be found [here](mapping_v1_v2.md).
 
 Check additional information below.
 
