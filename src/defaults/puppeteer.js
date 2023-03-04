@@ -10,7 +10,8 @@ require('./browser')({
       ['--visible [flag]', 'Show the browser', false],
       ['-w, --viewport-width <width>', 'Viewport width', 1920],
       ['-h, --viewport-height <height>', 'Viewport height', 1080],
-      ['-l, --language <lang...>', 'Language(s)', ['en-US']]
+      ['-l, --language <lang...>', 'Language(s)', ['en-US']],
+      ['-u, --unsecure', 'Disable security features', false]
     ],
     capabilities: {
       modules: ['puppeteer'],
@@ -47,20 +48,35 @@ require('./browser')({
   }) {
     const puppeteer = require(modules.puppeteer)
 
+    const args = [
+      '--start-maximized',
+      '--no-sandbox',
+      '--disable-gpu',
+      '--disable-extensions',
+      `--window-size=${options.viewportWidth},${options.viewportHeight}`,
+      `--lang=${options.language.join(',')}`
+    ]
+
+    if (options.unsecure) {
+      args.push(
+        '--disable-web-security',
+        '--disable-features=IsolateOrigins',
+        '--disable-features=BlockInsecurePrivateNetworkRequests',
+        '--disable-site-isolation-trials'
+      )
+    }
+
     browser = await puppeteer.launch({
       headless: !options.visible,
       defaultViewport: null,
-      args: [
-        '--start-maximized',
-        '--no-sandbox',
-        '--disable-gpu',
-        '--disable-extensions',
-        `--window-size=${options.viewportWidth},${options.viewportHeight}`,
-        `--lang=${options.language.join(',')}`
-      ]
+      args
     })
 
     page = (await browser.pages())[0]
+
+    if (options.unsecure) {
+      await page.setBypassCSP(true)
+    }
 
     page
       .on('console', message => consoleWriter.append({
