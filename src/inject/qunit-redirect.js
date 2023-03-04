@@ -26,6 +26,8 @@
       post('addTestPages', pages)
     } else if (typeof QUnit === 'object') {
       post('addTestPages', [location.toString()])
+    } else {
+      post('addTestPages', []) // No page
     }
   })
 }())
