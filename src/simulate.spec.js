@@ -120,7 +120,7 @@ describe('simulate', () => {
     }
   }
 
-  describe.only('mappings', () => {
+  describe('mappings', () => {
     beforeAll(async () => {
       await setup('mappings', {
         mappings: [
