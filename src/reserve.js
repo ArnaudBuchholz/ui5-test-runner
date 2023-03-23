@@ -10,6 +10,7 @@ module.exports = job => check({
   port: job.port,
   mappings: [
     cors,
+    ...job.mappings ?? [],
     ...job.serveOnly ? [] : endpoints(job),
     ...ui5(job),
     ...job.serveOnly ? [] : coverage(job), {
@@ -19,7 +20,6 @@ module.exports = job => check({
       strict: true,
       'ignore-if-not-found': true
     },
-    ...job.mappings ?? [],
     ...unhandled(job)
   ]
 })

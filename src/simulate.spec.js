@@ -120,6 +120,35 @@ describe('simulate', () => {
     }
   }
 
+  describe.only('mappings', () => {
+    beforeAll(async () => {
+      await setup('mappings', {
+        mappings: [
+          '/overridden/resources/(.*)=file(./LICENSE)'
+        ]
+      })
+    })
+
+    const urls = [
+      '/webapp/resources/sap-ui-core.js',
+      '/resources/sap-ui-core.js',
+      '/custom/resources/sap-ui-core.js'
+    ]
+    urls.forEach(url => {
+      it(`fetches UI5 resources whichever path is used (${url})`, async () => {
+        const response = await get(url, 'test.html')
+        expect(response.statusCode).toStrictEqual(200)
+        expect(response.toString().includes('/sap-ui-core.js */')).toStrictEqual(true)
+      })
+    })
+
+    it('enables overridding through mappings', async () => {
+      const response = await get('/overridden/resources/sap-ui-core.js', 'test.html')
+      expect(response.statusCode).toStrictEqual(200)
+      expect(response.toString().startsWith('MIT License')).toStrictEqual(true)
+    })
+  })
+
   describe('legacy (local project)', () => {
     describe('simple test execution', () => {
       beforeAll(async () => {
