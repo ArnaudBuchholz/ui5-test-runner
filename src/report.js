@@ -8,7 +8,12 @@ const { fork } = require('child_process')
 const { getOutput } = require('./output')
 
 async function serialize (job, filename, json) {
-  await writeFile(join(job.reportDir, `${filename}.js`), `module.exports = ${JSON.stringify(json, undefined, 2)}`)
+  await writeFile(join(job.reportDir, `${filename}.js`), `module.exports = ${JSON.stringify(json, (key, value) => {
+    if (value && value instanceof RegExp) {
+      return value.toString()
+    }
+    return value
+  }, 2)}`)
 }
 
 async function save (job) {
