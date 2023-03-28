@@ -258,7 +258,10 @@ function finalize (job) {
 function fromCmdLine (cwd, args) {
   let job = parse(cwd, args)
 
-  const defaultPath = join(job.cwd, 'ui5-test-runner.json')
+  let defaultPath = join(job.cwd, 'ui5-test-runner.json')
+  if (!isAbsolute(defaultPath)) {
+    defaultPath = join(job.initialCwd, defaultPath)
+  }
   let hasDefaultSettings = false
   try {
     checkAccess({ path: defaultPath, file: true })
