@@ -32,6 +32,11 @@ let localRoot
 let globalRoot
 
 module.exports = {
+  resolveDependencyPath (name) {
+    require(name)
+    return Object.keys(require.cache).filter(path => path.endsWith(`${name}.js`))[0]
+  },
+
   async resolvePackage (job, name) {
     if (!localRoot) {
       [localRoot, globalRoot] = await Promise.all([
