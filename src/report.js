@@ -33,10 +33,14 @@ module.exports = {
     await save(job)
     const promises = job.reportGenerator.map(generator => {
       const { promise, resolve } = allocPromise()
-      const childProcess = fork(generator, [job.reportDir], {
-        stdio: [0, 0, 0, 'ipc']
+      const childProcess = fork(generator, [job.reportDir], { stdio: 'pipe' })
+      const buffers = output.monitor(childProcess, false)
+      childProcess.on('close', exitCode => {
+        if (exitCode !== 0) {
+          output.reportGeneratorFailed(generator, exitCode, buffers)
+        }
+        resolve()
       })
-      childProcess.on('close', resolve)
       return promise
     })
     promises.push(generateCoverageReport(job))
