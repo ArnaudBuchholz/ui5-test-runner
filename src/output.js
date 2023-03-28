@@ -345,27 +345,33 @@ function build (job) {
       log(job, p`└──────────${pad.x('─')}┘`)
     }),
 
-    monitor (childProcess) {
+    monitor (childProcess, live = true) {
+      const defaults = {
+        stdout: { buffer: [], method: log },
+        stderr: { buffer: [], method: err }
+      };
       ['stdout', 'stderr'].forEach(channel => {
-        const defaults = {
-          stdout: { buffer: [], method: log },
-          stderr: { buffer: [], method: err }
-        }
         childProcess[channel].on('data', chunk => {
           const { buffer, method } = defaults[channel]
           const text = chunk.toString()
-          if (!text.includes('\n')) {
+          if (live) {
+            if (!text.includes('\n')) {
+              buffer.push(text)
+              return
+            }
+            const cached = buffer.join('')
+            const last = text.split('\n').slice(-1)
+            buffer.length = 0
+            if (last) {
+              buffer.push(last)
+            }
+            wrap(() => method(job, cached + text.split('\n').slice(0, -1).join('\n')))()
+          } else {
             buffer.push(text)
-            return
           }
-          const cached = buffer.join('')
-          const last = text.split('\n').slice(-1)
-          buffer.length = 0
-          if (last) {
-            buffer.push(last)
-          }
-          wrap(() => method(job, cached + text.split('\n').slice(0, -1).join('\n')))()
         })
+      })
+      if (live) {
         childProcess.on('close', () => {
           ['stdout', 'stderr'].forEach(channel => {
             const { buffer, method } = defaults[channel]
@@ -374,7 +380,11 @@ function build (job) {
             }
           })
         })
-      })
+      }
+      return {
+        stdout: defaults.stdout.buffer,
+        stderr: defaults.stderr.buffer
+      }
     },
 
     nyc: wrap((...args) => {
@@ -497,6 +507,19 @@ function build (job) {
       if (!messages.length) {
         log(job, p`Success !`)
       }
+    }),
+
+    reportGeneratorFailed: wrap((generator, exitCode, buffers) => {
+      const p = p80()
+      log(job, p`┌──────────${pad.x('─')}┐`)
+      log(job, p`│ REPORT GENERATOR FAILED ${pad.x(' ')} │`)
+      log(job, p`├───────────┬─${pad.x('─')}──┤`)
+      log(job, p`│ generator │ ${pad.lt(generator)} │`)
+      log(job, p`├───────────┼─${pad.x('─')}──┤`)
+      log(job, p`│ exit code │ ${pad.lt(exitCode.toString())} │`)
+      log(job, p`├───────────┴─${pad.x('─')}──┤`)
+      log(job, p`│ ${pad.w(buffers.stderr.join(''))} │`)
+      log(job, p`└──────────${pad.x('─')}┘`)
     }),
 
     stop () {
