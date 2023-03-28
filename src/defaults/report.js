@@ -3,6 +3,7 @@
 const { join } = require('path')
 const { readFile, writeFile } = require('fs').promises
 const [,, reportDir] = process.argv
+const { resolveDependencyPath } = require('../npm.js')
 
 const defaultDir = join(__dirname, 'report')
 
@@ -11,7 +12,7 @@ async function readDefault (name) {
 }
 
 async function readDependency (name) {
-  return (await readFile(join(__dirname, '../../node_modules', name, 'dist', `${name}.js`))).toString()
+  return (await readFile(resolveDependencyPath(name))).toString()
 }
 
 function minifyJs (src) {
