@@ -10,6 +10,10 @@ const { addTestPages } = require('./add-test-pages')
 const { getJobProgress } = require('./get-job-progress')
 const { readFile } = require('fs/promises')
 const { TextEncoder } = require('util')
+const { resolveDependencyPath } = require('./npm.js')
+
+const punyexprBinPath = resolveDependencyPath('punyexpr')
+const punybindBinPath = resolveDependencyPath('punybind')
 
 module.exports = job => {
   async function endpointImpl (api, implementation, request) {
@@ -131,11 +135,11 @@ module.exports = job => {
       }, {
       // punybind
         match: '^/_/punybind.js',
-        file: join(__dirname, '../node_modules/punybind/dist/punybind.js')
+        file: punybindBinPath
       }, {
       // punyexpr
         match: '^/_/punyexpr.js',
-        file: join(__dirname, '../node_modules/punyexpr/dist/punyexpr.js')
+        file: punyexprBinPath
       }, {
       // Endpoint to follow progress
         match: '^/_/progress(?:\\?page=([^&]*)(?:&test=([^&]*))?)?',
