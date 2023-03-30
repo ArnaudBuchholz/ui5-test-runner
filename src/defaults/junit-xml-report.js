@@ -1,8 +1,10 @@
 'use strict'
 
+// Based on specification from llg[.]cubic[.]org/docs/junit/
+
 const { join } = require('path')
 const { writeFile } = require('fs').promises
-const [,, reportDir] = process.argv
+const [, , reportDir] = process.argv
 
 const output = []
 function o (text) {
@@ -38,12 +40,17 @@ async function main () {
         if (test.skip) {
           o('      <skipped></skipped>')
         } else if (test.report.failed) {
-          const log = test.logs.filter(({ result }) => !result)[0]
-          o(`      <failure
+          test.logs
+            .filter(({ result }) => !result)
+            .forEach(log => {
+              o(`      <failure
         message="${xmlEscape(log.message)}"
       >`)
-          o(xmlEscape(log.source))
-          o('      </failure>')
+              if (log.source) {
+                o(xmlEscape(log.source))
+              }
+              o('      </failure>')
+            })
         }
         o('    </testcase>')
       }
