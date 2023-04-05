@@ -1,6 +1,6 @@
 const { exec } = require('child_process')
 const { join } = require('path')
-const { stat, readFile } = require('fs/promises')
+const { stat } = require('fs/promises')
 const { UTRError } = require('./error')
 const { getOutput } = require('./output')
 
@@ -38,33 +38,40 @@ module.exports = {
   },
 
   async resolvePackage (job, name) {
-    if (!localRoot) {
-      [localRoot, globalRoot] = await Promise.all([
-        npm(job, 'root'),
-        npm(job, 'root', '--global')
-      ])
-    }
     let modulePath
     let justInstalled = false
-    const localPath = join(localRoot, name)
-    if (await folderExists(localPath)) {
-      modulePath = localPath
-    } else {
-      const globalPath = join(globalRoot, name)
-      if (!await folderExists(globalPath)) {
-        if (!job.npmInstall) {
-          throw UTRError.NPM_DEPENDENCY_NOT_FOUND(name)
-        }
-        const previousStatus = job.status
-        job.status = `Installing ${name}...`
-        await npm(job, 'install', name, '-g')
-        justInstalled = true
-        job.status = previousStatus
+    try {
+      require(name)
+      modulePath = name
+    } catch (e) {
+    }
+    if (!modulePath) {
+      if (!localRoot) {
+        [localRoot, globalRoot] = await Promise.all([
+          npm(job, 'root'),
+          npm(job, 'root', '--global')
+        ])
       }
-      modulePath = globalPath
+      const localPath = join(localRoot, name)
+      if (await folderExists(localPath)) {
+        modulePath = localPath
+      } else {
+        const globalPath = join(globalRoot, name)
+        if (!await folderExists(globalPath)) {
+          if (!job.npmInstall) {
+            throw UTRError.NPM_DEPENDENCY_NOT_FOUND(name)
+          }
+          const previousStatus = job.status
+          job.status = `Installing ${name}...`
+          await npm(job, 'install', name, '-g')
+          justInstalled = true
+          job.status = previousStatus
+        }
+        modulePath = globalPath
+      }
     }
     const output = getOutput(job)
-    const installedPackage = JSON.parse((await readFile(join(modulePath, 'package.json'))).toString())
+    const installedPackage = require(join(modulePath, 'package.json'))
     const { version: installedVersion } = installedPackage
     output.resolvedPackage(name, modulePath, installedVersion)
     if (!justInstalled) {
