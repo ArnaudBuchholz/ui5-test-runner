@@ -142,7 +142,7 @@ describe('src/browser', () => {
         })
         await probe(job)
         expect(job.browserCapabilities.modules).toStrictEqual(['reserve', 'dependentModule'])
-        expect(job.browserModules.reserve).toStrictEqual(join(__dirname, '../node_modules/reserve'))
+        expect(job.browserModules.reserve).toStrictEqual('reserve')
         expect(job.browserModules.dependentModule).toStrictEqual(join(npmGlobal, 'dependentModule'))
       })
 

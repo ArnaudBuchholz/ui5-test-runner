@@ -40,7 +40,7 @@ describe('src/npm', () => {
 
   it('detects already installed local package', async () => {
     const path = await resolvePackage(job, 'reserve')
-    expect(path).toStrictEqual(join(__dirname, '../node_modules/reserve'))
+    expect(path).toStrictEqual('reserve')
     expect(output.resolvedPackage).toHaveBeenCalledTimes(1)
     expect(output.packageNotLatest).not.toHaveBeenCalled()
   })
