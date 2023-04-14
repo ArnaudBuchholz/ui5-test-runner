@@ -12,8 +12,8 @@ const { readFile } = require('fs/promises')
 const { TextEncoder } = require('util')
 const { resolveDependencyPath } = require('./npm.js')
 
-const punyexprBinPath = resolveDependencyPath('punyexpr')
-const punybindBinPath = resolveDependencyPath('punybind')
+const punyexprBinPath = join(resolveDependencyPath('punyexpr'), 'dist/punyexpr.js')
+const punybindBinPath = join(resolveDependencyPath('punybind'), 'dist/punybind.js')
 
 module.exports = job => {
   async function endpointImpl (api, implementation, request) {

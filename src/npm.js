@@ -1,5 +1,5 @@
 const { exec } = require('child_process')
-const { join } = require('path')
+const { sep, join } = require('path')
 const { stat } = require('fs/promises')
 const { UTRError } = require('./error')
 const { getOutput } = require('./output')
@@ -31,18 +31,24 @@ async function folderExists (path) {
 let localRoot
 let globalRoot
 
+function resolveDependencyPath (name) {
+  require(name)
+  const pattern = `${sep}node_modules${sep}${name}${sep}`
+  const path = Object.keys(require.cache).filter(path => path.includes(pattern))[0]
+  if (path) {
+    const pos = path.indexOf(pattern)
+    return path.substring(0, pos + pattern.length - 1)
+  }
+}
+
 module.exports = {
-  resolveDependencyPath (name) {
-    require(name)
-    return Object.keys(require.cache).filter(path => path.endsWith(`${name}.js`))[0]
-  },
+  resolveDependencyPath,
 
   async resolvePackage (job, name) {
     let modulePath
     let justInstalled = false
     try {
-      require(name)
-      modulePath = name
+      modulePath = resolveDependencyPath(name)
     } catch (e) {
     }
     if (!modulePath) {

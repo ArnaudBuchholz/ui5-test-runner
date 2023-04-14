@@ -12,7 +12,8 @@ async function readDefault (name) {
 }
 
 async function readDependency (name) {
-  return (await readFile(resolveDependencyPath(name))).toString()
+  const path = join(resolveDependencyPath(name), `dist/${name}.js`)
+  return (await readFile(path)).toString()
 }
 
 function minifyJs (src) {
