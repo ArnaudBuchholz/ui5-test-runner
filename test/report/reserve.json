@@ -1,6 +1,9 @@
 {
   "port": 8082,
   "mappings": [{
+    "match": "^/iframe",
+    "custom": "./iframe.js"
+  }, {
     "match": "^/_/progress.html",
     "file": "../../src/defaults/report/default.html"
   }, {

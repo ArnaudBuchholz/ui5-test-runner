@@ -22,7 +22,7 @@
     "test:integration:puppeteer": "node . --capabilities --browser $/puppeteer.js",
     "test:integration:selenium-webdriver-chrome": "node . --capabilities --browser $/selenium-webdriver.js -- --browser chrome",
     "test:integration:jsdom": "node . --capabilities --browser $/jsdom.js",
-    "test:report": "reserve --config ./test/report/reserve.json",
+    "test:report": "node ./src/defaults/report.js ./test/report && reserve --config ./test/report/reserve.json",
     "build:doc": "node build/doc"
   },
   "repository": {

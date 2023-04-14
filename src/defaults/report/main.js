@@ -1,7 +1,7 @@
 /* global report, job */
 report.ready.then(update => {
-  const hashChange = () => {
-    const [, pageId, testId] = location.hash.match(/#?([^-]*)(?:-(.*))?/)
+  const hashChange = hash => {
+    const [, pageId, testId] = (hash || '').match(/#?([^-]*)(?:-(.*))?/)
     let [qunitPage, qunitTest] = [null, null]
     if (pageId) {
       const url = Object.keys(job.qunitPages).find(pageUrl => job.qunitPages[pageUrl].id === pageId)
@@ -39,6 +39,19 @@ report.ready.then(update => {
     })
   }
 
-  window.addEventListener('hashchange', hashChange)
-  hashChange()
+  window.addEventListener('hashchange', () => {
+    hashChange(location.hash)
+  })
+  if (window.location.href === 'about:srcdoc') {
+    window.addEventListener('click', (event) => {
+      const { href } = event.target
+      if (href) {
+        const lastHash = href.lastIndexOf('#')
+        hashChange(href.substring(lastHash))
+      }
+      event.preventDefault()
+      return false
+    })
+  }
+  hashChange(location.hash)
 })

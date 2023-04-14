@@ -30,3 +30,4 @@ report/
 !src/**/report/
 !test/**/report/
 .utr-capabilities/
+test/report/report.html
