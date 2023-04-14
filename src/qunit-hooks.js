@@ -82,7 +82,8 @@ module.exports = {
     if (failed) {
       if (job.browserCapabilities.screenshot) {
         try {
-          await screenshot(job, url, testId)
+          const absoluteName = await screenshot(job, url, testId)
+          test.screenshot = basename(absoluteName)
         } catch (error) {
           getOutput(job).genericError(error, url)
         }

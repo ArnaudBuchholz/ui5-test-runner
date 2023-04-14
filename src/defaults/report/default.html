@@ -78,6 +78,7 @@
         <pre {{else}}>&#10060; {{ log.message }}</pre>
         <img {{if}}="log.screenshot" loading="lazy" class="log" src="{{ qunitTest.pageId }}/{{ log.screenshot }}" alt="Copy folder '{{ qunitTest.pageId }}' from the job report">
       </div>
+      <img {{if}}="qunitTest.screenshot" loading="lazy" class="log" src="{{ qunitTest.pageId }}/{{ qunitTest.screenshot }}" alt="Copy folder '{{ qunitTest.pageId }}' from the job report">
     </div>
     <div style="display: {{ disconnected ? 'block' : 'none' }};">&#10060; Disconnected</div>
   </body>

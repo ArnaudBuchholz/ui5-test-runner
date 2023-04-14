@@ -33,6 +33,7 @@ describe('src/qunit-hooks', () => {
 
   beforeEach(() => {
     screenshot.mockReset()
+    screenshot.mockImplementation((job, url, testId) => Promise.resolve(`whatever/${testId}.png`))
     stop.mockClear()
     mockGenericError.mockClear()
     job = {
@@ -549,6 +550,8 @@ describe('src/qunit-hooks', () => {
             total: 1
           })
           expect(screenshot).toHaveBeenCalledWith(job, url, '1a')
+          const { test } = get(job, url, '1a')
+          expect(test.screenshot).toStrictEqual('1a.png')
         })
 
         it('takes a screenshot (hash changing)', async () => {
