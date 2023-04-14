@@ -45,7 +45,6 @@ module.exports = {
     })
     promises.push(generateCoverageReport(job))
     await Promise.all(promises)
-    output.timeSpent(job.start)
     job.status = 'Done'
   }
 }

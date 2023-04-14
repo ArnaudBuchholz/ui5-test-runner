@@ -185,6 +185,13 @@ function browserIssue (job, { type, url, code, dir }) {
   log(job, p`└──────────${pad.x('─')}┘`)
 }
 
+const formatTime = duration => {
+  duration = Math.ceil(duration / 1000)
+  const seconds = duration % 60
+  const minutes = (duration - seconds) / 60
+  return minutes.toString().padStart(2, '0') + ':' + seconds.toString().padStart(2, '0')
+}
+
 function build (job) {
   let wrap
   if (interactive) {
@@ -199,6 +206,8 @@ function build (job) {
   } else {
     wrap = method => method
   }
+  const outputStart = Date.now()
+  const getElapsed = () => formatTime(Date.now() - outputStart)
 
   return {
     lastTick: 0,
@@ -236,9 +245,10 @@ function build (job) {
       } else {
         method = log
       }
+      const text = `${getElapsed()} │ ${status}`
       method(job, '')
-      method(job, status)
-      method(job, ''.padStart(status.length, '─'))
+      method(job, text)
+      method(job, '──────┴'.padEnd(text.length, '─'))
     },
 
     watching: wrap(path => {
@@ -295,18 +305,25 @@ function build (job) {
     },
 
     browserStart (url) {
+      const text = p80()`${getElapsed()} >> ${pad.lt(url)}`
       if (interactive) {
-        output(job, '>>', url)
+        output(job, text)
       } else {
-        wrap(() => log(job, p80()`>> ${pad.lt(url)}`))()
+        wrap(() => log(job, text))()
       }
     },
 
     browserStopped (url) {
+      let duration = ''
+      const page = job.qunitPages && job.qunitPages[url]
+      if (page) {
+        duration = ' (' + formatTime(page.end - page.start) + ')'
+      }
+      const text = p80()`${getElapsed()} << ${pad.lt(url + duration)}`
       if (interactive) {
-        output(job, '<<', url)
+        output(job, text)
       } else {
-        wrap(() => log(job, p80()`<< ${pad.lt(url)}`))()
+        wrap(() => log(job, text))()
       }
     },
 
@@ -434,10 +451,6 @@ function build (job) {
 
     failFast: wrap(url => {
       log(job, p80()`!! FAILFAST ${pad.lt(url)}`)
-    }),
-
-    timeSpent: wrap((start, end = new Date()) => {
-      log(job, p80()`Time spent: ${end - start}ms`)
     }),
 
     noTestPageFound: wrap(() => {
