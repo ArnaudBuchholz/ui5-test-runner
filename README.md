@@ -47,7 +47,7 @@ A self-sufficient test runner for UI5 applications enabling parallel execution o
 ## ⚖️ License
 [![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2FArnaudBuchholz%2Fui5-test-runner.svg?type=large)](https://app.fossa.com/projects/git%2Bgithub.com%2FArnaudBuchholz%2Fui5-test-runner?ref=badge_large)
 
-## ⚠️ Breaking change
+## ⚠️ Breaking changes
 
 ### v3
 * Dropping support of Node.js 14
