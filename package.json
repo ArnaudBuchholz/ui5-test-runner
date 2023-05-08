@@ -1,6 +1,6 @@
 {
   "name": "ui5-test-runner",
-  "version": "2.0.6",
+  "version": "3.0.0",
   "description": "Standalone test runner for UI5",
   "main": "index.js",
   "files": [
@@ -12,7 +12,7 @@
     "ui5-test-runner": "./index.js"
   },
   "engines": {
-    "node": ">=14.0.0"
+    "node": ">=16"
   },
   "scripts": {
     "lint": "standard --fix",
