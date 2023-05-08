@@ -1,6 +1,6 @@
 {
   "name": "ui5-test-runner",
-  "version": "2.0.5",
+  "version": "2.0.6",
   "description": "Standalone test runner for UI5",
   "main": "index.js",
   "files": [
@@ -45,7 +45,7 @@
   },
   "homepage": "https://github.com/ArnaudBuchholz/ui5-test-runner#readme",
   "dependencies": {
-    "commander": "^10.0.0",
+    "commander": "^10.0.1",
     "mime": "^3.0.0",
     "punybind": "^1.2.1",
     "punyexpr": "^1.0.4",
@@ -53,7 +53,7 @@
   },
   "devDependencies": {
     "jest": "^29.5.0",
-    "nock": "^13.3.0",
+    "nock": "^13.3.1",
     "nyc": "^15.1.0",
     "standard": "^17.0.0"
   },
