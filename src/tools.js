@@ -1,16 +1,7 @@
 'use strict'
 
-const fsPromises = require('fs').promises
-const { mkdir, stat } = fsPromises
+const { mkdir, rm, stat } = require('fs').promises
 const { createHash } = require('crypto')
-
-let rm
-/* istanbul ignore next */ // Hard to test both in the same run
-if (process.version > 'v14.14') {
-  rm = fsPromises.rm
-} else {
-  rm = fsPromises.rmdir
-}
 
 const recursive = { recursive: true }
 
