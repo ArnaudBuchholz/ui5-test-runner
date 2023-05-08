@@ -32,6 +32,24 @@ function get (job, urlWithHash, testId) {
   return { url, page, test }
 }
 
+async function done (job, urlWithHash, report) {
+  const { url, page } = get(job, urlWithHash)
+  if (job.browserCapabilities.screenshot) {
+    try {
+      await screenshot(job, url, 'done')
+    } catch (error) {
+      getOutput(job).genericError(error, url)
+    }
+  }
+  if (report.__coverage__) {
+    collect(job, url, report.__coverage__)
+    delete report.__coverage__
+  }
+  page.end = new Date()
+  page.report = report
+  stop(job, url)
+}
+
 module.exports = {
   get,
 
@@ -95,23 +113,23 @@ module.exports = {
     }
     test.end = new Date()
     test.report = report
+    if (job.failOpaFast && failed) {
+      // skip remaining tests
+      page.modules.forEach(module => {
+        module.tests.forEach(test => {
+          if (!test.report) {
+            test.skip = true
+          }
+        })
+      })
+      await done(job, urlWithHash, {
+        failed: page.failed,
+        passed: page.passed,
+        total: page.count,
+        runtime: 0
+      })
+    }
   },
 
-  async done (job, urlWithHash, report) {
-    const { url, page } = get(job, urlWithHash)
-    if (job.browserCapabilities.screenshot) {
-      try {
-        await screenshot(job, url, 'done')
-      } catch (error) {
-        getOutput(job).genericError(error, url)
-      }
-    }
-    if (report.__coverage__) {
-      collect(job, url, report.__coverage__)
-      delete report.__coverage__
-    }
-    page.end = new Date()
-    page.report = report
-    stop(job, url)
-  }
+  done
 }

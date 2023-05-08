@@ -603,6 +603,44 @@ describe('src/qunit-hooks', () => {
       expect(stop).toHaveBeenCalledWith(job, url)
       expect(job.failed).toStrictEqual(true)
     })
+
+    describe.only('fail OPA fast behavior', () => {
+      beforeEach(async () => {
+        job.failOpaFast = true
+        await testDone(job, url, {
+          ...getTestDoneFor1a(),
+          passed: 0,
+          failed: 1,
+          total: 1
+        })
+      })
+
+      it('fails the test immediately', () => {
+        const { test } = get(job, url, '1a')
+        expect(test).toMatchObject({
+          report: {
+            passed: 0,
+            failed: 1,
+            total: 1
+          }
+        })
+      })
+
+      it('flags the remaining tests as skipped', () => {
+        const { page } = get(job, url)
+        page.modules.forEach(module => {
+          module.tests.forEach(test => {
+            if (test.testId !== '1a') {
+              expect(test.skip).toStrictEqual(true)
+            }
+          })
+        })
+      })
+
+      it('stops the page immediately', () => {
+        expect(stop).toHaveBeenCalledWith(job, url)
+      })
+    })
   })
 
   describe('done', () => {

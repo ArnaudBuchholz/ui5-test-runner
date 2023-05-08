@@ -95,6 +95,7 @@ function getCommand (cwd) {
     .option('-r, --report-dir <path>', '[💻🔗🧪] Directory to output test reports (relative to cwd)', 'report')
     .option('-pt, --page-timeout <timeout>', '[💻🔗🧪] Limit the page execution time, fails the page if it takes longer than the timeout (0 means no timeout)', timeout, 0)
     .option('-f, --fail-fast [flag]', '[💻🔗🧪] Stop the execution after the first failing page', boolean, false)
+    .option('-fo, --fail-opa-fast [flag]', '[💻🔗] Stop the OPA page execution after the first failing test', boolean, false)
     .option('-k, --keep-alive [flag]', '[💻🔗🧪] Keep the server alive', boolean, false)
     .option('-l, --log-server [flag]', '[💻🔗🧪] Log inner server traces', boolean, false)
     .option('-p, --parallel <count>', '[💻🔗🧪] Number of parallel tests executions', 2)

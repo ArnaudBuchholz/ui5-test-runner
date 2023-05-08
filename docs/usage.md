@@ -15,6 +15,8 @@ Check additional information below.
   -pt, --page-timeout <timeout>            [💻🔗🧪] Limit the page execution time, fails the page if it takes longer
                                            than the timeout (0 means no timeout) (default: 0)
   -f, --fail-fast [flag]                   [💻🔗🧪] Stop the execution after the first failing page (default: false)
+  -fo, --fail-opa-fast [flag]              [💻🔗] Stop the OPA page execution after the first failing test (default:
+                                           false)
   -k, --keep-alive [flag]                  [💻🔗🧪] Keep the server alive (default: false)
   -l, --log-server [flag]                  [💻🔗🧪] Log inner server traces (default: false)
   -p, --parallel <count>                   [💻🔗🧪] Number of parallel tests executions (default: 2)
