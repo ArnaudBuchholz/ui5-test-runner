@@ -70,7 +70,7 @@
 
   window['ui5-test-runner/stringify'] = stringify
 
-  window['ui5-test-runner/post'] = function post (url, data) {
+  window['ui5-test-runner/post'] = function post (url, data, synchronous) {
     function request () {
       return new Promise(function (resolve, reject) {
         const xhr = new XMLHttpRequest()
@@ -80,7 +80,7 @@
         xhr.addEventListener('error', () => {
           reject(xhr.statusText)
         })
-        xhr.open('POST', base + '/_/' + url)
+        xhr.open('POST', base + '/_/' + url, !synchronous)
         xhr.setRequestHeader('x-page-url', location)
         xhr.send(stringify(data))
       })
