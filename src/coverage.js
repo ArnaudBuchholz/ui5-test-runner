@@ -9,6 +9,7 @@ const { getOutput } = require('./output')
 const { resolvePackage } = require('./npm')
 
 const $nycSettingsPath = Symbol('nycSettingsPath')
+const $coverageFileIndex = Symbol('coverageFileIndex')
 
 let nycScript
 
@@ -76,7 +77,11 @@ async function generateCoverageReport (job) {
 module.exports = {
   instrument: job => job.coverage && instrument(job),
   async collect (job, url, coverageData) {
-    const coverageFileName = join(job.coverageTempDir, `${filename(url)}.json`)
+    job[$coverageFileIndex] = (job[$coverageFileIndex] || 0) + 1
+    const coverageFileName = join(job.coverageTempDir, `${filename(url)}_${job[$coverageFileIndex]}.json`)
+    if (job.debugCoverage) {
+      getOutput(job).wrap(() => console.log('coverage', coverageFileName))
+    }
     await writeFile(coverageFileName, JSON.stringify(coverageData))
   },
   generateCoverageReport: job => job.coverage && generateCoverageReport(job),
@@ -85,7 +90,7 @@ module.exports = {
         match: /^\/(.*\.js)$/,
         file: join(job.coverageTempDir, 'instrumented', '$1'),
         'ignore-if-not-found': true,
-        'custom-file-system': customFileSystem
+        'custom-file-system': job.debugCoverageNoCustomFs ? undefined : customFileSystem
       }]
     : []
 }
