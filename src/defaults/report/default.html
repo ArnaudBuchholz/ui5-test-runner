@@ -11,7 +11,7 @@
     <div {{if}}="!(qunitPage || qunitTest)">
       <h1>{{ status || 'Test report' }}</h1>
       <div {{if}}="end === undefined" class="elapsed">In progress since {{ elapsed(start) }}</div>
-      <div {{else}} class="elapsed">Duration : {{ elapsed(start, end) }}</div>
+      <div {{else}} class="elapsed">Duration : {{ elapsed(start, end) }} <a href="#" id="download">&#128230;</a></div>
       <table style="visibility: {{ testPageUrls.length > 0 ? 'visible' : 'hidden' }};">
         <tr>
           <th>&nbsp;</th>

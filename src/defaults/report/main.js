@@ -54,4 +54,16 @@ report.ready.then(update => {
     })
   }
   hashChange(location.hash)
+
+  window.addEventListener('click', (event) => {
+    if (event.target.id === 'download') {
+      const link = this.document.createElement('a')
+      const blob = new Blob([JSON.stringify(job)], {
+        type: 'application/json'
+      })
+      link.setAttribute('href', URL.createObjectURL(blob))
+      link.setAttribute('download', 'ui5-test-runner-job.json')
+      link.click()
+    }
+  })
 })
