@@ -8,7 +8,7 @@
   }
   window[MODULE] = true
 
-  if (window !== window.top) {
+  if (window !== window.top || window !== window.parent) {
     // Inside an iframe
     Object.defineProperty(window, '__coverage__', {
       get () {
