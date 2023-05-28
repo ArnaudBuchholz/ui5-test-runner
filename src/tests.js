@@ -73,7 +73,8 @@ async function runTestPage (job, url) {
       scripts = [
         'post.js',
         'qunit-intercept.js',
-        'qunit-hooks.js'
+        'qunit-hooks.js',
+        'opa-iframe-coverage.js'
       ]
     }
     await start(job, url, scripts)
