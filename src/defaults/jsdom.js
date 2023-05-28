@@ -30,7 +30,17 @@ require('./browser')({
     virtualConsole.on('info', (...args) => consoleWriter.append({ type: 'info', text: args.join(' ') }))
     virtualConsole.on('log', (...args) => consoleWriter.append({ type: 'log', text: args.join(' ') }))
 
+    let mainWindow
+
     const beforeParse = (window) => {
+      if (mainWindow === undefined) {
+        mainWindow = window
+      } else {
+        Object.defineProperty(window, 'parent', {
+          value: mainWindow,
+          writable: false
+        })
+      }
       require('./jsdom/compatibility')({ window, networkWriter })
       if (options.debug) {
         require('./jsdom/debug')(window)
@@ -43,6 +53,7 @@ require('./browser')({
     const origCreate = Window.createWindow.bind(Window)
     Window.createWindow = (...args) => {
       const window = origCreate(...args)
+      window._virtualConsole = virtualConsole
       beforeParse(window)
       return window
     }
