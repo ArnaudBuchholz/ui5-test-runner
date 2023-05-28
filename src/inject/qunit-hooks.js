@@ -2,10 +2,11 @@
 (function () {
   'use strict'
 
-  if (window['ui5-test-runner/qunit-hooks']) {
+  const MODULE = 'ui5-test-runner/qunit-hooks'
+  if (window[MODULE]) {
     return // already installed
   }
-  window['ui5-test-runner/qunit-hooks'] = true
+  window[MODULE] = true
 
   const post = window['ui5-test-runner/post']
 
