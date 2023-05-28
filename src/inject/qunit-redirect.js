@@ -1,10 +1,11 @@
 (function () {
   'use strict'
 
-  if (window['ui5-test-runner/qunit-redirect']) {
+  const MODULE = 'ui5-test-runner/qunit-redirect'
+  if (window[MODULE]) {
     return // already installed
   }
-  window['ui5-test-runner/qunit-redirect'] = true
+  window[MODULE] = true
 
   /* global suite */
 
