@@ -11,7 +11,6 @@ const { getJobProgress } = require('./get-job-progress')
 const { readFile } = require('fs/promises')
 const { TextEncoder } = require('util')
 const { resolveDependencyPath } = require('./npm.js')
-const { collect } = require('./coverage')
 
 const punyexprBinPath = join(resolveDependencyPath('punyexpr'), 'dist/punyexpr.js')
 const punybindBinPath = join(resolveDependencyPath('punybind'), 'dist/punybind.js')
@@ -121,10 +120,6 @@ module.exports = job => {
       // Endpoint to receive QUnit.done
         match: '^/_/QUnit/done',
         custom: endpoint('QUnit/done', async (url, report) => done(job, url, report))
-      }, {
-      // Endpoint to receive coverage
-        match: '^/_/coverage',
-        custom: synchronousEndpoint('coverage', async (url, coverageData) => collect(job, url, coverageData))
       }, {
       // UI to follow progress
         match: '^/_/progress.html',
