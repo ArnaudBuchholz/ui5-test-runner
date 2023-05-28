@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>IFrame Coverage</title>
+  </head>
+  <body>
+    <h1>IFrame Coverage</h1>
+    <p>Checks if the coverage information can be extracted from the iframe</p>
+    <iframe src="coverage.html"></iframe>
+    <script>
+document.querySelector('iframe').addEventListener('load', () => {
+  const xhr = new XMLHttpRequest()
+  xhr.open('POST', '/_/log')
+  xhr.send(JSON.stringify(window.__coverage__ || {}))
+})
+    </script>
+  </body>
+</html>
