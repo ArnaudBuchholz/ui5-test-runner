@@ -67,7 +67,7 @@ require('./browser')({
     }
 
     browser = await puppeteer.launch({
-      headless: !options.visible,
+      headless: options.visible ? false : 'new',
       defaultViewport: null,
       args
     })
