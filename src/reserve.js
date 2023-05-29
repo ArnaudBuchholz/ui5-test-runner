@@ -13,7 +13,7 @@ module.exports = job => check({
     ...job.mappings ?? [],
     ...job.serveOnly ? [] : endpoints(job),
     ...ui5(job),
-    ...job.serveOnly ? [] : coverage(job), {
+    ...coverage(job), {
       // Project mapping
       match: /^\/(.*)/,
       file: join(job.webapp, '$1'),
