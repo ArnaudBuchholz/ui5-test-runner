@@ -3,6 +3,7 @@ const { fromObject } = require('./job')
 const { instrument, generateCoverageReport, mappings } = require('./coverage')
 const { stat } = require('fs/promises')
 const { cleanDir, createDir } = require('./tools')
+const { getOutput } = require('./output')
 
 describe('src/coverage', () => {
   const cwd = join(__dirname, '../test/project')
@@ -74,6 +75,44 @@ describe('src/coverage', () => {
     it('creates a mapping', async () => {
       const coverageMappings = mappings(job)
       expect(coverageMappings.length).toStrictEqual(1)
+    })
+
+    describe('--url compatibility', () => {
+      let output
+      let instrumentationSkipped
+
+      beforeAll(() => {
+        output = getOutput(job)
+        instrumentationSkipped = jest.spyOn(output, 'instrumentationSkipped')
+      })
+
+      beforeEach(() => {
+        instrumentationSkipped.mockReset()
+      })
+
+      afterAll(() => {
+        instrumentationSkipped.mockRestore()
+      })
+
+      it('does *not* instrument if the URL does not match current port', async () => {
+        Object.assign(job, {
+          mode: 'url',
+          port: 8080,
+          url: ['http://localhost:8081/whatever/test.html']
+        })
+        await instrument(job)
+        expect(instrumentationSkipped).toHaveBeenCalled()
+      })
+
+      it('**does** instrument anyway if the URL matches current port', async () => {
+        Object.assign(job, {
+          mode: 'url',
+          port: 8080,
+          url: ['http://localhost:8080/whatever/test.html']
+        })
+        await instrument(job)
+        expect(instrumentationSkipped).not.toHaveBeenCalled()
+      })
     })
   })
 })

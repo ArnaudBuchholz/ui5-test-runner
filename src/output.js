@@ -408,6 +408,10 @@ function build (job) {
       log(job, p80()`nyc ${args.map(arg => arg.toString()).join(' ')}`)
     }),
 
+    instrumentationSkipped: wrap(() => {
+      log(job, p80()`Skipping nyc instrumentation (--url)`)
+    }),
+
     endpointError: wrap(({ api, url, data, error }) => {
       const p = p80()
       log(job, p`┌──────────${pad.x('─')}┐`)

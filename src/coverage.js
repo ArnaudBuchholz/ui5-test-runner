@@ -43,6 +43,18 @@ const customFileSystem = {
 }
 
 async function instrument (job) {
+  if (job.mode === 'url') {
+    const port = job.port.toString()
+    const useLocal = job.url.some(url => {
+      // ignore host name since the machine might be exposed with any name
+      const parsedUrl = new URL(url)
+      return parsedUrl.port === port
+    })
+    if (!useLocal) {
+      getOutput(job).instrumentationSkipped()
+      return
+    }
+  }
   job.status = 'Instrumenting'
   if (!nycScript) {
     const nyc = await resolvePackage(job, 'nyc')
