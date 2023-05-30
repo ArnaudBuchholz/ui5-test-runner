@@ -2,7 +2,7 @@
 
 const { Command, Option, InvalidArgumentError } = require('commander')
 const { statSync, accessSync, constants } = require('fs')
-const { join, isAbsolute } = require('path')
+const { dirname, join, isAbsolute } = require('path')
 const { name, description, version } = require(join(__dirname, '../package.json'))
 const { getOutput } = require('./output')
 const { $valueSources } = require('./symbols')
@@ -244,6 +244,37 @@ function finalize (job) {
   }
 
   const output = getOutput(job)
+
+  if (job.coverage) {
+    function overrideIfNotSet (option, valueFromSettings) {
+      if (valueFromSettings && job[$valueSources][option] !== 'cli') {
+        if (job.debugCoverage) {
+          output.wrap(() => console.log(`${option} extracted from nyc settings : ${valueFromSettings}`))
+        }
+        job[option] = valueFromSettings
+      }
+    }
+
+    function overrideDirIfNotSet (option, valueFromSettings) {
+      if (valueFromSettings && !isAbsolute(valueFromSettings)) {
+        valueFromSettings = join(dirname(job.coverageSettings), valueFromSettings)
+      }
+      overrideIfNotSet(option, valueFromSettings)
+    }
+
+    checkAccess({ path: job.coverageSettings, file: true, label: 'coverage settings' })
+
+    let settings
+    try {
+      settings = require(job.coverageSettings)
+    } catch (e) {
+      throw new Error(`Unable to read ${job.coverageSettings} as JSON`)
+    }
+    overrideDirIfNotSet('coverageReportDir', settings['report-dir'])
+    overrideDirIfNotSet('coverageTempDir', settings['temp-dir'])
+    overrideIfNotSet('coverageReporters', settings.reporter)
+  }
+
   job[$status] = 'Starting'
   Object.defineProperty(job, 'status', {
     get () {
