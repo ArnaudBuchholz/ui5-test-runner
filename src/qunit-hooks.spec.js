@@ -604,7 +604,7 @@ describe('src/qunit-hooks', () => {
       expect(job.failed).toStrictEqual(true)
     })
 
-    describe.only('fail OPA fast behavior', () => {
+    describe('fail OPA fast behavior', () => {
       beforeEach(async () => {
         job.failOpaFast = true
         await testDone(job, url, {
