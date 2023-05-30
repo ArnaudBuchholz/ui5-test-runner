@@ -43,19 +43,6 @@ const customFileSystem = {
 }
 
 async function instrument (job) {
-  if (job.mode === 'url') {
-    const port = job.port.toString()
-    const useLocal = job.url.some(url => {
-      // ignore host name since the machine might be exposed with any name
-      const parsedUrl = new URL(url)
-      return parsedUrl.port === port
-    })
-    if (!useLocal) {
-      getOutput(job).instrumentationSkipped()
-      return
-    }
-  }
-  job.status = 'Instrumenting'
   if (!nycScript) {
     const nyc = await resolvePackage(job, 'nyc')
     nycScript = join(nyc, 'bin/nyc.js')
@@ -75,6 +62,19 @@ async function instrument (job) {
   settings.exclude.push(join(job.reportDir, '**'))
   settings.exclude.push(join(job.coverageReportDir, '**'))
   await writeFile(job[$nycSettingsPath], JSON.stringify(settings))
+  if (job.mode === 'url') {
+    const port = job.port.toString()
+    const useLocal = job.url.some(url => {
+      // ignore host name since the machine might be exposed with any name
+      const parsedUrl = new URL(url)
+      return parsedUrl.port === port
+    })
+    if (!useLocal) {
+      getOutput(job).instrumentationSkipped()
+      return
+    }
+  }
+  job.status = 'Instrumenting'
   await nyc(job, 'instrument', job.webapp, join(job.coverageTempDir, 'instrumented'), '--nycrc-path', job[$nycSettingsPath])
 }
 
