@@ -9,7 +9,7 @@ const {
   $probeUrlsCompleted,
   $testPagesCompleted
 } = require('./symbols')
-const { noop, pad } = require('./tools')
+const { filename, noop, pad } = require('./tools')
 
 const inJest = typeof jest !== 'undefined'
 const interactive = process.stdout.columns !== undefined && !inJest
@@ -305,7 +305,7 @@ function build (job) {
     },
 
     browserStart (url) {
-      const text = p80()`${getElapsed()} >> ${pad.lt(url)}`
+      const text = p80()`${getElapsed()} >> ${pad.lt(url)} [${filename(url)}]`
       if (interactive) {
         output(job, text)
       } else {
@@ -319,7 +319,7 @@ function build (job) {
       if (page) {
         duration = ' (' + formatTime(page.end - page.start) + ')'
       }
-      const text = p80()`${getElapsed()} << ${pad.lt(url + duration)}`
+      const text = p80()`${getElapsed()} << ${pad.lt(url)} ${duration} [${filename(url)}]`
       if (interactive) {
         output(job, text)
       } else {
