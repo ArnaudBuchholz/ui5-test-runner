@@ -1,6 +1,7 @@
 'use strict'
 
 const { InvalidArgumentError } = require('commander')
+const { join } = require('path')
 
 let browser
 let context
@@ -22,12 +23,12 @@ require('./browser')({
     options: [
       ['-b, --browser <name>', 'Browser driver', browserSelector, 'chromium'],
       ['--visible [flag]', 'Show the browser', false],
-      // tracing => .zip
-      // video => 
-      // ['-w, --viewport-width <width>', 'Viewport width', 1920],
-      // ['-h, --viewport-height <height>', 'Viewport height', 1080],
-      // ['-l, --language <lang...>', 'Language(s)', ['en-US']],
-      // ['-u, --unsecure', 'Disable security features', false]
+      ['-w, --viewport-width <width>', 'Viewport width', 1280],
+      ['-h, --viewport-height <height>', 'Viewport height', 720],
+      ['-l, --language <lang>', 'Language', 'en-US'],
+      ['-u, --unsecure', 'Disable security features', false],
+      ['-v, --video', 'Record video', false],
+      ['-n, --har', 'Record network activity with har file', false]
     ],
     capabilities: {
       modules: ['playwright'],
@@ -51,21 +52,47 @@ require('./browser')({
     if (page) {
       await page.close()
     }
+    if (context) {
+      await context.close()
+    }
     if (browser) {
       await browser.close()
     }
   },
 
   async run ({
-    settings: { url, scripts, modules },
+    settings: { url, scripts, modules, dir },
     options,
     consoleWriter,
     networkWriter
   }) {
     const browsers = require(modules.playwright)
     browser = await browsers[options.browser].launch()
-    context = await browser.newContext({
 
+    let recordVideo
+    if (options.video) {
+      recordVideo = {
+        dir
+      }
+    }
+
+    let recordHar
+    if (options.har) {
+      recordHar = {
+        path: join(dir, 'network.har')
+      }
+    }
+
+    context = await browser.newContext({
+      viewport: {
+        width: options.viewportWidth,
+        height: options.viewportHeight
+      },
+      locale: options.language,
+      bypassCSP: options.unsecure,
+      ignoreHTTPSErrors: options.unsecure,
+      recordVideo,
+      recordHar
     })
 
     context.setDefaultNavigationTimeout(0)
