@@ -16,12 +16,13 @@
   },
   "scripts": {
     "lint": "standard --fix",
-    "test": "npm run test:unit && npm run test:integration:jsdom && npm run test:integration:puppeteer && npm run test:integration:selenium-webdriver-chrome",
+    "test": "npm run test:unit && npm run test:integration:jsdom && npm run test:integration:puppeteer && npm run test:integration:selenium-webdriver-chrome && npm run test:integration:playwright",
     "test:unit": "jest",
     "test:unit:debug": "jest --runInBand",
     "test:integration:puppeteer": "node . --capabilities --browser $/puppeteer.js",
     "test:integration:selenium-webdriver-chrome": "node . --capabilities --browser $/selenium-webdriver.js -- --browser chrome",
     "test:integration:jsdom": "node . --capabilities --browser $/jsdom.js",
+    "test:integration:playwright": "node . --capabilities --browser $/playwright.js",
     "test:report": "node ./src/defaults/report.js ./test/report && reserve --config ./test/report/reserve.json",
     "build:doc": "node build/doc"
   },
