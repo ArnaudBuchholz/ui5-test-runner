@@ -93,7 +93,7 @@ require('./browser')({
       })
 
     if (scripts && scripts.length) {
-      for await (const script of scripts) {
+      for (const script of scripts) {
         await page.evaluateOnNewDocument(script)
       }
     }
