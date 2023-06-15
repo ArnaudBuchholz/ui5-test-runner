@@ -9,6 +9,11 @@
 | Scripts | ✔️ |
 | Traces | `console`, `network` |
 
+## Options
+```text
+  --debug [flag]  Enable more traces (default: false)
+```
+
 ## Implementation notes
 
 * `jsdom` does not renders HTML pages, it **cannot** take screenshots
