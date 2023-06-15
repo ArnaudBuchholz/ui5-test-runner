@@ -18,6 +18,14 @@ Supported browsers :
 * firefox
 * edge
 
+## Options
+```text
+  -b, --browser <name>   Browser driver (default: "chrome")
+  --visible [flag]       Show the browser (default: false)
+  -s, --server <server>  Selenium server URL
+  --binary <binary>      Binary path
+```
+
 ## Implementation notes
 
 Please check https://www.npmjs.com/package/selenium-webdriver#installation for installing browser driver.
