@@ -3,15 +3,16 @@
 ## Overview
 
 `ui5-test-runner` can integrate **different browsers** to run the tests. In particular, it is delivered with the following implementations :
+
 * [puppeteer](puppeteer.md) *(chrome)*
 * [playwright](playwright.md)
-  * chromium
-  * firefox
-  * webkit
+    * chromium
+    * firefox
+    * webkit
 * [selenium-webdriver](selenium-webdriver.md)
-  * chrome
-  * firefox
-  * edge
+      * chrome
+      * firefox
+      * edge
 * [jsdom](jsdom.md) *experimental*
 
 The integration consists of a browser instantiation process that is [forked](https://nodejs.org/api/child_process.html#child_processforkmodulepath-args-options) from `ui5-test-runner`, allowing the runner to capture the output and to do [in-process communication](https://nodejs.org/api/process.html#processsendmessage-sendhandle-options-callback).
@@ -34,6 +35,7 @@ A JSON file is generated and its **absolute** path is submitted to the command a
 > Probing request JSON file
 
 The probing request file is composed of the following properties :
+
 * `capabilities` : path to a result file the command must generate.
 * `url` : `"about:blank"`
 * `dir` : the working folder allocated for the command.
@@ -58,6 +60,7 @@ When `capabilities` contains a string, the command  **must** generate an answer 
 > Capabilities answer JSON file
 
 The following members are considered :
+
 * `modules` : the list of NPM modules the command depends on, defaulted to `[]`. When modules are specified, the runner is responsible of **finding** the dependencies or **installing** them, when needed.
 * `parallel` : if the command supports parallel execution, defaulted to `true`.
 * `screenshot` : if the command supports screenshot, it contains the extension of the generated files, defaulted to `null` *(screenshots are not supported)*.
@@ -90,6 +93,7 @@ Once the capabilities are known, the command is executed to run the tests. A dif
 > Execution request JSON file
 
 The execution request file is composed of the following properties :
+
 * `capabilities` : the result of the probe operation. It can be used to store information that is available for execution.
 * `modules` : if the probe returned a list of modules, `ui5-test-runner` will ensure to find them either locally or globally. When not found, the runner installs the dependencies globally. Once all the dependencies are resolved, their respective path are given in this object (key is the module name, value is the path).
 * `url` : url of the test page to run.
