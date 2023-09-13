@@ -15,6 +15,7 @@
       <table style="visibility: {{ testPageUrls.length > 0 ? 'visible' : 'hidden' }};">
         <tr>
           <th>&nbsp;</th>
+          <th class="count">Type</th>
           <th class="status" style="width: 10rem;"><div><span>Status</span></div></th>
           <th class="count">Tests</th>
           <th class="count">Passed</th>
@@ -25,6 +26,11 @@
           <td class="truncated">
               <span {{if}}="qunitPages === undefined || !qunitPages[url]">{{ url }}</span>
               <a {{else}} href="#{{ qunitPages[url].id }}">{{ url }}</a>
+          </td>
+          <td>
+            <span {{if}}="!qunitPages[url]">-</span>
+            <span {{elseif}}="qunitPages[url].isOpa" title="OPA test">&#129404;</span>
+            <span {{else}} title="Unit test">&#129514;</span>
           </td>
           <td>
             <span {{if}}="!qunitPages[url]">-</span>
