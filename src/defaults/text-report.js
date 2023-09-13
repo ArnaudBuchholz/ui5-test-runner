@@ -15,40 +15,44 @@ async function main () {
     jobPath = join(process.cwd(), reportDir, 'job.js')
   }
   const job = require(jobPath)
-  log(p`┌──────────${pad.x('─')}┐`)
-  log(p`│ RESULTS ${pad.x(' ')} │`)
-  log(p`├─────┬─${pad.x('─')}──┤`)
-  const messages = []
-  function result (url) {
+  const failedUrls = []
+  log(p`┌─${pad.x('─')}───────────────────┐`)
+  function render (url) {
     const page = job.qunitPages && job.qunitPages[url]
-    let message
     if (!page || !page.report) {
-      message = 'Unable to run the page'
-    } else if (page.report.failed > 1) {
-      message = `${page.report.failed} tests failed`
-    } else if (page.report.failed === 1) {
-      message = '1 test failed'
-    }
-    if (message) {
-      log(p`│ ${(messages.length + 1).toString().padStart(3, ' ')} │ ${pad.lt(url)} │`)
-      messages.push(message)
+      log(p`│${pad.lt(url)} 🧨           │`)
+      failedUrls.push(url)
     } else {
-      log(p`│ OK  │ ${pad.lt(url)} │`)
+      const type = page.isOpa ? '🥼' : '🧪'
+      const status = page.report.failed > 0 ? '🐞' : '  '
+      if (page.report.failed > 0) {
+        failedUrls.push(url)
+      }
+      log(p`│${pad.lt(url)} ${type} ${status} ${page.passed.toString().padStart(3, ' ')}/${page.count.toString().padEnd(3, ' ')}│`)
     }
   }
-  job.testPageUrls.forEach(result)
+  job.testPageUrls.forEach(render)
   Object.keys(job.qunitPages || []).forEach(url => {
     if (!job.testPageUrls.includes(url)) {
-      result(url)
+      render(url)
     }
   })
-  log(p`└─────┴───${pad.x('─')}┘`)
-  messages.forEach((message, index) => {
-    log(p`${(index + 1).toString().padStart(3, ' ')}: ${message}`)
+  log(p`└─${pad.x('─')}────────────────────┘`)
+  failedUrls.forEach(url => {
+    log(p`[${pad.lt(url)}]`)
+    const page = job.qunitPages && job.qunitPages[url]
+    if (!page) {
+      log(p`Unable to run the page (check the tool log for general errors)`)
+    } else if (page.isOpa) {
+      // Focus on the first error only
+
+      if (page.failed > 1) {
+        log(p`Other errors occurred but, for OPA tests, it is recommended to focus on the first one`)
+      }
+    }
+
+    log()
   })
-  if (!messages.length) {
-    log(p`Success !`)
-  }
 }
 
 main()
