@@ -20,6 +20,14 @@ async function save (job) {
   await serialize(job, 'job', job)
 }
 
+function generateTextReport (job) {
+  const { promise, resolve } = allocPromise()
+  const childProcess = fork(join(__dirname, 'defaults/text-report.js'), [job.reportDir], { stdio: 'pipe' })
+  getOutput(job).monitor(childProcess, true)
+  childProcess.on('close', resolve)
+  return promise
+}
+
 module.exports = {
   save,
 
@@ -28,9 +36,9 @@ module.exports = {
     job.end = new Date()
     job.failed = !!job.failed
     job.status = 'Generating reports'
-    output.results()
     job.testPageHashes = job.testPageUrls.map(url => filename(url))
     await save(job)
+    await generateTextReport(job)
     const promises = job.reportGenerator.map(generator => {
       const { promise, resolve } = allocPromise()
       const childProcess = fork(generator, [job.reportDir], { stdio: 'pipe' })

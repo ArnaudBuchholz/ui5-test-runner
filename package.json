@@ -24,6 +24,7 @@
     "test:integration:jsdom": "node . --capabilities --browser $/jsdom.js",
     "test:integration:playwright": "node . --capabilities --browser $/playwright.js",
     "test:report": "node ./src/defaults/report.js ./test/report && reserve --config ./test/report/reserve.json",
+    "test:text-report": "node ./src/defaults/text-report.js ./test/report",
     "build:doc": "node build/doc"
   },
   "repository": {

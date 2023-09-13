@@ -56,6 +56,12 @@ beforeAll(async () => {
     exec: async childProcess => childProcess.stdout.write(versionOf('nyc') + '\n'),
     persist: true
   })
+  mock({
+    api: 'fork',
+    scriptPath: /text-report\.js$/,
+    exec: async childProcess => childProcess.stdout.write('text report\n'),
+    persist: true
+  })
 })
 
 beforeEach(() => {

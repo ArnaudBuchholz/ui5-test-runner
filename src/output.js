@@ -488,44 +488,6 @@ function build (job) {
       warn(job, p80()`Some requests are not handled properly, check the unhandled.txt report for more info`)
     }),
 
-    results: wrap(() => {
-      const p = p80()
-      log(job, p`┌──────────${pad.x('─')}┐`)
-      log(job, p`│ RESULTS ${pad.x(' ')} │`)
-      log(job, p`├─────┬─${pad.x('─')}──┤`)
-      const messages = []
-      function result (url) {
-        const page = job.qunitPages && job.qunitPages[url]
-        let message
-        if (!page || !page.report) {
-          message = 'Unable to run the page'
-        } else if (page.report.failed > 1) {
-          message = `${page.report.failed} tests failed`
-        } else if (page.report.failed === 1) {
-          message = '1 test failed'
-        }
-        if (message) {
-          log(job, p`│ ${(messages.length + 1).toString().padStart(3, ' ')} │ ${pad.lt(url)} │`)
-          messages.push(message)
-        } else {
-          log(job, p`│ OK  │ ${pad.lt(url)} │`)
-        }
-      }
-      job.testPageUrls.forEach(result)
-      Object.keys(job.qunitPages || []).forEach(url => {
-        if (!job.testPageUrls.includes(url)) {
-          result(url)
-        }
-      })
-      log(job, p`└─────┴───${pad.x('─')}┘`)
-      messages.forEach((message, index) => {
-        log(job, p`${(index + 1).toString().padStart(3, ' ')}: ${message}`)
-      })
-      if (!messages.length) {
-        log(job, p`Success !`)
-      }
-    }),
-
     reportGeneratorFailed: wrap((generator, exitCode, buffers) => {
       const p = p80()
       log(job, p`┌──────────${pad.x('─')}┐`)

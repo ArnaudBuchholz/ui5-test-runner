@@ -97,9 +97,11 @@ class ChildProcess extends EventEmitter {
     this._options = options
     this._stdout = new Channel()
     this._stderr = new Channel()
-    const [, stdout, stderr] = options.stdio || []
-    this._stdout.setFileHandle(stdout)
-    this._stderr.setFileHandle(stderr)
+    if (options.stdio !== 'pipe') {
+      const [, stdout, stderr] = options.stdio || []
+      this._stdout.setFileHandle(stdout)
+      this._stderr.setFileHandle(stderr)
+    }
   }
 }
 
