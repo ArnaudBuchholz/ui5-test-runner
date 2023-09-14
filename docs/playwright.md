@@ -34,3 +34,4 @@ Supported browsers :
 ## Implementation notes
 
 * If you use the video recording feature (`--video`), it is recommended to turn off the screenshots as it makes the screen flicker
+* In the latest version, playwright requires an additional installation step (`npx playwright install`). The command executes it.

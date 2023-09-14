@@ -2,6 +2,7 @@
 
 const { InvalidArgumentError } = require('commander')
 const { join } = require('path')
+const { exec } = require('child_process')
 
 let browser
 let context
@@ -29,13 +30,33 @@ require('./browser')({
       ['-u, --unsecure', 'Disable security features', false],
       ['-v, --video', 'Record video', false],
       ['-n, --har', 'Record network activity with har file', false]
-    ],
-    capabilities: {
+    ]
+  },
+
+  async capabilities ({ settings, options }) {
+    const capabilities = {
       modules: ['playwright'],
       screenshot: '.png',
       scripts: true,
       traces: ['console', 'network']
     }
+    if (!settings.modules) {
+      return {
+        ...capabilities,
+        'probe-with-modules': true
+      }
+    }
+    return await new Promise((resolve, reject) => {
+      exec('npx playwright install', (err, stdout, stderr) => {
+        console.log(stdout)
+        console.error(stderr)
+        if (err) {
+          reject(new Error('Unable to finalize playwright installation'))
+        } else {
+          resolve(capabilities)
+        }
+      })
+    })
   },
 
   async screenshot ({ filename }) {
