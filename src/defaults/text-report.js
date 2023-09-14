@@ -7,6 +7,18 @@ const { pad } = require('../tools')
 const p = pad(process.stdout.columns || 80)
 const log = console.log.bind(console)
 
+function collectErrors (page) {
+  const errors = []
+  page.modules.forEach(module => {
+    module.tests.forEach(test => {
+      if (test.report.failed) {
+        errors.push({ module: module.name, ...test })
+      }
+    })
+  })
+  return errors
+}
+
 async function main () {
   let jobPath
   if (isAbsolute(reportDir)) {
@@ -39,19 +51,30 @@ async function main () {
   })
   log(p`└─${pad.x('─')}────────────────────┘`)
   failedUrls.forEach(url => {
+    log()
     log(p`[${pad.lt(url)}]`)
     const page = job.qunitPages && job.qunitPages[url]
     if (!page) {
-      log(p`Unable to run the page (check the tool log for general errors)`)
-    } else if (page.isOpa) {
-      // Focus on the first error only
-
-      if (page.failed > 1) {
-        log(p`Other errors occurred but, for OPA tests, it is recommended to focus on the first one`)
+      log(p`Unable to run the page (check the execution log)`)
+    } else {
+      let errors = collectErrors(page)
+      const { length } = errors
+      if (page.isOpa) {
+        // Focus on the first error only
+        errors = errors.slice(0, 1)
+      }
+      errors.forEach((test, index) => {
+        if (index > 0) {
+          log()
+        }
+        log(`${test.module} ▶ ${test.name}`)
+        test.logs.filter(({ result }) => !result).forEach(({ message }) => log(message))
+      })
+      if (page.isOpa && length > 1) {
+        log()
+        log(p`(${length} errors occurred but it is recommended to focus on the first OPA error)`)
       }
     }
-
-    log()
   })
 }
 
