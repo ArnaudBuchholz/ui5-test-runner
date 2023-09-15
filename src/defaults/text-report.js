@@ -57,6 +57,11 @@ async function main () {
     if (!page) {
       log(p`Unable to run the page (check the execution log)`)
     } else {
+      const pageIndex = job.testPageUrls.indexOf(url)
+      const pageHash = job.testPageHashes[pageIndex]
+      if (pageHash) {
+        log(p`Page execution folder name : ${pageHash}`)
+      }
       let errors = collectErrors(page)
       const { length } = errors
       if (page.isOpa) {
