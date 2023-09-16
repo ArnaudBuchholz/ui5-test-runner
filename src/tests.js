@@ -73,9 +73,14 @@ async function runTestPage (job, url) {
       scripts = [
         'post.js',
         'qunit-intercept.js',
-        'qunit-hooks.js',
-        'opa-iframe-coverage.js'
+        'qunit-hooks.js'
       ]
+      if (job.coverage) {
+        scripts.push(
+          'opa-iframe-coverage.js',
+          'ui5-coverage.js' // TODO improve when to inject this
+        )
+      }
     }
     await start(job, url, scripts)
   } catch (error) {
