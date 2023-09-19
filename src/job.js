@@ -76,7 +76,8 @@ function getCommand (cwd) {
   const command = new Command()
   command.exitOverride()
 
-  const DEBUG_OPTION = '(For debugging purpose)'
+  const DEBUG_OPTION = '(🐞 for debugging purpose)'
+  const EXPERIMENTAL_OPTION = '[⚠️ experimental]'
 
   command
     .name(name)
@@ -115,6 +116,14 @@ function getCommand (cwd) {
     .option('-rg, --report-generator <path...>', '[💻🔗] Report generator paths (relative to cwd or use $/ for provided ones)', ['$/report.js'])
     .option('-pp, --progress-page <path>', '[💻🔗] progress page path (relative to cwd or use $/ for provided ones)', '$/report/default.html')
 
+    .option('--coverage [flag]', '[💻🔗] Enable or disable code coverage', boolean)
+    .option('--no-coverage', '[💻🔗] Disable code coverage')
+    .option('-cs, --coverage-settings <path>', '[💻🔗] Path to a custom nyc.json file providing settings for instrumentation (relative to cwd or use $/ for provided ones)', '$/nyc.json')
+    .option('-ct, --coverage-temp-dir <path>', '[💻🔗] Directory to output raw coverage information to (relative to cwd)', '.nyc_output')
+    .option('-cr, --coverage-report-dir <path>', '[💻🔗] Directory to store the coverage report files (relative to cwd)', 'coverage')
+    .option('-cr, --coverage-reporters <reporter...>', '[💻🔗] List of nyc reporters to use', ['lcov', 'cobertura'])
+    .option('-s, --serve-only [flag]', '[💻🔗] Serve only', boolean, false)
+
     // Specific to legacy
     .option('--ui5 <url>', '[💻] UI5 url', url, 'https://ui5.sap.com')
     .option('--libs <lib...>', '[💻] Library mapping (<relative>=<path> or <path>)', arrayOf(lib))
@@ -122,14 +131,12 @@ function getCommand (cwd) {
     .option('--cache <path>', '[💻] Cache UI5 resources locally in the given folder (empty to disable)')
     .option('--webapp <path>', '[💻] Base folder of the web application (relative to cwd)', 'webapp')
     .option('--testsuite <path>', '[💻] Path of the testsuite file (relative to webapp)', 'test/testsuite.qunit.html')
-    .option('-s, --serve-only [flag]', '[💻] Serve only', boolean, false)
     .option('-w, --watch [flag]', '[💻] Monitor the webapp folder and re-execute tests on change', boolean, false)
-    .option('--coverage [flag]', '[💻] Enable or disable code coverage', boolean)
-    .option('--no-coverage', '[💻] Disable code coverage')
-    .option('-cs, --coverage-settings <path>', '[💻] Path to a custom nyc.json file providing settings for instrumentation (relative to cwd or use $/ for provided ones)', '$/nyc.json')
-    .option('-ct, --coverage-temp-dir <path>', '[💻] Directory to output raw coverage information to (relative to cwd)', '.nyc_output')
-    .option('-cr, --coverage-report-dir <path>', '[💻] Directory to store the coverage report files (relative to cwd)', 'coverage')
-    .option('-cr, --coverage-reporters <reporter...>', '[💻] List of nyc reporters to use', ['lcov', 'cobertura'])
+
+    // Specific to coverage in url mode (experimental)
+    .option('-cp, --coverage-proxy <flag>', `[🔗] ${EXPERIMENTAL_OPTION} use internal proxy to instrument remote files`, false)
+    .option('-cpi, --coverage-proxy-include <regexp>', `[🔗] ${EXPERIMENTAL_OPTION} urls to instrument for coverage`, 'webapp/.*')
+    .option('-cpe, --coverage-proxy-exclude <regexp>', `[🔗] ${EXPERIMENTAL_OPTION} urls to ignore for coverage`, '(test-)?resources/.*')
 
     .addOption(new Option('--debug-probe-only', DEBUG_OPTION, boolean).hideHelp())
     .addOption(new Option('--debug-keep-browser-open', DEBUG_OPTION, boolean).hideHelp())

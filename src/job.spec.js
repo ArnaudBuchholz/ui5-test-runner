@@ -72,9 +72,8 @@ describe('job', () => {
         expect(job.screenshot).toStrictEqual(false)
       })
 
-      it('url disables webapp checking and coverage', () => {
+      it('url disables coverage by default', () => {
         const job = buildJob({
-          webapp: 'not_a_folder',
           url: 'http://localhost:8080'
         })
         expect(job.url).toStrictEqual(['http://localhost:8080'])
@@ -83,7 +82,6 @@ describe('job', () => {
 
       it('url still allows coverage', () => {
         const job = buildJob({
-          webapp: 'not_a_folder',
           url: 'http://localhost:8080',
           coverage: true
         })
@@ -254,6 +252,13 @@ describe('job', () => {
           libs: '../project3'
         })).toThrow()
       })
+    })
+
+    it('url forbids the use of webapp', () => {
+      expect(() => buildJob({
+        webapp: 'not_a_folder',
+        url: 'http://localhost:8080'
+      })).toThrow(UTRError.MODE_INCOMPATIBLE_OPTION('webapp'))
     })
   })
 

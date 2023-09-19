@@ -37,10 +37,19 @@ function buildAndCheckMode (job) {
     check(job, undefined, [
       'ui5',
       'libs',
+      'mappings',
+      'cache',
+      'webapp',
+      'watch',
       'testsuite'
     ])
     return 'url'
   }
+  check(job, undefined, [
+    'coverageProxy',
+    'coverageProxyInclude',
+    'coverageProxyExclude'
+  ])
   return 'legacy'
 }
 
