@@ -31,6 +31,14 @@ module.exports = {
     throw new InvalidArgumentError('Invalid boolean')
   },
 
+  regex (value) {
+    try {
+      return new RegExp(value)
+    } catch (e) {
+      throw new InvalidArgumentError('Invalid regex')
+    }
+  },
+
   integer,
 
   timeout (value) {

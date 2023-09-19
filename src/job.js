@@ -7,7 +7,7 @@ const { name, description, version } = require(join(__dirname, '../package.json'
 const { getOutput } = require('./output')
 const { $valueSources } = require('./symbols')
 const { buildAndCheckMode } = require('./job-mode')
-const { boolean, integer, timeout, url, arrayOf } = require('./options')
+const { boolean, integer, timeout, url, arrayOf, regex } = require('./options')
 
 const $status = Symbol('status')
 
@@ -134,9 +134,9 @@ function getCommand (cwd) {
     .option('-w, --watch [flag]', '[💻] Monitor the webapp folder and re-execute tests on change', boolean, false)
 
     // Specific to coverage in url mode (experimental)
-    .option('-cp, --coverage-proxy <flag>', `[🔗] ${EXPERIMENTAL_OPTION} use internal proxy to instrument remote files`, false)
-    .option('-cpi, --coverage-proxy-include <regexp>', `[🔗] ${EXPERIMENTAL_OPTION} urls to instrument for coverage`, 'webapp/.*')
-    .option('-cpe, --coverage-proxy-exclude <regexp>', `[🔗] ${EXPERIMENTAL_OPTION} urls to ignore for coverage`, '(test-)?resources/.*')
+    .option('-cp, --coverage-proxy [flag]', `[🔗] ${EXPERIMENTAL_OPTION} use internal proxy to instrument remote files`, boolean, false)
+    .option('-cpi, --coverage-proxy-include <regexp>', `[🔗] ${EXPERIMENTAL_OPTION} urls to instrument for coverage`, regex, regex('webapp/.*'))
+    .option('-cpe, --coverage-proxy-exclude <regexp>', `[🔗] ${EXPERIMENTAL_OPTION} urls to ignore for coverage`, regex, regex('(test-)?resources/.*'))
 
     .addOption(new Option('--debug-probe-only', DEBUG_OPTION, boolean).hideHelp())
     .addOption(new Option('--debug-keep-browser-open', DEBUG_OPTION, boolean).hideHelp())
