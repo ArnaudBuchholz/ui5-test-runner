@@ -1,7 +1,11 @@
 'use strict'
 
+const { dirname } = require('path')
 const { mkdir, rm, stat } = require('fs').promises
 const { createHash } = require('crypto')
+const { createWriteStream } = require('fs')
+const http = require('http')
+const https = require('https')
 
 const recursive = { recursive: true }
 
@@ -110,6 +114,38 @@ pad.x = (text) => ({ [$op]: $x, text })
 pad.lt = (text, padding = ' ') => ({ [$op]: $lt, text, padding })
 pad.w = (text) => ({ [$op]: $w, text })
 
+function allocPromise () {
+  let resolve
+  let reject
+  const promise = new Promise((_resolve, _reject) => {
+    resolve = _resolve
+    reject = _reject
+  })
+  return { promise, resolve, reject }
+}
+
+async function download (url, filename) {
+  const { hostname, port, origin } = new URL(url)
+  const options = {
+    hostname,
+    port,
+    path: url.substring(origin.length),
+    method: 'GET'
+  }
+  const protocol = url.startsWith('https:') ? https : http
+  await mkdir(dirname(filename), recursive)
+  const output = createWriteStream(filename)
+  const { promise, resolve, reject } = allocPromise()
+  const request = protocol.request(options, response => {
+    response.on('error', reject)
+    response.on('end', resolve)
+    response.pipe(output)
+  })
+  request.on('error', reject)
+  request.end()
+  return promise
+}
+
 module.exports = {
   stripUrlHash,
   filename,
@@ -117,15 +153,8 @@ module.exports = {
   createDir: dir => mkdir(dir, recursive),
   recreateDir: dir => cleanDir(dir).then(() => mkdir(dir, recursive)),
   extractPageUrl: headers => headers['x-page-url'],
-  allocPromise () {
-    let resolve
-    let reject
-    const promise = new Promise((_resolve, _reject) => {
-      resolve = _resolve
-      reject = _reject
-    })
-    return { promise, resolve, reject }
-  },
+  allocPromise,
   noop () {},
-  pad
+  pad,
+  download
 }
