@@ -40,7 +40,7 @@ describe('src/coverage', () => {
     })
 
     it('does not create a mapping', async () => {
-      const coverageMappings = mappings(job)
+      const coverageMappings = await mappings(job)
       expect(coverageMappings.length).toStrictEqual(0)
     })
   })
@@ -73,7 +73,7 @@ describe('src/coverage', () => {
     })
 
     it('creates a mapping', async () => {
-      const coverageMappings = mappings(job)
+      const coverageMappings = await mappings(job)
       expect(coverageMappings.length).toStrictEqual(1)
     })
 
