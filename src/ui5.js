@@ -7,6 +7,10 @@ const { capture } = require('reserve')
 const { getOutput } = require('./output')
 
 module.exports = job => {
+  if (job.mode === 'url') {
+    return []
+  }
+
   const [, hostName] = /https?:\/\/([^/]*)/.exec(job.ui5)
   const [, version] = /(\d+\.\d+\.\d+)?$/.exec(job.ui5)
   const cacheBase = join(job.cache || '', hostName.replace(':', '_'), version || '')

@@ -34,7 +34,11 @@ function buildAndCheckMode (job) {
     return 'capabilities'
   }
   if (job.url && job.url.length) {
-    check(job, undefined, ['testsuite'])
+    check(job, undefined, [
+      'ui5',
+      'libs',
+      'testsuite'
+    ])
     return 'url'
   }
   return 'legacy'
