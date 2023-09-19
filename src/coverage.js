@@ -1,12 +1,13 @@
 'use strict'
 
-const { join } = require('path')
+const { join, dirname } = require('path')
 const { fork } = require('child_process')
 const { cleanDir, createDir, filename, download } = require('./tools')
-const { readdir, readFile, stat, writeFile } = require('fs').promises
+const { readdir, readFile, stat, writeFile, access, constants } = require('fs').promises
 const { Readable } = require('stream')
 const { getOutput } = require('./output')
 const { resolvePackage } = require('./npm')
+const { promisify } = require('util')
 
 const $nycSettingsPath = Symbol('nycSettingsPath')
 const $coverageFileIndex = Symbol('coverageFileIndex')
@@ -17,9 +18,9 @@ let nycScript
 
 async function setupNyc (job) {
   if (!nycInstallationPath) {
-    nycInstallationPath = await resolvePackage(job, 'nyc')
-    nycScript = join(nycInstallationPath, 'bin/nyc.js')
+    nycInstallationPath = resolvePackage(job, 'nyc')
   }
+  nycScript = join(await nycInstallationPath, 'bin/nyc.js')
 }
 
 async function nyc (job, ...args) {
@@ -123,21 +124,55 @@ module.exports = {
     await writeFile(coverageFileName, JSON.stringify(coverageData))
   },
   generateCoverageReport: job => job.coverage && generateCoverageReport(job),
-  mappings: job => {
+  mappings: async job => {
     if (!job.coverage) {
       return []
     }
+    const instrumentedBasePath = join(job.coverageTempDir, 'instrumented')
+    const instrumentedMapping = {
+      match: /^\/(.*\.js)$/,
+      file: join(instrumentedBasePath, '$1'),
+      'ignore-if-not-found': true
+    }
     if (job.mode === 'legacy') {
       return [{
-        match: /^\/(.*\.js)$/,
-        file: join(job.coverageTempDir, 'instrumented', '$1'),
-        'ignore-if-not-found': true,
+        ...instrumentedMapping,
         'custom-file-system': job.debugCoverageNoCustomFs ? undefined : customFileSystem
       }]
     }
-    if (job.mode === 'url') {
+    if (job.mode === 'url' && job.coverageProxy) {
+      await setupNyc(job)
       const { origin } = new URL(job.url[0])
+      const sourcesBasePath = join(job.coverageTempDir, 'sources')
+      const { createInstrumenter } = require(join(await nycInstallationPath, 'node_modules/istanbul-lib-instrument'))
+      const instrumenter = createInstrumenter({
+        produceSourceMap: true,
+        coverageGlobalScope: 'window.top',
+        coverageGlobalScopeFunc: false
+      })
+      const instrument = promisify(instrumenter.instrument.bind(instrumenter))
       return [{
+        match: /(.*\.js)(\?.*)?$/,
+        custom: async (request, response, url) => {
+          if (!url.match(job.coverageProxyInclude) || url.match(job.coverageProxyExclude)) {
+            return // Ignore
+          }
+          const sourcePath = join(sourcesBasePath, url)
+          try {
+            await access(sourcePath, constants.R_OK)
+          } catch (e) {
+            console.log('download', url)
+            await download(origin + url, sourcePath)
+          }
+          const source = (await readFile(sourcePath)).toString()
+          const instrumentedSource = await instrument(source, sourcePath)
+          const instrumentedSourcePath = join(instrumentedBasePath, url)
+          await createDir(dirname(instrumentedSourcePath))
+          await writeFile(instrumentedSourcePath, instrumentedSource)
+        }
+      },
+      instrumentedMapping,
+      {
         match: /(.*)$/,
         url: `${origin}$1`
       }]
