@@ -1,21 +1,26 @@
 'use strict'
 
-const { join, dirname } = require('path')
+const { join } = require('path')
 const { fork } = require('child_process')
-const { cleanDir, createDir, filename, allocPromise } = require('./tools')
+const { cleanDir, createDir, filename, download } = require('./tools')
 const { readdir, readFile, stat, writeFile } = require('fs').promises
-const { createWriteStream } = require('fs')
 const { Readable } = require('stream')
 const { getOutput } = require('./output')
 const { resolvePackage } = require('./npm')
-const http = require('http')
-const https = require('https')
 
 const $nycSettingsPath = Symbol('nycSettingsPath')
 const $coverageFileIndex = Symbol('coverageFileIndex')
 const $coverageRemote = Symbol('coverageRemote')
 
+let nycInstallationPath
 let nycScript
+
+async function setupNyc (job) {
+  if (!nycInstallationPath) {
+    nycInstallationPath = await resolvePackage(job, 'nyc')
+    nycScript = join(nycInstallationPath, 'bin/nyc.js')
+  }
+}
 
 async function nyc (job, ...args) {
   const output = getOutput(job)
@@ -47,10 +52,7 @@ const customFileSystem = {
 }
 
 async function instrument (job) {
-  if (!nycScript) {
-    const nyc = await resolvePackage(job, 'nyc')
-    nycScript = join(nyc, 'bin/nyc.js')
-  }
+  await setupNyc(job)
   job[$nycSettingsPath] = join(job.coverageTempDir, 'settings/nyc.json')
   await cleanDir(job.coverageTempDir)
   await createDir(join(job.coverageTempDir, 'settings'))
@@ -93,13 +95,7 @@ async function generateCoverageReport (job) {
   if (job[$coverageRemote]) {
     job.status = 'Collecting remote source files'
     // Assuming all files are coming from the same server
-    const baseUrl = new URL(job.testPageUrls[0])
-    const options = {
-      hostname: baseUrl.hostname,
-      port: baseUrl.port,
-      method: 'GET'
-    }
-    const protocol = baseUrl.protocol === 'https:' ? https : http
+    const { origin } = new URL(job.testPageUrls[0])
     const sourcesBasePath = join(job.coverageTempDir, 'sources')
     const coverageData = require(coverageFilename)
     const filenames = Object.keys(coverageData)
@@ -108,17 +104,7 @@ async function generateCoverageReport (job) {
       const { path } = fileData
       const filePath = join(sourcesBasePath, path)
       fileData.path = filePath
-      await createDir(dirname(filePath))
-      const output = createWriteStream(filePath)
-      const { promise, resolve, reject } = allocPromise()
-      const request = protocol.request({ ...options, path }, response => {
-        response.on('error', reject)
-        response.on('end', resolve)
-        response.pipe(output)
-      })
-      request.on('error', reject)
-      request.end()
-      await promise
+      await download(origin + path, filePath)
     }
     await writeFile(coverageFilename, JSON.stringify(coverageData))
   }
@@ -137,12 +123,24 @@ module.exports = {
     await writeFile(coverageFileName, JSON.stringify(coverageData))
   },
   generateCoverageReport: job => job.coverage && generateCoverageReport(job),
-  mappings: job => job.coverage
-    ? [{
+  mappings: job => {
+    if (!job.coverage) {
+      return []
+    }
+    if (job.mode === 'legacy') {
+      return [{
         match: /^\/(.*\.js)$/,
         file: join(job.coverageTempDir, 'instrumented', '$1'),
         'ignore-if-not-found': true,
         'custom-file-system': job.debugCoverageNoCustomFs ? undefined : customFileSystem
       }]
-    : []
+    }
+    if (job.mode === 'url') {
+      const { origin } = new URL(job.url[0])
+      return [{
+        match: /(.*)$/,
+        url: `${origin}$1`
+      }]
+    }
+  }
 }
