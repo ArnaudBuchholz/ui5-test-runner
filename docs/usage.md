@@ -40,6 +40,16 @@ Check additional information below.
                                            (default: ["$/report.js"])
   -pp, --progress-page <path>              [💻🔗] progress page path (relative to cwd or use $/ for provided ones)
                                            (default: "$/report/default.html")
+  --coverage [flag]                        [💻🔗] Enable or disable code coverage
+  --no-coverage                            [💻🔗] Disable code coverage
+  -cs, --coverage-settings <path>          [💻🔗] Path to a custom nyc.json file providing settings for instrumentation
+                                           (relative to cwd or use $/ for provided ones) (default: "$/nyc.json")
+  -ct, --coverage-temp-dir <path>          [💻🔗] Directory to output raw coverage information to (relative to cwd)
+                                           (default: ".nyc_output")
+  -cr, --coverage-report-dir <path>        [💻🔗] Directory to store the coverage report files (relative to cwd)
+                                           (default: "coverage")
+  -cr, --coverage-reporters <reporter...>  [💻🔗] List of nyc reporters to use (default: ["lcov","cobertura"])
+  -s, --serve-only [flag]                  [💻🔗] Serve only (default: false)
   --ui5 <url>                              [💻] UI5 url (default: "https://ui5.sap.com")
   --libs <lib...>                          [💻] Library mapping (<relative>=<path> or <path>)
   --mappings <mapping...>                  [💻] Custom mapping (<match>=<file|url>(<config>))
@@ -48,18 +58,12 @@ Check additional information below.
                                            "webapp")
   --testsuite <path>                       [💻] Path of the testsuite file (relative to webapp) (default:
                                            "test/testsuite.qunit.html")
-  -s, --serve-only [flag]                  [💻] Serve only (default: false)
   -w, --watch [flag]                       [💻] Monitor the webapp folder and re-execute tests on change (default:
                                            false)
-  --coverage [flag]                        [💻] Enable or disable code coverage
-  --no-coverage                            [💻] Disable code coverage
-  -cs, --coverage-settings <path>          [💻] Path to a custom nyc.json file providing settings for instrumentation
-                                           (relative to cwd or use $/ for provided ones) (default: "$/nyc.json")
-  -ct, --coverage-temp-dir <path>          [💻] Directory to output raw coverage information to (relative to cwd)
-                                           (default: ".nyc_output")
-  -cr, --coverage-report-dir <path>        [💻] Directory to store the coverage report files (relative to cwd)
-                                           (default: "coverage")
-  -cr, --coverage-reporters <reporter...>  [💻] List of nyc reporters to use (default: ["lcov","cobertura"])
+  -cp, --coverage-proxy [flag]             [🔗] [⚠️ experimental] use internal proxy to instrument remote files
+                                           (default: false)
+  -cpi, --coverage-proxy-include <regexp>  [🔗] [⚠️ experimental] urls to instrument for coverage (default: {})
+  -cpe, --coverage-proxy-exclude <regexp>  [🔗] [⚠️ experimental] urls to ignore for coverage (default: {})
   -h, --help                               display help for command
 ```
 
