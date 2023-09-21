@@ -93,7 +93,7 @@ async function generateCoverageReport (job) {
   await createDir(coverageMergedDir)
   const coverageFilename = join(coverageMergedDir, 'coverage.json')
   await nyc(job, 'merge', job.coverageTempDir, coverageFilename)
-  if (job[$coverageRemote]) {
+  if (job[$coverageRemote] && !job.coverageProxy) {
     job.status = 'Collecting remote source files'
     // Assuming all files are coming from the same server
     const { origin } = new URL(job.testPageUrls[0])
