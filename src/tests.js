@@ -75,14 +75,22 @@ async function runTestPage (job, url) {
         'qunit-intercept.js',
         'qunit-hooks.js'
       ]
-      if (job.coverage) {
+      if (job.coverage && !job.coverageProxy) {
         scripts.push(
           'opa-iframe-coverage.js',
-          'ui5-coverage.js' // TODO improve when to inject this
+          'ui5-coverage.js' // TODO detect if middleware exists before injecting this
         )
       }
     }
-    await start(job, url, scripts)
+    if (job.coverageProxy) {
+      const { origin } = new URL(url)
+      const proxifiedUrl = url.replace(origin, `http://localhost:${job.port}`)
+      await start(job, proxifiedUrl, scripts)
+      job.qunitPages[url] = job.qunitPages[proxifiedUrl]
+      delete job.qunitPages[proxifiedUrl]
+    } else {
+      await start(job, url, scripts)
+    }
   } catch (error) {
     output.startFailed(url, error)
     throw error
