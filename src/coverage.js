@@ -177,5 +177,6 @@ module.exports = {
         url: `${origin}$1`
       }]
     }
+    return []
   }
 }
