@@ -7,7 +7,7 @@ const { capture } = require('reserve')
 const { getOutput } = require('./output')
 
 module.exports = job => {
-  if (job.mode === 'url') {
+  if (job.noUi5) {
     return []
   }
 

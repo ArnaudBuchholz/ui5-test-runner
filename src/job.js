@@ -106,7 +106,7 @@ function getCommand (cwd) {
     .option('-bt, --browser-close-timeout <timeout>', '[💻🔗🧪] Maximum waiting time for browser close', timeout, 2000)
     .option('-br, --browser-retry <count>', '[💻🔗🧪] Browser instantiation retries : if the command fails unexpectedly, it is re-executed (0 means no retry)', 1)
 
-    // Common to legacy and testing
+    // Common to legacy and url
     .option('-pf, --page-filter <regexp>', '[💻🔗] Filter out pages not matching the regexp')
     .option('-pp, --page-params <params>', '[💻🔗] Add parameters to page URL')
     .option('-t, --global-timeout <timeout>', '[💻🔗] Limit the pages execution time, fail the page if it takes longer than the timeout (0 means no timeout)', timeout, 0)
@@ -124,8 +124,9 @@ function getCommand (cwd) {
     .option('-cr, --coverage-reporters <reporter...>', '[💻🔗] List of nyc reporters to use', ['lcov', 'cobertura'])
     .option('-s, --serve-only [flag]', '[💻🔗] Serve only', boolean, false)
 
-    // Specific to legacy
+    // Specific to legacy (and might be used with url if pointing to local project)
     .option('--ui5 <url>', '[💻] UI5 url', url, 'https://ui5.sap.com')
+    .option('--no-ui5', '[💻] Disable UI5 mapping (also disable libs)')
     .option('--libs <lib...>', '[💻] Library mapping (<relative>=<path> or <path>)', arrayOf(lib))
     .option('--mappings <mapping...>', '[💻] Custom mapping (<match>=<file|url>(<config>))', arrayOf(mapping))
     .option('--cache <path>', '[💻] Cache UI5 resources locally in the given folder (empty to disable)')
@@ -135,8 +136,8 @@ function getCommand (cwd) {
 
     // Specific to coverage in url mode (experimental)
     .option('-cp, --coverage-proxy [flag]', `[🔗] ${EXPERIMENTAL_OPTION} use internal proxy to instrument remote files`, boolean, false)
-    .option('-cpi, --coverage-proxy-include <regexp>', `[🔗] ${EXPERIMENTAL_OPTION} urls to instrument for coverage`, regex, regex('webapp/.*'))
-    .option('-cpe, --coverage-proxy-exclude <regexp>', `[🔗] ${EXPERIMENTAL_OPTION} urls to ignore for coverage`, regex, regex('(test-)?resources/.*'))
+    .option('-cpi, --coverage-proxy-include <regexp>', `[🔗] ${EXPERIMENTAL_OPTION} urls to instrument for coverage`, regex, regex('.*'))
+    .option('-cpe, --coverage-proxy-exclude <regexp>', `[🔗] ${EXPERIMENTAL_OPTION} urls to ignore for coverage`, regex, regex('/((test-)?resources|tests?)/.*'))
 
     .addOption(new Option('--debug-probe-only', DEBUG_OPTION, boolean).hideHelp())
     .addOption(new Option('--debug-keep-browser-open', DEBUG_OPTION, boolean).hideHelp())

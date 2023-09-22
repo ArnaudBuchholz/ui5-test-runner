@@ -51,6 +51,7 @@ Check additional information below.
   -cr, --coverage-reporters <reporter...>  [💻🔗] List of nyc reporters to use (default: ["lcov","cobertura"])
   -s, --serve-only [flag]                  [💻🔗] Serve only (default: false)
   --ui5 <url>                              [💻] UI5 url (default: "https://ui5.sap.com")
+  --no-ui5                                 [💻] Disable UI5 mapping (also disable libs)
   --libs <lib...>                          [💻] Library mapping (<relative>=<path> or <path>)
   --mappings <mapping...>                  [💻] Custom mapping (<match>=<file|url>(<config>))
   --cache <path>                           [💻] Cache UI5 resources locally in the given folder (empty to disable)
