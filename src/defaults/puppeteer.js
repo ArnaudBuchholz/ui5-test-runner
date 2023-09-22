@@ -12,10 +12,26 @@ require('./browser')({
       ['-h, --viewport-height <height>', 'Viewport height', 1080],
       ['-l, --language <lang...>', 'Language(s)', ['en-US']],
       ['-u, --unsecure', 'Disable security features', false]
-    ],
-    capabilities: {
+    ] // ,
+    // TODO restore when Node16 is no more supported
+    // capabilities: {
+    //   modules: ['puppeteer'],
+    //   screenshot: '.png',
+    //   scripts: true,
+    //   traces: ['console', 'network']
+    // }
+  },
+
+  // TODO remove when Node16 is no more supported
+  async capabilities () {
+    const version = process.version.match(/^v(\d+\.\d+)/)[1]
+    let screenshot
+    if (!version.startsWith('16')) {
+      screenshot = '.png'
+    }
+    return {
       modules: ['puppeteer'],
-      screenshot: '.png',
+      screenshot,
       scripts: true,
       traces: ['console', 'network']
     }

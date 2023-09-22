@@ -5,7 +5,7 @@
 | `--browser` | `$/puppeteer.js` |
 |---|---|
 | Module | [puppeteer](https://www.npmjs.com/package/puppeteer) |
-| Screenshots | ✔️ `.png` |
+| Screenshots 1️⃣ | ✔️ `.png` |
 | Scripts | ✔️ |
 | Traces | `console`, `network` |
 
@@ -20,4 +20,4 @@
 
 ## Implementation notes
 
-N/A
+* 1️⃣ Screenshot feature is **failing** because of missing [`structuredClone` API](https://developer.mozilla.org/en-US/docs/Web/API/structuredClone#browser_compatibility) on Node.js 16. Since the problem is **inside** `puppeteer` ([issue](https://github.com/puppeteer/puppeteer/issues/11004)), the feature is turned off for this version.
