@@ -39,6 +39,8 @@ async function main () {
     >`)
         if (test.skip) {
           o('      <skipped></skipped>')
+        } else if (!test.report) {
+          o('      <skipped>(no report found)</skipped>')
         } else if (test.report.failed) {
           test.logs
             .filter(({ result }) => !result)
