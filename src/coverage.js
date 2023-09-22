@@ -151,6 +151,7 @@ module.exports = {
         coverageGlobalScopeFunc: false
       })
       const instrument = promisify(instrumenter.instrument.bind(instrumenter))
+      const sources = {}
       return [{
         match: /(.*\.js)(\?.*)?$/,
         custom: async (request, response, url) => {
@@ -161,8 +162,15 @@ module.exports = {
           try {
             await access(sourcePath, constants.R_OK)
           } catch (e) {
-            console.log('download', url)
-            await download(origin + url, sourcePath)
+            try {
+              if (sources[url]) {
+                await sources[url]
+              } else {
+                sources[url] = await download(origin + url, sourcePath)
+              }
+            } catch (statusCode) {
+              return statusCode
+            }
           }
           const source = (await readFile(sourcePath)).toString()
           const instrumentedSource = await instrument(source, sourcePath)
