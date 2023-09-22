@@ -10,8 +10,11 @@ async function usage () {
   const usageMd = (await readFile(usagePath)).toString()
   const command = getCommand(process.cwd())
   const help = command.helpInformation()
-  const [, reducedHelp] = help.match(/Options:\n((?:.|\n)*)/m)
-  await writeFile(usagePath, usageMd.replace(/```text(?:.|\n)*```/, '```text\n' + reducedHelp + '```'))
+  const [, reducedHelp] = help.match(/Options:\r?\n((?:.|\r?\n)*)/m)
+  await writeFile(usagePath, usageMd
+    .replace(/```text(?:.|\r?\n)*```/, '```text\n' + reducedHelp + '```')
+    .replace(/\r\n/g, '\n')
+  )
 }
 
 async function browser (name) {
@@ -25,7 +28,10 @@ async function browser (name) {
     )
   )
   const [, reducedHelp] = stdout.match(/Options:\n((?:.|\n)*)/m)
-  await writeFile(browserDocPath, browserDoc.replace(/## Options[^#]+/, '## Options\n```text\n' + reducedHelp + '```\n\n'))
+  await writeFile(browserDocPath, browserDoc
+    .replace(/## Options[^#]+/, '## Options\n```text\n' + reducedHelp + '```\n\n')
+    .replace(/\r\n/g, '\n')
+  )
 }
 
 async function main () {
