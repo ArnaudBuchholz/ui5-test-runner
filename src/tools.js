@@ -6,6 +6,7 @@ const { createHash } = require('crypto')
 const { createWriteStream } = require('fs')
 const http = require('http')
 const https = require('https')
+const { unlink } = require('fs/promises')
 
 const recursive = { recursive: true }
 
@@ -136,7 +137,13 @@ async function download (url, filename) {
   await mkdir(dirname(filename), recursive)
   const output = createWriteStream(filename)
   const { promise, resolve, reject } = allocPromise()
-  const request = protocol.request(options, response => {
+  const request = protocol.request(options, async response => {
+    if (response.statusCode !== 200) {
+      reject(response.statusCode)
+      output.end()
+      await unlink(filename)
+      return
+    }
     response.on('error', reject)
     response.on('end', resolve)
     response.pipe(output)
