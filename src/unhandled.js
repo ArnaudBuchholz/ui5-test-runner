@@ -23,7 +23,7 @@ module.exports = job => {
         getOutput(job).unhandled()
         outputUnhandled = false
       }
-      writeFile(unhandled, `${extractPageUrl(headers)} ${status} ${method} ${url}\n`, {
+      writeFile(unhandled, `${extractPageUrl(headers) || headers.referer} ${status} ${method} ${url}\n`, {
         flag: 'a'
       }, noop)
       return status
