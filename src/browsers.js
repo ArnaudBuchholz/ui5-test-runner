@@ -4,7 +4,7 @@ const { fork } = require('child_process')
 const { join } = require('path')
 const { writeFile, readFile, open, stat, unlink } = require('fs/promises')
 const { recreateDir, filename, allocPromise } = require('./tools')
-const { getPageTimeout } = require('./timeout')
+const { getPageTimeout, pageTimedOut } = require('./timeout')
 const { getOutput } = require('./output')
 const { resolvePackage } = require('./npm')
 const { UTRError } = require('./error')
@@ -174,6 +174,7 @@ async function run (job, pageBrowser) {
   if (timeout) {
     pageBrowser.timeoutId = setTimeout(() => {
       output.browserTimeout(url, dir)
+      pageTimedOut(job, url)
       stop(job, url)
     }, timeout)
   }

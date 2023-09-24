@@ -35,6 +35,7 @@ async function run (task, job) {
   if (globallyTimedOut(job)) {
     output.globalTimeout(url)
     job.failed = true
+    job.timedOut = true
   } else if (job.failFast && job.failed) {
     output.failFast(url)
   } else {

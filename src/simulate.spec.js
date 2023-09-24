@@ -301,7 +301,7 @@ describe('simulate', () => {
 
     describe('global timeout', () => {
       beforeAll(async () => {
-        await setup('timeout', {
+        await setup('global-timeout', {
           parallel: 1,
           globalTimeout: 10000
         })
@@ -325,6 +325,62 @@ describe('simulate', () => {
 
       it('failed', () => {
         expect(job.failed).toStrictEqual(true)
+        expect(job.timedOut).toStrictEqual(true)
+      })
+    })
+
+    describe('page timeout', () => {
+      beforeAll(async () => {
+        await setup('page-timeout', {
+          parallel: 1,
+          pageTimeout: 250
+        })
+        pages = {
+          'testsuite.qunit.html': async referer => {
+            await post('/_/addTestPages', referer, [
+              '/page1.html'
+            ])
+          },
+          'page1.html': async headers => {
+            await post('/_/QUnit/begin', headers, {
+              totalTests: 3,
+              modules: [{
+                name: '0',
+                tests: [{
+                  name: '1',
+                  testId: '1'
+                }, {
+                  name: '2',
+                  testId: '2'
+                }, {
+                  name: '3',
+                  testId: '3'
+                }]
+              }]
+            })
+            await post('/_/QUnit/testStart', headers, { module: '0', name: '1', testId: '1' })
+            await post('/_/QUnit/testDone', headers, { testId: '1', failed: 0, passed: 1 })
+            await post('/_/QUnit/testStart', headers, { module: '0', name: '2', testId: '2' })
+          }
+        }
+        await safeExecute()
+      })
+
+      it('failed', () => {
+        expect(job.failed).toStrictEqual(true)
+        expect(job.timedOut).toStrictEqual(true)
+        const page = job.qunitPages['http://localhost:0/page1.html']
+        expect(page.failed).toStrictEqual(2)
+        expect(page.end).not.toBeUndefined()
+        expect(page.timedOut).toStrictEqual(2)
+        const { tests } = page.modules[0]
+        expect(tests[1].report.failed).toStrictEqual(1)
+        expect(tests[1].report.passed).toStrictEqual(0)
+        expect(tests[1].end).not.toBeUndefined()
+        expect(tests[2].report.failed).toStrictEqual(1)
+        expect(tests[2].report.passed).toStrictEqual(0)
+        expect(tests[2].start).toBeUndefined()
+        expect(tests[2].end).toBeUndefined()
       })
     })
 
