@@ -12,6 +12,9 @@
       <h1>{{ status || 'Test report' }}</h1>
       <div {{if}}="end === undefined" class="elapsed">In progress since {{ elapsed(start) }}</div>
       <div {{else}} class="elapsed">Duration : {{ elapsed(start, end) }} <a href="#" id="download">&#128230;</a></div>
+      <div {{if}}="timedOut">
+        &#9202;&#65039; Timed out
+      </div>
       <table style="visibility: {{ testPageUrls.length > 0 ? 'visible' : 'hidden' }};">
         <tr>
           <th>&nbsp;</th>
@@ -30,7 +33,7 @@
           <td>
             <span {{if}}="!qunitPages[url]">-</span>
             <span {{elseif}}="qunitPages[url].isOpa" title="OPA test">&#129404;</span>
-            <span {{else}} title="Unit test">&#129514;</span>
+            <span {{elseif}}="qunitPages[url].start" title="Unit test">&#129514;</span>
           </td>
           <td>
             <span {{if}}="!qunitPages[url]">-</span>
@@ -56,6 +59,9 @@
       <a href="#">&#9204; back to report</a>
       <div {{if}}="qunitPage.end === undefined" class="elapsed">In progress since {{ elapsed(qunitPage.start) }}</div>
       <div {{else}} class="elapsed">Duration : {{ elapsed(qunitPage.start, qunitPage.end) }}</div>
+      <div {{if}}="timedOut">
+        &#9202;&#65039; Timed out
+      </div>
       <div {{for}}="module of qunitPage.modules">
         <h2>{{ module.name }}</h2>
         <div {{for}}="test of module.tests">
