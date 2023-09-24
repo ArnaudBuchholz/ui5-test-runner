@@ -372,7 +372,7 @@ describe('simulate', () => {
         const page = job.qunitPages['http://localhost:0/page1.html']
         expect(page.failed).toStrictEqual(2)
         expect(page.end).not.toBeUndefined()
-        expect(page.timedOut).toStrictEqual(2)
+        expect(page.timedOut).toStrictEqual(true)
         const { tests } = page.modules[0]
         expect(tests[1].report.failed).toStrictEqual(1)
         expect(tests[1].report.passed).toStrictEqual(0)
