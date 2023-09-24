@@ -10,10 +10,20 @@ const log = console.log.bind(console)
 function collectErrors (page) {
   const errors = []
   page.modules.forEach(module => {
-    module.tests.forEach(test => {
-      if (test.report.failed) {
+    module.tests.every(test => {
+      if (!test.report) {
+        if (!test.skip) {
+          test.logs ??= []
+          test.logs.push({
+            message: '(no report found)'
+          })
+          errors.push({ module: module.name, ...test })
+          return false
+        }
+      } else if (test.report.failed) {
         errors.push({ module: module.name, ...test })
       }
+      return true
     })
   })
   return errors
