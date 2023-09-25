@@ -77,5 +77,13 @@ module.exports = {
       result.push(typeValidator(value))
       return result
     }
+  },
+
+  percent (value) {
+    const int = integer(value)
+    if (int > 100) {
+      throw new InvalidArgumentError('Invalid percent')
+    }
+    return int
   }
 }

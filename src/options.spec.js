@@ -1,4 +1,4 @@
-const { any, boolean, integer, timeout, url, arrayOf } = require('./options')
+const { any, boolean, integer, timeout, url, arrayOf, percent } = require('./options')
 const { InvalidArgumentError } = require('commander')
 
 function checkType ({ method, validValues, invalidValues }) {
@@ -112,6 +112,22 @@ describe('src/options', () => {
       '-1',
       'abc',
       'ftp://server.com/path'
+    ]
+  })
+
+  checkType({
+    method: percent,
+    validValues: {
+      0: 0,
+      1: 1,
+      10: 10,
+      100: 100
+    },
+    invalidValues: [
+      '',
+      '-1',
+      'abc',
+      '101'
     ]
   })
 
