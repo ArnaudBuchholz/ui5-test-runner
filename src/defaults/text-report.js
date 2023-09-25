@@ -38,8 +38,11 @@ async function main () {
   }
   const job = require(jobPath)
   const failedUrls = []
-  log(p`┌─${pad.x('─')}───────────────────┐`)
+  let rendered = 0
   function render (url) {
+    if (++rendered === 1) {
+      log(p`┌─${pad.x('─')}───────────────────┐`)
+    }
     const page = job.qunitPages && job.qunitPages[url]
     if (!page || !page.report) {
       log(p`│${pad.lt(url)} 🧨           │`)
@@ -59,7 +62,9 @@ async function main () {
       render(url)
     }
   })
-  log(p`└─${pad.x('─')}────────────────────┘`)
+  if (rendered > 0) {
+    log(p`└─${pad.x('─')}────────────────────┘`)
+  }
   failedUrls.forEach(url => {
     log()
     log(p`[${pad.lt(url)}]`)
