@@ -22,7 +22,7 @@ async function save (job) {
 
 function generateTextReport (job) {
   const { promise, resolve } = allocPromise()
-  const childProcess = fork(join(__dirname, 'defaults/text-report.js'), [job.reportDir], { stdio: 'pipe' })
+  const childProcess = fork(join(__dirname, 'defaults/text-report.js'), [job.reportDir, process.stdout.columns || ''], { stdio: 'pipe' })
   getOutput(job).monitor(childProcess, true)
   childProcess.on('close', resolve)
   return promise

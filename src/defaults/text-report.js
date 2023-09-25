@@ -1,10 +1,10 @@
 'use strict'
 
 const { join, isAbsolute } = require('path')
-const [, , reportDir] = process.argv
+const [, , reportDir, expectedWidth] = process.argv
 const { pad } = require('../tools')
 
-const p = pad(process.stdout.columns || 80)
+const p = pad(process.stdout.columns || parseInt(expectedWidth || '80', 10))
 const log = console.log.bind(console)
 
 function collectErrors (page) {
