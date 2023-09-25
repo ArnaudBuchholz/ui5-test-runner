@@ -7,7 +7,7 @@ const { name, description, version } = require(join(__dirname, '../package.json'
 const { getOutput } = require('./output')
 const { $valueSources } = require('./symbols')
 const { buildAndCheckMode } = require('./job-mode')
-const { boolean, integer, timeout, url, arrayOf, regex } = require('./options')
+const { boolean, integer, timeout, url, arrayOf, regex, percent } = require('./options')
 
 const $status = Symbol('status')
 
@@ -119,9 +119,13 @@ function getCommand (cwd) {
     .option('--coverage [flag]', '[💻🔗] Enable or disable code coverage', boolean)
     .option('--no-coverage', '[💻🔗] Disable code coverage')
     .option('-cs, --coverage-settings <path>', '[💻🔗] Path to a custom nyc.json file providing settings for instrumentation (relative to cwd or use $/ for provided ones)', '$/nyc.json')
-    .option('-ct, --coverage-temp-dir <path>', '[💻🔗] Directory to output raw coverage information to (relative to cwd)', '.nyc_output')
-    .option('-cr, --coverage-report-dir <path>', '[💻🔗] Directory to store the coverage report files (relative to cwd)', 'coverage')
-    .option('-cr, --coverage-reporters <reporter...>', '[💻🔗] List of nyc reporters to use', ['lcov', 'cobertura'])
+    .option('-ctd, --coverage-temp-dir <path>', '[💻🔗] Directory to output raw coverage information to (relative to cwd)', '.nyc_output')
+    .option('-crd, --coverage-report-dir <path>', '[💻🔗] Directory to store the coverage report files (relative to cwd)', 'coverage')
+    .option('-cr, --coverage-reporters <reporter...>', '[💻🔗] List of nyc reporters to use (text is always used)', ['lcov', 'cobertura'])
+    .option('-ccb, --coverage-check-branches <percent>', '[💻🔗] What % of branches must be covered', percent, 0)
+    .option('-ccf, --coverage-check-functions <percent>', '[💻🔗] What % of functions must be covered', percent, 0)
+    .option('-ccl, --coverage-check-lines <percent>', '[💻🔗] What % of lines must be covered', percent, 0)
+    .option('-ccs, --coverage-check-statements <percent>', '[💻🔗] What % of statements must be covered', percent, 0)
     .option('-s, --serve-only [flag]', '[💻🔗] Serve only', boolean, false)
 
     // Specific to legacy (and might be used with url if pointing to local project)

@@ -110,7 +110,20 @@ async function generateCoverageReport (job) {
     await writeFile(coverageFilename, JSON.stringify(coverageData))
   }
   const reporters = job.coverageReporters.map(reporter => `--reporter=${reporter}`)
-  await nyc(job, 'report', ...reporters, '--temp-dir', coverageMergedDir, '--report-dir', job.coverageReportDir, '--nycrc-path', job[$nycSettingsPath])
+  if (!job.coverageReporters.includes('text')) {
+    reporters.push('--reporter=text')
+  }
+  const checks = []
+  if (job.coverageCheckBranches || job.coverageCheckFunctions || job.coverageCheckLines || job.coverageCheckStatements) {
+    checks.push(
+      `--branches=${job.coverageCheckBranches}`,
+      `--functions=${job.coverageCheckFunctions}`,
+      `--lines=${job.coverageCheckLines}`,
+      `--statements=${job.coverageCheckStatements}`,
+      '--check-coverage'
+    )
+  }
+  await nyc(job, 'report', ...reporters, ...checks, '--temp-dir', coverageMergedDir, '--report-dir', job.coverageReportDir, '--nycrc-path', job[$nycSettingsPath])
 }
 
 module.exports = {
