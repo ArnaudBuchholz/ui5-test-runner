@@ -169,6 +169,9 @@ module.exports = {
         match: /(.*\.js)(\?.*)?$/,
         custom: async (request, response, url) => {
           if (!url.match(job.coverageProxyInclude) || url.match(job.coverageProxyExclude)) {
+            if (job.debugCoverage) {
+              getOutput(job).wrap(() => console.log('coverage_proxy ignore', url))
+            }
             return // Ignore
           }
           const sourcePath = join(sourcesBasePath, url)
@@ -179,6 +182,9 @@ module.exports = {
               if (sources[url]) {
                 await sources[url]
               } else {
+                if (job.debugCoverage) {
+                  getOutput(job).wrap(() => console.log('coverage_proxy instrument', url))
+                }
                 sources[url] = await download(origin + url, sourcePath)
               }
             } catch (statusCode) {
