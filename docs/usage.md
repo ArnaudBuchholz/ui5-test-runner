@@ -58,7 +58,7 @@ Check additional information below.
   -ccs, --coverage-check-statements <percent>  [💻🔗] What % of statements must be covered (default: 0)
   -s, --serve-only [flag]                      [💻🔗] Serve only (default: false)
   --ui5 <url>                                  [💻] UI5 url (default: "https://ui5.sap.com")
-  --no-ui5                                     [💻] Disable UI5 mapping (also disable libs)
+  --disable-ui5                                [💻] Disable UI5 mapping (also disable libs) (default: false)
   --libs <lib...>                              [💻] Library mapping (<relative>=<path> or <path>)
   --mappings <mapping...>                      [💻] Custom mapping (<match>=<file|url>(<config>))
   --cache <path>                               [💻] Cache UI5 resources locally in the given folder (empty to disable)
