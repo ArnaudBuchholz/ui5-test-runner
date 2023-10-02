@@ -1,6 +1,6 @@
 'use strict'
 
-const { join, dirname } = require('path')
+const { join, dirname, isAbsolute } = require('path')
 const { fork } = require('child_process')
 const { cleanDir, createDir, filename, download } = require('./tools')
 const { readdir, readFile, stat, writeFile, access, constants } = require('fs').promises
@@ -94,20 +94,30 @@ async function generateCoverageReport (job) {
   const coverageFilename = join(coverageMergedDir, 'coverage.json')
   await nyc(job, 'merge', job.coverageTempDir, coverageFilename)
   if (job[$coverageRemote] && !job.coverageProxy) {
-    job.status = 'Collecting remote source files'
+    job.status = 'Checking remote source files'
     // Assuming all files are coming from the same server
     const { origin } = new URL(job.testPageUrls[0])
     const sourcesBasePath = join(job.coverageTempDir, 'sources')
     const coverageData = require(coverageFilename)
     const filenames = Object.keys(coverageData)
+    let changes = 0
     for (const filename of filenames) {
       const fileData = coverageData[filename]
       const { path } = fileData
+      if (isAbsolute(path)) {
+        try {
+          await access(path, constants.R_OK)
+          continue
+        } catch (e) {}
+      }
       const filePath = join(sourcesBasePath, path)
       fileData.path = filePath
       await download(origin + path, filePath)
+      ++changes
     }
-    await writeFile(coverageFilename, JSON.stringify(coverageData))
+    if (changes > 0) {
+      await writeFile(coverageFilename, JSON.stringify(coverageData))
+    }
   }
   const reporters = job.coverageReporters.map(reporter => `--reporter=${reporter}`)
   if (!job.coverageReporters.includes('text')) {
