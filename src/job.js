@@ -107,6 +107,7 @@ function getCommand (cwd) {
     .option('-br, --browser-retry <count>', '[💻🔗🧪] Browser instantiation retries : if the command fails unexpectedly, it is re-executed (0 means no retry)', 1)
 
     // Common to legacy and url
+    .option('-qs, --qunit-strict', '[💻🔗] Strict mode on qunit execution (fails if no modules declared)', boolean, false)
     .option('-pf, --page-filter <regexp>', '[💻🔗] Filter out pages not matching the regexp')
     .option('-pp, --page-params <params>', '[💻🔗] Add parameters to page URL')
     .option('-t, --global-timeout <timeout>', '[💻🔗] Limit the pages execution time, fail the page if it takes longer than the timeout (0 means no timeout)', timeout, 0)
