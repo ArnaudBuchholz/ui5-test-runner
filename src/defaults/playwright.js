@@ -88,7 +88,9 @@ require('./browser')({
     networkWriter
   }) {
     const browsers = require(modules.playwright)
-    browser = await browsers[options.browser].launch()
+    browser = await browsers[options.browser].launch({
+      headless: !options.visible
+    })
 
     let recordVideo
     if (options.video) {
