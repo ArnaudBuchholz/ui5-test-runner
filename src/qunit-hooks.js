@@ -13,27 +13,40 @@ function error (job, url, details = '') {
   throw UTRError.QUNIT_ERROR(details)
 }
 
+function invalidTestId (job, url, testId) {
+  error(job, url, `No QUnit unit test found with id ${testId}`)
+}
+
 function get (job, urlWithHash, testId) {
   const url = stripUrlHash(urlWithHash)
   const page = job.qunitPages && job.qunitPages[url]
   if (!page) {
     error(job, url, `No QUnit page found for ${urlWithHash}`)
   }
+  let testModule
   let test
   if (testId !== undefined) {
     page.modules.every(module => {
       test = module.tests.find(test => test.testId === testId)
-      return test === undefined
+      if (test === undefined) {
+        return true
+      } else {
+        testModule = module
+        return false
+      }
     })
-    if (!test) {
-      error(job, url, `No QUnit unit test found with id ${testId}`)
+    if (!test && job.qunitStrict) {
+      invalidTestId(job, url, testId)
     }
   }
-  return { url, page, test }
+  return { url, page, testModule, test }
 }
 
 async function done (job, urlWithHash, report) {
   const { url, page } = get(job, urlWithHash)
+  if (page.earlyStart && page.count === 0) {
+    return // wait
+  }
   if (job.browserCapabilities.screenshot) {
     try {
       await screenshot(job, url, 'done')
@@ -55,8 +68,12 @@ module.exports = {
 
   async begin (job, urlWithHash, { isOpa, totalTests, modules }) {
     const url = stripUrlHash(urlWithHash)
-    if (!totalTests || !modules) {
-      error(job, url, 'Invalid begin hook details')
+    const earlyStart = !totalTests || !modules
+    if (earlyStart) {
+      getOutput(job).qunitEarlyStart(url)
+      if (job.qunitStrict) {
+        error(job, url, 'Invalid begin hook details')
+      }
     }
     if (!job.qunitPages) {
       job.qunitPages = {}
@@ -70,16 +87,31 @@ module.exports = {
       count: totalTests,
       modules
     }
+    if (earlyStart) {
+      qunitPage.earlyStart = true
+    }
     job.qunitPages[url] = qunitPage
   },
 
   async testStart (job, urlWithHash, { module, name, testId }) {
-    const { test } = get(job, urlWithHash, testId)
+    let { page, testModule, test } = get(job, urlWithHash, testId)
+    if (!testModule) {
+      testModule = { name: module, tests: [] }
+      page.modules.push(testModule)
+    }
+    if (!test) {
+      test = { name, testId }
+      testModule.tests.push(test)
+      ++page.count
+    }
     test.start = new Date()
   },
 
   async log (job, urlWithHash, { module, name, testId, ...log }) {
     const { url, page, test } = get(job, urlWithHash, testId)
+    if (!test) {
+      invalidTestId(job, url, testId)
+    }
     if (!test.logs) {
       test.logs = []
     }
@@ -97,6 +129,9 @@ module.exports = {
   async testDone (job, urlWithHash, { name, module, testId, assertions, ...report }) {
     const { failed } = report
     const { url, page, test } = get(job, urlWithHash, testId)
+    if (!test) {
+      invalidTestId(job, url, testId)
+    }
     if (failed) {
       if (job.browserCapabilities.screenshot) {
         try {

@@ -10,10 +10,12 @@ jest.mock('./coverage.js', () => ({
 const { collect } = require('./coverage')
 
 const mockGenericError = jest.fn()
+const mockQunitEarlyStart = jest.fn()
 
 jest.mock('./output.js', () => ({
   getOutput: () => ({
-    genericError: mockGenericError
+    genericError: mockGenericError,
+    qunitEarlyStart: mockQunitEarlyStart
   })
 }))
 
@@ -174,7 +176,11 @@ describe('src/qunit-hooks', () => {
       })
     })
 
-    describe('validation', () => {
+    describe('validation (--qunit-strict)', () => {
+      beforeEach(() => {
+        job.qunitStrict = true
+      })
+
       afterEach(() => {
         expect(stop).toHaveBeenCalledWith(job, url)
         expect(job.failed).toStrictEqual(true)
@@ -185,6 +191,7 @@ describe('src/qunit-hooks', () => {
           isOpa: false,
           modules: getModules()
         })).rejects.toThrow(UTRError.QUNIT_ERROR('Invalid begin hook details'))
+        expect(mockQunitEarlyStart).toHaveBeenCalled()
       })
 
       it('requires modules', async () => {
@@ -192,6 +199,7 @@ describe('src/qunit-hooks', () => {
           isOpa: false,
           totalTests: 1
         })).rejects.toThrow(UTRError.QUNIT_ERROR('Invalid begin hook details'))
+        expect(mockQunitEarlyStart).toHaveBeenCalled()
       })
     })
   })
@@ -594,7 +602,18 @@ describe('src/qunit-hooks', () => {
       expect(job.failed).toStrictEqual(true)
     })
 
-    it('fails on invalid test id', async () => {
+    it('fails on invalid test id (--qunit-strict)', async () => {
+      job.qunitStrict = true
+      await expect(testDone(job, url, {
+        ...getTestDoneFor1a(),
+        testId: '1c'
+      }))
+        .rejects.toThrow(UTRError.QUNIT_ERROR('No QUnit unit test found with id 1c'))
+      expect(stop).toHaveBeenCalledWith(job, url)
+      expect(job.failed).toStrictEqual(true)
+    })
+
+    it('fails on invalid test id (--no-qunit-strict)', async () => {
       await expect(testDone(job, url, {
         ...getTestDoneFor1a(),
         testId: '1c'
