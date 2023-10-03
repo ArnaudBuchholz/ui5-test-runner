@@ -1,0 +1,15 @@
+specVersion: "3.0"
+metadata:
+  name: sample.ts
+type: application
+resources:
+  configuration:
+    paths:
+      webapp: dist
+framework:
+  name: OpenUI5
+  version: "1.119.0"
+  libraries:
+    - name: sap.m
+    - name: sap.ui.core
+    - name: themelib_sap_horizon

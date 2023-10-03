@@ -27,7 +27,8 @@ node_modules/
 # generated during tests
 tmp/
 report/
+test/**/report/
 !src/**/report/
-!test/**/report/
+!test/report/
 .utr-capabilities/
 test/report/report.html
