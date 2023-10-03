@@ -412,6 +412,10 @@ function build (job) {
       log(job, p80()`Skipping nyc instrumentation (--url)`)
     }),
 
+    qunitEarlyStart: wrap(url => {
+      log(job, p80()`QUnit start without tests in ${pad.lt(url)}`)
+    }),
+
     endpointError: wrap(({ api, url, data, error }) => {
       const p = p80()
       log(job, p`┌──────────${pad.x('─')}┐`)
