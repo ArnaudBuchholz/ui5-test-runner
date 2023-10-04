@@ -213,6 +213,31 @@ describe('simulate', () => {
       })
     })
 
+    describe('simple test execution (--no-qunit-strict)', () => {
+      beforeAll(async () => {
+        await setup('simple-early')
+        pages = {
+          'testsuite.qunit.html': async referer => {
+            await post('/_/addTestPages', referer, [
+              referer.replace('testsuite.qunit.html', 'page1.html')
+            ])
+          },
+          'page1.html': async referer => {
+            await post('/_/QUnit/begin', referer, { totalTests: 0, modules: [] })
+            await post('/_/QUnit/done', referer, { failed: 0 })
+            await post('/_/QUnit/testStart', referer, { module: 'module', name: 'test', testId: '1' })
+            await post('/_/QUnit/testDone', referer, { testId: '1', failed: 0, passed: 1 })
+            await post('/_/QUnit/done', referer, { failed: 0 })
+          }
+        }
+        await safeExecute()
+      })
+
+      it('succeeded', () => {
+        expect(job.failed).toStrictEqual(false)
+      })
+    })
+
     describe('error', () => {
       describe('one test fail', () => {
         beforeAll(async () => {
