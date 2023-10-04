@@ -16,7 +16,9 @@
   },
   "scripts": {
     "lint": "standard --fix",
-    "test": "npm run test:unit && npm run test:integration:jsdom && npm run test:integration:puppeteer && npm run test:integration:selenium-webdriver-chrome && npm run test:integration:playwright",
+    "test": "npm run test:unit && npm run test:browsers && npm run test:samples",
+    "test:browsers": "npm run test:integration:jsdom && npm run test:integration:puppeteer && npm run test:integration:selenium-webdriver-chrome && npm run test:integration:playwright",
+    "test:samples": "npm run test:sample:js:legacy && npm run test:sample:js:coverage:legacy",
     "test:coverall": "rimraf .nyc_output && jest --coverageDirectory .nyc_output --coverageReporters json && nyc --silent --no-clean npm run test:integration:jsdom && nyc --silent --no-clean npm run test:integration:puppeteer && nyc --silent --no-clean npm run test:integration:selenium-webdriver-chrome && nyc --silent --no-clean npm run test:integration:playwright && nyc merge .nyc_output .nyc_output/final/coverage.json && nyc report --temp-dir .nyc_output/final/ --report-dir coverage --branches 80 --functions 80 --lines 80 --statements 80",
     "test:unit": "jest",
     "test:unit:debug": "jest --runInBand",
@@ -26,8 +28,14 @@
     "test:integration:playwright": "node . --capabilities --browser $/playwright.js",
     "test:report": "node ./src/defaults/report.js ./test/report && reserve --config ./test/report/reserve.json",
     "test:text-report": "node ./src/defaults/text-report.js ./test/report",
-    "build:doc": "node build/doc",
-    "serve:sample:js": "ui5 serve --config ./test/sample.js/ui5.yaml"
+    "test:sample:js:legacy": "node . --cwd ./test/sample.js",
+    "test:sample:js:coverage:legacy": "node . --cwd ./test/sample.js --coverage --coverage-check-statements 80",
+    "test:sample:js:legacy-remote": "node . --port 8081 --cwd ./test/sample.js --url http://localhost:8081/test/testsuite.qunit.html",
+    "test:sample:js:coverage:legacy-remote": "node . --port 8081 --cwd ./test/sample.js --url http://localhost:8081/test/testsuite.qunit.html --coverage",
+    "test:sample:js:remote": "start-server-and-test 'npm run serve:sample:js' http://localhost:8080 'node . --url http://localhost:8080/test/testsuite.qunit.html'",
+    "test:sample:js:coverage:remote": "start-server-and-test 'npm run serve:sample:js' http://localhost:8080 'node . --url http://localhost:8080/test/testsuite.qunit.html' --coverage",
+    "serve:sample:js": "ui5 serve --config ./test/sample.js/ui5.yaml",
+    "build:doc": "node build/doc"
   },
   "repository": {
     "type": "git",
