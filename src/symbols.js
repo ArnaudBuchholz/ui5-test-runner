@@ -4,5 +4,6 @@ module.exports = {
   $probeUrlsCompleted: Symbol('probeUrlsCompleted'),
   $testPagesStarted: Symbol('testPagesStarted'),
   $testPagesCompleted: Symbol('testPagesCompleted'),
-  $valueSources: Symbol('valueSources')
+  $valueSources: Symbol('valueSources'),
+  $remoteOnLegacy: Symbol('remoteOnLegacy')
 }

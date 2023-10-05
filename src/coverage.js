@@ -9,6 +9,7 @@ const { getOutput } = require('./output')
 const { resolvePackage } = require('./npm')
 const { promisify } = require('util')
 const { UTRError } = require('./error')
+const { $remoteOnLegacy } = require('./symbols')
 
 const $nycSettingsPath = Symbol('nycSettingsPath')
 const $coverageFileIndex = Symbol('coverageFileIndex')
@@ -75,15 +76,9 @@ async function instrument (job) {
   settings.exclude.push(join(job.coverageReportDir, '**'))
   await writeFile(job[$nycSettingsPath], JSON.stringify(settings))
   if (job.mode === 'url') {
-    const port = job.port.toString()
-    const useLocal = job.url.some(url => {
-      // ignore host name since the machine might be exposed with any name
-      const parsedUrl = new URL(url)
-      return parsedUrl.port === port
-    })
-    if (!useLocal) {
-      getOutput(job).instrumentationSkipped()
+    if (!job[$remoteOnLegacy]) {
       job[$coverageRemote] = true
+      getOutput(job).instrumentationSkipped()
       return
     }
   }
@@ -168,11 +163,11 @@ module.exports = {
     }
     const instrumentedBasePath = join(job.coverageTempDir, 'instrumented')
     const instrumentedMapping = {
-      match: /^\/(.*\.js)$/,
+      match: /(.*\.js)(\?.*)?$/,
       file: join(instrumentedBasePath, '$1'),
       'ignore-if-not-found': true
     }
-    if (job.mode === 'legacy') {
+    if (job.mode === 'legacy' || job[$remoteOnLegacy]) {
       return [{
         ...instrumentedMapping,
         'custom-file-system': job.debugCoverageNoCustomFs ? undefined : customFileSystem

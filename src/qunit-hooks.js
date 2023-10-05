@@ -54,11 +54,11 @@ async function done (job, urlWithHash, report) {
       getOutput(job).genericError(error, url)
     }
   }
+  page.end = new Date()
   if (report.__coverage__) {
-    collect(job, url, report.__coverage__)
+    await collect(job, url, report.__coverage__)
     delete report.__coverage__
   }
-  page.end = new Date()
   page.report = report
   stop(job, url)
 }

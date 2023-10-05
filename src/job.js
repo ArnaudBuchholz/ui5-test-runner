@@ -5,7 +5,7 @@ const { statSync, accessSync, constants } = require('fs')
 const { dirname, join, isAbsolute } = require('path')
 const { name, description, version } = require(join(__dirname, '../package.json'))
 const { getOutput } = require('./output')
-const { $valueSources } = require('./symbols')
+const { $valueSources, $remoteOnLegacy } = require('./symbols')
 const { buildAndCheckMode } = require('./job-mode')
 const { boolean, integer, timeout, url, arrayOf, regex, percent } = require('./options')
 
@@ -286,6 +286,15 @@ function finalize (job) {
     overrideDirIfNotSet('coverageReportDir', settings['report-dir'])
     overrideDirIfNotSet('coverageTempDir', settings['temp-dir'])
     overrideIfNotSet('coverageReporters', settings.reporter)
+  }
+
+  if (job.mode === 'url') {
+    const port = job.port.toString()
+    job[$remoteOnLegacy] = job.url.every(url => {
+      // ignore host name since the machine might be exposed with any name
+      const parsedUrl = new URL(url)
+      return parsedUrl.port === port
+    })
   }
 
   job[$status] = 'Starting'
