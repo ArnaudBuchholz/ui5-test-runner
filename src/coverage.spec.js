@@ -4,6 +4,7 @@ const { instrument, generateCoverageReport, mappings } = require('./coverage')
 const { stat } = require('fs/promises')
 const { cleanDir, createDir } = require('./tools')
 const { getOutput } = require('./output')
+const { $remoteOnLegacy } = require('./symbols')
 
 describe('src/coverage', () => {
   const cwd = join(__dirname, '../test/project')
@@ -108,7 +109,8 @@ describe('src/coverage', () => {
         Object.assign(job, {
           mode: 'url',
           port: 8080,
-          url: ['http://localhost:8080/whatever/test.html']
+          url: ['http://localhost:8080/whatever/test.html'],
+          [$remoteOnLegacy]: true // added on job finalization
         })
         await instrument(job)
         expect(instrumentationSkipped).not.toHaveBeenCalled()
