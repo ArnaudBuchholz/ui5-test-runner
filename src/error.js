@@ -37,6 +37,8 @@ const errors = [{
   name: 'BROWSER_MISS_SCRIPTS_CAPABILITY'
 }, {
   name: 'NPM_DEPENDENCY_NOT_FOUND'
+}, {
+  name: 'NYC_FAILED'
 }]
 
 errors.forEach((error, index) => {

@@ -2,12 +2,13 @@
 
 const { join, dirname, isAbsolute } = require('path')
 const { fork } = require('child_process')
-const { cleanDir, createDir, filename, download } = require('./tools')
+const { cleanDir, createDir, filename, download, allocPromise } = require('./tools')
 const { readdir, readFile, stat, writeFile, access, constants } = require('fs').promises
 const { Readable } = require('stream')
 const { getOutput } = require('./output')
 const { resolvePackage } = require('./npm')
 const { promisify } = require('util')
+const { UTRError } = require('./error')
 
 const $nycSettingsPath = Symbol('nycSettingsPath')
 const $coverageFileIndex = Symbol('coverageFileIndex')
@@ -28,9 +29,13 @@ async function nyc (job, ...args) {
   output.nyc(...args)
   const childProcess = fork(nycScript, args, { stdio: 'pipe' })
   output.monitor(childProcess)
-  let done
-  const promise = new Promise(resolve => { done = resolve })
-  childProcess.on('close', done)
+  const { promise, resolve, reject } = allocPromise()
+  childProcess.on('close', async code => {
+    if (code !== 0) {
+      reject(UTRError.NYC_FAILED(`Return code ${code}`))
+    }
+    resolve()
+  })
   return promise
 }
 
