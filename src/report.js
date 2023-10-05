@@ -51,7 +51,10 @@ module.exports = {
       })
       return promise
     })
-    promises.push(generateCoverageReport(job))
+    promises.push(generateCoverageReport(job).catch(e => {
+      output.genericError(e)
+      job.failed = true
+    }))
     await Promise.all(promises)
     job.status = 'Done'
   }

@@ -130,6 +130,9 @@ async function generateCoverageReport (job) {
   }
   const checks = []
   if (job.coverageCheckBranches || job.coverageCheckFunctions || job.coverageCheckLines || job.coverageCheckStatements) {
+    if (!job.coverageReporters.includes('lcov')) {
+      reporters.push('--reporter=lcov')
+    }
     checks.push(
       `--branches=${job.coverageCheckBranches}`,
       `--functions=${job.coverageCheckFunctions}`,
@@ -139,6 +142,13 @@ async function generateCoverageReport (job) {
     )
   }
   await nyc(job, 'report', ...reporters, ...checks, '--temp-dir', coverageMergedDir, '--report-dir', job.coverageReportDir, '--nycrc-path', job[$nycSettingsPath])
+  if (checks.length) {
+    // The checks are not triggered if the coverage is empty
+    const lcov = await stat(join(job.coverageReportDir, 'lcov.info'))
+    if (lcov.size === 0) {
+      throw UTRError.NYC_FAILED('No coverage information extracted')
+    }
+  }
 }
 
 module.exports = {
@@ -151,7 +161,7 @@ module.exports = {
     }
     await writeFile(coverageFileName, JSON.stringify(coverageData))
   },
-  generateCoverageReport: job => job.coverage && generateCoverageReport(job),
+  generateCoverageReport: job => job.coverage ? generateCoverageReport(job) : Promise.resolve(),
   mappings: async job => {
     if (!job.coverage) {
       return []
