@@ -1,0 +1,37 @@
+specVersion: "3.0"
+metadata:
+  name: sample.ts
+type: application
+resources:
+  configuration:
+    paths:
+      webapp: ./test/sample.ts/webapp
+framework:
+  name: SAPUI5
+  version: "1.119.0"
+  libraries:
+    - name: sap.m
+    - name: sap.ui.core
+    - name: themelib_sap_horizon
+builder:
+  customTasks:
+    - name: ui5-tooling-transpile-task
+      afterTask: replaceVersion
+server:
+  customMiddleware:
+    - name: ui5-tooling-transpile-middleware
+      afterMiddleware: compression
+      configuration:
+        debug: true
+        babelConfig:
+          sourceMaps: true
+          ignore:
+          - "**/*.d.ts"
+          presets:
+          - - "@babel/preset-env"
+            - targets: defaults
+          - - transform-ui5
+            - overridesToOverride: true
+          - "@babel/preset-typescript"
+          plugins:
+          - istanbul
