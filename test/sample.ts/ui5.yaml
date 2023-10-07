@@ -2,10 +2,6 @@ specVersion: "3.0"
 metadata:
   name: sample.ts
 type: application
-resources:
-  configuration:
-    paths:
-      webapp: ./test/sample.ts/webapp
 framework:
   name: OpenUI5
   version: "1.119.0"
