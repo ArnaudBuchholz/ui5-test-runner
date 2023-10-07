@@ -6,7 +6,6 @@
     "@ui5/cli": "",
     "@ui5/middleware-code-coverage": "",
     "typescript": "",
-    "ui5-middleware-livereload": "",
     "ui5-tooling-transpile": ""
   }
 }

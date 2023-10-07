@@ -79,7 +79,6 @@
     "standard": "^17.1.0",
     "start-server-and-test": "^2.0.1",
     "typescript": "^5.2.2",
-    "ui5-middleware-livereload": "^3.0.1",
     "ui5-tooling-transpile": "^3.2.6"
   },
   "optionalDependencies": {
