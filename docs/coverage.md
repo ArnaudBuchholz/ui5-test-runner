@@ -55,7 +55,7 @@ In this mode, source files are directly manipulated by `ui5-test-runner`.
 
 It is possible to extract code coverage using the remote mode.
 
-### @ui5/middleware-code-coverage
+### JavaScript `@ui5/cli` projects : `@ui5/middleware-code-coverage`
 
 The [`@ui5/middleware-code-coverage`](https://www.npmjs.com/package/@ui5/middleware-code-coverage) middleware is capable of instrumenting the source files on the fly (by adding `?instrument=true` to the URL of the file).
 
@@ -85,6 +85,36 @@ server:
 ```
 
 **Implementation note** : unlike the expected usage of the middleware, `ui5-test-runner` generates the coverage report. It forces the runner to download all the covered source files locally to ensure the report can be generated.
+
+### TypeScript `@ui5/cli` projects : tweaking `ui5-tooling-transpile`
+
+The [`ui5-tooling-transpile`](https://www.npmjs.com/package/ui5-tooling-transpile) middleware converts TypeScript into JavaScript while serving the application. Its configuration can be tweaked to also achieve instrumentation during this step.
+
+```yaml
+specVersion: "3.0"
+server:
+  customMiddleware:
+    - name: ui5-tooling-transpile-middleware
+      afterMiddleware: compression
+      configuration:
+        debug: true
+        babelConfig:
+          sourceMaps: true
+          ignore:
+          - "**/*.d.ts"
+          presets:
+          - - "@babel/preset-env"
+            - targets: defaults
+          - - transform-ui5
+            - overridesToOverride: true
+          - "@babel/preset-typescript"
+          plugins:
+          - istanbul
+```
+
+**NOTE** : You may consider tweaking in a distinct configuration file and use the `--config` option to run it.
+
+For instance : `ui5 serve --config ui5-coverage.yaml`
 
 ### coverage-proxy *(experimental)*
 
