@@ -94,6 +94,8 @@ require('./browser')({
       await page.setBypassCSP(true)
     }
 
+    await page.authenticate({'username': process.env.BASIC_AUTH_ID, 'password': process.env.BASIC_AUTH_PW});
+
     page
       .on('console', message => consoleWriter.append({
         type: message.type(),

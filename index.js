@@ -10,6 +10,7 @@ const { execute } = require('./src/tests')
 const { capabilities } = require('./src/capabilities')
 const { watch } = require('fs')
 const { recreateDir } = require('./src/tools')
+require('dotenv').config(); 
 
 function send (message) {
   if (process.send) {

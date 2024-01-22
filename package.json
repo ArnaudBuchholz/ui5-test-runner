@@ -64,6 +64,7 @@
   "homepage": "https://github.com/ArnaudBuchholz/ui5-test-runner#readme",
   "dependencies": {
     "commander": "^11.0.0",
+    "dotenv": "^16.3.2",
     "mime": "^3.0.0",
     "punybind": "^1.2.1",
     "punyexpr": "^1.0.4",
