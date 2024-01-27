@@ -18,9 +18,10 @@
     "lint": "standard --fix",
     "test": "npm run test:unit && npm run test:browsers && npm run test:samples",
     "test:browsers": "npm run test:integration:jsdom && npm run test:integration:puppeteer && npm run test:integration:selenium-webdriver-chrome && npm run test:integration:playwright",
-    "test:samples": "npm run test:samples:js && npm run test:samples:ts",
+    "test:samples": "npm run test:samples:js && npm run test:samples:ts && npm run test:auth-sample",
     "test:samples:js": "npm run test:sample:js:legacy && npm run test:sample:js:coverage:legacy && npm run test:sample:js:legacy-remote && npm run test:sample:js:coverage:legacy-remote && npm run test:sample:js:remote && npm run test:sample:js:coverage:remote",
     "test:samples:ts": "npm run test:sample:ts:remote && npm run test:sample:ts:coverage:remote",
+    "test:auth-sample": "npm run test:auth-sample:remote",
     "test:coverall": "rimraf .nyc_output && jest --coverageDirectory .nyc_output --coverageReporters json && nyc --silent --no-clean npm run test:integration:jsdom && nyc --silent --no-clean npm run test:integration:puppeteer && nyc --silent --no-clean npm run test:integration:selenium-webdriver-chrome && nyc --silent --no-clean npm run test:integration:playwright && nyc merge .nyc_output .nyc_output/final/coverage.json && nyc report --temp-dir .nyc_output/final/ --report-dir coverage --branches 80 --functions 80 --lines 80 --statements 80",
     "test:unit": "jest",
     "test:unit:debug": "jest --runInBand",
@@ -41,6 +42,8 @@
     "serve:sample:ts": "cd ./test/sample.ts && node ui5.cjs serve",
     "test:sample:ts:coverage:remote": "start-server-and-test 'npm run serve:sample:ts:coverage' http://localhost:8080 'node . --url http://localhost:8080/test/testsuite.qunit.html --coverage --coverage-check-statements 67'",
     "serve:sample:ts:coverage": "cd ./test/sample.ts && node ui5.cjs serve --config ui5-coverage.yaml",
+    "test:auth-sample:remote": "start-server-and-test 'npm run serve:auth-sample' http://localhost:8080 'node . --url http://localhost:8080/test/testsuite.qunit.html -- -- --basic-auth-username testUsername --basic-auth-password testPassword'",
+    "serve:auth-sample": "cd ./test/auth_sample.js && reserve --config ./reserve.json",
     "build:doc": "node build/doc"
   },
   "repository": {
