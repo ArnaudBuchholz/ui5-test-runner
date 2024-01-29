@@ -42,7 +42,7 @@
     "serve:sample:ts": "cd ./test/sample.ts && node ui5.cjs serve",
     "test:sample:ts:coverage:remote": "start-server-and-test 'npm run serve:sample:ts:coverage' http://localhost:8080 'node . --url http://localhost:8080/test/testsuite.qunit.html --coverage --coverage-check-statements 67'",
     "serve:sample:ts:coverage": "cd ./test/sample.ts && node ui5.cjs serve --config ui5-coverage.yaml",
-    "test:auth-sample:remote": "start-server-and-test 'npm run serve:auth-sample' http://localhost:8080 'node . --url http://localhost:8080/test/testsuite.qunit.html -- -- --basic-auth-username testUsername --basic-auth-password testPassword'",
+    "test:auth-sample:remote": "start-server-and-test 'npm run serve:auth-sample' http://localhost:8080 'node . --url http://localhost:8080/test/testsuite.qunit.html --browser $/puppeteer.js --browser-args --basic-auth-username testUsername --browser-args --basic-auth-password testPassword'",
     "serve:auth-sample": "cd ./test/auth_sample.js && reserve --config ./reserve.json",
     "build:doc": "node build/doc"
   },
