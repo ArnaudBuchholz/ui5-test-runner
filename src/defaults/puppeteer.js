@@ -11,7 +11,9 @@ require('./browser')({
       ['-w, --viewport-width <width>', 'Viewport width', 1920],
       ['-h, --viewport-height <height>', 'Viewport height', 1080],
       ['-l, --language <lang...>', 'Language(s)', ['en-US']],
-      ['-u, --unsecure', 'Disable security features', false]
+      ['-u, --unsecure', 'Disable security features', false],
+      ['--basic-auth-username <username>', 'Username for basic authentication', ''],
+      ['--basic-auth-password <password>', 'Password for basic authentication', '']
     ] // ,
     // TODO restore when Node16 is no more supported
     // capabilities: {
@@ -94,6 +96,10 @@ require('./browser')({
       await page.setBypassCSP(true)
     }
 
+    if (options.basicAuthUsername || options.basicAuthPassword) {
+      await page.authenticate({'username': options.basicAuthUsername, 'password': options.basicAuthPassword});
+    }
+    
     page
       .on('console', message => consoleWriter.append({
         type: message.type(),

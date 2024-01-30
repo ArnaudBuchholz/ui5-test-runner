@@ -1,0 +1,17 @@
+<mvc:View
+  controllerName="auth.sample.js.App"
+  displayBlock="true"
+  xmlns="sap.m"
+  xmlns:mvc="sap.ui.core.mvc"
+>
+  <App>
+    <Page title="UI5 Application: auth_sample.js">
+      <Button
+        id="button0"
+        text="Click me!"
+        press="onPress"
+        type="Emphasized"
+      />
+    </Page>
+  </App>
+</mvc:View>

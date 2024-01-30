@@ -29,6 +29,8 @@ Check additional information below.
   -bt, --browser-close-timeout <timeout>       [💻🔗🧪] Maximum waiting time for browser close (default: 2000)
   -br, --browser-retry <count>                 [💻🔗🧪] Browser instantiation retries : if the command fails
                                                unexpectedly, it is re-executed (0 means no retry) (default: 1)
+  -qs, --qunit-strict                          [💻🔗] Strict mode on qunit execution (fails if no modules declared)
+                                               (default: false)
   -pf, --page-filter <regexp>                  [💻🔗] Filter out pages not matching the regexp
   -pp, --page-params <params>                  [💻🔗] Add parameters to page URL
   -t, --global-timeout <timeout>               [💻🔗] Limit the pages execution time, fail the page if it takes longer
