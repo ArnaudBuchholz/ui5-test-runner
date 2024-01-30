@@ -58,3 +58,8 @@ A self-sufficient test runner for UI5 applications enabling parallel execution o
 * Dependencies are installed **on demand**
 * Browser instantiation command evolved in an **incompatible way** (see [documentation](https://arnaudbuchholz.github.io/ui5-test-runner/browser.html)).
 * Output is different (report, traces)
+
+## ✒ Contributors
+
+* [Marian Zeis](https://github.com/marianfoo): Documentation page revamp [PR #54](https://github.com/ArnaudBuchholz/ui5-test-runner/pull/54)
+* [Raj Singh](https://github.com/rajxsingh): Basic HTTP Authentication in Puppeteer [PR #71](https://github.com/ArnaudBuchholz/ui5-test-runner/pull/71)
