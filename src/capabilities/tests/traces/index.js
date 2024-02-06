@@ -17,7 +17,7 @@ const expectedLogs = [{
   type: 'log',
   text: /^"?complex parameters"? 1 true / // Not sure how objects are handled
 }, {
-  type: 'warning',
+  type: /warning|warn/,
   text: 'A warning'
 }, {
   type: 'error',
