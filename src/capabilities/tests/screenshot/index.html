@@ -3,11 +3,17 @@
   <body>
     <H1>screenshot</H1>
     <p>Checks if the browser supports screenshot</p>
+    <input type="text" id="first" value="first">
+    <input type="text" id="second" value="second">
     <span style="font-size: 32rem;">&#128521;</span>
     <script>
+      document.getElementById('first').focus()
       const xhr = new XMLHttpRequest()
-      xhr.open('POST', '/_/log')
-      xhr.send('{}')
+      xhr.open('POST', '/_/log', false)
+      xhr.send('{"step":"screenshot"}')
+      const current = document.activeElement
+      xhr.open('POST', '/_/log', false)
+      xhr.send(`{"step":"focus", "current": "${ current ? current.id : '' }"}`)
     </script>
   </body>
 </html>
