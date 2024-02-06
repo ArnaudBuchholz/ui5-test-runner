@@ -115,7 +115,7 @@ function getCommand (cwd) {
     .option('--no-screenshot', '[💻🔗] Disable screenshots')
     .option('-st, --screenshot-timeout <timeout>', '[💻🔗] Maximum waiting time for browser screenshot', timeout, 5000)
     .option('-rg, --report-generator <path...>', '[💻🔗] Report generator paths (relative to cwd or use $/ for provided ones)', ['$/report.js'])
-    .option('-pp, --progress-page <path>', '[💻🔗] progress page path (relative to cwd or use $/ for provided ones)', '$/report/default.html')
+    .option('--progress-page <path>', '[💻🔗] progress page path (relative to cwd or use $/ for provided ones)', '$/report/default.html')
 
     .option('--coverage [flag]', '[💻🔗] Enable or disable code coverage', boolean)
     .option('--no-coverage', '[💻🔗] Disable code coverage')
