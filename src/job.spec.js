@@ -211,6 +211,12 @@ describe('job', () => {
       })).toThrow()
     })
 
+    it('supports parameters for testsuite (stripping ?)', () => {
+      expect(() => buildJob({
+        testsuite: 'test/testsuite.qunit.html?a=b'
+      })).not.toThrow()
+    })
+
     it('fails on a missing file (points to a folder)', () => {
       expect(() => buildJob({
         testsuite: 'lib'

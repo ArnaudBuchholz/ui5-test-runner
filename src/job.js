@@ -136,7 +136,7 @@ function getCommand (cwd) {
     .option('--mappings <mapping...>', '[💻] Custom mapping (<match>=<file|url>(<config>))', arrayOf(mapping))
     .option('--cache <path>', '[💻] Cache UI5 resources locally in the given folder (empty to disable)')
     .option('--webapp <path>', '[💻] Base folder of the web application (relative to cwd)', 'webapp')
-    .option('--testsuite <path>', '[💻] Path of the testsuite file (relative to webapp)', 'test/testsuite.qunit.html')
+    .option('--testsuite <path>', '[💻] Path of the testsuite file (relative to webapp, URL parameters are supported)', 'test/testsuite.qunit.html')
     .option('-w, --watch [flag]', '[💻] Monitor the webapp folder and re-execute tests on change', boolean, false)
 
     // Specific to coverage in url mode (experimental)
@@ -227,7 +227,9 @@ function finalize (job) {
   job.mode = buildAndCheckMode(job)
   if (job.mode === 'legacy') {
     checkAccess({ path: job.webapp, label: 'webapp folder' })
-    const testsuitePath = toAbsolute(job.testsuite, job.webapp)
+
+    const [, testsuiteFile] = job.testsuite.match(/([^?]*)(\?.*)?$/)
+    const testsuitePath = toAbsolute(testsuiteFile, job.webapp)
     checkAccess({ path: testsuitePath, label: 'testsuite', file: true })
   } else if (job.mode === 'url') {
     if (job[$valueSources].coverage !== 'cli') {
