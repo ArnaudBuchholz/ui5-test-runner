@@ -1,14 +1,14 @@
 sap.ui.define(
-  ["sap/ui/core/mvc/Controller", "sap/m/MessageToast"],
+  ['sap/ui/core/mvc/Controller', 'sap/m/MessageToast'],
   function (Controller, MessageToast) {
-    "use strict";
+    'use strict'
 
-    return Controller.extend("auth.sample.js.App", {
+    return Controller.extend('auth.sample.js.App', {
       onInit: function () {},
 
       onPress: function () {
-        MessageToast.show("Hello World!");
-      },
-    });
+        MessageToast.show('Hello World!')
+      }
+    })
   }
-);
+)

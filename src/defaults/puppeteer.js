@@ -97,9 +97,9 @@ require('./browser')({
     }
 
     if (options.basicAuthUsername || options.basicAuthPassword) {
-      await page.authenticate({'username': options.basicAuthUsername, 'password': options.basicAuthPassword});
+      await page.authenticate({ username: options.basicAuthUsername, password: options.basicAuthPassword })
     }
-    
+
     page
       .on('console', message => consoleWriter.append({
         type: message.type(),
