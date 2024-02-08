@@ -16,14 +16,14 @@ require('./browser')({
     ],
     capabilities: {
       modules: ['webdriverio'],
-      screenshot: '.png',
+      screenshot: '.png'
     //   scripts: true,
     //   traces: ['console', 'network']
     }
   },
 
   async screenshot ({ filename }) {
-    if (page) {
+    if (browser) {
       await browser.saveScreenshot(filename)
       return true
     }
