@@ -214,13 +214,16 @@ async function screenshot (job, url, filename) {
   if (!job.browserCapabilities.screenshot) {
     throw UTRError.BROWSER_SCREENSHOT_NOT_SUPPORTED()
   }
+  const output = getOutput(job)
+  const id = ++lastScreenshotId
   try {
     const { childProcess, reportDir } = job[$browsers][url]
     const absoluteFilename = join(reportDir, filename + job.browserCapabilities.screenshot)
     if (childProcess.connected) {
-      const id = ++lastScreenshotId
+      output.debug('screenshot', id, url, absoluteFilename)
       const { promise, resolve, reject } = allocPromise()
       screenshots[id] = resolve
+      output.debug('screenshot', id, 'sending command')
       childProcess.send({
         id,
         command: 'screenshot',
@@ -229,15 +232,20 @@ async function screenshot (job, url, filename) {
       const timeoutId = setTimeout(() => {
         reject(UTRError.BROWSER_SCREENSHOT_TIMEOUT())
       }, job.screenshotTimeout)
+      output.debug('screenshot', id, 'command sent, waiting for answer')
       await promise
+      output.debug('screenshot', id, 'answer received')
       clearTimeout(timeoutId)
       const result = await stat(absoluteFilename)
+      output.debug('screenshot', id, 'file size :', result.size)
       if (!result.isFile() || result.size === 0) {
         throw new Error('File expected')
       }
+      output.debug('screenshot', id, 'done')
       return absoluteFilename
     }
   } catch (e) {
+    output.debug('screenshot', id, e.message)
     if (e.code === UTRError.BROWSER_SCREENSHOT_TIMEOUT_CODE) {
       throw e
     }
