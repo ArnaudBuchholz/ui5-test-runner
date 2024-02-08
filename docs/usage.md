@@ -41,7 +41,7 @@ Check additional information below.
   -st, --screenshot-timeout <timeout>          [💻🔗] Maximum waiting time for browser screenshot (default: 5000)
   -rg, --report-generator <path...>            [💻🔗] Report generator paths (relative to cwd or use $/ for provided
                                                ones) (default: ["$/report.js"])
-  -pp, --progress-page <path>                  [💻🔗] progress page path (relative to cwd or use $/ for provided ones)
+  --progress-page <path>                       [💻🔗] progress page path (relative to cwd or use $/ for provided ones)
                                                (default: "$/report/default.html")
   --coverage [flag]                            [💻🔗] Enable or disable code coverage
   --no-coverage                                [💻🔗] Disable code coverage
@@ -66,8 +66,8 @@ Check additional information below.
   --cache <path>                               [💻] Cache UI5 resources locally in the given folder (empty to disable)
   --webapp <path>                              [💻] Base folder of the web application (relative to cwd) (default:
                                                "webapp")
-  --testsuite <path>                           [💻] Path of the testsuite file (relative to webapp) (default:
-                                               "test/testsuite.qunit.html")
+  --testsuite <path>                           [💻] Path of the testsuite file (relative to webapp, URL parameters are
+                                               supported) (default: "test/testsuite.qunit.html")
   -w, --watch [flag]                           [💻] Monitor the webapp folder and re-execute tests on change (default:
                                                false)
   -cp, --coverage-proxy [flag]                 [🔗] [⚠️ experimental] use internal proxy to instrument remote files
