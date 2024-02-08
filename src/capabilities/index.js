@@ -4,7 +4,6 @@ const { check, serve, body } = require('reserve')
 const { probe, start, stop } = require('../browsers')
 const { join } = require('path')
 const { getOutput } = require('../output')
-const EventEmitter = require('events')
 const { performance } = require('perf_hooks')
 const { cleanDir, allocPromise, filename } = require('../tools')
 const { $browsers } = require('../symbols')
@@ -60,13 +59,16 @@ async function capabilities (job) {
             const { referer, 'x-page-url': xPageUrl } = request.headers
             const listenerIndex = (xPageUrl || referer).match(/\blistener=(\d+)/)[1]
             const listener = listeners[listenerIndex]
-            listener.emit('endpoint', {
+            await listener({
               endpoint,
               body: JSON.parse(await body(request))
             })
             response.writeHead(200)
             response.end()
           }
+        }, {
+          match: '^/inject/(.*)',
+          file: join(__dirname, '../inject/$1')
         }, {
           match: '^/(.*)',
           file: join(__dirname, '$1')
@@ -105,8 +107,6 @@ async function capabilities (job) {
       const { label, url, scripts, endpoint = () => { } } = filteredTests.shift()
 
       const listenerIndex = listeners.length
-      const listener = new EventEmitter()
-      listeners.push(listener)
       let pageUrl
       if (url.startsWith('http')) {
         pageUrl = url
@@ -151,7 +151,7 @@ async function capabilities (job) {
       const context = {
         job
       }
-      listener.on('endpoint', async data => {
+      listeners[listenerIndex] = async data => {
         try {
           if (await endpoint.call(context, data, pageUrl) !== false) {
             done()
@@ -159,7 +159,7 @@ async function capabilities (job) {
         } catch (e) {
           done(e)
         }
-      })
+      }
 
       start(job, pageUrl, scripts)
         .catch(reason => done(reason))
