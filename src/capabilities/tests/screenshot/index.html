@@ -6,14 +6,18 @@
     <input type="text" id="first" value="first">
     <input type="text" id="second" value="second">
     <span style="font-size: 32rem;">&#128521;</span>
+    <script src="/inject/post.js"></script>
     <script>
       document.getElementById('first').focus()
-      const xhr = new XMLHttpRequest()
-      xhr.open('POST', '/_/log', false)
-      xhr.send('{"step":"screenshot"}')
-      const current = document.activeElement
-      xhr.open('POST', '/_/log', false)
-      xhr.send(`{"step":"focus", "current": "${ current ? current.id : '' }"}`)
+      const post = window['ui5-test-runner/post']
+      post('/_/log', { step:'screenshot' })
+        .then(() => {
+          const current = document.activeElement
+          return post('/_/log', {
+            step: 'focus',
+            current: current ? current.id : ''
+          })
+        })
     </script>
   </body>
 </html>
