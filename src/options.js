@@ -41,6 +41,10 @@ module.exports = {
 
   integer,
 
+  string (value) {
+    return value
+  },
+
   timeout (value) {
     const int = integer(value)
     if (value.endsWith('ms')) {

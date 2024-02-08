@@ -7,7 +7,7 @@ const { name, description, version } = require(join(__dirname, '../package.json'
 const { getOutput } = require('./output')
 const { $valueSources, $remoteOnLegacy } = require('./symbols')
 const { buildAndCheckMode } = require('./job-mode')
-const { boolean, integer, timeout, url, arrayOf, regex, percent } = require('./options')
+const { boolean, integer, timeout, url, arrayOf, regex, percent, string } = require('./options')
 
 const $status = Symbol('status')
 
@@ -152,6 +152,7 @@ function getCommand (cwd) {
     .addOption(new Option('--debug-capabilities-no-timeout', DEBUG_OPTION, boolean).hideHelp())
     .addOption(new Option('--debug-coverage', DEBUG_OPTION, boolean).hideHelp())
     .addOption(new Option('--debug-coverage-no-custom-fs', DEBUG_OPTION, boolean).hideHelp())
+    .addOption(new Option('--debug-verbose <module...>', DEBUG_OPTION, arrayOf(string), []).hideHelp())
 
   return command
 }

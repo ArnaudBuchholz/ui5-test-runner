@@ -225,6 +225,12 @@ function build (job) {
       log(job, p80()`Server running at ${pad.lt(url)}`)
     },
 
+    debug: wrap((module, ...args) => {
+      if (job.debugVerbose && job.debugVerbose.includes(module)) {
+        console.log(`🐞${module}`, ...args)
+      }
+    }),
+
     redirected: wrap(({ method, url, statusCode, timeSpent }) => {
       if (url.startsWith('/_/progress')) {
         return // avoids pollution
