@@ -14,26 +14,10 @@ require('./browser')({
       ['-u, --unsecure', 'Disable security features', false],
       ['--basic-auth-username <username>', 'Username for basic authentication', ''],
       ['--basic-auth-password <password>', 'Password for basic authentication', '']
-    ] // ,
-    // TODO restore when Node16 is no more supported
-    // capabilities: {
-    //   modules: ['puppeteer'],
-    //   screenshot: '.png',
-    //   scripts: true,
-    //   traces: ['console', 'network']
-    // }
-  },
-
-  // TODO remove when Node16 is no more supported
-  async capabilities () {
-    const version = process.version.match(/^v(\d+\.\d+)/)[1]
-    let screenshot
-    if (!version.startsWith('16')) {
-      screenshot = '.png'
-    }
-    return {
+    ],
+    capabilities: {
       modules: ['puppeteer'],
-      screenshot,
+      screenshot: '.png',
       scripts: true,
       traces: ['console', 'network']
     }
