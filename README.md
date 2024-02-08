@@ -20,7 +20,7 @@ A self-sufficient test runner for UI5 applications enabling parallel execution o
 
 ## 💿 How to install
 
-* Works with [Node.js](https://nodejs.org/en/download/) >= 16
+* Works with [Node.js](https://nodejs.org/en/download/) >= 18
 * Local installation
   * `npm install --save-dev ui5-test-runner`
   * Trigger either with `npx ui5-test-runner` or through an npm script invoking `ui5-test-runner`
@@ -48,6 +48,9 @@ A self-sufficient test runner for UI5 applications enabling parallel execution o
 [![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2FArnaudBuchholz%2Fui5-test-runner.svg?type=large)](https://app.fossa.com/projects/git%2Bgithub.com%2FArnaudBuchholz%2Fui5-test-runner?ref=badge_large)
 
 ## ⚠️ Breaking changes
+
+### v4
+* Dropping support of Node.js 16
 
 ### v3
 * Dropping support of Node.js 14
