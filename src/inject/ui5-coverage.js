@@ -1,6 +1,12 @@
 (function () {
   'use strict'
 
+  const MODULE = 'ui5-test-runner/ui5-coverage'
+  if (window[MODULE]) {
+    return // already installed
+  }
+  window[MODULE] = true
+
   // inspired from ui5/resources/sap/ui/qunit/qunit-coverage-istanbul-dbg.js
 
   function appendUrlParameter (url) {

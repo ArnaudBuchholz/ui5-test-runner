@@ -1,9 +1,9 @@
 (function () {
   'use strict'
 
-  const POST = 'ui5-test-runner/post'
-  if (window[POST]) {
-    return
+  const MODULE = 'ui5-test-runner/post'
+  if (window[MODULE]) {
+    return // already installed
   }
 
   const base = window['ui5-test-runner/base-host'] || ''
@@ -71,7 +71,7 @@
 
   window['ui5-test-runner/stringify'] = stringify
 
-  window[POST] = function post (url, data) {
+  window[MODULE] = function post (url, data) {
     function request () {
       return new Promise(function (resolve, reject) {
         const xhr = new XMLHttpRequest()

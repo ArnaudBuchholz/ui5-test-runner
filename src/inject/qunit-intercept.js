@@ -2,6 +2,12 @@
 (function () {
   'use strict'
 
+  const MODULE = 'ui5-test-runner/qunit-intercept'
+  if (window[MODULE]) {
+    return // already installed
+  }
+  window[MODULE] = true
+
   const callbacks = {}
   const mock = new Proxy({}, {
     get: function (instance, property) {

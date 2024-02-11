@@ -2,7 +2,6 @@
   'use strict'
 
   const MODULE = 'ui5-test-runner/opa-iframe-coverage'
-
   if (window[MODULE]) {
     return // already installed
   }
