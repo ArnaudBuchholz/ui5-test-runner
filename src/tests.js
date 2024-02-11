@@ -70,7 +70,7 @@ async function runTestPage (job, url) {
   const output = getOutput(job)
   try {
     let scripts
-    if (job.mode === 'url' && job.browserCapabilities.scripts) {
+    if (job.browserCapabilities.scripts) {
       scripts = [
         'post.js',
         'qunit-intercept.js',
