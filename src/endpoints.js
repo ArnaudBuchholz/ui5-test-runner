@@ -141,6 +141,14 @@ module.exports = job => {
         match: '^/_/punyexpr.js',
         file: punyexprBinPath
       }, {
+      // Endpoint to retry on progress
+        method: 'INFO',
+        match: '^/_/progress',
+        custom: (request, response) => {
+          response.writeHead(204)
+          response.end()
+        }
+      }, {
       // Endpoint to follow progress
         match: '^/_/progress(?:\\?page=([^&]*)(?:&test=([^&]*))?)?',
         custom: (request, response, pageId, testId) => getJobProgress(job, request, response, pageId, testId)
