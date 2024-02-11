@@ -4,6 +4,16 @@
   report.ready.then(update => {
     let lastState = {}
 
+    async function retry () {
+      try {
+        await fetch('/_/progress', { method: 'INFO' })
+        location.hash = ''
+        refresh()
+      } catch (e) {
+        setTimeout(retry, 250)
+      }
+    }
+
     async function refresh () {
       const [, page, test] = location.hash.match(/#?([^-]*)(?:-(.*))?/)
       let url = '/_/progress'
@@ -22,6 +32,7 @@
           ...lastState,
           disconnected: true
         })
+        retry()
         return
       }
       if (test) {
