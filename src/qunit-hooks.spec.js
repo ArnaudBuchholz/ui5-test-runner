@@ -15,7 +15,8 @@ const mockQunitEarlyStart = jest.fn()
 jest.mock('./output.js', () => ({
   getOutput: () => ({
     genericError: mockGenericError,
-    qunitEarlyStart: mockQunitEarlyStart
+    qunitEarlyStart: mockQunitEarlyStart,
+    debug: jest.fn()
   })
 }))
 
@@ -742,6 +743,59 @@ describe('src/qunit-hooks', () => {
       await expect(done(job, url, {})).rejects.toThrow(UTRError.QUNIT_ERROR('No QUnit page found for http://localhost:80/page1.html'))
       expect(stop).toHaveBeenCalledWith(job, url)
       expect(job.failed).toStrictEqual(true)
+    })
+  })
+
+  describe('non-strict early start', () => {
+    const jobEarlyStart = {
+      screenshot: false,
+      browserCapabilities: {
+        screenshot: false
+      }
+    }
+
+    beforeAll(async () => {
+      await begin(jobEarlyStart, url, {
+        isOpa: true,
+        totalTests: 0,
+        modules: []
+      })
+      expect(mockQunitEarlyStart).toHaveBeenCalled()
+    })
+
+    it('accepts new test', async () => {
+      await testStart(jobEarlyStart, url, {
+        module: 'test.html?journey=1A',
+        name: 'test 1a',
+        testId: '1a'
+      })
+      const { testModule } = get(jobEarlyStart, url, '1a')
+      expect(testModule.name).toStrictEqual('test.html?journey=1A')
+    })
+
+    it('adjusts the module name on log', async () => {
+      await log(jobEarlyStart, url, {
+        module: '1A',
+        name: 'test 1a',
+        testId: '1a',
+        log: {
+          result: true,
+          message: 'ok'
+        }
+      })
+      const { testModule } = get(jobEarlyStart, url, '1a')
+      expect(testModule.name).toStrictEqual('1A')
+    })
+
+    it('appends new tests to existing module', async () => {
+      await testStart(jobEarlyStart, url, {
+        module: 'test.html?journey=1A',
+        name: 'test 1a2',
+        testId: '1a2'
+      })
+      const { page, testModule } = get(jobEarlyStart, url, '1a2')
+      expect(page.modules.length).toStrictEqual(1)
+      expect(testModule.name).toStrictEqual('1A')
     })
   })
 })

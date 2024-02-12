@@ -6,6 +6,7 @@ const { UTRError } = require('./error')
 const { getOutput } = require('./output')
 const { basename } = require('path')
 const { filename, stripUrlHash } = require('./tools')
+const $alternateModuleName = Symbol('alternate-module-name')
 
 function error (job, url, details = '') {
   stop(job, url)
@@ -68,6 +69,7 @@ module.exports = {
 
   async begin (job, urlWithHash, { isOpa, totalTests, modules }) {
     const url = stripUrlHash(urlWithHash)
+    getOutput(job).debug('qunit', 'begin', url, { isOpa, totalTests, modules })
     const earlyStart = !totalTests || !modules
     if (earlyStart) {
       getOutput(job).qunitEarlyStart(url)
@@ -94,7 +96,11 @@ module.exports = {
   },
 
   async testStart (job, urlWithHash, { module, name, testId }) {
-    let { page, testModule, test } = get(job, urlWithHash, testId)
+    let { url, page, testModule, test } = get(job, urlWithHash, testId)
+    getOutput(job).debug('qunit', 'testStart', url, { module, name, testId })
+    if (!testModule) {
+      testModule = page.modules.filter(candidate => candidate.name === module || candidate[$alternateModuleName] === module)[0]
+    }
     if (!testModule) {
       testModule = { name: module, tests: [] }
       page.modules.push(testModule)
@@ -108,9 +114,14 @@ module.exports = {
   },
 
   async log (job, urlWithHash, { module, name, testId, ...log }) {
-    const { url, page, test } = get(job, urlWithHash, testId)
+    const { url, page, test, testModule } = get(job, urlWithHash, testId)
+    getOutput(job).debug('qunit', 'log', url, { module, name, testId, log })
     if (!test) {
       invalidTestId(job, url, testId)
+    }
+    if (testModule.name !== module) {
+      testModule[$alternateModuleName] = testModule.name
+      testModule.name = module
     }
     if (!test.logs) {
       test.logs = []
@@ -129,6 +140,7 @@ module.exports = {
   async testDone (job, urlWithHash, { name, module, testId, assertions, ...report }) {
     const { failed } = report
     const { url, page, test } = get(job, urlWithHash, testId)
+    getOutput(job).debug('qunit', 'testDone', url, { name, module, testId, assertions, failed })
     if (!test) {
       invalidTestId(job, url, testId)
     }
