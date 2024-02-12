@@ -3,11 +3,6 @@
   "version": "4.0.1",
   "description": "Standalone test runner for UI5",
   "main": "index.js",
-  "files": [
-    "defaults/*",
-    "src/**/*",
-    "*.js"
-  ],
   "bin": {
     "ui5-test-runner": "./index.js"
   },
