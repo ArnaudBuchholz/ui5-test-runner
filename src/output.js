@@ -131,11 +131,20 @@ function progress (job, cleanFirst = true) {
   }
 }
 
-function output (job, ...texts) {
-  writeFileSync(join(job.reportDir, 'output.txt'), texts.map(t => t.toString()).join(' ') + '\n', {
-    encoding: 'utf-8',
-    flag: 'a'
-  })
+function output (job, ...args) {
+  writeFileSync(
+    join(job.reportDir, 'output.txt'),
+    args.map(arg => {
+      if (typeof arg === 'object') {
+        return JSON.stringify(arg)
+      }
+      return arg.toString()
+    }).join(' ') + '\n',
+    {
+      encoding: 'utf-8',
+      flag: 'a'
+    }
+  )
 }
 
 function log (job, ...texts) {
@@ -228,6 +237,7 @@ function build (job) {
     debug: wrap((module, ...args) => {
       if (job.debugVerbose && job.debugVerbose.includes(module)) {
         console.log(`🐞${module}`, ...args)
+        output(job, `🐞${module}`, ...args)
       }
     }),
 
@@ -416,10 +426,6 @@ function build (job) {
 
     instrumentationSkipped: wrap(() => {
       log(job, p80()`Skipping nyc instrumentation (--url)`)
-    }),
-
-    qunitEarlyStart: wrap(url => {
-      log(job, p80()`QUnit start without tests in ${pad.lt(url)}`)
     }),
 
     endpointError: wrap(({ api, url, data, error }) => {
