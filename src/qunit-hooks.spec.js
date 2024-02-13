@@ -191,7 +191,7 @@ describe('src/qunit-hooks', () => {
         testId: '1a'
       })
 
-      const { test } = get(job, url, '1a')
+      const { test } = get(job, url, { testId: '1a' })
       expect(test.start).toBeInstanceOf(Date)
     })
   })
@@ -214,7 +214,7 @@ describe('src/qunit-hooks', () => {
         ...getBeginInfo()
       })
       await log(job, url, getLogFor1a())
-      const { test } = get(job, url, '1a')
+      const { test } = get(job, url, { testId: '1a' })
       expect(test.logs).toBeInstanceOf(Array)
       expect(test.logs.length).toStrictEqual(1)
       expect(test.logs[0]).toStrictEqual({
@@ -240,7 +240,7 @@ describe('src/qunit-hooks', () => {
         expected: {},
         runtime: 1506
       })
-      const { test } = get(job, url, '1a')
+      const { test } = get(job, url, { testId: '1a' })
       expect(test.logs.length).toStrictEqual(2)
       expect(test.logs).toStrictEqual([{
         result: true,
@@ -296,7 +296,7 @@ describe('src/qunit-hooks', () => {
       screenshot.mockImplementation(() => '1a-1419.png')
       await log(job, url, getLogFor1a())
       expect(screenshot).toHaveBeenCalledWith(job, url, '1a-1419')
-      const { test } = get(job, url, '1a')
+      const { test } = get(job, url, { testId: '1a' })
       expect(test.logs[0]).toStrictEqual({
         result: true,
         actual: true,
@@ -327,7 +327,7 @@ describe('src/qunit-hooks', () => {
       await log(job, url, getLogFor1a())
       expect(mockGenericError).toHaveBeenCalled()
       expect(job.failed).not.toStrictEqual(true)
-      const { page, test } = get(job, url, '1a')
+      const { page, test } = get(job, url, { testId: '1a' })
       expect(page).toMatchObject({
         isOpa: true,
         failed: 0,
@@ -389,7 +389,7 @@ describe('src/qunit-hooks', () => {
     describe('test success (no screenshot, page.passed += 1)', () => {
       afterEach(() => {
         expect(screenshot).not.toHaveBeenCalled()
-        const { page, test } = get(job, url, '1a')
+        const { page, test } = get(job, url, { testId: '1a' })
         expect(page).toMatchObject({
           isOpa: false,
           failed: 0,
@@ -408,7 +408,7 @@ describe('src/qunit-hooks', () => {
 
       it('store reports', async () => {
         await testDone(job, url, getTestDoneFor1a())
-        const { test } = get(job, url, '1a')
+        const { test } = get(job, url, { testId: '1a' })
         expect(test).toMatchObject({
           report: {
             passed: 1,
@@ -423,7 +423,7 @@ describe('src/qunit-hooks', () => {
           passed: 2,
           total: 2
         })
-        const { test } = get(job, url, '1a')
+        const { test } = get(job, url, { testId: '1a' })
         expect(test).toMatchObject({
           report: {
             passed: 2,
@@ -435,7 +435,7 @@ describe('src/qunit-hooks', () => {
 
     describe('test failure (page.failed += 1)', () => {
       afterEach(() => {
-        const { page, test } = get(job, url, '1a')
+        const { page, test } = get(job, url, { testId: '1a' })
         expect(page).toMatchObject({
           isOpa: false,
           failed: 1,
@@ -461,7 +461,7 @@ describe('src/qunit-hooks', () => {
             total: 1
           })
           expect(screenshot).not.toHaveBeenCalled()
-          const { test } = get(job, url, '1a')
+          const { test } = get(job, url, { testId: '1a' })
           expect(test).toMatchObject({
             report: {
               passed: 0,
@@ -478,7 +478,7 @@ describe('src/qunit-hooks', () => {
             failed: 2,
             total: 2
           })
-          const { test } = get(job, url, '1a')
+          const { test } = get(job, url, { testId: '1a' })
           expect(test).toMatchObject({
             report: {
               passed: 0,
@@ -495,7 +495,7 @@ describe('src/qunit-hooks', () => {
             failed: 1,
             total: 2
           })
-          const { test } = get(job, url, '1a')
+          const { test } = get(job, url, { testId: '1a' })
           expect(test).toMatchObject({
             report: {
               passed: 1,
@@ -530,7 +530,7 @@ describe('src/qunit-hooks', () => {
             total: 1
           })
           expect(screenshot).toHaveBeenCalledWith(job, url, '1a')
-          const { test } = get(job, url, '1a')
+          const { test } = get(job, url, { testId: '1a' })
           expect(test.screenshot).toStrictEqual('1a.png')
         })
 
@@ -606,7 +606,7 @@ describe('src/qunit-hooks', () => {
       })
 
       it('fails the test immediately', () => {
-        const { test } = get(job, url, '1a')
+        const { test } = get(job, url, { testId: '1a' })
         expect(test).toMatchObject({
           report: {
             passed: 0,
@@ -732,26 +732,73 @@ describe('src/qunit-hooks', () => {
       })
     })
 
-    it('accepts new test', async () => {
+    it('accepts new modules', async () => {
       await testStart(jobEarlyStart, url, {
         module: 'test.html?journey=1A',
         name: 'test 1a',
         testId: '1a',
-        modules: getModules()
+        modules: [{
+          name: 'module 1',
+          tests: [{
+            name: 'test 1a',
+            testId: '1a'
+          }]
+        }]
       })
-      const { testModule } = get(jobEarlyStart, url, '1a')
+      const { testModule, page } = get(jobEarlyStart, url, { testId: '1a' })
       expect(testModule.name).toStrictEqual('module 1')
+      expect(page.count).toStrictEqual(1)
     })
 
-    it('appends new tests to existing module', async () => {
+    it('accepts new tests', async () => {
+      await testStart(jobEarlyStart, url, {
+        module: 'test.html?journey=1A',
+        name: 'test 1a',
+        testId: '1a',
+        modules: [{
+          name: 'module 1',
+          tests: [{
+            name: 'test 1a',
+            testId: '1a'
+          }, {
+            name: 'test 1b',
+            testId: '1b'
+          }]
+        }]
+      })
+      const { testModule, page } = get(jobEarlyStart, url, { testId: '1b' })
+      expect(testModule.name).toStrictEqual('module 1')
+      expect(page.count).toStrictEqual(2)
+    })
+
+    it('accepts new modules on top of existing ones', async () => {
       await testStart(jobEarlyStart, url, {
         module: 'test.html?journey=2C',
         name: 'test 2c',
         testId: '2c',
-        modules: getModules()
+        modules: [{
+          name: 'module 1',
+          tests: [{
+            name: 'test 1a',
+            testId: '1a'
+          }, {
+            name: 'test 1b',
+            testId: '1b'
+          }]
+        }, {
+          name: 'module 2',
+          tests: [{
+            name: 'test 2c',
+            testId: '2c'
+          }, {
+            name: 'test 2d',
+            testId: '2d'
+          }]
+        }]
       })
-      const { testModule } = get(jobEarlyStart, url, '2c')
+      const { testModule, page } = get(jobEarlyStart, url, { testId: '2c' })
       expect(testModule.name).toStrictEqual('module 2')
+      expect(page.count).toStrictEqual(4)
     })
   })
 })

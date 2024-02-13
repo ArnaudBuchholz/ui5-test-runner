@@ -6,7 +6,6 @@ const { UTRError } = require('./error')
 const { getOutput } = require('./output')
 const { basename } = require('path')
 const { filename, stripUrlHash } = require('./tools')
-const $alternateModuleName = Symbol('alternate-module-name')
 
 function error (job, url, details = '') {
   stop(job, url)
@@ -18,11 +17,37 @@ function invalidTestId (job, url, testId) {
   error(job, url, `No QUnit unit test found with id ${testId}`)
 }
 
-function get (job, urlWithHash, testId) {
+function merge (targetModules, modules) {
+  let count = 0;
+  modules.forEach(module => {
+    const { name } = module
+    const targetModule = targetModules.filter(({ name: targetName }) => name === targetName)[0]
+    if (targetModule === undefined) {
+      targetModules.push(module)
+    } else {
+      module.tests.forEach(test => {
+        const targetTest = targetModule.tests.filter(({ testId }) => test.testId === testId)[0]
+        if (!targetTest) {
+          targetModule.tests.push(test)
+        }
+      })
+    }
+    count += module.tests.length
+  })
+  return count
+}
+
+function get (job, urlWithHash, { testId, modules, isOpa } = {}) {
   const url = stripUrlHash(urlWithHash)
   const page = job.qunitPages && job.qunitPages[url]
   if (!page) {
     error(job, url, `No QUnit page found for ${urlWithHash}`)
+  }
+  if (modules && modules.length) {
+    page.count = merge(page.modules, modules)
+  }
+  if (!page.isOpa && isOpa) {
+    page.isOpa = true
   }
   let testModule
   let test
@@ -67,9 +92,10 @@ async function done (job, urlWithHash, report) {
 module.exports = {
   get,
 
-  async begin (job, urlWithHash, { isOpa, totalTests, modules }) {
+  async begin (job, urlWithHash, details) {
+    getOutput(job).debug('qunit', 'begin', urlWithHash, details)
+    const { isOpa, totalTests, modules } = details
     const url = stripUrlHash(urlWithHash)
-    getOutput(job).debug('qunit', 'begin', url, { isOpa, totalTests, modules })
     if (!job.qunitPages) {
       job.qunitPages = {}
     }
@@ -85,27 +111,18 @@ module.exports = {
     job.qunitPages[url] = qunitPage
   },
 
-  async testStart (job, urlWithHash, { module, name, testId, isOpa, modules }) {
-    const url = stripUrlHash(urlWithHash)
-    const page = job.qunitPages && job.qunitPages[url]
-    page.isOpa = !!isOpa
-    if (page.modules.length === 0) {
-      page.modules = modules
-    }
-    const { test } = get(job, urlWithHash, testId)
-    getOutput(job).debug('qunit', 'testStart', url, { module, name, testId })
+  async testStart (job, urlWithHash, details) {
+    getOutput(job).debug('qunit', 'testStart', urlWithHash, details)
+    const { test } = get(job, urlWithHash, details)
     test.start = new Date()
   },
 
-  async log (job, urlWithHash, { module, name, testId, ...log }) {
-    const { url, page, test, testModule } = get(job, urlWithHash, testId)
-    getOutput(job).debug('qunit', 'log', url, { module, name, testId, log })
+  async log (job, urlWithHash, details) {
+    getOutput(job).debug('qunit', 'log', urlWithHash, details)
+    const { url, page, test } = get(job, urlWithHash, details)
+    const { isOpa, modules, module, name, testId, ...log } = details
     if (!test) {
       invalidTestId(job, url, testId)
-    }
-    if (testModule.name !== module) {
-      testModule[$alternateModuleName] = testModule.name
-      testModule.name = module
     }
     if (!test.logs) {
       test.logs = []
@@ -121,10 +138,11 @@ module.exports = {
     }
   },
 
-  async testDone (job, urlWithHash, { name, module, testId, assertions, ...report }) {
+  async testDone (job, urlWithHash, details) {
+    getOutput(job).debug('qunit', 'testDone', urlWithHash, details)
+    const { name, module, testId, assertions, ...report } = details
     const { failed } = report
-    const { url, page, test } = get(job, urlWithHash, testId)
-    getOutput(job).debug('qunit', 'testDone', url, { name, module, testId, assertions, failed })
+    const { url, page, test } = get(job, urlWithHash, { testId })
     if (!test) {
       invalidTestId(job, url, testId)
     }
