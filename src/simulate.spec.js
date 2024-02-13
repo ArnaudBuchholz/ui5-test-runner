@@ -213,7 +213,7 @@ describe('simulate', () => {
       })
     })
 
-    describe('simple test execution (--no-qunit-strict)', () => {
+    describe('simple test execution', () => {
       beforeAll(async () => {
         await setup('simple-early')
         pages = {

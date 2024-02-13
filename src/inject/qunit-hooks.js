@@ -24,6 +24,8 @@
   })
 
   QUnit.testStart(function (details) {
+    details.isOpa = isOpa()
+    details.modules = QUnit.config.modules
     return post('QUnit/testStart', details)
   })
 

@@ -10,12 +10,10 @@ jest.mock('./coverage.js', () => ({
 const { collect } = require('./coverage')
 
 const mockGenericError = jest.fn()
-const mockQunitEarlyStart = jest.fn()
 
 jest.mock('./output.js', () => ({
   getOutput: () => ({
     genericError: mockGenericError,
-    qunitEarlyStart: mockQunitEarlyStart,
     debug: jest.fn()
   })
 }))
@@ -174,33 +172,6 @@ describe('src/qunit-hooks', () => {
         await begin(job, url, getBeginInfo())
         const { page } = get(job, url)
         expect(page).not.toBeUndefined()
-      })
-    })
-
-    describe('validation (--qunit-strict)', () => {
-      beforeEach(() => {
-        job.qunitStrict = true
-      })
-
-      afterEach(() => {
-        expect(stop).toHaveBeenCalledWith(job, url)
-        expect(job.failed).toStrictEqual(true)
-      })
-
-      it('requires totalTests', async () => {
-        await expect(begin(job, url, {
-          isOpa: false,
-          modules: getModules()
-        })).rejects.toThrow(UTRError.QUNIT_ERROR('Invalid begin hook details'))
-        expect(mockQunitEarlyStart).toHaveBeenCalled()
-      })
-
-      it('requires modules', async () => {
-        await expect(begin(job, url, {
-          isOpa: false,
-          totalTests: 1
-        })).rejects.toThrow(UTRError.QUNIT_ERROR('Invalid begin hook details'))
-        expect(mockQunitEarlyStart).toHaveBeenCalled()
       })
     })
   })
@@ -603,8 +574,7 @@ describe('src/qunit-hooks', () => {
       expect(job.failed).toStrictEqual(true)
     })
 
-    it('fails on invalid test id (--qunit-strict)', async () => {
-      job.qunitStrict = true
+    it('fails on invalid test id', async () => {
       await expect(testDone(job, url, {
         ...getTestDoneFor1a(),
         testId: '1c'
@@ -614,7 +584,7 @@ describe('src/qunit-hooks', () => {
       expect(job.failed).toStrictEqual(true)
     })
 
-    it('fails on invalid test id (--no-qunit-strict)', async () => {
+    it('fails on invalid test id', async () => {
       await expect(testDone(job, url, {
         ...getTestDoneFor1a(),
         testId: '1c'
@@ -746,7 +716,7 @@ describe('src/qunit-hooks', () => {
     })
   })
 
-  describe('non-strict early start', () => {
+  describe('early start', () => {
     const jobEarlyStart = {
       screenshot: false,
       browserCapabilities: {
@@ -760,42 +730,28 @@ describe('src/qunit-hooks', () => {
         totalTests: 0,
         modules: []
       })
-      expect(mockQunitEarlyStart).toHaveBeenCalled()
     })
 
     it('accepts new test', async () => {
       await testStart(jobEarlyStart, url, {
         module: 'test.html?journey=1A',
         name: 'test 1a',
-        testId: '1a'
-      })
-      const { testModule } = get(jobEarlyStart, url, '1a')
-      expect(testModule.name).toStrictEqual('test.html?journey=1A')
-    })
-
-    it('adjusts the module name on log', async () => {
-      await log(jobEarlyStart, url, {
-        module: '1A',
-        name: 'test 1a',
         testId: '1a',
-        log: {
-          result: true,
-          message: 'ok'
-        }
+        modules: getModules()
       })
       const { testModule } = get(jobEarlyStart, url, '1a')
-      expect(testModule.name).toStrictEqual('1A')
+      expect(testModule.name).toStrictEqual('module 1')
     })
 
     it('appends new tests to existing module', async () => {
       await testStart(jobEarlyStart, url, {
-        module: 'test.html?journey=1A',
-        name: 'test 1a2',
-        testId: '1a2'
+        module: 'test.html?journey=2C',
+        name: 'test 2c',
+        testId: '2c',
+        modules: getModules()
       })
-      const { page, testModule } = get(jobEarlyStart, url, '1a2')
-      expect(page.modules.length).toStrictEqual(1)
-      expect(testModule.name).toStrictEqual('1A')
+      const { testModule } = get(jobEarlyStart, url, '2c')
+      expect(testModule.name).toStrictEqual('module 2')
     })
   })
 })

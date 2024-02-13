@@ -36,7 +36,7 @@ function get (job, urlWithHash, testId) {
         return false
       }
     })
-    if (!test && job.qunitStrict) {
+    if (!test) {
       invalidTestId(job, url, testId)
     }
   }
@@ -45,7 +45,7 @@ function get (job, urlWithHash, testId) {
 
 async function done (job, urlWithHash, report) {
   const { url, page } = get(job, urlWithHash)
-  if (page.earlyStart && page.count === 0) {
+  if (page.count === 0) {
     return // wait
   }
   if (job.browserCapabilities.screenshot) {
@@ -70,13 +70,6 @@ module.exports = {
   async begin (job, urlWithHash, { isOpa, totalTests, modules }) {
     const url = stripUrlHash(urlWithHash)
     getOutput(job).debug('qunit', 'begin', url, { isOpa, totalTests, modules })
-    const earlyStart = !totalTests || !modules
-    if (earlyStart) {
-      getOutput(job).qunitEarlyStart(url)
-      if (job.qunitStrict) {
-        error(job, url, 'Invalid begin hook details')
-      }
-    }
     if (!job.qunitPages) {
       job.qunitPages = {}
     }
@@ -89,27 +82,18 @@ module.exports = {
       count: totalTests,
       modules
     }
-    if (earlyStart) {
-      qunitPage.earlyStart = true
-    }
     job.qunitPages[url] = qunitPage
   },
 
-  async testStart (job, urlWithHash, { module, name, testId }) {
-    let { url, page, testModule, test } = get(job, urlWithHash, testId)
+  async testStart (job, urlWithHash, { module, name, testId, isOpa, modules }) {
+    const url = stripUrlHash(urlWithHash)
+    const page = job.qunitPages && job.qunitPages[url]
+    page.isOpa = !!isOpa
+    if (page.modules.length === 0) {
+      page.modules = modules
+    }
+    const { test } = get(job, urlWithHash, testId)
     getOutput(job).debug('qunit', 'testStart', url, { module, name, testId })
-    if (!testModule) {
-      testModule = page.modules.filter(candidate => candidate.name === module || candidate[$alternateModuleName] === module)[0]
-    }
-    if (!testModule) {
-      testModule = { name: module, tests: [] }
-      page.modules.push(testModule)
-    }
-    if (!test) {
-      test = { name, testId }
-      testModule.tests.push(test)
-      ++page.count
-    }
     test.start = new Date()
   },
 
