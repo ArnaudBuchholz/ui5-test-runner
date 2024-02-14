@@ -18,7 +18,7 @@ function invalidTestId (job, url, testId) {
 }
 
 function merge (targetModules, modules) {
-  let count = 0;
+  let count = 0
   modules.forEach(module => {
     const { name } = module
     const targetModule = targetModules.filter(({ name: targetName }) => name === targetName)[0]
