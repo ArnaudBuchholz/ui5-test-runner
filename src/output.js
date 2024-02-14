@@ -136,7 +136,7 @@ function output (job, ...args) {
     join(job.reportDir, 'output.txt'),
     args.map(arg => {
       if (typeof arg === 'object') {
-        return JSON.stringify(arg)
+        return JSON.stringify(arg, undefined, 2)
       }
       return arg.toString()
     }).join(' ') + '\n',

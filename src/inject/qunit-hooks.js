@@ -18,18 +18,34 @@
     }
   }
 
+  function getModules () {
+    if (QUnit.config && QUnit.config.modules) {
+      return QUnit.config.modules.map(({ name, tests }) => ({
+        name,
+        tests: tests.map(({ name, testId, skip }) => ({ name, testId, skip }))
+      }))
+    }
+    return []
+  }
+
+  function extend (details) {
+    details.isOpa = isOpa()
+    details.modules = getModules()
+    return details
+  }
+
   QUnit.begin(function (details) {
     details.isOpa = isOpa()
     return post('QUnit/begin', details)
   })
 
   QUnit.testStart(function (details) {
-    return post('QUnit/testStart', details)
+    return post('QUnit/testStart', extend(details))
   })
 
   QUnit.log(function (log) {
     let ready = false
-    post('QUnit/log', log)
+    post('QUnit/log', extend(log))
       .then(undefined, function () {
         console.error('Failed to POST to QUnit/log (no timestamp)', log)
       })
