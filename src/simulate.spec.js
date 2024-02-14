@@ -213,7 +213,7 @@ describe('simulate', () => {
       })
     })
 
-    describe('simple test execution', () => {
+    describe('simple test execution (loose qunit)', () => {
       beforeAll(async () => {
         await setup('simple-early')
         pages = {
@@ -225,7 +225,7 @@ describe('simulate', () => {
           'page1.html': async referer => {
             await post('/_/QUnit/begin', referer, { totalTests: 0, modules: [] })
             await post('/_/QUnit/done', referer, { failed: 0 })
-            await post('/_/QUnit/testStart', referer, { module: 'module', name: 'test', testId: '1' })
+            await post('/_/QUnit/testStart', referer, { module: 'module', name: 'test', testId: '1', modules: [{ name: 'M1', tests: [{ testId: '1' }] }] })
             await post('/_/QUnit/testDone', referer, { testId: '1', failed: 0, passed: 1 })
             await post('/_/QUnit/done', referer, { failed: 0 })
           }
