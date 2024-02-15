@@ -13,6 +13,7 @@ const {
   $testPagesCompleted
 } = require('./symbols')
 const { UTRError } = require('./error')
+const { $proxifiedUrls } = require('./symbols')
 
 async function run (task, job) {
   const {
@@ -86,6 +87,10 @@ async function runTestPage (job, url) {
     if (job.coverageProxy) {
       const { origin } = new URL(url)
       const proxifiedUrl = url.replace(origin, `http://localhost:${job.port}`)
+      if (!job[$proxifiedUrls]) {
+        job[$proxifiedUrls] = {}
+      }
+      job[$proxifiedUrls][proxifiedUrl] = url
       await start(job, proxifiedUrl, scripts)
       job.qunitPages[url] = job.qunitPages[proxifiedUrl]
       delete job.qunitPages[proxifiedUrl]

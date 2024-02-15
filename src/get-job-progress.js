@@ -1,5 +1,7 @@
 'use strict'
 
+const { $proxifiedUrls } = require('./symbols')
+
 const send = (response, obj) => {
   let json
   if (typeof obj !== 'string') {
@@ -60,6 +62,13 @@ module.exports = {
       ...job,
       status: job.status
     }, (key, value) => {
+      if (key === 'qunitPages' && job[$proxifiedUrls]) {
+        const unproxifiedQunitPages = {}
+        for (const url of Object.keys(job.qunitPages)) {
+          unproxifiedQunitPages[job[$proxifiedUrls][url] || url] = job.qunitPages[url]
+        }
+        return unproxifiedQunitPages
+      }
       if (key === 'modules') {
         return undefined
       }
