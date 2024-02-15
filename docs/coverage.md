@@ -122,6 +122,6 @@ If the remote server does not provide instrumented source files, an experimental
 
 Example :
 ```bash
-ui5-test-runner --url https://ui5.sap.com/test-resources/sap/m/demokit/orderbrowser/webapp/test/testsuite.qunit.html --coverage -coverage-proxy --coverage-proxy-include webapp/* --coverage-proxy-exclude webapp/test --disable-ui5
+ui5-test-runner --url https://ui5.sap.com/test-resources/sap/m/demokit/orderbrowser/webapp/test/testsuite.qunit.html --coverage --coverage-proxy --coverage-proxy-include webapp/* --coverage-proxy-exclude webapp/test --disable-ui5
 ```
 
