@@ -105,6 +105,7 @@ function getCommand (cwd) {
     .option('--no-npm-install', '[💻🔗🧪] Prevent any NPM install (execution may fail if a dependency is missing)')
     .option('-bt, --browser-close-timeout <timeout>', '[💻🔗🧪] Maximum waiting time for browser close', timeout, 2000)
     .option('-br, --browser-retry <count>', '[💻🔗🧪] Browser instantiation retries : if the command fails unexpectedly, it is re-executed (0 means no retry)', 1)
+    .option('-oi, --output-interval <interval>', '[💻🔗🧪] Interval for reporting progress on non interactive output (CI/CD) (0 means no output)', timeout, 30000)
 
     // Common to legacy and url
     .option('-pf, --page-filter <regexp>', '[💻🔗] Filter out pages not matching the regexp')

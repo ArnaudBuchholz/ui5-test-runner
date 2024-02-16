@@ -14,6 +14,7 @@ const { filename, noop, pad } = require('./tools')
 const inJest = typeof jest !== 'undefined'
 const interactive = process.stdout.columns !== undefined && !inJest
 const $output = Symbol('output')
+const $outputStart = Symbol('output-start')
 
 if (!interactive) {
   const UTF8_BOM_CODE = '\ufeff'
@@ -30,6 +31,15 @@ if (inJest) {
 } else {
   cons = console
 }
+
+const formatTime = duration => {
+  duration = Math.ceil(duration / 1000)
+  const seconds = duration % 60
+  const minutes = (duration - seconds) / 60
+  return minutes.toString().padStart(2, '0') + ':' + seconds.toString().padStart(2, '0')
+}
+
+const getElapsed = job => formatTime(Date.now() - job[$outputStart])
 
 const write = (...parts) => parts.forEach(part => process.stdout.write(part))
 
@@ -84,8 +94,16 @@ function bar (ratio, msg) {
 const TICKS = ['\u280b', '\u2819', '\u2839', '\u2838', '\u283c', '\u2834', '\u2826', '\u2827', '\u2807', '\u280f']
 
 function progress (job, cleanFirst = true) {
-  if (cleanFirst) {
-    clean(job)
+  if (interactive) {
+    if (cleanFirst) {
+      clean(job)
+    }
+  } else {
+    if (job[$browsers]) {
+      write(`${getElapsed(job)} │ Progress\n──────┴──────────\n`)
+    } else {
+      return
+    }
   }
   const output = job[$output]
   output.lines = 1
@@ -194,13 +212,6 @@ function browserIssue (job, { type, url, code, dir }) {
   log(job, p`└──────────${pad.x('─')}┘`)
 }
 
-const formatTime = duration => {
-  duration = Math.ceil(duration / 1000)
-  const seconds = duration % 60
-  const minutes = (duration - seconds) / 60
-  return minutes.toString().padStart(2, '0') + ':' + seconds.toString().padStart(2, '0')
-}
-
 function build (job) {
   let wrap
   if (interactive) {
@@ -215,8 +226,7 @@ function build (job) {
   } else {
     wrap = method => method
   }
-  const outputStart = Date.now()
-  const getElapsed = () => formatTime(Date.now() - outputStart)
+  job[$outputStart] = Date.now()
 
   return {
     lastTick: 0,
@@ -261,7 +271,7 @@ function build (job) {
       } else {
         method = log
       }
-      const text = `${getElapsed()} │ ${status}`
+      const text = `${getElapsed(job)} │ ${status}`
       method(job, '')
       method(job, text)
       method(job, '──────┴'.padEnd(text.length, '─'))
@@ -278,6 +288,8 @@ function build (job) {
     reportOnJobProgress () {
       if (interactive) {
         this.reportIntervalId = setInterval(progress.bind(null, job), 250)
+      } else if (job.outputInterval) {
+        this.reportIntervalId = setInterval(progress.bind(null, job), job.outputInterval)
       }
     },
 
@@ -321,7 +333,7 @@ function build (job) {
     },
 
     browserStart (url) {
-      const text = p80()`${getElapsed()} >> ${pad.lt(url)} [${filename(url)}]`
+      const text = p80()`${getElapsed(job)} >> ${pad.lt(url)} [${filename(url)}]`
       if (interactive) {
         output(job, text)
       } else {
@@ -335,7 +347,7 @@ function build (job) {
       if (page) {
         duration = ' (' + formatTime(page.end - page.start) + ')'
       }
-      const text = p80()`${getElapsed()} << ${pad.lt(url)} ${duration} [${filename(url)}]`
+      const text = p80()`${getElapsed(job)} << ${pad.lt(url)} ${duration} [${filename(url)}]`
       if (interactive) {
         output(job, text)
       } else {
@@ -520,7 +532,9 @@ function build (job) {
     stop () {
       if (this.reportIntervalId) {
         clearInterval(this.reportIntervalId)
-        clean(job)
+        if (interactive) {
+          clean(job)
+        }
       }
     }
   }
