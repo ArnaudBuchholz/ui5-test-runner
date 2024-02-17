@@ -88,6 +88,8 @@ async function instrument (job) {
 
 async function generateCoverageReport (job) {
   job.status = 'Generating coverage report'
+  const output = getOutput(job)
+  output.debug('coverage', 'Generating coverage report...')
   await cleanDir(job.coverageReportDir)
   const coverageMergedDir = join(job.coverageTempDir, 'merged')
   await createDir(coverageMergedDir)
@@ -95,6 +97,7 @@ async function generateCoverageReport (job) {
   await nyc(job, 'merge', job.coverageTempDir, coverageFilename)
   if (job[$coverageRemote] && !job.coverageProxy) {
     job.status = 'Checking remote source files'
+    output.debug('coverage', 'Checking remote source files...')
     // Assuming all files are coming from the same server
     const { origin } = new URL(job.testPageUrls[0])
     const sourcesBasePath = join(job.coverageTempDir, 'sources')
@@ -107,13 +110,24 @@ async function generateCoverageReport (job) {
       if (isAbsolute(path)) {
         try {
           await access(path, constants.R_OK)
-          continue
+          continue // Nothing to change
         } catch (e) {}
       }
-      const filePath = join(sourcesBasePath, path)
-      fileData.path = filePath
-      await download(origin + path, filePath)
-      ++changes
+      // try using webapp (might be invalid)
+      try {
+        const filePath = join(job.webapp, path)
+        await access(filePath, constants.R_OK)
+        fileData.path = filePath
+        ++changes
+        continue
+      } catch (e) {}
+      // download
+      try {
+        const filePath = join(sourcesBasePath, path)
+        fileData.path = filePath
+        await download(origin + path, filePath)
+        ++changes
+      } catch (e) {}
     }
     if (changes > 0) {
       await writeFile(coverageFilename, JSON.stringify(coverageData))
@@ -151,9 +165,7 @@ module.exports = {
   async collect (job, url, coverageData) {
     job[$coverageFileIndex] = (job[$coverageFileIndex] || 0) + 1
     const coverageFileName = join(job.coverageTempDir, `${filename(url)}_${job[$coverageFileIndex]}.json`)
-    if (job.debugCoverage) {
-      getOutput(job).wrap(() => console.log('coverage', coverageFileName))
-    }
+    getOutput(job).debug('coverage', `saved coverage in '${coverageFileName}'`)
     await writeFile(coverageFileName, JSON.stringify(coverageData))
   },
   generateCoverageReport: job => job.coverage ? generateCoverageReport(job) : Promise.resolve(),
@@ -189,9 +201,7 @@ module.exports = {
         match: /(.*\.js)(\?.*)?$/,
         custom: async (request, response, url) => {
           if (!url.match(job.coverageProxyInclude) || url.match(job.coverageProxyExclude)) {
-            if (job.debugCoverage) {
-              getOutput(job).wrap(() => console.log('coverage_proxy ignore', url))
-            }
+            getOutput(job).debug('coverage', 'coverage_proxy ignore', url)
             return // Ignore
           }
           const sourcePath = join(sourcesBasePath, url)
@@ -202,9 +212,7 @@ module.exports = {
               if (sources[url]) {
                 await sources[url]
               } else {
-                if (job.debugCoverage) {
-                  getOutput(job).wrap(() => console.log('coverage_proxy instrument', url))
-                }
+                getOutput(job).debug('coverage', 'coverage_proxy instrument', url)
                 sources[url] = await download(origin + url, sourcePath)
               }
             } catch (statusCode) {

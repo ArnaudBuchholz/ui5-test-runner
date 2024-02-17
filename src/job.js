@@ -150,7 +150,6 @@ function getCommand (cwd) {
     .addOption(new Option('--debug-keep-report', DEBUG_OPTION, boolean).hideHelp())
     .addOption(new Option('--debug-capabilities-test <name>', DEBUG_OPTION).hideHelp())
     .addOption(new Option('--debug-capabilities-no-timeout', DEBUG_OPTION, boolean).hideHelp())
-    .addOption(new Option('--debug-coverage', DEBUG_OPTION, boolean).hideHelp())
     .addOption(new Option('--debug-coverage-no-custom-fs', DEBUG_OPTION, boolean).hideHelp())
     .addOption(new Option('--debug-verbose <module...>', DEBUG_OPTION, arrayOf(string), []).hideHelp())
 
@@ -264,9 +263,7 @@ function finalize (job) {
   if (job.coverage) {
     function overrideIfNotSet (option, valueFromSettings) {
       if (valueFromSettings && job[$valueSources][option] !== 'cli') {
-        if (job.debugCoverage) {
-          output.wrap(() => console.log(`${option} extracted from nyc settings : ${valueFromSettings}`))
-        }
+        output.debug('coverage', `${option} extracted from nyc settings : ${valueFromSettings}`)
         job[option] = valueFromSettings
       }
     }
