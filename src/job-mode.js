@@ -39,7 +39,6 @@ function buildAndCheckMode (job) {
       'libs',
       'mappings',
       'cache',
-      'webapp',
       'watch',
       'testsuite'
     ])

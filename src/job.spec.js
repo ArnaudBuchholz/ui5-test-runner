@@ -260,11 +260,11 @@ describe('job', () => {
       })
     })
 
-    it('url forbids the use of webapp', () => {
+    it('url forbids the use of ui5', () => {
       expect(() => buildJob({
-        webapp: 'not_a_folder',
+        ui5: 'https://ui5.sap.com',
         url: 'http://localhost:8080'
-      })).toThrow(UTRError.MODE_INCOMPATIBLE_OPTION('webapp'))
+      })).toThrow(UTRError.MODE_INCOMPATIBLE_OPTION('ui5'))
     })
   })
 
