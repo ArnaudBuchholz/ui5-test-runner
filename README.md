@@ -17,7 +17,6 @@ A self-sufficient test runner for UI5 applications enabling parallel execution o
 
 ## 📚 [Documentation](https://arnaudbuchholz.github.io/ui5-test-runner/)
 
-
 ## 💿 How to install
 
 * Works with [Node.js](https://nodejs.org/en/download/) >= 18
@@ -29,20 +28,6 @@ A self-sufficient test runner for UI5 applications enabling parallel execution o
   * Trigger with `ui5-test-runner`
 
 **NOTE** : additional packages might be needed during the execution (`puppeteer`, `selenium-webdriver`, `nyc`...) . If they are found installed **locally** in the tested project, they are used. Otherwise, they are installed **globally**.
-
-## 🖥️ How to demo
-
-* Clone the project [training-ui5con18-opa](https://github.com/ArnaudBuchholz/training-ui5con18-opa) and run `npm install`
-* Use `npm run karma` to test with the karma runner
-* *Serving the application (a.k.a. legacy mode)*
-  * `npx ui5-test-runner --port 8081 --ui5 https://ui5.sap.com/1.109.0/ --cache .ui5 --keep-alive`
-  * Follow the progress of the test executions using http://localhost:8081/_/progress.html
-  * When the tests are completed, check the code coverage with http://localhost:8081/_/coverage/lcov-report/index.html
-* *Serving the application with `@ui5/cli`*
-  * Use `npm start` to serve the application with `@ui5/cli`
-  * `npx ui5-test-runner --port 8081 --url http://localhost:8080/test/testsuite.qunit.html --keep-alive`
-  * Follow the progress of the test executions using http://localhost:8081/_/progress.html
-
 
 ## ⚖️ License
 [![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2FArnaudBuchholz%2Fui5-test-runner.svg?type=large)](https://app.fossa.com/projects/git%2Bgithub.com%2FArnaudBuchholz%2Fui5-test-runner?ref=badge_large)
