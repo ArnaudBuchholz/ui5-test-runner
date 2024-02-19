@@ -31,6 +31,8 @@ Check additional information below.
                                                unexpectedly, it is re-executed (0 means no retry) (default: 1)
   -oi, --output-interval <interval>            [💻🔗🧪] Interval for reporting progress on non interactive output
                                                (CI/CD) (0 means no output) (default: 30000)
+  --webapp <path>                              [💻🔗] Base folder of the web application (relative to cwd) (default:
+                                               "webapp")
   -pf, --page-filter <regexp>                  [💻🔗] Filter out pages not matching the regexp
   -pp, --page-params <params>                  [💻🔗] Add parameters to page URL
   -t, --global-timeout <timeout>               [💻🔗] Limit the pages execution time, fail the page if it takes longer
@@ -64,8 +66,6 @@ Check additional information below.
   --libs <lib...>                              [💻] Library mapping (<relative>=<path> or <path>)
   --mappings <mapping...>                      [💻] Custom mapping (<match>=<file|url>(<config>))
   --cache <path>                               [💻] Cache UI5 resources locally in the given folder (empty to disable)
-  --webapp <path>                              [💻] Base folder of the web application (relative to cwd) (default:
-                                               "webapp")
   --testsuite <path>                           [💻] Path of the testsuite file (relative to webapp, URL parameters are
                                                supported) (default: "test/testsuite.qunit.html")
   -w, --watch [flag]                           [💻] Monitor the webapp folder and re-execute tests on change (default:
