@@ -7,7 +7,7 @@ docs_dir: "docs" # default
 site_dir: "site" # default
 nav:
   - Home: README.md
-  - How to demo: demo.md
+#  - How to demo: demo.md
   - Command line usage: usage.md
   - Mapping v1 settings to v2: mapping_v1_v2.md
   - Serving and testing the application (a.k.a. legacy mode): legacy.md
