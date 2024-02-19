@@ -124,8 +124,8 @@ async function generateCoverageReport (job) {
     let changes = 0
     for (const filename of filenames) {
       const fileData = coverageData[filename]
-      const filePath = await getReadableSource(fileData.path)
-      if (filePath !== fileData.path) {
+      const filePath = await getReadableSource(job, fileData.path)
+      if (filePath && filePath !== fileData.path) {
         fileData.path = filePath
         ++changes
       }
@@ -188,6 +188,8 @@ module.exports = {
     }
     if (job.mode === 'url' && job.coverageProxy) {
       await setupNyc(job)
+      // Assuming all files are coming from the same server
+      const { origin } = new URL(job.url[0])
       const { createInstrumenter } = require(join(await nycInstallationPath, 'node_modules/istanbul-lib-instrument'))
       const instrumenter = createInstrumenter({
         produceSourceMap: true,
@@ -199,7 +201,7 @@ module.exports = {
       return [{
         match: /(.*\.js)(\?.*)?$/,
         custom: async (request, response, url) => {
-          if (!url.match(job.coverageProxyInclude) || url.match(job.coverageProxyExclude)) {
+          if (!url.match(job.coverageProxyInclude) || url.match(/\bresources\b/) || url.match(job.coverageProxyExclude)) {
             getOutput(job).debug('coverage', 'coverage_proxy ignore', url)
             return
           }
@@ -216,10 +218,12 @@ module.exports = {
           sources[url] = (async () => {
             const sourcePath = await getReadableSource(job, url)
             getOutput(job).debug('coverage', 'coverage_proxy instrument', url, sourcePath)
-            const source = (await readFile(sourcePath)).toString()
-            const instrumentedSource = await instrument(source, sourcePath)
-            await createDir(dirname(instrumentedSourcePath))
-            await writeFile(instrumentedSourcePath, instrumentedSource)
+            if (sourcePath) {
+              const source = (await readFile(sourcePath)).toString()
+              const instrumentedSource = await instrument(source, sourcePath)
+              await createDir(dirname(instrumentedSourcePath))
+              await writeFile(instrumentedSourcePath, instrumentedSource)
+            }
           })()
         }
       },
