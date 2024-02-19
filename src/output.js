@@ -156,6 +156,12 @@ function output (job, ...args) {
       if (typeof arg === 'object') {
         return JSON.stringify(arg, undefined, 2)
       }
+      if (arg === undefined) {
+        return 'undefined'
+      }
+      if (arg === null) {
+        return 'null'
+      }
       return arg.toString()
     }).join(' ') + '\n',
     {
