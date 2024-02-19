@@ -108,6 +108,7 @@ function getCommand (cwd) {
     .option('-oi, --output-interval <interval>', '[💻🔗🧪] Interval for reporting progress on non interactive output (CI/CD) (0 means no output)', timeout, 30000)
 
     // Common to legacy and url
+    .option('--webapp <path>', '[💻🔗] Base folder of the web application (relative to cwd)', 'webapp')
     .option('-pf, --page-filter <regexp>', '[💻🔗] Filter out pages not matching the regexp')
     .option('-pp, --page-params <params>', '[💻🔗] Add parameters to page URL')
     .option('-t, --global-timeout <timeout>', '[💻🔗] Limit the pages execution time, fail the page if it takes longer than the timeout (0 means no timeout)', timeout, 0)
@@ -135,7 +136,6 @@ function getCommand (cwd) {
     .option('--libs <lib...>', '[💻] Library mapping (<relative>=<path> or <path>)', arrayOf(lib))
     .option('--mappings <mapping...>', '[💻] Custom mapping (<match>=<file|url>(<config>))', arrayOf(mapping))
     .option('--cache <path>', '[💻] Cache UI5 resources locally in the given folder (empty to disable)')
-    .option('--webapp <path>', '[💻] Base folder of the web application (relative to cwd)', 'webapp')
     .option('--testsuite <path>', '[💻] Path of the testsuite file (relative to webapp, URL parameters are supported)', 'test/testsuite.qunit.html')
     .option('-w, --watch [flag]', '[💻] Monitor the webapp folder and re-execute tests on change', boolean, false)
 
