@@ -86,6 +86,27 @@ async function instrument (job) {
   await nyc(job, 'instrument', job.webapp, join(job.coverageTempDir, 'instrumented'), '--nycrc-path', job[$nycSettingsPath])
 }
 
+async function getReadableSource (job, pathOrUrl) {
+  if (isAbsolute(pathOrUrl)) {
+    try {
+      await access(pathOrUrl, constants.R_OK)
+      return pathOrUrl
+    } catch (e) {}
+  }
+  try {
+    const filePath = join(job.webapp, pathOrUrl)
+    await access(filePath, constants.R_OK)
+    return filePath
+  } catch (e) {}
+  try {
+    // Assuming all files are coming from the same server
+    const { origin } = new URL(job.testPageUrls[0])
+    const filePath = join(job.coverageTempDir, 'sources', pathOrUrl)
+    await download(origin + pathOrUrl, filePath)
+    return filePath
+  } catch (e) {}
+}
+
 async function generateCoverageReport (job) {
   job.status = 'Generating coverage report'
   const output = getOutput(job)
@@ -98,36 +119,16 @@ async function generateCoverageReport (job) {
   if (job[$coverageRemote] && !job.coverageProxy) {
     job.status = 'Checking remote source files'
     output.debug('coverage', 'Checking remote source files...')
-    // Assuming all files are coming from the same server
-    const { origin } = new URL(job.testPageUrls[0])
-    const sourcesBasePath = join(job.coverageTempDir, 'sources')
     const coverageData = require(coverageFilename)
     const filenames = Object.keys(coverageData)
     let changes = 0
     for (const filename of filenames) {
       const fileData = coverageData[filename]
-      const { path } = fileData
-      if (isAbsolute(path)) {
-        try {
-          await access(path, constants.R_OK)
-          continue // Nothing to change
-        } catch (e) {}
+      const filePath = await getReadableSource(fileData.path)
+      if (filePath !== fileData.path) {
+        fileData.path = filePath
+        ++changes
       }
-      // try using webapp (might be invalid)
-      try {
-        const filePath = join(job.webapp, path)
-        await access(filePath, constants.R_OK)
-        fileData.path = filePath
-        ++changes
-        continue
-      } catch (e) {}
-      // download
-      try {
-        const filePath = join(sourcesBasePath, path)
-        fileData.path = filePath
-        await download(origin + path, filePath)
-        ++changes
-      } catch (e) {}
     }
     if (changes > 0) {
       await writeFile(coverageFilename, JSON.stringify(coverageData))
@@ -187,8 +188,6 @@ module.exports = {
     }
     if (job.mode === 'url' && job.coverageProxy) {
       await setupNyc(job)
-      const { origin } = new URL(job.url[0])
-      const sourcesBasePath = join(job.coverageTempDir, 'sources')
       const { createInstrumenter } = require(join(await nycInstallationPath, 'node_modules/istanbul-lib-instrument'))
       const instrumenter = createInstrumenter({
         produceSourceMap: true,
@@ -202,28 +201,26 @@ module.exports = {
         custom: async (request, response, url) => {
           if (!url.match(job.coverageProxyInclude) || url.match(job.coverageProxyExclude)) {
             getOutput(job).debug('coverage', 'coverage_proxy ignore', url)
-            return // Ignore
+            return
           }
-          const sourcePath = join(sourcesBasePath, url)
-          try {
-            await access(sourcePath, constants.R_OK)
-          } catch (e) {
-            try {
-              if (sources[url]) {
-                await sources[url]
-              } else {
-                getOutput(job).debug('coverage', 'coverage_proxy instrument', url)
-                sources[url] = await download(origin + url, sourcePath)
-              }
-            } catch (statusCode) {
-              return statusCode
-            }
-          }
-          const source = (await readFile(sourcePath)).toString()
-          const instrumentedSource = await instrument(source, sourcePath)
           const instrumentedSourcePath = join(instrumentedBasePath, url)
-          await createDir(dirname(instrumentedSourcePath))
-          await writeFile(instrumentedSourcePath, instrumentedSource)
+          try {
+            await access(instrumentedSourcePath, constants.R_OK)
+            return
+          } catch (e) {}
+          const instrumenting = sources[url]
+          if (instrumenting) {
+            await instrumenting
+            return // ok
+          }
+          sources[url] = (async () => {
+            const sourcePath = await getReadableSource(job, url)
+            getOutput(job).debug('coverage', 'coverage_proxy instrument', url, sourcePath)
+            const source = (await readFile(sourcePath)).toString()
+            const instrumentedSource = await instrument(source, sourcePath)
+            await createDir(dirname(instrumentedSourcePath))
+            await writeFile(instrumentedSourcePath, instrumentedSource)
+          })()
         }
       },
       instrumentedMapping,
