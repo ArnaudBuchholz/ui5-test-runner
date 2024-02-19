@@ -14,6 +14,7 @@ Browser selection is done by passing browser parameters. For instance :
 `ui5-test-runner --browser $/selenium-webdriver.js -- --browser chromium`
 
 Supported browsers :
+
 * chromium
 * firefox
 * webkit
