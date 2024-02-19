@@ -1,12 +1,12 @@
 # 🖥️ How to demo
 
-> ⓘ The repository `training-ui5con18-opa` contains a sample UI5 application with qUnit and OPA tests *(100% coverage)*. The project was modified to support many execution modes, including `@ui5/cli` or a standalone web server (`reserve`).
+> ⓘ The repository `training-ui5con18-opa` contains a sample UI5 application with qUnit and OPA tests. The project was modified to support many execution modes, including [online](https://arnaudbuchholz.github.io/training-ui5con18-opa/webapp/), local with `@ui5/cli` or with a standalone web server (`reserve`).
 
 * Clone the project [`training-ui5con18-opa`](https://github.com/ArnaudBuchholz/training-ui5con18-opa)
 * Change the current working directory to the cloned project and run `npm install`
 * Install `ui5-test-runner` globally with `npm install ui5-test-runner --global`
 
-## Karma
+## Testing with Karma
 
 > ⓘ `Karma` requires configuration files, the execution model is based on sequential execution of all tests in one window. Last but not least, it is [deprecated](https://github.com/karma-runner/karma?tab=readme-ov-file#karma-is-deprecated-and-is-not-accepting-new-features-or-general-bug-fixes).
 
@@ -20,47 +20,60 @@
 
 * Open `webapp\test\testsuite.qunit.html` which defines the test pages
 
-## Legacy mode
+## ui5-test-runner
 
-> ⓘ The initial version of `ui5-test-runner` was designed to serve the application.
+* Run `ui5-test-runner --help`, the list of available options is displayed
+* Open [`https://arnaudbuchholz.github.io/ui5-test-runner/`](https://arnaudbuchholz.github.io/ui5-test-runner/) to access complete documentation
+
+> ⓘ Some options are associated with an icon indicating in which mode it is supported :
+>
+> * 💻 for **legacy** mode
+> * 🔗 for **remote** mode
+> * 🧪 for **capabilities** mode
+>
+> These modes are detailed below.
+
+## 💻 Legacy mode
+
+> ⓘ The initial version of `ui5-test-runner` was designed to serve the application **and** run tes tests.
 
 ### Serving the application
 
 #### Default UI5 mapping
 
 * Run `ui5-test-runner --port 8080 --serve-only`
-* Browse to [http://localhost:8080/](http://localhost:8080/), the application starts
+* Browse to [`http://localhost:8080/`](http://localhost:8080/), the application starts
 * In the application, use `[CTRL] + [SHIFT] + [P]` to see UI5 version
 
 #### Changing UI5 version
 
-* Browse to [https://ui5.sap.com/neo-app.json](https://ui5.sap.com/neo-app.json), it enumerates the list of available versions
+* Browse to [`https://ui5.sap.com/neo-app.json`](https://ui5.sap.com/neo-app.json), it enumerates the list of available versions
 * Pick a version and run `ui5-test-runner --port 8080 --serve-only --ui5 https://ui5.sap.com/<version>`
   * For instance : `ui5-test-runner --port 8080 --serve-only --ui5 https://ui5.sap.com/1.118.1`
 * In a new browser window, open the debugger
 * Disable the browser cache
-* Browse to [http://localhost:8080/](http://localhost:8080/), the application starts
+* Browse to [`http://localhost:8080/`](http://localhost:8080/), the application starts
 * In the application, use `[CTRL] + [SHIFT] + [P]` to see UI5 version
 
-> ⓘ The switch works because the application does not use a fixed version of UI5. Instead, it loads `/resources/sap-ui-core.js`
+> ⓘ The switch works because the application does not use a fixed version of UI5. Instead, it loads a relative URL (`./resources/sap-ui-core.js`).
 
 * In the debugger, go to the elements tab and expand the `<head>` tag
 
-> ⚠️ The `--cache` option enables the caching of UI5 files locally. It may speed up the tests.
+> ⚠️ By default, [`http://localhost:8080/resources/sap-ui-core.js`](http://localhost:8080/resources/sap-ui-core.js) redirects to [`https://ui5.sap.com/resources/sap-ui-core.js`](https://ui5.sap.com/resources/sap-ui-core.js). Depending on the network settings, this may slow down the tests. The `--cache` option enables the caching of UI5 files locally to speed up the tests.
 
-#### Running the tests
+#### Running the qUnit and OPA tests
 
 * Run `ui5-test-runner --port 8080 --serve-only`
-* Browse to [http://localhost:8080/test/testsuite.qunit.html](http://localhost:8080/test/testsuite.qunit.html)
+* Browse to [`http://localhost:8080/test/testsuite.qunit.html`](http://localhost:8080/test/testsuite.qunit.html)
 
 ### Testing the application
 
 * Run `ui5-test-runner --port 8080`
-* Follow the progress of the tests using [http://localhost:8080/_/progress.html](http://localhost:8080/_/progress.html)
-* Open `report\output.txt`, it summarizes the test execution
-* Open `report\report.html` in the browser, it details the test execution
+* Follow the progress of the tests using [`http://localhost:8080/_/progress.html`](http://localhost:8080/_/progress.html)
+* Open `report/output.txt`, it summarizes the tests execution
+* Open `report/report.html` in the browser, it details the tests execution
 
-> ⓘ The runner logs everything *(depending on the driver)*. Each test page is associated to a folder which name is shown in front of the page URL in the `output.txt`. For instance, `http://localhost:8080/test/unit/unitTests.qunit.html` is associated to the folder `le6KDh_XnDk`. The folder name is a hash based on the test page URL.
+> ⓘ The runner logs everything *(depending on the [instantiation command](https://arnaudbuchholz.github.io/ui5-test-runner/browser/))*. Each test page is associated to a folder which name is shown in front of the page URL in the `output.txt`. For instance, `http://localhost:8080/test/unit/unitTests.qunit.html` is associated to the folder `le6KDh_XnDk`. The folder name is a hash based on the test page URL.
 
 * Expand the folder associated to the unit tests (`le6KDh_XnDk`)
   * `done.png` : a screenshot captured after tests completion
@@ -70,46 +83,64 @@
   * `stdout.txt` : *(internal)* the driver standard output
   * `stderr.txt` : *(internal)* the driver error output
 * Expand the folder associated to the `TodoListJourney` journey (`9NHJd7F6A5c`)
-  * `<testid>-<elapsed>.png` : a screenshot is captured for every assertion
+  * `<testid>-<elapsed>.png` : screenshots are captured for every assertion
 
-### Testing the application with coverage
+### Faster testing
+
+> ⓘ Performance is impacted by a variety of factors, augmenting the number of workers does not guarantee faster execution.
+
+* Run `ui5-test-runner --port 8080 --parallel 4`
+* Follow the progress of the tests using [`http://localhost:8080/_/progress.html`](http://localhost:8080/_/progress.html)
+
+### Custom reporting
+
+* Run `ui5-test-runner --port 8080 --report-generator $/report.js $/junit-xml-report.js`
+* Follow the progress of the tests using [`http://localhost:8080/_/progress.html`](http://localhost:8080/_/progress.html)
+* Open `report/junit.xml`
+
+### Code coverage
 
 * Run `ui5-test-runner --port 8080 --coverage`
-* At the end of the execution, a textual report details the coverage
-* Open `coverage\lcov-report\index.html` in the browser
+* At the end of the execution, a textual report summarizes the coverage
+* Open `coverage/lcov-report/index.html` in the browser
+* Open `coverage/lcov.info` for raw coverage information
 
-TODO: Use keep alive and show instrumented files
+> ⓘ Thresholds can be defined to **fail** the command line if the coverage is below the expected ratio, see `--coverage-check-branches`, ` --coverage-check-functions`, `--coverage-check-lines`, `--coverage-check-statement`.
 
-## Remote mode
+> ⓘ Coverage instrumentation is based on [`nyc`](https://www.npmjs.com/package/nyc), the process can be customized with a [configuration file](https://www.npmjs.com/package/nyc#configuration-files) and the option `--coverage-settings`.
+
+* Run `ui5-test-runner --port 8080 --coverage --keep-alive`
+* Browse to [`http://localhost:8080/component.js`](http://localhost:8080/component.js) to see instrumentated version
+
+## 🔗 Remote mode
+
+> ⓘ Starting with version 2, `ui5-test-runner` can execute UI5 tests even if the application is served externally
+
+### UI5 sample applications
+
+* Browse to [https://ui5.sap.com/#/demoapps](https://ui5.sap.com/#/demoapps)
+* Open the [Browse Orders](https://ui5.sap.com/test-resources/sap/m/demokit/orderbrowser/webapp/test/mockServer.html?sap-ui-theme=sap_horizon) application
+* The demo page also document tests links :
+  * [Run Unit Tests](https://ui5.sap.com/test-resources/sap/m/demokit/orderbrowser/webapp/test/unit/unitTests.qunit.html)
+  * [Run Integration Tests](https://ui5.sap.com/test-resources/sap/m/demokit/orderbrowser/webapp/test/integration/opaTests.qunit.html)
+* Run `ui5-test-runner --url https://ui5.sap.com/test-resources/sap/m/demokit/orderbrowser/webapp/test/unit/unitTests.qunit.html --url https://ui5.sap.com/test-resources/sap/m/demokit/orderbrowser/webapp/test/integration/opaTests.qunit.html`
+
+### @ui5/cli
 
 * *Serving the application with `@ui5/cli`*
   * Use `npm start` to serve the application with `@ui5/cli`
   * `npx ui5-test-runner --port 8081 --url http://localhost:8080/test/testsuite.qunit.html --keep-alive`
   * Follow the progress of the test executions using http://localhost:8081/_/progress.html
 
-### UI5 Sample applications
 
-* Browse to [https://ui5.sap.com/#/demoapps](https://ui5.sap.com/#/demoapps)
-* Show the [Browse Orders](https://ui5.sap.com/test-resources/sap/m/demokit/orderbrowser/webapp/test/mockServer.html?sap-ui-theme=sap_horizon) app and tests links
+### Any server
 
-`ui5-test-runner --url https://ui5.sap.com/test-resources/sap/m/demokit/orderbrowser/webapp/test/unit/unitTests.qunit.html --url https://ui5.sap.com/test-resources/sap/m/demokit/orderbrowser/webapp/test/integration/opaTests.qunit.html`
+## Remote mode & coverage
 
+## 🧪 Capabilities tester
 
- ^
-  -u https://ui5.sap.com/test-resources/sap/m/demokit/cart/webapp/test/unit/unitTests.qunit.html ^
-  -u https://ui5.sap.com/test-resources/sap/m/demokit/cart/webapp/test/integration/opaTestsComponent.qunit.html ^
-  -u https://ui5.sap.com/test-resources/sap/tnt/demokit/toolpageapp/webapp/test/unit/unitTests.qunit.html ^
-  -u https://ui5.sap.com/test-resources/sap/tnt/demokit/toolpageapp/webapp/test/integration/opaTests.qunit.html ^
-  -u https://ui5.sap.com/test-resources/sap/m/demokit/tutorial/testing/14/webapp/test/unit/unitTests.qunit.html ^
-  -u https://ui5.sap.com/test-resources/sap/m/demokit/tutorial/testing/14/webapp/test/integration/opaTests.qunit.html ^
-  -u https://ui5.sap.com/test-resources/sap/m/demokit/tutorial/worklist/07/webapp/test/testsuite.qunit.html ^
-  -u https://ui5.sap.com/test-resources/sap/m/demokit/tutorial/walkthrough/37/webapp/test/unit/unitTests.qunit.html ^
-  -u https://ui5.sap.com/test-resources/sap/m/demokit/tutorial/walkthrough/37/webapp/test/integration/opaTests.qunit.html ^
-  -u https://ui5.sap.com/test-resources/sap/suite/ui/commons/demokit/icecream/webapp/test/unit/unitTests.qunit.html ^  
-  -- 
-
-  ### @ui5/cli
-
-  ### Any server
-
-  ## Remote mode & coverage
+Different instantiation commands :
+* puppeteer (chrome, best integration)
+* playwright (video and har capture)
+* selenium-webdriver
+* jsdom
