@@ -8,6 +8,47 @@ global.window = {
     }
   }
 }
+global.location = '/test.html'
+
+function XMLHttpRequest () {
+  this._headers = {}
+  XMLHttpRequest.onNewInstance(this)
+}
+
+XMLHttpRequest.prototype = {
+  addEventListener (name, callback) {
+    if (name === 'load') {
+      this._load = callback
+    } else if (name === 'error') {
+      this._error = callback
+    }
+  },
+
+  open (method, url) {
+    this._method = method
+    this._url = url
+  },
+
+  setRequestHeader (name, value) {
+    this._headers[name] = value
+  },
+
+  send (body) {
+    this._body = body
+  },
+
+  complete (success, statusText, text) {
+    this.statusText = statusText
+    this.responseText = text
+    if (success) {
+      this._load(this)
+    } else {
+      this._error(this)
+    }
+  }
+}
+
+global.XMLHttpRequest = XMLHttpRequest
 
 require('./post')
 
@@ -73,6 +114,16 @@ describe('src/inject/post', () => {
           complex: {
             'ui5:id': 'test',
             'ui5:class': 'sap.m.Button'
+          }
+        })
+      })
+
+      it('works on incomplete mocked objects', () => {
+        const obj = new UI5Object()
+        expect(JSON.parse(stringify({
+          complex: obj
+        }))).toStrictEqual({
+          complex: {
           }
         })
       })
@@ -142,6 +193,46 @@ describe('src/inject/post', () => {
           ]
         })
       })
+    })
+  })
+
+  describe('post', () => {
+    const post = window['ui5-test-runner/post']
+
+    it('sends data to the proper endpoint', async () => {
+      XMLHttpRequest.onNewInstance = xhr => {
+        xhr.send = body => {
+          expect(xhr).toMatchObject({
+            _method: 'POST',
+            _url: '/_/test',
+            _headers: {
+              'x-page-url': '/test.html'
+            }
+          })
+          expect(body).toStrictEqual('"Hello World !"')
+          expect(typeof xhr._load).toStrictEqual('function')
+          expect(typeof xhr._error).toStrictEqual('function')
+          xhr.complete(true, 'OK', 'OK')
+        }
+      }
+      await post('test', 'Hello World !')
+    })
+
+    it.skip('sequences the request', async () => {
+      let count = 0
+      XMLHttpRequest.onNewInstance = xhr => {
+        ++count
+        xhr.send = body => {
+          if (xhr._url === '/_/test1') {
+            expect(count === 1)
+            xhr.complete(true, 'OK', 'OK')
+          } else {
+            xhr.complete(true, 'OK', 'OK')
+          }
+        }
+      }
+      post('test1', 'value1')
+      await post('test2', 'value2')
     })
   })
 })

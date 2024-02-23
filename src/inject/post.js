@@ -19,7 +19,7 @@
     }
     const ui5Summary = obj => {
       const id = obj.getId && obj.getId()
-      const className = obj.getMetadata().getName()
+      const className = obj.getMetadata && obj.getMetadata() && obj.getMetadata().getName()
       return {
         'ui5:class': className,
         'ui5:id': id
