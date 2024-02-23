@@ -234,5 +234,7 @@ describe('src/inject/post', () => {
       post('test1', 'value1')
       await post('test2', 'value2')
     })
+
+    it.skip('does not cascade failures')
   })
 })
