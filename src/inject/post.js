@@ -87,11 +87,10 @@
       })
     }
     lastPost = lastPost
+      .then(request)
       .then(undefined, function (reason) {
         console.error('Failed to POST to ' + url + '\nreason: ' + reason.toString())
-        throw new Error('failed')
       })
-      .then(request)
     return lastPost
   }
 }())

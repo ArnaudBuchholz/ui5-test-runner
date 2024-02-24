@@ -37,8 +37,14 @@ XMLHttpRequest.prototype = {
     this._body = body
   },
 
-  complete (success, statusText, text) {
-    this.statusText = statusText
+  complete (success) {
+    let text
+    if (success) {
+      text = 'OK'
+    } else {
+      text = 'KO'
+    }
+    this.statusText = text
     this.responseText = text
     if (success) {
       this._load(this)
@@ -212,29 +218,66 @@ describe('src/inject/post', () => {
           expect(body).toStrictEqual('"Hello World !"')
           expect(typeof xhr._load).toStrictEqual('function')
           expect(typeof xhr._error).toStrictEqual('function')
-          xhr.complete(true, 'OK', 'OK')
+          xhr.complete(true)
         }
       }
       await post('test', 'Hello World !')
     })
 
-    it.skip('sequences the request', async () => {
+    it('sequences the request', async () => {
       let count = 0
       XMLHttpRequest.onNewInstance = xhr => {
         ++count
-        xhr.send = body => {
+        xhr.send = () => {
           if (xhr._url === '/_/test1') {
-            expect(count === 1)
-            xhr.complete(true, 'OK', 'OK')
+            expect(count).toStrictEqual(1)
+            setTimeout(() => {
+              --count
+              xhr.complete(true)
+            }, 10)
           } else {
-            xhr.complete(true, 'OK', 'OK')
+            expect(count).toStrictEqual(1)
+            --count
+            xhr.complete(true)
           }
         }
       }
       post('test1', 'value1')
       await post('test2', 'value2')
+      expect(count).toStrictEqual(0)
     })
 
-    it.skip('does not cascade failures')
+    describe('error handling', () => {
+      it('does not cascade server errors failures', async () => {
+        XMLHttpRequest.onNewInstance = xhr => {
+          xhr.send = () => {
+            if (xhr._url === '/_/test1') {
+              xhr.complete(false, 'KO', 'KO')
+            } else {
+              xhr.complete(true, 'OK', 'OK')
+            }
+          }
+        }
+        await expect(post('test1', 'value1')).resolves.toStrictEqual(undefined)
+        expect(console.error).toHaveBeenCalled()
+        console.error.mockClear()
+        await expect(post('test2', 'value2')).resolves.toStrictEqual('OK')
+      })
+
+      it('does not cascade stringify failures', async () => {
+        XMLHttpRequest.onNewInstance = xhr => {
+          xhr.send = () => {
+            xhr.complete(true, 'OK', 'OK')
+          }
+        }
+        const obj = new UI5Object()
+        obj.getId = () => { throw new Error('exception') }
+        obj.getMetadata = () => { throw new Error('exception') }
+        await expect(post('test1', { obj })).resolves.toStrictEqual(undefined)
+        expect(console.error).toHaveBeenCalled()
+        console.error.mockClear()
+        await expect(post('test2', 'value2')).resolves.toStrictEqual('OK')
+      })
+    })
   })
 })
