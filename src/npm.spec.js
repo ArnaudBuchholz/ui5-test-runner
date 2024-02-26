@@ -54,7 +54,7 @@ describe('src/npm', () => {
       exec: async childProcess => childProcess.stdout.write('1.0.0\n'),
       persist: true
     })
-    const path = await resolvePackage(job, 'impossible')
+    await resolvePackage(job, 'impossible')
     expect(output.resolvedPackage).toHaveBeenCalledTimes(1)
     expect(output.packageNotLatest).not.toHaveBeenCalled()
   })
