@@ -2,9 +2,11 @@
 
 const { stop } = require('./browsers')
 const { URL } = require('url')
+const { getOutput } = require('./output')
 
 module.exports = {
   async addTestPages (job, url, pages) {
+    getOutput(job).debug('probe', `addTestPages from ${url}`, pages)
     let testPageUrls
     pages = pages.map(relativeUrl => {
       const absoluteUrl = new URL(relativeUrl, url)
