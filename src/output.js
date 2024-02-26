@@ -250,8 +250,9 @@ function build (job) {
       log(job, p80()`Server running at ${pad.lt(url)}`)
     },
 
-    debug: wrap((module, ...args) => {
-      if (job.debugVerbose && job.debugVerbose.includes(module)) {
+    debug: wrap((moduleSpecifier, ...args) => {
+      const [mainModule] = moduleSpecifier.split('/')
+      if (job.debugVerbose && (job.debugVerbose.includes(moduleSpecifier) || job.debugVerbose.includes(mainModule))) {
         console.log(`🐞${module}`, ...args)
         output(job, `🐞${module}`, ...args)
       }

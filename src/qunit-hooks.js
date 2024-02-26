@@ -180,5 +180,8 @@ module.exports = {
     }
   },
 
-  done
+  async done (job, urlWithHash, report) {
+    getOutput(job).debug('qunit/done', 'done', urlWithHash, report)
+    await done(job, urlWithHash, report)
+  }
 }
