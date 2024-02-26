@@ -24,6 +24,8 @@ Check additional information below.
   -b, --browser <command>                      [💻🔗🧪] Browser instantiation command (relative to cwd or use $/ for
                                                provided ones) (default: "$/puppeteer.js")
   --browser-args <argument...>                 [💻🔗🧪] Browser instantiation command parameters (use -- instead)
+  --alternate-npm-path <path>                  [💻🔗] Alternate NPM path to look for packages (priority: local,
+                                               alternate, global)
   --no-npm-install                             [💻🔗🧪] Prevent any NPM install (execution may fail if a dependency is
                                                missing)
   -bt, --browser-close-timeout <timeout>       [💻🔗🧪] Maximum waiting time for browser close (default: 2000)

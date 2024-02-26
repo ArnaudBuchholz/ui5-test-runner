@@ -41,6 +41,38 @@ function resolveDependencyPath (name) {
   }
 }
 
+async function findDependencyPath (job, name) {
+  if (!localRoot) {
+    [localRoot, globalRoot] = await Promise.all([
+      npm(job, 'root'),
+      npm(job, 'root', '--global')
+    ])
+  }
+  const localPath = join(localRoot, name)
+  if (await folderExists(localPath)) {
+    return [localPath, false]
+  }
+  if (job.alternateNpmPath) {
+    const alternatePath = join(job.alternateNpmPath, name)
+    if (await folderExists(alternatePath)) {
+      return [alternatePath, false]
+    }
+  }
+  const globalPath = join(globalRoot, name)
+  let justInstalled = false
+  if (!await folderExists(globalPath)) {
+    if (!job.npmInstall) {
+      throw UTRError.NPM_DEPENDENCY_NOT_FOUND(name)
+    }
+    const previousStatus = job.status
+    job.status = `Installing ${name}...`
+    await npm(job, 'install', name, '-g')
+    justInstalled = true
+    job.status = previousStatus
+  }
+  return [globalPath, justInstalled]
+}
+
 module.exports = {
   resolveDependencyPath,
 
@@ -52,29 +84,7 @@ module.exports = {
     } catch (e) {
     }
     if (!modulePath) {
-      if (!localRoot) {
-        [localRoot, globalRoot] = await Promise.all([
-          npm(job, 'root'),
-          npm(job, 'root', '--global')
-        ])
-      }
-      const localPath = join(localRoot, name)
-      if (await folderExists(localPath)) {
-        modulePath = localPath
-      } else {
-        const globalPath = join(globalRoot, name)
-        if (!await folderExists(globalPath)) {
-          if (!job.npmInstall) {
-            throw UTRError.NPM_DEPENDENCY_NOT_FOUND(name)
-          }
-          const previousStatus = job.status
-          job.status = `Installing ${name}...`
-          await npm(job, 'install', name, '-g')
-          justInstalled = true
-          job.status = previousStatus
-        }
-        modulePath = globalPath
-      }
+      [modulePath, justInstalled] = await findDependencyPath(job, name)
     }
     const output = getOutput(job)
     const installedPackage = require(join(modulePath, 'package.json'))

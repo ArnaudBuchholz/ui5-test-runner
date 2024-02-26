@@ -102,6 +102,7 @@ function getCommand (cwd) {
     .option('-p, --parallel <count>', '[💻🔗🧪] Number of parallel tests executions', 2)
     .option('-b, --browser <command>', '[💻🔗🧪] Browser instantiation command (relative to cwd or use $/ for provided ones)', '$/puppeteer.js')
     .option('--browser-args <argument...>', '[💻🔗🧪] Browser instantiation command parameters (use -- instead)')
+    .option('--alternate-npm-path <path>', '[💻🔗] Alternate NPM path to look for packages (priority: local, alternate, global)')
     .option('--no-npm-install', '[💻🔗🧪] Prevent any NPM install (execution may fail if a dependency is missing)')
     .option('-bt, --browser-close-timeout <timeout>', '[💻🔗🧪] Maximum waiting time for browser close', timeout, 2000)
     .option('-br, --browser-retry <count>', '[💻🔗🧪] Browser instantiation retries : if the command fails unexpectedly, it is re-executed (0 means no retry)', 1)
@@ -223,6 +224,9 @@ function finalize (job) {
     .forEach(setting => updateToAbsolute(setting))
   if (job.cache) {
     updateToAbsolute('cache')
+  }
+  if (job.alternateNpmPath) {
+    checkAccess({ path: job.alternateNpmPath, label: 'Alternate NPM path' })
   }
   job.mode = buildAndCheckMode(job)
   if (job.mode === 'legacy') {

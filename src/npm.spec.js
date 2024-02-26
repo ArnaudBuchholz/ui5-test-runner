@@ -29,7 +29,8 @@ describe('src/npm', () => {
   beforeEach(() => {
     job = fromObject(cwd, {
       reportDir,
-      coverage: false
+      coverage: false,
+      alternateNpmPath: join(cwd, 'alternate-npm')
     })
     job.status = 'Testing'
     output = getOutput(job)
@@ -41,6 +42,19 @@ describe('src/npm', () => {
   it('detects already installed local package', async () => {
     const path = await resolvePackage(job, 'reserve')
     expect(path).toStrictEqual(join(__dirname, '../node_modules/reserve'))
+    expect(output.resolvedPackage).toHaveBeenCalledTimes(1)
+    expect(output.packageNotLatest).not.toHaveBeenCalled()
+  })
+
+  it('detects already installed package in alternate folder', async () => {
+    mock({
+      api: 'exec',
+      scriptPath: 'npm',
+      args: ['view', 'impossible', 'version'],
+      exec: async childProcess => childProcess.stdout.write('1.0.0\n'),
+      persist: true
+    })
+    const path = await resolvePackage(job, 'impossible')
     expect(output.resolvedPackage).toHaveBeenCalledTimes(1)
     expect(output.packageNotLatest).not.toHaveBeenCalled()
   })
