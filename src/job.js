@@ -112,6 +112,7 @@ function getCommand (cwd) {
     .option('--webapp <path>', '[💻🔗] Base folder of the web application (relative to cwd)', 'webapp')
     .option('-pf, --page-filter <regexp>', '[💻🔗] Filter out pages not matching the regexp')
     .option('-pp, --page-params <params>', '[💻🔗] Add parameters to page URL')
+    .option('--page-close-timeout <timeout>', '[💻🔗] Maximum waiting time for page close', timeout, 250)
     .option('-t, --global-timeout <timeout>', '[💻🔗] Limit the pages execution time, fail the page if it takes longer than the timeout (0 means no timeout)', timeout, 0)
     .option('--screenshot [flag]', '[💻🔗] Take screenshots during the tests execution (if supported by the browser)', boolean, true)
     .option('--no-screenshot', '[💻🔗] Disable screenshots')

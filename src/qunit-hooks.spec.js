@@ -64,6 +64,7 @@ describe('src/qunit-hooks', () => {
       testId: '2d'
     }]
   }]
+
   const getBeginInfo = () => ({
     totalTests: 4,
     modules: getModules()
@@ -720,7 +721,7 @@ describe('src/qunit-hooks', () => {
     const jobEarlyStart = {
       screenshot: false,
       browserCapabilities: {
-        screenshot: false
+        screenshot: true
       }
     }
 
@@ -799,6 +800,51 @@ describe('src/qunit-hooks', () => {
       const { testModule, page } = get(jobEarlyStart, url, { testId: '2c' })
       expect(testModule.name).toStrictEqual('module 2')
       expect(page.count).toStrictEqual(4)
+    })
+
+    it('waits before terminating tests', async () => {
+      await testStart(jobEarlyStart, url, {
+        module: 'test.html?journey=1A',
+        name: 'test 1a',
+        testId: '1a',
+        modules: [{
+          name: 'module 1',
+          tests: [{
+            name: 'test 1a',
+            testId: '1a'
+          }]
+        }]
+      })
+      const done1 = done(jobEarlyStart, url, {
+        failed: 0,
+        passed: 1,
+        total: 1
+      })
+      await testStart(jobEarlyStart, url, {
+        module: 'test.html?journey=2C',
+        name: 'test 2c',
+        testId: '2c',
+        modules: [{
+          name: 'module 1',
+          tests: [{
+            name: 'test 1a',
+            testId: '1a'
+          }]
+        }, {
+          name: 'module 2',
+          tests: [{
+            name: 'test 2c',
+            testId: '2c'
+          }]
+        }]
+      })
+      const done2 = done(jobEarlyStart, url, {
+        failed: 0,
+        passed: 2,
+        total: 2
+      })
+      await Promise.all([done1, done2])
+      expect(screenshot).toHaveBeenCalledTimes(1)
     })
   })
 })

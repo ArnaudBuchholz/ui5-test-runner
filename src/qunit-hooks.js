@@ -5,7 +5,9 @@ const { collect } = require('./coverage')
 const { UTRError } = require('./error')
 const { getOutput } = require('./output')
 const { basename } = require('path')
-const { filename, stripUrlHash } = require('./tools')
+const { filename, stripUrlHash, allocPromise } = require('./tools')
+const $doneResolve = Symbol('doneResolve')
+const $doneTimeout = Symbol('doneTimeout')
 
 function error (job, url, details = '') {
   stop(job, url)
@@ -73,20 +75,26 @@ async function done (job, urlWithHash, report) {
   if (page.count === 0) {
     return // wait
   }
-  if (job.browserCapabilities.screenshot) {
-    try {
-      await screenshot(job, url, 'done')
-    } catch (error) {
-      getOutput(job).genericError(error, url)
+  const { promise, resolve } = allocPromise()
+  page[$doneResolve] = resolve
+  page[$doneTimeout] = setTimeout(async () => {
+    if (job.browserCapabilities.screenshot) {
+      try {
+        await screenshot(job, url, 'done')
+      } catch (error) {
+        getOutput(job).genericError(error, url)
+      }
     }
-  }
-  page.end = new Date()
-  if (report.__coverage__) {
-    await collect(job, url, report.__coverage__)
-    delete report.__coverage__
-  }
-  page.report = report
-  stop(job, url)
+    page.end = new Date()
+    if (report.__coverage__) {
+      await collect(job, url, report.__coverage__)
+      delete report.__coverage__
+    }
+    page.report = report
+    stop(job, url)
+    resolve()
+  }, job.pageCloseTimeout)
+  return promise
 }
 
 module.exports = {
@@ -113,7 +121,12 @@ module.exports = {
 
   async testStart (job, urlWithHash, details) {
     getOutput(job).debug('qunit/testStart', 'testStart', urlWithHash, details)
-    const { test } = get(job, urlWithHash, details)
+    const { page, test } = get(job, urlWithHash, details)
+    const { [$doneTimeout]: doneTimeout, [$doneResolve]: doneResolve } = page
+    if (doneTimeout) {
+      clearTimeout(doneTimeout)
+      doneResolve()
+    }
     test.start = new Date()
   },
 
