@@ -93,7 +93,7 @@ module.exports = {
   get,
 
   async begin (job, urlWithHash, details) {
-    getOutput(job).debug('qunit', 'begin', urlWithHash, details)
+    getOutput(job).debug('qunit/begin', 'begin', urlWithHash, details)
     const { isOpa, totalTests, modules } = details
     const url = stripUrlHash(urlWithHash)
     if (!job.qunitPages) {
@@ -112,13 +112,13 @@ module.exports = {
   },
 
   async testStart (job, urlWithHash, details) {
-    getOutput(job).debug('qunit', 'testStart', urlWithHash, details)
+    getOutput(job).debug('qunit/testStart', 'testStart', urlWithHash, details)
     const { test } = get(job, urlWithHash, details)
     test.start = new Date()
   },
 
   async log (job, urlWithHash, details) {
-    getOutput(job).debug('qunit', 'log', urlWithHash, details)
+    getOutput(job).debug('qunit/log', 'log', urlWithHash, details)
     const { url, page, test } = get(job, urlWithHash, details)
     const { isOpa, modules, module, name, testId, ...log } = details
     if (!test) {
@@ -139,7 +139,7 @@ module.exports = {
   },
 
   async testDone (job, urlWithHash, details) {
-    getOutput(job).debug('qunit', 'testDone', urlWithHash, details)
+    getOutput(job).debug('qunit/testDone', 'testDone', urlWithHash, details)
     const { name, module, testId, assertions, ...report } = details
     const { failed } = report
     const { url, page, test } = get(job, urlWithHash, { testId })
