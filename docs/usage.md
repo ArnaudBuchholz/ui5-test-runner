@@ -37,6 +37,7 @@ Check additional information below.
                                                "webapp")
   -pf, --page-filter <regexp>                  [💻🔗] Filter out pages not matching the regexp
   -pp, --page-params <params>                  [💻🔗] Add parameters to page URL
+  --page-close-timeout <timeout>               [💻🔗] Maximum waiting time for page close (default: 250)
   -t, --global-timeout <timeout>               [💻🔗] Limit the pages execution time, fail the page if it takes longer
                                                than the timeout (0 means no timeout) (default: 0)
   --screenshot [flag]                          [💻🔗] Take screenshots during the tests execution (if supported by the
