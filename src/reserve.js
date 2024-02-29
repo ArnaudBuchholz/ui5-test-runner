@@ -2,7 +2,7 @@ const { join } = require('path')
 const cors = require('./cors')
 const endpoints = require('./endpoints')
 const { mappings: coverage } = require('./coverage')
-const ui5 = require('./ui5')
+const { mappings: ui5 } = require('./ui5')
 const { check } = require('reserve')
 const unhandled = require('./unhandled')
 

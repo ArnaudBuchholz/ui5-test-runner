@@ -138,6 +138,7 @@ function getCommand (cwd) {
     .option('--libs <lib...>', '[💻] Library mapping (<relative>=<path> or <path>)', arrayOf(lib))
     .option('--mappings <mapping...>', '[💻] Custom mapping (<match>=<file|url>(<config>))', arrayOf(mapping))
     .option('--cache <path>', '[💻] Cache UI5 resources locally in the given folder (empty to disable)')
+    .option('--preload <library...>', '[💻] Preload UI5 libraries in the cache folder (only if --cache is used)', arrayOf(string))
     .option('--testsuite <path>', '[💻] Path of the testsuite file (relative to webapp, URL parameters are supported)', 'test/testsuite.qunit.html')
     .option('-w, --watch [flag]', '[💻] Monitor the webapp folder and re-execute tests on change', boolean, false)
 
@@ -225,6 +226,8 @@ function finalize (job) {
     .forEach(setting => updateToAbsolute(setting))
   if (job.cache) {
     updateToAbsolute('cache')
+  } else if (job.preload) {
+    throw new Error('--preload cannot be used without --cache')
   }
   if (job.alternateNpmPath) {
     checkAccess({ path: job.alternateNpmPath, label: 'Alternate NPM path' })

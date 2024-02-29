@@ -127,6 +127,7 @@ function allocPromise () {
 
 async function download (url, filename) {
   const { hostname, port, origin } = new URL(url)
+  const error = reason => new Error(`Error downloading ${url} to ${filename}, ${reason}`)
   const options = {
     hostname,
     port,
@@ -139,16 +140,26 @@ async function download (url, filename) {
   const { promise, resolve, reject } = allocPromise()
   const request = protocol.request(options, async response => {
     if (response.statusCode !== 200) {
-      reject(response.statusCode)
+      reject(error(`server responded with ${response.statusCode}`))
       output.end()
-      await unlink(filename)
+      try {
+        await unlink(filename)
+      } catch (e) {
+        // ignore
+      }
       return
     }
-    response.on('error', reject)
-    response.on('end', resolve)
+    response.on('error', reason => {
+      reject(error(`response failed : ${reason.toString()}`))
+    })
+    response.on('end', () => {
+      resolve(filename)
+    })
     response.pipe(output)
   })
-  request.on('error', reject)
+  request.on('error', reason => {
+    reject(error(`request failed : ${reason.toString()}`))
+  })
   request.end()
   return promise
 }

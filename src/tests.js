@@ -14,6 +14,7 @@ const {
 } = require('./symbols')
 const { UTRError } = require('./error')
 const { $proxifiedUrls } = require('./symbols')
+const { preload } = require('./ui5')
 
 async function run (task, job) {
   const {
@@ -126,6 +127,10 @@ async function process (job) {
   await instrument(job)
   await save(job)
   job.testPageUrls = []
+
+  if (job.preload) {
+    await preload(job)
+  }
 
   job.status = 'Probing urls'
   await parallelize({
