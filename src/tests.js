@@ -128,10 +128,6 @@ async function process (job) {
   await save(job)
   job.testPageUrls = []
 
-  if (job.preload) {
-    await preload(job)
-  }
-
   job.status = 'Probing urls'
   await parallelize({
     urlsMember: 'url',
@@ -163,6 +159,9 @@ module.exports = {
   async execute (job) {
     await recreateDir(job.reportDir)
     getOutput(job).version()
+    if (job.preload) {
+      await preload(job)
+    }
     await probe(job)
     if (job.mode !== 'url') {
       job.url = [`http://localhost:${job.port}/${job.testsuite}`]
