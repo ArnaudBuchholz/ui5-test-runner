@@ -4,9 +4,8 @@ const { dirname, join } = require('path')
 const { createWriteStream } = require('fs')
 const { mkdir, unlink, stat } = require('fs').promises
 const { capture } = require('reserve')
-const { getOutput } = require('./output')
+const { getOutput, newProgress } = require('./output')
 const { download, allocPromise } = require('./tools')
-const { $browsers } = require('./symbols')
 
 const buildCacheBase = job => {
   const [, hostName] = /https?:\/\/([^/]*)/.exec(job.ui5)
@@ -17,6 +16,7 @@ const buildCacheBase = job => {
 module.exports = {
   preload: async job => {
     const cacheBase = buildCacheBase(job)
+
     const get = async (path, expectedSize) => {
       const filePath = join(cacheBase, 'resources/' + path)
       try {
@@ -29,16 +29,14 @@ module.exports = {
       }
       return download((new URL('resources/' + path, job.ui5)).toString(), filePath)
     }
-    const progress = { count: 1, passed: 0, failed: 0 }
 
     const lib = async name => {
       const { promise, resolve/*, reject */ } = allocPromise()
-
-      job.status = `Preloading UI5 (${name})`
       const libPath = name.replace(/\./g, '/') + '/'
       const { resources } = require(await get(libPath + 'resources.json'))
-      progress.passed = 0
-      progress.count = resources.length
+      progress.total = resources.length
+      progress.count = 0
+      progress.label = name
       let index = 0
       let active = 0
 
@@ -46,7 +44,7 @@ module.exports = {
         ++active
         const { name, size } = resources[index++]
         await get(libPath + name, size)
-        ++progress.passed
+        ++progress.count
         if (index < resources.length) {
           task()
         }
@@ -55,27 +53,28 @@ module.exports = {
         }
       }
 
-      task()
-      task()
-      task()
-      task()
+      for (let parallel = 0; parallel < 8; ++parallel) {
+        task()
+      }
 
       return promise
     }
 
     job.status = 'Preloading UI5'
-    job[$browsers] = { [job.ui5]: {} }
-    job.qunitPages = { [job.ui5]: progress }
-
     await get('sap-ui-version.json')
     await get('sap-ui-core.js')
+    const libs = newProgress(job)
+    libs.label = 'libraries'
+    libs.total = job.preload.length + 1
+    libs.count = 0
+    const progress = newProgress(job)
     await lib('sap.ui.core')
-    await lib('sap.m')
-
-    await new Promise(resolve => setTimeout(resolve, 5000))
-    throw 'STOP'
-    delete job[$browsers]
-    delete job.qunitPages
+    for (const name of job.preload) {
+      ++libs.count
+      await lib(name)
+    }
+    progress.done()
+    libs.done()
   },
 
   mappings: job => {
