@@ -31,12 +31,12 @@ module.exports = {
     }
 
     const lib = async name => {
+      progress.label = name
+      progress.count = 0
       const { promise, resolve/*, reject */ } = allocPromise()
       const libPath = name.replace(/\./g, '/') + '/'
       const { resources } = require(await get(libPath + 'resources.json'))
       progress.total = resources.length
-      progress.count = 0
-      progress.label = name
       let index = 0
       let active = 0
 
