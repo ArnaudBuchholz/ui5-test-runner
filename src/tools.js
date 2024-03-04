@@ -152,10 +152,11 @@ async function download (url, filename) {
     response.on('error', reason => {
       reject(error(`response failed : ${reason.toString()}`))
     })
-    response.on('end', () => {
-      resolve(filename)
-    })
-    response.pipe(output)
+    response
+      .pipe(output)
+      .on('finish', () => {
+        resolve(filename)
+      })
   })
   request.on('error', reason => {
     reject(error(`request failed : ${reason.toString()}`))
