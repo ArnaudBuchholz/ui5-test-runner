@@ -15,6 +15,7 @@ const inJest = typeof jest !== 'undefined'
 const interactive = process.stdout.columns !== undefined && !inJest
 const $output = Symbol('output')
 const $outputStart = Symbol('output-start')
+const $outputProgress = Symbol('output-progress')
 
 if (!interactive) {
   const UTF8_BOM_CODE = '\ufeff'
@@ -93,6 +94,23 @@ function bar (ratio, msg) {
 
 const TICKS = ['\u280b', '\u2819', '\u2839', '\u2838', '\u283c', '\u2834', '\u2826', '\u2827', '\u2807', '\u280f']
 
+class Progress {
+  #job = undefined
+
+  constructor (job) {
+    this.#job = job
+    if (!job[$outputProgress]) {
+      job[$outputProgress] = []
+    }
+    job[$outputProgress].push(this)
+  }
+
+  done () {
+    const pos = this.#job[$outputProgress].indexOf(this)
+    this.#job[$outputProgress].splice(pos, 1)
+  }
+}
+
 function progress (job, cleanFirst = true) {
   if (interactive) {
     if (cleanFirst) {
@@ -113,6 +131,17 @@ function progress (job, cleanFirst = true) {
     const { rss, heapTotal, heapUsed, external, arrayBuffers } = memoryUsage()
     const fmt = size => `${(size / (1024 * 1024)).toFixed(2)}M`
     write(`MEM r:${fmt(rss)}, h:${fmt(heapUsed)}/${fmt(heapTotal)}, x:${fmt(external)}, a:${fmt(arrayBuffers)}\n`)
+  }
+  if (job[$outputProgress]) {
+    output.lines += job[$outputProgress].length
+    job[$outputProgress].forEach(({ count, total, label }) => {
+      if (total !== undefined) {
+        count ||= 0
+        bar((count || 0) / total, label)
+      } else {
+        bar('starting', label)
+      }
+    })
   }
   if (job[$probeUrlsStarted]) {
     const total = job.url.length + job.testPageUrls.length
@@ -553,5 +582,9 @@ module.exports = {
       job[$output] = build(job)
     }
     return job[$output]
+  },
+
+  newProgress (job) {
+    return new Progress(job)
   }
 }
