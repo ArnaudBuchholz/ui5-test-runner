@@ -24,4 +24,6 @@
 
 * When facing the error `ERROR: Failed to set up Chrome r<version>!`, you might consider defining the environment variable `PUPPETEER_SKIP_DOWNLOAD=true`, see the corresponding [puppeteer issue](https://github.com/puppeteer/puppeteer/issues/6492).
 
+* To use with the [puppeteer docker image](ghcr.io/puppeteer/puppeteer), the runner must be configured to find the packages : `--alternate-npm-path /home/pptruser/node_modules`.
+
 * 1️⃣ Screenshot feature is **failing** because of missing [`structuredClone` API](https://developer.mozilla.org/en-US/docs/Web/API/structuredClone#browser_compatibility) on Node.js 16. Since the problem is **inside** `puppeteer` ([issue](https://github.com/puppeteer/puppeteer/issues/11004)), the feature is turned off for this version.
