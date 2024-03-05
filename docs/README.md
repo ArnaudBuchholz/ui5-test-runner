@@ -1,5 +1,15 @@
 # 📚 Documentation
 
+## 🍁 Overview
+
+A self-sufficient test runner for UI5 applications enabling parallel execution of tests.
+
+* Serve the application with `@ui5/cli` : <br/> `ui5-test-runner --port 8081 --url http://localhost:8080/test/testsuite.qunit.html`,
+
+* Follow the progress of the tests using [`http://localhost:8081/_/progress.html`](http://localhost:8081/_/progress.html),
+
+* Report is generated under the `report/` folder.
+
 ## 💬 Presentations
 * The initial concept *(version 1 of `ui5-test-runner`)* is explained in the article [REserve - Testing UI5](https://arnaud-buchholz.medium.com/reserve-testing-ui5-85187d5eb7f1)
 * [A different approach to UI5 tests execution](https://youtu.be/EBp0bdIqu4s), a live presentation from [UI5Con'21](https://openui5.org/ui5con/)
@@ -7,8 +17,16 @@
 
 ## 📖 Detailed documentation
 * [Command line usage](usage.md)
-* [Serving and testing the application *(a.k.a. legacy mode)*](legacy.md)
 * [Testing a "remote" application](testing.md)
+* [Coverage extraction](coverage.md)
+* [Serving and testing the application *(a.k.a. legacy mode)*](legacy.md)
 * [Configuration file](configuration.md)
-* [Browser instantiation command](browser.md)
 * [Tips & tricks](tipsNtricks.md)
+* [How to demo](demo.md)
+* [Browser instantiation command](browser.md)
+* Automation Libraries:
+  * [puppeteer](puppeteer.md)
+  * [jsdom](jsdom.md)
+  * [playwright](playwright.md)
+  * [selenium-webdriver](selenium-webdriver.md)
+* [Mapping v1 settings to v2](mapping_v1_v2.md)
