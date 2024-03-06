@@ -6,5 +6,7 @@ module.exports = {
   $testPagesCompleted: Symbol('testPagesCompleted'),
   $valueSources: Symbol('valueSources'),
   $remoteOnLegacy: Symbol('remoteOnLegacy'),
-  $proxifiedUrls: Symbol('proxifiedUrls')
+  $proxifiedUrls: Symbol('proxifiedUrls'),
+  $statusProgressCount: Symbol('statusProgressCount'),
+  $statusProgressTotal: Symbol('statusProgressTotal')
 }

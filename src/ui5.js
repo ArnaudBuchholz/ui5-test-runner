@@ -6,6 +6,7 @@ const { mkdir, unlink, stat } = require('fs').promises
 const { capture } = require('reserve')
 const { getOutput, newProgress } = require('./output')
 const { download, allocPromise } = require('./tools')
+const { $statusProgressCount, $statusProgressTotal } = require('./symbols')
 
 const buildCacheBase = job => {
   const [, hostName] = /https?:\/\/([^/]*)/.exec(job.ui5)
@@ -61,20 +62,17 @@ module.exports = {
     }
 
     job.status = 'Preloading UI5'
+    job[$statusProgressCount] = 0
+    job[$statusProgressTotal] = job.preload.length + 1
     await get('sap-ui-version.json')
     await get('sap-ui-core.js')
-    const libs = newProgress(job)
-    libs.label = 'libraries'
-    libs.total = job.preload.length + 1
-    libs.count = 0
     const progress = newProgress(job)
     await lib('sap.ui.core')
     for (const name of job.preload) {
-      ++libs.count
+      ++job[$statusProgressCount]
       await lib(name)
     }
     progress.done()
-    libs.done()
   },
 
   mappings: job => {

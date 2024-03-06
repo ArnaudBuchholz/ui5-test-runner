@@ -7,7 +7,9 @@ const {
   $browsers,
   $probeUrlsStarted,
   $probeUrlsCompleted,
-  $testPagesCompleted
+  $testPagesCompleted,
+  $statusProgressCount,
+  $statusProgressTotal
 } = require('./symbols')
 const { filename, noop, pad } = require('./tools')
 
@@ -143,7 +145,9 @@ function progress (job, cleanFirst = true) {
       }
     })
   }
-  if (job[$probeUrlsStarted]) {
+  if (job[$statusProgressTotal]) {
+    progressRatio = (job[$statusProgressCount] || 0) / job[$statusProgressTotal]
+  } else if (job[$probeUrlsStarted]) {
     const total = job.url.length + job.testPageUrls.length
     if (job[$testPagesCompleted] !== total) {
       progressRatio = (job[$probeUrlsCompleted] + (job[$testPagesCompleted] || 0)) / total
@@ -311,6 +315,8 @@ function build (job) {
       method(job, '')
       method(job, text)
       method(job, '──────┴'.padEnd(text.length, '─'))
+      delete job[$statusProgressCount]
+      delete job[$statusProgressTotal]
     },
 
     watching: wrap(path => {
