@@ -44,54 +44,60 @@ const formatTime = duration => {
 
 const getElapsed = job => formatTime(Date.now() - job[$outputStart])
 
-const write = (...parts) => parts.forEach(part => process.stdout.write(part))
-
-function clean (job) {
+function * buildCleanSequence (job) {
   const { lines } = job[$output]
   if (!lines) {
     return
   }
-  write('\x1b[?12l')
-  write(`\x1b[${lines.toString()}F`)
+  yield '\x1b[?12l'
+  yield `\x1b[${lines.toString()}F`
   for (let line = 0; line < lines; ++line) {
     if (line > 1) {
-      write('\x1b[1E')
+      yield '\x1b[1E'
     }
-    write(''.padEnd(process.stdout.columns, ' '))
+    yield ''.padEnd(process.stdout.columns, ' ')
   }
   if (lines > 1) {
-    write(`\x1b[${(lines - 1).toString()}F`)
+    yield `\x1b[${(lines - 1).toString()}F`
   } else {
-    write('\x1b[1G')
+    yield '\x1b[1G'
   }
+}
+
+function clean (job) {
+  process.stdout.write([...buildCleanSequence(job)].join(''))
 }
 
 const BAR_WIDTH = 10
 
-function bar (ratio, msg) {
-  write('[')
+function * bar (ratio, msg) {
+  yield '['
   if (typeof ratio === 'string') {
     if (ratio.length > BAR_WIDTH) {
-      write(ratio.substring(0, BAR_WIDTH - 3), '...')
+      yield ratio.substring(0, BAR_WIDTH - 3)
+      yield '...'
     } else {
       const padded = ratio.padStart(BAR_WIDTH - Math.floor((BAR_WIDTH - ratio.length) / 2), '-').padEnd(BAR_WIDTH, '-')
-      write(padded)
+      yield padded
     }
-    write(']     ')
+    yield ']     '
   } else {
     const filled = Math.floor(BAR_WIDTH * ratio)
-    write(''.padEnd(filled, '\u2588'), ''.padEnd(BAR_WIDTH - filled, '\u2591'))
-    const percent = Math.floor(100 * ratio).toString().padStart(3, ' ')
-    write('] ', percent, '%')
+    yield ''.padEnd(filled, '\u2588')
+    yield ''.padEnd(BAR_WIDTH - filled, '\u2591')
+    yield '] '
+    yield Math.floor(100 * ratio).toString().padStart(3, ' ').toString()
+    yield '%'
   }
-  write(' ')
+  yield ' '
   const spaceLeft = process.stdout.columns - BAR_WIDTH - 14
   if (msg.length > spaceLeft) {
-    write('...', msg.substring(msg.length - spaceLeft - 3))
+    yield '...'
+    yield msg.substring(msg.length - spaceLeft - 3)
   } else {
-    write(msg)
+    yield msg
   }
-  write('\n')
+  yield '\n'
 }
 
 const TICKS = ['\u280b', '\u2819', '\u2839', '\u2838', '\u283c', '\u2834', '\u2826', '\u2827', '\u2807', '\u280f']
@@ -114,13 +120,14 @@ class Progress {
 }
 
 function progress (job, cleanFirst = true) {
+  const sequence = []
   if (interactive) {
     if (cleanFirst) {
-      clean(job)
+      sequence.push(...buildCleanSequence(job))
     }
   } else {
     if (job[$browsers]) {
-      write(`${getElapsed(job)} │ Progress\n──────┴──────────\n`)
+      sequence.push(`${getElapsed(job)} │ Progress\n──────┴──────────\n`)
     } else {
       return
     }
@@ -132,54 +139,35 @@ function progress (job, cleanFirst = true) {
     ++output.lines
     const { rss, heapTotal, heapUsed, external, arrayBuffers } = memoryUsage()
     const fmt = size => `${(size / (1024 * 1024)).toFixed(2)}M`
-    write(`MEM r:${fmt(rss)}, h:${fmt(heapUsed)}/${fmt(heapTotal)}, x:${fmt(external)}, a:${fmt(arrayBuffers)}\n`)
+    sequence.push(`MEM r:${fmt(rss)}, h:${fmt(heapUsed)}/${fmt(heapTotal)}, x:${fmt(external)}, a:${fmt(arrayBuffers)}\n`)
   }
   if (job[$outputProgress]) {
     output.lines += job[$outputProgress].length
     job[$outputProgress].forEach(({ count, total, label }) => {
       if (total !== undefined) {
         count ||= 0
-        bar((count || 0) / total, label)
+        sequence.push(...bar((count || 0) / total, label))
       } else {
-        bar('starting', label)
+        sequence.push(...bar('starting', label))
       }
     })
   }
   if (job[$statusProgressTotal]) {
     progressRatio = (job[$statusProgressCount] || 0) / job[$statusProgressTotal]
-  } else if (job[$probeUrlsStarted]) {
+  } else // TODO: remove this part
+  if (job[$probeUrlsStarted]) {
     const total = job.url.length + job.testPageUrls.length
     if (job[$testPagesCompleted] !== total) {
       progressRatio = (job[$probeUrlsCompleted] + (job[$testPagesCompleted] || 0)) / total
     }
   }
-  if (job[$browsers]) {
-    const runningPages = Object.keys(job[$browsers])
-    output.lines += runningPages.length
-    runningPages.forEach(pageUrl => {
-      let starting = true
-      if (job.qunitPages) {
-        const page = job.qunitPages[pageUrl]
-        if (page) {
-          const { count, passed, failed } = page
-          if (count) {
-            const progress = passed + failed
-            bar(progress / count, pageUrl)
-            starting = false
-          }
-        }
-      }
-      if (starting) {
-        bar('starting', pageUrl)
-      }
-    })
-  }
   const status = `${TICKS[++output.lastTick % TICKS.length]} ${job.status}`
   if (progressRatio !== undefined) {
-    bar(progressRatio, status)
+    sequence.push(...bar(progressRatio, status))
   } else {
-    write(status, '\n')
+    sequence.push(status, '\n')
   }
+  process.stdout.write(sequence.join(''))
 }
 
 function output (job, ...args) {
@@ -283,13 +271,15 @@ function build (job) {
       log(job, p80()`Server running at ${pad.lt(url)}`)
     },
 
-    debug: wrap((moduleSpecifier, ...args) => {
+    debug: (moduleSpecifier, ...args) => {
       const [mainModule] = moduleSpecifier.split('/')
       if (job.debugVerbose && (job.debugVerbose.includes(moduleSpecifier) || job.debugVerbose.includes(mainModule))) {
-        console.log(`🐞${moduleSpecifier}`, ...args)
-        output(job, `🐞${moduleSpecifier}`, ...args)
+        wrap(() => {
+          console.log(`🐞${moduleSpecifier}`, ...args)
+          output(job, `🐞${moduleSpecifier}`, ...args)
+        })()
       }
-    }),
+    },
 
     redirected: wrap(({ method, url, statusCode, timeSpent }) => {
       if (url.startsWith('/_/progress')) {
