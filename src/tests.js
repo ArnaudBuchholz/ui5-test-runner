@@ -10,7 +10,9 @@ const {
   $probeUrlsStarted,
   $probeUrlsCompleted,
   $testPagesStarted,
-  $testPagesCompleted
+  $testPagesCompleted,
+  $statusProgressTotal,
+  $statusProgressCount
 } = require('./symbols')
 const { UTRError } = require('./error')
 const { $proxifiedUrls } = require('./symbols')
@@ -26,6 +28,10 @@ async function run (task, job) {
   const output = getOutput(job)
   const urls = job[urlsMember]
   const { length } = urls
+  if (job[$statusProgressTotal] === undefined) {
+    job[$statusProgressTotal] = length
+    job[$statusProgressCount] = 0
+  }
   if (job[completedMember] === length) {
     return
   }
@@ -48,6 +54,7 @@ async function run (task, job) {
     }
   }
   ++job[completedMember]
+  ++job[$statusProgressCount]
   return run(task, job)
 }
 

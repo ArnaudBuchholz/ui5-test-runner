@@ -5,9 +5,6 @@ const { join } = require('path')
 const { memoryUsage } = require('process')
 const {
   $browsers,
-  $probeUrlsStarted,
-  $probeUrlsCompleted,
-  $testPagesCompleted,
   $statusProgressCount,
   $statusProgressTotal
 } = require('./symbols')
@@ -154,12 +151,6 @@ function progress (job, cleanFirst = true) {
   }
   if (job[$statusProgressTotal]) {
     progressRatio = (job[$statusProgressCount] || 0) / job[$statusProgressTotal]
-  } else // TODO: remove this part
-  if (job[$probeUrlsStarted]) {
-    const total = job.url.length + job.testPageUrls.length
-    if (job[$testPagesCompleted] !== total) {
-      progressRatio = (job[$probeUrlsCompleted] + (job[$testPagesCompleted] || 0)) / total
-    }
   }
   const status = `${TICKS[++output.lastTick % TICKS.length]} ${job.status}`
   if (progressRatio !== undefined) {
