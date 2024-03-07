@@ -77,8 +77,8 @@
     "nyc": "^15.1.0",
     "standard": "^17.1.0",
     "start-server-and-test": "^2.0.3",
-    "typescript": "^5.3.3",
-    "ui5-tooling-transpile": "^3.3.5"
+    "typescript": "^5.4.2",
+    "ui5-tooling-transpile": "^3.3.7"
   },
   "optionalDependencies": {
     "fsevents": "^2.3.3"
