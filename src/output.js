@@ -142,8 +142,7 @@ function progress (job, cleanFirst = true) {
     output.lines += job[$outputProgress].length
     job[$outputProgress].forEach(({ count, total, label }) => {
       if (total !== undefined) {
-        count ||= 0
-        sequence.push(...bar((count || 0) / total, label))
+        sequence.push(...bar((count || 0) / (total || 1), label))
       } else {
         sequence.push(...bar('starting', label))
       }
