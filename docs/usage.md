@@ -69,6 +69,7 @@ Check additional information below.
   --libs <lib...>                              [💻] Library mapping (<relative>=<path> or <path>)
   --mappings <mapping...>                      [💻] Custom mapping (<match>=<file|url>(<config>))
   --cache <path>                               [💻] Cache UI5 resources locally in the given folder (empty to disable)
+  --preload <library...>                       [💻] Preload UI5 libraries in the cache folder (only if --cache is used)
   --testsuite <path>                           [💻] Path of the testsuite file (relative to webapp, URL parameters are
                                                supported) (default: "test/testsuite.qunit.html")
   -w, --watch [flag]                           [💻] Monitor the webapp folder and re-execute tests on change (default:

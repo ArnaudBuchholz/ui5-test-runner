@@ -3,7 +3,7 @@
 * v1 syntax is `-<exampleOption>:<value>`, configuration file keys are identical
 * v2 syntax is `--<example-option>` `<value>`, configuration file keys are using [lowerCamelCase](https://wiki.c2.com/?LowerCamelCase) (`exampleOption`)
 
-Incompatible options are flagged with
+Options that must be updated are flagged with ✍ :
 
 | v1 | v2 | configuration file |
 |---|---|---|
@@ -25,11 +25,11 @@ Incompatible options are flagged with
 |-browser|-b, --browser|browser|
 |-browserRetry|-br, --browser-retry|browserRetry|
 |-noScreenshot|--screenshot false, --no-screenshot|noScreenshot|
-|-args|--|browserArgs🚫|
+|-args|--|✍browserArgs|
 |-parallel|-p, --parallel|parallel|
-|-tstReportDir|-r, --report-dir|reportDir🚫|
+|-tstReportDir|-r, --report-dir|✍reportDir|
 |-coverage|--coverage, --no-coverage|coverage|
-|-covSettings|-cs, --coverage-settings|coverageSettings🚫|
-|-covTempDir|-ct, --coverage-temp-dir|coverageTempDir🚫|
-|-covReportDir|-cr, --coverage-report-dir|coverageReportDir🚫|
-|-covReporters|-cr, --coverage-reporters|coverageReporters🚫|
+|-covSettings|-cs, --coverage-settings|✍coverageSettings|
+|-covTempDir|-ct, --coverage-temp-dir|✍coverageTempDir|
+|-covReportDir|-cr, --coverage-report-dir|✍coverageReportDir|
+|-covReporters|-cr, --coverage-reporters|✍coverageReporters|

@@ -6,6 +6,7 @@
 The application files are delivered through its inner **web server**.
 
 This mode offers unique capabilities :
+
 * Selecting the UI5 version to use,
 * Caching the UI5 resources to speed up the tests,
 * Mapping of libraries,
@@ -82,10 +83,10 @@ You may also use :
 
 * Some folders are created to support execution, you may add them to your project `.gitignore` to exclude them from git :
 
-  - `.nyc_output/` : contains coverage information
+  * `.nyc_output/` : contains coverage information
 
-  - `report/` : contains test report *(as well as screenshots and console log outputs)*
+  * `report/` : contains test report *(as well as screenshots and console log outputs)*
 
-  - `.ui5/` : contains cached UI5 resources
+  * `.ui5/` : contains cached UI5 resources
 
-  - These folder names can be changed through parameters
+  * These folder names can be changed through parameters

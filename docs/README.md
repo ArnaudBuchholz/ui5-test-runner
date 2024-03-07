@@ -4,11 +4,11 @@
 
 A self-sufficient test runner for UI5 applications enabling parallel execution of tests.
 
-* Serve the application with `@ui5/cli` : <br/> `ui5-test-runner --port 8081 --url http://localhost:8080/test/testsuite.qunit.html`,
+* Serve the application with `@ui5/cli`, then run : <br/> `ui5-test-runner --port 8081 --url http://localhost:8080/test/testsuite.qunit.html`,
 
 * Follow the progress of the tests using [`http://localhost:8081/_/progress.html`](http://localhost:8081/_/progress.html),
 
-* Report is generated under the `report/` folder.
+* Report is generated in the `report/` folder.
 
 ## 💬 Presentations
 * The initial concept *(version 1 of `ui5-test-runner`)* is explained in the article [REserve - Testing UI5](https://arnaud-buchholz.medium.com/reserve-testing-ui5-85187d5eb7f1)
