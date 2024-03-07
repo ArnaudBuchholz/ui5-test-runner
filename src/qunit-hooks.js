@@ -6,6 +6,7 @@ const { UTRError } = require('./error')
 const { getOutput } = require('./output')
 const { basename } = require('path')
 const { filename, stripUrlHash, allocPromise } = require('./tools')
+const { $browsers } = require('./symbols')
 const $doneResolve = Symbol('doneResolve')
 const $doneTimeout = Symbol('doneTimeout')
 
@@ -42,11 +43,12 @@ function merge (targetModules, modules) {
 function get (job, urlWithHash, { testId, modules, isOpa } = {}) {
   const url = stripUrlHash(urlWithHash)
   const page = job.qunitPages && job.qunitPages[url]
+  const progress = (job[$browsers] && job[$browsers][url] && job[$browsers][url].progress) || { total: 0, count: 0 }
   if (!page) {
     error(job, url, `No QUnit page found for ${urlWithHash}`)
   }
   if (modules && modules.length) {
-    page.count = merge(page.modules, modules)
+    progress.total = page.count = merge(page.modules, modules)
   }
   if (!page.isOpa && isOpa) {
     page.isOpa = true
@@ -67,7 +69,7 @@ function get (job, urlWithHash, { testId, modules, isOpa } = {}) {
       invalidTestId(job, url, testId)
     }
   }
-  return { url, page, testModule, test }
+  return { url, page, testModule, test, progress }
 }
 
 async function done (job, urlWithHash, report) {
@@ -117,6 +119,9 @@ module.exports = {
       modules
     }
     job.qunitPages[url] = qunitPage
+    const { progress } = get(job, url)
+    progress.count = 0
+    progress.total = totalTests
   },
 
   async testStart (job, urlWithHash, details) {
@@ -155,10 +160,11 @@ module.exports = {
     getOutput(job).debug('qunit/testDone', 'testDone', urlWithHash, details)
     const { name, module, testId, assertions, ...report } = details
     const { failed } = report
-    const { url, page, test } = get(job, urlWithHash, { testId })
+    const { url, page, test, progress } = get(job, urlWithHash, { testId })
     if (!test) {
       invalidTestId(job, url, testId)
     }
+    ++progress.count
     if (failed) {
       if (job.browserCapabilities.screenshot) {
         try {
