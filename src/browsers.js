@@ -5,7 +5,7 @@ const { join } = require('path')
 const { writeFile, readFile, open, stat, unlink } = require('fs/promises')
 const { recreateDir, filename, allocPromise } = require('./tools')
 const { getPageTimeout, pageTimedOut } = require('./timeout')
-const { getOutput } = require('./output')
+const { getOutput, newProgress } = require('./output')
 const { resolvePackage } = require('./npm')
 const { UTRError } = require('./error')
 const { $browsers } = require('./symbols')
@@ -119,11 +119,14 @@ async function start (job, url, scripts = []) {
     resolvedScripts.unshift(`window['ui5-test-runner/base-host'] = 'http://localhost:${job.port}'
 `)
   }
+  const progress = newProgress(job)
+  progress.label = url
   const pageBrowser = {
     url,
     reportDir,
     scripts: resolvedScripts,
-    retry: 0
+    retry: 0,
+    progress
   }
   const { promise, resolve, reject } = allocPromise()
   pageBrowser.done = value => {
@@ -136,8 +139,12 @@ async function start (job, url, scripts = []) {
   }
   job[$browsers][url] = pageBrowser
   await run(job, pageBrowser)
-  await promise
-  output.browserStopped(url)
+  try {
+    await promise
+  } finally {
+    progress.done()
+    output.browserStopped(url)
+  }
 }
 
 async function run (job, pageBrowser) {
