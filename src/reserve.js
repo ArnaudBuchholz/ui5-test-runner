@@ -20,6 +20,6 @@ module.exports = async job => check({
       strict: true,
       'ignore-if-not-found': true
     },
-    ...unhandled(job)
+    ...job.serveOnly ? [{ status: 404 }] : unhandled(job)
   ]
 })
