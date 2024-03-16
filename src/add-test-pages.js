@@ -3,6 +3,7 @@
 const { stop } = require('./browsers')
 const { URL } = require('url')
 const { getOutput } = require('./output')
+const { stripUrlHash } = require('./tools')
 
 module.exports = {
   async addTestPages (job, url, pages) {
@@ -10,7 +11,7 @@ module.exports = {
     let testPageUrls
     pages = pages.map(relativeUrl => {
       const absoluteUrl = new URL(relativeUrl, url)
-      return absoluteUrl.toString()
+      return stripUrlHash(absoluteUrl.toString())
     })
     if (job.pageFilter) {
       const filter = new RegExp(job.pageFilter)

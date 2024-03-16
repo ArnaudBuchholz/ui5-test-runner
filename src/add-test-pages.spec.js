@@ -91,5 +91,14 @@ describe('src/add-test-pages', () => {
         'http://localhost:8045/page2.html'
       ])
     })
+
+    it('strips hash from the URLs', async () => {
+      await addTestPages(job, url, ['/page1.html#'])
+      await addTestPages(job, url, ['http://localhost:8045/page2.html?parameter#hash'])
+      expect(job.testPageUrls).toEqual([
+        'http://localhost:8045/page1.html',
+        'http://localhost:8045/page2.html?parameter'
+      ])
+    })
   })
 })
