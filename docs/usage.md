@@ -33,6 +33,7 @@ Check additional information below.
                                                unexpectedly, it is re-executed (0 means no retry) (default: 1)
   -oi, --output-interval <interval>            [💻🔗🧪] Interval for reporting progress on non interactive output
                                                (CI/CD) (0 means no output) (default: 30000)
+  --offline                                    [💻🔗🧪] Limit network usage (implies --no-npm-install) (default: false)
   --webapp <path>                              [💻🔗] Base folder of the web application (relative to cwd) (default:
                                                "webapp")
   -pf, --page-filter <regexp>                  [💻🔗] Filter out pages not matching the regexp

@@ -61,7 +61,7 @@ async function findDependencyPath (job, name) {
   const globalPath = join(globalRoot, name)
   let justInstalled = false
   if (!await folderExists(globalPath)) {
-    if (!job.npmInstall) {
+    if (!job.npmInstall || job.offline) {
       throw UTRError.NPM_DEPENDENCY_NOT_FOUND(name)
     }
     const previousStatus = job.status
@@ -90,7 +90,7 @@ module.exports = {
     const installedPackage = require(join(modulePath, 'package.json'))
     const { version: installedVersion } = installedPackage
     output.resolvedPackage(name, modulePath, installedVersion)
-    if (!justInstalled) {
+    if (!justInstalled && !job.offline) {
       const latestVersion = await npm(job, 'view', name, 'version')
       if (latestVersion !== installedVersion) {
         output.packageNotLatest(name, latestVersion)

@@ -107,6 +107,7 @@ function getCommand (cwd) {
     .option('-bt, --browser-close-timeout <timeout>', '[💻🔗🧪] Maximum waiting time for browser close', timeout, 2000)
     .option('-br, --browser-retry <count>', '[💻🔗🧪] Browser instantiation retries : if the command fails unexpectedly, it is re-executed (0 means no retry)', 1)
     .option('-oi, --output-interval <interval>', '[💻🔗🧪] Interval for reporting progress on non interactive output (CI/CD) (0 means no output)', timeout, 30000)
+    .option('--offline', '[💻🔗🧪] Limit network usage (implies --no-npm-install)', boolean, false)
 
     // Common to legacy and url
     .option('--webapp <path>', '[💻🔗] Base folder of the web application (relative to cwd)', 'webapp')
@@ -226,6 +227,9 @@ function finalize (job) {
     .forEach(setting => updateToAbsolute(setting))
   if (job.cache) {
     updateToAbsolute('cache')
+    if (job.preload && job.offline) {
+      throw new Error('--preload cannot be used with --offline')
+    }
   } else if (job.preload) {
     throw new Error('--preload cannot be used without --cache')
   }
