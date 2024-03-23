@@ -112,6 +112,8 @@ server:
           - istanbul
 ```
 
+**NOTE** : The `overridesToOverride` is only needed in ui5 versions < 1.112.x as mentioned in the [transform-ui5 documentation](https://github.com/ui5-community/babel-plugin-transform-modules-ui5?tab=readme-ov-file#properties-related-to-controller-extensions).
+
 **NOTE** : You may consider tweaking in a distinct configuration file and use the `--config` option to run it.
 
 For instance : `ui5 serve --config ui5-coverage.yaml`
