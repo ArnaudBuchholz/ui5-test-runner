@@ -34,8 +34,17 @@ async function main () {
     tests="${module.tests.length}"
   >`)
       for (const test of module.tests) {
+        let time
+        if (test.start && test.end) {
+          time = (new Date(test.end) - new Date(test.start)) / 1000
+        }
         o(`    <testcase
-      name="${xmlEscape(test.name)}"
+      name="${xmlEscape(test.name)}" ${
+        time === undefined
+        ? ''
+        : `
+      time="${time}"`
+}
     >`)
         if (test.skip) {
           o('      <skipped></skipped>')
