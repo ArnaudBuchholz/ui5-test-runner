@@ -24,11 +24,11 @@
   window.addEventListener('load', function () {
     if (typeof suite === 'function') {
       suite()
-      post('addTestPages', pages)
+      post('addTestPages', { type: 'suite', pages })
     } else if (typeof QUnit === 'object') {
-      post('addTestPages', [location.toString()])
+      post('addTestPages', { type: 'qunit', page: location.toString() })
     } else {
-      post('addTestPages', []) // No page
+      post('addTestPages', { type: 'none ' })
     }
   })
 }())

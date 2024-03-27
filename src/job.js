@@ -118,8 +118,9 @@ function getCommand (cwd) {
     .option('--screenshot [flag]', '[💻🔗] Take screenshots during the tests execution (if supported by the browser)', boolean, true)
     .option('--no-screenshot', '[💻🔗] Disable screenshots')
     .option('-st, --screenshot-timeout <timeout>', '[💻🔗] Maximum waiting time for browser screenshot', timeout, 5000)
+    .option('-so, --split-opa', '[💻🔗] Split OPA tests using QUnit modules', boolean, false)
     .option('-rg, --report-generator <path...>', '[💻🔗] Report generator paths (relative to cwd or use $/ for provided ones)', ['$/report.js'])
-    .option('--progress-page <path>', '[💻🔗] progress page path (relative to cwd or use $/ for provided ones)', '$/report/default.html')
+    .option('--progress-page <path>', '[💻🔗] Progress page path (relative to cwd or use $/ for provided ones)', '$/report/default.html')
 
     .option('--coverage [flag]', '[💻🔗] Enable or disable code coverage', boolean)
     .option('--no-coverage', '[💻🔗] Disable code coverage')

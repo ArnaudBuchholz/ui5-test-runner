@@ -159,10 +159,13 @@ describe('simulate', () => {
             expect(response.statusCode).toStrictEqual(200)
             expect(response.toString().includes('qunit-redirect.js */')).toStrictEqual(false)
             expect(response.toString().includes('addTestPages')).toStrictEqual(true)
-            await post('/_/addTestPages', referer, [
-              referer.replace('testsuite.qunit.html', 'page1.html'),
-              referer.replace('testsuite.qunit.html', 'page2.html')
-            ])
+            await post('/_/addTestPages', referer, {
+              type: 'suite',
+              pages: [
+                referer.replace('testsuite.qunit.html', 'page1.html'),
+                referer.replace('testsuite.qunit.html', 'page2.html')
+              ]
+            })
           },
           'page1.html': async referer => {
             const response = await get('/resources/sap/ui/thirdparty/qunit.js', referer)
@@ -218,9 +221,12 @@ describe('simulate', () => {
         await setup('simple-early')
         pages = {
           'testsuite.qunit.html': async referer => {
-            await post('/_/addTestPages', referer, [
-              referer.replace('testsuite.qunit.html', 'page1.html')
-            ])
+            await post('/_/addTestPages', referer, {
+              type: 'suite',
+              pages: [
+                referer.replace('testsuite.qunit.html', 'page1.html')
+              ]
+            })
           },
           'page1.html': async referer => {
             await post('/_/QUnit/begin', referer, { totalTests: 0, modules: [] })
@@ -244,10 +250,13 @@ describe('simulate', () => {
           await setup('error1')
           pages = {
             'testsuite.qunit.html': async referer => {
-              await post('/_/addTestPages', referer, [
-                '/page1.html',
-                '/page2.html'
-              ])
+              await post('/_/addTestPages', referer, {
+                type: 'suite',
+                pages: [
+                  '/page1.html',
+                  '/page2.html'
+                ]
+              })
             },
             'page1.html': referer => simulateOK(referer),
             'page2.html': async referer => {
@@ -269,11 +278,14 @@ describe('simulate', () => {
           await setup('errorN')
           pages = {
             'testsuite.qunit.html': async referer => {
-              await post('/_/addTestPages', referer, [
-                '/page1.html',
-                '/page2.html',
-                '/page3.html'
-              ])
+              await post('/_/addTestPages', referer, {
+                type: 'suite',
+                pages: [
+                  '/page1.html',
+                  '/page2.html',
+                  '/page3.html'
+                ]
+              })
             },
             'page1.html': referer => simulateOK(referer),
             'page2.html': async referer => {
@@ -301,10 +313,13 @@ describe('simulate', () => {
           await setup('errorQunit')
           pages = {
             'testsuite.qunit.html': async referer => {
-              await post('/_/addTestPages', referer, [
-                '/page1.html',
-                '/page2.html'
-              ])
+              await post('/_/addTestPages', referer, {
+                type: 'suite',
+                pages: [
+                  '/page1.html',
+                  '/page2.html'
+                ]
+              })
             },
             'page1.html': async referer => {
               simulateOK(referer)
@@ -332,10 +347,13 @@ describe('simulate', () => {
         })
         pages = {
           'testsuite.qunit.html': async referer => {
-            await post('/_/addTestPages', referer, [
-              '/page1.html',
-              '/page2.html'
-            ])
+            await post('/_/addTestPages', referer, {
+              type: 'suite',
+              pages: [
+                '/page1.html',
+                '/page2.html'
+              ]
+            })
           },
           'page1.html': async headers => {
             job.globalTimeout = 1 // Update to ensure the code will globally time out *after* page1
@@ -362,9 +380,12 @@ describe('simulate', () => {
         })
         pages = {
           'testsuite.qunit.html': async referer => {
-            await post('/_/addTestPages', referer, [
-              '/page1.html'
-            ])
+            await post('/_/addTestPages', referer, {
+              type: 'suite',
+              pages: [
+                '/page1.html'
+              ]
+            })
           },
           'page1.html': async headers => {
             await post('/_/QUnit/begin', headers, {
@@ -432,10 +453,13 @@ describe('simulate', () => {
             expect(notFoundResponse.statusCode).toStrictEqual(404)
             const errorResponse = await get('/resources/error.js', referer)
             expect(errorResponse.statusCode).toStrictEqual(500)
-            await post('/_/addTestPages', referer, [
-              '/page1.html',
-              '/page2.html'
-            ])
+            await post('/_/addTestPages', referer, {
+              type: 'suite',
+              pages: [
+                '/page1.html',
+                '/page2.html'
+              ]
+            })
           },
           'page1.html': async referer => {
             const coverageResponse = await get('/component.js', referer)
@@ -471,12 +495,15 @@ describe('simulate', () => {
         })
         pages = {
           'testsuite.qunit.html': async headers => {
-            await post('/_/addTestPages', headers, [
-              '/page1.html',
-              '/page2.html',
-              '/page3.html',
-              '/page4.html'
-            ])
+            await post('/_/addTestPages', headers, {
+              type: 'suite',
+              pages: [
+                '/page1.html',
+                '/page2.html',
+                '/page3.html',
+                '/page4.html'
+              ]
+            })
           },
           'page1.html': async referer => {
             simulateOK(referer)
@@ -503,7 +530,7 @@ describe('simulate', () => {
         })
         pages = {
           'testsuite.qunit.html': async referer => {
-            await post('/_/addTestPages', referer, [])
+            await post('/_/addTestPages', referer, { type: 'none' })
           }
         }
         await execute(job)
@@ -522,9 +549,12 @@ describe('simulate', () => {
         })
         pages = {
           'testsuite.qunit.html': async referer => {
-            await post('/_/addTestPages', referer, [
-              '/page1.html'
-            ])
+            await post('/_/addTestPages', referer, {
+              type: 'suite',
+              pages: [
+                '/page1.html'
+              ]
+            })
           },
           'page1.html': async referer => {
             const response1 = await get('/resources/inject/qunit-hooks.js', referer)

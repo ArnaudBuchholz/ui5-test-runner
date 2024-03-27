@@ -5,27 +5,44 @@ const { URL } = require('url')
 const { getOutput } = require('./output')
 const { stripUrlHash } = require('./tools')
 
+const addUrlParam = (url, param) => {
+  if (url.includes('?')) {
+    return url + '&' + param
+  }
+  return url + '?' + param
+}
+
 module.exports = {
-  async addTestPages (job, url, pages) {
-    getOutput(job).debug('probe', `addTestPages from ${url}`, pages)
+  async addTestPages (job, url, data) {
+    const { type, opa, modules, pages, page } = data
+    getOutput(job).debug('probe', `addTestPages from ${url}`, data)
     let testPageUrls
-    pages = pages.map(relativeUrl => {
-      const absoluteUrl = new URL(relativeUrl, url)
-      return stripUrlHash(absoluteUrl.toString())
-    })
-    if (job.pageFilter) {
-      const filter = new RegExp(job.pageFilter)
-      testPageUrls = pages.filter(name => name.match(filter))
+    if (type === 'none') {
+      testPageUrls = []
     } else {
-      testPageUrls = pages
-    }
-    if (job.pageParams) {
-      testPageUrls = testPageUrls.map(url => {
-        if (url.includes('?')) {
-          return url + '&' + job.pageParams
+      let receivedPages
+      if (type === 'qunit') {
+        if (job.splitOpa && opa && modules && modules.length > 1) {
+          receivedPages = modules.map(moduleId => addUrlParam(stripUrlHash(page), `moduleId=${moduleId}`))
+        } else {
+          receivedPages = [page]
         }
-        return url + '?' + job.pageParams
+      } else {
+        receivedPages = pages
+      }
+      receivedPages = receivedPages.map(relativeUrl => {
+        const absoluteUrl = new URL(relativeUrl, url)
+        return stripUrlHash(absoluteUrl.toString())
       })
+      if (job.pageFilter) {
+        const filter = new RegExp(job.pageFilter)
+        testPageUrls = receivedPages.filter(name => name.match(filter))
+      } else {
+        testPageUrls = receivedPages
+      }
+      if (job.pageParams) {
+        testPageUrls = testPageUrls.map(url => addUrlParam(url, job.pageParams))
+      }
     }
     job.testPageUrls = testPageUrls.reduce((uniques, url) => {
       if (!uniques.includes(url)) {

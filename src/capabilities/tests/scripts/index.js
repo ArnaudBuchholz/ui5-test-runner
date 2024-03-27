@@ -34,12 +34,13 @@ module.exports = [{
   scripts: ['post.js', 'qunit-redirect.js'],
   endpoint: function (data) {
     assert(data.endpoint === 'addTestPages', 'addTestPages was triggered')
-    assert(data.body.length === 2, 'Two pages received')
+    assert(data.body.type === 'suite', 'type = suite')
+    assert(data.body.pages.length === 2, 'Two pages received')
     const pages = [
       '/unit/unitTests.qunit.html',
       '/integration/opaTests.iframe.qunit.html'
     ]
-    pages.forEach((page, index) => assert(data.body[index].endsWith(page), page))
+    pages.forEach((page, index) => assert(data.body.pages[index].endsWith(page), page))
   }
 }, {
   label: 'Scripts (External QUnit)',
