@@ -19,7 +19,7 @@
     "test:auth-sample": "npm run test:auth-sample:remote",
     "test:coverall": "rimraf .nyc_output && jest --coverageDirectory .nyc_output --coverageReporters json && nyc --silent --no-clean npm run test:integration:jsdom && nyc --silent --no-clean npm run test:integration:puppeteer && nyc --silent --no-clean npm run test:integration:selenium-webdriver-chrome && nyc --silent --no-clean npm run test:integration:playwright && nyc merge .nyc_output .nyc_output/final/coverage.json && nyc report --temp-dir .nyc_output/final/ --report-dir coverage --branches 80 --functions 80 --lines 80 --statements 80",
     "test:unit": "jest",
-    "test:unit:debug": "jest --runInBand",
+    "test:unit:debug": "node --inspect node_modules/jest/bin/jest.js --runInBand --no-coverage",
     "test:integration:puppeteer": "node . --capabilities --browser $/puppeteer.js",
     "test:integration:selenium-webdriver-chrome": "node . --capabilities --browser $/selenium-webdriver.js -- --browser chrome",
     "test:integration:jsdom": "node . --capabilities --browser $/jsdom.js",
