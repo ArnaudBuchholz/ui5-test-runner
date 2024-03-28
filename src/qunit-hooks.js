@@ -21,7 +21,6 @@ function invalidTestId (job, url, testId) {
 }
 
 function merge (targetModules, modules) {
-  let count = 0
   modules.forEach(module => {
     const { name } = module
     const targetModule = targetModules.filter(({ name: targetName }) => name === targetName)[0]
@@ -35,13 +34,11 @@ function merge (targetModules, modules) {
         }
       })
     }
-    count += module.tests.length
   })
-  return count
 }
 
 function filterModules (modules, url) {
-  const moduleMatch = url.match(/\?.*\bmoduleId=(.)(&|$)/)
+  const moduleMatch = url.match(/\?.*\bmoduleId=([^&]+)/)
   if (moduleMatch) {
     const [, moduleId] = moduleMatch
     return modules.filter(module => module.moduleId === moduleId)
@@ -56,9 +53,8 @@ function get (job, urlWithHash, { testId, modules, isOpa } = {}) {
   if (!page) {
     error(job, url, `No QUnit page found for ${urlWithHash}`)
   }
-  if (modules && modules.length) {
-    progress.total = page.count = merge(page.modules, filterModules(modules, url))
-  }
+  merge(page.modules, filterModules(modules || [], url))
+  progress.total = page.count = page.modules.reduce((total, { tests }) => total + tests.length, 0)
   if (!page.isOpa && isOpa) {
     page.isOpa = true
   }
@@ -113,7 +109,7 @@ module.exports = {
 
   async begin (job, urlWithHash, details) {
     getOutput(job).debug('qunit/begin', 'begin', urlWithHash, details)
-    const { isOpa, totalTests, modules } = details
+    const { isOpa, modules } = details
     const url = stripUrlHash(urlWithHash)
     if (!job.qunitPages) {
       job.qunitPages = {}
@@ -124,13 +120,13 @@ module.exports = {
       isOpa: !!isOpa,
       failed: 0,
       passed: 0,
-      count: totalTests,
-      modules: filterModules(modules, url)
+      count: 0,
+      modules: []
     }
     job.qunitPages[url] = qunitPage
-    const { progress } = get(job, url)
+    const { page, progress } = get(job, url, { modules })
     progress.count = 0
-    progress.total = totalTests
+    progress.total = page.count
   },
 
   async testStart (job, urlWithHash, details) {
