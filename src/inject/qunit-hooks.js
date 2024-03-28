@@ -20,8 +20,9 @@
 
   function getModules () {
     if (QUnit.config && QUnit.config.modules) {
-      return QUnit.config.modules.map(({ name, tests }) => ({
+      return QUnit.config.modules.map(({ name, moduleId, tests }) => ({
         name,
+        moduleId,
         tests: tests.map(({ name, testId, skip }) => ({ name, testId, skip }))
       }))
     }
