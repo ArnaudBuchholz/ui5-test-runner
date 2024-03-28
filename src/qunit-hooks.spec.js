@@ -848,47 +848,64 @@ describe('src/qunit-hooks', () => {
     })
   })
 
-  describe.only('moduleId filtering', () => {
+  describe('moduleId filtering', () => {
     const urlWithModuleId = 'http://localhost:80/page1.html?moduleId=1'
+    const module1 = {
+      name: 'module 1',
+      moduleId: '1',
+      tests: [{
+        name: 'test 1a',
+        testId: '1a'
+      }]
+    }
+    const module2 = {
+      name: 'module 2',
+      moduleId: '2',
+      tests: [{
+        name: 'test 2a',
+        testId: '2a'
+      }]
+    }
+    const module3 = {
+      name: 'module 3',
+      moduleId: '3',
+      tests: [{
+        name: 'test 3a',
+        testId: '3a'
+      }]
+    }
 
-    beforeAll(async () => {
+    beforeEach(async () => {
       await begin(job, urlWithModuleId, {
         isOpa: true,
         totalTests: 0,
-        modules: []
+        modules: [module1, module2]
       })
     })
 
-    it('filters modules', async () => {
-      await testStart(job, urlWithModuleId, {
-        module: 'test.html?journey=1A',
-        name: 'test 1a',
-        testId: '1a',
-        modules: [{
-          name: 'module 1',
-          moduleId: '1',
-          tests: [{
-            name: 'test 1a',
-            testId: '1a'
-          }]
-        }, {
-          name: 'module 2',
-          moduleId: '2',
-          tests: [{
-            name: 'test 2a',
-            testId: '2a'
-          }]
-        }]
-      })
-      const page = get(job, urlWithModuleId)
-      expect(page.modules).toStrictEqual([{
+    function checkPageModules () {
+      const { page: { modules } } = get(job, urlWithModuleId)
+      expect(modules.length).toStrictEqual(1)
+      expect(modules[0]).toMatchObject({
         name: 'module 1',
         moduleId: '1',
         tests: [{
           name: 'test 1a',
           testId: '1a'
         }]
-      }])
+      })
+    }
+
+    it('filters out module on startup', () => checkPageModules())
+
+    it('filters modules if new ones are added', async () => {
+      await testStart(job, urlWithModuleId, {
+        module: 'test.html?journey=1A',
+        name: 'test 1a',
+        testId: '1a',
+        modules: [module1, module2, module3]
+      })
+      checkPageModules()
     })
   })
 })
