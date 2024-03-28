@@ -847,4 +847,48 @@ describe('src/qunit-hooks', () => {
       expect(screenshot).toHaveBeenCalledTimes(1)
     })
   })
+
+  describe.only('moduleId filtering', () => {
+    const urlWithModuleId = 'http://localhost:80/page1.html?moduleId=1'
+
+    beforeAll(async () => {
+      await begin(job, urlWithModuleId, {
+        isOpa: true,
+        totalTests: 0,
+        modules: []
+      })
+    })
+
+    it('filters modules', async () => {
+      await testStart(job, urlWithModuleId, {
+        module: 'test.html?journey=1A',
+        name: 'test 1a',
+        testId: '1a',
+        modules: [{
+          name: 'module 1',
+          moduleId: '1',
+          tests: [{
+            name: 'test 1a',
+            testId: '1a'
+          }]
+        }, {
+          name: 'module 2',
+          moduleId: '2',
+          tests: [{
+            name: 'test 2a',
+            testId: '2a'
+          }]
+        }]
+      })
+      const page = get(job, urlWithModuleId)
+      expect(page.modules).toStrictEqual([{
+        name: 'module 1',
+        moduleId: '1',
+        tests: [{
+          name: 'test 1a',
+          testId: '1a'
+        }]
+      }])
+    })
+  })
 })
