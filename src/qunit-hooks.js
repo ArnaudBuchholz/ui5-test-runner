@@ -40,6 +40,15 @@ function merge (targetModules, modules) {
   return count
 }
 
+function filterModules (modules, url) {
+  const moduleMatch = url.match(/\?.*\bmoduleId=(.)(&|$)/)
+  if (moduleMatch) {
+    const [, moduleId] = moduleMatch
+    return modules.filter(module => module.moduleId === moduleId)
+  }
+  return modules
+}
+
 function get (job, urlWithHash, { testId, modules, isOpa } = {}) {
   const url = stripUrlHash(urlWithHash)
   const page = job.qunitPages && job.qunitPages[url]
@@ -48,7 +57,7 @@ function get (job, urlWithHash, { testId, modules, isOpa } = {}) {
     error(job, url, `No QUnit page found for ${urlWithHash}`)
   }
   if (modules && modules.length) {
-    progress.total = page.count = merge(page.modules, modules)
+    progress.total = page.count = merge(page.modules, filterModules(modules, url))
   }
   if (!page.isOpa && isOpa) {
     page.isOpa = true
@@ -116,7 +125,7 @@ module.exports = {
       failed: 0,
       passed: 0,
       count: totalTests,
-      modules
+      modules: filterModules(modules, url)
     }
     job.qunitPages[url] = qunitPage
     const { progress } = get(job, url)
