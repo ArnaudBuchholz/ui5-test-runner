@@ -6,6 +6,9 @@ const { getOutput } = require('./output')
 const { stripUrlHash } = require('./tools')
 
 const addUrlParam = (url, param) => {
+  if (url.includes(param)) {
+    return url
+  }
   if (url.includes('?')) {
     return url + '&' + param
   }
@@ -44,12 +47,18 @@ module.exports = {
         testPageUrls = testPageUrls.map(url => addUrlParam(url, job.pageParams))
       }
     }
-    job.testPageUrls = testPageUrls.reduce((uniques, url) => {
+    let member
+    if (type === 'suite' && job.splitOpa) {
+      member = 'url'
+    } else {
+      member = 'testPageUrls'
+    }
+    job[member] = testPageUrls.reduce((uniques, url) => {
       if (!uniques.includes(url)) {
         uniques.push(url)
       }
       return uniques
-    }, job.testPageUrls || [])
+    }, job[member] || [])
     stop(job, url)
   }
 }
