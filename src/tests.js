@@ -1,61 +1,38 @@
 'use strict'
 
-const { probe, start } = require('./browsers')
+const { probe: probeBrowser, start } = require('./browsers')
 const { instrument } = require('./coverage')
 const { recreateDir } = require('./tools')
 const { globallyTimedOut } = require('./timeout')
 const { save, generate } = require('./report')
 const { getOutput } = require('./output')
 const {
-  $probeUrlsStarted,
-  $probeUrlsCompleted,
-  $testPagesStarted,
-  $testPagesCompleted,
   $statusProgressTotal,
-  $statusProgressCount
+  $statusProgressCount,
+  $proxifiedUrls
 } = require('./symbols')
 const { UTRError } = require('./error')
-const { $proxifiedUrls } = require('./symbols')
 const { preload } = require('./ui5')
+const parallelize = require('./parallelize')
 
-async function run (task, job) {
-  const {
-    urlsMember,
-    startedMember,
-    completedMember,
-    method
-  } = task
-  const output = getOutput(job)
-  const urls = job[urlsMember]
-  const { length } = urls
-  if (job[$statusProgressTotal] === undefined) {
-    job[$statusProgressTotal] = length
-    job[$statusProgressCount] = 0
-  }
-  if (job[completedMember] === length) {
-    return
-  }
-  if (job[startedMember] === length) {
-    return
-  }
-  const index = job[startedMember]++
-  const url = urls[index]
-  if (globallyTimedOut(job)) {
-    output.globalTimeout(url)
-    job.failed = true
-    job.timedOut = true
-  } else if (job.failFast && job.failed) {
-    output.failFast(url)
-  } else {
-    try {
-      await method(job, url)
-    } catch (error) {
+function task (job, method) {
+  return async (url) => {
+    const output = getOutput(job)
+    if (globallyTimedOut(job)) {
+      output.globalTimeout(url)
       job.failed = true
+      job.timedOut = true
+    } else if (job.failFast && job.failed) {
+      output.failFast(url)
+    } else {
+      try {
+        await method(job, url)
+      } catch (error) {
+        job.failed = true
+      }
     }
+    ++job[$statusProgressCount]
   }
-  ++job[completedMember]
-  ++job[$statusProgressCount]
-  return run(task, job)
 }
 
 async function probeUrl (job, url) {
@@ -111,48 +88,36 @@ async function runTestPage (job, url) {
   }
 }
 
-function parallelize (task, job) {
-  const {
-    urlsMember,
-    completedMember,
-    startedMember
-  } = task
-  job[startedMember] = 0
-  job[completedMember] = 0
-  const max = Math.min(job.parallel, job[urlsMember].length)
-  const promises = []
-  for (let i = 0; i < max; ++i) {
-    promises.push(run(task, job))
-  }
-  return Promise.all(promises)
-}
-
 async function process (job) {
   const output = getOutput(job)
   job.start = new Date()
-  delete job.failed
+  job.failed = false
   await instrument(job)
   await save(job)
   job.testPageUrls = []
 
   job.status = 'Probing urls'
-  await parallelize({
-    urlsMember: 'url',
-    startedMember: $probeUrlsStarted,
-    completedMember: $probeUrlsCompleted,
-    method: probeUrl
-  }, job)
+  job[$statusProgressTotal] = job.url.length
+  job[$statusProgressCount] = 0
+  try {
+    await parallelize(task(job, probeUrl), job.url, job.parallel)
+  } catch (e) {
+    output.genericError(e)
+    job.failed = true
+  }
 
   /* istanbul ignore else */
-  if (!job.debugProbeOnly) {
+  if (!job.debugProbeOnly && !job.failed) {
     if (job.testPageUrls.length !== 0) {
       job.status = 'Executing test pages'
-      await parallelize({
-        urlsMember: 'testPageUrls',
-        startedMember: $testPagesStarted,
-        completedMember: $testPagesCompleted,
-        method: runTestPage
-      }, job)
+      job[$statusProgressTotal] = job.testPageUrls.length
+      job[$statusProgressCount] = 0
+      try {
+        await parallelize(task(job, runTestPage), job.testPageUrls, job.parallel)
+      } catch (e) {
+        output.genericError(e)
+        job.failed = true
+      }
     } else if (Object.keys(job.qunitPages || []).length === 0) {
       output.noTestPageFound()
       job.failed = true
@@ -169,7 +134,7 @@ module.exports = {
     if (job.preload) {
       await preload(job)
     }
-    await probe(job)
+    await probeBrowser(job)
     if (job.mode !== 'url') {
       job.url = [`http://localhost:${job.port}/${job.testsuite}`]
     } else if (!job.browserCapabilities.scripts) {
