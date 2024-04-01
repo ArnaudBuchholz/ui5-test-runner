@@ -30,6 +30,19 @@ describe('src/parallelize', () => {
     })
   }
 
+  it('supports growing list', async () => {
+    const processed = []
+    const partial = list.slice(0, 10)
+    await parallelize((value) => {
+      if (value === 'e') {
+        partial.push(...list.slice(10))
+      }
+      processed.push(value)
+    }, partial, 1)
+    expect(processed.length).toStrictEqual(list.length)
+    expect(processed.sort()).toStrictEqual(list)
+  })
+
   it('fails if one task fails', async () => {
     const processed = []
     const error = new Error('KO')
