@@ -19,9 +19,10 @@ async function run (task) {
   if (active < parallel && length - started > 1) {
     run(task)
   }
-  const parameter = list[task.started++]
+  const index = task.started++
+  const parameter = list[index]
   try {
-    await method(parameter)
+    await method(parameter, index, list)
   } catch (error) {
     task.stop = true
     reject(error)

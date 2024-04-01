@@ -5,7 +5,9 @@ describe('src/parallelize', () => {
 
   it('processes all the values', async () => {
     const processed = []
-    await parallelize((value) => {
+    await parallelize((value, index, array) => {
+      expect(array).toStrictEqual(list)
+      expect(array[index]).toStrictEqual(value)
       processed.push(value)
     }, list, 1)
     expect(processed.length).toStrictEqual(list.length)
