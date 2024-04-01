@@ -1,5 +1,11 @@
 const { allocPromise } = require('./tools')
 
+function end (task) {
+  if (--task.active === 0) {
+    task.resolve()
+  }
+}
+
 async function run (task) {
   const {
     method,
@@ -8,15 +14,15 @@ async function run (task) {
     started,
     completed,
     stop,
-    resolve,
     reject
   } = task
   const { length } = list
   if (stop || completed === length || started === length) {
+    end(task)
     return
   }
-  const active = ++task.active
-  if (active < parallel && length - started > 1) {
+  if (task.active < parallel && length - started > 1) {
+    ++task.active
     run(task)
   }
   const index = task.started++
@@ -28,24 +34,24 @@ async function run (task) {
     reject(error)
   }
   ++task.completed
+  ++task.active
   run(task)
-  if (--task.active === 0) {
-    resolve()
-  }
+  end(task)
 }
 
 module.exports = function parallelize (method, list, parallel) {
   const { promise, resolve, reject } = allocPromise()
-  run({
+  const task = {
     method,
     list,
     parallel,
     started: 0,
     completed: 0,
-    active: 0,
+    active: 1,
     stop: false,
     resolve,
     reject
-  })
+  }
+  run(task)
   return promise
 }
