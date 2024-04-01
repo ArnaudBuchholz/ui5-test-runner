@@ -16,7 +16,11 @@ const { preload } = require('./ui5')
 const parallelize = require('./parallelize')
 
 function task (job, method) {
-  return async (url) => {
+  return async (url, index, { length }) => {
+    if (job[$statusProgressCount] === undefined) {
+      job[$statusProgressCount] = 0
+    }
+    job[$statusProgressTotal] = length
     const output = getOutput(job)
     if (globallyTimedOut(job)) {
       output.globalTimeout(url)
@@ -97,8 +101,6 @@ async function process (job) {
   job.testPageUrls = []
 
   job.status = 'Probing urls'
-  job[$statusProgressTotal] = job.url.length
-  job[$statusProgressCount] = 0
   try {
     await parallelize(task(job, probeUrl), job.url, job.parallel)
   } catch (e) {
@@ -110,8 +112,6 @@ async function process (job) {
   if (!job.debugProbeOnly && !job.failed) {
     if (job.testPageUrls.length !== 0) {
       job.status = 'Executing test pages'
-      job[$statusProgressTotal] = job.testPageUrls.length
-      job[$statusProgressCount] = 0
       try {
         await parallelize(task(job, runTestPage), job.testPageUrls, job.parallel)
       } catch (e) {
