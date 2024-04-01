@@ -322,6 +322,25 @@ function finalize (job) {
     enumerable: false,
     configurable: false
   })
+
+  /* istanbul ignore next */
+  if (process.env.DEBUG_ON_FAILED) {
+    let failed
+    Object.defineProperty(job, 'failed', {
+      get () {
+        return failed
+      },
+      set (value) {
+        if (value) {
+          // eslint-disable-next-line no-debugger
+          debugger
+        }
+        failed = value
+      },
+      enumerable: true,
+      configurable: false
+    })
+  }
 }
 
 function fromCmdLine (cwd, args) {
