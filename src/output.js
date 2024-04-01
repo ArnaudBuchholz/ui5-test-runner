@@ -310,7 +310,7 @@ function build (job) {
     reportOnJobProgress () {
       if (interactive) {
         this.reportIntervalId = setInterval(progress.bind(null, job), 250)
-      } else if (job.outputInterval) {
+      } else if (job.outputInterval && !inJest) {
         this.reportIntervalId = setInterval(progress.bind(null, job), job.outputInterval)
       }
     },
