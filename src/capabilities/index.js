@@ -6,8 +6,9 @@ const { join } = require('path')
 const { getOutput } = require('../output')
 const { performance } = require('perf_hooks')
 const { cleanDir, allocPromise, filename } = require('../tools')
-const { $browsers } = require('../symbols')
+const { $statusProgressTotal, $statusProgressCount } = require('../symbols')
 const tests = require('./tests')
+const parallelize = require('../parallelize')
 
 async function capabilities (job) {
   const output = getOutput(job)
@@ -94,17 +95,9 @@ async function capabilities (job) {
 
     let errors = 0
 
-    const { promise: forEver } = allocPromise()
-
-    const next = async () => {
-      if (filteredTests.length === 0) {
-        if (!job[$browsers] || Object.keys(job[$browsers]).length === 0) {
-          output.wrap(() => console.log('Done.'))
-          exit(errors)
-        }
-        return
-      }
-      const { label, url, scripts, endpoint = () => { } } = filteredTests.shift()
+    const task = async (test) => {
+      const { promise, resolve } = allocPromise()
+      const { label, url, scripts, endpoint = () => { } } = test
 
       const listenerIndex = listeners.length
       let pageUrl
@@ -130,6 +123,7 @@ async function capabilities (job) {
         if (done.called) {
           return
         }
+        ++job[$statusProgressCount]
         done.called = true
         if (timeoutId) {
           clearTimeout(timeoutId)
@@ -143,9 +137,9 @@ async function capabilities (job) {
           }
           ++errors
         } else {
-          output.wrap(() => console.log('✔️', label, timeSpent, 'ms'))
+          output.wrap(() => console.log('✔️ ', label, timeSpent, 'ms'))
         }
-        await next()
+        resolve()
       }
 
       const context = {
@@ -168,6 +162,8 @@ async function capabilities (job) {
             done('Failed')
           }
         })
+
+      return promise
     }
 
     let parallel
@@ -177,12 +173,12 @@ async function capabilities (job) {
       parallel = job.parallel
     }
 
-    const testsCount = filteredTests.length
-    for (let i = 0; i < Math.max(Math.min(parallel, testsCount), 1); ++i) {
-      next()
-    }
+    job[$statusProgressTotal] = filteredTests.length
+    job[$statusProgressCount] = 0
+    await parallelize(task, filteredTests, parallel)
 
-    await forEver
+    output.wrap(() => console.log('Done.'))
+    exit(errors)
   } catch (error) {
     output.wrap(() => console.error(error))
     exit(-1)
