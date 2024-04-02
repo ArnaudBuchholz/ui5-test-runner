@@ -99,7 +99,7 @@ function getCommand (cwd) {
     .option('-fo, --fail-opa-fast [flag]', '[💻🔗] Stop the OPA page execution after the first failing test', boolean, false)
     .option('-k, --keep-alive [flag]', '[💻🔗🧪] Keep the server alive', boolean, false)
     .option('-l, --log-server [flag]', '[💻🔗🧪] Log inner server traces', boolean, false)
-    .option('-p, --parallel <count>', '[💻🔗🧪] Number of parallel tests executions', 2)
+    .option('-p, --parallel <count>', '[💻🔗🧪] Number of parallel tests executions', integer, 2)
     .option('-b, --browser <command>', '[💻🔗🧪] Browser instantiation command (relative to cwd or use $/ for provided ones)', '$/puppeteer.js')
     .option('--browser-args <argument...>', '[💻🔗🧪] Browser instantiation command parameters (use -- instead)')
     .option('--alternate-npm-path <path>', '[💻🔗] Alternate NPM path to look for packages (priority: local, alternate, global)')
