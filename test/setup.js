@@ -7,12 +7,22 @@ let log
 let warn
 let error
 
+const {
+  log: nativeLog,
+  warn: nativeWarn,
+  error: nativeError
+} = console
+
 const tmp = join(__dirname, '../tmp')
 const npmLocal = join(__dirname, '../node_modules')
 const npmGlobal = join(tmp, 'npm/global')
 
 beforeAll(async () => {
-  if (process.env.TEST_CONSOLE !== 'allow') {
+  if (process.env.TEST_CONSOLE === 'allow') {
+    log = jest.spyOn(console, 'log').mockImplementation((...args) => nativeLog.apply(console, args))
+    warn = jest.spyOn(console, 'warn').mockImplementation((...args) => nativeWarn.apply(console, args))
+    error = jest.spyOn(console, 'error').mockImplementation((...args) => nativeError.apply(console, args))
+  } else {
     log = jest.spyOn(console, 'log').mockImplementation()
     warn = jest.spyOn(console, 'warn').mockImplementation()
     error = jest.spyOn(console, 'error').mockImplementation()
@@ -69,12 +79,10 @@ beforeEach(() => {
 })
 
 afterAll(() => {
-  if (process.env.TEST_CONSOLE !== 'allow') {
-    expect(log.mock.calls.length).toStrictEqual(0)
-    expect(warn.mock.calls.length).toStrictEqual(0)
-    expect(error.mock.calls.length).toStrictEqual(0)
-    log.mockRestore()
-    warn.mockRestore()
-    error.mockRestore()
-  }
+  expect(log.mock.calls.length).toStrictEqual(0)
+  expect(warn.mock.calls.length).toStrictEqual(0)
+  expect(error.mock.calls.length).toStrictEqual(0)
+  log.mockRestore()
+  warn.mockRestore()
+  error.mockRestore()
 })
