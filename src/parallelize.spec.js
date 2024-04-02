@@ -71,6 +71,15 @@ describe('src/parallelize', () => {
     expect(maxActive).toStrictEqual(2)
   })
 
+  it.skip('does not go beyond the number of items', async () => {
+    const processed = []
+    await parallelize(async (value) => {
+      processed.push(value)
+    }, list, 200)
+    expect(processed.length).toStrictEqual(list.length)
+    expect(processed.sort()).toStrictEqual(list)
+  })
+
   it('fails if one task fails', async () => {
     const processed = []
     const error = new Error('KO')
