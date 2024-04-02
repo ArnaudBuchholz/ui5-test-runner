@@ -5,8 +5,9 @@ const { createWriteStream } = require('fs')
 const { mkdir, unlink, stat } = require('fs').promises
 const { capture } = require('reserve')
 const { getOutput, newProgress } = require('./output')
-const { download, allocPromise } = require('./tools')
+const { download } = require('./tools')
 const { $statusProgressCount, $statusProgressTotal } = require('./symbols')
+const parallelize = require('./parallelize')
 
 const buildCacheBase = job => {
   const [, hostName] = /https?:\/\/([^/]*)/.exec(job.ui5)
@@ -34,31 +35,15 @@ module.exports = {
     const lib = async name => {
       progress.label = name
       progress.count = 0
-      const { promise, resolve/*, reject */ } = allocPromise()
       const libPath = name.replace(/\./g, '/') + '/'
       const { resources } = require(await get(libPath + 'resources.json'))
       progress.total = resources.length
-      let index = 0
-      let active = 0
-
-      const task = async () => {
-        ++active
-        const { name, size } = resources[index++]
+      progress.label = `${name} (${resources.length} files)`
+      await parallelize(async ({ name, size }) => {
         await get(libPath + name, size)
         ++progress.count
-        if (index < resources.length) {
-          task()
-        }
-        if (--active === 0) {
-          resolve()
-        }
-      }
-
-      for (let parallel = 0; parallel < 8; ++parallel) {
-        task()
-      }
-
-      return promise
+      }, resources, 8)
+      ++job[$statusProgressCount]
     }
 
     job.status = 'Preloading UI5'
@@ -67,11 +52,7 @@ module.exports = {
     await get('sap-ui-version.json')
     await get('sap-ui-core.js')
     const progress = newProgress(job)
-    await lib('sap.ui.core')
-    for (const name of job.preload) {
-      ++job[$statusProgressCount]
-      await lib(name)
-    }
+    await parallelize(lib, ['sap.ui.core', ...job.preload], 1)
     progress.done()
   },
 
