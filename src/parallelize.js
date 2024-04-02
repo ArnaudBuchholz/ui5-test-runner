@@ -22,7 +22,7 @@ async function run (task) {
     complete(task)
     return
   }
-  if (task.active < parallel && length - started > 1) {
+  if (task.active < parallel && length - started > task.active) {
     ++task.active
     run(task)
   }

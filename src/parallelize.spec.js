@@ -71,11 +71,25 @@ describe('src/parallelize', () => {
     expect(maxActive).toStrictEqual(2)
   })
 
-  it.skip('does not go beyond the number of items', async () => {
+  it('does not go beyond the number of items', async () => {
     const processed = []
     await parallelize(async (value) => {
       processed.push(value)
     }, list, 200)
+    expect(processed.length).toStrictEqual(list.length)
+    expect(processed.sort()).toStrictEqual(list)
+  })
+
+  it('does not go beyond the number of items (slow start)', async () => {
+    const processed = []
+    const partial = ['a']
+    await parallelize(async (value) => {
+      if (value === 'a') {
+        partial.push(...list.slice(1))
+      }
+      processed.push(value)
+      await new Promise(resolve => setTimeout(resolve, 10))
+    }, partial, 200)
     expect(processed.length).toStrictEqual(list.length)
     expect(processed.sort()).toStrictEqual(list)
   })
