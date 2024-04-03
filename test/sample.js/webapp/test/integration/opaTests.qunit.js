@@ -4,7 +4,10 @@ QUnit.config.autostart = false
 sap.ui.getCore().attachInit(function () {
   'use strict'
 
-  sap.ui.require(['integration/HelloJourney'], function () {
+  sap.ui.require([
+    'integration/PageJourney',
+    'integration/HelloJourney'
+  ], function () {
     QUnit.start()
   })
 })
