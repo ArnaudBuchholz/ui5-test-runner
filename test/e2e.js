@@ -10,14 +10,17 @@ const { join } = require('path')
 const root = join(__dirname, '..')
 
 const tests = [{
-  label: "Puppeteer browser",
-  utr: "--debug-keep-report --capabilities --browser $/puppeteer.js"
+  label: 'Puppeteer browser',
+  utr: '--debug-keep-report --capabilities --browser $/puppeteer.js'
 }, {
-  label: "JSDOM browser",
-  utr: "--debug-keep-report --capabilities --browser $/jsdom.js"
+  label: 'JSDOM browser',
+  utr: '--debug-keep-report --capabilities --browser $/jsdom.js'
 }, {
-  label: "Selenium-webdriver browser (chrome)",
-  utr: "--debug-keep-report --capabilities --browser $/selenium-webdriver.js -- --browser chrome"
+  label: 'Selenium-webdriver browser (chrome)',
+  utr: '--debug-keep-report --capabilities --browser $/selenium-webdriver.js -- --browser chrome'
+}, {
+  label: 'Playwright browser',
+  utr: '--debug-keep-report --capabilities --browser $/playwright.js'
 }]
 
 const job = {
@@ -46,6 +49,13 @@ async function test ({ label, utr }) {
       stdio: [0, 'pipe', 'pipe', 'ipc']
     }
   )
+  childProcess.on('message', data => {
+    if (data.type === 'progress') {
+      const { count, total } = data
+      progress.count = count
+      progress.total = total
+    }
+  })
   childProcess.on('close', async code => {
     if (code !== 0) {
       ++job.errors
