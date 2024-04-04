@@ -117,6 +117,13 @@ class Progress {
 }
 
 function progress (job, cleanFirst = true) {
+  if (process.send) {
+    process.send({
+      type: 'progress',
+      count: job[$statusProgressCount],
+      total: job[$statusProgressTotal]
+    })
+  }
   const sequence = []
   if (interactive) {
     if (cleanFirst) {
