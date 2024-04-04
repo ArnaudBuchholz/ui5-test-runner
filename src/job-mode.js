@@ -30,7 +30,8 @@ function buildAndCheckMode (job) {
       'browserCloseTimeout',
       'failFast',
       'keepAlive',
-      'alternateNpmPath'
+      'alternateNpmPath',
+      'outputInterval'
     ])
     return 'capabilities'
   }
