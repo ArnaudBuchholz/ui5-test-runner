@@ -6,6 +6,7 @@
     return // already installed
   }
   window[MODULE] = true
+  window['ui5-test-runner/qunit-hooks'] = true // prevents qunit-hooks
 
   /* global suite */
 
