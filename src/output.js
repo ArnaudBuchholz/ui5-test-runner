@@ -79,7 +79,7 @@ function * bar (ratio, msg) {
     }
     yield ']     '
   } else {
-    const filled = Math.floor(BAR_WIDTH * ratio)
+    const filled = Math.floor(BAR_WIDTH * Math.min(ratio, 1))
     yield ''.padEnd(filled, '\u2588')
     yield ''.padEnd(BAR_WIDTH - filled, '\u2591')
     yield '] '
