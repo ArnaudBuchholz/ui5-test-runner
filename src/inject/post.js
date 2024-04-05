@@ -82,7 +82,7 @@
           reject(xhr.statusText)
         })
         xhr.open('POST', base + '/_/' + url)
-        xhr.setRequestHeader('x-page-url', location)
+        xhr.setRequestHeader('x-page-url', top.location)
         xhr.send(stringify(data))
       })
     }
