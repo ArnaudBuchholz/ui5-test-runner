@@ -24,6 +24,8 @@ node_modules/
 *.cmd
 *.sh
 
+.env
+
 # generated during tests
 tmp/
 e2e/
