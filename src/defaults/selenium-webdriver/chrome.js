@@ -18,7 +18,7 @@ module.exports = async ({
   chromeOptions.addArguments('disable-extensions')
   chromeOptions.setLoggingPrefs(loggingPreferences)
   if (options.binary) {
-    chromeOptions.setBinary(options.binary)
+    chromeOptions.setChromeBinaryPath(options.binary)
   }
 
   const builder = new Builder()
