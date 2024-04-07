@@ -1,5 +1,6 @@
 'use strict'
 
+require('dotenv').config()
 const parallelize = require('../src/parallelize')
 const { recreateDir, filename, allocPromise } = require('../src/tools')
 const { getOutput, newProgress } = require('../src/output')
@@ -16,12 +17,13 @@ const tests = [{
   label: 'JSDOM browser',
   utr: '--debug-keep-report --capabilities --browser $/jsdom.js'
 }, {
+  ignore: 'E2E_IGNORE_SELENIUM',
   label: 'Selenium-webdriver browser (chrome)',
   utr: '--debug-keep-report --capabilities --browser $/selenium-webdriver.js -- --browser chrome'
 }, {
   label: 'Playwright browser',
   utr: '--debug-keep-report --capabilities --browser $/playwright.js'
-}]
+}].filter(({ ignore }) => !ignore || process.env[ignore] !== 'true')
 
 const job = {
   [$statusProgressCount]: 0,
