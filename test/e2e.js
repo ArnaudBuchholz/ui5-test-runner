@@ -1,29 +1,46 @@
 'use strict'
 
+const { fork } = require('child_process')
+const { join } = require('path')
+const assert = require('assert/strict')
 require('dotenv').config()
 const parallelize = require('../src/parallelize')
 const { recreateDir, filename, allocPromise } = require('../src/tools')
 const { getOutput, newProgress } = require('../src/output')
 const { $statusProgressCount, $statusProgressTotal } = require('../src/symbols')
-const { fork } = require('child_process')
-const { join } = require('path')
+const jsonata = require('jsonata')
 
 const root = join(__dirname, '..')
 
 const tests = [{
+  id: 'PUPPETEER',
   label: 'Puppeteer browser',
   utr: '--debug-keep-report --capabilities --browser $/puppeteer.js'
 }, {
+  id: 'JSDOM',
   label: 'JSDOM browser',
   utr: '--debug-keep-report --capabilities --browser $/jsdom.js'
 }, {
-  ignore: 'E2E_IGNORE_SELENIUM',
+  id: 'SELENIUM',
   label: 'Selenium-webdriver browser (chrome)',
   utr: '--debug-keep-report --capabilities --browser $/selenium-webdriver.js -- --browser chrome'
 }, {
+  id: 'PLAYWRIGHT',
   label: 'Playwright browser',
   utr: '--debug-keep-report --capabilities --browser $/playwright.js'
-}].filter(({ ignore }) => !ignore || process.env[ignore] !== 'true')
+}, {
+  id: 'JS_LEGACY',
+  label: 'Legacy JS Sample',
+  utr: ['--cwd', join(root, './test/sample.js')],
+  tests: {
+    '$count(qunitPages.*)': 2
+  }
+}].filter(({ id }) => {
+  if (process.env.E2E_ONLY) {
+    return id === process.env.E2E_ONLY
+  }
+  return process.env[`E2E_IGNORE_${id}`] !== 'true'
+})
 
 const job = {
   [$statusProgressCount]: 0,
@@ -33,19 +50,19 @@ const job = {
 }
 const output = getOutput(job)
 
-async function test ({ label, utr }) {
+async function test ({ label, utr, tests }) {
   const progress = newProgress(job)
   const id = filename(label)
   const reportDir = join(root, 'e2e', id)
   progress.label = `${label} (${id})`
   progress.count = 1
-  const { promise, resolve } = allocPromise()
+  const { promise, resolve, reject } = allocPromise()
   const childProcess = fork(
     join(root, 'index'),
     [
       '--report-dir', reportDir,
       '--output-interval', '1s',
-      ...utr.split(' ')
+      ...Array.isArray(utr) ? utr : utr.split(' ')
     ],
     {
       stdio: [0, 'pipe', 'pipe', 'ipc']
@@ -60,17 +77,31 @@ async function test ({ label, utr }) {
   })
   childProcess.on('close', async code => {
     if (code !== 0) {
-      ++job.errors
-      output.wrap(() => console.log('❌', label, code))
+      reject(code)
     } else {
-      output.wrap(() => console.log('✔️ ', label))
+      resolve()
     }
-    resolve()
   })
-  return promise.finally(() => {
-    ++job[$statusProgressCount]
-    progress.done()
-  })
+  return promise
+    .then(async () => {
+      if (tests) {
+        const job = require(join(reportDir, 'job.js'))
+        for (const jpath of Object.keys(tests)) {
+          const expected = tests[jpath]
+          assert.deepStrictEqual(await jsonata(jpath).evaluate(job), expected, jpath)
+        }
+      }
+    })
+    .then(() => {
+      output.wrap(() => console.log('✔️ ', label))
+    }, (reason) => {
+      ++job.errors
+      output.wrap(() => console.log('❌', label, reason))
+    })
+    .finally(() => {
+      ++job[$statusProgressCount]
+      progress.done()
+    })
 }
 
 output.reportOnJobProgress()
