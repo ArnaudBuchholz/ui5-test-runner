@@ -28,3 +28,8 @@ jobs:
         cache: 'npm'
     - run: npm ci
     - run: npm test
+    # - name: Archive E2E results
+    #   uses: actions/upload-artifact@v4
+    #   with:
+    #     name: e2e-reports
+    #     path: e2e/

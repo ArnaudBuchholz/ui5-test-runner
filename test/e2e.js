@@ -3,14 +3,27 @@
 const { fork } = require('child_process')
 const { join } = require('path')
 const assert = require('assert/strict')
+const { stat } = require('fs/promises')
 require('dotenv').config()
 const parallelize = require('../src/parallelize')
 const { recreateDir, filename, allocPromise } = require('../src/tools')
 const { getOutput, newProgress } = require('../src/output')
 const { $statusProgressCount, $statusProgressTotal } = require('../src/symbols')
-const jsonata = require('jsonata')
 
 const root = join(__dirname, '..')
+const [,, only] = process.argv
+if (only) {
+  process.env.E2E_ONLY = only
+}
+
+const qunitPages = expectedCount => job => assert.strictEqual(Object.keys(job.qunitPages).length, expectedCount, 'Number of test pages')
+const coverage = () => async job => {
+  const { coverageReportDir } = job
+  assert.strictEqual((await stat(coverageReportDir)).isDirectory(), true, 'Coverage folder exists')
+  assert.strictEqual((await stat(join(coverageReportDir, 'lcov-report/index.html'))).isFile(), true, 'Coverage HTML report exists')
+}
+
+let port = 8080
 
 const tests = [{
   id: 'PUPPETEER',
@@ -32,9 +45,42 @@ const tests = [{
   id: 'JS_LEGACY',
   label: 'Legacy JS Sample',
   utr: ['--cwd', join(root, './test/sample.js')],
-  tests: {
-    '$count(qunitPages.*)': 2
-  }
+  tests: [
+    qunitPages(2)
+  ]
+}, {
+  id: 'JS_LEGACY_SPLIT',
+  label: 'Legacy JS Sample with OPA split',
+  utr: ['--cwd', join(root, './test/sample.js'), '--split-opa'],
+  tests: [
+    qunitPages(3)
+  ]
+}, {
+  id: 'JS_LEGACY_COVERAGE',
+  label: 'Legacy JS Sample with coverage',
+  utr: ['--cwd', join(root, './test/sample.js'), ...'--coverage --coverage-settings nyc.json --coverage-check-statements 67'.split(' ')],
+  tests: [
+    qunitPages(2),
+    coverage()
+  ]
+}, {
+  id: 'JS_LEGACY_REMOTE',
+  label: 'Legacy JS Sample accessed using --url',
+  utr: ['--cwd', join(root, './test/sample.js'), '--port', ++port, '--url', `http://localhost:${port}/test/testsuite.qunit.html`],
+  tests: [
+    qunitPages(2)
+  ]
+}, {
+  id: 'JS_LEGACY_REMOTE_COVERAGE',
+  label: 'Legacy JS Sample accessed using --url with coverage',
+  utr: [
+    '--cwd', join(root, './test/sample.js'), '--port', ++port, '--url', `http://localhost:${port}/test/testsuite.qunit.html`,
+    ...'--coverage --coverage-settings nyc.json --coverage-check-statements 67'.split(' ')
+  ],
+  tests: [
+    qunitPages(2),
+    coverage()
+  ]
 }].filter(({ id }) => {
   if (process.env.E2E_ONLY) {
     return id === process.env.E2E_ONLY
@@ -57,13 +103,20 @@ async function test ({ label, utr, tests }) {
   progress.label = `${label} (${id})`
   progress.count = 1
   const { promise, resolve, reject } = allocPromise()
+  const parameters = [
+    '--report-dir', reportDir,
+    '--output-interval', '1s',
+    ...Array.isArray(utr) ? utr : utr.split(' ')
+  ]
+  if (parameters.includes('--coverage')) {
+    parameters.push(
+      '--coverage-temp-dir', join(reportDir, '.nyc_output'),
+      '--coverage-report-dir', join(reportDir, 'coverage')
+    )
+  }
   const childProcess = fork(
     join(root, 'index'),
-    [
-      '--report-dir', reportDir,
-      '--output-interval', '1s',
-      ...Array.isArray(utr) ? utr : utr.split(' ')
-    ],
+    parameters,
     {
       stdio: [0, 'pipe', 'pipe', 'ipc']
     }
@@ -86,17 +139,16 @@ async function test ({ label, utr, tests }) {
     .then(async () => {
       if (tests) {
         const job = require(join(reportDir, 'job.js'))
-        for (const jpath of Object.keys(tests)) {
-          const expected = tests[jpath]
-          assert.deepStrictEqual(await jsonata(jpath).evaluate(job), expected, jpath)
+        for (const test of tests) {
+          await test(job)
         }
       }
     })
     .then(() => {
-      output.wrap(() => console.log('✔️ ', label))
+      output.wrap(() => console.log('✔️ ', progress.label))
     }, (reason) => {
       ++job.errors
-      output.wrap(() => console.log('❌', label, reason))
+      output.wrap(() => console.log('❌', progress.label, reason))
     })
     .finally(() => {
       ++job[$statusProgressCount]
