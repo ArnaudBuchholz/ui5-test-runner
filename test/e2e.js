@@ -7,7 +7,7 @@ const { stat } = require('fs/promises')
 require('dotenv').config()
 const parallelize = require('../src/parallelize')
 const { recreateDir, filename, allocPromise } = require('../src/tools')
-const { getOutput, newProgress } = require('../src/output')
+const { interactive, getOutput, newProgress } = require('../src/output')
 const { $statusProgressCount, $statusProgressTotal } = require('../src/symbols')
 
 const root = join(__dirname, '..')
@@ -23,32 +23,54 @@ const coverage = () => async job => {
   assert.strictEqual((await stat(join(coverageReportDir, 'lcov-report/index.html'))).isFile(), true, 'Coverage HTML report exists')
 }
 
-const ui5Serve = () => {
-  if (!ui5Serve.promise) {
-    ui5Serve.promise = new Promise((resolve, reject) => {
-      const ui5 = join(root, 'node_modules/@ui5/cli/bin/ui5.cjs')
-      spawn(
-        node,
-        [ui5, 'serve', '--config', join(root, 'test/sample.js/ui5.yaml')],
-        {
-          stdio: [0, 'pipe', 'pipe']
-        }
-      )
-      const waitForServer = async () => {
-        try {
-          await fetch('http://localhost:8080')
-          resolve()
-        } catch (e) {
-          setTimeout(waitForServer, 250)
-        }
+const waitFor = (url, timeout = 10000) => new Promise((resolve, reject) => {
+  const start = Date.now()
+  const loop = async () => {
+    try {
+      await fetch(url)
+      resolve()
+    } catch (e) {
+      if (Date.now() - start > timeout) {
+        reject(new Error(`Timeout while waiting for ${url}`))
       }
-      waitForServer()
-    })
+      setTimeout(loop, 250)
+    }
   }
-  return ui5Serve.promise
+  loop()
+})
+
+const wrapAsPromise = method => () => {
+  if (!method.promise) {
+    method.promise = method()
+  }
+  return method.promise
 }
 
-let port = 8080
+const ui5Serve = wrapAsPromise(() => {
+  const ui5 = join(root, 'node_modules/@ui5/cli/bin/ui5.cjs')
+  spawn(
+    node,
+    [ui5, 'serve', '--config', join(root, 'test/sample.js/ui5.yaml')],
+    {
+      stdio: [0, 'pipe', 'pipe']
+    }
+  )
+  return waitFor('http://localhost:8080')
+})
+
+const serveWithBasicAuthent = wrapAsPromise(() => {
+  const reserve = join(root, 'node_modules/reserve/index.js')
+  spawn(
+    node,
+    [reserve, '--silent', '--config', join(root, 'test/sample.js/reserve.json')],
+    {
+      stdio: [0, 'pipe', 'pipe']
+    }
+  )
+  return waitFor('http://localhost:8081')
+})
+
+let port = 8085
 
 const tests = [{
   id: 'PUPPETEER',
@@ -96,9 +118,27 @@ const tests = [{
   tests: [qunitPages(2), coverage()]
 }, {
   id: 'JS_REMOTE',
-  label: 'Remote JS',
+  label: 'Remote JS sample',
   before: ui5Serve,
   utr: '--url http://localhost:8080/test/testsuite.qunit.html',
+  tests: [qunitPages(2)]
+}, {
+  id: 'JS_REMOTE_SPLIT',
+  label: 'Remote JS sample with OPA split',
+  before: ui5Serve,
+  utr: '--url http://localhost:8080/test/testsuite.qunit.html --split-opa',
+  tests: [qunitPages(3)]
+}, {
+  id: 'JS_REMOTE_COVERAGE',
+  label: 'Remote JS sample',
+  before: ui5Serve,
+  utr: '--url http://localhost:8080/test/testsuite.qunit.html --coverage --coverage-check-statements 67',
+  tests: [qunitPages(2), coverage()]
+}, {
+  id: 'JS_REMOTE_BASIC_AUTHENT',
+  label: 'Remote JS sample with basic authent',
+  before: serveWithBasicAuthent,
+  utr: '--url http://localhost:8081/test/testsuite.qunit.html --browser $/puppeteer.js --browser-args --basic-auth-username testUsername --browser-args --basic-auth-password testPassword',
   tests: [qunitPages(2)]
 }].filter(({ id }) => {
   if (process.env.E2E_ONLY) {
@@ -121,6 +161,9 @@ async function test ({ before, label, utr, tests }) {
   const reportDir = join(root, 'e2e', id)
   progress.label = `${label} (${id})`
   progress.count = 1
+  if (!interactive) {
+    output.wrap(() => console.log(`${label}...`))
+  }
   if (before) {
     await before()
   }
