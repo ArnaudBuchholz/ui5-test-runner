@@ -1,6 +1,6 @@
 'use strict'
 
-const { fork } = require('child_process')
+const { fork, spawn } = require('child_process')
 const { join } = require('path')
 const assert = require('assert/strict')
 const { stat } = require('fs/promises')
@@ -11,7 +11,7 @@ const { getOutput, newProgress } = require('../src/output')
 const { $statusProgressCount, $statusProgressTotal } = require('../src/symbols')
 
 const root = join(__dirname, '..')
-const [,, only] = process.argv
+const [node,, only] = process.argv
 if (only) {
   process.env.E2E_ONLY = only
 }
@@ -21,6 +21,31 @@ const coverage = () => async job => {
   const { coverageReportDir } = job
   assert.strictEqual((await stat(coverageReportDir)).isDirectory(), true, 'Coverage folder exists')
   assert.strictEqual((await stat(join(coverageReportDir, 'lcov-report/index.html'))).isFile(), true, 'Coverage HTML report exists')
+}
+
+const ui5Serve = () => {
+  if (!ui5Serve.promise) {
+    ui5Serve.promise = new Promise((resolve, reject) => {
+      const ui5 = join(root, 'node_modules/@ui5/cli/bin/ui5.cjs')
+      spawn(
+        node,
+        [ui5, 'serve', '--config', join(root, 'test/sample.js/ui5.yaml')],
+        {
+          stdio: [0, 'pipe', 'pipe']
+        }
+      )
+      const waitForServer = async () => {
+        try {
+          await fetch('http://localhost:8080')
+          resolve()
+        } catch (e) {
+          setTimeout(waitForServer, 250)
+        }
+      }
+      waitForServer()
+    })
+  }
+  return ui5Serve.promise
 }
 
 let port = 8080
@@ -45,31 +70,22 @@ const tests = [{
   id: 'JS_LEGACY',
   label: 'Legacy JS Sample',
   utr: ['--cwd', join(root, './test/sample.js')],
-  tests: [
-    qunitPages(2)
-  ]
+  tests: [qunitPages(2)]
 }, {
   id: 'JS_LEGACY_SPLIT',
   label: 'Legacy JS Sample with OPA split',
   utr: ['--cwd', join(root, './test/sample.js'), '--split-opa'],
-  tests: [
-    qunitPages(3)
-  ]
+  tests: [qunitPages(3)]
 }, {
   id: 'JS_LEGACY_COVERAGE',
   label: 'Legacy JS Sample with coverage',
   utr: ['--cwd', join(root, './test/sample.js'), ...'--coverage --coverage-settings nyc.json --coverage-check-statements 67'.split(' ')],
-  tests: [
-    qunitPages(2),
-    coverage()
-  ]
+  tests: [qunitPages(2), coverage()]
 }, {
   id: 'JS_LEGACY_REMOTE',
   label: 'Legacy JS Sample accessed using --url',
   utr: ['--cwd', join(root, './test/sample.js'), '--port', ++port, '--url', `http://localhost:${port}/test/testsuite.qunit.html`],
-  tests: [
-    qunitPages(2)
-  ]
+  tests: [qunitPages(2)]
 }, {
   id: 'JS_LEGACY_REMOTE_COVERAGE',
   label: 'Legacy JS Sample accessed using --url with coverage',
@@ -77,10 +93,13 @@ const tests = [{
     '--cwd', join(root, './test/sample.js'), '--port', ++port, '--url', `http://localhost:${port}/test/testsuite.qunit.html`,
     ...'--coverage --coverage-settings nyc.json --coverage-check-statements 67'.split(' ')
   ],
-  tests: [
-    qunitPages(2),
-    coverage()
-  ]
+  tests: [qunitPages(2), coverage()]
+}, {
+  id: 'JS_REMOTE',
+  label: 'Remote JS',
+  before: ui5Serve,
+  utr: '--url http://localhost:8080/test/testsuite.qunit.html',
+  tests: [qunitPages(2)]
 }].filter(({ id }) => {
   if (process.env.E2E_ONLY) {
     return id === process.env.E2E_ONLY
@@ -96,12 +115,15 @@ const job = {
 }
 const output = getOutput(job)
 
-async function test ({ label, utr, tests }) {
+async function test ({ before, label, utr, tests }) {
   const progress = newProgress(job)
   const id = filename(label)
   const reportDir = join(root, 'e2e', id)
   progress.label = `${label} (${id})`
   progress.count = 1
+  if (before) {
+    await before()
+  }
   const { promise, resolve, reject } = allocPromise()
   const parameters = [
     '--report-dir', reportDir,
