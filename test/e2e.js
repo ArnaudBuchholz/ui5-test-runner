@@ -76,6 +76,7 @@ const ui5ServeTs = wrapAsPromise(() => {
     node,
     [ui5, 'serve'],
     {
+      cwd: join(root, 'test/sample.ts'),
       stdio: [0, 'pipe', 'pipe']
     }
   )
