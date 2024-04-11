@@ -570,6 +570,8 @@ function build (job) {
 }
 
 module.exports = {
+  interactive,
+
   getOutput (job) {
     if (!job[$output]) {
       job[$output] = build(job)
