@@ -10,6 +10,8 @@ framework:
     - name: sap.ui.core
     - name: themelib_sap_horizon
 server:
+  settings:
+    httpPort: 8082
   customMiddleware:
     - name: ui5-tooling-transpile-middleware
       afterMiddleware: compression

@@ -70,6 +70,18 @@ const serveWithBasicAuthent = wrapAsPromise(() => {
   return waitFor('http://localhost:8081')
 })
 
+const ui5ServeTs = wrapAsPromise(() => {
+  const ui5 = join(root, 'test/sample.ts/ui5.cjs')
+  spawn(
+    node,
+    [ui5, 'serve'],
+    {
+      stdio: [0, 'pipe', 'pipe']
+    }
+  )
+  return waitFor('http://localhost:8082', 10000000)
+})
+
 let port = 8085
 
 const tests = [{
@@ -130,7 +142,7 @@ const tests = [{
   tests: [qunitPages(3)]
 }, {
   id: 'JS_REMOTE_COVERAGE',
-  label: 'Remote JS sample',
+  label: 'Remote JS sample with coverage',
   before: ui5Serve,
   utr: '--url http://localhost:8080/test/testsuite.qunit.html --coverage --coverage-check-statements 67',
   tests: [qunitPages(2), coverage()]
@@ -140,6 +152,18 @@ const tests = [{
   before: serveWithBasicAuthent,
   utr: '--url http://localhost:8081/test/testsuite.qunit.html --browser $/puppeteer.js --browser-args --basic-auth-username testUsername --browser-args --basic-auth-password testPassword',
   tests: [qunitPages(2)]
+}, {
+  id: 'TS_REMOTE',
+  label: 'Remote TS sample',
+  before: ui5ServeTs,
+  utr: '--url http://localhost:8082/test/testsuite.qunit.html',
+  tests: [qunitPages(2)]
+}, {
+  id: 'TS_REMOTE_COVERAGE',
+  label: 'Remote TS sample with coverage',
+  before: ui5ServeTs,
+  utr: '--url http://localhost:8082/test/testsuite.qunit.html --coverage --coverage-check-statements 67',
+  tests: [qunitPages(2), coverage()]
 }].filter(({ id }) => {
   if (process.env.E2E_ONLY) {
     return id === process.env.E2E_ONLY
