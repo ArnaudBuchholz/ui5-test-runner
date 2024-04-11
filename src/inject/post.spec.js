@@ -1,5 +1,6 @@
 class UI5Object {}
 global.window = {
+  location: '/test.html',
   sap: {
     ui: {
       base: {
@@ -8,7 +9,7 @@ global.window = {
     }
   }
 }
-global.location = '/test.html'
+global.top = global.window
 
 function XMLHttpRequest () {
   this._headers = {}
