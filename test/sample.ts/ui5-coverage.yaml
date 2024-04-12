@@ -14,6 +14,8 @@ builder:
     - name: ui5-tooling-transpile-task
       afterTask: replaceVersion
 server:
+  settings:
+    httpPort: 8083
   customMiddleware:
     - name: ui5-tooling-transpile-middleware
       afterMiddleware: compression
