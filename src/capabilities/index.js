@@ -18,9 +18,9 @@ async function capabilities (job) {
       job.status = 'Serving'
     } else {
       if (job.debugKeepReport) {
-        output.wrap(() => console.log('Report folder', job.reportDir, 'not cleaned because of --debug-keep-report.'))
+        output.log('Report folder', job.reportDir, 'not cleaned because of --debug-keep-report.')
       } else if (code !== 0) {
-        output.wrap(() => console.error('Report folder', job.reportDir, 'not cleaned because of errors.'))
+        output.error('Report folder', job.reportDir, 'not cleaned because of errors.')
       } else {
         await cleanDir(job.reportDir)
       }
@@ -34,7 +34,7 @@ async function capabilities (job) {
     try {
       await probe(job)
     } catch (e) {
-      output.wrap(() => console.error('Unable to probe'))
+      output.error('Unable to probe')
       exit(-1)
     }
 
@@ -91,7 +91,7 @@ async function capabilities (job) {
     const filteredTests = tests
       .filter((test) => !test.for || test.for(job.browserCapabilities))
       .filter(({ name }) => !job.debugCapabilitiesTest || name.startsWith(job.debugCapabilitiesTest))
-    output.wrap(() => console.log('Number of tests :', filteredTests.length))
+    output.log('Number of tests :', filteredTests.length)
 
     let errors = 0
 
@@ -131,13 +131,13 @@ async function capabilities (job) {
         await stop(job, pageUrl)
         const timeSpent = Math.floor(performance.now() - now)
         if (error) {
-          output.wrap(() => console.log('❌', label, `[${filename(pageUrl)}]`, error))
+          output.log('❌', label, `[${filename(pageUrl)}]`, error)
           if (job.failFast) {
             exit(1)
           }
           ++errors
         } else {
-          output.wrap(() => console.log('✔️ ', label, timeSpent, 'ms'))
+          output.log('✔️ ', label, timeSpent, 'ms')
         }
         resolve()
       }
@@ -177,10 +177,10 @@ async function capabilities (job) {
     job[$statusProgressCount] = 0
     await parallelize(task, filteredTests, parallel)
 
-    output.wrap(() => console.log('Done.'))
+    output.log('Done.')
     exit(errors)
   } catch (error) {
-    output.wrap(() => console.error(error))
+    output.error(error)
     exit(-1)
   }
 }

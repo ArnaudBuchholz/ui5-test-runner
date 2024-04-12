@@ -257,8 +257,6 @@ function build (job) {
     reportIntervalId: undefined,
     lines: 0,
 
-    wrap: wrap(callback => callback()),
-
     version: () => {
       const { name, version } = require(join(__dirname, '../package.json'))
       log(job, p80()`${name}@${version}`)
@@ -267,6 +265,14 @@ function build (job) {
     serving: url => {
       log(job, p80()`Server running at ${pad.lt(url)}`)
     },
+
+    log: wrap((...texts) => {
+      log(job, ...texts)
+    }),
+
+    error: wrap((...texts) => {
+      err(job, ...texts)
+    }),
 
     debug: (moduleSpecifier, ...args) => {
       const [mainModule] = moduleSpecifier.split('/')

@@ -39,49 +39,36 @@ const waitFor = (url, timeout = 10000) => new Promise((resolve, reject) => {
   loop()
 })
 
-const wrapAsPromise = method => () => {
-  if (!method.promise) {
-    method.promise = method()
+const serve = (label, port, parameters, cwd) => {
+  let promise
+  return () => {
+    if (!promise) {
+      const progress = newProgress(job, `🛜  ${label} (${port})`, 1, 0)
+      spawn(node, parameters, { cwd, stdio: [0, 'pipe', 'pipe'] })
+      promise = waitFor(`http://localhost:${port}`)
+        .then(() => {
+          progress.count = 1
+        })
+    }
+    return promise
   }
-  return method.promise
 }
 
-const ui5Serve = wrapAsPromise(() => {
-  const ui5 = join(root, 'node_modules/@ui5/cli/bin/ui5.cjs')
-  spawn(
-    node,
-    [ui5, 'serve', '--config', join(root, 'test/sample.js/ui5.yaml')],
-    {
-      stdio: [0, 'pipe', 'pipe']
-    }
-  )
-  return waitFor('http://localhost:8080')
-})
+const ui5Serve = serve('ui5 serve', 8080, [
+  join(root, 'node_modules/@ui5/cli/bin/ui5.cjs'), 'serve', '--config', join(root, 'test/sample.js/ui5.yaml')
+])
 
-const serveWithBasicAuthent = wrapAsPromise(() => {
-  const reserve = join(root, 'node_modules/reserve/index.js')
-  spawn(
-    node,
-    [reserve, '--silent', '--config', join(root, 'test/sample.js/reserve.json')],
-    {
-      stdio: [0, 'pipe', 'pipe']
-    }
-  )
-  return waitFor('http://localhost:8081')
-})
+const serveWithBasicAuthent = serve('reserve with basic-authent', 8081, [
+  join(root, 'node_modules/reserve/index.js'), '--silent', '--config', join(root, 'test/sample.js/reserve.json')
+])
 
-const ui5ServeTs = wrapAsPromise(() => {
-  const ui5 = join(root, 'test/sample.ts/ui5.cjs')
-  spawn(
-    node,
-    [ui5, 'serve'],
-    {
-      cwd: join(root, 'test/sample.ts'),
-      stdio: [0, 'pipe', 'pipe']
-    }
-  )
-  return waitFor('http://localhost:8082', 10000000)
-})
+const ui5ServeTs = serve('ui5 serve with transpiling', 8082, [
+  join(root, 'test/sample.ts/ui5.cjs'), 'serve'
+], join(root, 'test/sample.ts'))
+
+const ui5ServeTsWitCoverage = serve('ui5 serve with transpiling and coverage', 8083, [
+  join(root, 'test/sample.ts/ui5.cjs'), 'serve', '--config', 'ui5-coverage.yaml'
+], join(root, 'test/sample.ts'))
 
 let port = 8085
 
@@ -162,8 +149,8 @@ const tests = [{
 }, {
   id: 'TS_REMOTE_COVERAGE',
   label: 'Remote TS sample with coverage',
-  before: ui5ServeTs,
-  utr: '--url http://localhost:8082/test/testsuite.qunit.html --coverage --coverage-check-statements 67',
+  before: ui5ServeTsWitCoverage,
+  utr: '--url http://localhost:8083/test/testsuite.qunit.html --coverage --coverage-check-statements 67',
   tests: [qunitPages(2), coverage()]
 }].filter(({ id }) => {
   if (process.env.E2E_ONLY) {
@@ -173,6 +160,7 @@ const tests = [{
 })
 
 const job = {
+  reportDir: join(root, 'e2e'),
   [$statusProgressCount]: 0,
   [$statusProgressTotal]: tests.length,
   status: 'E2E testing',
@@ -187,7 +175,7 @@ async function test ({ before, label, utr, tests }) {
   progress.label = `${label} (${id})`
   progress.count = 1
   if (!interactive) {
-    output.wrap(() => console.log(`${label}...`))
+    output.log(`${label}...`)
   }
   if (before) {
     await before()
@@ -235,10 +223,10 @@ async function test ({ before, label, utr, tests }) {
       }
     })
     .then(() => {
-      output.wrap(() => console.log('✔️ ', progress.label))
+      output.log('✔️ ', progress.label)
     }, (reason) => {
       ++job.errors
-      output.wrap(() => console.log('❌', progress.label, reason))
+      output.log('❌', progress.label, reason)
     })
     .finally(() => {
       ++job[$statusProgressCount]
@@ -249,10 +237,15 @@ async function test ({ before, label, utr, tests }) {
 output.reportOnJobProgress()
 
 recreateDir(join(root, 'e2e'))
-  .then(() => parallelize(test, tests, 2))
+  .then(() => parallelize(test, tests, parseInt(process.env.E2E_PARALLEL || '2', 10)))
   .then(
     () => {
       output.stop()
+      if (job.errors !== 0) {
+        console.error('👎', job.errors, 'test(s) failed, check the corresponding logs.')
+      } else {
+        console.error('👍 all tests succeeded.')
+      }
       process.exit(job.errors)
     },
     error => {
