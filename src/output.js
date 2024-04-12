@@ -579,7 +579,9 @@ module.exports = {
     return job[$output]
   },
 
-  newProgress (job) {
-    return new Progress(job)
+  newProgress (job, label, total, count) {
+    const progress = new Progress(job)
+    Object.assign(progress, { label, total, count })
+    return progress
   }
 }
