@@ -10,16 +10,17 @@ module.exports = async ({
   const chrome = require(join(settings.modules['selenium-webdriver'], 'chrome'))
 
   const chromeOptions = new chrome.Options()
-  chromeOptions.excludeSwitches('enable-logging')
   if (!options.visible) {
-    chromeOptions.addArguments('headless')
+    chromeOptions.addArguments('--headless=new')
+    chromeOptions.addArguments('--log-level=3')
   }
-  chromeOptions.addArguments('start-maximized')
-  chromeOptions.addArguments('disable-extensions')
+  chromeOptions.addArguments('--start-maximized')
+  chromeOptions.addArguments('--disable-extensions')
   chromeOptions.setLoggingPrefs(loggingPreferences)
   if (options.binary) {
     chromeOptions.setChromeBinaryPath(options.binary)
   }
+  chromeOptions.excludeSwitches('--enable-logging')
 
   const builder = new Builder()
     .forBrowser(Browser.CHROME)
