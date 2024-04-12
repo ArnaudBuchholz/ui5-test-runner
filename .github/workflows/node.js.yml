@@ -30,6 +30,7 @@ jobs:
     - run: npm test
     - name: Archive E2E results
       uses: actions/upload-artifact@v4
+      if: always()
       with:
-        name: e2e-reports
+        name: e2e-reports-${{ matrix.node-version }}
         path: e2e/
