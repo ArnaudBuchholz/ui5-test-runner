@@ -28,9 +28,9 @@ jobs:
         cache: 'npm'
     - run: npm ci
     - run: npm test
-    - name: Archive E2E results
+    - name: Archive E2E results (on failure)
       uses: actions/upload-artifact@v4
-      if: always()
+      if: failure()
       with:
         name: e2e-reports-${{ matrix.node-version }}
         path: e2e/
