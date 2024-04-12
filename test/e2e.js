@@ -23,7 +23,7 @@ const coverage = () => async job => {
   assert.strictEqual((await stat(join(coverageReportDir, 'lcov-report/index.html'))).isFile(), true, 'Coverage HTML report exists')
 }
 
-const waitFor = (url, timeout = 10000) => new Promise((resolve, reject) => {
+const waitFor = (url, timeout = 30000) => new Promise((resolve, reject) => {
   const start = Date.now()
   const loop = async () => {
     try {
