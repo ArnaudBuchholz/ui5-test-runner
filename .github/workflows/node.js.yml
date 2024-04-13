@@ -5,8 +5,14 @@ name: Node.js CI
 
 on:
   push:
+    paths-ignore:
+      - 'docs/**'
+      - '.github/**'
     branches: [ main ]
   pull_request:
+    paths-ignore:
+      - 'docs/**'
+      - '.github/**'
     branches: [ main ]
 
 jobs:
