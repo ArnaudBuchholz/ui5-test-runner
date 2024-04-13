@@ -45,9 +45,10 @@ Check additional information below.
                                                browser) (default: true)
   --no-screenshot                              [💻🔗] Disable screenshots
   -st, --screenshot-timeout <timeout>          [💻🔗] Maximum waiting time for browser screenshot (default: 5000)
+  -so, --split-opa                             [💻🔗] Split OPA tests using QUnit modules (default: false)
   -rg, --report-generator <path...>            [💻🔗] Report generator paths (relative to cwd or use $/ for provided
                                                ones) (default: ["$/report.js"])
-  --progress-page <path>                       [💻🔗] progress page path (relative to cwd or use $/ for provided ones)
+  --progress-page <path>                       [💻🔗] Progress page path (relative to cwd or use $/ for provided ones)
                                                (default: "$/report/default.html")
   --coverage [flag]                            [💻🔗] Enable or disable code coverage
   --no-coverage                                [💻🔗] Disable code coverage
