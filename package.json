@@ -1,6 +1,6 @@
 {
   "name": "ui5-test-runner",
-  "version": "4.5.0",
+  "version": "4.5.1",
   "description": "Standalone test runner for UI5",
   "main": "index.js",
   "bin": {
@@ -50,7 +50,7 @@
     "reserve": "^1.15.9"
   },
   "devDependencies": {
-    "@openui5/types": "^1.122.1",
+    "@openui5/types": "^1.123.0",
     "@ui5/cli": "^3.9.2",
     "@ui5/middleware-code-coverage": "^1.1.1",
     "dotenv": "^16.4.5",
