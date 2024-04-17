@@ -101,7 +101,7 @@ const tests = [{
 }, {
   id: 'JS_LEGACY_COVERAGE',
   label: 'Legacy JS Sample with coverage',
-  utr: ['--cwd', join(root, './test/sample.js'), ...'--coverage --coverage-settings nyc.json --coverage-check-statements 67'.split(' ')],
+  utr: ['--cwd', join(root, './test/sample.js'), ...'--no-screenshot --coverage --coverage-settings nyc.json --coverage-check-statements 67'.split(' ')],
   tests: [qunitPages(2), coverage()]
 }, {
   id: 'JS_LEGACY_REMOTE',
@@ -113,7 +113,7 @@ const tests = [{
   label: 'Legacy JS Sample accessed using --url with coverage',
   utr: [
     '--cwd', join(root, './test/sample.js'), '--port', ++port, '--url', `http://localhost:${port}/test/testsuite.qunit.html`,
-    ...'--coverage --coverage-settings nyc.json --coverage-check-statements 67'.split(' ')
+    ...'--no-screenshot --coverage --coverage-settings nyc.json --coverage-check-statements 67'.split(' ')
   ],
   tests: [qunitPages(2), coverage()]
 }, {
@@ -132,7 +132,7 @@ const tests = [{
   id: 'JS_REMOTE_COVERAGE',
   label: 'Remote JS sample with coverage',
   before: ui5Serve,
-  utr: '--url http://localhost:8080/test/testsuite.qunit.html --coverage --coverage-check-statements 67',
+  utr: '--url http://localhost:8080/test/testsuite.qunit.html --no-screenshot --coverage --coverage-check-statements 67',
   tests: [qunitPages(2), coverage()]
 }, {
   id: 'JS_REMOTE_BASIC_AUTHENT',
@@ -150,7 +150,7 @@ const tests = [{
   id: 'TS_REMOTE_COVERAGE',
   label: 'Remote TS sample with coverage',
   before: ui5ServeTsWitCoverage,
-  utr: '--url http://localhost:8083/test/testsuite.qunit.html --coverage --coverage-check-statements 67',
+  utr: '--url http://localhost:8083/test/testsuite.qunit.html --no-screenshot --coverage --coverage-check-statements 67',
   tests: [qunitPages(2), coverage()]
 }].filter(({ id }) => {
   if (process.env.E2E_ONLY) {
