@@ -5,7 +5,7 @@ const { fork } = require('child_process')
 const { cleanDir, createDir, filename, download, allocPromise } = require('./tools')
 const { readdir, readFile, stat, writeFile, access, constants } = require('fs').promises
 const { Readable } = require('stream')
-const { getOutput } = require('./output')
+const { getOutput, newProgress } = require('./output')
 const { resolvePackage } = require('./npm')
 const { promisify } = require('util')
 const { UTRError } = require('./error')
@@ -64,7 +64,7 @@ async function instrument (job) {
   await cleanDir(job.coverageTempDir)
   await createDir(join(job.coverageTempDir, 'settings'))
   const settings = JSON.parse((await readFile(job.coverageSettings)).toString())
-  settings.cwd = job.cwd
+  settings.cwd = job.webapp
   if (!settings.exclude) {
     settings.exclude = []
   }
@@ -75,6 +75,7 @@ async function instrument (job) {
   settings.exclude.push(join(job.reportDir, '**'))
   settings.exclude.push(join(job.coverageReportDir, '**'))
   await writeFile(job[$nycSettingsPath], JSON.stringify(settings))
+  job.nycSettings = settings
   if (job.mode === 'url') {
     if (!job[$remoteOnLegacy]) {
       job[$coverageRemote] = true
@@ -107,8 +108,52 @@ async function getReadableSource (job, pathOrUrl) {
   } catch (e) {}
 }
 
+async function scanFs (path, onFolder, onFile) {
+  const items = await readdir(path)
+  await onFolder(items.length)
+  for (const item of items) {
+    const itemPath = join(path, item)
+    const itemStat = await stat(itemPath)
+    if (itemStat.isDirectory()) {
+      await scanFs(itemPath, onFolder, onFile)
+    } else {
+      await onFile(itemPath)
+    }
+  }
+}
+
+async function buildAllIndex (job) {
+  const output = getOutput(job)
+  output.debug('coverage', 'Build index for all files...')
+  const index = []
+  const progress = newProgress(job, 'Build index for all files', 1, 0)
+  // TODO when scanning over URL, regex to fetch files : <a href="([^"]+)" class="icon
+  await scanFs(
+    join(job.coverageTempDir, 'instrumented'),
+    count => {
+      progress.total += count
+      ++progress.count
+    },
+    async file => {
+      output.debug('coverage', file)
+      const source = (await readFile(file)).toString()
+      const coverageData = source
+        .match(/coverageData=({.*});/)[1]
+        .replace(/([^"])(\w+):/g, (_, before, name) => `${before}"${name}":`)
+      const [, coveragePath] = coverageData.match(/"path":"([^"]+)"/)
+      index.push(`"${coveragePath}": ${coverageData}`)
+      ++progress.count
+    }
+  )
+  await writeFile(join(job.coverageTempDir, 'all-index.json'), `{${index.join(',')}}`)
+  progress.done()
+}
+
 async function generateCoverageReport (job) {
   job.status = 'Generating coverage report'
+  if (job.nycSettings.all && !job[$remoteOnLegacy]) {
+    await buildAllIndex(job)
+  }
   const output = getOutput(job)
   output.debug('coverage', 'Generating coverage report...')
   await cleanDir(job.coverageReportDir)
