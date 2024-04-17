@@ -1,1 +1,1 @@
-console.log('not covered');
+console.log('not covered')
