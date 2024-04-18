@@ -101,7 +101,11 @@ const tests = [{
 }, {
   id: 'JS_LEGACY_COVERAGE',
   label: 'Legacy JS Sample with coverage',
-  utr: ['--cwd', join(root, './test/sample.js'), ...'--no-screenshot --coverage --coverage-settings nyc.json --coverage-check-statements 67'.split(' ')],
+  utr: [
+    '--cwd', join(root, './test/sample.js'),
+    '--coverage-settings', join(root, './test/sample.js/nyc.json'),
+    ...'--no-screenshot --coverage --coverage-settings nyc.json --coverage-check-statements 67'.split(' ')
+  ],
   tests: [qunitPages(2), coverage()]
 }, {
   id: 'JS_LEGACY_REMOTE',
@@ -158,6 +162,11 @@ const tests = [{
   }
   return process.env[`E2E_IGNORE_${id}`] !== 'true'
 })
+
+if (tests.length === 0) {
+  console.error('❌ No test to execute.')
+  process.exit(-1)
+}
 
 const job = {
   reportDir: join(root, 'e2e'),
