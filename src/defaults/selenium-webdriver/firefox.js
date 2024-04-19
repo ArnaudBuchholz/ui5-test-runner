@@ -4,15 +4,14 @@ module.exports = async ({
   seleniumWebdriver,
   settings,
   options,
-  loggingPreferences,
-  $capabilities
+  loggingPreferences
 }) => {
   const { Browser, Builder } = seleniumWebdriver
   const firefox = require(join(settings.modules['selenium-webdriver'], 'firefox'))
 
   const firefoxOptions = new firefox.Options()
   if (!options.visible) {
-    firefoxOptions.headless = true
+    firefoxOptions.addArguments('-headless')
   }
   firefoxOptions.setLoggingPrefs(loggingPreferences)
   if (options.binary) {
