@@ -7,7 +7,7 @@ const { writeFile } = require('fs/promises')
 let logging
 let driver
 
-function browser (value, defaultValue) {
+function browser (value) {
   if (value === undefined) {
     return 'chrome'
   }
