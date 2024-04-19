@@ -8,6 +8,8 @@ require('./browser')({
     name: 'puppeteer',
     options: [
       ['--visible [flag]', 'Show the browser', false],
+      ['--firefox [flag]', 'Use firefox instead of chrome', false],
+      ['--binary <binary>', 'Binary path'],
       ['-w, --viewport-width <width>', 'Viewport width', 1920],
       ['-h, --viewport-height <height>', 'Viewport height', 1080],
       ['-l, --language <lang...>', 'Language(s)', ['en-US']],
@@ -15,10 +17,13 @@ require('./browser')({
       ['--basic-auth-username <username>', 'Username for basic authentication', ''],
       ['--basic-auth-password <password>', 'Password for basic authentication', '']
     ],
-    capabilities: {
+  },
+
+  async capabilities ({ settings, options }) {
+    return {
       modules: ['puppeteer'],
       screenshot: '.png',
-      scripts: true,
+      scripts: !options.firefox,
       traces: ['console', 'network']
     }
   },
@@ -68,7 +73,14 @@ require('./browser')({
       )
     }
 
+    let product
+    if (options.firefox) {
+      product = 'firefox'
+    }
+
     browser = await puppeteer.launch({
+      product,
+      executablePath: options.binary,
       headless: options.visible ? false : 'new',
       defaultViewport: null,
       args
