@@ -11,7 +11,7 @@
 
 Browser selection is done by passing browser parameters. For instance :
 
-`ui5-test-runner --browser $/selenium-webdriver.js -- --browser chromium`
+`ui5-test-runner --browser $/playwright.js -- --browser chromium`
 
 Supported browsers :
 
