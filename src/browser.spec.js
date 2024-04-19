@@ -480,7 +480,7 @@ describe('src/browser', () => {
       })
       await start(job, '/test.html', ['whatever'])
       expect(config.scripts.length).toEqual(2)
-      expect(config.scripts[0]).toEqual('window[\'ui5-test-runner/base-host\'] = \'http://localhost:0\'\n')
+      expect(config.scripts[0]).toContain('window[\'ui5-test-runner/base-host\'] = \'http://localhost:0\'\n')
       expect(config.scripts[1]).toEqual('whatever')
     })
 

@@ -116,8 +116,9 @@ async function start (job, url, scripts = []) {
     }
   }
   if (resolvedScripts.length) {
-    resolvedScripts.unshift(`window['ui5-test-runner/base-host'] = 'http://localhost:${job.port}'
-`)
+    resolvedScripts.unshift(`(function () {
+  window['ui5-test-runner/base-host'] = 'http://localhost:${job.port}'
+}())`)
   }
   const progress = newProgress(job, url)
   const pageBrowser = {
