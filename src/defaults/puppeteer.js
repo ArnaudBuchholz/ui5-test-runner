@@ -16,14 +16,14 @@ require('./browser')({
       ['-u, --unsecure', 'Disable security features', false],
       ['--basic-auth-username <username>', 'Username for basic authentication', ''],
       ['--basic-auth-password <password>', 'Password for basic authentication', '']
-    ],
+    ]
   },
 
   async capabilities ({ settings, options }) {
     return {
       modules: ['puppeteer'],
       screenshot: '.png',
-      scripts: !options.firefox,
+      scripts: !options.firefox, // github[.]com/puppeteer/puppeteer/issues/6163
       traces: ['console', 'network']
     }
   },
