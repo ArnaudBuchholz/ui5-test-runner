@@ -82,7 +82,7 @@ Once the capabilities are known, the command is executed to run the tests. A dif
   "url": "https://ui5.sap.com/test-resources/sap/m/demokit/orderbrowser/webapp/test/testsuite.qunit.html",
   "retry": 0,
   "scripts": [
-    "window['ui5-test-runner/base-host'] = 'http://localhost:8081'\n",
+    "(function () { window['ui5-test-runner/base-host'] = 'http://localhost:8081' }())",
     "..."
   ],
   "dir": "~/report/4_hRtpsQ_mU",
