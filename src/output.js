@@ -364,7 +364,7 @@ function build (job) {
     },
 
     packageNotLatest (name, latestVersion) {
-      wrap(() => log(job, `/!\\ latest version of ${name} is ${latestVersion}`))()
+      wrap(() => log(job, `⚠️ latest version of ${name} is ${latestVersion}`))()
     },
 
     browserStart (url) {
