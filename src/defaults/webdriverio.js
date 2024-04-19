@@ -1,5 +1,7 @@
 'use strict'
 
+const { InvalidArgumentError } = require('commander')
+
 let browserio
 
 function browser (value) {
@@ -18,6 +20,7 @@ require('./browser')({
     options: [
       ['--visible [flag]', 'Show the browser', false],
       ['-b, --browser <name>', 'Browser driver', browser, 'chrome'],
+      ['--binary <binary>', 'Binary path']
     ]
   },
 
@@ -51,25 +54,26 @@ require('./browser')({
   }) {
     const { remote } = require(modules.webdriverio)
 
-    const capabilities = {
-      chrome: {
-        browserName: 'chrome',
-        webSocketUrl: true,
-        'goog:chromeOptions': {
-          args: options.visible ? [] : ['headless', 'disable-gpu']
-        }
-      },
-      firefox: {
-        browserName: 'firefox',
-        webSocketUrl: true,
-        'moz:firefoxOptions': {
-          args: options.visible ? [] : ['-headless']
-        }
-      }
-    }
+    const [browserOptions, args] = {
+      chrome: [
+        'goog:chromeOptions',
+        options.visible ? [] : ['headless', 'disable-gpu']
+      ],
+      firefox: [
+        'moz:firefoxOptions',
+        options.visible ? [] : ['-headless']
+      ]
+    }[options.browser]
 
     browserio = await remote({
-      capabilities: capabilities[options.browser]
+      capabilities: {
+        browserName: options.browser,
+        webSocketUrl: true,
+        [browserOptions]: {
+          args,
+          binary: options.binary
+        }
+      }
     })
 
     if (scripts && scripts.length) {
