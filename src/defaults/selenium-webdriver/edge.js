@@ -4,8 +4,7 @@ module.exports = async ({
   seleniumWebdriver,
   settings,
   options,
-  loggingPreferences,
-  $capabilities
+  loggingPreferences
 }) => {
   const { Browser, Builder } = seleniumWebdriver
   const edge = require(join(settings.modules['selenium-webdriver'], 'edge'))
