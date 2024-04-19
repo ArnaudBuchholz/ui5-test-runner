@@ -110,13 +110,17 @@ const tests = [{
 }, {
   id: 'JS_LEGACY_REMOTE',
   label: 'Legacy JS Sample accessed using --url',
-  utr: ['--cwd', join(root, './test/sample.js'), '--port', ++port, '--url', `http://localhost:${port}/test/testsuite.qunit.html`],
+  utr: [
+    '--cwd', join(root, './test/sample.js'),
+    '--port', ++port, '--url', `http://localhost:${port}/test/testsuite.qunit.html`],
   tests: [qunitPages(2)]
 }, {
   id: 'JS_LEGACY_REMOTE_COVERAGE',
   label: 'Legacy JS Sample accessed using --url with coverage',
   utr: [
-    '--cwd', join(root, './test/sample.js'), '--port', ++port, '--url', `http://localhost:${port}/test/testsuite.qunit.html`,
+    '--cwd', join(root, './test/sample.js'),
+    '--port', ++port,
+    '--url', `http://localhost:${port}/test/testsuite.qunit.html`,
     ...'--no-screenshot --coverage --coverage-settings nyc.json --coverage-check-statements 67'.split(' ')
   ],
   tests: [qunitPages(2), coverage()]
@@ -136,13 +140,21 @@ const tests = [{
   id: 'JS_REMOTE_COVERAGE',
   label: 'Remote JS sample with coverage',
   before: ui5Serve,
-  utr: '--url http://localhost:8080/test/testsuite.qunit.html --no-screenshot --coverage --coverage-check-statements 67',
+  utr: [
+    '--coverage-settings', join(root, './test/sample.js/nyc.json'),
+    ...'--url http://localhost:8080/test/testsuite.qunit.html --no-screenshot --coverage --coverage-check-statements 67'.split(' ')
+  ],
   tests: [qunitPages(2), coverage()]
 }, {
   id: 'JS_REMOTE_BASIC_AUTHENT',
   label: 'Remote JS sample with basic authent',
   before: serveWithBasicAuthent,
-  utr: '--url http://localhost:8081/test/testsuite.qunit.html --browser $/puppeteer.js --browser-args --basic-auth-username testUsername --browser-args --basic-auth-password testPassword',
+  utr: [
+    '--url http://localhost:8081/test/testsuite.qunit.html',
+    '--browser $/puppeteer.js',
+    '--browser-args --basic-auth-username testUsername',
+    '--browser-args --basic-auth-password testPassword'
+  ].join(' '),
   tests: [qunitPages(2)]
 }, {
   id: 'TS_REMOTE',
