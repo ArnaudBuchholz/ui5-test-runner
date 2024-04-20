@@ -3,7 +3,7 @@
 const { fork, spawn } = require('child_process')
 const { join } = require('path')
 const assert = require('assert/strict')
-const { stat } = require('fs/promises')
+const { stat, readFile } = require('fs/promises')
 require('dotenv').config()
 const parallelize = require('../src/parallelize')
 const { recreateDir, filename, allocPromise } = require('../src/tools')
@@ -17,10 +17,14 @@ if (only) {
 }
 
 const qunitPages = expectedCount => job => assert.strictEqual(Object.keys(job.qunitPages).length, expectedCount, 'Number of test pages')
-const coverage = () => async job => {
+const coverage = ({ uncoveredShouldBeReported } = {}) => async job => {
   const { coverageReportDir } = job
   assert.strictEqual((await stat(coverageReportDir)).isDirectory(), true, 'Coverage folder exists')
   assert.strictEqual((await stat(join(coverageReportDir, 'lcov-report/index.html'))).isFile(), true, 'Coverage HTML report exists')
+  if (uncoveredShouldBeReported) {
+    const lcov = (await readFile(join(coverageReportDir, 'lcov.info'))).toString()
+    assert.ok(lcov.match(/\bcontroller(\/|\\)uncovered\.js\b/), 'uncovered.js is reported')
+  }
 }
 
 const waitFor = (url, timeout = 30000) => new Promise((resolve, reject) => {
@@ -108,9 +112,9 @@ const tests = [{
   utr: [
     '--cwd', join(root, './test/sample.js'),
     '--coverage-settings', join(root, './test/sample.js/nyc.json'),
-    ...'--no-screenshot --coverage --coverage-settings nyc.json --coverage-check-statements 67'.split(' ')
+    ...'--no-screenshot --coverage --coverage-check-statements 65'.split(' ')
   ],
-  tests: [qunitPages(2), coverage()]
+  tests: [qunitPages(2), coverage({ uncoveredShouldBeReported: true })]
 }, {
   id: 'JS_LEGACY_REMOTE',
   label: 'Legacy JS Sample accessed using --url',
@@ -125,9 +129,10 @@ const tests = [{
     '--cwd', join(root, './test/sample.js'),
     '--port', ++port,
     '--url', `http://localhost:${port}/test/testsuite.qunit.html`,
-    ...'--no-screenshot --coverage --coverage-settings nyc.json --coverage-check-statements 67'.split(' ')
+    '--coverage-settings', join(root, './test/sample.js/nyc.json'),
+    ...'--no-screenshot --coverage --coverage-check-statements 65'.split(' ')
   ],
-  tests: [qunitPages(2), coverage()]
+  tests: [qunitPages(2), coverage({ uncoveredShouldBeReported: true })]
 }, {
   id: 'JS_REMOTE',
   label: 'Remote JS sample',

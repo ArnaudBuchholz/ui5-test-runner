@@ -151,7 +151,7 @@ async function buildAllIndex (job) {
 
 async function generateCoverageReport (job) {
   job.status = 'Generating coverage report'
-  if (job.nycSettings.all && !job[$remoteOnLegacy]) {
+  if (job.nycSettings.all && (job.mode === 'legacy' || job[$remoteOnLegacy])) {
     await buildAllIndex(job)
   }
   const output = getOutput(job)
