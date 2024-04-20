@@ -23,7 +23,7 @@ require('./browser')({
     return {
       modules: ['puppeteer'],
       screenshot: '.png',
-      scripts: !options.firefox, // github[.]com/puppeteer/puppeteer/issues/6163
+      scripts: !options.firefox,
       traces: ['console', 'network']
     }
   },
