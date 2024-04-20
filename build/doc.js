@@ -19,7 +19,7 @@ async function usage () {
 
 async function browser (name) {
   const browserDocPath = join(__dirname, `../docs/${name}.md`)
-  const browserDoc = (await readFile(browserDocPath)).toString()
+  const browserDoc = (await readFile(browserDocPath)).toString().replace(/\r\n/g, '\n')
   const { stdout } = await new Promise(resolve =>
     execFile(
       node,
@@ -28,10 +28,10 @@ async function browser (name) {
     )
   )
   const [, reducedHelp] = stdout.match(/Options:\n((?:.|\n)*)/m)
-  await writeFile(browserDocPath, browserDoc
-    .replace(/## Options[^#]+/, '## Options\n```text\n' + reducedHelp + '```\n\n')
-    .replace(/\r\n/g, '\n')
-  )
+  const newBrowserDoc = browserDoc.replace(/## Options[^#]+/, '## Options\n```text\n' + reducedHelp + '```\n\n')
+  if (browserDoc !== newBrowserDoc) {
+    await writeFile(browserDocPath, newBrowserDoc)
+  }
 }
 
 async function main () {
@@ -41,7 +41,8 @@ async function main () {
     browser('puppeteer'),
     browser('playwright'),
     browser('selenium-webdriver'),
-    browser('jsdom')
+    browser('jsdom'),
+    browser('webdriverio')
   ])
 }
 
