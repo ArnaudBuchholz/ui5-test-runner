@@ -89,6 +89,10 @@ const tests = [{
   label: 'Playwright browser',
   utr: '--debug-keep-report --capabilities --browser $/playwright.js'
 }, {
+  id: 'WEBDRIVERIO',
+  label: 'Webdriver.io browser',
+  utr: '--debug-keep-report --capabilities --browser $/webdriverio.js'
+}, {
   id: 'JS_LEGACY',
   label: 'Legacy JS Sample',
   utr: ['--cwd', join(root, './test/sample.js')],

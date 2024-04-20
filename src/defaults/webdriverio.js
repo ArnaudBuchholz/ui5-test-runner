@@ -57,7 +57,7 @@ require('./browser')({
     const [browserOptions, args] = {
       chrome: [
         'goog:chromeOptions',
-        options.visible ? [] : ['headless', 'disable-gpu']
+        options.visible ? [] : ['--headless=new', '--log-level=3', '--disable-gpu']
       ],
       firefox: [
         'moz:firefoxOptions',
