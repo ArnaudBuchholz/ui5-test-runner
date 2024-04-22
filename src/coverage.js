@@ -102,7 +102,12 @@ async function getReadableSource (job, pathOrUrl) {
   try {
     // Assuming all files are coming from the same server
     const { origin } = new URL(job.testPageUrls[0])
-    const filePath = join(job.coverageTempDir, 'sources', pathOrUrl)
+    if (!job.coverageSourceDir) {
+      job.coverageSourceDir = join(job.coverageTempDir, 'sources')
+      job.nycSettings.cwd = job.coverageSourceDir
+      await writeFile(job[$nycSettingsPath], JSON.stringify(job.nycSettings))
+    }
+    const filePath = join(job.coverageSourceDir, pathOrUrl)
     await download(origin + pathOrUrl, filePath)
     return filePath
   } catch (e) {}
