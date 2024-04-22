@@ -61,7 +61,7 @@
     "standard": "^17.1.0",
     "start-server-and-test": "^2.0.3",
     "typescript": "^5.4.5",
-    "ui5-tooling-transpile": "^3.3.7"
+    "ui5-tooling-transpile": "^3.4.0"
   },
   "optionalDependencies": {
     "fsevents": "^2.3.3"
