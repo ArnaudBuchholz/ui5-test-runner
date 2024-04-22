@@ -182,8 +182,17 @@ const tests = [{
   utr: '--url http://localhost:8082/test/testsuite.qunit.html',
   checks: [qunitPages(2)]
 }, {
+  id: 'TS_REMOTE_COVERAGE_MAPPED',
+  label: 'Remote TS sample with coverage (with local mapping)',
+  before: ui5ServeTsWitCoverage,
+  utr: [
+    '--cwd', join(root, './test/sample.ts'),
+    ...'--url http://localhost:8083/test/testsuite.qunit.html --no-screenshot --coverage --coverage-check-statements 67'.split(' ')
+  ],
+  checks: [qunitPages(2), coverage()]
+}, {
   id: 'TS_REMOTE_COVERAGE',
-  label: 'Remote TS sample with coverage',
+  label: 'Remote TS sample with coverage (no local mapping)',
   before: ui5ServeTsWitCoverage,
   utr: '--url http://localhost:8083/test/testsuite.qunit.html --no-screenshot --coverage --coverage-check-statements 67',
   checks: [qunitPages(2), coverage()]
