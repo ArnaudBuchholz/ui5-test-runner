@@ -208,14 +208,8 @@ const job = {
 }
 const output = getOutput(job)
 
-async function test ({ before, label, utr, checks }) {
+async function test ({ id, before, label, utr, checks }) {
   const progress = newProgress(job)
-  let id
-  if (tests.length > 1) {
-    id = filename(label)
-  } else {
-    id = 'test'
-  }
   const reportDir = join(root, 'e2e', id)
   progress.label = `${label} (${id})`
   progress.count = 1
