@@ -47,7 +47,7 @@ const serve = (label, port, parameters, cwd) => {
   let promise
   return () => {
     if (!promise) {
-      const progress = newProgress(job, `🛜  ${label} (${port})`, 1, 0)
+      const progress = newProgress(job, `🖧  ${label} (${port})`, 1, 0)
       spawn(node, parameters, { cwd, stdio: [0, 'pipe', 'pipe'] })
       promise = waitFor(`http://localhost:${port}`)
         .then(() => {
@@ -100,12 +100,12 @@ const tests = [{
   id: 'JS_LEGACY',
   label: 'Legacy JS Sample',
   utr: ['--cwd', join(root, './test/sample.js')],
-  tests: [qunitPages(2)]
+  checks: [qunitPages(2)]
 }, {
   id: 'JS_LEGACY_SPLIT',
   label: 'Legacy JS Sample with OPA split',
   utr: ['--cwd', join(root, './test/sample.js'), '--split-opa'],
-  tests: [qunitPages(3)]
+  checks: [qunitPages(3)]
 }, {
   id: 'JS_LEGACY_COVERAGE',
   label: 'Legacy JS Sample with coverage',
@@ -114,14 +114,14 @@ const tests = [{
     '--coverage-settings', join(root, './test/sample.js/nyc.json'),
     ...'--no-screenshot --coverage --coverage-check-statements 65'.split(' ')
   ],
-  tests: [qunitPages(2), coverage({ uncoveredShouldBeReported: true })]
+  checks: [qunitPages(2), coverage({ uncoveredShouldBeReported: true })]
 }, {
   id: 'JS_LEGACY_REMOTE',
   label: 'Legacy JS Sample accessed using --url',
   utr: [
     '--cwd', join(root, './test/sample.js'),
     '--port', ++port, '--url', `http://localhost:${port}/test/testsuite.qunit.html`],
-  tests: [qunitPages(2)]
+  checks: [qunitPages(2)]
 }, {
   id: 'JS_LEGACY_REMOTE_COVERAGE',
   label: 'Legacy JS Sample accessed using --url with coverage',
@@ -132,28 +132,38 @@ const tests = [{
     '--coverage-settings', join(root, './test/sample.js/nyc.json'),
     ...'--no-screenshot --coverage --coverage-check-statements 65'.split(' ')
   ],
-  tests: [qunitPages(2), coverage({ uncoveredShouldBeReported: true })]
+  checks: [qunitPages(2), coverage({ uncoveredShouldBeReported: true })]
 }, {
   id: 'JS_REMOTE',
   label: 'Remote JS sample',
   before: ui5Serve,
   utr: '--url http://localhost:8080/test/testsuite.qunit.html',
-  tests: [qunitPages(2)]
+  checks: [qunitPages(2)]
 }, {
   id: 'JS_REMOTE_SPLIT',
   label: 'Remote JS sample with OPA split',
   before: ui5Serve,
   utr: '--url http://localhost:8080/test/testsuite.qunit.html --split-opa',
-  tests: [qunitPages(3)]
+  checks: [qunitPages(3)]
+}, {
+  id: 'JS_REMOTE_COVERAGE_MAPPED',
+  label: 'Remote JS sample with coverage (with local mapping)',
+  before: ui5Serve,
+  utr: [
+    '--cwd', join(root, './test/sample.js'),
+    '--coverage-settings', join(root, './test/sample.js/nyc.json'),
+    ...'--url http://localhost:8080/test/testsuite.qunit.html --no-screenshot --coverage --coverage-check-statements 67'.split(' ')
+  ],
+  checks: [qunitPages(2), coverage()] // TODO { uncoveredShouldBeReported: true }
 }, {
   id: 'JS_REMOTE_COVERAGE',
-  label: 'Remote JS sample with coverage',
+  label: 'Remote JS sample with coverage (no local mapping)',
   before: ui5Serve,
   utr: [
     '--coverage-settings', join(root, './test/sample.js/nyc.json'),
     ...'--url http://localhost:8080/test/testsuite.qunit.html --no-screenshot --coverage --coverage-check-statements 67'.split(' ')
   ],
-  tests: [qunitPages(2), coverage()]
+  checks: [qunitPages(2), coverage()] // TODO { uncoveredShouldBeReported: true }
 }, {
   id: 'JS_REMOTE_BASIC_AUTHENT',
   label: 'Remote JS sample with basic authent',
@@ -164,19 +174,19 @@ const tests = [{
     '--browser-args --basic-auth-username testUsername',
     '--browser-args --basic-auth-password testPassword'
   ].join(' '),
-  tests: [qunitPages(2)]
+  checks: [qunitPages(2)]
 }, {
   id: 'TS_REMOTE',
   label: 'Remote TS sample',
   before: ui5ServeTs,
   utr: '--url http://localhost:8082/test/testsuite.qunit.html',
-  tests: [qunitPages(2)]
+  checks: [qunitPages(2)]
 }, {
   id: 'TS_REMOTE_COVERAGE',
   label: 'Remote TS sample with coverage',
   before: ui5ServeTsWitCoverage,
   utr: '--url http://localhost:8083/test/testsuite.qunit.html --no-screenshot --coverage --coverage-check-statements 67',
-  tests: [qunitPages(2), coverage()]
+  checks: [qunitPages(2), coverage()]
 }].filter(({ id }) => {
   if (process.env.E2E_ONLY) {
     return id === process.env.E2E_ONLY
@@ -198,9 +208,14 @@ const job = {
 }
 const output = getOutput(job)
 
-async function test ({ before, label, utr, tests }) {
+async function test ({ before, label, utr, checks }) {
   const progress = newProgress(job)
-  const id = filename(label)
+  let id
+  if (tests.length > 1) {
+    id = filename(label)
+  } else {
+    id = 'test'
+  }
   const reportDir = join(root, 'e2e', id)
   progress.label = `${label} (${id})`
   progress.count = 1
@@ -245,10 +260,10 @@ async function test ({ before, label, utr, tests }) {
   })
   return promise
     .then(async () => {
-      if (tests) {
+      if (checks) {
         const job = require(join(reportDir, 'job.js'))
-        for (const test of tests) {
-          await test(job)
+        for (const check of checks) {
+          await check(job)
         }
       }
     })
