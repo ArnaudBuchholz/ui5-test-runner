@@ -6,15 +6,12 @@ const assert = require('assert/strict')
 const { stat, readFile } = require('fs/promises')
 require('dotenv').config()
 const parallelize = require('../src/parallelize')
-const { recreateDir, filename, allocPromise } = require('../src/tools')
+const { recreateDir, allocPromise } = require('../src/tools')
 const { interactive, getOutput, newProgress } = require('../src/output')
 const { $statusProgressCount, $statusProgressTotal } = require('../src/symbols')
 
 const root = join(__dirname, '..')
-const [node,, only] = process.argv
-if (only) {
-  process.env.E2E_ONLY = only
-}
+const [node,, ...only] = process.argv
 
 const qunitPages = expectedCount => job => assert.strictEqual(Object.keys(job.qunitPages).length, expectedCount, 'Number of test pages')
 const coverage = ({ uncoveredShouldBeReported } = {}) => async job => {
@@ -197,8 +194,8 @@ const tests = [{
   utr: '--url http://localhost:8083/test/testsuite.qunit.html --no-screenshot --coverage --coverage-check-statements 67',
   checks: [qunitPages(2), coverage()]
 }].filter(({ id }) => {
-  if (process.env.E2E_ONLY) {
-    return id === process.env.E2E_ONLY
+  if (only.length) {
+    return only.includes(id)
   }
   return process.env[`E2E_IGNORE_${id}`] !== 'true'
 })
