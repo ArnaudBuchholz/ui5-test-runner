@@ -99,6 +99,19 @@ const tests = [{
   utr: ['--cwd', join(root, './test/sample.js')],
   checks: [qunitPages(2)]
 }, {
+  id: 'JS_LEGACY_JUNIT_REPORT',
+  label: 'Legacy JS Sample with junit XML report',
+  utr: [
+    '--cwd', join(root, './test/sample.js'),
+    ...'--report-generator $/report.js $/junit-xml-report.js'.split(' ')
+  ],
+  checks: [
+    qunitPages(2),
+    async job => {
+      assert.strictEqual((await stat(join(job.reportDir, 'junit.xml'))).isFile(), true, 'junit XML report exists')
+    }
+  ]
+}, {
   id: 'JS_LEGACY_SPLIT',
   label: 'Legacy JS Sample with OPA split',
   utr: ['--cwd', join(root, './test/sample.js'), '--split-opa'],

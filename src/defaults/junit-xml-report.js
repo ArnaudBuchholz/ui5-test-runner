@@ -39,7 +39,8 @@ async function main () {
           time = (new Date(test.end) - new Date(test.start)) / 1000
         }
         o(`    <testcase
-      name="${xmlEscape(test.name)}" ${
+      name="${xmlEscape(test.name)}"
+      classname="${xmlEscape(module.name)}" ${
         time === undefined
         ? ''
         : `
