@@ -102,9 +102,9 @@ async function buildAllIndex (job) {
     }
   }
 
-  async function scanUi5 () {
-    // TODO when scanning over URL, regex to fetch files : <a href="([^"]+)" class="icon
-  }
+  // async function scanUi5 () {
+  //   // TODO when scanning over URL, regex to fetch files : <a href="([^"]+)" class="icon
+  // }
 
   const output = getOutput(job)
   output.debug('coverage', 'Build index for all files...')
@@ -130,31 +130,31 @@ async function buildAllIndex (job) {
   progress.done()
 }
 
-async function checkAllSourcesAreAvailable (job, coverageFilename) {
-  async function getReadableSource (job, pathOrUrl) {
-    if (isAbsolute(pathOrUrl)) {
-      try {
-        await access(pathOrUrl, constants.R_OK)
-        return pathOrUrl
-      } catch (e) {}
-    }
+async function getReadableSource (job, pathOrUrl) {
+  if (isAbsolute(pathOrUrl)) {
     try {
-      const filePath = join(job.webapp, pathOrUrl)
-      await access(filePath, constants.R_OK)
-      return filePath
-    } catch (e) {}
-    try {
-      // Assuming all files are coming from the same server
-      const { origin } = new URL(job.testPageUrls[0])
-      if (!job.coverageSourceDir) {
-        job.coverageSourceDir = join(job.coverageTempDir, 'sources')
-      }
-      const filePath = join(job.coverageSourceDir, pathOrUrl)
-      await download(origin + pathOrUrl, filePath)
-      return filePath
+      await access(pathOrUrl, constants.R_OK)
+      return pathOrUrl
     } catch (e) {}
   }
+  try {
+    const filePath = join(job.webapp, pathOrUrl)
+    await access(filePath, constants.R_OK)
+    return filePath
+  } catch (e) {}
+  try {
+    // Assuming all files are coming from the same server
+    const { origin } = new URL(job.testPageUrls[0])
+    if (!job.coverageSourceDir) {
+      job.coverageSourceDir = join(job.coverageTempDir, 'sources')
+    }
+    const filePath = join(job.coverageSourceDir, pathOrUrl)
+    await download(origin + pathOrUrl, filePath)
+    return filePath
+  } catch (e) {}
+}
 
+async function checkAllSourcesAreAvailable (job, coverageFilename) {
   const output = getOutput(job)
   job.status = 'Checking remote source files'
   output.debug('coverage', 'Checking remote source files...')
