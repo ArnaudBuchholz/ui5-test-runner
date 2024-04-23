@@ -87,61 +87,37 @@ async function instrument (job) {
   await nyc(job, 'instrument', job.webapp, join(job.coverageTempDir, 'instrumented'), '--nycrc-path', job[$nycSettingsPath])
 }
 
-async function getReadableSource (job, pathOrUrl) {
-  if (isAbsolute(pathOrUrl)) {
-    try {
-      await access(pathOrUrl, constants.R_OK)
-      return pathOrUrl
-    } catch (e) {}
-  }
-  try {
-    const filePath = join(job.webapp, pathOrUrl)
-    await access(filePath, constants.R_OK)
-    return filePath
-  } catch (e) {}
-  try {
-    // Assuming all files are coming from the same server
-    const { origin } = new URL(job.testPageUrls[0])
-    if (!job.coverageSourceDir) {
-      job.coverageSourceDir = join(job.coverageTempDir, 'sources')
-      job.nycSettings.cwd = job.coverageSourceDir
-      await writeFile(job[$nycSettingsPath], JSON.stringify(job.nycSettings))
-    }
-    const filePath = join(job.coverageSourceDir, pathOrUrl)
-    await download(origin + pathOrUrl, filePath)
-    return filePath
-  } catch (e) {}
-}
-
-async function scanFs (path, onFolder, onFile) {
-  const items = await readdir(path)
-  await onFolder(items.length)
-  for (const item of items) {
-    const itemPath = join(path, item)
-    const itemStat = await stat(itemPath)
-    if (itemStat.isDirectory()) {
-      await scanFs(itemPath, onFolder, onFile)
-    } else {
-      await onFile(itemPath)
-    }
-  }
-}
-
 async function buildAllIndex (job) {
+  async function scanFs (path, onFolder, onFile) {
+    const items = await readdir(path)
+    await onFolder(items.length)
+    for (const item of items) {
+      const itemPath = join(path, item)
+      const itemStat = await stat(itemPath)
+      if (itemStat.isDirectory()) {
+        await scanFs(itemPath, onFolder, onFile)
+      } else {
+        await onFile(itemPath, (await readFile(itemPath)).toString())
+      }
+    }
+  }
+
+  async function scanUi5 () {
+    // TODO when scanning over URL, regex to fetch files : <a href="([^"]+)" class="icon
+  }
+  
   const output = getOutput(job)
   output.debug('coverage', 'Build index for all files...')
   const index = []
   const progress = newProgress(job, 'Build index for all files', 1, 0)
-  // TODO when scanning over URL, regex to fetch files : <a href="([^"]+)" class="icon
   await scanFs(
     join(job.coverageTempDir, 'instrumented'),
     count => {
       progress.total += count
       ++progress.count
     },
-    async file => {
+    async (file, source) => {
       output.debug('coverage', file)
-      const source = (await readFile(file)).toString()
       const coverageData = source
         .match(/coverageData=({.*});/)[1]
         .replace(/([^"])(\w+):/g, (_, before, name) => `${before}"${name}":`)
@@ -152,6 +128,52 @@ async function buildAllIndex (job) {
   )
   await writeFile(join(job.coverageTempDir, 'all-index.json'), `{${index.join(',')}}`)
   progress.done()
+}
+
+async function getAllSources (job, coverageFilename) {
+  async function getReadableSource (job, pathOrUrl) {
+    if (isAbsolute(pathOrUrl)) {
+      try {
+        await access(pathOrUrl, constants.R_OK)
+        return pathOrUrl
+      } catch (e) {}
+    }
+    try {
+      const filePath = join(job.webapp, pathOrUrl)
+      await access(filePath, constants.R_OK)
+      return filePath
+    } catch (e) {}
+    try {
+      // Assuming all files are coming from the same server
+      const { origin } = new URL(job.testPageUrls[0])
+      if (!job.coverageSourceDir) {
+        job.coverageSourceDir = join(job.coverageTempDir, 'sources')
+        job.nycSettings.cwd = job.coverageSourceDir
+        await writeFile(job[$nycSettingsPath], JSON.stringify(job.nycSettings))
+      }
+      const filePath = join(job.coverageSourceDir, pathOrUrl)
+      await download(origin + pathOrUrl, filePath)
+      return filePath
+    } catch (e) {}
+  }
+
+  const output = getOutput(job)
+  job.status = 'Checking remote source files'
+  output.debug('coverage', 'Checking remote source files...')
+  const coverageData = require(coverageFilename)
+  const filenames = Object.keys(coverageData)
+  let changes = 0
+  for (const filename of filenames) {
+    const fileData = coverageData[filename]
+    const filePath = await getReadableSource(job, fileData.path)
+    if (filePath && filePath !== fileData.path) {
+      fileData.path = filePath
+      ++changes
+    }
+  }
+  if (changes > 0) {
+    await writeFile(coverageFilename, JSON.stringify(coverageData))
+  }
 }
 
 async function generateCoverageReport (job) {
@@ -167,22 +189,7 @@ async function generateCoverageReport (job) {
   const coverageFilename = join(coverageMergedDir, 'coverage.json')
   await nyc(job, 'merge', job.coverageTempDir, coverageFilename)
   if (job[$coverageRemote] && !job.coverageProxy) {
-    job.status = 'Checking remote source files'
-    output.debug('coverage', 'Checking remote source files...')
-    const coverageData = require(coverageFilename)
-    const filenames = Object.keys(coverageData)
-    let changes = 0
-    for (const filename of filenames) {
-      const fileData = coverageData[filename]
-      const filePath = await getReadableSource(job, fileData.path)
-      if (filePath && filePath !== fileData.path) {
-        fileData.path = filePath
-        ++changes
-      }
-    }
-    if (changes > 0) {
-      await writeFile(coverageFilename, JSON.stringify(coverageData))
-    }
+    await getAllSources(job, coverageFilename)
   }
   const reporters = job.coverageReporters.map(reporter => `--reporter=${reporter}`)
   if (!job.coverageReporters.includes('text')) {
