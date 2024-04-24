@@ -34,18 +34,15 @@ A self-sufficient test runner for UI5 applications enabling parallel execution o
 
 ## ⚠️ Breaking changes
 
-### v4
-* Dropping support of Node.js 16
-
-### v3
-* Dropping support of Node.js 14
-
-### v2
-
-* Command line **parameters** as well as configuration file **syntax** have changed
-* Dependencies are installed **on demand**
-* Browser instantiation command evolved in an **incompatible way** (see [documentation](https://arnaudbuchholz.github.io/ui5-test-runner/browser.html)).
-* Output is different (report, traces)
+| Version | Reason | 
+|-|-|
+| **5**.0.0 | • Some coverage reports now includes **all** files, leading to a potential decrease of coverage |
+| **4**.0.0 | • Drop support of Node.js 16 |
+| **3**.0.0 | • Drop support of Node.js 14 |
+| **2**.0.0 | • Command line **parameters** as well as configuration file **syntax** have changed |
+|| • Dependencies are installed **on demand** |
+|| • Browser instantiation command evolved in an **incompatible way** (see [documentation](https://arnaudbuchholz.github.io/ui5-test-runner/browser.html)) |
+|| • Output is different (report, traces) |
 
 ## ✒ Contributors
 
