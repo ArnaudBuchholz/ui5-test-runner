@@ -25,5 +25,4 @@ server:
         coverageGlobalScope: "window.top"
         coverageGlobalScopeFunc: false
       excludePatterns:
-        - "test/"
         - "resources/"
