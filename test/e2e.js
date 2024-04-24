@@ -208,7 +208,15 @@ const tests = [{
   checks: [qunitPages(2), coverage()]
 }].filter(({ id }) => {
   if (only.length) {
-    return only.includes(id)
+    if (only.includes(id)) {
+      return true
+    }
+    return only.some(pattern => {
+      if (pattern.includes('*')) {
+        return new RegExp(pattern.replace(/\*/g, '.*')).test(id)
+      }
+      return false
+    })
   }
   return process.env[`E2E_IGNORE_${id}`] !== 'true'
 })
