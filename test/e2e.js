@@ -162,18 +162,18 @@ const tests = [{
   utr: [
     '--cwd', join(root, './test/sample.js'),
     '--coverage-settings', join(root, './test/sample.js/nyc.json'),
-    ...'--url http://localhost:8080/test/testsuite.qunit.html --no-screenshot --coverage --coverage-check-statements 67'.split(' ')
+    ...'--url http://localhost:8080/test/testsuite.qunit.html --no-screenshot --coverage --coverage-check-statements 65'.split(' ')
   ],
-  checks: [qunitPages(2), coverage()] // TODO { uncoveredShouldBeReported: true }
+  checks: [qunitPages(2), coverage({ uncoveredShouldBeReported: true })]
 }, {
   id: 'JS_REMOTE_COVERAGE',
   label: 'Remote JS sample with coverage (no local mapping)',
   before: ui5Serve,
   utr: [
     '--coverage-settings', join(root, './test/sample.js/nyc.json'),
-    ...'--url http://localhost:8080/test/testsuite.qunit.html --no-screenshot --coverage --coverage-check-statements 67'.split(' ')
+    ...'--url http://localhost:8080/test/testsuite.qunit.html --no-screenshot --coverage --coverage-check-statements 65'.split(' ')
   ],
-  checks: [qunitPages(2), coverage()] // TODO { uncoveredShouldBeReported: true }
+  checks: [qunitPages(2), coverage({ uncoveredShouldBeReported: true })]
 }, {
   id: 'JS_REMOTE_BASIC_AUTHENT',
   label: 'Remote JS sample with basic authent',

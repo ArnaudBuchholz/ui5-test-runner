@@ -102,30 +102,76 @@ async function buildAllIndex (job) {
     }
   }
 
-  // async function scanUi5 () {
-  //   // TODO when scanning over URL, regex to fetch files : <a href="([^"]+)" class="icon
-  // }
+  async function scanRemote (url, onFolder, onFile) {
+    if (url.match(/\/((?:test-)?resources\/.*)/)) {
+      return // ignore UI5 resources
+    }
+    const html = await (await fetch(url)).text()
+    const items = [...html.matchAll(/<a href="([^"]+)" class="icon/ig)].map(([_, item]) => item)
+    await onFolder(items.length)
+    for (const item of items) {
+      const itemUrl = new URL(item, url).toString()
+      if (item.endsWith('/')) {
+        await scanRemote(itemUrl, onFolder, onFile)
+      } else {
+        // TODO need to filter according to nyc.json
+        // TODO need to add ?instrumented=true
+        await onFile(itemUrl, await (await fetch(itemUrl + '?instrument=true')).text())
+      }
+    }
+  }
 
   const output = getOutput(job)
   output.debug('coverage', 'Build index for all files...')
   const index = []
   const progress = newProgress(job, 'Build index for all files', 1, 0)
-  await scanFs(
-    join(job.coverageTempDir, 'instrumented'),
+  let scan
+  let start
+  if (job.mode === 'legacy' || job[$remoteOnLegacy]) {
+    scan = scanFs
+    start = join(job.coverageTempDir, 'instrumented')
+  } else {
+    scan = scanRemote
+    // Assuming all files are coming from the same server
+    const { origin } = new URL(job.url[0])
+    start = origin
+  }
+
+  await scan(
+    start,
     count => {
       progress.total += count
       ++progress.count
     },
     async (file, source) => {
-      output.debug('coverage', file)
-      const coverageData = source
-        .match(/coverageData=({.*});/)[1]
-        .replace(/([^"])(\w+):/g, (_, before, name) => `${before}"${name}":`)
-      const [, coveragePath] = coverageData.match(/"path":"([^"]+)"/)
-      index.push(`"${coveragePath}": ${coverageData}`)
+      if (file.endsWith('.js') || file.endsWith('.ts')) {
+        output.debug('coverage', file)
+        try {
+          const coverageData = source
+            .match(/coverageData=({.*});/)[1]
+            .replace(/([^"])(\w+):/g, (_, before, name) => `${before}"${name}":`)
+          const [, coveragePath] = coverageData.match(/"path":"([^"]+)"/)
+          const UNDEFINED = '__undefined__'
+          const validatedCoverageData = JSON.stringify(
+            JSON.parse(coverageData.replace(/\bundefined\b/g, `"${UNDEFINED}"`)),
+            (key, value) => {
+              if (value === UNDEFINED) {
+                return undefined
+              }
+              return value
+            }
+          )
+          index.push(`"${coveragePath}": ${validatedCoverageData}`)
+        } catch (e) {
+          // TODO signal issue ?
+        }
+      }
       ++progress.count
     }
   )
+  if (index.length === 0) {
+    // TODO warn about no coverage info available
+  }
   await writeFile(join(job.coverageTempDir, 'all-index.json'), `{${index.join(',')}}`)
   progress.done()
 }
@@ -190,7 +236,7 @@ async function checkAllSourcesAreAvailable (job, coverageFilename) {
 
 async function generateCoverageReport (job) {
   job.status = 'Generating coverage report'
-  if (job.nycSettings.all && (job.mode === 'legacy' || job[$remoteOnLegacy])) {
+  if (job.nycSettings.all) {
     await buildAllIndex(job)
   }
   const output = getOutput(job)
