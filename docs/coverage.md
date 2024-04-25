@@ -47,13 +47,30 @@ When all the test pages are executed, the coverage report is generated using two
 * `nyc merge` to merge the different coverage reports in a single one,
 * `nyc report` to generate the report.
 
+## `nyc.json`
+
+Coverage settings are specified through a `nyc.json` file, available options are described [here](https://github.com/istanbuljs/nyc?tab=readme-ov-file#common-configuration-options).
+
+The runner provides a minimal configuration file with :
+```json
+{
+  "all": true,
+  "sourceMap": false
+}
+```
+
+The `all` option, when set, significantly impacts the coverage report. It forces the runner to scan the project to discover all files :
+
+* In `legacy` mode, the runner is responsible of instrumentating the sources. Hence it is almost seamless. 
+* However, in `remote` mode, a **scanner** is required to discover and fetch instrumented files from the remote repository. A default scanner is provided for `@ui5/cli` served projects (`$/scan-ui5.js`).
+
 ## Legacy mode
 
 In this mode, source files are directly manipulated by `ui5-test-runner`.
 
 ## Remote mode
 
-It is possible to extract code coverage using the remote mode.
+It is possible to extract code coverage using the `remote` mode.
 
 ### JavaScript `@ui5/cli` projects : `@ui5/middleware-code-coverage`
 
@@ -80,7 +97,6 @@ server:
         coverageGlobalScope: "window.top"
         coverageGlobalScopeFunc: false
       excludePatterns:
-        - "test/"
         - "resources/"
 ```
 
