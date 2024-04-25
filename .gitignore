@@ -35,3 +35,6 @@ test/**/report/
 !test/report/
 .utr-capabilities/
 test/report/report.html
+
+# IDE
+.vscode/
