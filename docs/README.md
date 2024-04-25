@@ -4,7 +4,7 @@
 
 A self-sufficient test runner for UI5 applications enabling parallel execution of tests.
 
-* Serve the application with `@ui5/cli`, then run : <br/> `ui5-test-runner --port 8081 --url http://localhost:8080/test/testsuite.qunit.html`,
+* Serve the application with `@ui5/cli`, then run : <br/> `ui5-test-runner --port 8081 --url http://localhost:8080/test/testsuite.qunit.html`,
 
 * Follow the progress of the tests using [`http://localhost:8081/_/progress.html`](http://localhost:8081/_/progress.html),
 
@@ -21,6 +21,7 @@ A self-sufficient test runner for UI5 applications enabling parallel execution o
 * [Coverage extraction](coverage.md)
 * [Serving and testing the application *(a.k.a. legacy mode)*](legacy.md)
 * [Configuration file](configuration.md)
+* [⚠️ Warnings](warnings.md)
 * [Tips & tricks](tipsNtricks.md)
 * [How to demo](demo.md)
 * [Browser instantiation command](browser.md)

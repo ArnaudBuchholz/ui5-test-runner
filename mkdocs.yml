@@ -12,6 +12,7 @@ nav:
   - Coverage extraction: coverage.md
   - Serving and testing the application (a.k.a. legacy mode): legacy.md
   - Configuration file: configuration.md
+  - ⚠️ Warnings: warnings.md
   - Tips & tricks: tipsNtricks.md
   - How to demo: demo.md
   - Browser instantiation command: browser.md
