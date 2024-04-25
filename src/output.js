@@ -364,7 +364,7 @@ function build (job) {
     },
 
     packageNotLatest (name, latestVersion) {
-      wrap(() => log(job, `⚠️ latest version of ${name} is ${latestVersion}`))()
+      wrap(() => log(job, `⚠️ [PKGVRS] latest version of ${name} is ${latestVersion}`))()
     },
 
     browserStart (url) {
@@ -472,7 +472,15 @@ function build (job) {
     }),
 
     instrumentationSkipped: wrap(() => {
-      log(job, p80()`Skipping nyc instrumentation (--url)`)
+      log(job, p80()`⚠️ [SKPNYC] Skipping nyc instrumentation (--url)`)
+    }),
+
+    assumingOneOrigin: wrap(() => {
+      log(job, p80()`⚠️ [COVORG] Considering only one origin`)
+    }),
+
+    noInfoForAllCoverage: wrap(() => {
+      log(job, p80()`⚠️ [COVALL] Unable to process all coverage, report might be incomplete`)
     }),
 
     endpointError: wrap(({ api, url, data, error }) => {
@@ -548,7 +556,7 @@ function build (job) {
     }),
 
     unhandled: wrap(() => {
-      warn(job, p80()`Some requests are not handled properly, check the unhandled.txt report for more info`)
+      warn(job, p80()`⚠️ [UNHAND] Some requests are not handled properly, check the unhandled.txt report for more info`)
     }),
 
     reportGeneratorFailed: wrap((generator, exitCode, buffers) => {

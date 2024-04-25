@@ -132,6 +132,7 @@ function getCommand (cwd) {
     .option('-ccf, --coverage-check-functions <percent>', '[💻🔗] What % of functions must be covered', percent, 0)
     .option('-ccl, --coverage-check-lines <percent>', '[💻🔗] What % of lines must be covered', percent, 0)
     .option('-ccs, --coverage-check-statements <percent>', '[💻🔗] What % of statements must be covered', percent, 0)
+    .option('-crs, --coverage-remote-scanner <path>', '[💻🔗] Scan for files when all coverage is requested', '$/scan-ui5.js')
     .option('-s, --serve-only [flag]', '[💻🔗] Serve only', boolean, false)
 
     // Specific to legacy (and might be used with url if pointing to local project)
@@ -219,7 +220,7 @@ function finalize (job) {
   function updateToAbsolute (member, from = job.cwd) {
     job[member] = toAbsolute(job[member], from)
   }
-  'browser,coverageSettings,progressPage'
+  'browser,coverageSettings,coverageRemoteScanner,progressPage'
     .split(',')
     .forEach(setting => { job[setting] = checkDefault(job[setting]) })
   updateToAbsolute('cwd', job.initialCwd)
@@ -299,6 +300,8 @@ function finalize (job) {
     overrideDirIfNotSet('coverageReportDir', settings['report-dir'])
     overrideDirIfNotSet('coverageTempDir', settings['temp-dir'])
     overrideIfNotSet('coverageReporters', settings.reporter)
+
+    checkAccess({ path: job.coverageRemoteScanner, label: 'coverage remote scanner', file: true })
   }
 
   if (job.mode === 'url') {

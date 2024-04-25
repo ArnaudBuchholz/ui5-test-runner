@@ -87,6 +87,14 @@ async function instrument (job) {
   await nyc(job, 'instrument', job.webapp, join(job.coverageTempDir, 'instrumented'), '--nycrc-path', job[$nycSettingsPath])
 }
 
+function getUrlOrigin (job) {
+  const { origin } = new URL(job.url[0])
+  if (job.url.some(url => new URL(url).origin !== origin)) {
+    getOutput(job).assumingOneOrigin()
+  }
+  return origin
+}
+
 async function buildAllIndex (job) {
   async function scanFs (path, onFolder, onFile) {
     const items = await readdir(path)
@@ -102,78 +110,67 @@ async function buildAllIndex (job) {
     }
   }
 
-  async function scanRemote (url, onFolder, onFile) {
-    if (url.match(/\/((?:test-)?resources\/.*)/)) {
-      return // ignore UI5 resources
-    }
-    const html = await (await fetch(url)).text()
-    const items = [...html.matchAll(/<a href="([^"]+)" class="icon/ig)].map(([_, item]) => item)
-    await onFolder(items.length)
-    for (const item of items) {
-      const itemUrl = new URL(item, url).toString()
-      if (item.endsWith('/')) {
-        await scanRemote(itemUrl, onFolder, onFile)
-      } else {
-        // TODO need to filter according to nyc.json
-        // TODO need to add ?instrumented=true
-        await onFile(itemUrl, await (await fetch(itemUrl + '?instrument=true')).text())
-      }
-    }
-  }
-
   const output = getOutput(job)
   output.debug('coverage', 'Build index for all files...')
-  const index = []
   const progress = newProgress(job, 'Build index for all files', 1, 0)
-  let scan
-  let start
-  if (job.mode === 'legacy' || job[$remoteOnLegacy]) {
-    scan = scanFs
-    start = join(job.coverageTempDir, 'instrumented')
-  } else {
-    scan = scanRemote
-    // Assuming all files are coming from the same server
-    const { origin } = new URL(job.url[0])
-    start = origin
-  }
 
-  await scan(
-    start,
-    count => {
-      progress.total += count
-      ++progress.count
-    },
-    async (file, source) => {
-      if (file.endsWith('.js') || file.endsWith('.ts')) {
-        output.debug('coverage', file)
-        try {
-          const coverageData = source
-            .match(/coverageData=({.*});/)[1]
-            .replace(/([^"])(\w+):/g, (_, before, name) => `${before}"${name}":`)
-          const [, coveragePath] = coverageData.match(/"path":"([^"]+)"/)
-          const UNDEFINED = '__undefined__'
-          const validatedCoverageData = JSON.stringify(
-            JSON.parse(coverageData.replace(/\bundefined\b/g, `"${UNDEFINED}"`)),
-            (key, value) => {
-              if (value === UNDEFINED) {
-                return undefined
-              }
-              return value
-            }
-          )
-          index.push(`"${coveragePath}": ${validatedCoverageData}`)
-        } catch (e) {
-          // TODO signal issue ?
-        }
-      }
-      ++progress.count
+  try {
+    const index = []
+    let scan
+    let start
+    if (job.mode === 'legacy' || job[$remoteOnLegacy]) {
+      scan = scanFs
+      start = join(job.coverageTempDir, 'instrumented')
+    } else {
+      scan = require(job.coverageRemoteScanner)
+      start = getUrlOrigin(job)
     }
-  )
-  if (index.length === 0) {
-    // TODO warn about no coverage info available
+
+    await scan(
+      start,
+      count => {
+        progress.total += count
+        ++progress.count
+      },
+      async (file, source) => {
+        if (file.endsWith('.js')) {
+          output.debug('coverage', file)
+          try {
+            const coverageData = source
+              .match(/coverageData=({.*});/)[1]
+              .replace(/([^"])(\w+):/g, (_, before, name) => `${before}"${name}":`)
+            const [, coveragePath] = coverageData.match(/"path":"([^"]+)"/)
+            const UNDEFINED = '__undefined__'
+            const validatedCoverageData = JSON.stringify(
+              JSON.parse(coverageData.replace(/\bundefined\b/g, `"${UNDEFINED}"`)),
+              (key, value) => {
+                if (value === UNDEFINED) {
+                  return undefined
+                }
+                return value
+              }
+            )
+            index.push(`"${coveragePath}": ${validatedCoverageData}`)
+          } catch (e) {
+            output.debug('coverage', `Error when extracting all coverage for ${file}`, e)
+          }
+        } else {
+          output.debug('coverage', `Ignore all coverage for ${file}`)
+        }
+        ++progress.count
+      }
+    )
+    if (index.length === 0) {
+      output.noInfoForAllCoverage()
+    } else {
+      await writeFile(join(job.coverageTempDir, 'all-index.json'), `{${index.join(',')}}`)
+    }
+  } catch (e) {
+    output.genericError(e)
+    output.noInfoForAllCoverage()
+  } finally {
+    progress.done()
   }
-  await writeFile(join(job.coverageTempDir, 'all-index.json'), `{${index.join(',')}}`)
-  progress.done()
 }
 
 async function getReadableSource (job, pathOrUrl) {
@@ -189,8 +186,7 @@ async function getReadableSource (job, pathOrUrl) {
     return filePath
   } catch (e) {}
   try {
-    // Assuming all files are coming from the same server
-    const { origin } = new URL(job.testPageUrls[0])
+    const origin = getUrlOrigin(job)
     if (!job.coverageSourceDir) {
       job.coverageSourceDir = join(job.coverageTempDir, 'sources')
     }
@@ -211,6 +207,10 @@ async function checkAllSourcesAreAvailable (job, coverageFilename) {
   for (const filename of filenames) {
     const fileData = coverageData[filename]
     const filePath = await getReadableSource(job, fileData.path)
+    if (!filePath) {
+      // TODO this will compromise coverage report generation
+      continue
+    }
     if (filePath && filePath !== fileData.path) {
       fileData.path = filePath
       ++changes
