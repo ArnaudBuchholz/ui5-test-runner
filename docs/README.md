@@ -30,4 +30,5 @@ A self-sufficient test runner for UI5 applications enabling parallel execution o
   * [jsdom](jsdom.md)
   * [playwright](playwright.md)
   * [selenium-webdriver](selenium-webdriver.md)
+  * [webdriver.io](webdriverio.md)
 * [Mapping v1 settings to v2](mapping_v1_v2.md)
