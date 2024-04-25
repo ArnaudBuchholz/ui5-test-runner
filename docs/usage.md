@@ -65,6 +65,8 @@ Check additional information below.
   -ccf, --coverage-check-functions <percent>   [💻🔗] What % of functions must be covered (default: 0)
   -ccl, --coverage-check-lines <percent>       [💻🔗] What % of lines must be covered (default: 0)
   -ccs, --coverage-check-statements <percent>  [💻🔗] What % of statements must be covered (default: 0)
+  -crs, --coverage-remote-scanner <path>       [💻🔗] Scan for files when all coverage is requested (default:
+                                               "$/scan-ui5.js")
   -s, --serve-only [flag]                      [💻🔗] Serve only (default: false)
   --ui5 <url>                                  [💻] UI5 url (default: "https://ui5.sap.com")
   --disable-ui5                                [💻] Disable UI5 mapping (also disable libs) (default: false)
@@ -78,8 +80,9 @@ Check additional information below.
                                                false)
   -cp, --coverage-proxy [flag]                 [🔗] [⚠️ experimental] use internal proxy to instrument remote files
                                                (default: false)
-  -cpi, --coverage-proxy-include <regexp>      [🔗] [⚠️ experimental] urls to instrument for coverage (default: {})
-  -cpe, --coverage-proxy-exclude <regexp>      [🔗] [⚠️ experimental] urls to ignore for coverage (default: {})
+  -cpi, --coverage-proxy-include <regexp>      [🔗] [⚠️ experimental] urls to instrument for coverage (default: ".*")
+  -cpe, --coverage-proxy-exclude <regexp>      [🔗] [⚠️ experimental] urls to ignore for coverage (default:
+                                               "/((test-)?resources|tests?)/")
   -h, --help                                   display help for command
 ```
 
