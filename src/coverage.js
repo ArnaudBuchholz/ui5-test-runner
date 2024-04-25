@@ -246,7 +246,7 @@ async function generateCoverageReport (job) {
   await createDir(coverageMergedDir)
   const coverageFilename = join(coverageMergedDir, 'coverage.json')
   await nyc(job, 'merge', job.coverageTempDir, coverageFilename)
-  if (job[$coverageRemote] && !job.coverageProxy) {
+  if (job[$coverageRemote]) {
     await checkAllSourcesAreAvailable(job, coverageFilename)
   }
   const reporters = job.coverageReporters.map(reporter => `--reporter=${reporter}`)
@@ -316,7 +316,7 @@ module.exports = {
       return [{
         match: /(.*\.js)(\?.*)?$/,
         custom: async (request, response, url) => {
-          if (!url.match(job.coverageProxyInclude) || url.match(/\bresources\b/) || url.match(job.coverageProxyExclude)) {
+          if (!url.match(job.coverageProxyInclude) || url.match(job.coverageProxyExclude)) {
             getOutput(job).debug('coverage', 'coverage_proxy ignore', url)
             return
           }
@@ -325,21 +325,20 @@ module.exports = {
             await access(instrumentedSourcePath, constants.R_OK)
             return
           } catch (e) {}
-          const instrumenting = sources[url]
-          if (instrumenting) {
-            await instrumenting
-            return // ok
+          if (!sources[url]) {
+            sources[url] = (async () => {
+              const sourcePath = await getReadableSource(job, url)
+              getOutput(job).debug('coverage', 'coverage_proxy instrument', url, sourcePath)
+              if (sourcePath) {
+                const source = (await readFile(sourcePath)).toString()
+                const instrumentedSource = await instrument(source, sourcePath)
+                await createDir(dirname(instrumentedSourcePath))
+                await writeFile(instrumentedSourcePath, instrumentedSource)
+                delete sources[url]
+              }
+            })()
           }
-          sources[url] = (async () => {
-            const sourcePath = await getReadableSource(job, url)
-            getOutput(job).debug('coverage', 'coverage_proxy instrument', url, sourcePath)
-            if (sourcePath) {
-              const source = (await readFile(sourcePath)).toString()
-              const instrumentedSource = await instrument(source, sourcePath)
-              await createDir(dirname(instrumentedSourcePath))
-              await writeFile(instrumentedSourcePath, instrumentedSource)
-            }
-          })()
+          await sources[url]
         }
       },
       instrumentedMapping,

@@ -18,8 +18,9 @@ const coverage = ({ uncoveredShouldBeReported } = {}) => async job => {
   const { coverageReportDir } = job
   assert.strictEqual((await stat(coverageReportDir)).isDirectory(), true, 'Coverage folder exists')
   assert.strictEqual((await stat(join(coverageReportDir, 'lcov-report/index.html'))).isFile(), true, 'Coverage HTML report exists')
+  const lcov = (await readFile(join(coverageReportDir, 'lcov.info'))).toString()
+  assert.ok(lcov.length > 0, 'lcov data exists')
   if (uncoveredShouldBeReported) {
-    const lcov = (await readFile(join(coverageReportDir, 'lcov.info'))).toString()
     assert.ok(lcov.match(/\bcontroller(\/|\\)uncovered\.js\b/), 'uncovered.js is reported')
   }
 }
@@ -185,6 +186,26 @@ const tests = [{
     '--browser-args --basic-auth-password testPassword'
   ].join(' '),
   checks: [qunitPages(2)]
+}, {
+  id: 'JS_REMOTE_UI5_SAMPLE',
+  label: 'Remote JS UI5 sample',
+  utr: [
+    '--url',
+    'https://ui5.sap.com/test-resources/sap/m/demokit/orderbrowser/webapp/test/unit/unitTests.qunit.html',
+    'https://ui5.sap.com/test-resources/sap/m/demokit/orderbrowser/webapp/test/integration/opaTests.qunit.html',
+    '--no-screenshot'
+  ]
+}, {
+  id: 'JS_REMOTE_UI5_SAMPLE_COVERAGE',
+  label: 'Remote JS UI5 sample with coverage (experimental)',
+  utr: [
+    '--url',
+    'https://ui5.sap.com/test-resources/sap/m/demokit/orderbrowser/webapp/test/unit/unitTests.qunit.html',
+    'https://ui5.sap.com/test-resources/sap/m/demokit/orderbrowser/webapp/test/integration/opaTests.qunit.html',
+    '--no-screenshot',
+    ...'--coverage --coverage-proxy --coverage-proxy-include /webapp/ --coverage-proxy-exclude /resources/|/webapp/test/ --disable-ui5'.split(' ')
+  ],
+  checks: [coverage()]
 }, {
   id: 'TS_REMOTE',
   label: 'Remote TS sample',
