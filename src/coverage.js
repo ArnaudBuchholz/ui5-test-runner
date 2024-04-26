@@ -133,13 +133,13 @@ async function buildAllIndex (job) {
         ++progress.count
       },
       async (file, source) => {
-        if (file.endsWith('.js')) {
+        if (file.endsWith('.js') || file.endsWith('.ts')) {
           output.debug('coverage', file)
           try {
             const coverageData = source
-              .match(/coverageData=({.*});/)[1]
+              .match(/coverageData\s*=\s*({[^;]*});/)[1]
               .replace(/([^"])(\w+):/g, (_, before, name) => `${before}"${name}":`)
-            const [, coveragePath] = coverageData.match(/"path":"([^"]+)"/)
+            const [, coveragePath] = coverageData.match(/"path"\s*:\s*"([^"]+)"/)
             const UNDEFINED = '__undefined__'
             const validatedCoverageData = JSON.stringify(
               JSON.parse(coverageData.replace(/\bundefined\b/g, `"${UNDEFINED}"`)),
