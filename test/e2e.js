@@ -21,7 +21,7 @@ const coverage = ({ uncoveredShouldBeReported } = {}) => async job => {
   const lcov = (await readFile(join(coverageReportDir, 'lcov.info'))).toString()
   assert.ok(lcov.length > 0, 'lcov data exists')
   if (uncoveredShouldBeReported) {
-    assert.ok(lcov.match(/\bcontroller(\/|\\)uncovered\.js\b/), 'uncovered.js is reported')
+    assert.ok(lcov.match(/\bcontroller(\/|\\)uncovered\.(js|ts)\b/), 'uncovered is reported')
   }
 }
 
@@ -218,15 +218,19 @@ const tests = [{
   before: ui5ServeTsWitCoverage,
   utr: [
     '--cwd', join(root, './test/sample.ts'),
-    ...'--url http://localhost:8083/test/testsuite.qunit.html --no-screenshot --coverage --coverage-check-statements 67'.split(' ')
+    '--coverage-settings', join(root, './test/sample.ts/nyc.json'),
+    ...'--url http://localhost:8083/test/testsuite.qunit.html --no-screenshot --coverage --coverage-check-statements 53'.split(' ')
   ],
-  checks: [qunitPages(2), coverage()]
+  checks: [qunitPages(2), coverage({ uncoveredShouldBeReported: true })]
 }, {
   id: 'TS_REMOTE_COVERAGE',
   label: 'Remote TS sample with coverage (no local mapping)',
   before: ui5ServeTsWitCoverage,
-  utr: '--url http://localhost:8083/test/testsuite.qunit.html --no-screenshot --coverage --coverage-check-statements 67',
-  checks: [qunitPages(2), coverage()]
+  utr: [
+    '--coverage-settings', join(root, './test/sample.ts/nyc.json'),
+    ...'--url http://localhost:8083/test/testsuite.qunit.html --no-screenshot --coverage --coverage-check-statements 53'.split(' ')
+  ],
+  checks: [qunitPages(2), coverage({ uncoveredShouldBeReported: true })]
 }].filter(({ id }) => {
   if (only.length) {
     if (only.includes(id)) {
