@@ -13,7 +13,8 @@ module.exports = async job => check({
     ...job.mappings ?? [],
     ...job.serveOnly ? [] : endpoints(job),
     ...ui5(job),
-    ...await coverage(job), {
+    ...job.serveOnly ? [] : await coverage(job),
+    {
       // Project mapping
       match: /^\/(.*)/,
       file: join(job.webapp, '$1'),
