@@ -61,8 +61,8 @@ The runner provides a minimal configuration file with :
 
 The `all` option, when set, significantly impacts the coverage report. It forces the runner to scan the project to discover all files :
 
-* In `legacy` mode, the runner is responsible of instrumentating the sources. Hence it is almost seamless. 
-* However, in `remote` mode, a **scanner** is required to discover and fetch instrumented files from the remote repository. A default scanner is provided for `@ui5/cli` served projects (`$/scan-ui5.js`).
+* In `legacy` mode, the runner is responsible of instrumenting the sources.
+* In `remote` mode, a **scanner** is required to discover and fetch instrumented files from the remote repository. A default scanner is provided for `@ui5/cli` served projects (`$/scan-ui5.js`).
 
 ## Legacy mode
 

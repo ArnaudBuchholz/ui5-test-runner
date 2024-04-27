@@ -7,7 +7,7 @@
 | Module | [webdriverio](https://www.npmjs.com/package/webdriverio) |
 | Screenshots | ✔️ `.png` |
 | Scripts | ✔️ |
-| Traces *️⃣ | ❌ |
+| Traces 1️⃣ | ❌ |
 
 Browser selection is done by passing browser parameters. For instance :
 
@@ -27,4 +27,4 @@ Supported browsers :
 
 ## Implementation notes
 
-* *️⃣ Traces are not yet implemented
+* 1️⃣ Traces are not yet implemented
