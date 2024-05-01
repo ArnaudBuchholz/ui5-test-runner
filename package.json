@@ -47,7 +47,7 @@
     "mime": "^3.0.0",
     "punybind": "^1.2.1",
     "punyexpr": "^1.0.4",
-    "reserve": "^1.15.9"
+    "reserve": "2.0.0-beta.1"
   },
   "devDependencies": {
     "@openui5/types": "^1.123.0",

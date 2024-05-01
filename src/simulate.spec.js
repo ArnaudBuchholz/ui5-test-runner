@@ -102,7 +102,10 @@ describe('simulate', () => {
       ...parameters
     })
     const configuration = await reserveConfigurationFactory(job)
-    mocked = await mock(configuration)
+    mocked = mock(configuration)
+    await new Promise(resolve => {
+      mocked.on('ready', () => resolve())
+    })
   }
 
   async function safeExecute () {

@@ -1,7 +1,6 @@
 'use script'
 
-const Request = require('reserve/mock/Request')
-const Response = require('reserve/mock/Response')
+const { Request, Response } = require('reserve')
 const cors = require('./cors')
 
 const origin = 'npmjs.com'
@@ -11,7 +10,7 @@ describe('src/cors', () => {
     const request = new Request('GET', '/', { origin })
     const response = new Response()
     cors.custom(request, response)
-    expect(response.statusCode).toBeUndefined()
+    expect(response.statusCode).toStrictEqual(200)
     expect(response.headers).toMatchObject({
       'access-control-allow-origin': origin,
       'access-control-allow-credentials': 'true'
@@ -22,7 +21,7 @@ describe('src/cors', () => {
     const request = new Request('GET', '/')
     const response = new Response()
     cors.custom(request, response)
-    expect(response.statusCode).toBeUndefined()
+    expect(response.statusCode).toStrictEqual(200)
     expect(response.headers).toMatchObject({})
   })
 
