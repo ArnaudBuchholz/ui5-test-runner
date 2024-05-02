@@ -63,7 +63,7 @@ module.exports = {
 
     const cacheBase = buildCacheBase(job)
     const match = /\/((?:test-)?resources\/.*)/
-    const ifCacheEnabled = (request, url, match) => job.cache ? match : false
+    const ifCacheEnabled = (request, url, match) => job.cache
     const uncachable = {}
     const cachingInProgress = {}
 
@@ -90,8 +90,7 @@ module.exports = {
       // UI5 from cache
       match,
       'if-match': ifCacheEnabled,
-      file: join(cacheBase, '$1'),
-      'ignore-if-not-found': true
+      file: join(cacheBase, '$1')
     }, {
       // UI5 caching
       method: 'GET',
@@ -130,8 +129,7 @@ module.exports = {
     job.libs.forEach(({ relative, source }) => {
       mappings.unshift({
         match: new RegExp(`\\/resources\\/${relative.replace(/\//g, '\\/')}(.*)`),
-        file: join(source, '$1'),
-        'ignore-if-not-found': true
+        file: join(source, '$1')
       })
     })
 
