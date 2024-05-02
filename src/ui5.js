@@ -129,7 +129,8 @@ module.exports = {
     job.libs.forEach(({ relative, source }) => {
       mappings.unshift({
         match: new RegExp(`\\/resources\\/${relative.replace(/\//g, '\\/')}(.*)`),
-        file: join(source, '$1')
+        cwd: source,
+        file: '$1'
       })
     })
 
