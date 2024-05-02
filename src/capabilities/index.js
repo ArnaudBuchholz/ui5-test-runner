@@ -62,7 +62,7 @@ async function capabilities (job) {
             const listener = listeners[listenerIndex]
             await listener({
               endpoint,
-              body: JSON.parse(await body(request))
+              body: await body(request)
             })
             response.writeHead(200)
             response.end()

@@ -18,7 +18,7 @@ const punybindBinPath = join(resolveDependencyPath('punybind'), 'dist/punybind.j
 module.exports = job => {
   async function endpointImpl (api, implementation, request) {
     const url = extractPageUrl(request.headers)
-    const data = JSON.parse(await body(request))
+    const data = await body(request)
     try {
       await implementation.call(this, url, data)
     } catch (error) {
