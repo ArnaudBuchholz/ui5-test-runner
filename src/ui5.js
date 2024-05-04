@@ -90,7 +90,8 @@ module.exports = {
       // UI5 from cache
       match,
       'if-match': ifCacheEnabled,
-      file: join(cacheBase, '$1')
+      cwd: cacheBase,
+      file: '$1'
     }, {
       // UI5 caching
       method: 'GET',
@@ -131,6 +132,9 @@ module.exports = {
         match: new RegExp(`\\/resources\\/${relative.replace(/\//g, '\\/')}(.*)`),
         cwd: source,
         file: '$1'
+      }, {
+        match: new RegExp(`\\/resources\\/${relative.replace(/\//g, '\\/')}(.*)`),
+        status: 404
       })
     })
 

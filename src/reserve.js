@@ -17,9 +17,9 @@ module.exports = async job => check({
     {
       // Project mapping
       match: /^\/(.*)/,
-      file: join(job.webapp, '$1'),
-      strict: true,
-      'ignore-if-not-found': true
+      cwd: job.webapp,
+      file: '$1',
+      strict: true
     },
     ...job.serveOnly ? [{ status: 404 }] : unhandled(job)
   ]

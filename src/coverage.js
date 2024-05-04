@@ -292,8 +292,8 @@ module.exports = {
     const instrumentedBasePath = join(job.coverageTempDir, 'instrumented')
     const instrumentedMapping = {
       match: /(.*\.js)(\?.*)?$/,
-      file: join(instrumentedBasePath, '$1'),
-      'ignore-if-not-found': true
+      cwd: instrumentedBasePath,
+      file: '$1'
     }
     if (job.mode === 'legacy' || job[$remoteOnLegacy]) {
       return [{

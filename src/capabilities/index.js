@@ -69,10 +69,12 @@ async function capabilities (job) {
           }
         }, {
           match: '^/inject/(.*)',
-          file: join(__dirname, '../inject/$1')
+          cwd: join(__dirname, '../inject'),
+          file: '$1'
         }, {
           match: '^/(.*)',
-          file: join(__dirname, '$1')
+          cwd: __dirname,
+          file: '$1'
         }]
     })
     const server = serve(configuration)
