@@ -269,7 +269,14 @@ async function test ({ id, before, label, utr, checks }) {
     output.log(`${label}...`)
   }
   if (before) {
-    await before()
+    try {
+      await before()
+    } catch (e) {
+      ++job.errors
+      output.log('❌', progress.label, e.toString())
+      progress.done()
+      return
+    }
   }
   const { promise, resolve, reject } = allocPromise()
   const parameters = [
