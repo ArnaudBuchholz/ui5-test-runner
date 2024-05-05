@@ -62,7 +62,7 @@ async function capabilities (job) {
             const listener = listeners[listenerIndex]
             await listener({
               endpoint,
-              body: await body(request)
+              body: await body(request).json()
             })
             response.writeHead(200)
             response.end()
@@ -75,6 +75,8 @@ async function capabilities (job) {
           match: '^/(.*)',
           cwd: __dirname,
           file: '$1'
+        }, {
+          status: 404
         }]
     })
     const server = serve(configuration)
