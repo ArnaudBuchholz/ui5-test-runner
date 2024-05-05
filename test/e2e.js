@@ -61,7 +61,7 @@ const ui5Serve = serve('ui5 serve', 8080, [
 ])
 
 const serveWithBasicAuthent = serve('reserve with basic-authent', 8081, [
-  join(root, 'node_modules/reserve/index.js'), '--silent', '--config', join(root, 'test/sample.js/reserve.json')
+  join(root, 'node_modules/reserve/dist/cli.js'), '--silent', '--config', join(root, 'test/sample.js/reserve.json')
 ])
 
 const ui5ServeTs = serve('ui5 serve with transpiling', 8082, [
