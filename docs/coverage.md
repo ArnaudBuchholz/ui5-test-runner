@@ -143,3 +143,53 @@ Example :
 ui5-test-runner --url https://ui5.sap.com/test-resources/sap/m/demokit/orderbrowser/webapp/test/testsuite.qunit.html --coverage --coverage-proxy --coverage-proxy-include webapp/* --coverage-proxy-exclude webapp/test --disable-ui5
 ```
 
+## Aggregate coverage for several projects
+
+It is possible to execute `ui5-test-runner` on several projects and **aggregate** all coverage results to generate a **single** report.
+
+There are several requirements :
+
+* Projects are in the **same base folder** (referenced as `<BASE_FOLDER>`)
+
+* Projects use the **same language** (JavaScript or TypeScript)
+
+* Coverage extraction must be done the **same way** (legacy or remote)
+
+### Setup
+
+* A folder is needed to store the merged coverage, it is referenced as `<MERGE_COVERAGE_DIR>` *(must be an **absolute** path)*. It must be **cleared** before the round of execution.
+
+* A JSON configuration file is needed with the following content, its path is  referenced as `<NYC_CONFIG_FILE>` *(must be an **absolute** path)*.
+
+```json
+{
+    "all": true,
+    "sourceMap": false,
+    "cwd": "<base-folder>"
+}
+```
+
+> Content of the configuration file
+
+* [`nyc`](https://www.npmjs.com/package/nyc) is installed and available when running `npx nyc --help`
+
+### Steps
+
+* For each project, run `ui5-test-runner`
+  * By default, coverage information is stored in the project root under `.nyc_output\merged\coverage.json`
+  * **after** `ui5-test-runner` execution, copy `.nyc_output\merged\coverage.json` to `<merge-coverage>/<project-name>.json`
+
+* Once all projects are executed and coverage files copied, execute `npx nyc merge <merge-coverage> <merge-coverage>\overall\coverage.json`
+
+
+npx rimraf tmp/merge-coverage
+mkdir tmp\merge-coverage
+node test/e2e JS_REMOTE_COVERAGE
+copy e2e\JS_REMOTE_COVERAGE\.nyc_output\merged\coverage.json tmp\merge-coverage\JS_REMOTE_COVERAGE.json
+node test/e2e TS_REMOTE_COVERAGE
+copy e2e\TS_REMOTE_COVERAGE\.nyc_output\merged\coverage.json tmp\merge-coverage\TS_REMOTE_COVERAGE.json
+
+mkdir tmp\merge-coverage\overall
+npx nyc merge tmp\merge-coverage tmp\merge-coverage\overall\coverage.json
+mkdir tmp\merge-coverage\report
+npx nyc report --reporter=lcov --reporter=cobertura --reporter=text --temp-dir "E:\Nano et Nono\Arnaud\dev\GitHub\ui5-test-runner\tmp\merge-coverage\overall" --report-dir "E:\Nano et Nono\Arnaud\dev\GitHub\ui5-test-runner\tmp\merge-coverage\report" --nycrc-path "E:\Nano et Nono\Arnaud\dev\GitHub\ui5-test-runner\tmp\merge-coverage\settings\nyc.json"
