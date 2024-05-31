@@ -1,7 +1,7 @@
 'use strict'
 
 const { fork, spawn } = require('child_process')
-const { join } = require('path')
+const { join, isAbsolute } = require('path')
 const assert = require('assert/strict')
 const { stat, readFile } = require('fs/promises')
 require('dotenv').config()
@@ -15,7 +15,14 @@ const [node,, ...only] = process.argv
 
 const qunitPages = expectedCount => job => assert.strictEqual(Object.keys(job.qunitPages).length, expectedCount, 'Number of test pages')
 const coverage = ({ uncoveredShouldBeReported } = {}) => async job => {
-  const { coverageReportDir } = job
+  const { coverageTempDir, coverageReportDir } = job
+  const mergedCoveragePath = join(coverageTempDir, 'merged/coverage.json')
+  assert.strictEqual((await stat(mergedCoveragePath)).isFile(), true, 'Merged coverage file exists')
+  const mergedCoverage = JSON.parse((await readFile(mergedCoveragePath)).toString())
+  assert.ok(Object.keys(mergedCoverage).every(key => {
+    const { path } = mergedCoverage[key]
+    return path === key
+  }), 'Merged coverage file contains only absolute paths (key === path)')
   assert.strictEqual((await stat(coverageReportDir)).isDirectory(), true, 'Coverage folder exists')
   assert.strictEqual((await stat(join(coverageReportDir, 'lcov-report/index.html'))).isFile(), true, 'Coverage HTML report exists')
   const lcov = (await readFile(join(coverageReportDir, 'lcov.info'))).toString()

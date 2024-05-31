@@ -202,7 +202,7 @@ async function checkAllSourcesAreAvailable (job, coverageFilename) {
   output.debug('coverage', 'Checking remote source files...')
   const coverageData = require(coverageFilename)
   const filenames = Object.keys(coverageData)
-  let changes = 0
+  let changes = false
   let basePath
   for (const filename of filenames) {
     const fileData = coverageData[filename]
@@ -213,7 +213,12 @@ async function checkAllSourcesAreAvailable (job, coverageFilename) {
     }
     if (filePath && filePath !== fileData.path) {
       fileData.path = filePath
-      ++changes
+      changes = true
+    }
+    if (filename !== filePath) {
+      delete coverageData[filename]
+      coverageData[filePath] = fileData
+      changes = true
     }
     const fileFolder = dirname(filePath)
     if (basePath === undefined) {
@@ -229,7 +234,7 @@ async function checkAllSourcesAreAvailable (job, coverageFilename) {
     job.nycSettings.cwd = basePath
     await writeFile(job[$nycSettingsPath], JSON.stringify(job.nycSettings))
   }
-  if (changes > 0) {
+  if (changes) {
     await writeFile(coverageFilename, JSON.stringify(coverageData))
   }
 }
