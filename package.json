@@ -1,6 +1,6 @@
 {
   "name": "ui5-test-runner",
-  "version": "5.0.1",
+  "version": "5.1.0",
   "description": "Standalone test runner for UI5",
   "main": "index.js",
   "bin": {
@@ -60,7 +60,7 @@
     "standard": "^17.1.0",
     "start-server-and-test": "^2.0.3",
     "typescript": "^5.4.5",
-    "ui5-tooling-transpile": "^3.4.1"
+    "ui5-tooling-transpile": "^3.4.2"
   },
   "optionalDependencies": {
     "fsevents": "^2.3.3"
