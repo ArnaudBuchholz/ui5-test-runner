@@ -149,23 +149,23 @@ It is possible to execute `ui5-test-runner` on several projects and **aggregate*
 
 There are several requirements :
 
-* Projects are in the **same base folder** (referenced as `<BASE_FOLDER>`)
+* Projects have a **common base folder** (referenced as `<BASE_FOLDER>`)
 
-* Projects use the **same language** (JavaScript or TypeScript)
+* Projects use the **same language** *(JavaScript or TypeScript)*
 
-* Coverage extraction must be done the **same way** (legacy or remote)
+* Coverage extraction must be done the **same way** *(legacy or remote)*
 
 ### Setup
 
-* A folder is needed to store the merged coverage, it is referenced as `<MERGE_COVERAGE_DIR>` *(must be an **absolute** path)*. It must be **cleared** before the round of execution.
+* A folder is needed to store the merged coverage, it is referenced as `<MERGE_COVERAGE_FOLDER>` *(must be an **absolute** path)*. It must be **cleared** before the round of execution.
 
-* A JSON configuration file is needed with the following content, its path is  referenced as `<NYC_CONFIG_FILE>` *(must be an **absolute** path)*.
+* A JSON configuration file is needed with the following content *(replace `<BASE_FOLDER>` with the actual value)*, its path is  referenced as `<NYC_CONFIG_FILE>` *(must be an **absolute** path)*.
 
 ```json
 {
     "all": true,
     "sourceMap": false,
-    "cwd": "<base-folder>"
+    "cwd": "<BASE_FOLDER>"
 }
 ```
 
@@ -175,21 +175,11 @@ There are several requirements :
 
 ### Steps
 
-* For each project, run `ui5-test-runner`
+* For each project (referenced as `<PROJECT_NAME>`) :
+  * `ui5-test-runner` with coverage extraction
   * By default, coverage information is stored in the project root under `.nyc_output\merged\coverage.json`
-  * **after** `ui5-test-runner` execution, copy `.nyc_output\merged\coverage.json` to `<merge-coverage>/<project-name>.json`
+  * **after** `ui5-test-runner` successful execution, copy `.nyc_output\merged\coverage.json` to `<MERGE_COVERAGE_FOLDER>/<PROJECT_NAME>.json`
 
-* Once all projects are executed and coverage files copied, execute `npx nyc merge <merge-coverage> <merge-coverage>\overall\coverage.json`
+* Once all projects are executed and coverage files copied, execute `npx nyc merge <MERGE_COVERAGE_FOLDER> <MERGE_COVERAGE_FOLDER>/overall/coverage.json`
 
-
-npx rimraf tmp/merge-coverage
-mkdir tmp\merge-coverage
-node test/e2e JS_REMOTE_COVERAGE
-copy e2e\JS_REMOTE_COVERAGE\.nyc_output\merged\coverage.json tmp\merge-coverage\JS_REMOTE_COVERAGE.json
-node test/e2e TS_REMOTE_COVERAGE
-copy e2e\TS_REMOTE_COVERAGE\.nyc_output\merged\coverage.json tmp\merge-coverage\TS_REMOTE_COVERAGE.json
-
-mkdir tmp\merge-coverage\overall
-npx nyc merge tmp\merge-coverage tmp\merge-coverage\overall\coverage.json
-mkdir tmp\merge-coverage\report
-npx nyc report --reporter=lcov --reporter=cobertura --reporter=text --temp-dir "E:\Nano et Nono\Arnaud\dev\GitHub\ui5-test-runner\tmp\merge-coverage\overall" --report-dir "E:\Nano et Nono\Arnaud\dev\GitHub\ui5-test-runner\tmp\merge-coverage\report" --nycrc-path "E:\Nano et Nono\Arnaud\dev\GitHub\ui5-test-runner\tmp\merge-coverage\settings\nyc.json"
+* Then, execute `npx nyc report --reporter=lcov --reporter=cobertura --temp-dir <MERGE_COVERAGE_FOLDER>/overall --report-dir <MERGE_COVERAGE_FOLDER>/coverage --nycrc-path <NYC_CONFIG_FILE>`
