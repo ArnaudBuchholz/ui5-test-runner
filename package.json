@@ -21,7 +21,7 @@
     "test:report": "node ./src/defaults/report.js ./test/report && reserve --config ./test/report/reserve.json",
     "test:text-report": "node ./src/defaults/text-report.js ./test/report",
     "build:doc": "node build/doc",
-    "clean": "npm uninstall -g ui5-test-runner puppeteer nyc selenium-webdriver playwright webdriverio"
+    "clean": "npm uninstall -g ui5-test-runner puppeteer nyc selenium-webdriver playwright webdriverio jsdom"
   },
   "repository": {
     "type": "git",
@@ -76,32 +76,5 @@
       "sap",
       "opaTest"
     ]
-  },
-  "jest": {
-    "testTimeout": 15000,
-    "setupFilesAfterEnv": [
-      "./test/setup.js"
-    ],
-    "testPathIgnorePatterns": [
-      "/node_modules/",
-      "/capabilities/"
-    ],
-    "collectCoverage": true,
-    "collectCoverageFrom": [
-      "src/*.js"
-    ],
-    "coveragePathIgnorePatterns": [
-      "\\.spec\\.js",
-      "output\\.js",
-      "b\\capabilities\\b"
-    ],
-    "coverageThreshold": {
-      "global": {
-        "branches": 80,
-        "functions": 80,
-        "lines": 80,
-        "statements": 80
-      }
-    }
   }
 }
