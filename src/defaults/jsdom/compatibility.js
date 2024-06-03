@@ -8,18 +8,20 @@ function fakeMatchMedia () {
   }
 }
 
-function wrapXHR (window, networkWriter) {
+function wrapXHR (window) {
   const { XMLHttpRequest } = window
   const { open } = XMLHttpRequest.prototype
   XMLHttpRequest.prototype.open = function (...args) {
     const [method, url] = args
     const log = () => {
       const { status } = this
-      networkWriter.append({
+      console.log(JSON.stringify({
+        timestamp: new Date().toISOString(),
+        channel: 'network',
         method,
         url,
         status
-      })
+      }))
     }
     this.addEventListener('load', log)
     this.addEventListener('error', log)
@@ -74,10 +76,7 @@ function fixMatchesDontThrow (window) {
   })
 }
 
-module.exports = ({
-  window,
-  networkWriter
-}) => {
+module.exports = window => {
   window.addEventListener('error', event => {
     const { message, filename, lineno, colno } = event
     window.console.error(`${filename}@${lineno}:${colno}: ${message}`)
@@ -89,7 +88,7 @@ module.exports = ({
   }
   window.matchMedia = window.matchMedia || fakeMatchMedia
 
-  wrapXHR(window, networkWriter)
+  wrapXHR(window)
   adjustXPathResult(window)
   fixMatchesDontThrow(window)
 }
