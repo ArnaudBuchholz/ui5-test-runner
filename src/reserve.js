@@ -1,4 +1,3 @@
-const { join } = require('path')
 const cors = require('./cors')
 const endpoints = require('./endpoints')
 const { mappings: coverage } = require('./coverage')

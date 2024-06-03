@@ -1,7 +1,7 @@
 'use strict'
 
 const { fork, spawn } = require('child_process')
-const { join, isAbsolute } = require('path')
+const { join } = require('path')
 const assert = require('assert/strict')
 const { stat, readFile } = require('fs/promises')
 require('dotenv').config()
