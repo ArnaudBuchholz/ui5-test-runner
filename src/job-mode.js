@@ -28,6 +28,7 @@ function buildAndCheckMode (job) {
       'reportDir',
       'pageTimeout',
       'browserCloseTimeout',
+      'browserRetry',
       'failFast',
       'keepAlive',
       'alternateNpmPath',
