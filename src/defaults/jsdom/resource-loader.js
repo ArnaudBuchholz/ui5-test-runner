@@ -24,6 +24,7 @@ module.exports = jsdom => {
         console.log(JSON.stringify({
           timestamp: new Date().toISOString(),
           channel: 'network',
+          initiator: 'resource-loader',
           method: 'GET',
           url,
           status

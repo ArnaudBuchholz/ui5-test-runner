@@ -10,22 +10,54 @@ function fakeMatchMedia () {
 
 function wrapXHR (window) {
   const { XMLHttpRequest } = window
-  const { open } = XMLHttpRequest.prototype
+  const { open, send } = XMLHttpRequest.prototype
+  const $async = Symbol('async')
   XMLHttpRequest.prototype.open = function (...args) {
-    const [method, url] = args
+    const [method, url, async] = args
     const log = () => {
       const { status } = this
       console.log(JSON.stringify({
         timestamp: new Date().toISOString(),
         channel: 'network',
+        initiator: 'xhr',
         method,
         url,
+        async,
         status
       }))
     }
     this.addEventListener('load', log)
     this.addEventListener('error', log)
+    if (async === false) {
+      this[$async] = { method, url }
+    }
     return open.call(this, ...args)
+  }
+  XMLHttpRequest.prototype.send = function (...args) {
+    if (this[$async]) {
+      const { method, url } = this[$async]
+      console.log(JSON.stringify({
+        timestamp: new Date().toISOString(),
+        channel: 'debug',
+        message: '>> XMLHttpRequest.prototype.send',
+        method,
+        url,
+        async: false
+      }))
+    }
+    const result = send.call(this, ...args)
+    if (this[$async]) {
+      const { method, url } = this[$async]
+      console.log(JSON.stringify({
+        timestamp: new Date().toISOString(),
+        channel: 'debug',
+        message: '<< XMLHttpRequest.prototype.send',
+        method,
+        url,
+        async: false
+      }))
+    }
+    return result
   }
 }
 
