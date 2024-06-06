@@ -131,7 +131,8 @@ module.exports = {
       mappings.unshift({
         match: new RegExp(`\\/resources\\/${relative.replace(/\//g, '\\/')}(.*)`),
         cwd: source,
-        file: '$1'
+        file: '$1',
+        static: !job.watch && !job.debugDevMode
       }, {
         match: new RegExp(`\\/resources\\/${relative.replace(/\//g, '\\/')}(.*)`),
         status: 404

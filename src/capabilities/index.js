@@ -70,11 +70,13 @@ async function capabilities (job) {
         }, {
           match: '^/inject/(.*)',
           cwd: join(__dirname, '../inject'),
-          file: '$1'
+          file: '$1',
+          static: !job.debugDevMode
         }, {
           match: '^/(.*)',
           cwd: __dirname,
-          file: '$1'
+          file: '$1',
+          static: !job.debugDevMode
         }, {
           status: 404
         }]

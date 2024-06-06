@@ -260,6 +260,9 @@ function build (job) {
     version: () => {
       const { name, version } = require(join(__dirname, '../package.json'))
       log(job, p80()`${name}@${version}`)
+      if (job.debugDevMode) {
+        log(job, p80()`⚠️  Development mode ⚠️`)
+      }
     },
 
     serving: url => {

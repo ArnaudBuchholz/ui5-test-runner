@@ -76,7 +76,8 @@ module.exports = job => {
       // QUnit hooks
         match: '^/_/qunit-hooks.js',
         cwd: __dirname,
-        file: 'inject/qunit-hooks.js'
+        file: 'inject/qunit-hooks.js',
+        static: !job.debugDevMode
       }, {
       // Concatenate qunit.js source with hooks
         match: /\/thirdparty\/(qunit(?:-2)?(?:-dbg)?\.js)/,
@@ -125,27 +126,32 @@ module.exports = job => {
       // UI to follow progress
         match: '^/_/progress.html',
         cwd: dirname(job.progressPage),
-        file: basename(job.progressPage)
+        file: basename(job.progressPage),
+        static: !job.debugDevMode
       }, {
       // Report 'main' substituted for progress
         match: '^/_/report/main.js',
         cwd: __dirname,
-        file: 'defaults/report/progress.js'
+        file: 'defaults/report/progress.js',
+        static: !job.debugDevMode
       }, {
       // Other report resources
         match: '^/_/report/(.*)',
         cwd: __dirname,
-        file: 'defaults/report/$1'
+        file: 'defaults/report/$1',
+        static: !job.debugDevMode
       }, {
       // punybind
         match: '^/_/punybind.js',
         cwd: dirname(punybindBinPath),
-        file: basename(punybindBinPath)
+        file: basename(punybindBinPath),
+        static: !job.debugDevMode
       }, {
       // punyexpr
         match: '^/_/punyexpr.js',
         cwd: dirname(punyexprBinPath),
-        file: basename(punyexprBinPath)
+        file: basename(punyexprBinPath),
+        static: !job.debugDevMode
       }, {
       // Endpoint to retry on progress
         method: 'INFO',
@@ -162,17 +168,20 @@ module.exports = job => {
       // Endpoint to coverage files
         match: '^/_/coverage/(.*)',
         cwd: job.coverageReportDir,
-        file: '$1'
+        file: '$1',
+        static: false
       }, {
       // Endpoint to report
         match: '^/_/report.html',
         cwd: __dirname,
-        file: 'report.html'
+        file: 'report.html',
+        static: !job.debugDevMode
       }, {
       // Endpoint to report files
         match: '^/_/(.*)',
         cwd: job.reportDir,
-        file: '$1'
+        file: '$1',
+        static: false
       }]
     : []
 }

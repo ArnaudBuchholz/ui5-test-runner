@@ -150,6 +150,7 @@ function getCommand (cwd) {
     .option('-cpi, --coverage-proxy-include <regexp>', `[🔗] ${EXPERIMENTAL_OPTION} urls to instrument for coverage`, regex, '.*')
     .option('-cpe, --coverage-proxy-exclude <regexp>', `[🔗] ${EXPERIMENTAL_OPTION} urls to ignore for coverage`, regex, '/((test-)?resources|tests?)/')
 
+    .addOption(new Option('--debug-dev-mode', DEBUG_OPTION, boolean).hideHelp())
     .addOption(new Option('--debug-probe-only', DEBUG_OPTION, boolean).hideHelp())
     .addOption(new Option('--debug-keep-browser-open', DEBUG_OPTION, boolean).hideHelp())
     .addOption(new Option('--debug-memory', DEBUG_OPTION, boolean).hideHelp())

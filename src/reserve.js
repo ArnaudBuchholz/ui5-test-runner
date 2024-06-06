@@ -18,7 +18,7 @@ module.exports = async job => check({
       match: /^\/(.*)/,
       cwd: job.webapp,
       file: '$1',
-      strict: true
+      static: !job.watch && !job.debugDevMode
     },
     ...job.serveOnly ? [{ status: 404 }] : unhandled(job)
   ]
