@@ -8,8 +8,7 @@ function fakeMatchMedia () {
   }
 }
 
-function wrapXHR (window) {
-  const { XMLHttpRequest } = window
+function wrapXHR ({ XMLHttpRequest }) {
   const { open, send } = XMLHttpRequest.prototype
   const $async = Symbol('async')
   XMLHttpRequest.prototype.open = function (...args) {
@@ -61,13 +60,12 @@ function wrapXHR (window) {
   }
 }
 
-function adjustXPathResult (window) {
+function adjustXPathResult ({ Document }) {
   /* https://ui5.sap.com/resources/sap/ui/model/odata/AnnotationParser-dbg.js
      getXPath: function() {
        xmlNodes.length = xmlNodes.snapshotLength;
   */
-  const { Document } = window
-  const evaluate = Document.prototype.evaluate
+  const { evaluate } = Document.prototype
   Document.prototype.evaluate = function () {
     const result = evaluate.apply(this, arguments)
     let length = result.length
@@ -82,10 +80,9 @@ function adjustXPathResult (window) {
   }
 }
 
-function fixMatchesDontThrow (window) {
+function fixMatchesDontThrow ({ document }) {
   // https://github.com/jsdom/jsdom/issues/3057
   // Fix _nwsapiDontThrow which throws :-(
-  const { document } = window
   const [impl] = Object.getOwnPropertySymbols(document)
   const documentImpl = document[impl]
   let _nwsapiDontThrow
@@ -108,6 +105,40 @@ function fixMatchesDontThrow (window) {
   })
 }
 
+function fixCaseSensitiveSelectors ({ Document }) {
+  const uppercaseTag = /\bSCRIPT\b/g
+  const { querySelector, querySelectorAll } = Document.prototype
+  Object.assign(Document.prototype, {
+    querySelector (selectors) {
+      const result = querySelector.call(this, selectors) || { length: 0 }
+      if (result.length === 0 && selectors.match(uppercaseTag)) {
+        console.log(JSON.stringify({
+          timestamp: new Date().toISOString(),
+          channel: 'debug',
+          message: 'overriding selectors upon empty result of document.querySelector',
+          selectors
+        }))
+        return querySelector.call(this, selectors.replace(uppercaseTag, tag => tag.toLowerCase()))
+      }
+      return result
+    },
+
+    querySelectorAll (selectors) {
+      const result = querySelectorAll.call(this, selectors) || { length: 0 }
+      if (result.length === 0 && selectors.match(uppercaseTag)) {
+        console.log(JSON.stringify({
+          timestamp: new Date().toISOString(),
+          channel: 'debug',
+          message: 'overriding selectors upon empty result of document.querySelectorAll',
+          selectors
+        }))
+        return querySelectorAll.call(this, selectors.replace(uppercaseTag, tag => tag.toLowerCase()))
+      }
+      return result
+    }
+  })
+}
+
 module.exports = window => {
   window.addEventListener('error', event => {
     const { message, filename, lineno, colno } = event
@@ -123,4 +154,5 @@ module.exports = window => {
   wrapXHR(window)
   adjustXPathResult(window)
   fixMatchesDontThrow(window)
+  fixCaseSensitiveSelectors(window)
 }
