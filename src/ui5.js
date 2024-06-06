@@ -91,7 +91,8 @@ module.exports = {
       match,
       'if-match': ifCacheEnabled,
       cwd: cacheBase,
-      file: '$1'
+      file: '$1',
+      static: !job.debugDevMode
     }, {
       // UI5 caching
       method: 'GET',
