@@ -143,3 +143,43 @@ Example :
 ui5-test-runner --url https://ui5.sap.com/test-resources/sap/m/demokit/orderbrowser/webapp/test/testsuite.qunit.html --coverage --coverage-proxy --coverage-proxy-include webapp/* --coverage-proxy-exclude webapp/test --disable-ui5
 ```
 
+## Aggregate coverage for several projects
+
+It is possible to execute `ui5-test-runner` on several projects and **aggregate** all coverage results to generate a **single** report.
+
+There are several requirements :
+
+* Projects have a **common base folder** (referenced as `<BASE_FOLDER>`)
+
+* Projects use the **same language** *(JavaScript or TypeScript)*
+
+* Coverage extraction must be done the **same way** *(legacy or remote)*
+
+### Setup
+
+* A folder is needed to store the merged coverage, it is referenced as `<MERGE_COVERAGE_FOLDER>` *(must be an **absolute** path)*. It must be **cleared** before the round of execution.
+
+* A JSON configuration file is needed with the following content *(replace `<BASE_FOLDER>` with the actual value)*, its path is  referenced as `<NYC_CONFIG_FILE>` *(must be an **absolute** path)*.
+
+```json
+{
+    "all": true,
+    "sourceMap": false,
+    "cwd": "<BASE_FOLDER>"
+}
+```
+
+> Content of the configuration file
+
+* [`nyc`](https://www.npmjs.com/package/nyc) is installed and available when running `npx nyc --help`
+
+### Steps
+
+* For each project (referenced as `<PROJECT_NAME>`) :
+  * `ui5-test-runner` with coverage extraction
+  * By default, coverage information is stored in the project root under `.nyc_output\merged\coverage.json`
+  * **after** `ui5-test-runner` successful execution, copy `.nyc_output\merged\coverage.json` to `<MERGE_COVERAGE_FOLDER>/<PROJECT_NAME>.json`
+
+* Once all projects are executed and coverage files copied, execute `npx nyc merge <MERGE_COVERAGE_FOLDER> <MERGE_COVERAGE_FOLDER>/overall/coverage.json`
+
+* Then, execute `npx nyc report --reporter=lcov --reporter=cobertura --temp-dir <MERGE_COVERAGE_FOLDER>/overall --report-dir <MERGE_COVERAGE_FOLDER>/coverage --nycrc-path <NYC_CONFIG_FILE>`

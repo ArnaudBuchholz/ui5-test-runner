@@ -1,6 +1,6 @@
 'use strict'
 
-const { join } = require('path')
+const { join, dirname, basename } = require('path')
 const { body } = require('reserve')
 const { extractPageUrl } = require('./tools')
 const { Request, Response } = require('reserve')
@@ -18,7 +18,7 @@ const punybindBinPath = join(resolveDependencyPath('punybind'), 'dist/punybind.j
 module.exports = job => {
   async function endpointImpl (api, implementation, request) {
     const url = extractPageUrl(request.headers)
-    const data = JSON.parse(await body(request))
+    const data = await body(request)
     try {
       await implementation.call(this, url, data)
     } catch (error) {
@@ -75,7 +75,9 @@ module.exports = job => {
       }, {
       // QUnit hooks
         match: '^/_/qunit-hooks.js',
-        file: join(__dirname, './inject/qunit-hooks.js')
+        cwd: __dirname,
+        file: 'inject/qunit-hooks.js',
+        static: !job.debugDevMode
       }, {
       // Concatenate qunit.js source with hooks
         match: /\/thirdparty\/(qunit(?:-2)?(?:-dbg)?\.js)/,
@@ -123,23 +125,33 @@ module.exports = job => {
       }, {
       // UI to follow progress
         match: '^/_/progress.html',
-        file: job.progressPage
+        cwd: dirname(job.progressPage),
+        file: basename(job.progressPage),
+        static: !job.debugDevMode
       }, {
       // Report 'main' substituted for progress
         match: '^/_/report/main.js',
-        file: join(__dirname, 'defaults/report/progress.js')
+        cwd: __dirname,
+        file: 'defaults/report/progress.js',
+        static: !job.debugDevMode
       }, {
       // Other report resources
         match: '^/_/report/(.*)',
-        file: join(__dirname, 'defaults/report/$1')
+        cwd: __dirname,
+        file: 'defaults/report/$1',
+        static: !job.debugDevMode
       }, {
       // punybind
         match: '^/_/punybind.js',
-        file: punybindBinPath
+        cwd: dirname(punybindBinPath),
+        file: basename(punybindBinPath),
+        static: !job.debugDevMode
       }, {
       // punyexpr
         match: '^/_/punyexpr.js',
-        file: punyexprBinPath
+        cwd: dirname(punyexprBinPath),
+        file: basename(punyexprBinPath),
+        static: !job.debugDevMode
       }, {
       // Endpoint to retry on progress
         method: 'INFO',
@@ -155,15 +167,21 @@ module.exports = job => {
       }, {
       // Endpoint to coverage files
         match: '^/_/coverage/(.*)',
-        file: join(job.coverageReportDir, '$1')
+        cwd: job.coverageReportDir,
+        file: '$1',
+        static: false
       }, {
       // Endpoint to report
         match: '^/_/report.html',
-        file: join(__dirname, 'report.html')
+        cwd: __dirname,
+        file: 'report.html',
+        static: !job.debugDevMode
       }, {
       // Endpoint to report files
         match: '^/_/(.*)',
-        file: join(job.reportDir, '$1')
+        cwd: job.reportDir,
+        file: '$1',
+        static: false
       }]
     : []
 }

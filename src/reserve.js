@@ -1,4 +1,3 @@
-const { join } = require('path')
 const cors = require('./cors')
 const endpoints = require('./endpoints')
 const { mappings: coverage } = require('./coverage')
@@ -17,9 +16,9 @@ module.exports = async job => check({
     {
       // Project mapping
       match: /^\/(.*)/,
-      file: join(job.webapp, '$1'),
-      strict: true,
-      'ignore-if-not-found': true
+      cwd: job.webapp,
+      file: '$1',
+      static: !job.watch && !job.debugDevMode
     },
     ...job.serveOnly ? [{ status: 404 }] : unhandled(job)
   ]

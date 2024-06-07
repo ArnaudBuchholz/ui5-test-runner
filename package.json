@@ -1,6 +1,6 @@
 {
   "name": "ui5-test-runner",
-  "version": "5.0.0",
+  "version": "5.1.0",
   "description": "Standalone test runner for UI5",
   "main": "index.js",
   "bin": {
@@ -21,7 +21,7 @@
     "test:report": "node ./src/defaults/report.js ./test/report && reserve --config ./test/report/reserve.json",
     "test:text-report": "node ./src/defaults/text-report.js ./test/report",
     "build:doc": "node build/doc",
-    "clean": "npm uninstall -g ui5-test-runner puppeteer nyc selenium-webdriver playwright webdriverio"
+    "clean": "npm uninstall -g ui5-test-runner puppeteer nyc selenium-webdriver playwright webdriverio jsdom"
   },
   "repository": {
     "type": "git",
@@ -43,25 +43,24 @@
   },
   "homepage": "https://github.com/ArnaudBuchholz/ui5-test-runner#readme",
   "dependencies": {
-    "commander": "^12.0.0",
-    "mime": "^3.0.0",
+    "commander": "^12.1.0",
     "punybind": "^1.2.1",
     "punyexpr": "^1.0.4",
-    "reserve": "^1.15.9"
+    "reserve": "2.0.1"
   },
   "devDependencies": {
-    "@openui5/types": "^1.123.0",
-    "@ui5/cli": "^3.10.0",
+    "@openui5/types": "^1.124.0",
+    "@ui5/cli": "^3.10.3",
     "@ui5/middleware-code-coverage": "^1.1.1",
     "dotenv": "^16.4.5",
     "jest": "^29.7.0",
     "nock": "^13.5.4",
     "nyc": "^15.1.0",
-    "rimraf": "^5.0.5",
+    "rimraf": "^5.0.7",
     "standard": "^17.1.0",
     "start-server-and-test": "^2.0.3",
     "typescript": "^5.4.5",
-    "ui5-tooling-transpile": "^3.4.0"
+    "ui5-tooling-transpile": "^3.4.2"
   },
   "optionalDependencies": {
     "fsevents": "^2.3.3"
@@ -77,32 +76,5 @@
       "sap",
       "opaTest"
     ]
-  },
-  "jest": {
-    "testTimeout": 15000,
-    "setupFilesAfterEnv": [
-      "./test/setup.js"
-    ],
-    "testPathIgnorePatterns": [
-      "/node_modules/",
-      "/capabilities/"
-    ],
-    "collectCoverage": true,
-    "collectCoverageFrom": [
-      "src/*.js"
-    ],
-    "coveragePathIgnorePatterns": [
-      "\\.spec\\.js",
-      "output\\.js",
-      "b\\capabilities\\b"
-    ],
-    "coverageThreshold": {
-      "global": {
-        "branches": 80,
-        "functions": 80,
-        "lines": 80,
-        "statements": 80
-      }
-    }
   }
 }

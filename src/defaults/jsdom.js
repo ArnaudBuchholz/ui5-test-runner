@@ -11,24 +11,42 @@ require('./browser')({
     capabilities: {
       modules: ['jsdom'],
       scripts: true,
-      traces: ['console', 'network']
+      traces: ['multiplex']
     }
   },
 
   async run ({
     settings: { url, scripts, modules },
-    options,
-    consoleWriter,
-    networkWriter
+    options
   }) {
     const jsdom = require(modules.jsdom)
     const { JSDOM, VirtualConsole } = jsdom
 
     const virtualConsole = new VirtualConsole()
-    virtualConsole.on('error', (...args) => consoleWriter.append({ type: 'error', text: args.join(' ') }))
-    virtualConsole.on('warn', (...args) => consoleWriter.append({ type: 'warning', text: args.join(' ') }))
-    virtualConsole.on('info', (...args) => consoleWriter.append({ type: 'info', text: args.join(' ') }))
-    virtualConsole.on('log', (...args) => consoleWriter.append({ type: 'log', text: args.join(' ') }))
+    virtualConsole.on('error', (...args) => console.log(JSON.stringify({
+      timestamp: new Date().toISOString(),
+      channel: 'console',
+      type: 'error',
+      message: args.join(' ')
+    })))
+    virtualConsole.on('warn', (...args) => console.log(JSON.stringify({
+      timestamp: new Date().toISOString(),
+      channel: 'console',
+      type: 'warning',
+      message: args.join(' ')
+    })))
+    virtualConsole.on('info', (...args) => console.log(JSON.stringify({
+      timestamp: new Date().toISOString(),
+      channel: 'console',
+      type: 'info',
+      message: args.join(' ')
+    })))
+    virtualConsole.on('log', (...args) => console.log(JSON.stringify({
+      timestamp: new Date().toISOString(),
+      channel: 'console',
+      type: 'log',
+      message: args.join(' ')
+    })))
 
     let mainWindow
 
@@ -41,7 +59,7 @@ require('./browser')({
           writable: false
         })
       }
-      require('./jsdom/compatibility')({ window, networkWriter })
+      require('./jsdom/compatibility')(window)
       if (options.debug) {
         require('./jsdom/debug')(window)
       }
@@ -64,11 +82,7 @@ require('./browser')({
       runScripts: 'dangerously',
       pretendToBeVisual: true,
       virtualConsole,
-      resources: require('./jsdom/resource-loader')({
-        jsdom,
-        networkWriter,
-        consoleWriter
-      }),
+      resources: require('./jsdom/resource-loader')(jsdom),
       beforeParse
     })
   }

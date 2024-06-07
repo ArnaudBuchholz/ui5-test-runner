@@ -1,8 +1,4 @@
-module.exports = ({
-  jsdom,
-  networkWriter,
-  consoleWriter
-}) => {
+module.exports = jsdom => {
   const { ResourceLoader: JSDOMResourceLoader } = jsdom
 
   const { readFile } = require('fs/promises')
@@ -15,19 +11,24 @@ module.exports = ({
         const { response } = request
         let status
         if (response === undefined) {
-          consoleWriter.append({
+          console.log(JSON.stringify({
+            timestamp: new Date().toISOString(),
+            channel: 'console',
             type: 'error',
             message: 'NETWORK ERROR : ' + (reason ? reason.toString() : 'unknown reason')
-          })
+          }))
           status = 599
         } else {
           status = response.statusCode
         }
-        networkWriter.append({
+        console.log(JSON.stringify({
+          timestamp: new Date().toISOString(),
+          channel: 'network',
+          initiator: 'resource-loader',
           method: 'GET',
           url,
           status
-        })
+        }))
       }
       request.then(log, log)
       if (url.match(/sap\/ui\/test\/matchers\/Visible(-dbg)?.js/)) {
