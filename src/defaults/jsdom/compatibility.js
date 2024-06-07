@@ -81,8 +81,9 @@ function adjustXPathResult ({ Document }) {
 }
 
 function fixMatchesDontThrow ({ document }) {
-  // https://github.com/jsdom/jsdom/issues/3057
-  // Fix _nwsapiDontThrow which throws :-(
+  /* https://github.com/jsdom/jsdom/issues/3057
+     Fix _nwsapiDontThrow which throws :-(
+  */
   const [impl] = Object.getOwnPropertySymbols(document)
   const documentImpl = document[impl]
   let _nwsapiDontThrow
@@ -106,6 +107,10 @@ function fixMatchesDontThrow ({ document }) {
 }
 
 function fixCaseSensitiveSelectors ({ Document }) {
+  /* https://github.com/SAP/openui5/blob/f41ed5504db1dc576dae7e7d403aaa02b918fef5/src/sap.ui.core/src/ui5loader-autoconfig.js#L75
+     oResult = check(globalThis.document.querySelector('SCRIPT[src][id=sap-ui-bootstrap]'), rResources);
+     jsdom uses case sensitive implementation of querySelector
+  */
   const uppercaseTag = /\bSCRIPT\b/g
   const { querySelector, querySelectorAll } = Document.prototype
   Object.assign(Document.prototype, {
