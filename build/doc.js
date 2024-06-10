@@ -28,7 +28,7 @@ async function browser (name) {
     )
   )
   const [, reducedHelp] = stdout.match(/Options:\n((?:.|\n)*)/m)
-  const newBrowserDoc = browserDoc.replace(/## Options[^#]+/, '## Options\n```text\n' + reducedHelp + '```\n\n')
+  const newBrowserDoc = browserDoc.replace(/## Options\n\n?```[^`]+/, '## Options\n\n```text\n' + reducedHelp)
   if (browserDoc !== newBrowserDoc) {
     await writeFile(browserDocPath, newBrowserDoc)
   }
