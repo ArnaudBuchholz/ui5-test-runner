@@ -7,13 +7,12 @@ require('./browser')({
   metadata: {
     name: 'puppeteer',
     options: [
-      ['--visible [flag]', 'Show the browser', false],
+      'visible',
       ['--firefox [flag]', 'Use firefox instead of chrome', false],
-      ['--binary <binary>', 'Binary path'],
-      ['-w, --viewport-width <width>', 'Viewport width', 1920],
-      ['-h, --viewport-height <height>', 'Viewport height', 1080],
-      ['-l, --language <lang...>', 'Language(s)', ['en-US']],
-      ['-u, --unsecure', 'Disable security features', false],
+      'binary',
+      'viewport',
+      'language',
+      'unsecure',
       ['--basic-auth-username <username>', 'Username for basic authentication', ''],
       ['--basic-auth-password <password>', 'Password for basic authentication', '']
     ]
@@ -55,27 +54,12 @@ require('./browser')({
   }) {
     const puppeteer = require(modules.puppeteer)
 
-    const args = [
-      '--start-maximized',
-      '--no-sandbox',
-      '--disable-gpu',
-      '--disable-extensions',
-      `--window-size=${options.viewportWidth},${options.viewportHeight}`,
-      `--lang=${options.language.join(',')}`
-    ]
-
-    if (options.unsecure) {
-      args.push(
-        '--disable-web-security',
-        '--disable-features=IsolateOrigins',
-        '--disable-features=BlockInsecurePrivateNetworkRequests',
-        '--disable-site-isolation-trials'
-      )
-    }
-
+    let args = []
     let product
     if (options.firefox) {
       product = 'firefox'
+    } else {
+      args = options.chromeArgs()
     }
 
     browser = await puppeteer.launch({

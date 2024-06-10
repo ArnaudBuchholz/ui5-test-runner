@@ -20,6 +20,7 @@ Supported browsers :
 * edge
 
 ## Options
+
 ```text
   -b, --browser <name>   Browser driver (default: "chrome")
   --visible [flag]       Show the browser (default: false)

@@ -19,11 +19,23 @@ Supported browsers :
 * firefox
 
 ## Options
+
 ```text
-  --visible [flag]      Show the browser (default: false)
-  -b, --browser <name>  Browser driver (default: "chrome")
-  --binary <binary>     Binary path
+  --visible [flag]                Show the browser (default: false)
+  -b, --browser <name>            Browser driver (default: "chrome")
+  --binary <binary>               Binary path
+  -w, --viewport-width <width>    Viewport width (default: 1920)
+  -h, --viewport-height <height>  Viewport height (default: 1080)
+  -l, --language <lang...>        Language(s) (default: ["en-US"])
+  -u, --unsecure                  Disable security features (default: false)
 ```
+
+For `chrome` browser, it is possible to provide extra parameters using `--` separator inside browser arguments.
+
+For instance :
+
+* `ui5-test-runner --url http://localhost:8080/testsuite.qunit.html --browser $/webdriverio.js -- --unsecure -- --disable-infobars`
+* or *(equivalent)* `ui5-test-runner --url http://localhost:8080/testsuite.qunit.html --browser $/webdriverio.js --browser-args --unsecure --browser-args -- --browser-args --disable-infobars`
 
 ## Implementation notes
 

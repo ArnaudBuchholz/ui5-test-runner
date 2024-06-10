@@ -11,6 +11,7 @@
 | Traces | `console`, `network` |
 
 ## Options
+
 ```text
   --visible [flag]                  Show the browser (default: false)
   --firefox [flag]                  Use firefox instead of chrome (default:
@@ -25,6 +26,14 @@
   --basic-auth-password <password>  Password for basic authentication (default:
                                     "")
 ```
+
+For `chrome` browser, it is possible to provide extra parameters using `--` separator inside browser arguments.
+
+For instance :
+
+* `ui5-test-runner --url http://localhost:8080/testsuite.qunit.html -- --unsecure -- --disable-infobars`
+* or *(equivalent)* `ui5-test-runner --url http://localhost:8080/testsuite.qunit.html --browser-args --unsecure --browser-args -- --browser-args --disable-infobars`
+
 
 ## Implementation notes
 

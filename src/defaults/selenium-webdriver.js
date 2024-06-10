@@ -1,21 +1,10 @@
 'use strict'
 
-const { InvalidArgumentError } = require('commander')
 const { url } = require('../options')
 const { writeFile } = require('fs/promises')
 
 let logging
 let driver
-
-function browser (value) {
-  if (value === undefined) {
-    return 'chrome'
-  }
-  if (!['chrome', 'firefox', 'edge'].includes(value)) {
-    throw new InvalidArgumentError('Browser name')
-  }
-  return value
-}
 
 async function buildDriver (settings, options) {
   const seleniumWebdriver = require(settings.modules['selenium-webdriver'])
@@ -38,10 +27,10 @@ require('./browser')({
   metadata: {
     name: 'selenium-webdriver',
     options: [
-      ['-b, --browser <name>', 'Browser driver', browser, 'chrome'],
-      ['--visible [flag]', 'Show the browser', false],
+      ['browser', 'chrome', 'firefox', 'edge'],
+      'visible',
       ['-s, --server <server>', 'Selenium server URL', url],
-      ['--binary <binary>', 'Binary path']
+      'binary'
     ]
   },
 

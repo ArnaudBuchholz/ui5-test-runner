@@ -1,6 +1,6 @@
 const { readFile, writeFile } = require('fs/promises')
 const { join } = require('path')
-const { Command } = require('commander')
+const { Command, InvalidArgumentError } = require('commander')
 const { buildCsvWriter } = require('../csv-writer')
 const { any, boolean, integer } = require('../options')
 
@@ -20,19 +20,58 @@ module.exports = ({
     .name(`ui5-test-runner/@/${metadata.name}`)
     .description(`Browser instantiation command for ${metadata.name}`)
     .helpOption(false)
-  metadata.options.forEach(([label, description, parser, defaultValue]) => {
-    if (defaultValue === undefined && typeof parser !== 'function') {
-      defaultValue = parser
-      if (typeof defaultValue === 'number') {
-        parser = integer
-      } else if (typeof defaultValue === 'boolean') {
-        parser = boolean
-      } else {
-        parser = any
+  metadata.options
+    .map(option => {
+      if (option[0] === 'browser') {
+        const [, ...browsers] = option
+        return [[
+          '-b, --browser <name>', 'Browser driver',
+          function (value) {
+            if (value === undefined) {
+              return browsers[0]
+            }
+            if (!browsers.includes(value)) {
+              throw new InvalidArgumentError('Browser name')
+            }
+            return value
+          },
+          browsers[0]
+        ]]
       }
-    }
-    command.option(label, description, parser, defaultValue)
-  })
+      if (option === 'binary') {
+        return [['--binary <binary>', 'Binary path']]
+      }
+      if (option === 'visible') {
+        return [['--visible [flag]', 'Show the browser', false]]
+      }
+      if (option === 'viewport') {
+        return [
+          ['-w, --viewport-width <width>', 'Viewport width', 1920],
+          ['-h, --viewport-height <height>', 'Viewport height', 1080]
+        ]
+      }
+      if (option === 'language') {
+        return [['-l, --language <lang...>', 'Language(s)', ['en-US']]]
+      }
+      if (option === 'unsecure') {
+        return [['-u, --unsecure', 'Disable security features', false]]
+      }
+      return [option]
+    })
+    .flat()
+    .forEach(([label, description, parser, defaultValue]) => {
+      if (defaultValue === undefined && typeof parser !== 'function') {
+        defaultValue = parser
+        if (typeof defaultValue === 'number') {
+          parser = integer
+        } else if (typeof defaultValue === 'boolean') {
+          parser = boolean
+        } else {
+          parser = any
+        }
+      }
+      command.option(label, description, parser, defaultValue)
+    })
 
   const append = () => { }
   let consoleWriter = { ready: Promise.resolve(), append }
@@ -95,6 +134,12 @@ module.exports = ({
     }
   })
 
+  if (process.argv[2] === 'test') {
+    command.parse(process.argv.slice(3), { from: 'user' })
+    console.log(command.opts(), command.args)
+    return exit(0)
+  }
+
   if (process.argv.length !== 3) {
     command.outputHelp()
     return exit(0)
@@ -104,6 +149,31 @@ module.exports = ({
     settings = JSON.parse((await readFile(process.argv[2])).toString())
     command.parse(settings.args, { from: 'user' })
     options = command.opts()
+
+    options.chromeArgs = function () {
+      const args = [
+        '--start-maximized',
+        '--no-sandbox',
+        '--disable-gpu',
+        '--disable-extensions',
+        '--log-level=3',
+        `--window-size=${options.viewportWidth},${options.viewportHeight}`,
+        `--lang=${options.language.join(',')}`
+      ]
+      if (!options.visible) {
+        args.push('--headless=new')
+      }
+      if (options.unsecure) {
+        args.push(
+          '--ignore-certificate-errors',
+          '--disable-web-security',
+          '--disable-features=IsolateOrigins',
+          '--disable-features=BlockInsecurePrivateNetworkRequests',
+          '--disable-site-isolation-trials'
+        )
+      }
+      return args.concat(command.args)
+    }
 
     if (typeof settings.capabilities === 'string') {
       let capabilities

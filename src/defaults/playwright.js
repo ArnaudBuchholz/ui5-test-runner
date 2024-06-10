@@ -1,6 +1,5 @@
 'use strict'
 
-const { InvalidArgumentError } = require('commander')
 const { join } = require('path')
 const { exec } = require('child_process')
 
@@ -8,26 +7,15 @@ let browser
 let context
 let page
 
-function browserSelector (value, defaultValue) {
-  if (value === undefined) {
-    return 'chromium'
-  }
-  if (!['chromium', 'firefox', 'webkit'].includes(value)) {
-    throw new InvalidArgumentError('Browser name')
-  }
-  return value
-}
-
 require('./browser')({
   metadata: {
     name: 'playwright',
     options: [
-      ['-b, --browser <name>', 'Browser driver', browserSelector, 'chromium'],
-      ['--visible [flag]', 'Show the browser', false],
-      ['-w, --viewport-width <width>', 'Viewport width', 1280],
-      ['-h, --viewport-height <height>', 'Viewport height', 720],
-      ['-l, --language <lang>', 'Language', 'en-US'],
-      ['-u, --unsecure', 'Disable security features', false],
+      ['browser', 'chromium', 'firefox', 'webkit'],
+      'visible',
+      'viewport',
+      'language',
+      'unsecure',
       ['-v, --video', 'Record video', false],
       ['-n, --har', 'Record network activity with har file', false]
     ]
@@ -111,7 +99,7 @@ require('./browser')({
         width: options.viewportWidth,
         height: options.viewportHeight
       },
-      locale: options.language,
+      locale: options.language[0],
       bypassCSP: options.unsecure,
       ignoreHTTPSErrors: options.unsecure,
       recordVideo,

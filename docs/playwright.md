@@ -20,12 +20,13 @@ Supported browsers :
 * webkit
 
 ## Options
+
 ```text
   -b, --browser <name>            Browser driver (default: "chromium")
   --visible [flag]                Show the browser (default: false)
-  -w, --viewport-width <width>    Viewport width (default: 1280)
-  -h, --viewport-height <height>  Viewport height (default: 720)
-  -l, --language <lang>           Language (default: "en-US")
+  -w, --viewport-width <width>    Viewport width (default: 1920)
+  -h, --viewport-height <height>  Viewport height (default: 1080)
+  -l, --language <lang...>        Language(s) (default: ["en-US"])
   -u, --unsecure                  Disable security features (default: false)
   -v, --video                     Record video (default: false)
   -n, --har                       Record network activity with har file

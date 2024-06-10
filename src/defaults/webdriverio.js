@@ -1,26 +1,17 @@
 'use strict'
 
-const { InvalidArgumentError } = require('commander')
-
 let browserio
-
-function browser (value) {
-  if (value === undefined) {
-    return 'chrome'
-  }
-  if (!['chrome', 'firefox'].includes(value)) {
-    throw new InvalidArgumentError('Browser name')
-  }
-  return value
-}
 
 require('./browser')({
   metadata: {
     name: 'webdriverio',
     options: [
-      ['--visible [flag]', 'Show the browser', false],
-      ['-b, --browser <name>', 'Browser driver', browser, 'chrome'],
-      ['--binary <binary>', 'Binary path']
+      'visible',
+      ['browser', 'chrome', 'firefox'],
+      'binary',
+      'viewport',
+      'language',
+      'unsecure'
     ]
   },
 
@@ -57,7 +48,7 @@ require('./browser')({
     const [browserOptions, args] = {
       chrome: [
         'goog:chromeOptions',
-        options.visible ? [] : ['--headless=new', '--log-level=3', '--disable-gpu']
+        options.chromeArgs()
       ],
       firefox: [
         'moz:firefoxOptions',

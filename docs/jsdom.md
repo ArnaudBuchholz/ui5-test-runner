@@ -10,6 +10,7 @@
 | Traces | `multiplex` 1️⃣ |
 
 ## Options
+
 ```text
   --debug [flag]  Enable more traces (default: false)
 ```
