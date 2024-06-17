@@ -9,14 +9,17 @@
   const base = window['ui5-test-runner/base-host'] || ''
 
   let lastPost = Promise.resolve()
-  let UI5Object
+
+  function isUI5Object (obj) {
+    return typeof obj === 'object' &&
+      obj !== null &&
+      typeof obj.getId === 'function' &&
+      typeof obj.getMetadata === 'function'
+  }
 
   function stringify (data) {
     const objects = []
     const referenced = []
-    if (!UI5Object && window.sap && window.sap.ui && window.sap.ui.base) {
-      UI5Object = window.sap.ui.base.Object
-    }
     const ui5Summary = obj => {
       const id = obj.getId && obj.getId()
       const className = obj.getMetadata && obj.getMetadata() && obj.getMetadata().getName()
@@ -27,7 +30,7 @@
     }
     const simple = JSON.stringify(data, function (key, value) {
       if (typeof value === 'object' && value) {
-        if (UI5Object && value instanceof UI5Object) {
+        if (isUI5Object(value)) {
           return ui5Summary(value)
         }
         const id = objects.indexOf(value)
@@ -45,7 +48,7 @@
     const stringified = []
     return JSON.stringify(data, function (key, value) {
       if (typeof value === 'object' && value) {
-        if (UI5Object && value instanceof UI5Object) {
+        if (isUI5Object(value)) {
           return ui5Summary(value)
         }
         const id = objects.indexOf(value)
