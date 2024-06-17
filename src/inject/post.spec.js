@@ -1,13 +1,5 @@
-class UI5Object {}
 global.window = {
-  location: '/test.html',
-  sap: {
-    ui: {
-      base: {
-        Object: UI5Object
-      }
-    }
-  }
+  location: '/test.html'
 }
 global.top = global.window
 
@@ -87,22 +79,13 @@ describe('src/inject/post', () => {
     })
 
     describe('UI5 objects', () => {
-      it('reduces UI5 objects to their simplest form (no ID)', () => {
-        const obj = new UI5Object()
-        obj.getMetadata = () => ({
-          getName: () => 'sap.m.Button'
-        })
-        expect(JSON.parse(stringify(obj))).toStrictEqual({
-          'ui5:class': 'sap.m.Button'
-        })
-      })
-
-      it('reduces UI5 objects to their simplest form (with ID)', () => {
-        const obj = new UI5Object()
-        obj.getId = () => 'test'
-        obj.getMetadata = () => ({
-          getName: () => 'sap.m.Button'
-        })
+      it('reduces UI5 objects to their simplest form', () => {
+        const obj = {
+          getId: () => 'test',
+          getMetadata: () => ({
+            getName: () => 'sap.m.Button'
+          })
+        }
         expect(JSON.parse(stringify(obj))).toStrictEqual({
           'ui5:id': 'test',
           'ui5:class': 'sap.m.Button'
@@ -110,27 +93,18 @@ describe('src/inject/post', () => {
       })
 
       it('works on a complex object', () => {
-        const obj = new UI5Object()
-        obj.getId = () => 'test'
-        obj.getMetadata = () => ({
-          getName: () => 'sap.m.Button'
-        })
+        const obj = {
+          getId: () => 'test',
+          getMetadata: () => ({
+            getName: () => 'sap.m.Button'
+          })
+        }
         expect(JSON.parse(stringify({
           complex: obj
         }))).toStrictEqual({
           complex: {
             'ui5:id': 'test',
             'ui5:class': 'sap.m.Button'
-          }
-        })
-      })
-
-      it('works on incomplete mocked objects', () => {
-        const obj = new UI5Object()
-        expect(JSON.parse(stringify({
-          complex: obj
-        }))).toStrictEqual({
-          complex: {
           }
         })
       })
@@ -271,9 +245,10 @@ describe('src/inject/post', () => {
             xhr.complete(true, 'OK', 'OK')
           }
         }
-        const obj = new UI5Object()
-        obj.getId = () => { throw new Error('exception') }
-        obj.getMetadata = () => { throw new Error('exception') }
+        const obj = {
+          getId: () => { throw new Error('exception') },
+          getMetadata: () => { throw new Error('exception') }
+        }
         await expect(post('test1', { obj })).resolves.toStrictEqual(undefined)
         expect(console.error).toHaveBeenCalled()
         console.error.mockClear()
