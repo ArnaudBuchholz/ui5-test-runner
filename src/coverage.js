@@ -310,13 +310,27 @@ module.exports = {
       await setupNyc(job)
       // Assuming all files are coming from the same server
       const { origin } = new URL(job.url[0])
-      const { createInstrumenter } = require(join(await nycInstallationPath, 'node_modules/istanbul-lib-instrument'))
-      const instrumenter = createInstrumenter({
-        produceSourceMap: true,
-        coverageGlobalScope: 'window.top',
-        coverageGlobalScopeFunc: false
-      })
-      const instrument = promisify(instrumenter.instrument.bind(instrumenter))
+      let instrument
+      try {
+        const { createInstrumenter } = require(join(await nycInstallationPath, 'node_modules/istanbul-lib-instrument'))
+        const instrumenter = createInstrumenter({
+          produceSourceMap: true,
+          coverageGlobalScope: 'window.top',
+          coverageGlobalScopeFunc: false
+        })
+        instrument = promisify(instrumenter.instrument.bind(instrumenter))
+      } catch (e) {
+        // Recent version of nyc offers a different interface
+        const createInstrumenter = require(join(await nycInstallationPath, 'lib/instrumenters/istanbul.js'))
+        const instrumenter = createInstrumenter({
+          produceSourceMap: true
+        })
+        instrument = async function (code, sourcePath) {
+          return instrumenter.instrumentSync(code, sourcePath, { registerMap: () => {} })
+            // TODO use regular expression !
+            .replace(globalContextSearch, globalContextReplace)
+        }
+      }
       const sources = {}
       return [{
         match: /(.*\.js)(\?.*)?$/,
