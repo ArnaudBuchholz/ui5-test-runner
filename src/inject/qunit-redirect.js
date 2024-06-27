@@ -33,20 +33,22 @@
       QUnit = value
 
       const { test } = QUnit
-      QUnit.test = (label) => test(label, (assert) => assert.ok(true, label))
+      if (typeof test === 'function') {
+        QUnit.test = (label) => test(label, (assert) => assert.ok(true, label))
 
-      let timeoutId
-      QUnit.moduleDone(function () {
-        if (timeoutId) {
-          clearTimeout(timeoutId)
+        let timeoutId
+        QUnit.moduleDone(function () {
+          if (timeoutId) {
+            clearTimeout(timeoutId)
+          }
+          timeoutId = setTimeout(notify, 10)
+        })
+
+        function notify () {
+          const modules = QUnit.config.modules.map(({ moduleId }) => moduleId)
+          const opa = !!window?.sap?.ui?.test?.Opa5
+          post('addTestPages', { type: 'qunit', opa, modules, page: location.toString() })
         }
-        timeoutId = setTimeout(notify, 10)
-      })
-
-      function notify () {
-        const modules = QUnit.config.modules.map(({ moduleId }) => moduleId)
-        const opa = !!window?.sap?.ui?.test?.Opa5
-        post('addTestPages', { type: 'qunit', opa, modules, page: location.toString() })
       }
     }
   })

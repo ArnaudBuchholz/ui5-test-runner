@@ -158,6 +158,12 @@ const tests = [{
   utr: '--url http://localhost:8080/test/testsuite.qunit.html',
   checks: [qunitPages(2)]
 }, {
+  id: 'JS_REMOTE_SHIM',
+  label: 'Remote JS SHIM sample',
+  before: ui5Serve,
+  utr: '--url http://localhost:8080/test/integration/opaTests.qunit-shim.html',
+  checks: [qunitPages(1)]
+}, {
   id: 'JS_REMOTE_SPLIT',
   label: 'Remote JS sample with OPA split',
   before: ui5Serve,

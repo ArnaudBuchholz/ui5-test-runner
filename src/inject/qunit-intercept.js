@@ -29,7 +29,9 @@
     set: function (value) {
       QUnit = value
       Object.keys(callbacks).forEach(property => {
-        QUnit[property](callbacks[property])
+        if (typeof QUnit[property] === 'function') {
+          QUnit[property](callbacks[property])
+        }
       })
     }
   })
