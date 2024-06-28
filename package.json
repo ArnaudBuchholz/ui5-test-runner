@@ -46,7 +46,7 @@
     "commander": "^12.1.0",
     "punybind": "^1.2.1",
     "punyexpr": "^1.0.4",
-    "reserve": "2.0.1"
+    "reserve": "2.0.2"
   },
   "devDependencies": {
     "@openui5/types": "^1.125.0",
