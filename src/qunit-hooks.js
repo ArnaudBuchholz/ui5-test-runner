@@ -47,12 +47,16 @@ function filterModules (modules, url) {
 }
 
 function get (job, urlWithHash, { testId, modules, isOpa } = {}) {
-  const url = stripUrlHash(urlWithHash)
-  const page = job.qunitPages && job.qunitPages[url]
-  const progress = (job[$browsers] && job[$browsers][url] && job[$browsers][url].progress) || { total: 0, count: 0 }
+  let url = stripUrlHash(urlWithHash)
+  let page = job.qunitPages && job.qunitPages[url]
+  if (!page && url.includes('module=')) {
+    url = url.replace(/\bmodule=([^&]+)/, (_, name) => `module=${name.replace(/\+/g, '%20')}`)
+    page = job.qunitPages && job.qunitPages[url]
+  }
   if (!page) {
     error(job, url, `No QUnit page found for ${urlWithHash}`)
   }
+  const progress = (job[$browsers] && job[$browsers][url] && job[$browsers][url].progress) || { total: 0, count: 0 }
   merge(page.modules, filterModules(modules || [], url))
   progress.total = page.count = page.modules.reduce((total, { tests }) => total + tests.length, 0)
   if (!page.isOpa && isOpa) {
