@@ -17,7 +17,7 @@ const addUrlParam = (url, param) => {
 
 module.exports = {
   async addTestPages (job, url, data) {
-    const { type, opa, modules, pages, page } = data
+    const { type, opa, module, pages, page } = data
     getOutput(job).debug('probe', `addTestPages from ${url}`, data)
     let testPageUrls
     if (type === 'none') {
@@ -25,10 +25,13 @@ module.exports = {
     } else {
       let receivedPages
       if (type === 'qunit') {
-        if (job.splitOpa && opa && modules && modules.length > 1) {
-          receivedPages = modules.map(moduleId => addUrlParam(stripUrlHash(page), `moduleId=${moduleId}`))
-        } else {
-          receivedPages = [page]
+        receivedPages = [page]
+        if (job.splitOpa && opa && module) {
+          if (module.ids && module.ids.length > 1) {
+            receivedPages = module.ids.map(id => addUrlParam(stripUrlHash(page), `moduleId=${id}`))
+          } else if (module.names && module.names.length > 1) {
+            receivedPages = module.names.map(name => addUrlParam(stripUrlHash(page), `module=${name}`))
+          }
         }
       } else {
         receivedPages = pages

@@ -45,9 +45,10 @@
         })
 
         function notify () {
-          const modules = QUnit.config.modules.map(({ moduleId }) => moduleId)
+          const moduleIds = QUnit.config.modules.map(({ moduleId }) => moduleId).filter(moduleId => !!moduleId)
+          const moduleNames = QUnit.config.modules.map(({ name }) => name)
           const opa = !!window?.sap?.ui?.test?.Opa5
-          post('addTestPages', { type: 'qunit', opa, modules, page: location.toString() })
+          post('addTestPages', { type: 'qunit', opa, module: { ids: moduleIds.length ? moduleIds : undefined, names: moduleNames }, page: location.toString() })
         }
       }
     }

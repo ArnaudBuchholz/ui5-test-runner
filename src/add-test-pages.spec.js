@@ -191,37 +191,149 @@ describe('src/add-test-pages', () => {
       })
 
       describe('OPA detected', () => {
-        it('keeps track of the test page and stops browser', async () => {
-          await addTestPages(job, url, { type: 'qunit', opa: true, modules: ['8b5be2ec', '5201787c'], page: '/page.html' })
-          expect(job.testPageUrls).toEqual([
-            'http://localhost:8045/page.html?moduleId=8b5be2ec',
-            'http://localhost:8045/page.html?moduleId=5201787c'
-          ])
-          expect(stop).toHaveBeenCalledWith(job, url)
+        describe('QUnit v2 (moduleId exists)', () => {
+          it('keeps track of the test page and stops browser', async () => {
+            await addTestPages(job, url, {
+              type: 'qunit',
+              opa: true,
+              module: {
+                ids: ['8b5be2ec', '5201787c'],
+                names: ['module 1', 'module 2']
+              },
+              page: '/page.html'
+            })
+            expect(job.testPageUrls).toEqual([
+              'http://localhost:8045/page.html?moduleId=8b5be2ec',
+              'http://localhost:8045/page.html?moduleId=5201787c'
+            ])
+            expect(stop).toHaveBeenCalledWith(job, url)
+          })
+
+          it('supports regexp filtering', async () => {
+            job.pageFilter = 'page1'
+            await addTestPages(job, url, {
+              type: 'qunit',
+              opa: true,
+              module: {
+                ids: ['8b5be2ec', '5201787c'],
+                names: ['module 1.1', 'module 1.2']
+              },
+              page: '/page1.html'
+            })
+            await addTestPages(job, url, {
+              type: 'qunit',
+              opa: true,
+              module: {
+                ids: ['b6e6da4c', '2146609c'],
+                names: ['module 2.1', 'module 2.2']
+              },
+              page: '/page2.html'
+            })
+            expect(job.testPageUrls).toEqual([
+              'http://localhost:8045/page1.html?moduleId=8b5be2ec',
+              'http://localhost:8045/page1.html?moduleId=5201787c'
+            ])
+            expect(stop).toHaveBeenCalledWith(job, url)
+          })
+
+          it('supports parameters injection', async () => {
+            job.pageParams = 'a&b'
+            await addTestPages(job, url, {
+              type: 'qunit',
+              opa: true,
+              module: {
+                ids: ['8b5be2ec', '5201787c'],
+                names: ['module 1.1', 'module 1.2']
+              },
+              page: '/page1.html'
+            })
+            await addTestPages(job, url, {
+              type: 'qunit',
+              opa: true,
+              module: {
+                ids: ['b6e6da4c', '2146609c'],
+                names: ['module 2.1', 'module 2.2']
+              },
+              page: '/page2.html?test'
+            })
+            expect(job.testPageUrls).toEqual([
+              'http://localhost:8045/page1.html?moduleId=8b5be2ec&a&b',
+              'http://localhost:8045/page1.html?moduleId=5201787c&a&b',
+              'http://localhost:8045/page2.html?test&moduleId=b6e6da4c&a&b',
+              'http://localhost:8045/page2.html?test&moduleId=2146609c&a&b'
+            ])
+            expect(stop).toHaveBeenCalledWith(job, url)
+          })
         })
 
-        it('supports regexp filtering', async () => {
-          job.pageFilter = 'page1'
-          await addTestPages(job, url, { type: 'qunit', opa: true, modules: ['8b5be2ec', '5201787c'], page: '/page1.html' })
-          await addTestPages(job, url, { type: 'qunit', opa: true, modules: ['b6e6da4c', '2146609c'], page: '/page2.html' })
-          expect(job.testPageUrls).toEqual([
-            'http://localhost:8045/page1.html?moduleId=8b5be2ec',
-            'http://localhost:8045/page1.html?moduleId=5201787c'
-          ])
-          expect(stop).toHaveBeenCalledWith(job, url)
-        })
+        describe('QUnit v1 (no moduleId)', () => {
+          it('keeps track of the test page and stops browser', async () => {
+            await addTestPages(job, url, {
+              type: 'qunit',
+              opa: true,
+              module: {
+                names: ['module 1', 'module 2']
+              },
+              page: '/page.html'
+            })
+            expect(job.testPageUrls).toEqual([
+              'http://localhost:8045/page.html?module=module%201',
+              'http://localhost:8045/page.html?module=module%202'
+            ])
+            expect(stop).toHaveBeenCalledWith(job, url)
+          })
 
-        it('supports parameters injection', async () => {
-          job.pageParams = 'a&b'
-          await addTestPages(job, url, { type: 'qunit', opa: true, modules: ['8b5be2ec', '5201787c'], page: '/page1.html' })
-          await addTestPages(job, url, { type: 'qunit', opa: true, modules: ['b6e6da4c', '2146609c'], page: '/page2.html?test' })
-          expect(job.testPageUrls).toEqual([
-            'http://localhost:8045/page1.html?moduleId=8b5be2ec&a&b',
-            'http://localhost:8045/page1.html?moduleId=5201787c&a&b',
-            'http://localhost:8045/page2.html?test&moduleId=b6e6da4c&a&b',
-            'http://localhost:8045/page2.html?test&moduleId=2146609c&a&b'
-          ])
-          expect(stop).toHaveBeenCalledWith(job, url)
+          it('supports regexp filtering', async () => {
+            job.pageFilter = 'page1'
+            await addTestPages(job, url, {
+              type: 'qunit',
+              opa: true,
+              module: {
+                names: ['module 1.1', 'module 1.2']
+              },
+              page: '/page1.html'
+            })
+            await addTestPages(job, url, {
+              type: 'qunit',
+              opa: true,
+              module: {
+                names: ['module 2.1', 'module 2.2']
+              },
+              page: '/page2.html'
+            })
+            expect(job.testPageUrls).toEqual([
+              'http://localhost:8045/page1.html?module=module%201.1',
+              'http://localhost:8045/page1.html?module=module%201.2'
+            ])
+            expect(stop).toHaveBeenCalledWith(job, url)
+          })
+
+          it('supports parameters injection', async () => {
+            job.pageParams = 'a&b'
+            await addTestPages(job, url, {
+              type: 'qunit',
+              opa: true,
+              module: {
+                names: ['module 1.1', 'module 1.2']
+              },
+              page: '/page1.html'
+            })
+            await addTestPages(job, url, {
+              type: 'qunit',
+              opa: true,
+              module: {
+                names: ['module 2.1', 'module 2.2']
+              },
+              page: '/page2.html?test'
+            })
+            expect(job.testPageUrls).toEqual([
+              'http://localhost:8045/page1.html?module=module%201.1&a&b',
+              'http://localhost:8045/page1.html?module=module%201.2&a&b',
+              'http://localhost:8045/page2.html?test&module=module%202.1&a&b',
+              'http://localhost:8045/page2.html?test&module=module%202.2&a&b'
+            ])
+            expect(stop).toHaveBeenCalledWith(job, url)
+          })
         })
       })
     })
