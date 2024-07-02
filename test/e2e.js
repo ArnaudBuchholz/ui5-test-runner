@@ -164,10 +164,22 @@ const tests = [{
   utr: '--url http://localhost:8080/test/integration/opaTests.qunit-shim.html',
   checks: [qunitPages(1)]
 }, {
+  id: 'JS_REMOTE_QUNIT_V1',
+  label: 'Remote JS QUnit v1 sample',
+  before: ui5Serve,
+  utr: '--url http://localhost:8080/test/testsuite.qunit-v1.html',
+  checks: [qunitPages(2)]
+}, {
   id: 'JS_REMOTE_SPLIT',
   label: 'Remote JS sample with OPA split',
   before: ui5Serve,
   utr: '--url http://localhost:8080/test/testsuite.qunit.html --split-opa',
+  checks: [qunitPages(3)]
+}, {
+  id: 'JS_REMOTE_QUNIT_V1_SPLIT',
+  label: 'Remote JS QUnit v1 sample with OPA split',
+  before: ui5Serve,
+  utr: '--url http://localhost:8080/test/testsuite.qunit-v1.html --split-opa',
   checks: [qunitPages(3)]
 }, {
   id: 'JS_REMOTE_COVERAGE_MAPPED',
