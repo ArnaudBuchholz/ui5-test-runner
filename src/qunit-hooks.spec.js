@@ -862,7 +862,6 @@ describe('src/qunit-hooks', () => {
   })
 
   describe('moduleId filtering', () => {
-    const urlWithModuleId = 'http://localhost:80/page1.html?moduleId=1'
     const module1 = {
       name: 'module 1',
       moduleId: '1',
@@ -888,16 +887,8 @@ describe('src/qunit-hooks', () => {
       }]
     }
 
-    beforeEach(async () => {
-      await begin(job, urlWithModuleId, {
-        isOpa: true,
-        totalTests: 0,
-        modules: [module1, module2]
-      })
-    })
-
-    function checkPageModules () {
-      const { page: { modules } } = get(job, urlWithModuleId)
+    function checkPageModules (url) {
+      const { page: { modules } } = get(job, url)
       expect(modules.length).toStrictEqual(1)
       expect(modules[0]).toMatchObject({
         name: 'module 1',
@@ -909,16 +900,52 @@ describe('src/qunit-hooks', () => {
       })
     }
 
-    it('filters out module on startup', () => checkPageModules())
+    describe('QUnit v1', () => {
+      const urlWithModuleName = 'http://localhost:80/page1.html?module=module%201'
 
-    it('filters modules if new ones are added', async () => {
-      await testStart(job, urlWithModuleId, {
-        module: 'test.html?journey=1A',
-        name: 'test 1a',
-        testId: '1a',
-        modules: [module1, module2, module3]
+      beforeEach(async () => {
+        await begin(job, urlWithModuleName, {
+          isOpa: true,
+          totalTests: 0,
+          modules: [module1, module2]
+        })
       })
-      checkPageModules()
+
+      it('filters out module on startup', () => checkPageModules(urlWithModuleName))
+
+      it('filters modules if new ones are added', async () => {
+        await testStart(job, urlWithModuleName, {
+          module: 'test.html?journey=1A',
+          name: 'test 1a',
+          testId: '1a',
+          modules: [module1, module2, module3]
+        })
+        checkPageModules(urlWithModuleName)
+      })
+    })
+
+    describe('QUnit v2', () => {
+      const urlWithModuleId = 'http://localhost:80/page1.html?moduleId=1'
+
+      beforeEach(async () => {
+        await begin(job, urlWithModuleId, {
+          isOpa: true,
+          totalTests: 0,
+          modules: [module1, module2]
+        })
+      })
+
+      it('filters out module on startup', () => checkPageModules(urlWithModuleId))
+
+      it('filters modules if new ones are added', async () => {
+        await testStart(job, urlWithModuleId, {
+          module: 'test.html?journey=1A',
+          name: 'test 1a',
+          testId: '1a',
+          modules: [module1, module2, module3]
+        })
+        checkPageModules(urlWithModuleId)
+      })
     })
   })
 })

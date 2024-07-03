@@ -38,10 +38,16 @@ function merge (targetModules, modules) {
 }
 
 function filterModules (modules, url) {
-  const moduleMatch = url.match(/\?.*\bmoduleId=([^&]+)/)
-  if (moduleMatch) {
-    const [, moduleId] = moduleMatch
+  const moduleIdMatch = url.match(/\?.*\bmoduleId=([^&]+)/)
+  if (moduleIdMatch) {
+    const [, moduleId] = moduleIdMatch
     return modules.filter(module => module.moduleId === moduleId)
+  }
+  const moduleNameMatch = url.match(/\?.*\bmodule=([^&]+)/)
+  if (moduleNameMatch) {
+    const [, escapedModuleName] = moduleNameMatch
+    const moduleName = escapedModuleName.replace(/\+|%20/g, ' ')
+    return modules.filter(module => module.name === moduleName)
   }
   return modules
 }
