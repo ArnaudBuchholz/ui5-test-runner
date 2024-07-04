@@ -359,6 +359,11 @@ async function test ({ id, before, label, utr, checks }) {
 
 output.reportOnJobProgress()
 
+setTimeout(() => {
+  console.error('⏲ timed out.')
+  process.exit(-2)
+}, 10 * 60 * 1000)
+
 recreateDir(join(root, 'e2e'))
   .then(() => parallelize(test, tests, parseInt(process.env.E2E_PARALLEL || '2', 10)))
   .then(
