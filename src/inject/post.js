@@ -74,6 +74,8 @@
 
   window['ui5-test-runner/stringify'] = stringify
 
+  const xPageUrl = top.location.toString()
+
   window[MODULE] = function post (url, data) {
     function request () {
       return new Promise(function (resolve, reject) {
@@ -85,18 +87,20 @@
           reject(xhr.statusText)
         })
         xhr.open('POST', base + '/_/' + url)
-        xhr.setRequestHeader('x-page-url', top.location)
+        xhr.setRequestHeader('x-page-url', xPageUrl)
         xhr.setRequestHeader('content-type', 'application/json')
         const json = stringify(data)
         xhr.setRequestHeader('content-length', json.length)
         xhr.send(json)
       })
     }
-    lastPost = lastPost
-      .then(request)
-      .then(undefined, function (reason) {
-        console.error('Failed to POST to ' + url + '\nreason: ' + reason.toString())
-      })
+    lastPost = lastPost.then(request)
+    if (!window.__unsafe__) {
+      lastPost = lastPost
+        .then(undefined, function (reason) {
+          console.error('Failed to POST to ' + url + '\nreason: ' + reason.toString())
+        })
+    }
     return lastPost
   }
 }())

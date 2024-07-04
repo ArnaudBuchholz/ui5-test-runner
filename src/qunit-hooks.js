@@ -46,19 +46,15 @@ function filterModules (modules, url) {
   const moduleNameMatch = url.match(/\?.*\bmodule=([^&]+)/)
   if (moduleNameMatch) {
     const [, escapedModuleName] = moduleNameMatch
-    const moduleName = escapedModuleName.replace(/\+|%20/g, ' ')
+    const moduleName = decodeURIComponent(escapedModuleName)
     return modules.filter(module => module.name === moduleName)
   }
   return modules
 }
 
 function get (job, urlWithHash, { testId, modules, isOpa } = {}) {
-  let url = stripUrlHash(urlWithHash)
-  let page = job.qunitPages && job.qunitPages[url]
-  if (!page && url.includes('module=')) {
-    url = url.replace(/\bmodule=([^&]+)/, (_, name) => `module=${name.replace(/\+/g, '%20')}`)
-    page = job.qunitPages && job.qunitPages[url]
-  }
+  const url = stripUrlHash(urlWithHash)
+  const page = job.qunitPages && job.qunitPages[url]
   if (!page) {
     error(job, url, `No QUnit page found for ${urlWithHash}`)
   }

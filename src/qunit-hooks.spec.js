@@ -70,19 +70,6 @@ describe('src/qunit-hooks', () => {
     modules: getModules()
   })
 
-  describe('get', () => {
-    it('handles module escaping required for QUnit v1', () => {
-      job.qunitPages = {
-        'http://localhost:80/page1.html?module=module%201': {
-          modules: []
-        }
-      }
-      const { page, url } = get(job, 'http://localhost:80/page1.html?module=module+1')
-      expect(page).not.toBeUndefined()
-      expect(url).toStrictEqual('http://localhost:80/page1.html?module=module%201')
-    })
-  })
-
   describe('begin', () => {
     it('allocates a placeholder page', async () => {
       await begin(job, url, getBeginInfo())

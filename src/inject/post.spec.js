@@ -1,4 +1,5 @@
 global.window = {
+  __unsafe__: true,
   location: '/test.html'
 }
 global.top = global.window
@@ -199,6 +200,27 @@ describe('src/inject/post', () => {
       await post('test', 'Hello World !')
     })
 
+    it('captures initial URL and always use it', async () => {
+      global.window.location = '/test2.html'
+      expect(global.top.location).toStrictEqual('/test2.html')
+      XMLHttpRequest.onNewInstance = xhr => {
+        xhr.send = body => {
+          expect(xhr).toMatchObject({
+            _method: 'POST',
+            _url: '/_/test',
+            _headers: {
+              'x-page-url': '/test.html'
+            }
+          })
+          expect(body).toStrictEqual('"Hello World !"')
+          expect(typeof xhr._load).toStrictEqual('function')
+          expect(typeof xhr._error).toStrictEqual('function')
+          xhr.complete(true)
+        }
+      }
+      await post('test', 'Hello World !')
+    })
+
     it('sequences the request', async () => {
       let count = 0
       XMLHttpRequest.onNewInstance = xhr => {
@@ -223,6 +245,10 @@ describe('src/inject/post', () => {
     })
 
     describe('error handling', () => {
+      beforeEach(() => {
+        global.window.__unsafe__ = false
+      })
+
       it('does not cascade server errors failures', async () => {
         XMLHttpRequest.onNewInstance = xhr => {
           xhr.send = () => {
