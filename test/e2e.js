@@ -107,6 +107,11 @@ const tests = [{
   utr: ['--cwd', join(root, './test/sample.js')],
   checks: [qunitPages(2)]
 }, {
+  id: 'JS_LEGACY_NO_SCRIPT',
+  label: 'Legacy JS Sample (no script injection)',
+  utr: ['--cwd', join(root, './test/sample.js'), '--debug-capabilities-no-script'],
+  checks: [qunitPages(2)]
+}, {
   id: 'JS_LEGACY_JUNIT_REPORT',
   label: 'Legacy JS Sample with junit XML report',
   utr: [

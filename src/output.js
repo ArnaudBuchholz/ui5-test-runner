@@ -355,7 +355,11 @@ function build (job) {
           } else {
             prefix = ' ├─'
           }
-          log(job, p80()`${prefix} ${key}: ${JSON.stringify(capabilities[key])}`)
+          let value = JSON.stringify(capabilities[key])
+          if (key === 'scripts' && !capabilities[key] && job.debugCapabilitiesNoScript) {
+            value += ' ⚠️ --debug-capabilities-no-script'
+          }
+          log(job, p80()`${prefix} ${key}: ${value}`)
         })
     }),
 

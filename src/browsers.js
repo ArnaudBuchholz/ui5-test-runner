@@ -95,6 +95,10 @@ async function probe (job) {
     job.browserCapabilities = await execute('probe/with-modules')
   }
 
+  if (job.debugCapabilitiesNoScript) {
+    job.browserCapabilities.scripts = false
+  }
+
   output.browserCapabilities(job.browserCapabilities)
 }
 
