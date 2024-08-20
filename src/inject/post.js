@@ -90,7 +90,6 @@
         xhr.setRequestHeader('x-page-url', xPageUrl)
         xhr.setRequestHeader('content-type', 'application/json')
         const json = stringify(data)
-        xhr.setRequestHeader('content-length', json.length)
         xhr.send(json)
       })
     }
