@@ -159,36 +159,42 @@ const tests = [{
 }, {
   id: 'JS_REMOTE',
   label: 'Remote JS sample',
+  isUi5Cli: true,
   before: ui5Serve,
   utr: '--url http://localhost:8080/test/testsuite.qunit.html',
   checks: [qunitPages(2)]
 }, {
   id: 'JS_REMOTE_SHIM',
   label: 'Remote JS SHIM sample',
+  isUi5Cli: true,
   before: ui5Serve,
   utr: '--url http://localhost:8080/test/integration/opaTests.qunit-shim.html',
   checks: [qunitPages(1)]
 }, {
   id: 'JS_REMOTE_QUNIT_V1',
   label: 'Remote JS QUnit v1 sample',
+  isUi5Cli: true,
   before: ui5Serve,
   utr: '--url http://localhost:8080/test/testsuite.qunit-v1.html',
   checks: [qunitPages(2)]
 }, {
   id: 'JS_REMOTE_SPLIT',
   label: 'Remote JS sample with OPA split',
+  isUi5Cli: true,
   before: ui5Serve,
   utr: '--url http://localhost:8080/test/testsuite.qunit.html --split-opa',
   checks: [qunitPages(3)]
 }, {
   id: 'JS_REMOTE_QUNIT_V1_SPLIT',
   label: 'Remote JS QUnit v1 sample with OPA split',
+  isUi5Cli: true,
   before: ui5Serve,
   utr: '--url http://localhost:8080/test/testsuite.qunit-v1.html --split-opa',
   checks: [qunitPages(3)]
 }, {
   id: 'JS_REMOTE_COVERAGE_MAPPED',
   label: 'Remote JS sample with coverage (with local mapping)',
+  isUi5Cli: true,
   before: ui5Serve,
   utr: [
     '--cwd', join(root, './test/sample.js'),
@@ -199,6 +205,7 @@ const tests = [{
 }, {
   id: 'JS_REMOTE_COVERAGE',
   label: 'Remote JS sample with coverage (no local mapping)',
+  isUi5Cli: true,
   before: ui5Serve,
   utr: [
     '--coverage-settings', join(root, './test/sample.js/nyc.json'),
@@ -239,12 +246,14 @@ const tests = [{
 }, {
   id: 'TS_REMOTE',
   label: 'Remote TS sample',
+  isUi5Cli: true,
   before: ui5ServeTs,
   utr: '--url http://localhost:8082/test/testsuite.qunit.html',
   checks: [qunitPages(2)]
 }, {
   id: 'TS_REMOTE_COVERAGE_MAPPED',
   label: 'Remote TS sample with coverage (with local mapping)',
+  isUi5Cli: true,
   before: ui5ServeTsWitCoverage,
   utr: [
     '--cwd', join(root, './test/sample.ts'),
@@ -255,6 +264,7 @@ const tests = [{
 }, {
   id: 'TS_REMOTE_COVERAGE',
   label: 'Remote TS sample with coverage (no local mapping)',
+  isUi5Cli: true,
   before: ui5ServeTsWitCoverage,
   utr: [
     '--coverage-settings', join(root, './test/sample.ts/nyc.json'),
@@ -290,7 +300,13 @@ const job = {
 }
 const output = getOutput(job)
 
-async function test ({ id, before, label, utr, checks }) {
+const nodeVersion = parseInt(process.version.match(/v(\d+)\./)[1])
+
+async function test ({ id, isUi5Cli, before, label, utr, checks }) {
+  if (isUi5Cli && nodeVersion < 20) {
+    output.log('🛑', label, `@ui5/cli@4 does not support node ${nodeVersion}`)
+    return
+  }
   const progress = newProgress(job)
   const reportDir = join(root, 'e2e', id)
   progress.label = `${label} (${id})`
