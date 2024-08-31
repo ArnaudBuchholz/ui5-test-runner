@@ -1,6 +1,6 @@
 {
   "name": "ui5-test-runner",
-  "version": "5.3.2",
+  "version": "5.3.3",
   "description": "Standalone test runner for UI5",
   "main": "index.js",
   "bin": {
@@ -50,7 +50,7 @@
   },
   "devDependencies": {
     "@openui5/types": "^1.127.0",
-    "@ui5/cli": "^4.0.5",
+    "@ui5/cli": "^4.0.6",
     "@ui5/middleware-code-coverage": "^2.0.0",
     "dotenv": "^16.4.5",
     "jest": "^29.7.0",
@@ -60,7 +60,7 @@
     "standard": "^17.1.0",
     "start-server-and-test": "^2.0.5",
     "typescript": "^5.5.4",
-    "ui5-tooling-transpile": "^3.4.7"
+    "ui5-tooling-transpile": "^3.4.8"
   },
   "optionalDependencies": {
     "fsevents": "^2.3.3"
