@@ -129,6 +129,9 @@ module.exports = {
     }]
 
     job.libs.forEach(({ relative, source }) => {
+      if (source.endsWith('/') || source.endsWith('\\')) {
+        source = source.substring(0, source.length - 1)
+      }
       mappings.unshift({
         match: new RegExp(`\\/resources\\/${relative.replace(/\//g, '\\/')}(.*)`),
         cwd: source,
@@ -136,7 +139,14 @@ module.exports = {
         static: !job.watch && !job.debugDevMode
       }, {
         match: new RegExp(`\\/resources\\/${relative.replace(/\//g, '\\/')}(.*)`),
-        status: 404
+        custom: async (request, response, $1) => {
+          if ($1 === undefined) {
+            getOutput(job).debug('libs', `Unable to map ${relative} : $1 is undefined`)
+          } else {
+            getOutput(job).debug('libs', `Unable to map ${relative}/${$1} to ${join(source, $1)}`)
+          }
+          return 404
+        }
       })
     })
 
