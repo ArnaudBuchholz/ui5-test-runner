@@ -36,6 +36,7 @@ describe('src/qunit-hooks', () => {
     screenshot.mockReset()
     screenshot.mockImplementation((job, url, testId) => Promise.resolve(`whatever/${testId}.png`))
     stop.mockClear()
+    collect.mockClear()
     mockGenericError.mockClear()
     job = {
       screenshot: true,
@@ -686,12 +687,23 @@ describe('src/qunit-hooks', () => {
       expect(page.report).toStrictEqual(getDoneInfo())
     })
 
-    it('collects and strips coverage information', async () => {
+    it('collects and strips coverage information (coverage enabled)', async () => {
+      const report = getDoneInfo()
+      const coverage = {}
+      report.__coverage__ = coverage
+      job.coverage = true
+      await done(job, url, report)
+      expect(collect).toHaveBeenCalledWith(job, url, coverage)
+      const { page } = get(job, url)
+      expect(page.report).toStrictEqual(getDoneInfo())
+    })
+
+    it('collects but drops coverage information (coverage disabled)', async () => {
       const report = getDoneInfo()
       const coverage = {}
       report.__coverage__ = coverage
       await done(job, url, report)
-      expect(collect).toHaveBeenCalledWith(job, url, coverage)
+      expect(collect).not.toHaveBeenCalled()
       const { page } = get(job, url)
       expect(page.report).toStrictEqual(getDoneInfo())
     })
