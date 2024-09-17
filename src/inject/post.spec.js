@@ -48,7 +48,7 @@ XMLHttpRequest.prototype = {
   }
 }
 
-global.XMLHttpRequest = XMLHttpRequest
+global.window.XMLHttpRequest = XMLHttpRequest
 
 require('./post')
 
