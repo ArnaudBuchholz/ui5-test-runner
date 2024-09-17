@@ -284,6 +284,9 @@ async function generateCoverageReport (job) {
 module.exports = {
   instrument: job => job.coverage && instrument(job),
   async collect (job, url, coverageData) {
+    if (!job.coverage) {
+      return
+    }
     job[$coverageFileIndex] = (job[$coverageFileIndex] || 0) + 1
     const coverageFileName = join(job.coverageTempDir, `${filename(url)}_${job[$coverageFileIndex]}.json`)
     getOutput(job).debug('coverage', `saved coverage in '${coverageFileName}'`)

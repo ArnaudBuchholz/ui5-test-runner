@@ -100,9 +100,7 @@ async function done (job, urlWithHash, report) {
     }
     page.end = new Date()
     if (report.__coverage__) {
-      if (job.coverage) {
-        await collect(job, url, report.__coverage__)
-      }
+      await collect(job, url, report.__coverage__)
       delete report.__coverage__
     }
     page.report = report

@@ -703,7 +703,8 @@ describe('src/qunit-hooks', () => {
       const coverage = {}
       report.__coverage__ = coverage
       await done(job, url, report)
-      expect(collect).not.toHaveBeenCalled()
+      // collect is still called but ignored in coverage.js
+      expect(collect).toHaveBeenCalledWith(job, url, coverage)
       const { page } = get(job, url)
       expect(page.report).toStrictEqual(getDoneInfo())
     })
