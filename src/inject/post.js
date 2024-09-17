@@ -7,6 +7,7 @@
   }
 
   const base = window['ui5-test-runner/base-host'] || ''
+  const XHR = window.XMLHttpRequest
 
   let lastPost = Promise.resolve()
 
@@ -79,7 +80,7 @@
   window[MODULE] = function post (url, data) {
     function request () {
       return new Promise(function (resolve, reject) {
-        const xhr = new XMLHttpRequest()
+        const xhr = new XHR()
         xhr.addEventListener('load', () => {
           resolve(xhr.responseText)
         })
