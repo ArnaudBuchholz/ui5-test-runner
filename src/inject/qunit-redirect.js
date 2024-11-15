@@ -59,7 +59,7 @@
       suite()
       post('addTestPages', { type: 'suite', pages })
     } else if (!QUnit) {
-      post('addTestPages', { type: 'none ' })
+      post('addTestPages', { type: 'none' })
     }
   })
 }())
