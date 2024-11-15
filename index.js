@@ -49,6 +49,7 @@ async function main () {
     return capabilities(job)
   }
   const configuration = await reserveConfigurationFactory(job)
+  output.debug('reserve', 'configuration', configuration)
   const server = serve(configuration)
   if (job.logServer) {
     server.on('redirected', output.redirected)
