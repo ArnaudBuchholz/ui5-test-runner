@@ -207,7 +207,10 @@ function checkAccess ({ path, label, file /*, write */ }) {
 function finalize (job) {
   function toAbsolute (path, from = job.cwd) {
     if (!isAbsolute(path)) {
-      return join(from, path)
+      path = join(from, path)
+    }
+    if (path.endsWith('/') || path.endsWith('\\')) {
+      return path.substring(0, path.length - 1)
     }
     return path
   }

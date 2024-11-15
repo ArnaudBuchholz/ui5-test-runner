@@ -72,6 +72,14 @@ describe('job', () => {
         expect(job.screenshot).toStrictEqual(false)
       })
 
+      it('strips out last path separator (required for reserve to match paths)', () => {
+        const job = buildJob({
+          cwd,
+          webapp: 'webapp/'
+        })
+        expect(normalizePath(job.webapp).endsWith('/test/project/webapp')).toStrictEqual(true)
+      })
+
       it('url disables coverage by default', () => {
         const job = buildJob({
           url: 'http://localhost:8080'
