@@ -55,9 +55,13 @@ async function main () {
           test.logs
             .filter(({ result }) => !result)
             .forEach(log => {
-              o(`      <failure
+              if (log.message) {
+                o(`      <failure
         message="${xmlEscape(log.message)}"
       >`)
+              } else {
+                o('      <failure>')
+              }
               if (log.source) {
                 o(xmlEscape(log.source))
               }
