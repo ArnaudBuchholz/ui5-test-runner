@@ -1,0 +1,82 @@
+
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <script id='sap-ui-bootstrap'
+      src='https://ui5.sap.com/resources/sap-ui-core.js'
+      data-sap-ui-libs='sap.m'
+      data-sap-ui-theme='sap_horizon'
+      data-sap-ui-compatVersion='edge'>
+    </script>
+    <script id="myXml" type="text/xmldata">
+<mvc:View xmlns:mvc="sap.ui.core.mvc" xmlns="sap.m" controllerName="myController" displayBlock="true">
+  <App>
+    <Page title="Table Example">
+      <Table id="myTable" 
+        items="{/items}" 
+        mode="SingleSelectMaster"
+      >
+        <headerToolbar>
+          <Toolbar>
+            <Title text="Sample Table"/>
+          </Toolbar>
+        </headerToolbar>
+        <columns>
+          <Column>
+            <Text text="Name"/>
+          </Column>
+          <Column>
+            <Text text="Age"/>
+          </Column>
+        </columns>
+        <items>
+          <ColumnListItem>
+            <cells>
+              <Text text="{name}"/>
+              <Text text="{age}"/>
+            </cells>
+          </ColumnListItem>
+        </items>
+      </Table>
+    </Page>
+  </App>
+</mvc:View>
+    </script>
+    <script>
+sap.ui.require([
+  "sap/ui/core/mvc/Controller", 
+  "sap/ui/core/mvc/XMLView", 
+  "sap/m/Dialog", 
+  "sap/m/Button"
+], function (Controller, XMLView, Dialog, Button) {
+  Controller.extend("myController", {
+    onInit: function () {
+      var model = new sap.ui.model.json.JSONModel();
+      model.setData({
+        items: [
+          {name: "John Doe", age: 30},
+          {name: "Jane Smith", age: 25},
+          {name: "Max Mustermann", age: 40}
+        ]
+      });
+      this.getView().setModel(model);
+      // Set focus on the second row
+      this.getView().byId("myTable").attachEventOnce("updateFinished", function() {
+        this.getItems()[1].focus();
+        // Notify the test framework
+        const xhr = new XMLHttpRequest();
+        xhr.open('POST', '/_/log');
+        xhr.send('{}'); // TODO how do we assess focus is correctly set ?
+      });
+    }
+  });
+
+  XMLView.create({definition: jQuery('#myXml').html()}).then(function (oView) {
+    oView.placeAt("content");
+  });
+});
+    </script>
+  </head>
+  <body id='content' class='sapUiBody'></body>
+</html>
