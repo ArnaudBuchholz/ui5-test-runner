@@ -63,20 +63,27 @@ sap.ui.require([
       this.getView().setModel(model);
       // Set focus on the second row
       this.getView().byId("myTable").attachEventOnce("updateFinished", function() {
-        this.getItems()[1].focus();
-        // Notify the test framework
-        const xhr = new XMLHttpRequest();
-        xhr.open('POST', '/_/log');
-        xhr.send('{}'); // TODO how do we assess focus is correctly set ?
+        // Need to do it asynchronously or the first item is selected instead
+        setTimeout(() => {
+          const listItem = this.getItems()[1];
+          listItem.focus();
+
+          // Notify the test framework
+          const xhr = new XMLHttpRequest();
+          xhr.open('POST', '/_/log');
+          xhr.send(JSON.stringify({
+            'is-focus-set': document.activeElement.id === listItem.getFocusDomRef()?.id,
+          }));
+        }, 0);
       });
     }
   });
 
   XMLView.create({definition: jQuery('#myXml').html()}).then(function (oView) {
-    oView.placeAt("content");
+    oView.placeAt(document.querySelector('body'));
   });
 });
     </script>
   </head>
-  <body id='content' class='sapUiBody'></body>
+  <body class='sapUiBody'></body>
 </html>

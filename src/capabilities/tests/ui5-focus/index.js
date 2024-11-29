@@ -3,9 +3,9 @@
 const assert = require('assert')
 
 module.exports = [{
-  label: 'Loads a page which requires the focus',
+  label: 'UI5 focus handling',
   url: 'ui5-focus/index.html',
   endpoint: ({ body }) => {
-    assert.strictEqual(body['sap.m.Button'], true)
+    assert.strictEqual(body['is-focus-set'], true)
   }
 }]
