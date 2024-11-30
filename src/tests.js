@@ -63,7 +63,6 @@ async function runTestPage (job, url) {
     if (job.browserCapabilities.scripts) {
       scripts = [
         'post.js',
-        'qunit-intercept.js',
         'qunit-hooks.js'
       ]
       if (job.coverage && !job.coverageProxy) {

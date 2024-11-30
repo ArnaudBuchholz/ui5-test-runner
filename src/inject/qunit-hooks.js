@@ -35,43 +35,67 @@
     return details
   }
 
-  QUnit.begin(function (details) {
-    details.isOpa = isOpa()
-    return post('QUnit/begin', details)
-  })
+  function installQUnitHooks () {
+    QUnit.begin(function (details) {
+      details.isOpa = isOpa()
+      return post('QUnit/begin', details)
+    })
+  
+    QUnit.testStart(function (details) {
+      return post('QUnit/testStart', extend(details))
+    })
+  
+    QUnit.log(function (log) {
+      let ready = false
+      post('QUnit/log', extend(log))
+        .then(undefined, function () {
+          console.error('Failed to POST to QUnit/log (no timestamp)', log)
+        })
+        .then(function () {
+          ready = true
+        })
+      if (isOpa()) {
+        window.sap.ui.test.Opa5.prototype.waitFor({
+          timeout: 10,
+          autoWait: false, // Ignore interactable constraint
+          check: function () {
+            return ready
+          }
+        })
+      }
+    })
+  
+    QUnit.testDone(function (report) {
+      return post('QUnit/testDone', report)
+    })
+  
+    QUnit.done(function (report) {
+      if (window.__coverage__) {
+        report.__coverage__ = window.__coverage__
+      }
+      return post('QUnit/done', report)
+    })
+  }
 
-  QUnit.testStart(function (details) {
-    return post('QUnit/testStart', extend(details))
-  })
+  if (typeof window.QUnit !== 'undefined' && QUnit.begin) {
+    installQUnitHooks();
+  } else {
+    let QUnit
+    let install = true
 
-  QUnit.log(function (log) {
-    let ready = false
-    post('QUnit/log', extend(log))
-      .then(undefined, function () {
-        console.error('Failed to POST to QUnit/log (no timestamp)', log)
-      })
-      .then(function () {
-        ready = true
-      })
-    if (isOpa()) {
-      window.sap.ui.test.Opa5.prototype.waitFor({
-        timeout: 10,
-        autoWait: false, // Ignore interactable constraint
-        check: function () {
-          return ready
+    Object.defineProperty(window, 'QUnit', {
+      get: function () {
+        return QUnit
+      },
+  
+      set: function (value) {
+        QUnit = value
+        if (QUnit && QUnit.begin && install) {
+          installQUnitHooks()
+          install = false
         }
-      })
-    }
-  })
+      }
+    })
+  }
 
-  QUnit.testDone(function (report) {
-    return post('QUnit/testDone', report)
-  })
-
-  QUnit.done(function (report) {
-    if (window.__coverage__) {
-      report.__coverage__ = window.__coverage__
-    }
-    return post('QUnit/done', report)
-  })
 }())
