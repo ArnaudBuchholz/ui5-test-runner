@@ -25,7 +25,7 @@ module.exports = [{
   label: 'Scripts (QUnit)',
   for: capabilities => !!capabilities.scripts,
   url: 'scripts/qunit.html',
-  scripts: ['qunit-intercept.js', 'post.js', 'qunit-hooks.js'],
+  scripts: ['post.js', 'qunit-hooks.js'],
   endpoint: qUnitEndpoints
 }, {
   label: 'Scripts (TestSuite)',
@@ -46,7 +46,7 @@ module.exports = [{
   label: 'Scripts (External QUnit)',
   for: capabilities => !!capabilities.scripts,
   url: 'https://ui5.sap.com/test-resources/sap/m/demokit/orderbrowser/webapp/test/unit/unitTests.qunit.html',
-  scripts: ['qunit-intercept.js', 'post.js', 'qunit-hooks.js'],
+  scripts: ['post.js', 'qunit-hooks.js'],
   endpoint: qUnitEndpoints
 }, {
   label: 'Scripts (IFrame Coverage)',
