@@ -19,7 +19,7 @@ module.exports = {
   screenshotTimeout: 5000,
   parallel: '2',
   reportDir: 'C:\\dev\\GitHub\\ui5-test-runner\\report',
-  coverageSettings: 'C:\\dev\\GitHub\\ui5-test-runner\\src\\defaults\\nyc.json',
+  coverageSettings: 'C:\\dev\\GitHub\\ui5-test-runner\\src\\defaults\\.nycrc.json',
   coverageTempDir: 'C:\\dev\\GitHub\\ui5-test-runner\\.nyc_output',
   coverageReportDir: 'C:\\dev\\GitHub\\ui5-test-runner\\coverage',
   coverageReporters: [

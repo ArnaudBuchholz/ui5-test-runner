@@ -60,7 +60,7 @@ const customFileSystem = {
 
 async function instrument (job) {
   await setupNyc(job)
-  job[$nycSettingsPath] = join(job.coverageTempDir, 'settings/nyc.json')
+  job[$nycSettingsPath] = join(job.coverageTempDir, 'settings/.nycrc.json')
   await cleanDir(job.coverageTempDir)
   await createDir(join(job.coverageTempDir, 'settings'))
   const settings = JSON.parse((await readFile(job.coverageSettings)).toString())

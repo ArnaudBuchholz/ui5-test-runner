@@ -134,7 +134,7 @@ const tests = [{
   label: 'Legacy JS Sample with coverage',
   utr: [
     '--cwd', join(root, './test/sample.js'),
-    '--coverage-settings', join(root, './test/sample.js/nyc.json'),
+    '--coverage-settings', join(root, './test/sample.js/.nycrc.json'),
     ...'--no-screenshot --coverage --coverage-check-statements 65'.split(' ')
   ],
   checks: [qunitPages(2), coverage({ uncoveredShouldBeReported: true })]
@@ -152,7 +152,7 @@ const tests = [{
     '--cwd', join(root, './test/sample.js'),
     '--port', ++port,
     '--url', `http://localhost:${port}/test/testsuite.qunit.html`,
-    '--coverage-settings', join(root, './test/sample.js/nyc.json'),
+    '--coverage-settings', join(root, './test/sample.js/.nycrc.json'),
     ...'--no-screenshot --coverage --coverage-check-statements 65'.split(' ')
   ],
   checks: [qunitPages(2), coverage({ uncoveredShouldBeReported: true })]
@@ -198,7 +198,7 @@ const tests = [{
   before: ui5Serve,
   utr: [
     '--cwd', join(root, './test/sample.js'),
-    '--coverage-settings', join(root, './test/sample.js/nyc.json'),
+    '--coverage-settings', join(root, './test/sample.js/.nycrc.json'),
     ...'--url http://localhost:8080/test/testsuite.qunit.html --no-screenshot --coverage --coverage-check-statements 65'.split(' ')
   ],
   checks: [qunitPages(2), coverage({ uncoveredShouldBeReported: true })]
@@ -208,7 +208,7 @@ const tests = [{
   isUi5Cli: true,
   before: ui5Serve,
   utr: [
-    '--coverage-settings', join(root, './test/sample.js/nyc.json'),
+    '--coverage-settings', join(root, './test/sample.js/.nycrc.json'),
     ...'--url http://localhost:8080/test/testsuite.qunit.html --no-screenshot --coverage --coverage-check-statements 65'.split(' ')
   ],
   checks: [qunitPages(2), coverage({ uncoveredShouldBeReported: true })]
@@ -257,7 +257,7 @@ const tests = [{
   before: ui5ServeTsWitCoverage,
   utr: [
     '--cwd', join(root, './test/sample.ts'),
-    '--coverage-settings', join(root, './test/sample.ts/nyc.json'),
+    '--coverage-settings', join(root, './test/sample.ts/.nycrc.json'),
     ...'--url http://localhost:8083/test/testsuite.qunit.html --no-screenshot --coverage --coverage-check-statements 53'.split(' ')
   ],
   checks: [qunitPages(2), coverage({ uncoveredShouldBeReported: true })]
@@ -267,7 +267,7 @@ const tests = [{
   isUi5Cli: true,
   before: ui5ServeTsWitCoverage,
   utr: [
-    '--coverage-settings', join(root, './test/sample.ts/nyc.json'),
+    '--coverage-settings', join(root, './test/sample.ts/.nycrc.json'),
     ...'--url http://localhost:8083/test/testsuite.qunit.html --no-screenshot --coverage --coverage-check-statements 53'.split(' ')
   ],
   checks: [qunitPages(2), coverage({ uncoveredShouldBeReported: true })]

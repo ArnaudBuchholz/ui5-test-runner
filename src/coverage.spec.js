@@ -31,7 +31,7 @@ describe('src/coverage', () => {
 
     it('does not instrument sources', async () => {
       await instrument(job)
-      await expect(() => stat(join(basePath, 'coverage/temp/settings/nyc.json'))).rejects.toThrow()
+      await expect(() => stat(join(basePath, 'coverage/temp/settings/.nycrc.json'))).rejects.toThrow()
     })
 
     it('does not generate a report', async () => {
@@ -63,7 +63,7 @@ describe('src/coverage', () => {
 
     it('instruments sources', async () => {
       await instrument(job)
-      const nycJsonStat = await stat(join(basePath, 'coverage/temp/settings/nyc.json'))
+      const nycJsonStat = await stat(join(basePath, 'coverage/temp/settings/.nycrc.json'))
       expect(nycJsonStat.isFile()).toStrictEqual(true)
     })
 

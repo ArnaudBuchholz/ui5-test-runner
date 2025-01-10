@@ -124,7 +124,7 @@ function getCommand (cwd) {
 
     .option('--coverage [flag]', '[💻🔗] Enable or disable code coverage', boolean)
     .option('--no-coverage', '[💻🔗] Disable code coverage')
-    .option('-cs, --coverage-settings <path>', '[💻🔗] Path to a custom nyc.json file providing settings for instrumentation (relative to cwd or use $/ for provided ones)', '$/nyc.json')
+    .option('-cs, --coverage-settings <path>', '[💻🔗] Path to a custom .nycrc.json file providing settings for instrumentation (relative to cwd or use $/ for provided ones)', '$/.nycrc.json')
     .option('-ctd, --coverage-temp-dir <path>', '[💻🔗] Directory to output raw coverage information to (relative to cwd)', '.nyc_output')
     .option('-crd, --coverage-report-dir <path>', '[💻🔗] Directory to store the coverage report files (relative to cwd)', 'coverage')
     .option('-cr, --coverage-reporters <reporter...>', '[💻🔗] List of nyc reporters to use (text is always used)', ['lcov', 'cobertura'])

@@ -164,7 +164,7 @@ describe('job', () => {
           browser: '$/selenium-webdriver.js'
         })
         expect(job.browser).toStrictEqual(join(__dirname, './defaults/selenium-webdriver.js'))
-        expect(job.coverageSettings).toStrictEqual(join(__dirname, './defaults/nyc.json'))
+        expect(job.coverageSettings).toStrictEqual(join(__dirname, './defaults/.nycrc.json'))
         expect(job.reportGenerator).toEqual([join(__dirname, './defaults/report.js')])
       })
 
@@ -411,7 +411,7 @@ describe('job', () => {
           pageFilter: '.*',
           pageParams: 'sap-ui-debug=true',
           coverage: true,
-          coverageSettings: '$/nyc.json',
+          coverageSettings: '$/.nycrc.json',
           coverageTempDir: '.nyc_output',
           coverageReportDir: 'coverage',
           coverageReporters: 'lcov',

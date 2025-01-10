@@ -47,9 +47,9 @@ When all the test pages are executed, the coverage report is generated using two
 * `nyc merge` to merge the different coverage reports in a single one,
 * `nyc report` to generate the report.
 
-## `nyc.json`
+## `.nycrc.json`
 
-Coverage settings are specified through a `nyc.json` file, available options are described [here](https://github.com/istanbuljs/nyc?tab=readme-ov-file#common-configuration-options).
+Coverage settings are specified through a `.nycrc.json` file, available options are described [here](https://github.com/istanbuljs/nyc?tab=readme-ov-file#common-configuration-options).
 
 The runner provides a minimal configuration file with :
 ```json
@@ -102,7 +102,9 @@ server:
 
 **Implementation note** : unlike the expected usage of the middleware, `ui5-test-runner` generates the coverage report. It forces the runner to download all the covered source files locally to ensure the report can be generated.
 
-### TypeScript `@ui5/cli` projects : tweaking `ui5-tooling-transpile`
+### TypeScript `@ui5/cli` projects
+
+#### Tweaking `ui5-tooling-transpile` in TypeScript projects
 
 The [`ui5-tooling-transpile`](https://www.npmjs.com/package/ui5-tooling-transpile) middleware converts TypeScript into JavaScript while serving the application. Its configuration can be tweaked to also achieve instrumentation during this step.
 
@@ -128,11 +130,30 @@ server:
           - istanbul
 ```
 
+Also, add the `babel-plugin-istanbul` referenced in the last line to the project's dev dependencies:
+```sh
+npm i --save-dev babel-plugin-istanbul
+```
+
 **NOTE** : The `overridesToOverride` is only needed in ui5 versions < 1.112.x as mentioned in the [transform-ui5 documentation](https://github.com/ui5-community/babel-plugin-transform-modules-ui5?tab=readme-ov-file#properties-related-to-controller-extensions).
 
 **NOTE** : You may consider tweaking in a distinct configuration file and use the `--config` option to run it.
 
 For instance : `ui5 serve --config ui5-coverage.yaml`
+
+#### Excluding test code from coverage reporting in TypeScript projects
+
+To exclude the test files from coverage reporting, create a `.nycrc.json` file with the following content:
+
+```json
+{
+  "all": true,
+  "sourceMap": false,
+  "exclude": [
+    "**/test/**/*.ts"
+  ]  
+}
+```
 
 ### coverage-proxy *(experimental)*
 
