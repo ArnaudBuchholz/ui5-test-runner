@@ -52,9 +52,9 @@ Check additional information below.
                                                (default: "$/report/default.html")
   --coverage [flag]                            [💻🔗] Enable or disable code coverage
   --no-coverage                                [💻🔗] Disable code coverage
-  -cs, --coverage-settings <path>              [💻🔗] Path to a custom nyc.json file providing settings for
+  -cs, --coverage-settings <path>              [💻🔗] Path to a custom .nycrc.json file providing settings for
                                                instrumentation (relative to cwd or use $/ for provided ones) (default:
-                                               "$/nyc.json")
+                                               "$/.nycrc.json")
   -ctd, --coverage-temp-dir <path>             [💻🔗] Directory to output raw coverage information to (relative to cwd)
                                                (default: ".nyc_output")
   -crd, --coverage-report-dir <path>           [💻🔗] Directory to store the coverage report files (relative to cwd)
