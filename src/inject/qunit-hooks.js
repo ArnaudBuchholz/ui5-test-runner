@@ -40,11 +40,11 @@
       details.isOpa = isOpa()
       return post('QUnit/begin', details)
     })
-  
+
     QUnit.testStart(function (details) {
       return post('QUnit/testStart', extend(details))
     })
-  
+
     QUnit.log(function (log) {
       let ready = false
       post('QUnit/log', extend(log))
@@ -64,11 +64,11 @@
         })
       }
     })
-  
+
     QUnit.testDone(function (report) {
       return post('QUnit/testDone', report)
     })
-  
+
     QUnit.done(function (report) {
       if (window.__coverage__) {
         report.__coverage__ = window.__coverage__
@@ -78,7 +78,7 @@
   }
 
   if (typeof window.QUnit !== 'undefined' && QUnit.begin) {
-    installQUnitHooks();
+    installQUnitHooks()
   } else {
     let QUnit
     let install = true
@@ -87,7 +87,7 @@
       get: function () {
         return QUnit
       },
-  
+
       set: function (value) {
         QUnit = value
         if (QUnit && QUnit.begin && install) {
@@ -97,5 +97,4 @@
       }
     })
   }
-
 }())
