@@ -33,7 +33,7 @@ function buildAndCheckMode (job) {
       'keepAlive',
       'alternateNpmPath',
       'outputInterval'
-    ])
+    ], ['start'])
     return 'capabilities'
   }
   if (job.url && job.url.length) {
@@ -50,7 +50,8 @@ function buildAndCheckMode (job) {
   check(job, undefined, [
     'coverageProxy',
     'coverageProxyInclude',
-    'coverageProxyExclude'
+    'coverageProxyExclude',
+    'start'
   ])
   return 'legacy'
 }
