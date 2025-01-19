@@ -324,6 +324,9 @@ function build (job) {
     }),
 
     reportOnJobProgress () {
+      if (this.reportIntervalId) {
+        return
+      }
       if (interactive) {
         this.reportIntervalId = setInterval(progress.bind(null, job), 250)
       } else if (job.outputInterval && !inJest) {
