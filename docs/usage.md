@@ -57,6 +57,8 @@ Check additional information below.
 |--preload \<library...>|💻|Preload UI5 libraries in the cache folder (only if --cache is used)||
 |--testsuite \<path>|💻|Path of the testsuite file (relative to webapp, URL parameters are supported)|`"test/testsuite.qunit.html"`|
 |-w, --watch [flag]|💻|Monitor the webapp folder and re-execute tests on change|`false`|
+|--start \<command>|🔗|Start command (might be an NPM script or a shell command)||
+|--start-timeout \<timeout>|🔗|Maximum waiting time for the start command (based on when the first URL becomes available)|`5000`|
 |-cp, --coverage-proxy [flag]|🔗|[⚠️ experimental] use internal proxy to instrument remote files|`false`|
 |-cpi, --coverage-proxy-include \<regexp>|🔗|[⚠️ experimental] urls to instrument for coverage|`".*"`|
 |-cpe, --coverage-proxy-exclude \<regexp>|🔗|[⚠️ experimental] urls to ignore for coverage|`"/((test-)?resources\|tests?)/"`|

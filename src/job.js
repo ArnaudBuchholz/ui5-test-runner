@@ -146,8 +146,8 @@ function getCommand (cwd) {
     .option('-w, --watch [flag]', '[💻] Monitor the webapp folder and re-execute tests on change', boolean, false)
 
     // Specific to url
-    .option('--start <command>', '[🔗] start command (might be npm script or shell command)', string)
-    .option('--start-timeout <timeout>', '[🔗] Maximum waiting time for the start command (based on URL is available) screenshot', timeout, 5000)
+    .option('--start <command>', '[🔗] Start command (might be an NPM script or a shell command)', string)
+    .option('--start-timeout <timeout>', '[🔗] Maximum waiting time for the start command (based on when the first URL becomes available)', timeout, 5000)
 
     // Specific to coverage in url mode (experimental)
     .option('-cp, --coverage-proxy [flag]', `[🔗] ${EXPERIMENTAL_OPTION} use internal proxy to instrument remote files`, boolean, false)
