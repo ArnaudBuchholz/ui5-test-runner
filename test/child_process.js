@@ -75,6 +75,7 @@ class ChildProcess extends EventEmitter {
 
   close (code = 0) {
     if (this._connected) {
+      this._exitCode = code
       this._connected = false
       this.emit('close', code)
     }
@@ -87,6 +88,7 @@ class ChildProcess extends EventEmitter {
   get connected () { return this._connected }
   get stdout () { return this._stdout }
   get stderr () { return this._stderr }
+  get exitCode () { return this._exitCode }
 
   constructor ({ api, scriptPath, args, options = {} }) {
     super()
@@ -97,6 +99,7 @@ class ChildProcess extends EventEmitter {
     this._options = options
     this._stdout = new Channel()
     this._stderr = new Channel()
+    this._exitCode = 0
     if (options.stdio !== 'pipe') {
       const [, stdout, stderr] = options.stdio || []
       this._stdout.setFileHandle(stdout)
@@ -132,9 +135,11 @@ module.exports = {
     if (mock.actual) {
       return actualChildProcess.exec(command, callback)
     }
-    childProcess.on('close', function (code) {
-      callback(code, this.stdout.toString(), this.stderr.toString())
-    })
+    if (typeof callback === 'function') {
+      childProcess.on('close', function (code) {
+        callback(code, this.stdout.toString(), this.stderr.toString())
+      })
+    }
     handle(childProcess, mock)
     return childProcess
   },
