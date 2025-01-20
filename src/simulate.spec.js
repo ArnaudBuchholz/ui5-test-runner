@@ -1,15 +1,17 @@
-const { join, dirname } = require('path')
+const { mock: mockChildProcess } = require('child_process')
+const { readFile, stat, writeFile } = require('fs').promises
 const { mock } = require('reserve')
+const nock = require('nock')
+const { $browsers } = require('./symbols')
+const { cleanDir, recreateDir } = require('./tools')
+const { execute } = require('./tests')
+const { getOutput } = require('./output')
+const { join, dirname } = require('path')
+const { probe: probeBrowser } = require('./browsers')
+const { UTRError } = require('./error')
+
 const jobFactory = require('./job')
 const reserveConfigurationFactory = require('./reserve')
-const { mock: mockChildProcess } = require('child_process')
-const { execute } = require('./tests')
-const nock = require('nock')
-const { readFile, stat, writeFile } = require('fs').promises
-const { cleanDir } = require('./tools')
-const { UTRError } = require('./error')
-const { $browsers } = require('./symbols')
-const { getOutput } = require('./output')
 
 describe('simulate', () => {
   const simulatePath = join(__dirname, '../tmp/simulate')
@@ -110,6 +112,8 @@ describe('simulate', () => {
 
   async function safeExecute () {
     try {
+      await recreateDir(job.reportDir)
+      await probeBrowser(job)
       getOutput(job).reportOnJobProgress()
       await execute(job)
     } catch (e) {
@@ -518,7 +522,7 @@ describe('simulate', () => {
           }
           // Should not try to run page 3 & 4
         }
-        await execute(job)
+        await safeExecute()
       })
 
       it('failed', () => {
@@ -536,7 +540,7 @@ describe('simulate', () => {
             await post('/_/addTestPages', referer, { type: 'none' })
           }
         }
-        await execute(job)
+        await safeExecute()
       })
 
       it('failed', () => {
@@ -569,7 +573,7 @@ describe('simulate', () => {
             simulateOK(referer)
           }
         }
-        await execute(job)
+        await safeExecute()
       })
 
       it('succeeded', () => {

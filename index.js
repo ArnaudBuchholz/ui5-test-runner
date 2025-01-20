@@ -3,13 +3,16 @@
 'use strict'
 
 const { serve } = require('reserve')
+const { watch } = require('fs')
+const { capabilities } = require('./src/capabilities')
+const { execute } = require('./src/tests')
 const { fromCmdLine } = require('./src/job')
 const { getOutput } = require('./src/output')
+const { preload } = require('./src/ui5')
+const { probe: probeBrowser } = require('./src/browsers')
+const { recreateDir, allocPromise } = require('./src/tools')
 const reserveConfigurationFactory = require('./src/reserve')
-const { execute } = require('./src/tests')
-const { capabilities } = require('./src/capabilities')
-const { watch } = require('fs')
-const { recreateDir } = require('./src/tools')
+const start = require('./src/start')
 
 function send (message) {
   if (process.send) {
@@ -20,7 +23,7 @@ function send (message) {
   }
 }
 
-async function notifyAndExecuteTests (job, output) {
+async function notifyAndExecuteTests (job) {
   send({ msg: 'begin' })
   try {
     await execute(job)
@@ -44,8 +47,8 @@ async function main () {
   job = fromCmdLine(process.cwd(), process.argv.slice(2))
   output = getOutput(job)
   await recreateDir(job.reportDir)
+  output.version()
   if (job.mode === 'capabilities') {
-    output.version()
     return capabilities(job)
   }
   const configuration = await reserveConfigurationFactory(job)
@@ -54,43 +57,61 @@ async function main () {
   if (job.logServer) {
     server.on('redirected', output.redirected)
   }
+
+  const { promise: serverStarted, resolve: serverReady, reject: serverError } = allocPromise()
   server
     .on('ready', async ({ url, port }) => {
       job.port = port
       send({ msg: 'ready', port: job.port })
       output.serving(url)
       output.reportOnJobProgress()
-      if (job.serveOnly) {
-        job.status = 'Serving'
-        return
-      }
-      await notifyAndExecuteTests(job)
-      if (job.watch) {
-        delete job.start
-        if (!job.watching) {
-          output.watching(job.webapp)
-          watch(job.webapp, { recursive: true }, (eventType, filename) => {
-            output.changeDetected(eventType, filename)
-            if (!job.start) {
-              notifyAndExecuteTests(job)
-            }
-          })
-          job.watching = true
-        }
-      } else if (job.keepAlive) {
-        job.status = 'Serving'
-      } else if (job.failed) {
-        output.stop()
-        process.exit(-1)
-      } else {
-        output.stop()
-        process.exit(0)
-      }
+      serverReady()
     })
     .on('error', error => {
       output.serverError(error)
       send({ msg: 'error', error })
+      serverError()
     })
+  await serverStarted
+  let startedCommand
+  if (job.start) {
+    output.reportOnJobProgress()
+    startedCommand = await start(job)
+  }
+  if (job.preload) {
+    await preload(job)
+  }
+  if (job.serveOnly) {
+    job.status = 'Serving'
+    return
+  }
+  await probeBrowser(job)
+  await notifyAndExecuteTests(job)
+  if (job.watch) {
+    delete job.start
+    if (!job.watching) {
+      output.watching(job.webapp)
+      watch(job.webapp, { recursive: true }, async (eventType, filename) => {
+        output.changeDetected(eventType, filename)
+        if (!job.start) {
+          await recreateDir(job.reportDir)
+          notifyAndExecuteTests(job)
+        }
+      })
+      job.watching = true
+    }
+  } else if (job.keepAlive) {
+    job.status = 'Serving'
+    return
+  } else if (job.failed) {
+    process.exitCode = -1
+  }
+  output.stop()
+  await server.close()
+  if (startedCommand) {
+    await startedCommand.stop()
+  }
+  console.log('done ?')
 }
 
 main()

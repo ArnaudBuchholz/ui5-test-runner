@@ -1,8 +1,7 @@
 'use strict'
 
-const { probe: probeBrowser, start } = require('./browsers')
+const { start } = require('./browsers')
 const { instrument } = require('./coverage')
-const { recreateDir } = require('./tools')
 const { globallyTimedOut } = require('./timeout')
 const { save, generate } = require('./report')
 const { getOutput } = require('./output')
@@ -12,7 +11,6 @@ const {
   $proxifiedUrls
 } = require('./symbols')
 const { UTRError } = require('./error')
-const { preload } = require('./ui5')
 const parallelize = require('./parallelize')
 
 function task (job, method) {
@@ -128,12 +126,6 @@ async function process (job) {
 
 module.exports = {
   async execute (job) {
-    await recreateDir(job.reportDir)
-    getOutput(job).version()
-    if (job.preload) {
-      await preload(job)
-    }
-    await probeBrowser(job)
     if (job.mode !== 'url') {
       job.url = [`http://localhost:${job.port}/${job.testsuite}`]
     } else if (!job.browserCapabilities.scripts) {
