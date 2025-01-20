@@ -17,14 +17,18 @@ module.exports = async function start (job) {
 
   // check if existing NPM script
   const packagePath = join(job.cwd, 'package.json')
-  const packageStat = await stat(packagePath)
-  if (packageStat.isFile()) {
-    output.debug('start', 'Found package.json in cwd')
-    const packageFile = JSON.parse(await readFile(packagePath, 'utf-8'))
-    if (packageFile.scripts[command]) {
-      output.debug('start', 'Found matching start script in package.json')
-      start = `npm run ${start}`
+  try {
+    const packageStat = await stat(packagePath)
+    if (packageStat.isFile()) {
+      output.debug('start', 'Found package.json in cwd')
+      const packageFile = JSON.parse(await readFile(packagePath, 'utf-8'))
+      if (packageFile.scripts[command]) {
+        output.debug('start', 'Found matching start script in package.json')
+        start = `npm run ${start}`
+      }
     }
+  } catch (e) {
+    output.debug('start', 'Missing or invalid package.json in cwd', e)
   }
 
   let childProcessExited = false
@@ -33,7 +37,7 @@ module.exports = async function start (job) {
     cwd: job.cwd,
     windowsHide: true
   })
-  childProcess.on('exit', () => {
+  childProcess.on('close', () => {
     output.debug('start', 'start command process exited')
     childProcessExited = true
   })
@@ -46,7 +50,7 @@ module.exports = async function start (job) {
 
   const begin = Date.now()
   // eslint-disable-next-line no-unmodified-loop-condition
-  while (!childProcessExited && Date.now() - begin < job.startTimeout) {
+  while (!childProcessExited && Date.now() - begin <= job.startTimeout) {
     try {
       const response = await fetch(url)
       output.debug('start', url, response.status)
