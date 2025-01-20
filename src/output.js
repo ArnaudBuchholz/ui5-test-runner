@@ -171,16 +171,23 @@ function output (job, ...args) {
   writeFileSync(
     join(job.reportDir, 'output.txt'),
     args.map(arg => {
-      if (typeof arg === 'object') {
-        return JSON.stringify(arg, undefined, 2)
-      }
       if (arg === undefined) {
         return 'undefined'
       }
       if (arg === null) {
         return 'null'
       }
-      return arg.toString()
+      if (arg instanceof Error) {
+        let error = `${arg.name} ${arg.message}`
+        if (arg.cause) {
+          error += `, cause : ${arg.cause.name} ${arg.cause.message}`
+        }
+        return error
+      }
+      if (typeof arg !== 'string') {
+        return JSON.stringify(arg, undefined, 2)
+      }
+      return arg
     }).join(' ') + '\n',
     {
       encoding: 'utf-8',
