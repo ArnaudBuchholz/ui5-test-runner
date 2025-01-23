@@ -20,6 +20,20 @@ For example :
 
 > The `pageTimeout` setting cannot be overridden by the command line parameters
 
+**NOTE** : Feature disabling parameters (for instance : `--no-screenshot`, `--no-coverage`) are not accepting any value and the configuration file value is ignored.
+
+The following properties are equivalent :
+
+```json
+{
+  "noCoverage": true,
+  "noCoverage": false,
+  "noCoverage": null
+}
+```
+
+> Properties are equivalent to `--no-coverage`
+
 **NOTE** : The parameters accepting multiple values (denoted with ... as in `'--libs <lib...>`) may be converted to an array of values in the configuration file.
 
 For instance, `libs` parameter can be :
