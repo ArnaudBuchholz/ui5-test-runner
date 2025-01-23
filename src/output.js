@@ -286,7 +286,7 @@ function build (job) {
 
     debug: (moduleSpecifier, ...args) => {
       const [mainModule] = moduleSpecifier.split('/')
-      if (job.debugVerbose && (job.debugVerbose.includes(moduleSpecifier) || job.debugVerbose.includes(mainModule))) {
+      if (job.debugVerbose && (job.debugVerbose.includes('*') || job.debugVerbose.includes(moduleSpecifier) || job.debugVerbose.includes(mainModule))) {
         wrap(() => {
           console.log(`🐞${moduleSpecifier}`, ...args)
           output(job, `🐞${moduleSpecifier}`, ...args)
