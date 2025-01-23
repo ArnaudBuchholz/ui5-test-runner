@@ -31,8 +31,9 @@ function buildArgs (parameters) {
     } else {
       args = before
     }
-    args.push(`--${toLongName(name)}`)
-    if (value !== null) {
+    const longName = `--${toLongName(name)}`
+    args.push(longName)
+    if (!longName.startsWith('--no-') && value !== null) {
       if (Array.isArray(value)) {
         args.push(...value)
       } else {
@@ -103,7 +104,7 @@ function getCommand (cwd) {
     .option('-b, --browser <command>', '[💻🔗🧪] Browser instantiation command (relative to cwd or use $/ for provided ones)', '$/puppeteer.js')
     .option('--browser-args <argument...>', '[💻🔗🧪] Browser instantiation command parameters (use -- instead)')
     .option('--alternate-npm-path <path>', '[💻🔗] Alternate NPM path to look for packages (priority: local, alternate, global)')
-    .option('--no-npm-install [flag]', '[💻🔗🧪] Prevent any NPM install (execution may fail if a dependency is missing)', boolean)
+    .option('--no-npm-install', '[💻🔗🧪] Prevent any NPM install (execution may fail if a dependency is missing)')
     .option('-bt, --browser-close-timeout <timeout>', '[💻🔗🧪] Maximum waiting time for browser close', timeout, 2000)
     .option('-br, --browser-retry <count>', '[💻🔗🧪] Browser instantiation retries : if the command fails unexpectedly, it is re-executed (0 means no retry)', 1)
     .option('-oi, --output-interval <interval>', '[💻🔗🧪] Interval for reporting progress on non interactive output (CI/CD) (0 means no output)', timeout, 30000)
@@ -116,14 +117,14 @@ function getCommand (cwd) {
     .option('--page-close-timeout <timeout>', '[💻🔗] Maximum waiting time for page close', timeout, 250)
     .option('-t, --global-timeout <timeout>', '[💻🔗] Limit the pages execution time, fail the page if it takes longer than the timeout (0 means no timeout)', timeout, 0)
     .option('--screenshot [flag]', '[💻🔗] Take screenshots during the tests execution (if supported by the browser)', boolean, true)
-    .option('--no-screenshot [flag]', '[💻🔗] Disable screenshots', boolean)
+    .option('--no-screenshot', '[💻🔗] Disable screenshots')
     .option('-st, --screenshot-timeout <timeout>', '[💻🔗] Maximum waiting time for browser screenshot', timeout, 5000)
     .option('-so, --split-opa [flag]', '[💻🔗] Split OPA tests using QUnit modules', boolean, false)
     .option('-rg, --report-generator <path...>', '[💻🔗] Report generator paths (relative to cwd or use $/ for provided ones)', ['$/report.js'])
     .option('--progress-page <path>', '[💻🔗] Progress page path (relative to cwd or use $/ for provided ones)', '$/report/default.html')
 
     .option('--coverage [flag]', '[💻🔗] Enable or disable code coverage', boolean)
-    .option('--no-coverage [flag]', '[💻🔗] Disable code coverage', boolean)
+    .option('--no-coverage', '[💻🔗] Disable code coverage')
     .option('-cs, --coverage-settings <path>', '[💻🔗] Path to a custom .nycrc.json file providing settings for instrumentation (relative to cwd or use $/ for provided ones)', '$/.nycrc.json')
     .option('-ctd, --coverage-temp-dir <path>', '[💻🔗] Directory to output raw coverage information to (relative to cwd)', '.nyc_output')
     .option('-crd, --coverage-report-dir <path>', '[💻🔗] Directory to store the coverage report files (relative to cwd)', 'coverage')

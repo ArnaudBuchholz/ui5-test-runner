@@ -3,5 +3,7 @@
   "globalTimeout": 3600000,
   "failFast": true,
   "libs": ["lib/=webapp"],
+  "!no-coverage": true,
+  "!no-screenshot": false,
   "--": [-1]
 }

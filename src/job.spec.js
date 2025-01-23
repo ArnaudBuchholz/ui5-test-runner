@@ -324,10 +324,14 @@ describe('job', () => {
         cwd: project2,
         pageTimeout: 60000,
         globalTimeout: 900000,
+        coverage: true,
+        screenshot: true,
         libs: 'project2/=../project2'
       })
       expect(job.pageTimeout).toStrictEqual(900000)
       expect(job.globalTimeout).toStrictEqual(900000)
+      expect(job.coverage).toStrictEqual(false)
+      expect(job.screenshot).toStrictEqual(false)
       expect(job.failFast).toStrictEqual(true)
       expect(job.libs).toEqual([{
         relative: 'lib/',
