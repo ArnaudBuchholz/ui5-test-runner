@@ -77,24 +77,31 @@ module.exports = {
   resolveDependencyPath,
 
   async resolvePackage (job, name) {
+    const output = getOutput(job)
     let modulePath
     let justInstalled = false
+    output.debug('npm', `resolving dependency path of package ${name}...`)
     try {
       modulePath = resolveDependencyPath(name)
     } catch (e) {
+      output.debug('npm', e)
     }
     if (!modulePath) {
+      output.debug('npm', `finding dependency path of package ${name}...`);
       [modulePath, justInstalled] = await findDependencyPath(job, name)
     }
-    const output = getOutput(job)
+    output.debug('npm', `opening installed package ${name}`)
     const installedPackage = require(join(modulePath, 'package.json'))
     const { version: installedVersion } = installedPackage
     output.resolvedPackage(name, modulePath, installedVersion)
     if (!justInstalled && !job.offline) {
+      output.debug('npm', `fetching latest version of package ${name}`)
       const latestVersion = await npm(job, 'view', name, 'version')
       if (latestVersion !== installedVersion) {
         output.packageNotLatest(name, latestVersion)
       }
+    } else {
+      output.debug('npm', `justInstalled=${justInstalled} offline=${job.offline}`)
     }
     return modulePath
   }
