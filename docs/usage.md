@@ -21,7 +21,7 @@ Check additional information below.
 |-b, --browser \<command>|💻🔗🧪|Browser instantiation command (relative to cwd or use $/ for provided ones)|`"$/puppeteer.js"`|
 |--browser-args \<argument...>|💻🔗🧪|Browser instantiation command parameters (use -- instead)||
 |--alternate-npm-path \<path>|💻🔗|Alternate NPM path to look for packages (priority: local, alternate, global)||
-|--no-npm-install [flag]|💻🔗🧪|Prevent any NPM install (execution may fail if a dependency is missing)||
+|--no-npm-install|💻🔗🧪|Prevent any NPM install (execution may fail if a dependency is missing)||
 |-bt, --browser-close-timeout \<timeout>|💻🔗🧪|Maximum waiting time for browser close|`2000`|
 |-br, --browser-retry \<count>|💻🔗🧪|Browser instantiation retries : if the command fails unexpectedly, it is re-executed (0 means no retry)|`1`|
 |-oi, --output-interval \<interval>|💻🔗🧪|Interval for reporting progress on non interactive output (CI/CD) (0 means no output)|`30000`|
@@ -32,13 +32,13 @@ Check additional information below.
 |--page-close-timeout \<timeout>|💻🔗|Maximum waiting time for page close|`250`|
 |-t, --global-timeout \<timeout>|💻🔗|Limit the pages execution time, fail the page if it takes longer than the timeout (0 means no timeout)|`0`|
 |--screenshot [flag]|💻🔗|Take screenshots during the tests execution (if supported by the browser)|`true`|
-|--no-screenshot [flag]|💻🔗|Disable screenshots||
+|--no-screenshot|💻🔗|Disable screenshots||
 |-st, --screenshot-timeout \<timeout>|💻🔗|Maximum waiting time for browser screenshot|`5000`|
 |-so, --split-opa [flag]|💻🔗|Split OPA tests using QUnit modules|`false`|
 |-rg, --report-generator \<path...>|💻🔗|Report generator paths (relative to cwd or use $/ for provided ones)|`["$/report.js"]`|
 |--progress-page \<path>|💻🔗|Progress page path (relative to cwd or use $/ for provided ones)|`"$/report/default.html"`|
 |--coverage [flag]|💻🔗|Enable or disable code coverage||
-|--no-coverage [flag]|💻🔗|Disable code coverage||
+|--no-coverage|💻🔗|Disable code coverage||
 |-cs, --coverage-settings \<path>|💻🔗|Path to a custom .nycrc.json file providing settings for instrumentation (relative to cwd or use $/ for provided ones)|`"$/.nycrc.json"`|
 |-ctd, --coverage-temp-dir \<path>|💻🔗|Directory to output raw coverage information to (relative to cwd)|`".nyc_output"`|
 |-crd, --coverage-report-dir \<path>|💻🔗|Directory to store the coverage report files (relative to cwd)|`"coverage"`|
