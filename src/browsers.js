@@ -80,19 +80,25 @@ async function probe (job) {
     return browserCapabilities
   }
 
+  output.debug('browsers/probe', 'initial probing')
   const browserCapabilities = await execute('probe')
+  output.debug('browsers/probe', 'browser capabilities', browserCapabilities)
   job.browserCapabilities = browserCapabilities
 
   const { modules } = browserCapabilities
   const resolvedModules = {}
   if (modules.length) {
     for await (const name of browserCapabilities.modules) {
+      output.debug('browsers/probe', `resolving package ${name}...`)
       resolvedModules[name] = await resolvePackage(job, name)
+      output.debug('browsers/probe', `package ${name} resolved`)
     }
   }
   job.browserModules = resolvedModules
   if (browserCapabilities['probe-with-modules']) {
+    output.debug('browsers/probe', 'probing with modules')
     job.browserCapabilities = await execute('probe/with-modules')
+    output.debug('browsers/probe', 'browser capabilities', browserCapabilities)
   }
 
   if (job.debugCapabilitiesNoScript) {
