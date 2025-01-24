@@ -5,7 +5,7 @@
 | `--browser` | `$/webdriverio.js` |
 |---|---|
 | Module | [webdriverio](https://www.npmjs.com/package/webdriverio) |
-| Screenshots | <s>✔️ `.png`</s> see [#117](https://github.com/ArnaudBuchholz/ui5-test-runner/issues/117) |
+| Screenshots 2️⃣ | ✔️ `.png`
 | Scripts | ✔️ |
 | Traces 1️⃣ | ❌ |
 
@@ -40,3 +40,4 @@ For instance :
 ## Implementation notes
 
 * 1️⃣ Traces are not yet implemented
+* 2️⃣ Version `v9.6.x` of `webdriver.io` has problems with screenshot, see [#117](https://github.com/ArnaudBuchholz/ui5-test-runner/issues/117)
