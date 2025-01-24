@@ -32,7 +32,8 @@ function buildAndCheckMode (job) {
       'failFast',
       'keepAlive',
       'alternateNpmPath',
-      'outputInterval'
+      'outputInterval',
+      'screenshotTimeout'
     ], ['start'])
     return 'capabilities'
   }
