@@ -18,7 +18,7 @@ require('./browser')({
   async capabilities ({ settings, options }) {
     return {
       modules: ['webdriverio'],
-      screenshot: '.png',
+      // screenshot: '.png', // TODO: https://github.com/webdriverio/webdriverio/issues/14108
       scripts: true,
       traces: []
     }
