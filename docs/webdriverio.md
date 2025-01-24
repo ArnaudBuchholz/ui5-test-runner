@@ -5,7 +5,7 @@
 | `--browser` | `$/webdriverio.js` |
 |---|---|
 | Module | [webdriverio](https://www.npmjs.com/package/webdriverio) |
-| Screenshots | ✔️ `.png` |
+| Screenshots | <s>✔️ `.png`</s> see [#117](https://github.com/ArnaudBuchholz/ui5-test-runner/issues/117) |
 | Scripts | ✔️ |
 | Traces 1️⃣ | ❌ |
 
