@@ -111,7 +111,6 @@ async function main () {
   if (startedCommand) {
     await startedCommand.stop()
   }
-  console.log('done ?')
 }
 
 main()
