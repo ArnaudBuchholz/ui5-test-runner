@@ -152,6 +152,7 @@ module.exports = ({
 
     options.chromeArgs = function () {
       const args = [
+        'true', // Not sure why but this changes the behavior of the browser
         '--start-maximized',
         '--no-sandbox',
         '--disable-gpu',
