@@ -177,7 +177,7 @@ module.exports = {
     }
     ++progress.count
     if (failed) {
-      if (job.browserCapabilities.screenshot) {
+      if (job.browserCapabilities.screenshot && job.screenshotOnFailure) {
         try {
           const absoluteName = await screenshot(job, url, testId)
           test.screenshot = basename(absoluteName)

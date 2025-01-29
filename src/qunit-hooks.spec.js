@@ -40,6 +40,7 @@ describe('src/qunit-hooks', () => {
     mockGenericError.mockClear()
     job = {
       screenshot: true,
+      screenshotOnFailure: true,
       browserCapabilities: {
         screenshot: false
       }
@@ -278,7 +279,7 @@ describe('src/qunit-hooks', () => {
       expect(screenshot).not.toHaveBeenCalled()
     })
 
-    it('does not take a screenshot if not disabled', async () => {
+    it('does not take a screenshot if not enabled', async () => {
       job.browserCapabilities.screenshot = '.png'
       job.screenshot = false
       await begin(job, url, {
@@ -556,6 +557,19 @@ describe('src/qunit-hooks', () => {
           })
           expect(mockGenericError).toHaveBeenCalled()
           expect(stop).not.toHaveBeenCalled()
+        })
+
+        it('does not take a screenshot when --screenshot-on-failure is false', async () => {
+          job.screenshot = true
+          job.screenshotOnFailure = false
+          await testDone(job, url, {
+            ...getTestDoneFor1a(),
+            passed: 0,
+            failed: 1,
+            total: 1
+          })
+          expect(screenshot).not.toHaveBeenCalled()
+          const { test } = get(job, url, { testId: '1a' })
         })
       })
     })

@@ -22,6 +22,7 @@ describe('job', () => {
       expect(normalizePath(job.webapp).endsWith('/test/project/webapp')).toStrictEqual(true)
       expect(job.keepAlive).toStrictEqual(false)
       expect(job.screenshot).toStrictEqual(true)
+      expect(job.screenshotOnFailure).toStrictEqual(true)
       expect(job[$valueSources]).toMatchObject({
         cwd: 'default',
         port: 'default',
