@@ -569,7 +569,6 @@ describe('src/qunit-hooks', () => {
             total: 1
           })
           expect(screenshot).not.toHaveBeenCalled()
-          const { test } = get(job, url, { testId: '1a' })
         })
       })
     })
