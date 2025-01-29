@@ -52,7 +52,7 @@ async function usage () {
       /\|-\|-\|-\|-\|(?:.|\r?\n)*\|\|\|\|\|/,
       '|-|-|-|-|\n' +
       arrayLines
-        .map((line) => `|${forMd(line.option)}|${line.modes ?? ''}|${forMd(line.description)}|${line.default ? `\`${forMd(line.default)}\`` : ''}|`)
+        .map((line) => `| ${forMd(line.option)} | ${line.modes ?? ''} | ${forMd(line.description)}|${line.default ? `\`${forMd(line.default)}\`` : ''} |`)
         .join('\n') + '\n|||||'
     )
   )
