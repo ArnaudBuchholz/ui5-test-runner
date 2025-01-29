@@ -32,7 +32,8 @@ Check additional information below.
 |--page-close-timeout \<timeout>|💻🔗|Maximum waiting time for page close|`250`|
 |-t, --global-timeout \<timeout>|💻🔗|Limit the pages execution time, fail the page if it takes longer than the timeout (0 means no timeout)|`0`|
 |--screenshot [flag]|💻🔗|Take screenshots during the tests execution (if supported by the browser)|`true`|
-|--no-screenshot|💻🔗|Disable screenshots||
+|--no-screenshot|💻🔗|Disable screenshots during the tests execution (but not on failure, see --screenshot-on-failure)||
+|--screenshot-on-failure \<flag>|💻🔗|Take a screenshot when a test fails (even if --screenshot is false)|`true`|
 |-st, --screenshot-timeout \<timeout>|💻🔗|Maximum waiting time for browser screenshot|`5000`|
 |-so, --split-opa [flag]|💻🔗|Split OPA tests using QUnit modules|`false`|
 |-rg, --report-generator \<path...>|💻🔗|Report generator paths (relative to cwd or use $/ for provided ones)|`["$/report.js"]`|
