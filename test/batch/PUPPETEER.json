@@ -1,0 +1,7 @@
+{
+  "id": "PUPPETEER",
+  "label": "Puppeteer browser",
+  "capabilities": null,
+  "debugKeepReport": true,
+  "browser": "$/puppeteer.js"
+}

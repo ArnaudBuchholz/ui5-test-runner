@@ -1,0 +1,7 @@
+{
+  "id": "JSDOM",
+  "label": "JSDOM browser",
+  "capabilities": null,
+  "debugKeepReport": true,
+  "browser": "$/jsdom.js"
+}

@@ -1,0 +1,7 @@
+{
+  "id": "PLAYWRIGHT",
+  "label": "Playwright browser",
+  "capabilities": null,
+  "debugKeepReport": true,
+  "browser": "$/playwright.js"
+}

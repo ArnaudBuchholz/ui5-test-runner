@@ -1,0 +1,7 @@
+{
+  "id": "WEBDRIVERIO",
+  "label": "Webdriver.io browser",
+  "capabilities": null,
+  "debugKeepReport": true,
+  "browser": "$/webdriverio.js"
+}
