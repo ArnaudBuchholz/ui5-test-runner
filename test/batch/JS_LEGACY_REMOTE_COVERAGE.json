@@ -1,0 +1,11 @@
+{
+  "id": "JS_LEGACY_REMOTE_COVERAGE",
+  "label": "Legacy JS Sample accessed using --url with coverage",
+  "cwd": "../sample.js",
+  "url": ["http://localhost:$UTR_PORT/test/testsuite.qunit.html"],
+  "noScreenshot": null,
+  "coverage": true,
+  "coverageSettings": "./.nyrc.json",
+  "coverageCheckStatements": 65,
+  "end": "../batch/check.js --qunit-pages 2 --coverage --report-uncovered"
+}

@@ -1,0 +1,7 @@
+{
+  "id": "JS_LEGACY_SPLIT",
+  "label": "Legacy JS Sample with OPA split",
+  "cwd": "../sample.js",
+  "splitOpa": null,
+  "end": "../batch/check.js --qunit-pages 3"
+}
