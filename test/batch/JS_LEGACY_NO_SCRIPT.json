@@ -1,0 +1,7 @@
+{
+  "id": "JS_LEGACY_NO_SCRIPT",
+  "label": "Legacy JS Sample (no script injection)",
+  "cwd": "../sample.js",
+  "--debug-capabilities-no-script": null,
+  "end": "../batch/check.js --qunit-pages 2"
+}

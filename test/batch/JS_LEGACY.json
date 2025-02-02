@@ -2,5 +2,5 @@
   "id": "JS_LEGACY",
   "label": "Legacy JS Sample",
   "cwd": "../sample.js",
-  "end": ""
+  "end": "../batch/check.js --qunit-pages 2"
 }
