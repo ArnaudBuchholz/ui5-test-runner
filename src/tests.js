@@ -38,6 +38,11 @@ function task (job, method) {
 }
 
 async function probeUrl (job, url) {
+  const parsedUrl = new URL(url)
+  if (parsedUrl.port === '0') {
+    parsedUrl.port = job.port
+    url = parsedUrl.toString()
+  }
   const output = getOutput(job)
   try {
     let scripts
