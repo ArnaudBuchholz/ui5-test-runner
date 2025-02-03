@@ -81,5 +81,6 @@ Options availability depends on the mode :
 * 💻 when serving and testing (legacy mode)
 * 🔗 when testing remote pages (`--url`)
 * 🧪 when testing browser capabilities  (`--capabilities`)
+* 📡 when using batch mode, the option is transmitted from main to child
 
 For browser arguments, it is recommended to use `--` and pass them after. In the configuration file, use `browserArgs`.
