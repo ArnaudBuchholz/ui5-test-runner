@@ -1,6 +1,6 @@
 {
-  "id": "JS_LEGACY_REMOTE",
-  "label": "Legacy JS Sample accessed using --url",
+  "batchId": "JS_LEGACY_REMOTE",
+  "batchLabel": "Legacy JS Sample accessed using --url",
   "cwd": "../sample.js",
   "url": ["http://localhost:0/test/testsuite.qunit.html"],
   "end": "../batch/check.js --qunit-pages 2"

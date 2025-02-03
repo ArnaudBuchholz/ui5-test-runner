@@ -1,6 +1,6 @@
 {
-  "id": "PUPPETEER",
-  "label": "Puppeteer browser",
+  "batchId": "PUPPETEER",
+  "batchLabel": "Puppeteer browser",
   "capabilities": null,
   "debugKeepReport": true,
   "browser": "$/puppeteer.js"

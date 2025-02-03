@@ -1,6 +1,6 @@
 {
-  "id": "SELENIUM",
-  "label": "Selenium-webdriver browser (chrome)",
+  "batchId": "SELENIUM",
+  "batchLabel": "Selenium-webdriver browser (chrome)",
   "capabilities": null,
   "debugKeepReport": true,
   "browser": "$/selenium-webdriver.js",

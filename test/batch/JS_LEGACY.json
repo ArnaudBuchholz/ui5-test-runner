@@ -1,6 +1,6 @@
 {
-  "id": "JS_LEGACY",
-  "label": "Legacy JS Sample",
+  "batchId": "JS_LEGACY",
+  "batchLabel": "Legacy JS Sample",
   "cwd": "../sample.js",
   "end": "../batch/check.js --qunit-pages 2"
 }

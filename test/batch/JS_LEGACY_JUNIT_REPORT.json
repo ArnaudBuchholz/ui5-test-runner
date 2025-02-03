@@ -1,6 +1,6 @@
 {
-  "id": "JS_LEGACY_JUNIT_REPORT",
-  "label": "Legacy JS Sample with junit XML report",
+  "batchId": "JS_LEGACY_JUNIT_REPORT",
+  "batchLabel": "Legacy JS Sample with junit XML report",
   "cwd": "../sample.js",
   "reportGenerator": ["$/report.js", "$/junit-xml-report.js"],
   "end": "../batch/check.js --qunit-pages 2 --junit-xml-report"

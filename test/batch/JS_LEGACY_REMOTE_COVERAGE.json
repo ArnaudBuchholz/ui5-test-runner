@@ -1,6 +1,6 @@
 {
-  "id": "JS_LEGACY_REMOTE_COVERAGE",
-  "label": "Legacy JS Sample accessed using --url with coverage",
+  "batchId": "JS_LEGACY_REMOTE_COVERAGE",
+  "batchLabel": "Legacy JS Sample accessed using --url with coverage",
   "cwd": "../sample.js",
   "url": ["http://localhost:0/test/testsuite.qunit.html"],
   "noScreenshot": null,

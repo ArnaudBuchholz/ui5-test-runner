@@ -1,6 +1,6 @@
 {
-  "id": "PLAYWRIGHT",
-  "label": "Playwright browser",
+  "batchId": "PLAYWRIGHT",
+  "batchLabel": "Playwright browser",
   "capabilities": null,
   "debugKeepReport": true,
   "browser": "$/playwright.js"
