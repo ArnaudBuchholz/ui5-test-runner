@@ -427,6 +427,10 @@ function build (job) {
       browserIssue(job, { type: 'failed', url, code, dir })
     }),
 
+    skipIf: wrap(() => {
+      log(job, p80()`⚠️ [SKIPIF] Skipping execution (--if)`)
+    }),
+
     startFailed: wrap((url, error) => {
       const p = p80()
       log(job, p`┌──────────${pad.x('─')}┐`)

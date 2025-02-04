@@ -7,3 +7,4 @@
 | **SKPNYC** | When `--url` is used, instrumentation is skipped because it is expected that the sources files are not reachable. See [coverage](coverage.md) for more details. |
 | **COVORG** | When `--url` is used with `--coverage`, the runner must download *(and / or scan)* source files from the remote location. If the provided list of url does not have the same origin, only the first one is considered. |
 | **COVALL** | When all coverage is requested (setting `all` in `.nycrc.json`), the runner tries to process all files either locally (`legacy`) or remotely (`remote`). When the runner cannot complete this task, this message indicates that the coverage report might miss some files. |
+| **SKIPIF** | When the condition specified using `--if` returns a [falsy value](https://developer.mozilla.org/en-US/docs/Glossary/Falsy), the runner execution is skipped. |

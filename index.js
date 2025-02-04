@@ -13,6 +13,7 @@ const { probe: probeBrowser } = require('./src/browsers')
 const { recreateDir, allocPromise } = require('./src/tools')
 const reserveConfigurationFactory = require('./src/reserve')
 const start = require('./src/start')
+const executeIf = require('./src/if')
 
 function send (message) {
   if (process.send) {
@@ -50,6 +51,11 @@ async function main () {
   output.version()
   if (job.mode === 'capabilities') {
     return capabilities(job)
+  }
+  if (job.if && !executeIf(job)) {
+    output.skipIf()
+    output.stop()
+    return
   }
   const configuration = await reserveConfigurationFactory(job)
   output.debug('reserve', 'configuration', configuration)
