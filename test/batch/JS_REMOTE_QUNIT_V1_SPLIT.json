@@ -1,0 +1,8 @@
+{
+  "batchId": "JS_REMOTE_QUNIT_V1_SPLIT",
+  "batchLabel": "Remote JS sample with OPA split",
+  "if": "NODE_MAJOR_VERSION >= 20",
+  "url": ["http://localhost:8080/test/testsuite.qunit.html"],
+  "splitOpa": null,
+  "end": "../batch/check.js --qunit-pages 3"
+}

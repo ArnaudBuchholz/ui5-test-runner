@@ -1,0 +1,7 @@
+{
+  "batchId": "JS_REMOTE_SHIM",
+  "batchLabel": "Remote JS SHIM sample",
+  "if": "NODE_MAJOR_VERSION >= 20",
+  "url": ["http://localhost:8080/test/testsuite.qunit-shim.html"],
+  "end": "../batch/check.js --qunit-pages 1"
+}
