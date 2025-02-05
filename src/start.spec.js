@@ -1,6 +1,6 @@
 const { mock: mockChildProcess } = require('child_process')
 const { join } = require('path')
-const start = require('./start')
+const { start } = require('./start')
 
 jest.mock('ps-tree', () => (_, cb) => cb(null, [{
   PID: 1

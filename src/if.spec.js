@@ -1,4 +1,4 @@
-const executeIf = require('./if')
+const { executeIf } = require('./if')
 
 describe('if', () => {
   describe('NODE_MAJOR_VERSION', () => {

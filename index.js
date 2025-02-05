@@ -12,8 +12,8 @@ const { preload } = require('./src/ui5')
 const { probe: probeBrowser } = require('./src/browsers')
 const { recreateDir, allocPromise } = require('./src/tools')
 const reserveConfigurationFactory = require('./src/reserve')
-const start = require('./src/start')
-const executeIf = require('./src/if')
+const { start } = require('./src/start')
+const { executeIf } = require('./src/if')
 
 function send (message) {
   if (process.send) {

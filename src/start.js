@@ -8,7 +8,7 @@ const psTree = promisify(psTreeNodeCb)
 
 const $startedProcess = Symbol('startedProcess')
 
-module.exports = async function start (job) {
+async function start (job) {
   let { start } = job
   const output = getOutput(job)
   const [command] = start.split(' ')
@@ -89,3 +89,5 @@ module.exports = async function start (job) {
     stop
   }
 }
+
+module.exports = { start }
