@@ -14,6 +14,7 @@ const { recreateDir, allocPromise } = require('./src/tools')
 const reserveConfigurationFactory = require('./src/reserve')
 const { start } = require('./src/start')
 const { executeIf } = require('./src/if')
+const { batch } = require('./src/barch')
 
 function send (message) {
   if (process.send) {
@@ -49,6 +50,9 @@ async function main () {
   output = getOutput(job)
   await recreateDir(job.reportDir)
   output.version()
+  if (job.mode === 'batch') {
+    return batch(job)
+  }
   if (job.mode === 'capabilities') {
     return capabilities(job)
   }

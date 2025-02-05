@@ -17,6 +17,9 @@ function check (job, allowed, forbidden) {
 }
 
 function buildAndCheckMode (job) {
+  if (job.batch) {
+    return 'batch'
+  }
   if (job.capabilities) {
     check(job, [
       'capabilities',
