@@ -127,6 +127,8 @@ async function process (job) {
   }
 
   await generate(job)
+
+  // TODO: #105 integrate end, find a way it can change job.failed
 }
 
 module.exports = {
