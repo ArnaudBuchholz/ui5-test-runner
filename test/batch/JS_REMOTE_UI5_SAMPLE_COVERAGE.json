@@ -1,0 +1,15 @@
+{
+  "batchId": "JS_REMOTE_UI5_SAMPLE_COVERAGE",
+  "batchLabel": "Remote JS UI5 sample with coverage (experimental)",
+  "url": [
+    "https://ui5.sap.com/test-resources/sap/m/demokit/orderbrowser/webapp/test/unit/unitTests.qunit.html",
+    "https://ui5.sap.com/test-resources/sap/m/demokit/orderbrowser/webapp/test/integration/opaTests.qunit.html"
+  ],
+  "noScreenshot": null,
+  "coverage": null,
+  "coverageProxy": "null",
+  "coverageProxyInclude": "/webapp/",
+  "coverageProxyExclude": "/resources/|/webapp/test/",
+  "disableUi5": null,
+  "end": "../batch/check.js --coverage"
+}

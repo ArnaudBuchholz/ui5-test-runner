@@ -1,0 +1,9 @@
+{
+  "batchId": "JS_REMOTE_UI5_SAMPLE",
+  "batchLabel": "Remote JS UI5 sample",
+  "url": [
+    "https://ui5.sap.com/test-resources/sap/m/demokit/orderbrowser/webapp/test/unit/unitTests.qunit.html",
+    "https://ui5.sap.com/test-resources/sap/m/demokit/orderbrowser/webapp/test/integration/opaTests.qunit.html"
+  ],
+  "noScreenshot": null
+}
