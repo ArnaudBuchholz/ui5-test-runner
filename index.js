@@ -14,7 +14,7 @@ const { recreateDir, allocPromise } = require('./src/tools')
 const reserveConfigurationFactory = require('./src/reserve')
 const { start } = require('./src/start')
 const { executeIf } = require('./src/if')
-const { batch } = require('./src/barch')
+const { batch } = require('./src/batch')
 
 function send (message) {
   if (process.send) {
