@@ -228,8 +228,7 @@ const tests = [{
   label: 'Remote JS UI5 sample',
   utr: [
     '--url',
-    'https://ui5.sap.com/test-resources/sap/m/demokit/orderbrowser/webapp/test/unit/unitTests.qunit.html',
-    'https://ui5.sap.com/test-resources/sap/m/demokit/orderbrowser/webapp/test/integration/opaTests.qunit.html',
+    'https://ui5.sap.com/test-resources/sap/m/demokit/orderbrowser/webapp/test/testsuite.qunit.html',
     '--no-screenshot'
   ]
 }, {
@@ -237,8 +236,7 @@ const tests = [{
   label: 'Remote JS UI5 sample with coverage (experimental)',
   utr: [
     '--url',
-    'https://ui5.sap.com/test-resources/sap/m/demokit/orderbrowser/webapp/test/unit/unitTests.qunit.html',
-    'https://ui5.sap.com/test-resources/sap/m/demokit/orderbrowser/webapp/test/integration/opaTests.qunit.html',
+    'https://ui5.sap.com/test-resources/sap/m/demokit/orderbrowser/webapp/test/testsuite.qunit.html',
     '--no-screenshot',
     ...'--coverage --coverage-proxy --coverage-proxy-include /webapp/ --coverage-proxy-exclude /resources/|/webapp/test/ --disable-ui5'.split(' ')
   ],
