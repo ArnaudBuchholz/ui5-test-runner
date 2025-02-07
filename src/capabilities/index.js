@@ -30,16 +30,14 @@ async function capabilities (job) {
   }
 
   try {
-    output.reportOnJobProgress()
-    try {
-      await probe(job)
-    } catch (e) {
-      output.error('Unable to probe')
-      exit(-1)
-    }
+    await probe(job)
+  } catch (e) {
+    output.error('Unable to probe')
+    exit(-1)
+  }
 
+  try {
     const listeners = []
-
     const configuration = await check({
       port: job.port,
       mappings: [

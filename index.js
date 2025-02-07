@@ -50,8 +50,9 @@ async function main () {
   output = getOutput(job)
   await recreateDir(job.reportDir)
   output.version()
+  output.reportOnJobProgress()
   if (job.mode === 'batch') {
-    return batch(job)
+    return await batch(job)
   }
   if (job.mode === 'capabilities') {
     return capabilities(job)
@@ -74,7 +75,6 @@ async function main () {
       job.port = port
       send({ msg: 'ready', port: job.port })
       output.serving(url)
-      output.reportOnJobProgress()
       serverReady()
     })
     .on('error', error => {
@@ -85,7 +85,6 @@ async function main () {
   await serverStarted
   let startedCommand
   if (job.start) {
-    output.reportOnJobProgress()
     startedCommand = await start(job)
   }
   if (job.preload) {
