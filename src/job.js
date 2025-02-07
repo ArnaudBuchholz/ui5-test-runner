@@ -93,7 +93,7 @@ function getCommand (cwd) {
       new Option('-c, --cwd <path>', '[💻🔗🧪] Set working directory')
         .default(cwd, 'current working directory')
     )
-    .option('--config <json>', '[💻🔗🧪] Configuration file (relative to cwd, sets cwd if absolute)', string, 'ui5-test-runner.json')
+    .option('--config <json>', '[💻🔗🧪] Configuration file (relative to cwd)', string, 'ui5-test-runner.json')
     .option('--port <port>', '[💻🔗🧪] Port to use (0 to use any free one)', integer, 0)
     .option('-r, --report-dir <path>', '[💻🔗🧪] Directory to output test reports (relative to cwd)', 'report')
     .option('-pt, --page-timeout <timeout>', '[💻🔗🧪📡] Limit the page execution time, fails the page if it takes longer than the timeout (0 means no timeout)', timeout, 0)
