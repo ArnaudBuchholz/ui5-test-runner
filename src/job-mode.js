@@ -36,7 +36,10 @@ function buildAndCheckMode (job) {
       'keepAlive',
       'alternateNpmPath',
       'outputInterval',
-      'screenshotTimeout'
+      'screenshotTimeout',
+      'config',
+      'batchId',
+      'batchLabel'
     ], ['start'])
     return 'capabilities'
   }
