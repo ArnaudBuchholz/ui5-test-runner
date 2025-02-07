@@ -7,7 +7,7 @@ const { capture } = require('reserve')
 const { getOutput, newProgress } = require('./output')
 const { download } = require('./tools')
 const { $statusProgressCount, $statusProgressTotal } = require('./symbols')
-const parallelize = require('./parallelize')
+const { parallelize } = require('./parallelize')
 
 const buildCacheBase = job => {
   const [, hostName] = /https?:\/\/([^/]*)/.exec(job.ui5)

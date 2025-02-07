@@ -1,4 +1,4 @@
-const parallelize = require('./parallelize')
+const { parallelize } = require('./parallelize')
 
 describe('src/parallelize', () => {
   const list = 'abcdefghijklmnopqrstuvwxyz'.split('')

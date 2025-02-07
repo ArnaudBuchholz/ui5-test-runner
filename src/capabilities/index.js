@@ -8,7 +8,7 @@ const { performance } = require('perf_hooks')
 const { cleanDir, allocPromise, filename } = require('../tools')
 const { $statusProgressTotal, $statusProgressCount } = require('../symbols')
 const tests = require('./tests')
-const parallelize = require('../parallelize')
+const { parallelize } = require('../parallelize')
 
 async function capabilities (job) {
   const output = getOutput(job)

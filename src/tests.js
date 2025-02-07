@@ -11,7 +11,7 @@ const {
   $proxifiedUrls
 } = require('./symbols')
 const { UTRError } = require('./error')
-const parallelize = require('./parallelize')
+const { parallelize } = require('./parallelize')
 
 function task (job, method) {
   return async (url, index, { length }) => {
