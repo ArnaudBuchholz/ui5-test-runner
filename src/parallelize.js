@@ -43,7 +43,7 @@ async function run (task) {
   complete(task)
 }
 
-module.exports = function parallelize (method, list, parallel) {
+function parallelize (method, list, parallel) {
   const { promise, resolve, reject } = allocPromise()
   const task = {
     method,
@@ -59,3 +59,5 @@ module.exports = function parallelize (method, list, parallel) {
   run(task)
   return promise
 }
+
+module.exports = { parallelize }
