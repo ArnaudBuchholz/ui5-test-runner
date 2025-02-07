@@ -93,6 +93,7 @@ function getCommand (cwd) {
       new Option('-c, --cwd <path>', '[💻🔗🧪] Set working directory')
         .default(cwd, 'current working directory')
     )
+    .option('--config <json>', '[💻🔗🧪] Configuration file (relative to cwd, sets cwd if absolute)', string, 'ui5-test-runner.json')
     .option('--port <port>', '[💻🔗🧪] Port to use (0 to use any free one)', integer, 0)
     .option('-r, --report-dir <path>', '[💻🔗🧪] Directory to output test reports (relative to cwd)', 'report')
     .option('-pt, --page-timeout <timeout>', '[💻🔗🧪📡] Limit the page execution time, fails the page if it takes longer than the timeout (0 means no timeout)', timeout, 0)
@@ -240,6 +241,7 @@ function finalize (job) {
   function updateToAbsolute (member, from = job.cwd) {
     job[member] = toAbsolute(job[member], from)
   }
+
   'browser,coverageSettings,coverageRemoteScanner,progressPage'
     .split(',')
     .forEach(setting => { job[setting] = checkDefault(job[setting]) })
@@ -369,19 +371,31 @@ function finalize (job) {
 function fromCmdLine (cwd, args) {
   let job = parse(cwd, args)
 
-  let defaultPath = join(job.cwd, 'ui5-test-runner.json')
-  if (!isAbsolute(defaultPath)) {
-    defaultPath = join(job.initialCwd, defaultPath)
+  let defaultPath
+  if (isAbsolute(job.config)) {
+    defaultPath = job.config
+  } else {
+    defaultPath = join(job.cwd, job.config)
+    if (!isAbsolute(defaultPath)) {
+      defaultPath = join(job.initialCwd, defaultPath)
+    }
   }
   let hasDefaultSettings = false
   try {
     checkAccess({ path: defaultPath, file: true })
     hasDefaultSettings = true
   } catch (e) {
+    if (job[$valueSources].config === 'cli') {
+      throw e
+    }
     // ignore
   }
   if (hasDefaultSettings) {
     const defaults = require(defaultPath)
+    if (defaults.cwd && !isAbsolute(defaults.cwd)) {
+      // make it relative to the configuration file
+      defaults.cwd = join(dirname(defaultPath), defaults.cwd)
+    }
     const { before, after, browser } = buildArgs(defaults)
     const sep = args.indexOf('--')
     if (sep === -1) {

@@ -277,79 +277,124 @@ describe('job', () => {
     })
   })
 
-  describe('Using ui5-test-runner.json', () => {
+  describe('Using configuration files', () => {
     const project2 = join(__dirname, '../test/project2')
 
-    it('enables option overriding at the command level', () => {
-      const job = fromCmdLine(cwd, [
-        '--port', '1',
-        '--port', '2',
-        '-k', 'true',
-        '-k', 'false'
-      ])
-      expect(job.port).toStrictEqual(2)
-      expect(job.keepAlive).toStrictEqual(false)
+    describe('defaulting to ui5-test-runner.json', () => {
+      it('enables option overriding at the command level', () => {
+        const job = fromCmdLine(cwd, [
+          '--port', '1',
+          '--port', '2',
+          '-k', 'true',
+          '-k', 'false'
+        ])
+        expect(job.port).toStrictEqual(2)
+        expect(job.keepAlive).toStrictEqual(false)
+      })
+
+      it('preload settings', () => {
+        const job = buildJob({
+          cwd: project2
+        })
+        expect(job.pageTimeout).toStrictEqual(900000)
+        expect(job.globalTimeout).toStrictEqual(3600000)
+        expect(job.failFast).toStrictEqual(true)
+        expect(job.libs).toEqual([{
+          relative: 'lib/',
+          source: join(project2, 'webapp')
+        }])
+        expect(job.browserArgs).toEqual(['-1'])
+      })
+
+      it('allows command line override', () => {
+        const job = buildJob({
+          cwd: project2,
+          globalTimeout: 900000
+        })
+        expect(job.pageTimeout).toStrictEqual(900000)
+        expect(job.globalTimeout).toStrictEqual(900000)
+        expect(job.failFast).toStrictEqual(true)
+        expect(job.libs).toEqual([{
+          relative: 'lib/',
+          source: join(project2, 'webapp')
+        }])
+        expect(job.ui5).toStrictEqual('https://ui5.sap.com')
+      })
+
+      it('preloads and overrides command line settings', () => {
+        const job = buildJob({
+          cwd: project2,
+          pageTimeout: 60000,
+          globalTimeout: 900000,
+          coverage: true,
+          screenshot: true,
+          libs: 'project2/=../project2'
+        })
+        expect(job.pageTimeout).toStrictEqual(900000)
+        expect(job.globalTimeout).toStrictEqual(900000)
+        expect(job.coverage).toStrictEqual(false)
+        expect(job.screenshot).toStrictEqual(false)
+        expect(job.failFast).toStrictEqual(true)
+        expect(job.libs).toEqual([{
+          relative: 'lib/',
+          source: join(project2, 'webapp')
+        }, {
+          relative: 'project2/',
+          source: join(cwd, '../project2')
+        }])
+        expect(job.ui5).toStrictEqual('https://ui5.sap.com')
+      })
+
+      it('preloads and concatenates browser settings', () => {
+        const job = buildJob({
+          cwd: project2,
+          '--': [-2]
+        })
+        expect(job.browserArgs).toEqual(['-1', '-2'])
+      })
     })
 
-    it('preload settings', () => {
-      const job = buildJob({
-        cwd: project2
+    describe('using --config', () => {
+      it('preloads settings from any configuration file', () => {
+        const job = buildJob({
+          cwd: project2,
+          config: join(__dirname, '../test/batch/JS_REMOTE.json')
+        })
+        // Not extracting from ui5-test-runner in project2
+        expect(job.failFast).toStrictEqual(false)
+        expect(job.libs).toStrictEqual([])
+        // But from JS_REMOTE.json
+        expect(job.url).toEqual(['http://localhost:8080/test/testsuite.qunit.html'])
       })
-      expect(job.pageTimeout).toStrictEqual(900000)
-      expect(job.globalTimeout).toStrictEqual(3600000)
-      expect(job.failFast).toStrictEqual(true)
-      expect(job.libs).toEqual([{
-        relative: 'lib/',
-        source: join(project2, 'webapp')
-      }])
-      expect(job.browserArgs).toEqual(['-1'])
-    })
 
-    it('allows command line override', () => {
-      const job = buildJob({
-        cwd: project2,
-        globalTimeout: 900000
+      it('sets job.cwd relatively to the configuration file when it contains cwd', () => {
+        const job = buildJob({
+          config: join(__dirname, '../test/batch/JS_LEGACY.json')
+        })
+        expect(job.cwd).toStrictEqual(join(__dirname, '../test/sample.js'))
       })
-      expect(job.pageTimeout).toStrictEqual(900000)
-      expect(job.globalTimeout).toStrictEqual(900000)
-      expect(job.failFast).toStrictEqual(true)
-      expect(job.libs).toEqual([{
-        relative: 'lib/',
-        source: join(project2, 'webapp')
-      }])
-      expect(job.ui5).toStrictEqual('https://ui5.sap.com')
-    })
 
-    it('preloads and overrides command line settings', () => {
-      const job = buildJob({
-        cwd: project2,
-        pageTimeout: 60000,
-        globalTimeout: 900000,
-        coverage: true,
-        screenshot: true,
-        libs: 'project2/=../project2'
+      it('does not override job.cwd if provided on the command line', () => {
+        const job = buildJob({
+          cwd: project2,
+          config: join(__dirname, '../test/batch/JS_LEGACY.json')
+        })
+        expect(job.cwd).toStrictEqual(project2)
       })
-      expect(job.pageTimeout).toStrictEqual(900000)
-      expect(job.globalTimeout).toStrictEqual(900000)
-      expect(job.coverage).toStrictEqual(false)
-      expect(job.screenshot).toStrictEqual(false)
-      expect(job.failFast).toStrictEqual(true)
-      expect(job.libs).toEqual([{
-        relative: 'lib/',
-        source: join(project2, 'webapp')
-      }, {
-        relative: 'project2/',
-        source: join(cwd, '../project2')
-      }])
-      expect(job.ui5).toStrictEqual('https://ui5.sap.com')
-    })
 
-    it('preloads and concatenates browser settings', () => {
-      const job = buildJob({
-        cwd: project2,
-        '--': [-2]
+      it('fails if specified and it does not exist (relative)', () => {
+        expect(() => buildJob({
+          cwd: project2,
+          config: 'unknown.json'
+        })).toThrowError()
       })
-      expect(job.browserArgs).toEqual(['-1', '-2'])
+
+      it('fails if specified and it does not exist (absolute)', () => {
+        expect(() => buildJob({
+          cwd: project2,
+          config: join(__dirname, '../test/batch/unknown.json')
+        })).toThrowError()
+      })
     })
   })
 
