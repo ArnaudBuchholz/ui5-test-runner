@@ -108,7 +108,10 @@ async function batch (job) {
 
     // }
   }
+  job.status = 'Running batch items...'
   await parallelize(task, batchItems, job.parallel)
+  // TODO: end command ?
+  getOutput(job).stop()
   return 0
 }
 
