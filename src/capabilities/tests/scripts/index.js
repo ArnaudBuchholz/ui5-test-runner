@@ -44,7 +44,7 @@ module.exports = [{
   }
 }, {
   label: 'Scripts (External QUnit)',
-  for: capabilities => !!capabilities.scripts,
+  for: capabilities => !!capabilities.scripts && !capabilities.modules.includes('jsdom'),
   url: 'https://ui5.sap.com/test-resources/sap/m/demokit/orderbrowser/webapp/test/Test.qunit.html?testsuite=test-resources/sap/ui/demo/orderbrowser/testsuite.qunit&test=unit/unitTests',
   scripts: ['post.js', 'qunit-hooks.js'],
   endpoint: qUnitEndpoints
