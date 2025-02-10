@@ -34,7 +34,7 @@ async function run (task) {
     task.stop = true
     reject(error)
   }
-  let remaining = list.length - index - 1
+  let remaining = list.length - task.started
   while (task.active < (parallel + 1) && remaining) {
     --remaining
     ++task.active

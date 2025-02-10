@@ -20,6 +20,26 @@ describe('src/parallelize', () => {
     expect(processed.sort()).toStrictEqual(list)
   })
 
+  it('supports variable execution times (a > b)', async () => {
+    await parallelize(async (value) => {
+      if (value === 'a') {
+        await new Promise(resolve => setTimeout(resolve, 250))
+      } else {
+        await new Promise(resolve => setTimeout(resolve, 100))
+      }
+    }, ['a', 'b'], 2)
+  })
+
+  it('supports variable execution times (a < b)', async () => {
+    await parallelize(async (value) => {
+      if (value === 'a') {
+        await new Promise(resolve => setTimeout(resolve, 100))
+      } else {
+        await new Promise(resolve => setTimeout(resolve, 250))
+      }
+    }, ['a', 'b'], 2)
+  })
+
   for (let parallel = 2; parallel <= 8; ++parallel) {
     it(`runs as many concurrent tasks as necessary (${parallel})`, async () => {
       const processed = []
