@@ -8,27 +8,33 @@ const { $statusProgressCount } = require('./symbols')
 
 const root = join(__dirname, '..')
 
-const folder = (job, folderPath) => {
-  return {
+const folder = (batchItems, job, folderPath) => {
+  getOutput(job).debug('batch', `adding folder: ${folderPath}`)
+  batchItems.push({
     job,
     path: folderPath,
     id: filename(folderPath),
     label: folderPath,
     args: ['--cwd', folderPath]
-  }
+  })
 }
 
-const configurationFile = (job, configurationFilePath) => {
-  const {
-    batchId: id = filename(configurationFilePath),
-    batchLabel: label = configurationFilePath
-  } = require(configurationFilePath)
-  return {
-    job,
-    path: configurationFilePath,
-    id,
-    label,
-    args: ['--config', configurationFilePath]
+const configurationFile = (batchItems, job, configurationFilePath) => {
+  getOutput(job).debug('batch', `adding configuration file: ${configurationFilePath}`)
+  try {
+    const {
+      batchId: id = filename(configurationFilePath),
+      batchLabel: label = configurationFilePath
+    } = require(configurationFilePath)
+    batchItems.push({
+      job,
+      path: configurationFilePath,
+      id,
+      label,
+      args: ['--config', configurationFilePath]
+    })
+  } catch (e) {
+    getOutput(job).batchFailed(configurationFilePath, 'invalid JSON configuration file')
   }
 }
 
@@ -108,13 +114,11 @@ async function batch (job) {
       }
       const pathStat = await stat(path)
       if (pathStat.isDirectory()) {
-        batchItems.push(folder(job, path))
-      } else if (pathStat.isFile()) {
-        if (extname(path) === '.json') {
-          batchItems.push(configurationFile(job, path))
-        }
+        folder(batchItems, job, path)
+      } else if (pathStat.isFile() && extname(path) === '.json') {
+        configurationFile(batchItems, job, path)
       } else {
-        output.batchFailed(batch, 'not found')
+        output.batchFailed(batch, 'only folders and JSON configuration files are supported')
       }
       continue
     } catch (e) {
@@ -125,7 +129,7 @@ async function batch (job) {
     try {
       re = new RegExp(batch)
     } catch (e) {
-      getOutput(job).batchFailed(batch, e.message)
+      getOutput(job).batchFailed(batch, 'invalid regular expression')
       continue
     }
     const scan = async (cwd) => {
@@ -135,21 +139,25 @@ async function batch (job) {
         const pathStat = await stat(path)
         if (pathStat.isDirectory()) {
           if (re.exec(path)) {
-            batchItems.push(folder(job, path))
+            folder(batchItems, job, path)
             continue
           }
           await scan(path)
         } else if (pathStat.isFile() && re.exec(path)) {
-          batchItems.push(configurationFile(job, path))
+          configurationFile(batchItems, job, path)
         }
       }
     }
     await scan(job.cwd)
   }
-  job.status = 'Running batch items...'
-  await parallelize(task, batchItems, job.parallel)
-  // TODO: end command ?
-  getOutput(job).stop()
+  if (batchItems.length) {
+    job.status = 'Running batch items...'
+    await parallelize(task, batchItems, job.parallel)
+    // TODO: end command ?
+  } else {
+    output.batchFailed(job.batch, 'no match')
+  }
+  output.stop()
   return 0
 }
 
