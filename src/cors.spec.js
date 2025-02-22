@@ -1,5 +1,3 @@
-'use script'
-
 const { Request, Response } = require('reserve')
 const cors = require('./cors')
 
