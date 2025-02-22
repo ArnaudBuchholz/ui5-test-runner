@@ -431,6 +431,10 @@ function build (job) {
       log(job, p80()`⚠️ [SKIPIF] Skipping execution (--if)`)
     }),
 
+    batchFailed: wrap((batch, reason) => {
+      log(job, p80()`⚠️ [BATCHF] Failed to resolve batch ${batch}: ${reason}`)
+    }),
+
     startFailed: wrap((url, error) => {
       const p = p80()
       log(job, p`┌──────────${pad.x('─')}┐`)
