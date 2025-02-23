@@ -6,8 +6,6 @@ const psTreeNodeCb = require('ps-tree')
 const { promisify } = require('util')
 const psTree = promisify(psTreeNodeCb)
 
-const $startedProcess = Symbol('startedProcess')
-
 async function start (job) {
   let { start } = job
   const output = getOutput(job)
@@ -42,7 +40,6 @@ async function start (job) {
     childProcessExited = true
   })
   output.monitor(childProcess)
-  job[$startedProcess] = childProcess
 
   job.status = 'Waiting for URL to be reachable'
 
