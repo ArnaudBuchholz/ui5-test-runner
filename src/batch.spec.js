@@ -1,7 +1,7 @@
 const { join } = require('node:path')
 const { batch, task } = require('./batch')
 const { parallelize } = require('./parallelize')
-const { getOutput, newProgress } = require('./output')
+const { getOutput } = require('./output')
 const { mock: mockChildProcess } = require('child_process')
 
 jest.mock('./parallelize', () => {

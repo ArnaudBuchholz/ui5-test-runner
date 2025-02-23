@@ -1,6 +1,7 @@
 const { parseArgs } = require('node:util')
 const assert = require('node:assert/strict')
 const { readFile, stat } = require('node:fs/promises')
+const { join } = require('node:path')
 
 const {
   values: {

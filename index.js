@@ -99,6 +99,7 @@ async function main () {
   if (job.watch) {
     delete job.start
     if (!job.watching) {
+      // TODO: #119 default watched folder to job.webapp but enables override
       output.watching(job.webapp)
       watch(job.webapp, { recursive: true }, async (eventType, filename) => {
         output.changeDetected(eventType, filename)
@@ -115,6 +116,7 @@ async function main () {
   } else if (job.failed) {
     process.exitCode = -1
   }
+  // TODO: #105 plugin end command, should replace exitCode
   output.stop()
   await server.close()
   if (startedCommand) {
