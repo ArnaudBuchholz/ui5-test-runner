@@ -60,7 +60,7 @@ const task = async ({ job, id, label, args }) => {
     )
   }
   const childProcess = fork(
-    join(root, 'index'),
+    join(root, 'index.js'),
     parameters,
     {
       stdio: [0, 'pipe', 'pipe', 'ipc']
@@ -161,4 +161,4 @@ async function batch (job) {
   return 0
 }
 
-module.exports = { batch }
+module.exports = { batch, task }

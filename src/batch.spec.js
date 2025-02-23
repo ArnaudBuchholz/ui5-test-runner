@@ -1,7 +1,8 @@
 const { join } = require('node:path')
-const { batch } = require('./batch')
+const { batch, task } = require('./batch')
 const { parallelize } = require('./parallelize')
-const { getOutput } = require('./output')
+const { getOutput, newProgress } = require('./output')
+const { mock: mockChildProcess } = require('child_process')
 
 jest.mock('./parallelize', () => {
   return {
@@ -18,15 +19,23 @@ jest.mock('./output', () => {
       return target[property]
     }
   })
+  const progress = {
+    done: jest.fn()
+  }
   return {
-    getOutput: () => output
+    getOutput: () => output,
+    interactive: true,
+    newProgress: () => progress
   }
 })
+
+const root = join(__dirname, '..')
 
 describe('src/batch', () => {
   beforeEach(() => {
     parallelize.mockClear()
     getOutput({}).batchFailed.mockClear()
+    getOutput({}).log.mockClear()
   })
 
   it('exposes a function', () => {
@@ -160,10 +169,101 @@ describe('src/batch', () => {
   })
 
   describe('task execution', () => {
-    // simulate batch call to grab task method
-    it.todo('overrides report folder')
-    it.todo('overrides coverage related folders')
-    it.todo('logs success')
-    it.todo('logs error')
+    it('overrides report folder', async () => {
+      let childProcessArgs
+      mockChildProcess({
+        api: 'fork',
+        scriptPath: join(root, 'index.js'),
+        exec: async childProcess => {
+          childProcessArgs = childProcess.args
+          childProcess.close()
+        },
+        close: false
+      })
+      await task({
+        job: {
+          reportDir: '/report'
+        },
+        id: 'TEST',
+        label: 'test',
+        args: ['--report-dir', '/test']
+      })
+      expect(childProcessArgs).not.toBeUndefined()
+      expect(childProcessArgs).toStrictEqual([
+        '--report-dir', '/test',
+        '--report-dir', '/report/TEST',
+        '--output-interval', '1s'
+      ])
+    })
+
+    it('overrides coverage related folders', async () => {
+      let childProcessArgs
+      mockChildProcess({
+        api: 'fork',
+        scriptPath: join(root, 'index.js'),
+        exec: async childProcess => {
+          childProcessArgs = childProcess.args
+          childProcess.close()
+        },
+        close: false
+      })
+      await task({
+        job: {
+          reportDir: '/report'
+        },
+        id: 'TEST',
+        label: 'test',
+        args: ['--report-dir', '/test', '--coverage']
+      })
+      expect(childProcessArgs).not.toBeUndefined()
+      expect(childProcessArgs).toStrictEqual([
+        '--report-dir', '/test',
+        '--coverage',
+        '--report-dir', '/report/TEST',
+        '--output-interval', '1s',
+        '--coverage-temp-dir', '/report/TEST/.nyc_output',
+        '--coverage-report-dir', '/report/TEST/coverage'
+      ])
+    })
+
+    it('logs success', async () => {
+      mockChildProcess({
+        api: 'fork',
+        scriptPath: join(root, 'index.js'),
+        exec: async childProcess => {
+          childProcess.close()
+        },
+        close: false
+      })
+      await task({
+        job: {
+          reportDir: '/report'
+        },
+        id: 'TEST',
+        label: 'test',
+        args: []
+      })
+      expect(getOutput({}).log).toHaveBeenCalledWith('✔️ ', 'test (TEST)')
+    })
+
+    it('logs error', async () => {
+      mockChildProcess({
+        api: 'fork',
+        scriptPath: join(root, 'index.js'),
+        exec: async () => {
+          throw new Error('failed')
+        },
+        close: false
+      })
+      await task({
+        job: {
+          reportDir: '/report'
+        },
+        id: 'TEST',
+        label: 'test',
+        args: []
+      })
+      expect(getOutput({}).log).toHaveBeenCalledWith('❌', 'test (TEST)', -1)
+    })
   })
 })
