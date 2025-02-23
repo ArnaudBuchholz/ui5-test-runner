@@ -51,7 +51,9 @@ class Channel extends EventEmitter {
   }
 
   setFileHandle (fileHandle) {
-    this._fileHandle = fileHandle
+    if (fileHandle && typeof fileHandle.write === 'function') {
+      this._fileHandle = fileHandle
+    }
   }
 
   async write (text) {
