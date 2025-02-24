@@ -1,4 +1,5 @@
 jest.mock('child_process', () => require('./child_process'))
+jest.mock('node:child_process', () => require('./child_process'))
 const { join } = require('path')
 const { reset, mock } = require('./child_process')
 const { createDir } = require('../src/tools')
@@ -16,6 +17,8 @@ const {
 const tmp = join(__dirname, '../tmp')
 const npmLocal = join(__dirname, '../node_modules')
 const npmGlobal = join(tmp, 'npm/global')
+
+global.normalizePath = path => path.replace(/\\/g, '/') // win -> unix
 
 beforeAll(async () => {
   if (process.env.TEST_CONSOLE === 'allow') {

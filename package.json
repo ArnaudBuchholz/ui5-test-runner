@@ -77,7 +77,8 @@
     ],
     "globals": [
       "sap",
-      "opaTest"
+      "opaTest",
+      "normalizePath"
     ]
   }
 }
