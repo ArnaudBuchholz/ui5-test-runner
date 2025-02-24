@@ -15,6 +15,7 @@ const reserveConfigurationFactory = require('./src/reserve')
 const { start } = require('./src/start')
 const { executeIf } = require('./src/if')
 const { batch } = require('./src/batch')
+const { end } = require('./src/end')
 
 function send (message) {
   if (process.send) {
@@ -116,7 +117,9 @@ async function main () {
   } else if (job.failed) {
     process.exitCode = -1
   }
-  // TODO: #105 plugin end command, should replace exitCode
+  if (job.end) {
+    await end(job)
+  }
   output.stop()
   await server.close()
   if (startedCommand) {
