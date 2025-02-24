@@ -189,7 +189,7 @@ describe('src/batch', () => {
         args: ['--report-dir', '/test']
       })
       expect(childProcessArgs).not.toBeUndefined()
-      expect(childProcessArgs).toStrictEqual([
+      expect(childProcessArgs.map(normalizePath)).toStrictEqual([
         '--report-dir', '/test',
         '--report-dir', '/report/TEST',
         '--output-interval', '1s'
@@ -216,7 +216,7 @@ describe('src/batch', () => {
         args: ['--report-dir', '/test', '--coverage']
       })
       expect(childProcessArgs).not.toBeUndefined()
-      expect(childProcessArgs).toStrictEqual([
+      expect(childProcessArgs.map(normalizePath)).toStrictEqual([
         '--report-dir', '/test',
         '--coverage',
         '--report-dir', '/report/TEST',

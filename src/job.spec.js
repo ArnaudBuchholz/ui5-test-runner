@@ -1,6 +1,5 @@
 const { dirname, join } = require('path')
 const { fromObject, fromCmdLine } = require('./job')
-const normalizePath = path => path.replace(/\\/g, '/') // win -> unix
 const { $valueSources } = require('./symbols')
 const { UTRError } = require('./error')
 
