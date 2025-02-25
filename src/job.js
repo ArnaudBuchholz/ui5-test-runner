@@ -138,6 +138,10 @@ function getCommand (cwd) {
     .option('-crs, --coverage-remote-scanner <path>', '[💻🔗📡] Scan for files when all coverage is requested', '$/scan-ui5.js')
     .option('-s, --serve-only [flag]', '[💻🔗📡] Serve only', boolean, false)
 
+    .option('--start <command>', '[💻🔗📡] Start command (might be an NPM script or a shell command)', string)
+    .option('--start-wait-url <command>', '[💻🔗📡] URL to wait for (🔗 defaulted to first url)', url)
+    .option('--start-timeout <timeout>', '[💻🔗📡] Maximum waiting time for the start command (based on when the first URL becomes available)', timeout, 5000)
+
     .option('--end <command>', '[💻🔗] End script (will receive path to job.js)', string)
     .option('--end-timeout <timeout>', '[💻🔗] Maximum waiting time for the end script', timeout, 5000)
 
@@ -150,10 +154,6 @@ function getCommand (cwd) {
     .option('--preload <library...>', '[💻📡] Preload UI5 libraries in the cache folder (only if --cache is used)', arrayOf(string))
     .option('--testsuite <path>', '[💻📡] Path of the testsuite file (relative to webapp, URL parameters are supported)', 'test/testsuite.qunit.html')
     .option('-w, --watch [flag]', '[💻] Monitor the webapp folder and re-execute tests on change', boolean, false)
-
-    // Specific to url
-    .option('--start <command>', '[🔗] Start command (might be an NPM script or a shell command)', string)
-    .option('--start-timeout <timeout>', '[🔗] Maximum waiting time for the start command (based on when the first URL becomes available)', timeout, 5000)
 
     // Specific to coverage in url mode (experimental)
     .option('-cp, --coverage-proxy [flag]', `[🔗] ${EXPERIMENTAL_OPTION} use internal proxy to instrument remote files`, boolean, false)
@@ -350,7 +350,18 @@ function finalize (job) {
 
   // Because start and end are already used
   job.startCommand = job.start
+  delete job.start
   job.endScript = job.end
+  delete job.end
+
+  if (job.startCommand) {
+    if (!job.startWaitUrl) {
+      job.startWaitUrl = job.url[0]
+    }
+    if (!job.startWaitUrl) {
+      throw new Error('Start command defined but no URL to wait for')
+    }
+  }
 
   /* istanbul ignore next */
   if (process.env.DEBUG_ON_FAILED) {

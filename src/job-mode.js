@@ -40,7 +40,7 @@ function buildAndCheckMode (job) {
       'config',
       'batchId',
       'batchLabel'
-    ], ['start'])
+    ])
     return 'capabilities'
   }
   if (job.url && job.url.length) {
@@ -57,8 +57,7 @@ function buildAndCheckMode (job) {
   check(job, undefined, [
     'coverageProxy',
     'coverageProxyInclude',
-    'coverageProxyExclude',
-    'start'
+    'coverageProxyExclude'
   ])
   return 'legacy'
 }
