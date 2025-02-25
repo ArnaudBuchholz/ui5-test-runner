@@ -22,8 +22,8 @@ describe('src/start', () => {
     job = {
       cwd: __dirname,
       startTimeout: 5000,
-      startCommand: 'start',
-      url: [VALID_URL]
+      startWaitUrl: VALID_URL,
+      startCommand: 'start'
     }
     mockChildProcess({
       api: 'exec',
@@ -104,7 +104,7 @@ describe('src/start', () => {
 
     it('times out after expected limit and fails (wrong URL)', async () => {
       job.startCommandTimeout = 1000
-      job.url = [INVALID_URL]
+      job.startWaitUrl = INVALID_URL
       await expect(start(job)).rejects.toThrowError(/Timeout while waiting for/)
     })
   })

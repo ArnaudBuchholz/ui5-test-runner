@@ -43,7 +43,7 @@ async function start (job) {
 
   job.status = 'Waiting for URL to be reachable'
 
-  const [url] = job.url
+  const url = job.startWaitUrl
 
   const begin = Date.now()
   // eslint-disable-next-line no-unmodified-loop-condition
