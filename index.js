@@ -85,7 +85,7 @@ async function main () {
     })
   await serverStarted
   let startedCommand
-  if (job.start) {
+  if (job.startCommand) {
     startedCommand = await start(job)
   }
   if (job.preload) {
@@ -117,7 +117,7 @@ async function main () {
   } else if (job.failed) {
     process.exitCode = -1
   }
-  if (job.end) {
+  if (job.endScript) {
     await end(job)
   }
   output.stop()

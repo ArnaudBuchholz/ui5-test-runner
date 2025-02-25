@@ -348,6 +348,10 @@ function finalize (job) {
     configurable: false
   })
 
+  // Because start and end are already used
+  job.startCommand = job.start
+  job.endScript = job.end
+
   /* istanbul ignore next */
   if (process.env.DEBUG_ON_FAILED) {
     let failed

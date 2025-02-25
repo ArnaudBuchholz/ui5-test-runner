@@ -22,7 +22,7 @@ describe('src/start', () => {
     job = {
       cwd: __dirname,
       startTimeout: 5000,
-      start: 'start',
+      startCommand: 'start',
       url: [VALID_URL]
     }
     mockChildProcess({
@@ -55,7 +55,7 @@ describe('src/start', () => {
 
   it('detects equivalent script cwd\'s package.json', async () => {
     job.cwd = join(__dirname, '..')
-    job.start = 'test'
+    job.startCommand = 'test'
     let executed = false
     mockChildProcess({
       api: 'exec',
@@ -70,7 +70,7 @@ describe('src/start', () => {
 
   it('runs command despite cwd\'s package.json', async () => {
     job.cwd = join(__dirname, '..')
-    job.start = 'test2'
+    job.startCommand = 'test2'
     let executed = false
     mockChildProcess({
       api: 'exec',
@@ -84,7 +84,7 @@ describe('src/start', () => {
 
   describe('waiting for URL to be available', () => {
     it('detects command termination and fails', async () => {
-      job.start = 'close'
+      job.startCommand = 'close'
       mockChildProcess({
         api: 'exec',
         scriptPath: 'close',
@@ -92,18 +92,18 @@ describe('src/start', () => {
         close: true
       })
       returnUrlAnswerAfter = 5000
-      job.startTimeout = 5000
+      job.startCommandTimeout = 5000
       await expect(start(job)).rejects.toThrowError(/Start command failed with exit code/)
     })
 
     it('times out after expected limit and fails', async () => {
       returnUrlAnswerAfter = 5000
-      job.startTimeout = 500
+      job.startCommandTimeout = 500
       await expect(start(job)).rejects.toThrowError(/Timeout while waiting for/)
     })
 
     it('times out after expected limit and fails (wrong URL)', async () => {
-      job.startTimeout = 1000
+      job.startCommandTimeout = 1000
       job.url = [INVALID_URL]
       await expect(start(job)).rejects.toThrowError(/Timeout while waiting for/)
     })

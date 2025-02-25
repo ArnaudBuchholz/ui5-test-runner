@@ -7,7 +7,7 @@ const { promisify } = require('util')
 const psTree = promisify(psTreeNodeCb)
 
 async function start (job) {
-  let { start } = job
+  let { startCommand: start } = job
   const output = getOutput(job)
   const [command] = start.split(' ')
 
