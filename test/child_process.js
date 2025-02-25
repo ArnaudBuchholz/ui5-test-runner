@@ -95,6 +95,7 @@ class ChildProcess extends EventEmitter {
   kill () {
     this._killed = true
   }
+
   get killed () { return !!this._killed }
 
   constructor ({ api, scriptPath, args, options = {} }) {
