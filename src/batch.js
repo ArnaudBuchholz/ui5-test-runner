@@ -138,12 +138,12 @@ async function batch (job) {
         const path = join(cwd, name)
         const pathStat = await stat(path)
         if (pathStat.isDirectory()) {
-          if (re.exec(path)) {
+          if (re.test(path) || re.test(path.replaceAll('\\', '/'))) {
             folder(batchItems, job, path)
             continue
           }
           await scan(path)
-        } else if (pathStat.isFile() && re.exec(path)) {
+        } else if (pathStat.isFile() && (re.test(path) || re.test(path.replaceAll('\\', '/')))) {
           configurationFile(batchItems, job, path)
         }
       }
