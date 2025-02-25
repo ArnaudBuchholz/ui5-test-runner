@@ -4,7 +4,7 @@ const { getOutput } = require('./output')
 const { allocPromise } = require('./tools')
 
 async function end (job) {
-  const { end } = job
+  const { endScript: end } = job
   const output = getOutput(job)
   const [script, ...args] = end.split(' ')
 
@@ -27,22 +27,26 @@ async function end (job) {
 
   job.status = 'Waiting for script to end'
 
-  let timedOut = false
-  const { promise: endTimeoutSignal, resolve: endTimeoutReached } = allocPromise()
-  const timeoutId = setTimeout(() => {
-    timedOut = true
-    endTimeoutReached()
-  }, job.endTimeout)
-
-  await Promise.race([
-    childProcessExit,
-    endTimeoutSignal
-  ])
-  clearTimeout(timeoutId)
-
-  if (timedOut) {
-    childProcess.kill()
-    throw new Error('Timeout while waiting for end script')
+  if (job.endTimeout) {
+    let timedOut = false
+    const { promise: endTimeoutSignal, resolve: endTimeoutReached } = allocPromise()
+    const timeoutId = setTimeout(() => {
+      timedOut = true
+      endTimeoutReached()
+    }, job.endTimeout)
+  
+    await Promise.race([
+      childProcessExit,
+      endTimeoutSignal
+    ])
+    clearTimeout(timeoutId)
+  
+    if (timedOut) {
+      childProcess.kill()
+      throw new Error('Timeout while waiting for end script')
+    }
+  } else {
+    await childProcessExit
   }
 
   output.debug('end', 'Ended with exit code :', childProcess.exitCode)
