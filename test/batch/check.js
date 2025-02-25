@@ -1,3 +1,5 @@
+'use strict'
+
 const { parseArgs } = require('node:util')
 const assert = require('node:assert/strict')
 const { readFile, stat } = require('node:fs/promises')

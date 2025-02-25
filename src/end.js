@@ -34,13 +34,13 @@ async function end (job) {
       timedOut = true
       endTimeoutReached()
     }, job.endTimeout)
-  
+
     await Promise.race([
       childProcessExit,
       endTimeoutSignal
     ])
     clearTimeout(timeoutId)
-  
+
     if (timedOut) {
       childProcess.kill()
       throw new Error('Timeout while waiting for end script')
