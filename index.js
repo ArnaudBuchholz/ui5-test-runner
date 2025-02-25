@@ -52,9 +52,6 @@ async function main () {
   await recreateDir(job.reportDir)
   output.version()
   output.reportOnJobProgress()
-  if (job.mode === 'batch') {
-    return await batch(job)
-  }
   if (job.mode === 'capabilities') {
     return capabilities(job)
   }
@@ -63,6 +60,21 @@ async function main () {
     output.stop()
     return
   }
+
+  let startedCommand
+  if (job.startCommand) {
+    startedCommand = await start(job)
+  }
+
+  if (job.mode === 'batch') {
+    return await batch(job)
+      .finally(() => {
+        if (startedCommand) {
+          return startedCommand.stop()
+        }
+      })
+  }
+
   const configuration = await reserveConfigurationFactory(job)
   output.debug('reserve', 'configuration', configuration)
   const server = serve(configuration)
@@ -84,10 +96,6 @@ async function main () {
       serverError()
     })
   await serverStarted
-  let startedCommand
-  if (job.startCommand) {
-    startedCommand = await start(job)
-  }
   if (job.preload) {
     await preload(job)
   }
