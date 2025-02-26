@@ -140,6 +140,7 @@ function getCommand (cwd) {
 
     .option('--start <command>', '[💻🔗📡] Start command (might be an NPM script or a shell command)', string)
     .option('--start-wait-url <command>', '[💻🔗📡] URL to wait for (🔗 defaulted to first url)', url)
+    .option('--start-wait-method <method>', '[💻🔗📡] HTTP method to check the waited URL', 'GET')
     .option('--start-timeout <timeout>', '[💻🔗📡] Maximum waiting time for the start command (based on when the first URL becomes available)', timeout, 5000)
 
     .option('--end <command>', '[💻🔗] End script (will receive path to job.js)', string)
