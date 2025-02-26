@@ -23,7 +23,7 @@ const waitFor = (url, timeout = 30000) => new Promise((resolve, reject) => {
 })
 
 const serve = async (label, port, parameters, cwd) => {
-  console.log(`🖧  ${label} (${port})`)
+  console.log(`🛜  ${label} (${port})`)
   const [script, ...args] = parameters
   fork(script, args, { cwd, stdio: [0, 'pipe', 'pipe', 'ipc'] })
   return waitFor(`http://localhost:${port}`)
