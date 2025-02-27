@@ -1,4 +1,4 @@
-const { stat, readdir } = require('fs/promises')
+const { open, readdir, stat, unlink } = require('fs/promises')
 const { extname, isAbsolute, join } = require('path')
 const { allocPromise, filename } = require('./tools')
 const { fork } = require('child_process')
@@ -59,11 +59,15 @@ const task = async ({ job, id, label, args }) => {
       '--coverage-report-dir', join(reportDir, 'coverage')
     )
   }
+  const stdoutFilename = join(job.reportDir, `${id}.stdout.txt`)
+  const stdout = await open(stdoutFilename, 'w')
+  const stderrFilename = join(job.reportDir, `${id}.stderr.txt`)
+  const stderr = await open(stderrFilename, 'w')
   const childProcess = fork(
     join(root, 'index.js'),
     parameters,
     {
-      stdio: [0, 'pipe', 'pipe', 'ipc']
+      stdio: [0, stdout, stderr, 'ipc']
     }
   )
   childProcess.on('message', data => {
@@ -74,9 +78,13 @@ const task = async ({ job, id, label, args }) => {
     }
   })
   childProcess.on('close', async code => {
+    await stdout.close()
+    await stderr.close()
     if (code !== 0) {
       reject(code)
     } else {
+      await unlink(stdoutFilename)
+      await unlink(stderrFilename)
       resolve()
     }
   })
