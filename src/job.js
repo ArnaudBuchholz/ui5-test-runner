@@ -388,6 +388,7 @@ function fromCmdLine (cwd, args) {
   let job = parse(cwd, args)
 
   let defaultPath
+  const isConfigSet = job[$valueSources].config === 'cli'
   if (isAbsolute(job.config)) {
     defaultPath = job.config
   } else {
@@ -401,7 +402,7 @@ function fromCmdLine (cwd, args) {
     checkAccess({ path: defaultPath, file: true })
     hasDefaultSettings = true
   } catch (e) {
-    if (job[$valueSources].config === 'cli') {
+    if (isConfigSet) {
       throw e
     }
     // ignore
@@ -411,6 +412,8 @@ function fromCmdLine (cwd, args) {
     if (defaults.cwd && !isAbsolute(defaults.cwd)) {
       // make it relative to the configuration file
       defaults.cwd = join(dirname(defaultPath), defaults.cwd)
+    } else if (isConfigSet) {
+      defaults.cwd = dirname(defaultPath)
     }
     const { before, after, browser } = buildArgs(defaults)
     const sep = args.indexOf('--')
