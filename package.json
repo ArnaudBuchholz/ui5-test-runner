@@ -18,7 +18,7 @@
     "test:unit": "jest",
     "test:unit:debug": "node --inspect node_modules/jest/bin/jest.js --runInBand --no-coverage",
     "test:e2e": "node test/e2e",
-    "test:e2e:new": "node . --batch test/batch/.*\\.json --report-dir e2e --start 'node test/batch/serve.js' --start-wait-url http://localhost:8081 --start-wait-method HEAD --start-timeout 30s",
+    "test:e2e:new": "node . --batch test/e2e/.*\\.json --report-dir e2e --start 'node test/e2e/serve.js' --start-wait-url http://localhost:8081 --start-wait-method HEAD --start-timeout 30s",
     "test:report": "node ./src/defaults/report.js ./test/report && reserve --config ./test/report/reserve.json",
     "test:text-report": "node ./src/defaults/text-report.js ./test/report",
     "build:doc": "node build/doc",
