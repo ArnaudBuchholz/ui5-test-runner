@@ -29,6 +29,7 @@ node_modules/
 # generated during tests
 tmp/
 e2e/
+!test/e2e/
 report/
 test/**/report/
 !src/**/report/
