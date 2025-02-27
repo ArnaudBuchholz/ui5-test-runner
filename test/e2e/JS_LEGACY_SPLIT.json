@@ -3,5 +3,5 @@
   "batchLabel": "Legacy JS Sample with OPA split",
   "cwd": "../sample.js",
   "splitOpa": null,
-  "end": "../batch/check.js --qunit-pages 3"
+  "end": "../e2e/check.js --qunit-pages 3"
 }

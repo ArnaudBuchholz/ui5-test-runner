@@ -6,7 +6,7 @@
   "url": ["http://localhost:8083/test/testsuite.qunit.html"],
   "noScreenshot": null,
   "coverage": true,
-  "coverageSettings": "./.nyrc.json",
+  "coverageSettings": "./.nycrc.json",
   "coverageCheckStatements": 53,
-  "end": "../batch/check.js --qunit-pages 2 --coverage --report-uncovered"
+  "end": "../e2e/check.js --qunit-pages 2 --coverage --report-uncovered"
 }

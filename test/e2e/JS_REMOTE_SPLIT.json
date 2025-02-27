@@ -4,5 +4,5 @@
   "if": "NODE_MAJOR_VERSION >= 20",
   "url": ["http://localhost:8080/test/testsuite.qunit.html"],
   "splitOpa": null,
-  "end": "../batch/check.js --qunit-pages 3"
+  "end": "../e2e/check.js --qunit-pages 3"
 }

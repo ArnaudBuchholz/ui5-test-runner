@@ -3,5 +3,5 @@
   "batchLabel": "Legacy JS Sample accessed using --url",
   "cwd": "../sample.js",
   "url": ["http://localhost:0/test/testsuite.qunit.html"],
-  "end": "../batch/check.js --qunit-pages 2"
+  "end": "../e2e/check.js --qunit-pages 2"
 }

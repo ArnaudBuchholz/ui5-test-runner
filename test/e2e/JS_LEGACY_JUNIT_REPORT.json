@@ -3,5 +3,5 @@
   "batchLabel": "Legacy JS Sample with junit XML report",
   "cwd": "../sample.js",
   "reportGenerator": ["$/report.js", "$/junit-xml-report.js"],
-  "end": "../batch/check.js --qunit-pages 2 --junit-xml-report"
+  "end": "../e2e/check.js --qunit-pages 2 --junit-xml-report"
 }

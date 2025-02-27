@@ -8,5 +8,5 @@
   "coverageProxyInclude": "/webapp/",
   "coverageProxyExclude": "/resources/|/webapp/test/",
   "disableUi5": null,
-  "end": "../batch/check.js --coverage"
+  "end": "../e2e/check.js --coverage"
 }

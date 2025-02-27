@@ -39,6 +39,7 @@ async function main () {
   const job = require(positionals[0])
 
   if (qunitPages) {
+    assert.notStrictEqual(job.qunitPages, undefined, 'Pages found')
     const expectedCount = parseInt(qunitPages)
     assert.strictEqual(Object.keys(job.qunitPages).length, expectedCount, 'Number of test pages')
   }

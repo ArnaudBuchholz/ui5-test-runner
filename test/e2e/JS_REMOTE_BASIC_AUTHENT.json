@@ -3,6 +3,6 @@
   "batchLabel": "Remote JS sample with basic authent",
   "url": ["http://localhost:8081/test/testsuite.qunit.html"],
   "browser": "$/puppeteer.js",
-  "browserArgs": ["--basic-auth-username", "testUsername", "--basic-auth-password", "testPassword"],
-  "end": "../batch/check.js --qunit-pages 2"
+  "--": ["--basic-auth-username", "testUsername", "--basic-auth-password", "testPassword"],
+  "end": "../e2e/check.js --qunit-pages 2"
 }

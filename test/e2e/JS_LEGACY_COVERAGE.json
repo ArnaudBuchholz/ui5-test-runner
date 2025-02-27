@@ -4,7 +4,7 @@
   "cwd": "../sample.js",
   "noScreenshot": null,
   "coverage": true,
-  "coverageSettings": "./.nyrc.json",
+  "coverageSettings": "./.nycrc.json",
   "coverageCheckStatements": 65,
-  "end": "../batch/check.js --qunit-pages 2 --coverage --report-uncovered"
+  "end": "../e2e/check.js --qunit-pages 2 --coverage --report-uncovered"
 }

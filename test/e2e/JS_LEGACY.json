@@ -2,5 +2,5 @@
   "batchId": "JS_LEGACY",
   "batchLabel": "Legacy JS Sample",
   "cwd": "../sample.js",
-  "end": "../batch/check.js --qunit-pages 2"
+  "end": "../e2e/check.js --qunit-pages 2"
 }
