@@ -2,6 +2,6 @@
   "batchId": "JSDOM",
   "batchLabel": "JSDOM browser",
   "capabilities": null,
-  "debugKeepReport": true,
+  "debugKeepReport": null,
   "browser": "$/jsdom.js"
 }

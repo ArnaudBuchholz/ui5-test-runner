@@ -2,6 +2,6 @@
   "batchId": "WEBDRIVERIO",
   "batchLabel": "Webdriver.io browser",
   "capabilities": null,
-  "debugKeepReport": true,
+  "debugKeepReport": null,
   "browser": "$/webdriverio.js"
 }

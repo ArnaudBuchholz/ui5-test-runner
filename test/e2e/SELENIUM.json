@@ -2,7 +2,7 @@
   "batchId": "SELENIUM",
   "batchLabel": "Selenium-webdriver browser (chrome)",
   "capabilities": null,
-  "debugKeepReport": true,
+  "debugKeepReport": null,
   "browser": "$/selenium-webdriver.js",
   "browserArgs": ["--browser", "chrome"]
 }

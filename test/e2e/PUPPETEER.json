@@ -2,6 +2,6 @@
   "batchId": "PUPPETEER",
   "batchLabel": "Puppeteer browser",
   "capabilities": null,
-  "debugKeepReport": true,
+  "debugKeepReport": null,
   "browser": "$/puppeteer.js"
 }

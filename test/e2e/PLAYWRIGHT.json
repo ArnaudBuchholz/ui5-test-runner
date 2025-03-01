@@ -2,6 +2,6 @@
   "batchId": "PLAYWRIGHT",
   "batchLabel": "Playwright browser",
   "capabilities": null,
-  "debugKeepReport": true,
+  "debugKeepReport": null,
   "browser": "$/playwright.js"
 }
