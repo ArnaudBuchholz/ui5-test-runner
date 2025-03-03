@@ -357,7 +357,7 @@ describe('job', () => {
       it('preloads settings from any configuration file', () => {
         const job = buildJob({
           cwd: project2,
-          config: join(__dirname, '../test/batch/JS_REMOTE.json')
+          config: join(__dirname, '../test/e2e/JS_REMOTE.json')
         })
         // Not extracting from ui5-test-runner in project2
         expect(job.failFast).toStrictEqual(false)
@@ -368,7 +368,7 @@ describe('job', () => {
 
       it('sets job.cwd relatively to the configuration file when it contains cwd', () => {
         const job = buildJob({
-          config: join(__dirname, '../test/batch/JS_LEGACY.json')
+          config: join(__dirname, '../test/e2e/JS_LEGACY.json')
         })
         expect(job.cwd).toStrictEqual(join(__dirname, '../test/sample.js'))
       })
@@ -376,7 +376,7 @@ describe('job', () => {
       it('does not override job.cwd if provided on the command line', () => {
         const job = buildJob({
           cwd: project2,
-          config: join(__dirname, '../test/batch/JS_LEGACY.json')
+          config: join(__dirname, '../test/e2e/JS_LEGACY.json')
         })
         expect(job.cwd).toStrictEqual(project2)
       })
@@ -391,7 +391,7 @@ describe('job', () => {
       it('fails if specified and it does not exist (absolute)', () => {
         expect(() => buildJob({
           cwd: project2,
-          config: join(__dirname, '../test/batch/unknown.json')
+          config: join(__dirname, '../test/e2e/unknown.json')
         })).toThrowError()
       })
     })

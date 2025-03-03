@@ -4,6 +4,18 @@ const { parallelize } = require('./parallelize')
 const { getOutput } = require('./output')
 const { mock: mockChildProcess } = require('child_process')
 
+jest.mock('fs/promises', () => {
+  const actual = jest.requireActual('fs/promises')
+  return {
+    ...actual,
+    open: jest.fn(async (filename) => ({
+      filename,
+      close: jest.fn()
+    })),
+    unlink: jest.fn()
+  }
+})
+
 jest.mock('./parallelize', () => {
   return {
     parallelize: jest.fn()
@@ -48,14 +60,14 @@ describe('src/batch', () => {
         cwd: join(__dirname, '..'),
         parallel: 2,
         batch: [
-          'test/batch/JS_LEGACY.json'
+          'test/e2e/JS_LEGACY.json'
         ]
       })
       expect(parallelize).toHaveBeenCalledWith(expect.any(Function), [{
-        path: join(__dirname, '../test/batch/JS_LEGACY.json'),
+        path: join(__dirname, '../test/e2e/JS_LEGACY.json'),
         id: 'JS_LEGACY',
         label: 'Legacy JS Sample',
-        args: ['--config', join(__dirname, '../test/batch/JS_LEGACY.json')],
+        args: ['--config', join(__dirname, '../test/e2e/JS_LEGACY.json')],
         job: expect.any(Object)
       }], 2)
     })
@@ -93,10 +105,10 @@ describe('src/batch', () => {
       const items = parallelize.mock.calls[0][1]
       items.sort((a, b) => a.path.localeCompare(b.path))
       expect(items).toStrictEqual([{
-        path: join(__dirname, '..', 'test/batch/JS_LEGACY.json'),
+        path: join(__dirname, '..', 'test/e2e/JS_LEGACY.json'),
         id: 'JS_LEGACY',
         label: 'Legacy JS Sample',
-        args: ['--config', join(__dirname, '..', 'test/batch/JS_LEGACY.json')],
+        args: ['--config', join(__dirname, '..', 'test/e2e/JS_LEGACY.json')],
         job: expect.any(Object)
       }, {
         path: join(__dirname, '..', 'test/sample.js'),
@@ -120,11 +132,11 @@ describe('src/batch', () => {
         cwd: join(__dirname, '..'),
         parallel: 2,
         batch: [
-          'test/batch/check.js'
+          'test/e2e/check.js'
         ]
       })
       expect(parallelize).not.toHaveBeenCalled()
-      expect(getOutput({}).batchFailed).toHaveBeenCalledWith('test/batch/check.js', 'only folders and JSON configuration files are supported')
+      expect(getOutput({}).batchFailed).toHaveBeenCalledWith('test/e2e/check.js', 'only folders and JSON configuration files are supported')
       expect(getOutput({}).batchFailed).toHaveBeenCalledWith(expect.any(Array), 'no match')
     })
 
@@ -160,7 +172,7 @@ describe('src/batch', () => {
         cwd: join(__dirname, '..'),
         parallel: 2,
         batch: [
-          'test/batch/NOPE.json'
+          'test/e2e/NOPE.json'
         ]
       })
       expect(parallelize).not.toHaveBeenCalled()
