@@ -164,6 +164,7 @@ function getCommand (cwd) {
     .option('-cpe, --coverage-proxy-exclude <regexp>', `[🔗] ${EXPERIMENTAL_OPTION} urls to ignore for coverage`, regex, '/((test-)?resources|tests?)/')
 
     // Batch mode related
+    .addOption(new Option('--batch-mode', `${EXPERIMENTAL_OPTION} Changes the way options are defaulted (in particular coverage temporary folders)`, boolean).hideHelp())
     .option('--batch <specification...>', `${EXPERIMENTAL_OPTION} Batch specification`, arrayOf(string))
     .option('--batch-id <id>', `${EXPERIMENTAL_OPTION} Batch id (used for naming report folder)`, string)
     .option('--batch-label <label>', `${EXPERIMENTAL_OPTION} Batch label (used while reporting on execution)`, string)
@@ -295,17 +296,17 @@ function finalize (job) {
       }
       checkAccess({ path: libMapping.source, label: `${description} (${libMapping.source})` })
     })
-
-    if (job.watchFolder) {
-      job.watch = true
-      job.watchFolder = updateToAbsolute(job.watchFolder)
-    } else if (job.watch) {
-      job.watchFolder = job.webapp
-    }
-    if (job.watchFolder) {
-      checkAccess({ path: job.watchFolder, label: 'Folder to watch' })
-    }    
   }
+
+  if (job.watchFolder) {
+    job.watch = true
+    job.watchFolder = updateToAbsolute(job.watchFolder)
+  } else if (job.watch) {
+    job.watchFolder = job.webapp
+  }
+  if (job.watchFolder) {
+    checkAccess({ path: job.watchFolder, label: 'Folder to watch' })
+  }    
 
   const output = getOutput(job)
 
@@ -373,6 +374,15 @@ function finalize (job) {
     }
     if (!job.startWaitUrl) {
       throw new Error('Start command defined but no URL to wait for')
+    }
+  }
+
+  if (job.batchMode) {
+    job.outputInterval = 1000
+    if (job.coverage) {
+      // TODO: if specified in .nyc, do not touch, otherwise change default
+      job.coverageReportDir
+      job.coverageTempDir
     }
   }
 
