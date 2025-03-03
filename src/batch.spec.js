@@ -181,7 +181,7 @@ describe('src/batch', () => {
   })
 
   describe('task execution', () => {
-    it('overrides report folder', async () => {
+    it('specifies batch mode and overrides report folder', async () => {
       let childProcessArgs
       mockChildProcess({
         api: 'fork',
@@ -203,38 +203,8 @@ describe('src/batch', () => {
       expect(childProcessArgs).not.toBeUndefined()
       expect(childProcessArgs.map(normalizePath)).toStrictEqual([
         '--report-dir', '/test',
-        '--report-dir', '/report/TEST',
-        '--output-interval', '1s'
-      ])
-    })
-
-    it('overrides coverage related folders', async () => {
-      let childProcessArgs
-      mockChildProcess({
-        api: 'fork',
-        scriptPath: join(root, 'index.js'),
-        exec: async childProcess => {
-          childProcessArgs = childProcess.args
-          childProcess.close()
-        },
-        close: false
-      })
-      await task({
-        job: {
-          reportDir: '/report'
-        },
-        id: 'TEST',
-        label: 'test',
-        args: ['--report-dir', '/test', '--coverage']
-      })
-      expect(childProcessArgs).not.toBeUndefined()
-      expect(childProcessArgs.map(normalizePath)).toStrictEqual([
-        '--report-dir', '/test',
-        '--coverage',
-        '--report-dir', '/report/TEST',
-        '--output-interval', '1s',
-        '--coverage-temp-dir', '/report/TEST/.nyc_output',
-        '--coverage-report-dir', '/report/TEST/coverage'
+        '--batch-mode',
+        '--report-dir', '/report/TEST'
       ])
     })
 

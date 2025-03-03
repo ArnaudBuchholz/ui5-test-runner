@@ -50,15 +50,9 @@ const task = async ({ job, id, label, args }) => {
   const { promise, resolve, reject } = allocPromise()
   const parameters = [
     ...args,
-    '--report-dir', reportDir,
-    '--output-interval', '1s'
+    '--batch-mode',
+    '--report-dir', reportDir
   ]
-  if (parameters.includes('--coverage')) {
-    parameters.push(
-      '--coverage-temp-dir', join(reportDir, '.nyc_output'),
-      '--coverage-report-dir', join(reportDir, 'coverage')
-    )
-  }
   const stdoutFilename = join(job.reportDir, `${id}.stdout.txt`)
   const stdout = await open(stdoutFilename, 'w')
   const stderrFilename = join(job.reportDir, `${id}.stderr.txt`)
