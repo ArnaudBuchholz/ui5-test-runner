@@ -138,6 +138,9 @@ function getCommand (cwd) {
     .option('-crs, --coverage-remote-scanner <path>', '[💻🔗📡] Scan for files when all coverage is requested', '$/scan-ui5.js')
     .option('-s, --serve-only [flag]', '[💻🔗📡] Serve only', boolean, false)
 
+    .option('-w, --watch [flag]', '[💻🔗] Monitor the webapp folder (or the one specified with --watch-folder) and re-execute tests on change', boolean, false)
+    .option('--watch-folder <path>', '[💻🔗] Folder to monitor with watch (enables --watch if not specified)', string)
+
     .option('--start <command>', '[💻🔗📡] Start command (might be an NPM script or a shell command)', string)
     .option('--start-wait-url <command>', '[💻🔗📡] URL to wait for (🔗 defaulted to first url)', url)
     .option('--start-wait-method <method>', '[💻🔗📡] HTTP method to check the waited URL', 'GET')
@@ -154,7 +157,6 @@ function getCommand (cwd) {
     .option('--cache <path>', '[💻📡] Cache UI5 resources locally in the given folder (empty to disable)')
     .option('--preload <library...>', '[💻📡] Preload UI5 libraries in the cache folder (only if --cache is used)', arrayOf(string))
     .option('--testsuite <path>', '[💻📡] Path of the testsuite file (relative to webapp, URL parameters are supported)', 'test/testsuite.qunit.html')
-    .option('-w, --watch [flag]', '[💻] Monitor the webapp folder and re-execute tests on change', boolean, false)
 
     // Specific to coverage in url mode (experimental)
     .option('-cp, --coverage-proxy [flag]', `[🔗] ${EXPERIMENTAL_OPTION} use internal proxy to instrument remote files`, boolean, false)
@@ -293,6 +295,16 @@ function finalize (job) {
       }
       checkAccess({ path: libMapping.source, label: `${description} (${libMapping.source})` })
     })
+
+    if (job.watchFolder) {
+      job.watch = true
+      job.watchFolder = updateToAbsolute(job.watchFolder)
+    } else if (job.watch) {
+      job.watchFolder = job.webapp
+    }
+    if (job.watchFolder) {
+      checkAccess({ path: job.watchFolder, label: 'Folder to watch' })
+    }    
   }
 
   const output = getOutput(job)

@@ -108,9 +108,8 @@ async function main () {
   if (job.watch) {
     delete job.start
     if (!job.watching) {
-      // TODO: #119 default watched folder to job.webapp but enables override
-      output.watching(job.webapp)
-      watch(job.webapp, { recursive: true }, async (eventType, filename) => {
+      output.watching(job.watchFolder)
+      watch(job.watchFolder, { recursive: true }, async (eventType, filename) => {
         output.changeDetected(eventType, filename)
         if (!job.start) {
           await recreateDir(job.reportDir)

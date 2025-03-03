@@ -49,7 +49,6 @@ function buildAndCheckMode (job) {
       'libs',
       'mappings',
       'cache',
-      'watch',
       'testsuite'
     ])
     return 'url'
