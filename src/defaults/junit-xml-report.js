@@ -74,7 +74,7 @@ async function main () {
     }
   }
   o('</testsuites>')
-  await writeFile(join(reportDir, 'junit.xml'), output.join('\n'))
+  await writeFile(join(reportDir, process.env.JUNIT_XML_REPORT_FILENAME || 'junit.xml'), output.join('\n'))
 }
 
 main()
