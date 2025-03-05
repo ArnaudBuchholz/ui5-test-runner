@@ -102,6 +102,8 @@ async function done (job, urlWithHash, report) {
     if (report.__coverage__) {
       await collect(job, url, report.__coverage__)
       delete report.__coverage__
+    } else if (job.coverage) {
+      getOutput(job).coverageNotFound()
     }
     page.report = report
     stop(job, url)

@@ -500,6 +500,10 @@ function build (job) {
       log(job, p80()`⚠️ [SKPNYC] Skipping nyc instrumentation (--url)`)
     }),
 
+    coverageNotFound: wrap(() => {
+      log(job, p80()`⚠️ [COVMIS] Coverage missing`)
+    }),
+
     assumingOneOrigin: wrap(() => {
       log(job, p80()`⚠️ [COVORG] Considering only one origin`)
     }),
