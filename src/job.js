@@ -226,6 +226,7 @@ function checkAccess ({ path, label, file /*, write */ }) {
 
 function finalize (job) {
   function toAbsolute (path, from = job.cwd) {
+    path = path.replace(/📂report\b/, job.reportDir)
     if (!isAbsolute(path)) {
       path = join(from, path)
     }
@@ -379,11 +380,7 @@ function finalize (job) {
 
   if (job.batchMode) {
     job.outputInterval = 1000
-    if (job.coverage) {
-      // TODO: if specified in .nyc, do not touch, otherwise change default
-      job.coverageReportDir
-      job.coverageTempDir
-    }
+    output.batchMode()
   }
 
   /* istanbul ignore next */

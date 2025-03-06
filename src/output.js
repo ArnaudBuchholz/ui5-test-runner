@@ -435,6 +435,10 @@ function build (job) {
       log(job, p80()`⚠️ [BATCHF] Failed to resolve batch ${batch}: ${reason}`)
     }),
 
+    batchMode: wrap((batch, reason) => {
+      log(job, p80()`⚠️ [BATCHM] Batch mode enabled`)
+    }),
+
     startFailed: wrap((url, error) => {
       const p = p80()
       log(job, p`┌──────────${pad.x('─')}┐`)

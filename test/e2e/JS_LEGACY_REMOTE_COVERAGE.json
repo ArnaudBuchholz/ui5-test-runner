@@ -6,6 +6,8 @@
   "noScreenshot": null,
   "coverage": true,
   "coverageSettings": "./.nycrc.json",
+  "coverageTempDir": "📂report/.nyc_output",
+  "coverageReportDir": "📂report/coverage",
   "coverageCheckStatements": 65,
   "end": "../e2e/check.js --qunit-pages 2 --coverage --report-uncovered"
 }
