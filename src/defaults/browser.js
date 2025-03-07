@@ -51,7 +51,7 @@ module.exports = ({
         ]
       }
       if (option === 'language') {
-        return [['-l, --language <lang...>', 'Language(s)', arrayOf(string, true), ['en-US']]]
+        return [['-l, --language <lang...>', 'Language(s) (see rfc5646)', arrayOf(string, true), ['en-US']]]
       }
       if (option === 'unsecure') {
         return [['-u, --unsecure', 'Disable security features', false]]
