@@ -2,7 +2,7 @@ const { readFile, writeFile } = require('fs/promises')
 const { join } = require('path')
 const { Command, InvalidArgumentError } = require('commander')
 const { buildCsvWriter } = require('../csv-writer')
-const { any, boolean, integer } = require('../options')
+const { any, arrayOf, boolean, integer, string } = require('../options')
 
 const noop = () => { }
 
@@ -51,7 +51,7 @@ module.exports = ({
         ]
       }
       if (option === 'language') {
-        return [['-l, --language <lang...>', 'Language(s)', ['en-US']]]
+        return [['-l, --language <lang...>', 'Language(s)', arrayOf(string, true), ['en-US']]]
       }
       if (option === 'unsecure') {
         return [['-u, --unsecure', 'Disable security features', false]]

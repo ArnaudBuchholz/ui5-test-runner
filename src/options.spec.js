@@ -137,5 +137,11 @@ describe('src/options', () => {
       const value = validator('2', validator('1'))
       expect(value).toStrictEqual([1, 2])
     })
+
+    it('may ignore the default value', () => {
+      const validator = arrayOf(integer, true)
+      const value = validator('2', '1')
+      expect(value).toStrictEqual([2])
+    })
   })
 })

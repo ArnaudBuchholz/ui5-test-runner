@@ -307,7 +307,7 @@ function finalize (job) {
   }
   if (job.watchFolder) {
     checkAccess({ path: job.watchFolder, label: 'Folder to watch' })
-  }    
+  }
 
   const output = getOutput(job)
 

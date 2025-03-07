@@ -70,10 +70,12 @@ module.exports = {
     return value
   },
 
-  arrayOf (typeValidator) {
+  arrayOf (typeValidator, overrideDefault) {
+    let count = 0
     return function (value, previousValue) {
+      ++count
       let result
-      if (previousValue === undefined) {
+      if (previousValue === undefined || (overrideDefault && count === 1)) {
         result = []
       } else {
         result = [...previousValue]
