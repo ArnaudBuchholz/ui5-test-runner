@@ -38,6 +38,7 @@ function buildAndCheckMode (job) {
       'outputInterval',
       'screenshotTimeout',
       'config',
+      'batchMode',
       'batchId',
       'batchLabel'
     ])

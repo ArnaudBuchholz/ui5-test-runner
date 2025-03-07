@@ -380,7 +380,6 @@ function finalize (job) {
 
   if (job.batchMode) {
     job.outputInterval = 1000
-    output.batchMode()
   }
 
   /* istanbul ignore next */

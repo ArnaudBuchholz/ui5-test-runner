@@ -51,6 +51,9 @@ async function main () {
   output = getOutput(job)
   await recreateDir(job.reportDir)
   output.version()
+  if (job.batchMode) {
+    output.batchMode()
+  }
   output.reportOnJobProgress()
   if (job.mode === 'capabilities') {
     return capabilities(job)
