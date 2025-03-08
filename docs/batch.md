@@ -4,7 +4,7 @@
 
 With version `5.5.0`, `ui5-test-runer` can execute more than one test project in a single run.
 
-Batch mode is activated when the `--batch` parameter is used :
+This mode is activated when the `--batch` parameter is used :
 
 * The initial command is called the *main* command
 * Each executed test is named a *batch item*
@@ -32,9 +32,9 @@ Unlike the normal execution flow where the runner ensures :
 * the parallel execution of several pages (QUnit or OPA),
 * the generation of a single report.
 
-Batch mode implies the parallel execution of **multiple batch items**.
+The batch mode implies the parallel execution of **multiple batch items**.
 
-> ⚠️ Assuming the defaut value for `--parallel` is 2, it means that you will have 2 batch items executed in parallel which, themselves, execute 2 test pages in parallel. That makes a total of 4 browsers executed in parallel.
+> ⚠️ Assuming the defaut value for `--parallel` is 2, it means that 2 batch items are executed in parallel which, themselves, execute 2 test pages in parallel. That makes a **total of 4 browsers** executed in parallel.
 
 Each individual item execution generates its own report information (including coverage). Also, the main output is slightly different.
 
@@ -50,10 +50,14 @@ Each individual item execution generates its own report information (including c
 
 > Example of batch output
 
-New parameters and behaviors are introduced to control execution :
+New parameters and behaviors are introduced to control the execution :
 
-* `--report-dir`: when used in the main command, all batch items report folders are overridden to generate a folder under the main `--report-dir`.
+* `--report-dir`: when used in the main command, all batch items report folders are overridden to generate a folder under the main `--report-dir` :
 
-* `--batch-id`: if provided in the config file, this condition the sub folder name used under the overridden `--report-dir`.
+  * `--batch-id`: if provided in a configuration file, this conditions the sub folder name used under the overridden `--report-dir` *(otherwise a hash is computed based on the batch item folder / file path)*.
 
-* `--batch-label`: if provided in the config file, the label is used in the main command output.
+* `--batch-label`: if provided in a configuration file, the label is used in the main command output *(otherwise the folder / file path is being used)*.
+
+* `--if`: if provided in a configuration file, it conditions the execution of the batch item. The expression can test any environment variable (for instance: `--if "ALL_TESTS === 'true'"`) or use the Node.js' major version (`--if "NODE_MAJOR_VERSION >= 20"`).
+
+* [Parameters](https://arnaudbuchholz.github.io/ui5-test-runner/usage/) flagged with 📡 are forwarded to the batch item execution.
