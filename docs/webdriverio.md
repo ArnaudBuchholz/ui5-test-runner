@@ -26,7 +26,8 @@ Supported browsers :
   --binary <binary>               Binary path
   -w, --viewport-width <width>    Viewport width (default: 1920)
   -h, --viewport-height <height>  Viewport height (default: 1080)
-  -l, --language <lang...>        Language(s) (default: ["en-US"])
+  -l, --language <lang...>        Language(s) (see rfc5646) (default:
+                                  ["en-US"])
   -u, --unsecure                  Disable security features (default: false)
 ```
 

@@ -51,8 +51,14 @@ Check additional information below.
 | -ccs, --coverage-check-statements \<percent> | 🔗 | �🔗📡] What % of statements must be covered|`0` |
 | -crs, --coverage-remote-scanner \<path> | 🔗 | �🔗📡] Scan for files when all coverage is requested|`"$/scan-ui5.js"` |
 | -s, --serve-only [flag] | 🔗 | �🔗📡] Serve only|`false` |
-| --end \<command> | 💻🔗 | End command (must be a js, will receive path to job.js)| |
-| --end-timeout \<timeout> | 💻🔗 | Maximum waiting time for the end command|`5000` |
+| -w, --watch [flag] | 💻🔗 | Monitor the webapp folder (or the one specified with --watch-folder) and re-execute tests on change|`false` |
+| --watch-folder \<path> | 💻🔗 | Folder to monitor with watch (enables --watch if not specified)| |
+| --start \<command> | 🔗 | �🔗📡] Start command (might be an NPM script or a shell command)| |
+| --start-wait-url \<command> | 🔗 | �🔗📡] URL to wait for (🔗 defaulted to first url)| |
+| --start-wait-method \<method> | 🔗 | �🔗📡] HTTP method to check the waited URL|`"GET"` |
+| --start-timeout \<timeout> | 🔗 | �🔗📡] Maximum waiting time for the start command (based on when the first URL becomes available)|`5000` |
+| --end \<command> | 💻🔗 | End script (will receive path to job.js)| |
+| --end-timeout \<timeout> | 💻🔗 | Maximum waiting time for the end script|`5000` |
 | --ui5 \<url> |  | [💻📡] UI5 url|`"https://ui5.sap.com"` |
 | --disable-ui5 [flag] |  | [💻📡] Disable UI5 mapping (also disable libs)|`false` |
 | --libs \<lib...> |  | [💻📡] Library mapping (\<relative>=\<path> or \<path>)| |
@@ -60,9 +66,6 @@ Check additional information below.
 | --cache \<path> |  | [💻📡] Cache UI5 resources locally in the given folder (empty to disable)| |
 | --preload \<library...> |  | [💻📡] Preload UI5 libraries in the cache folder (only if --cache is used)| |
 | --testsuite \<path> |  | [💻📡] Path of the testsuite file (relative to webapp, URL parameters are supported)|`"test/testsuite.qunit.html"` |
-| -w, --watch [flag] | 💻 | Monitor the webapp folder and re-execute tests on change|`false` |
-| --start \<command> | 🔗 | Start command (might be an NPM script or a shell command)| |
-| --start-timeout \<timeout> | 🔗 | Maximum waiting time for the start command (based on when the first URL becomes available)|`5000` |
 | -cp, --coverage-proxy [flag] | 🔗 | [⚠️ experimental] use internal proxy to instrument remote files|`false` |
 | -cpi, --coverage-proxy-include \<regexp> | 🔗 | [⚠️ experimental] urls to instrument for coverage|`".*"` |
 | -cpe, --coverage-proxy-exclude \<regexp> | 🔗 | [⚠️ experimental] urls to ignore for coverage|`"/((test-)?resources\|tests?)/"` |
