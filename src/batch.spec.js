@@ -3,6 +3,7 @@ const { batch, task } = require('./batch')
 const { parallelize } = require('./parallelize')
 const { getOutput } = require('./output')
 const { mock: mockChildProcess } = require('child_process')
+const { $valueSources } = require('./symbols')
 
 jest.mock('fs/promises', () => {
   const actual = jest.requireActual('fs/promises')
@@ -181,6 +182,32 @@ describe('src/batch', () => {
   })
 
   describe('task execution', () => {
+    it('specifies batch mode', async () => {
+      let childProcessArgs
+      mockChildProcess({
+        api: 'fork',
+        scriptPath: join(root, 'index.js'),
+        exec: async childProcess => {
+          childProcessArgs = childProcess.args
+          childProcess.close()
+        },
+        close: false
+      })
+      await task({
+        job: {
+          reportDir: '/report'
+        },
+        id: 'TEST',
+        label: 'test',
+        args: ['--report-dir', '/test']
+      })
+      expect(childProcessArgs).not.toBeUndefined()
+      expect(childProcessArgs.map(normalizePath)).toStrictEqual([
+        '--report-dir', '/test',
+        '--batch-mode'
+      ])
+    })
+
     it('specifies batch mode and overrides report folder', async () => {
       let childProcessArgs
       mockChildProcess({
@@ -194,7 +221,10 @@ describe('src/batch', () => {
       })
       await task({
         job: {
-          reportDir: '/report2' // TODO: separate if provided on cli or not
+          reportDir: '/report',
+          [$valueSources]: {
+            reportDir: 'cli'
+          }
         },
         id: 'TEST',
         label: 'test',

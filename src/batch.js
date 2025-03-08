@@ -5,6 +5,7 @@ const { fork } = require('child_process')
 const { interactive, getOutput, newProgress } = require('./output')
 const { parallelize } = require('./parallelize')
 const { $statusProgressCount } = require('./symbols')
+const { $valueSources } = require('./symbols')
 
 const root = join(__dirname, '..')
 
@@ -50,9 +51,11 @@ const task = async ({ job, id, label, args }) => {
   const { promise, resolve, reject } = allocPromise()
   const parameters = [
     ...args,
-    '--batch-mode',
-    '--report-dir', reportDir
+    '--batch-mode'
   ]
+  if (job[$valueSources] && job[$valueSources].reportDir === 'cli') {
+    parameters.push('--report-dir', reportDir)
+  }
   const stdoutFilename = join(job.reportDir, `${id}.stdout.txt`)
   const stdout = await open(stdoutFilename, 'w')
   const stderrFilename = join(job.reportDir, `${id}.stderr.txt`)
