@@ -25,7 +25,7 @@ async function usage () {
           result.at(-1).default = defaultValue.trim()
           description = description.substring(0, description.indexOf('(default:')).trim()
         }
-        let [modes] = description.match(/\[(💻|🔗|🧪)+\]|🧪|🔗/) ?? []
+        let [modes] = description.match(/\[(💻|🔗|🧪|📡)+\]|🧪|🔗/) ?? []
         if (modes) {
           description = description.substring(modes.length).trim()
           if (modes.startsWith('[')) {
