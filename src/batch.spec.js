@@ -194,7 +194,7 @@ describe('src/batch', () => {
       })
       await task({
         job: {
-          reportDir: '/report'
+          reportDir: '/report2' // TODO: separate if provided on cli or not
         },
         id: 'TEST',
         label: 'test',
