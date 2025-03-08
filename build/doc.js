@@ -45,7 +45,7 @@ async function usage () {
     return result
   }, [])
 
-  const forMd = (value) => value.replace(/\|/g, '\\|').replace(/</g, '\\<')
+  const forMd = (value) => value.replace(/\|/g, '\\|').replace(/</g, '&lt;')
 
   await writeFile(usagePath, usageMd
     .replace(
