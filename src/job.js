@@ -128,23 +128,23 @@ function getCommand (cwd) {
     .option('--coverage [flag]', '[💻🔗📡] Enable or disable code coverage', boolean)
     .option('--no-coverage', '[💻🔗📡] Disable code coverage')
     .option('-cs, --coverage-settings <path>', '[💻🔗📡] Path to a custom .nycrc.json file providing settings for instrumentation (relative to cwd or use $/ for provided ones)', '$/.nycrc.json')
-    .option('-ctd, --coverage-temp-dir <path>', '[💻🔗📡] Directory to output raw coverage information to (relative to cwd)', '.nyc_output')
-    .option('-crd, --coverage-report-dir <path>', '[💻🔗📡] Directory to store the coverage report files (relative to cwd)', 'coverage')
+    .option('-ctd, --coverage-temp-dir <path>', '[💻🔗] Directory to output raw coverage information to (relative to cwd)', '.nyc_output')
+    .option('-crd, --coverage-report-dir <path>', '[💻🔗] Directory to store the coverage report files (relative to cwd)', 'coverage')
     .option('-cr, --coverage-reporters <reporter...>', '[💻🔗📡] List of nyc reporters to use (text is always used)', ['lcov', 'cobertura'])
     .option('-ccb, --coverage-check-branches <percent>', '[💻🔗📡] What % of branches must be covered', percent, 0)
     .option('-ccf, --coverage-check-functions <percent>', '[💻🔗📡] What % of functions must be covered', percent, 0)
     .option('-ccl, --coverage-check-lines <percent>', '[💻🔗📡] What % of lines must be covered', percent, 0)
     .option('-ccs, --coverage-check-statements <percent>', '[💻🔗📡] What % of statements must be covered', percent, 0)
     .option('-crs, --coverage-remote-scanner <path>', '[💻🔗📡] Scan for files when all coverage is requested', '$/scan-ui5.js')
-    .option('-s, --serve-only [flag]', '[💻🔗📡] Serve only', boolean, false)
+    .option('-s, --serve-only [flag]', '[💻🔗] Serve only', boolean, false)
 
     .option('-w, --watch [flag]', '[💻🔗] Monitor the webapp folder (or the one specified with --watch-folder) and re-execute tests on change', boolean, false)
     .option('--watch-folder <path>', '[💻🔗] Folder to monitor with watch (enables --watch if not specified)', string)
 
-    .option('--start <command>', '[💻🔗📡] Start command (might be an NPM script or a shell command)', string)
-    .option('--start-wait-url <command>', '[💻🔗📡] URL to wait for (🔗 defaulted to first url)', url)
-    .option('--start-wait-method <method>', '[💻🔗📡] HTTP method to check the waited URL', 'GET')
-    .option('--start-timeout <timeout>', '[💻🔗📡] Maximum waiting time for the start command (based on when the first URL becomes available)', timeout, 5000)
+    .option('--start <command>', '[💻🔗] Start command (might be an NPM script or a shell command)', string)
+    .option('--start-wait-url <command>', '[💻🔗] URL to wait for (🔗 defaulted to first url)', url)
+    .option('--start-wait-method <method>', '[💻🔗] HTTP method to check the waited URL', 'GET')
+    .option('--start-timeout <timeout>', '[💻🔗] Maximum waiting time for the start command (based on when the first URL becomes available)', timeout, 5000)
 
     .option('--end <command>', '[💻🔗] End script (will receive path to job.js)', string)
     .option('--end-timeout <timeout>', '[💻🔗] Maximum waiting time for the end script', timeout, 5000)
@@ -156,7 +156,7 @@ function getCommand (cwd) {
     .option('--mappings <mapping...>', '[💻📡] Custom mapping (<match>=<file|url>(<config>))', arrayOf(mapping))
     .option('--cache <path>', '[💻📡] Cache UI5 resources locally in the given folder (empty to disable)')
     .option('--preload <library...>', '[💻📡] Preload UI5 libraries in the cache folder (only if --cache is used)', arrayOf(string))
-    .option('--testsuite <path>', '[💻📡] Path of the testsuite file (relative to webapp, URL parameters are supported)', 'test/testsuite.qunit.html')
+    .option('--testsuite <path>', '[💻] Path of the testsuite file (relative to webapp, URL parameters are supported)', 'test/testsuite.qunit.html')
 
     // Specific to coverage in url mode (experimental)
     .option('-cp, --coverage-proxy [flag]', `[🔗] ${EXPERIMENTAL_OPTION} use internal proxy to instrument remote files`, boolean, false)
@@ -164,11 +164,11 @@ function getCommand (cwd) {
     .option('-cpe, --coverage-proxy-exclude <regexp>', `[🔗] ${EXPERIMENTAL_OPTION} urls to ignore for coverage`, regex, '/((test-)?resources|tests?)/')
 
     // Batch mode related
-    .addOption(new Option('--batch-mode', `${EXPERIMENTAL_OPTION} Changes the way options are defaulted (in particular coverage temporary folders)`, boolean).hideHelp())
-    .option('--batch <specification...>', `${EXPERIMENTAL_OPTION} Batch specification`, arrayOf(string))
-    .option('--batch-id <id>', `${EXPERIMENTAL_OPTION} Batch id (used for naming report folder)`, string)
-    .option('--batch-label <label>', `${EXPERIMENTAL_OPTION} Batch label (used while reporting on execution)`, string)
-    .option('--if <condition>', `${EXPERIMENTAL_OPTION} Condition runner execution`, string)
+    .addOption(new Option('--batch-mode', 'Changes the way options are defaulted (in particular coverage temporary folders)', boolean).hideHelp())
+    .option('--batch <specification...>', 'Batch specification', arrayOf(string))
+    .option('--batch-id <id>', 'Batch id (used for naming report folder)', string)
+    .option('--batch-label <label>', 'Batch label (used while reporting on execution)', string)
+    .option('--if <condition>', 'Condition runner execution', string)
 
     .addOption(new Option('--debug-dev-mode', DEBUG_OPTION, boolean).hideHelp())
     .addOption(new Option('--debug-probe-only', DEBUG_OPTION, boolean).hideHelp())
@@ -458,5 +458,6 @@ function fromObject (cwd, parameters) {
 module.exports = {
   getCommand,
   fromCmdLine,
-  fromObject
+  fromObject,
+  toLongName
 }

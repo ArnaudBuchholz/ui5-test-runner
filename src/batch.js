@@ -6,6 +6,14 @@ const { interactive, getOutput, newProgress } = require('./output')
 const { parallelize } = require('./parallelize')
 const { $statusProgressCount } = require('./symbols')
 const { $valueSources } = require('./symbols')
+const { getCommand, toLongName } = require('./job')
+
+const batchParameters = getCommand('.').options
+  .filter(option => option.description.includes('📡'))
+  .reduce((dictionary, option) => {
+    dictionary[option.long.substring(2)] = option
+    return dictionary
+  }, {})
 
 const root = join(__dirname, '..')
 
@@ -53,9 +61,28 @@ const task = async ({ job, id, label, args }) => {
     ...args,
     '--batch-mode'
   ]
-  if (job[$valueSources] && job[$valueSources].reportDir === 'cli') {
-    parameters.push('--report-dir', reportDir)
+  if (job[$valueSources]) {
+    if (job[$valueSources].reportDir === 'cli') {
+      parameters.push('--report-dir', reportDir)
+    }
+    Object.keys(job[$valueSources])
+      .filter(name => job[$valueSources][name] === 'cli')
+      .forEach(name => {
+        const longName = toLongName(name)
+        const option = batchParameters[longName]
+        if (option) {
+          parameters.push(`--${longName}`)
+          if (!option.optional && !option.negate) {
+            if (option.variadic) {
+              parameters.push(...job[name].map(value => value.toString()))
+            } else {
+              parameters.push(job[name].toString())
+            }
+          }
+        }
+      })
   }
+
   const stdoutFilename = join(job.reportDir, `${id}.stdout.txt`)
   const stdout = await open(stdoutFilename, 'w')
   const stderrFilename = join(job.reportDir, `${id}.stderr.txt`)

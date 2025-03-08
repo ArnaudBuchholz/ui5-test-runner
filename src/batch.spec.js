@@ -238,6 +238,52 @@ describe('src/batch', () => {
       ])
     })
 
+    it('forwards main parameters', async () => {
+      let childProcessArgs
+      mockChildProcess({
+        api: 'fork',
+        scriptPath: join(root, 'index.js'),
+        exec: async childProcess => {
+          childProcessArgs = childProcess.args
+          childProcess.close()
+        },
+        close: false
+      })
+      await task({
+        job: {
+          reportDir: '/report',
+          start: 'start',
+          end: 'end',
+          pageTimeout: 1000, // Not from cli
+          globalTimeout: 1000,
+          failFast: true,
+          reportGenerator: ['a', 'b'],
+          [$valueSources]: {
+            reportDir: 'cli',
+            start: 'cli',
+            end: 'cli',
+            globalTimeout: 'cli',
+            failFast: 'cli',
+            reportGenerator: 'cli',
+            noCoverage: 'cli'
+          }
+        },
+        id: 'TEST',
+        label: 'test',
+        args: ['--report-dir', '/test']
+      })
+      expect(childProcessArgs).not.toBeUndefined()
+      expect(childProcessArgs.map(normalizePath)).toStrictEqual([
+        '--report-dir', '/test',
+        '--batch-mode',
+        '--report-dir', '/report/TEST',
+        '--global-timeout', '1000',
+        '--fail-fast',
+        '--report-generator', 'a', 'b',
+        '--no-coverage'
+      ])
+    })
+
     it('logs success', async () => {
       mockChildProcess({
         api: 'fork',
