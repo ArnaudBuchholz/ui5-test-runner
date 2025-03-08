@@ -26,10 +26,14 @@ A self-sufficient test runner for UI5 applications enabling parallel execution o
 * [Tips & tricks](tipsNtricks.md)
 * [How to demo](demo.md)
 * [Browser instantiation command](browser.md)
-* Automation Libraries:
-  - [puppeteer](puppeteer.md)
-  - [jsdom](jsdom.md)
-  - [playwright](playwright.md)
-  - [selenium-webdriver](selenium-webdriver.md)
-  - [webdriver.io](webdriverio.md)
+
+|Automation Library|Browser(s)|Screenshots|Scripts|Traces|
+|-|-|-|-|-|
+|[puppeteer](puppeteer.md)|`chrome`, `firefox`|✔️|✔️1️⃣|✔️|
+|[jsdom](jsdom.md)|*(none)*|❌|✔️|✔️|
+|[playwright](playwright.md)|`chrome`, `firefox`, `webkit`|✔️|✔️|✔️|
+|[selenium-webdriver](selenium-webdriver.md)|`chrome`, `firefox`, `edge`|✔️|✔️1️⃣|✔️1️⃣|
+|[webdriver.io](webdriverio.md)|`chrome`, `firefox`|✔️|✔️|✔️|
+|1️⃣ `chrome`|
+
 * [Mapping v1 settings to v2](mapping_v1_v2.md)
