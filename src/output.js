@@ -436,7 +436,7 @@ function build (job) {
     }),
 
     batchMode: wrap((batch, reason) => {
-      log(job, p80()`⚠️ [BATCHM] Batch mode enabled`)
+      log(job, p80()`⚠️ [BATCHM] Batch mode item execution`)
     }),
 
     startFailed: wrap((url, error) => {

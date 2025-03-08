@@ -146,7 +146,7 @@ function getCommand (cwd) {
     .option('--start-wait-method <method>', '[💻🔗] HTTP method to check the waited URL', 'GET')
     .option('--start-timeout <timeout>', '[💻🔗] Maximum waiting time for the start command (based on when the first URL becomes available)', timeout, 5000)
 
-    .option('--end <command>', '[💻🔗] End script (will receive path to job.js)', string)
+    .option('--end <script>', '[💻🔗] End script (will receive path to `job.js`)', string)
     .option('--end-timeout <timeout>', '[💻🔗] Maximum waiting time for the end script', timeout, 5000)
 
     // Specific to legacy (and might be used with url if pointing to local project)

@@ -57,7 +57,7 @@ Check additional information below.
 | --start-wait-url &lt;command> | 💻🔗 | URL to wait for (🔗 defaulted to first url)| |
 | --start-wait-method &lt;method> | 💻🔗 | HTTP method to check the waited URL|`"GET"` |
 | --start-timeout &lt;timeout> | 💻🔗 | Maximum waiting time for the start command (based on when the first URL becomes available)|`5000` |
-| --end &lt;command> | 💻🔗 | End script (will receive path to job.js)| |
+| --end &lt;script> | 💻🔗 | End script (will receive path to `job.js`)| |
 | --end-timeout &lt;timeout> | 💻🔗 | Maximum waiting time for the end script|`5000` |
 | --ui5 &lt;url> | 💻📡 | UI5 url|`"https://ui5.sap.com"` |
 | --disable-ui5 [flag] | 💻📡 | Disable UI5 mapping (also disable libs)|`false` |
