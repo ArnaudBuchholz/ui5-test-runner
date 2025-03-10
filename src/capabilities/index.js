@@ -101,7 +101,7 @@ async function capabilities (job) {
 
     const task = async (test) => {
       const { promise, resolve } = allocPromise()
-      const { label, url, scripts, endpoint = () => { } } = test
+      const { label, url, args, scripts, endpoint = () => { } } = test
 
       const listenerIndex = listeners.length
       let pageUrl
@@ -157,6 +157,10 @@ async function capabilities (job) {
         } catch (e) {
           done(e)
         }
+      }
+
+      if (args) {
+        // TODO replace or concat ?
       }
 
       start(job, pageUrl, scripts)

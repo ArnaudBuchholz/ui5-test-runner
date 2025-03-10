@@ -1,0 +1,49 @@
+
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <script id='sap-ui-bootstrap'
+      src='https://ui5.sap.com/resources/sap-ui-core.js'
+      data-sap-ui-libs='sap.m'
+      data-sap-ui-theme='sap_horizon'
+      data-sap-ui-compatVersion='edge'>
+    </script>
+    <style>
+html, body { height: 100%; }
+    </style>
+    <script id="myXml" type="text/xmldata">
+<mvc:View
+  xmlns:mvc="sap.ui.core.mvc"
+  xmlns="sap.m"
+  controllerName="myController"
+  displayBlock="true"
+  height="100%"
+>
+	<MessagePage showHeader="false" icon="sap-icon://filter"/>
+</mvc:View>  
+    </script>
+    <script>
+sap.ui.require([
+  "sap/ui/core/mvc/Controller", 
+  "sap/ui/core/mvc/XMLView"
+], function (Controller, XMLView, Dialog, Button) {
+  Controller.extend("myController", {
+    onAfterRendering: function () {
+      // Notify the test framework
+      const xhr = new XMLHttpRequest();
+      xhr.open('POST', '/_/log');
+      xhr.send(JSON.stringify({
+        message: document.querySelector('.sapMMessagePageMainText').innerText
+      }));
+    }
+  });
+
+  XMLView.create({definition: jQuery('#myXml').html()}).then(function (oView) {
+    oView.placeAt(document.querySelector('body'));
+  });
+});
+    </script>
+  </head>
+  <body class='sapUiBody'></body>
+</html>
