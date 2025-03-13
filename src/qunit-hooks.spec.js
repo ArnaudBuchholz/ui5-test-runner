@@ -674,6 +674,13 @@ describe('src/qunit-hooks', () => {
       expect(screenshot).toHaveBeenCalledWith(job, url, 'done')
     })
 
+    it('does not take a screenshot if --screenshot is false', async () => {
+      job.browserCapabilities.screenshot = '.png'
+      job.screenshot = false
+      await done(job, url, getDoneInfo())
+      expect(screenshot).not.toHaveBeenCalled()
+    })
+
     it('takes a screenshot if enabled (hash changing)', async () => {
       job.browserCapabilities.screenshot = '.png'
       await done(job, url + '#any_hash', getDoneInfo())
@@ -745,7 +752,7 @@ describe('src/qunit-hooks', () => {
 
   describe('early start', () => {
     const jobEarlyStart = {
-      screenshot: false,
+      screenshot: true,
       browserCapabilities: {
         screenshot: true
       }

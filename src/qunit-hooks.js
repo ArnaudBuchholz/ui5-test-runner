@@ -91,7 +91,7 @@ async function done (job, urlWithHash, report) {
   const { promise, resolve } = allocPromise()
   page[$doneResolve] = resolve
   page[$doneTimeout] = setTimeout(async () => {
-    if (job.browserCapabilities.screenshot) {
+    if (job.browserCapabilities.screenshot && job.screenshot) {
       try {
         await screenshot(job, url, 'done')
       } catch (error) {
