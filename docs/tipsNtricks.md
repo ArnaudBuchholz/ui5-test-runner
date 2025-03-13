@@ -10,6 +10,8 @@
 
 * By default QUnit randomizes the unit tests order (not within OPA): use `QUnit.config.reorder = false;` to prevent this behavior. **NOTE**: this does not work if the `autostart` configuration is not done properly.
 
+* For language testing, it is recommended to use `--page-params` with `sap-ui-language=DE` (for instance).
+
 ### 👟 Performances
 
 * The runner takes a screenshot for **every** OPA assertion (`Opa5.assert.ok`) : disabling screenshots will speed up the tests. Yet, if a test fails, a screenshot is captured after the error (unless using `--screenshot-on-failure false`).
