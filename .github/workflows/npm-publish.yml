@@ -21,7 +21,7 @@ jobs:
           node-version: 22
           registry-url: https://registry.npmjs.org/
       - name: Semantic release
-        run: npx --y semantic-release@24
+        run: npx --y semantic-release@latest
         env:
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
