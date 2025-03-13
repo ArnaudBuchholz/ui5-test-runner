@@ -34,6 +34,7 @@ sap.ui.require([
       const xhr = new XMLHttpRequest();
       xhr.open('POST', '/_/log');
       xhr.send(JSON.stringify({
+        language: navigator.language,
         message: document.querySelector('.sapMMessagePageMainText').innerText
       }));
     }

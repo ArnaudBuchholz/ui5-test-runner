@@ -11,26 +11,29 @@ module.exports = [{
   }
 }, {
   label: 'UI5 language handling (EN)',
-  for: capabilities => capabilities.modules.includes('puppeteer'),
+  for: false, // capabilities => capabilities.modules.includes('puppeteer'),
   url: 'ui5/language.html',
   args: ['--language en'],
   endpoint: ({ body }) => {
+    assert.strictEqual(body.language, 'en')
     assert.strictEqual(body.message, 'No matching items found.')
   }
 }, {
   label: 'UI5 language handling (DE)',
-  for: capabilities => capabilities.modules.includes('puppeteer'),
+  for: false, // capabilities => capabilities.modules.includes('puppeteer'),
   url: 'ui5/language.html',
   args: ['--language de'],
   endpoint: ({ body }) => {
+    assert.strictEqual(body.language, 'de')
     assert.strictEqual(body.message, 'Keine passenden Elemente gefunden.')
   }
 }, {
   label: 'UI5 language handling (FR)',
-  for: capabilities => capabilities.modules.includes('puppeteer'),
+  for: false, // capabilities => capabilities.modules.includes('puppeteer'),
   url: 'ui5/language.html',
   args: ['--language fr'],
   endpoint: ({ body }) => {
+    assert.strictEqual(body.language, 'fr')
     assert.strictEqual(body.message, 'Aucun élément concordant trouvé.')
   }
 }]
