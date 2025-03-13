@@ -11,7 +11,7 @@ module.exports = [{
   }
 }, {
   label: 'UI5 language handling (EN)',
-  for: false, // capabilities => capabilities.modules.includes('puppeteer'),
+  for: () => false, // capabilities => capabilities.modules.includes('puppeteer'),
   url: 'ui5/language.html',
   args: ['--language en'],
   endpoint: ({ body }) => {
@@ -20,7 +20,7 @@ module.exports = [{
   }
 }, {
   label: 'UI5 language handling (DE)',
-  for: false, // capabilities => capabilities.modules.includes('puppeteer'),
+  for: () => false, // capabilities => capabilities.modules.includes('puppeteer'),
   url: 'ui5/language.html',
   args: ['--language de'],
   endpoint: ({ body }) => {
@@ -29,7 +29,7 @@ module.exports = [{
   }
 }, {
   label: 'UI5 language handling (FR)',
-  for: false, // capabilities => capabilities.modules.includes('puppeteer'),
+  for: () => false, // capabilities => capabilities.modules.includes('puppeteer'),
   url: 'ui5/language.html',
   args: ['--language fr'],
   endpoint: ({ body }) => {
