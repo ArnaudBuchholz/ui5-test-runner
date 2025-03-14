@@ -16,8 +16,12 @@ async function start (job) {
 
   // check if node
   if (command === 'node') {
-    output.debug('start', `Replacing node with ${process.argv[0]}`)
-    start = [process.argv[0], ...parameters].join(' ')
+    let [node] = process.argv
+    if (node.includes(' ')) {
+      node = `"${node}"`
+    }
+    output.debug('start', `Replacing node with ${node}`)
+    start = [node, ...parameters].join(' ')
   } else {
     // check if existing NPM script
     const packagePath = join(job.cwd, 'package.json')
