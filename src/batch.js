@@ -7,6 +7,8 @@ const { parallelize } = require('./parallelize')
 const { $statusProgressCount } = require('./symbols')
 const { $valueSources } = require('./symbols')
 const { getCommand, toLongName } = require('./job')
+const { save } = require('./report')
+const { end } = require('./end')
 
 const batchParameters = getCommand('.').options
   .filter(option => option.description.includes('📡'))
@@ -17,10 +19,9 @@ const batchParameters = getCommand('.').options
 
 const root = join(__dirname, '..')
 
-const folder = (batchItems, job, folderPath) => {
+const folder = (job, folderPath) => {
   getOutput(job).debug('batch', `adding folder: ${folderPath}`)
-  batchItems.push({
-    job,
+  job.batchItems.push({
     path: folderPath,
     id: filename(folderPath),
     label: folderPath,
@@ -28,15 +29,14 @@ const folder = (batchItems, job, folderPath) => {
   })
 }
 
-const configurationFile = (batchItems, job, configurationFilePath) => {
+const configurationFile = (job, configurationFilePath) => {
   getOutput(job).debug('batch', `adding configuration file: ${configurationFilePath}`)
   try {
     const {
       batchId: id = filename(configurationFilePath),
       batchLabel: label = configurationFilePath
     } = require(configurationFilePath)
-    batchItems.push({
-      job,
+    job.batchItems.push({
       path: configurationFilePath,
       id,
       label,
@@ -47,7 +47,10 @@ const configurationFile = (batchItems, job, configurationFilePath) => {
   }
 }
 
-const task = async ({ job, id, label, args }) => {
+const task = async function (batchItem) {
+  const { id, label, args } = batchItem
+  batchItem.start = new Date()
+  const job = this
   const output = getOutput(job)
   const progress = newProgress(job)
   const reportDir = join(job.reportDir, id)
@@ -104,6 +107,8 @@ const task = async ({ job, id, label, args }) => {
   childProcess.on('close', async code => {
     await stdout.close()
     await stderr.close()
+    batchItem.statusCode = code
+    batchItem.end = new Date()
     if (code !== 0) {
       reject(code)
     } else {
@@ -116,7 +121,7 @@ const task = async ({ job, id, label, args }) => {
     .then(() => {
       output.log('✔️ ', progress.label)
     }, (reason) => {
-      ++job.errors
+      ++job.failed
       output.log('❌', progress.label, reason)
     })
     .finally(() => {
@@ -135,7 +140,9 @@ async function batch (job) {
    *   --report-dir is always passed to aggregate reports under one root folder
    */
   const output = getOutput(job)
-  const batchItems = []
+  job.start = new Date()
+  job.failed = 0
+  job.batchItems = []
   for (const batch of job.batch) {
     output.debug('batch', `processing: ${batch}`)
     // check if path
@@ -146,9 +153,9 @@ async function batch (job) {
       }
       const pathStat = await stat(path)
       if (pathStat.isDirectory()) {
-        folder(batchItems, job, path)
+        folder(job, path)
       } else if (pathStat.isFile() && extname(path) === '.json') {
-        configurationFile(batchItems, job, path)
+        configurationFile(job, path)
       } else {
         output.batchFailed(batch, 'only folders and JSON configuration files are supported')
       }
@@ -171,23 +178,32 @@ async function batch (job) {
         const pathStat = await stat(path)
         if (pathStat.isDirectory()) {
           if (re.test(path) || re.test(path.replaceAll('\\', '/'))) {
-            folder(batchItems, job, path)
+            folder(job, path)
             continue
           }
           await scan(path)
         } else if (pathStat.isFile() && (re.test(path) || re.test(path.replaceAll('\\', '/')))) {
-          configurationFile(batchItems, job, path)
+          configurationFile(job, path)
         }
       }
     }
     await scan(job.cwd)
   }
-  if (batchItems.length) {
+  if (job.batchItems.length) {
     job.status = 'Running batch items...'
-    await parallelize(task, batchItems, job.parallel)
-    // TODO: end command ?
+    await parallelize(task.bind(job), job.batchItems, job.parallel)
   } else {
     output.batchFailed(job.batch, 'no match')
+  }
+
+  job.end = new Date()
+  job.failed = !!job.failed
+  if (job.failed) {
+    process.exitCode = -1
+  }
+  await save(job)
+  if (job.endScript) {
+    await end(job)
   }
   output.stop()
   return 0

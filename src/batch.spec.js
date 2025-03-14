@@ -42,6 +42,12 @@ jest.mock('./output', () => {
   }
 })
 
+jest.mock('./report', () => {
+  return {
+    save: jest.fn()
+  }
+})
+
 const root = join(__dirname, '..')
 
 describe('src/batch', () => {
@@ -68,8 +74,7 @@ describe('src/batch', () => {
         path: join(__dirname, '../test/e2e/JS_LEGACY.json'),
         id: 'JS_LEGACY',
         label: 'Legacy JS Sample',
-        args: ['--config', join(__dirname, '../test/e2e/JS_LEGACY.json')],
-        job: expect.any(Object)
+        args: ['--config', join(__dirname, '../test/e2e/JS_LEGACY.json')]
       }], 2)
     })
   })
@@ -87,8 +92,7 @@ describe('src/batch', () => {
         path: join(__dirname, '../test/sample.js'),
         id: expect.any(String),
         label: join(__dirname, '../test/sample.js'),
-        args: ['--cwd', join(__dirname, '../test/sample.js')],
-        job: expect.any(Object)
+        args: ['--cwd', join(__dirname, '../test/sample.js')]
       }], 2)
     })
   })
@@ -109,20 +113,17 @@ describe('src/batch', () => {
         path: join(__dirname, '..', 'test/e2e/JS_LEGACY.json'),
         id: 'JS_LEGACY',
         label: 'Legacy JS Sample',
-        args: ['--config', join(__dirname, '..', 'test/e2e/JS_LEGACY.json')],
-        job: expect.any(Object)
+        args: ['--config', join(__dirname, '..', 'test/e2e/JS_LEGACY.json')]
       }, {
         path: join(__dirname, '..', 'test/sample.js'),
         id: expect.any(String),
         label: join(__dirname, '..', 'test/sample.js'),
-        args: ['--cwd', join(__dirname, '..', 'test/sample.js')],
-        job: expect.any(Object)
+        args: ['--cwd', join(__dirname, '..', 'test/sample.js')]
       }, {
         path: join(__dirname, '..', 'test/sample.ts'),
         id: expect.any(String),
         label: join(__dirname, '..', 'test/sample.ts'),
-        args: ['--cwd', join(__dirname, '..', 'test/sample.ts')],
-        job: expect.any(Object)
+        args: ['--cwd', join(__dirname, '..', 'test/sample.ts')]
       }])
     })
   })
@@ -193,10 +194,9 @@ describe('src/batch', () => {
         },
         close: false
       })
-      await task({
-        job: {
-          reportDir: '/report'
-        },
+      await task.call({
+        reportDir: '/report'
+      }, {
         id: 'TEST',
         label: 'test',
         args: ['--report-dir', '/test']
@@ -219,13 +219,12 @@ describe('src/batch', () => {
         },
         close: false
       })
-      await task({
-        job: {
-          reportDir: '/report',
-          [$valueSources]: {
-            reportDir: 'cli'
-          }
-        },
+      await task.call({
+        reportDir: '/report',
+        [$valueSources]: {
+          reportDir: 'cli'
+        }
+      }, {
         id: 'TEST',
         label: 'test',
         args: ['--report-dir', '/test']
@@ -249,25 +248,24 @@ describe('src/batch', () => {
         },
         close: false
       })
-      await task({
-        job: {
-          reportDir: '/report',
-          start: 'start',
-          end: 'end',
-          pageTimeout: 1000, // Not from cli
-          globalTimeout: 1000,
-          failFast: true,
-          reportGenerator: ['a', 'b'],
-          [$valueSources]: {
-            reportDir: 'cli',
-            start: 'cli',
-            end: 'cli',
-            globalTimeout: 'cli',
-            failFast: 'cli',
-            reportGenerator: 'cli',
-            noCoverage: 'cli'
-          }
-        },
+      await task.call({
+        reportDir: '/report',
+        start: 'start',
+        end: 'end',
+        pageTimeout: 1000, // Not from cli
+        globalTimeout: 1000,
+        failFast: true,
+        reportGenerator: ['a', 'b'],
+        [$valueSources]: {
+          reportDir: 'cli',
+          start: 'cli',
+          end: 'cli',
+          globalTimeout: 'cli',
+          failFast: 'cli',
+          reportGenerator: 'cli',
+          noCoverage: 'cli'
+        }
+      }, {
         id: 'TEST',
         label: 'test',
         args: ['--report-dir', '/test']
@@ -293,10 +291,9 @@ describe('src/batch', () => {
         },
         close: false
       })
-      await task({
-        job: {
-          reportDir: '/report'
-        },
+      await task.call({
+        reportDir: '/report'
+      }, {
         id: 'TEST',
         label: 'test',
         args: []
@@ -313,15 +310,35 @@ describe('src/batch', () => {
         },
         close: false
       })
-      await task({
-        job: {
-          reportDir: '/report'
-        },
+      await task.call({
+        reportDir: '/report'
+      }, {
         id: 'TEST',
         label: 'test',
         args: []
       })
       expect(getOutput({}).log).toHaveBeenCalledWith('❌', 'test (TEST)', -1)
+    })
+
+    it('fails the main command if a task fails', async () => {
+      mockChildProcess({
+        api: 'fork',
+        scriptPath: join(root, 'index.js'),
+        exec: async () => {
+          throw new Error('failed')
+        },
+        close: false
+      })
+      const job = {
+        reportDir: '/report',
+        failed: 0
+      }
+      await task.call(job, {
+        id: 'TEST',
+        label: 'test',
+        args: []
+      })
+      expect(job.failed).toStrictEqual(1)
     })
   })
 })
