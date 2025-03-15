@@ -1,0 +1,8 @@
+{
+  "batchId": "WEBDRIVERIO",
+  "batchLabel": "Webdriver.io browser",
+  "capabilities": null,
+  "debugKeepReport": null,
+  "browser": "$/webdriverio.js",
+  "--": ["--browser", "firefox"]
+}
