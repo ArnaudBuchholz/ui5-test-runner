@@ -3,7 +3,7 @@
 const { Command, Option, InvalidArgumentError } = require('commander')
 const { statSync, accessSync, constants } = require('fs')
 const { dirname, join, isAbsolute } = require('path')
-const { name, description, version } = require(join(__dirname, '../package.json'))
+const { name, description, version = 'dev' } = require(join(__dirname, '../package.json'))
 const { getOutput } = require('./output')
 const { $valueSources, $remoteOnLegacy } = require('./symbols')
 const { buildAndCheckMode } = require('./job-mode')

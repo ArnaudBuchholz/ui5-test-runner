@@ -265,7 +265,7 @@ function build (job) {
     lines: 0,
 
     version: () => {
-      const { name, version } = require(join(__dirname, '../package.json'))
+      const { name, version = 'dev' } = require(join(__dirname, '../package.json'))
       log(job, p80()`${name}@${version}`)
       if (job.debugDevMode) {
         log(job, p80()`⚠️  Development mode ⚠️`)
