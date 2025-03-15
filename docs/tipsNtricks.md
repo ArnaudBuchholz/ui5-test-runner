@@ -21,3 +21,5 @@
 ### ✍ IDEs
 
 * `ui5-test-runner` runs in [Business Application Studio](https://www.sap.com/products/technology-platform/business-application-studio.html) provided the instance is created with the `Headless Testing Framework` extension. Then configure the runner to use the `webdriverio` browser combined with the `firefox` setting. For instance : `ui5-test-runner --browser $/webdriverio.js -- --browser firefox`.
+
+> ⚠️ As of March 2025, it is recommended to install `webdriverio@8` first as it works better than the latest one.
