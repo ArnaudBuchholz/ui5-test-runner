@@ -1,5 +1,5 @@
 {
-  "batchId": "WEBDRIVERIO",
+  "batchId": "WEBDRIVERIO_FIREFOX",
   "batchLabel": "Webdriver.io browser",
   "capabilities": null,
   "debugKeepReport": null,
