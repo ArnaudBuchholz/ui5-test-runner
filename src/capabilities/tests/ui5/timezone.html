@@ -1,0 +1,27 @@
+
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <script id='sap-ui-bootstrap'
+      src='https://ui5.sap.com/resources/sap-ui-core.js'
+      data-sap-ui-libs='sap.m'
+      data-sap-ui-theme='sap_horizon'
+      data-sap-ui-compatVersion='edge'>
+    </script>
+    <style>
+html, body { height: 100%; }
+    </style>
+    <script>
+sap.ui.require([
+  "sap/ui/core/date/UI5Date", 
+], function (UI5Date) {
+  console.log(UI5Date.getInstance(2025,2,15,23,2,0))
+});
+    </script>
+  </head>
+  <body class='sapUiBody'>
+    <pre>TZ=UTC node . --webapp . --url http://localhost:0/src/capabilities/tests/ui5/timezone.html --debug-keep-browser-open -- --visible</pre>
+    and check the console
+  </body>
+</html>
