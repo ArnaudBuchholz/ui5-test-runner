@@ -1,5 +1,6 @@
 {
   "name": "ui5-test-runner",
+  "version": "5.x.x",
   "description": "Standalone test runner for UI5",
   "main": "index.js",
   "bin": {
