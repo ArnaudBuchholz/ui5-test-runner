@@ -46,8 +46,8 @@ module.exports = {
           }
         })
       })
-      job.failed = true
-      job.timedOut = true
     }
+    job.failed = true
+    job.timedOut = true
   }
 }

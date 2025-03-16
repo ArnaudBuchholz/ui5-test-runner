@@ -10,7 +10,8 @@ const {
     'qunit-pages': qunitPages,
     coverage,
     'report-uncovered': coverageReportUncovered,
-    'junit-xml-report': junitXmlReport
+    'junit-xml-report': junitXmlReport,
+    failed
   },
   positionals
 } = parseArgs({
@@ -31,12 +32,20 @@ const {
     'junit-xml-report': {
       type: 'boolean',
       default: false
+    },
+    failed: {
+      type: 'boolean',
+      default: false
     }
   }
 })
 
 async function main () {
   const job = require(positionals[0])
+
+  if (failed) {
+    assert.strictEqual(job.failed, true, 'Job failed')
+  }
 
   if (qunitPages) {
     assert.notStrictEqual(job.qunitPages, undefined, 'Pages found')
