@@ -21,7 +21,8 @@ describe('src/browser', () => {
       url: 'http://localhost:8080',
       reportDir,
       browserCloseTimeout: 100,
-      '--': ['argument1', 'argument2']
+      '--': ['argument1', 'argument2'],
+      env: ['SPECIFIC_ENV_VARIABLE=specific value']
     })
   })
 
@@ -293,6 +294,21 @@ describe('src/browser', () => {
       })
       await start(job, '/test.html')
       expect(config.args).toEqual(['argument1', 'argument2'])
+    })
+
+    it('passes environment variables', async () => {
+      let options
+      mock({
+        api: 'fork',
+        scriptPath: job.browser,
+        exec: async childProcess => {
+          options = childProcess.options
+          setTimeout(() => stop(job, '/test.html'), 0)
+        },
+        close: false
+      })
+      await start(job, '/test.html')
+      expect(options.env.SPECIFIC_ENV_VARIABLE).toEqual('specific value')
     })
 
     it('captures outputs', async () => {

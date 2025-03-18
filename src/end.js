@@ -17,7 +17,11 @@ async function end (job) {
     {
       cwd: job.cwd,
       stdio: [0, 'pipe', 'pipe', 'ipc'],
-      windowsHide: true
+      windowsHide: true,
+      env: {
+        ...process.env,
+        ...job.env
+      }
     }
   )
 

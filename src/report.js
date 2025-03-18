@@ -22,7 +22,17 @@ async function save (job) {
 
 function generateTextReport (job) {
   const { promise, resolve } = allocPromise()
-  const childProcess = fork(join(__dirname, 'defaults/text-report.js'), [job.reportDir, process.stdout.columns || ''], { stdio: 'pipe' })
+  const childProcess = fork(
+    join(__dirname, 'defaults/text-report.js'),
+    [job.reportDir, process.stdout.columns || ''],
+    {
+      stdio: 'pipe',
+      env: {
+        ...process.env,
+        ...job.env
+      }
+    }
+  )
   getOutput(job).monitor(childProcess, true)
   childProcess.on('close', resolve)
   return promise
@@ -41,7 +51,17 @@ module.exports = {
     await generateTextReport(job)
     const promises = job.reportGenerator.map(generator => {
       const { promise, resolve } = allocPromise()
-      const childProcess = fork(generator, [job.reportDir], { stdio: 'pipe' })
+      const childProcess = fork(
+        generator,
+        [job.reportDir],
+        {
+          stdio: 'pipe',
+          env: {
+            ...process.env,
+            ...job.env
+          }
+        }
+      )
       const buffers = output.monitor(childProcess, false)
       childProcess.on('close', exitCode => {
         if (exitCode !== 0) {

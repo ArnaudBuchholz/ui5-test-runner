@@ -110,6 +110,7 @@ function getCommand (cwd) {
     .option('-br, --browser-retry <count>', '[💻🔗🧪📡] Browser instantiation retries : if the command fails unexpectedly, it is re-executed (0 means no retry)', 1)
     .option('-oi, --output-interval <interval>', '[💻🔗🧪📡] Interval for reporting progress on non interactive output (CI/CD) (0 means no output)', timeout, 30000)
     .option('--offline [flag]', '[💻🔗🧪📡] Limit network usage (implies --no-npm-install)', boolean, false)
+    .option('--env <name=value...>', '[💻🔗🧪📡] Set environment variable', arrayOf(string))
 
     // Common to legacy and url
     .option('--webapp <path>', '[💻🔗] Base folder of the web application (relative to cwd)', 'webapp')
@@ -297,6 +298,20 @@ function finalize (job) {
       }
       checkAccess({ path: libMapping.source, label: `${description} (${libMapping.source})` })
     })
+  }
+
+  if (!job.env) {
+    job.env = {}
+  } else {
+    job.env = job.env.reduce((dictionary, env) => {
+      const equalPos = env.indexOf('=')
+      if (equalPos === -1) {
+        dictionary[env] = ''
+      } else {
+        dictionary[env.slice(0, equalPos)] = env.slice(equalPos + 1)
+      }
+      return dictionary
+    }, {})
   }
 
   if (job.watchFolder) {

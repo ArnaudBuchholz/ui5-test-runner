@@ -256,6 +256,9 @@ describe('src/batch', () => {
         globalTimeout: 1000,
         failFast: true,
         reportGenerator: ['a', 'b'],
+        env: {
+          DEBUG: 'true'
+        },
         [$valueSources]: {
           reportDir: 'cli',
           start: 'cli',
@@ -263,7 +266,8 @@ describe('src/batch', () => {
           globalTimeout: 'cli',
           failFast: 'cli',
           reportGenerator: 'cli',
-          noCoverage: 'cli'
+          noCoverage: 'cli',
+          env: 'cli'
         }
       }, {
         id: 'TEST',
@@ -278,7 +282,8 @@ describe('src/batch', () => {
         '--global-timeout', '1000',
         '--fail-fast',
         '--report-generator', 'a', 'b',
-        '--no-coverage'
+        '--no-coverage',
+        '--env', 'DEBUG=true'
       ])
     })
 

@@ -141,6 +141,32 @@ describe('job', () => {
           })
         })
 
+        describe('env', () => {
+          it('defaults when not set', () => {
+            const job = buildJob({})
+            expect(job.env).toMatchObject({})
+          })
+
+          it('accepts one environment variable', () => {
+            const job = buildJob({
+              env: ['TZ=UTC']
+            })
+            expect(job.env).toMatchObject({
+              TZ: 'UTC'
+            })
+          })
+
+          it('accepts two environment variables', () => {
+            const job = buildJob({
+              env: ['TZ=UTC', 'DEBUG=true']
+            })
+            expect(job.env).toMatchObject({
+              TZ: 'UTC',
+              DEBUG: 'true'
+            })
+          })
+        })
+
         describe('browser parameters', () => {
           it('allows passing extra parameter', () => {
             const job = buildJob({

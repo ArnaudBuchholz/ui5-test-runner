@@ -76,7 +76,11 @@ const task = async function (batchItem) {
         if (option) {
           parameters.push(`--${longName}`)
           if (!option.optional && !option.negate) {
-            if (option.variadic) {
+            if (name === 'env') {
+              Object.keys(job.env).forEach(key => {
+                parameters.push(`${key}=${job.env[key]}`)
+              })
+            } else if (option.variadic) {
               parameters.push(...job[name].map(value => value.toString()))
             } else {
               parameters.push(job[name].toString())

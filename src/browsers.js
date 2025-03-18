@@ -29,7 +29,11 @@ async function instantiate (job, config) {
   const stdout = await open(stdoutFilename, 'w')
   const stderr = await open(stderrFilename, 'w')
   const childProcess = fork(job.browser, [browserConfigPath], {
-    stdio: [0, stdout, stderr, 'ipc']
+    stdio: [0, stdout, stderr, 'ipc'],
+    env: {
+      ...process.env,
+      ...job.env
+    }
   })
   const { promise, resolve } = allocPromise()
   childProcess.on('close', async code => {
