@@ -131,7 +131,7 @@ async function start (job, url, scripts = []) {
   }
   if (resolvedScripts.length) {
     resolvedScripts.unshift(`(function () {
-  window['ui5-test-runner/base-host'] = 'http://localhost:${job.port}'
+  window['ui5-test-runner/base-host'] = 'http://${job.callbackHost}:${job.port}'
 }())`)
   }
   const progress = newProgress(job, url)

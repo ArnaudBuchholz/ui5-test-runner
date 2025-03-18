@@ -28,6 +28,7 @@ Check additional information below.
 | -oi, --output-interval &lt;interval> | 💻🔗🧪📡 | Interval for reporting progress on non interactive output (CI/CD) (0 means no output)|`30000` |
 | --offline [flag] | 💻🔗🧪📡 | Limit network usage (implies --no-npm-install)|`false` |
 | --env &lt;name=value...> | 💻🔗🧪📡 | Set environment variable| |
+| --callback-host &lt;host> | 💻🔗🧪📡 | [💣 use carefully] Hostname for callbacks|`"localhost"` |
 | --webapp &lt;path> | 💻🔗 | Base folder of the web application (relative to cwd)|`"webapp"` |
 | -pf, --page-filter &lt;regexp> | 💻🔗📡 | Filter out pages not matching the regexp| |
 | -pp, --page-params &lt;params> | 💻🔗📡 | Add parameters to page URL| |

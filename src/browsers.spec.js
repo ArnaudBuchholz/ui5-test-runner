@@ -500,6 +500,23 @@ describe('src/browser', () => {
       expect(config.scripts[1]).toEqual('whatever')
     })
 
+    it('injects window[\'ui5-test-runner/base-host\'] before any script (overridden)', async () => {
+      let config
+      mock({
+        api: 'fork',
+        scriptPath: job.browser,
+        exec: async childProcess => {
+          remainingChildProcess = childProcess
+          config = JSON.parse((await readFile(childProcess.args[0])).toString())
+          setTimeout(() => stop(job, '/test.html'), 0)
+        },
+        close: false
+      })
+      job.callbackHost = 'host.docker.internal'
+      await start(job, '/test.html', ['whatever'])
+      expect(config.scripts[0]).toContain('window[\'ui5-test-runner/base-host\'] = \'http://host.docker.internal:0\'\n')
+    })
+
     it('translates pre-defined scripts', async () => {
       let config
       mock({
