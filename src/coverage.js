@@ -30,14 +30,17 @@ async function nyc (job, ...args) {
   output.nyc(...args)
   const childProcess = fork(nycScript, args, { stdio: 'pipe' })
   output.monitor(childProcess)
-  const { promise, resolve, reject } = allocPromise()
-  childProcess.on('close', async code => {
-    if (code !== 0) {
-      reject(UTRError.NYC_FAILED(`Return code ${code}`))
-    }
-    resolve()
-  })
+  const { promise, resolve } = allocPromise()
+  childProcess.on('close', resolve)
   return promise
+}
+
+async function safeNyc (job, ...args) {
+  const code = await nyc(job, ...args)
+  if (code !== 0) {
+    const [command] = args
+    throw UTRError.NYC_FAILED(`nyc ${command} failed with code ${code}`)
+  }
 }
 
 const globalContextSearch = 'var global=new Function("return this")();'
@@ -84,7 +87,7 @@ async function instrument (job) {
     }
   }
   job.status = 'Instrumenting'
-  await nyc(job, 'instrument', job.webapp, join(job.coverageTempDir, 'instrumented'), '--nycrc-path', job[$nycSettingsPath])
+  await safeNyc(job, 'instrument', job.webapp, join(job.coverageTempDir, 'instrumented'), '--nycrc-path', job[$nycSettingsPath])
 }
 
 function getUrlOrigin (job) {
@@ -250,7 +253,7 @@ async function generateCoverageReport (job) {
   const coverageMergedDir = join(job.coverageTempDir, 'merged')
   await createDir(coverageMergedDir)
   const coverageFilename = join(coverageMergedDir, 'coverage.json')
-  await nyc(job, 'merge', job.coverageTempDir, coverageFilename)
+  await safeNyc(job, 'merge', job.coverageTempDir, coverageFilename)
   if (job[$coverageRemote]) {
     await checkAllSourcesAreAvailable(job, coverageFilename)
   }
@@ -271,13 +274,20 @@ async function generateCoverageReport (job) {
       '--check-coverage'
     )
   }
-  await nyc(job, 'report', ...reporters, ...checks, '--temp-dir', coverageMergedDir, '--report-dir', job.coverageReportDir, '--nycrc-path', job[$nycSettingsPath])
+  const returnCode = await nyc(job, 'report', ...reporters, ...checks, '--temp-dir', coverageMergedDir, '--report-dir', job.coverageReportDir, '--nycrc-path', job[$nycSettingsPath])
   if (checks.length) {
     // The checks are not triggered if the coverage is empty
     const lcov = await stat(join(job.coverageReportDir, 'lcov.info'))
     if (lcov.size === 0) {
       throw UTRError.NYC_FAILED('No coverage information extracted')
     }
+    if (returnCode === 1) {
+      // Assuming coverage report shows the error
+      output.debug('coverage', `nyc report failed with code ${returnCode}`)
+      job.failed = true
+    }
+  } else if (returnCode !== 0) {
+    throw UTRError.NYC_FAILED(`nyc report failed with code ${returnCode}`)
   }
 }
 

@@ -1,0 +1,12 @@
+{
+  "batchId": "JS_LEGACY_COVERAGE_FAIL",
+  "batchLabel": "Legacy JS Sample with coverage threshold failure",
+  "cwd": "../sample.js",
+  "noScreenshot": null,
+  "coverage": true,
+  "coverageSettings": "./.nycrc.json",
+  "coverageTempDir": "📂report/.nyc_output",
+  "coverageReportDir": "📂report/coverage",
+  "coverageCheckStatements": 100,
+  "end": "../e2e/check.js --qunit-pages 2 --coverage --report-uncovered --failed"
+}

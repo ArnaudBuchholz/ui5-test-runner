@@ -43,9 +43,15 @@ module.exports = {
 
   async generate (job) {
     const output = getOutput(job)
+    try {
+      await generateCoverageReport(job)
+    } catch(e) {
+      output.genericError(e)
+      job.failed = true
+    }
+    job.status = 'Generating reports'
     job.end = new Date()
     job.failed = !!job.failed
-    job.status = 'Generating reports'
     job.testPageHashes = job.testPageUrls.map(url => filename(url))
     await save(job)
     await generateTextReport(job)
@@ -71,10 +77,6 @@ module.exports = {
       })
       return promise
     })
-    promises.push(generateCoverageReport(job).catch(e => {
-      output.genericError(e)
-      job.failed = true
-    }))
     await Promise.all(promises)
     job.status = 'Reports generated'
   }

@@ -17,7 +17,7 @@
     "test:coverall": "rimraf .nyc_output && jest --coverageDirectory .nyc_output --coverageReporters json && nyc --silent --no-clean npm run test:e2e && nyc merge .nyc_output .nyc_output/final/coverage.json && nyc report --temp-dir .nyc_output/final/ --report-dir coverage --branches 80 --functions 80 --lines 80 --statements 80",
     "test:unit": "jest",
     "test:unit:debug": "node --inspect node_modules/jest/bin/jest.js --runInBand --no-coverage",
-    "test:e2e": "node . --batch test/e2e/.*\\.json --report-dir e2e --start \"node test/e2e/serve.js\" --start-wait-url http://localhost:8081 --start-wait-method HEAD --start-timeout 30s",
+    "test:e2e": "node . --batch test/e2e/[^/]*\\.json --report-dir e2e --start \"node test/e2e/serve.js\" --start-wait-url http://localhost:8081 --start-wait-method HEAD --start-timeout 30s",
     "test:report": "node ./src/defaults/report.js ./test/report && reserve --config ./test/report/reserve.json",
     "test:text-report": "node ./src/defaults/text-report.js ./test/report",
     "build:doc": "node build/doc",
