@@ -76,6 +76,6 @@ module.exports = {
       job.failed = true
     }))
     await Promise.all(promises)
-    job.status = 'Reports gemerated'
+    job.status = 'Reports generated'
   }
 }
