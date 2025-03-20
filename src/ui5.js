@@ -8,6 +8,7 @@ const { getOutput, newProgress } = require('./output')
 const { download } = require('./tools')
 const { $statusProgressCount, $statusProgressTotal } = require('./symbols')
 const { parallelize } = require('./parallelize')
+const { relative: relativePath } = require('path')
 
 const buildCacheBase = job => {
   const [, hostName] = /https?:\/\/([^/]*)/.exec(job.ui5)
@@ -128,27 +129,37 @@ module.exports = {
       'ignore-unverifiable-certificate': true
     }]
 
-    job.libs.forEach(({ relative, source }) => {
+    for (let { relative, source } of job.libs) {
       if (source.endsWith('/') || source.endsWith('\\')) {
         source = source.substring(0, source.length - 1)
       }
-      mappings.unshift({
-        match: new RegExp(`\\/resources\\/${relative.replace(/\//g, '\\/')}(.*)`),
-        cwd: source,
-        file: '$1',
-        static: !job.watch && !job.debugDevMode
-      }, {
-        match: new RegExp(`\\/resources\\/${relative.replace(/\//g, '\\/')}(.*)`),
-        custom: async (request, response, $1) => {
-          if ($1 === undefined) {
-            getOutput(job).debug('libs', `Unable to map ${relative} : $1 is undefined`)
-          } else {
-            getOutput(job).debug('libs', `Unable to map ${relative}/${$1} to ${join(source, $1)}`)
+      const relativeUrl = relative.replace(/\//g, '\\/')
+      if (source.startsWith(job.webapp)) {
+        const relativeAbsoluteUrl = relativePath(job.webapp, source).replace(/\\/g, '/')
+        getOutput(job).debug('libs', `${relative} maps to webapp sub directory, use internal redirection to ${relativeAbsoluteUrl}`)
+        mappings.unshift({
+          match: new RegExp(`\\/resources\\/${relativeUrl}(.*)`),
+          custom: (request, response, $1) => `${relativeAbsoluteUrl}${$1}`
+        })
+      } else {
+        mappings.unshift({
+          match: new RegExp(`\\/resources\\/${relativeUrl}(.*)`),
+          cwd: source,
+          file: '$1',
+          static: !job.watch && !job.debugDevMode
+        }, {
+          match: new RegExp(`\\/resources\\/${relativeUrl}(.*)`),
+          custom: (request, response, $1) => {
+            if ($1 === undefined) {
+              getOutput(job).debug('libs', `Unable to map ${relative} : $1 is undefined`)
+            } else {
+              getOutput(job).debug('libs', `Unable to map ${relative}/${$1} to ${join(source, $1)}`)
+            }
+            return 404
           }
-          return 404
-        }
-      })
-    })
+        })
+      }
+    }
 
     return mappings
   }

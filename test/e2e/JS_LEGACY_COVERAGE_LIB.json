@@ -1,0 +1,16 @@
+{
+  "batchId": "JS_LEGACY_COVERAGE_LIB",
+  "batchLabel": "Legacy JS Sample lib with coverage",
+  "cwd": "../sample.lib.js",
+  "webapp": "./",
+  "libs": [
+    "sap/utr/lib=src/sap/utr/lib"
+  ],  
+  "noScreenshot": null,
+  "coverage": true,
+  "coverageSettings": "./.nycrc.json",
+  "coverageTempDir": "📂report/.nyc_output",
+  "coverageReportDir": "📂report/coverage",
+  "coverageCheckStatements": 60,
+  "end": "../e2e/check.js --coverage"
+}

@@ -45,6 +45,8 @@ async function main () {
 
   if (failed) {
     assert.strictEqual(job.failed, true, 'Job failed')
+  } else {
+    assert.strictEqual(job.failed, false, 'Job succeeded')
   }
 
   if (qunitPages) {

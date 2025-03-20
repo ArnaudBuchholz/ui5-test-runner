@@ -1,0 +1,24 @@
+specVersion: "4.0"
+metadata:
+  name: sample.lib
+type: library
+framework:
+  name: OpenUI5
+  version: "1.119.0"
+  libraries:
+    - name: sap.m
+    - name: sap.ui.core
+    - name: themelib_sap_horizon
+server:
+  settings:
+    httpPort: 8080
+  customMiddleware:
+  - name: "@ui5/middleware-code-coverage"
+    afterMiddleware: compression
+    configuration:
+      instrument:
+        produceSourceMap: true
+        coverageGlobalScope: "window.top"
+        coverageGlobalScopeFunc: false
+      excludePatterns:
+        - "resources/"

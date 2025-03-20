@@ -45,7 +45,7 @@ module.exports = {
     const output = getOutput(job)
     try {
       await generateCoverageReport(job)
-    } catch(e) {
+    } catch (e) {
       output.genericError(e)
       job.failed = true
     }
