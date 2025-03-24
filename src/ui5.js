@@ -135,7 +135,7 @@ module.exports = {
       }
       const relativeUrl = relative.replace(/\//g, '\\/')
       if (source.startsWith(job.webapp)) {
-        const relativeAbsoluteUrl = relativePath(job.webapp, source).replace(/\\/g, '/')
+        const relativeAbsoluteUrl = '/' + relativePath(job.webapp, source).replace(/\\/g, '/')
         getOutput(job).debug('libs', `${relative} maps to webapp sub directory, use internal redirection to ${relativeAbsoluteUrl}`)
         mappings.unshift({
           match: new RegExp(`\\/resources\\/${relativeUrl}(.*)`),
