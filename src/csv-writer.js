@@ -4,6 +4,9 @@ const { writeFile } = require('fs/promises')
 
 const append = (fileName, line) => writeFile(fileName, line + '\n', { flag: 'a+' })
 const escape = value => {
+  if (value === undefined) {
+    return '❓'
+  }
   const stringValue = value.toString()
   if (stringValue.match(/\r|\n|\t|"/)) {
     return JSON.stringify(stringValue)
