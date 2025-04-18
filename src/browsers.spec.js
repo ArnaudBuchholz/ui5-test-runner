@@ -512,7 +512,7 @@ describe('src/browser', () => {
         },
         close: false
       })
-      job.callbackHost = 'host.docker.internal'
+      job.localhost = 'host.docker.internal'
       await start(job, '/test.html', ['whatever'])
       expect(config.scripts[0]).toContain('window[\'ui5-test-runner/base-host\'] = \'http://host.docker.internal:0\'\n')
     })

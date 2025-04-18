@@ -132,7 +132,7 @@ async function process (job) {
 module.exports = {
   async execute (job) {
     if (job.mode !== 'url') {
-      job.url = [`http://localhost:${job.port}/${job.testsuite}`]
+      job.url = [`http://${job.localhost}:${job.port}/${job.testsuite}`]
     } else if (!job.browserCapabilities.scripts) {
       throw UTRError.BROWSER_MISS_SCRIPTS_CAPABILITY()
     }

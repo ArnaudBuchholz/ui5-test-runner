@@ -79,7 +79,7 @@ function getCommand (cwd) {
 
   const DEBUG_OPTION = '(🐞 for debugging purpose)'
   const EXPERIMENTAL_OPTION = '[⚠️ experimental]'
-  const DANGEROURS_OPTION = '[💣 use carefully]'
+  const DANGEROUS_OPTION = '[💣 use carefully]'
 
   command
     .name(name)
@@ -112,7 +112,7 @@ function getCommand (cwd) {
     .option('-oi, --output-interval <interval>', '[💻🔗🧪📡] Interval for reporting progress on non interactive output (CI/CD) (0 means no output)', timeout, 30000)
     .option('--offline [flag]', '[💻🔗🧪📡] Limit network usage (implies --no-npm-install)', boolean, false)
     .option('--env <name=value...>', '[💻🔗🧪📡] Set environment variable', arrayOf(string))
-    .option('--callback-host <host>', `[💻🔗🧪📡] ${DANGEROURS_OPTION} Hostname for callbacks`, string, 'localhost')
+    .option('--localhost <host>', `[💻🔗🧪📡] ${DANGEROUS_OPTION} Hostname for legacy URLs and callbacks`, string, 'localhost')
 
     // Common to legacy and url
     .option('--webapp <path>', '[💻🔗] Base folder of the web application (relative to cwd)', 'webapp')
