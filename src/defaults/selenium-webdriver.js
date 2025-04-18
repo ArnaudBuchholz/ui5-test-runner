@@ -77,6 +77,7 @@ require('./browser')({
     if (driver && settings.capabilities.traces.includes('console')) {
       const logs = await driver.manage().logs().get(logging.Type.BROWSER)
       const logLevelMapping = {
+        DEBUG: 'debug',
         INFO: 'log',
         WARNING: 'warning',
         SEVERE: 'error'
