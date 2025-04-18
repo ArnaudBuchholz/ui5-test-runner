@@ -109,18 +109,32 @@ async function main () {
   await probeBrowser(job)
   await notifyAndExecuteTests(job)
   if (job.watch) {
-    delete job.start
     if (!job.watching) {
+      job.status = 'Watching...'
+      let running = false
+      let rerun = false
+      const run = async () => {
+        running = true
+        do {
+          rerun = false
+          await recreateDir(job.reportDir)
+          await notifyAndExecuteTests(job)
+        } while (rerun)
+        running = false
+        job.status = 'Watching...'
+      }
       output.watching(job.watchFolder)
       watch(job.watchFolder, { recursive: true }, async (eventType, filename) => {
         output.changeDetected(eventType, filename)
-        if (!job.start) {
-          await recreateDir(job.reportDir)
-          notifyAndExecuteTests(job)
+        if (running) {
+          rerun = true
+        } else {
+          run()
         }
       })
       job.watching = true
     }
+    return
   } else if (job.keepAlive) {
     job.status = 'Serving'
     return
