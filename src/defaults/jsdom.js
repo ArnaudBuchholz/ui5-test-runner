@@ -23,6 +23,12 @@ require('./browser')({
     const { JSDOM, VirtualConsole } = jsdom
 
     const virtualConsole = new VirtualConsole()
+    virtualConsole.on('jsdomError', (...args) => console.log(JSON.stringify({
+      timestamp: new Date().toISOString(),
+      channel: 'console',
+      type: 'jsdomError',
+      message: args.join(' ')
+    })))
     virtualConsole.on('error', (...args) => console.log(JSON.stringify({
       timestamp: new Date().toISOString(),
       channel: 'console',
