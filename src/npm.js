@@ -73,11 +73,23 @@ async function findDependencyPath (job, name) {
   return [globalPath, justInstalled]
 }
 
+const noop = () => {}
+
 module.exports = {
   resolveDependencyPath,
 
-  async resolvePackage (job, name) {
-    const output = getOutput(job)
+  async resolvePackage (job /* might be null */, name) {
+    let output
+    if (job) {
+      output = getOutput(job)
+    } else {
+      job = {}
+      output = {
+        debug: noop,
+        resolvedPackage: noop,
+        packageNotLatest: noop
+      }
+    }
     let modulePath
     let justInstalled = false
     output.debug('npm', `resolving dependency path of package ${name}...`)
