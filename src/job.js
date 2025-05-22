@@ -150,7 +150,7 @@ function getCommand (cwd) {
     .option('--start-timeout <timeout>', '[💻🔗] Maximum waiting time for the start command (based on when the first URL becomes available)', timeout, 5000)
 
     .option('--end <script>', '[💻🔗] End script (will receive path to `job.js`)', string)
-    .option('--end-timeout <timeout>', '[💻🔗] Maximum waiting time for the end script', timeout, 5000)
+    .option('--end-timeout <timeout>', '[💻🔗] Maximum waiting time for the end script', timeout, 15000)
 
     // Specific to legacy (and might be used with url if pointing to local project)
     .option('--ui5 <url>', '[💻📡] UI5 url', url, 'https://ui5.sap.com')
