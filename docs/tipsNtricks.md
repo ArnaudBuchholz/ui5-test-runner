@@ -1,5 +1,15 @@
 ## Tips & tricks
 
+### 🐞 Troubleshooting
+
+> When the tests are *timing out* or generate *unexpected* results, the following options might help to gather more information.
+
+* Lower the parallelism (`--parallel 1`) and focus on the failing test page (`--page-filter`).
+
+* Use the browser option `--visible` (for instance: `ui5-test-runner -- --visible`) to display the browser while running the tests.
+
+* When the browser is visible, use the option `--debug-keep-browser-open` to prevent the browser closing when the tests are completed: it gives access to the console log and the network traces.
+
 ### ⛑ Problems
 
 * Since version 17, node prefers IP v6 over IP v4. This may **prevent** the process to properly connect to `localhost`. Either prefer url with `http://127.0.0.1` or use the environment variable `NODE_OPTIONS=--dns-result-order=ipv4first`.
