@@ -83,6 +83,9 @@ async function capabilities (job) {
     if (job.logServer) {
       server.on('redirected', output.redirected)
     }
+    server.on('error', (error) => {
+      output.error('REserve error:', error)
+    })
     await new Promise(resolve => server
       .on('ready', ({ port }) => {
         job.port = port
