@@ -115,8 +115,8 @@ function fixCaseSensitiveSelectors ({ Document }) {
   const { querySelector, querySelectorAll } = Document.prototype
   Object.assign(Document.prototype, {
     querySelector (selectors) {
-      const result = querySelector.call(this, selectors) || { length: 0 }
-      if (result.length === 0 && selectors.match(uppercaseTag)) {
+      const result = querySelector.call(this, selectors)
+      if (result === null && selectors.match(uppercaseTag)) {
         console.log(JSON.stringify({
           timestamp: new Date().toISOString(),
           channel: 'debug',
