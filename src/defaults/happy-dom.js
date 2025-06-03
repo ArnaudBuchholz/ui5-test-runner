@@ -1,5 +1,18 @@
 'use strict'
 
+const log = (attributes) => {
+  console.log(JSON.stringify(attributes, (key, value) => {
+    if (key === 'headers' && typeof value === 'object') {
+      const literal = {}
+      value.forEach((headerValue, headerName) => {
+        literal[headerName] = headerValue
+      })
+      return literal
+    }
+    return value
+  }, 2))
+}
+
 require('./browser')({
   metadata: {
     name: 'happy-dom',
@@ -24,26 +37,26 @@ require('./browser')({
         fetch: {
           interceptor: {
             beforeAsyncRequest: async ({ request: { method, url, headers } }) => {
-              console.log(JSON.stringify({
+              log({
                 timestamp: new Date().toISOString(),
                 channel: 'network',
                 type: 'request',
                 async: true,
                 request: { method, url, headers }
-              }))
+              })
             },
             beforeSyncRequest: ({ request: { method, url, headers } }) => {
-              console.log(JSON.stringify({
+              log({
                 timestamp: new Date().toISOString(),
                 channel: 'network',
                 type: 'request',
                 async: false,
                 request: { method, url, headers }
-              }))
+              })
             },
             afterAsyncResponse: async ({ request: { method, url, headers }, response, window }) => {
               const body = await response.text()
-              console.log(JSON.stringify({
+              log({
                 timestamp: new Date().toISOString(),
                 channel: 'network',
                 type: 'response',
@@ -53,7 +66,7 @@ require('./browser')({
                   ...response,
                   body
                 }
-              }))
+              })
               return new window.Response(body, {
                 status: response.status,
                 statusText: response.statusText,
@@ -61,43 +74,46 @@ require('./browser')({
               })
             },
             afterSyncResponse: ({ request: { method, url, headers }, response }) => {
-              console.log(JSON.stringify({
+              log({
                 timestamp: new Date().toISOString(),
                 channel: 'network',
                 type: 'response',
                 async: false,
                 request: { method, url, headers },
-                response
-              }))
+                response: {
+                  ...response,
+                  body: response.body.toString('utf8')
+                }
+              })
             }
           }
         }
       },
       console: {
-        error: (...args) => console.log(JSON.stringify({
+        error: (...args) => log({
           timestamp: new Date().toISOString(),
           channel: 'console',
           type: 'error',
           message: args.join(' ')
-        })),
-        warn: (...args) => console.log(JSON.stringify({
+        }),
+        warn: (...args) => log({
           timestamp: new Date().toISOString(),
           channel: 'console',
           type: 'warning',
           message: args.join(' ')
-        })),
-        info: (...args) => console.log(JSON.stringify({
+        }),
+        info: (...args) => log({
           timestamp: new Date().toISOString(),
           channel: 'console',
           type: 'info',
           message: args.join(' ')
-        })),
-        log: (...args) => console.log(JSON.stringify({
+        }),
+        log: (...args) => log({
           timestamp: new Date().toISOString(),
           channel: 'console',
           type: 'log',
           message: args.join(' ')
-        }))
+        })
       }
     })
     const page = browser.newPage()
