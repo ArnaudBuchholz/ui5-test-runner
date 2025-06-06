@@ -53,9 +53,14 @@ module.exports = {
     job.end = new Date()
     job.failed = !!job.failed
     job.testPageHashes = job.testPageUrls.map(url => filename(url))
+    output.debug('report', 'saving job...')
     await save(job)
+    output.debug('report', 'job saved.')
+    output.debug('report', 'generating text report...')
     await generateTextReport(job)
+    output.debug('report', 'text report generated.')
     const promises = job.reportGenerator.map(generator => {
+      output.debug('report', 'launching', generator, '...')
       const { promise, resolve } = allocPromise()
       const childProcess = fork(
         generator,
@@ -70,13 +75,16 @@ module.exports = {
       )
       const buffers = output.monitor(childProcess, false)
       childProcess.on('close', exitCode => {
+        output.debug('report', generator, 'ended with exit code', exitCode)
         if (exitCode !== 0) {
           output.reportGeneratorFailed(generator, exitCode, buffers)
         }
         resolve()
+        output.debug('report', generator, 'resolved')
       })
       return promise
     })
+    output.debug('report', 'generators count:', promises.length)
     await Promise.all(promises)
     job.status = 'Reports generated'
   }
