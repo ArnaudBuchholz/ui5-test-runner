@@ -151,6 +151,29 @@ async function main () {
   if (startedCommand) {
     await startedCommand.stop()
   }
+  output.debug('main', 'terminated')
+  const activeHandles = process._getActiveHandles ? process._getActiveHandles() : []
+  let tlsSocketLeak = false
+  for (const handle of activeHandles) {
+    const className = handle && handle.constructor && handle.constructor.name
+    output.debug('main', 'active handle', className)
+    if (className === 'TLSSocket') {
+      if (!tlsSocketLeak) {
+        tlsSocketLeak = true
+        output.error('Leaking TLS socket detected. This may cause issues with the server shutdown.')
+      }
+      let info
+      if (handle._httpMessage) {
+        const { path, method, host, protocol } = handle._httpMessage
+        info = `${method} ${protocol}://${host}${path}`
+      } else {
+        const { localAddress, localPort, remoteAddress, remotePort } = handle
+        info = `from ${localAddress}:${localPort} to ${remoteAddress}:${remotePort}`
+      }
+      output.debug('main', 'TLS socket', info)
+      handle.destroy()
+    }
+  }
 }
 
 main()
