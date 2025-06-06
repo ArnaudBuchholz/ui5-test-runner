@@ -75,21 +75,39 @@ async function findDependencyPath (job, name) {
 
 const noop = () => {}
 
+function getSafeJobAndOutput (nullableJob) {
+  if (nullableJob) {
+    return { job: nullableJob, output: getOutput(nullableJob) }
+  }
+  return {
+    job: {},
+    output: {
+      debug: noop,
+      resolvedPackage: noop,
+      packageNotLatest: noop
+    }
+  }
+}
+
+async function checkLatest (nullableJob, name, installedVersion) {
+  const { job, output } = getSafeJobAndOutput(nullableJob)
+  if (!job.offline) {
+    output.debug('npm', `fetching latest version of package ${name}`)
+    const latestVersion = await npm(job, 'view', name, 'version')
+    if (latestVersion !== installedVersion) {
+      output.packageNotLatest(name, latestVersion)
+    }
+  } else {
+    output.debug('npm', `offline=${job.offline}`)
+  }
+}
+
 module.exports = {
   resolveDependencyPath,
+  checkLatest,
 
-  async resolvePackage (job /* might be null */, name) {
-    let output
-    if (job) {
-      output = getOutput(job)
-    } else {
-      job = {}
-      output = {
-        debug: noop,
-        resolvedPackage: noop,
-        packageNotLatest: noop
-      }
-    }
+  async resolvePackage (nullableJob, name) {
+    const { job, output } = getSafeJobAndOutput(nullableJob)
     let modulePath
     let justInstalled = false
     output.debug('npm', `resolving dependency path of package ${name}...`)
@@ -106,14 +124,10 @@ module.exports = {
     const installedPackage = require(join(modulePath, 'package.json'))
     const { version: installedVersion } = installedPackage
     output.resolvedPackage(name, modulePath, installedVersion)
-    if (!justInstalled && !job.offline) {
-      output.debug('npm', `fetching latest version of package ${name}`)
-      const latestVersion = await npm(job, 'view', name, 'version')
-      if (latestVersion !== installedVersion) {
-        output.packageNotLatest(name, latestVersion)
-      }
+    if (!justInstalled) {
+      checkLatest(job, name, installedVersion)
     } else {
-      output.debug('npm', `justInstalled=${justInstalled} offline=${job.offline}`)
+      output.debug('npm', `justInstalled=${justInstalled}`)
     }
     return modulePath
   }

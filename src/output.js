@@ -270,6 +270,7 @@ function build (job) {
       if (job.debugDevMode) {
         log(job, p80()`⚠️  Development mode ⚠️`)
       }
+      return { name, version }
     },
 
     serving: url => {

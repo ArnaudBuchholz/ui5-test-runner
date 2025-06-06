@@ -16,6 +16,7 @@ const { start } = require('./src/start')
 const { executeIf } = require('./src/if')
 const { batch } = require('./src/batch')
 const { end } = require('./src/end')
+const { checkLatest } = require('./src/npm')
 
 function send (message) {
   if (process.send) {
@@ -50,11 +51,12 @@ async function main () {
   job = fromCmdLine(process.cwd(), process.argv.slice(2))
   output = getOutput(job)
   await recreateDir(job.reportDir)
-  output.version()
+  const { name, version } = output.version()
   if (job.batchMode) {
     output.batchMode()
   }
   output.reportOnJobProgress()
+  checkLatest(job, name, version)
   if (job.mode === 'capabilities') {
     return capabilities(job)
   }
