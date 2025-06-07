@@ -385,6 +385,10 @@ function build (job) {
       wrap(() => log(job, `⚠️ [PKGVRS] latest version of ${name} is ${latestVersion}`))()
     },
 
+    detectedLeakOfHandles () {
+      wrap(() => log(job, '⚠️ [HDLEAK] leaking Node.js handle(s) detected. This may cause issues with the shutdown'))()
+    },
+
     browserStart (url) {
       const text = p80()`${getElapsed(job)} >> ${pad.lt(url)} [${filename(url)}]`
       if (interactive) {
