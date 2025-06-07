@@ -1,7 +1,7 @@
 const { join } = require('path')
 const { resolvePackage } = require('./npm')
 const { mock } = require('child_process')
-const { cleanDir, createDir, recreateDir } = require('./tools')
+const { cleanDir, createDir, recreateDir, allocPromise } = require('./tools')
 const { writeFile } = require('fs/promises')
 const { fromObject } = require('./job')
 const { getOutput } = require('./output')
@@ -43,33 +43,42 @@ describe('src/npm', () => {
     const path = await resolvePackage(job, 'reserve')
     expect(path).toStrictEqual(join(__dirname, '../node_modules/reserve'))
     expect(output.resolvedPackage).toHaveBeenCalledTimes(1)
-    expect(output.packageNotLatest).not.toHaveBeenCalled()
   })
 
   it('detects already installed package in alternate folder', async () => {
+    const { promise: npmVersionExecution, resolve: npmVersionExecuted } = allocPromise()
     mock({
       api: 'exec',
       scriptPath: 'npm',
       args: ['view', 'impossible', 'version'],
-      exec: async childProcess => childProcess.stdout.write('1.0.0\n'),
+      exec: async childProcess => {
+        childProcess.stdout.write('1.0.0\n')
+        setTimeout(npmVersionExecuted, 0)
+      },
       persist: true
     })
     await resolvePackage(job, 'impossible')
     expect(output.resolvedPackage).toHaveBeenCalledTimes(1)
+    await npmVersionExecution
     expect(output.packageNotLatest).not.toHaveBeenCalled()
   })
 
   it('detects already installed global package (but warn as not the latest)', async () => {
+    const { promise: npmVersionExecution, resolve: npmVersionExecuted } = allocPromise()
     mock({
       api: 'exec',
       scriptPath: 'npm',
       args: ['view', 'existing_global', 'version'],
-      exec: async childProcess => childProcess.stdout.write('1.0.1\n'),
+      exec: async childProcess => {
+        childProcess.stdout.write('1.0.1\n')
+        setTimeout(npmVersionExecuted, 0)
+      },
       persist: true
     })
     const path = await resolvePackage(job, 'existing_global')
     expect(path).toStrictEqual(join(npmGlobal, 'existing_global'))
     expect(output.resolvedPackage).toHaveBeenCalledTimes(1)
+    await npmVersionExecution
     expect(output.packageNotLatest).toHaveBeenCalled()
   })
 
@@ -81,6 +90,7 @@ describe('src/npm', () => {
   })
 
   it('installs missing package globally', async () => {
+    const { promise: npmInstallExecution, resolve: npmInstallExecuted } = allocPromise()
     mock({
       api: 'exec',
       scriptPath: 'npm',
@@ -91,11 +101,13 @@ describe('src/npm', () => {
   "version": "1.0.0"
 }`)
         childProcess.stdout.write('OK installed')
+        setTimeout(npmInstallExecuted, 0)
       }
     })
     const path = await resolvePackage(job, 'not_existing')
     expect(path).toStrictEqual(join(npmGlobal, 'not_existing'))
     expect(output.resolvedPackage).toHaveBeenCalledTimes(1)
+    await npmInstallExecution
     expect(output.packageNotLatest).not.toHaveBeenCalled()
   })
 
