@@ -61,7 +61,7 @@ describe('src/clean', () => {
         path: '/test',
         method: 'GET',
         host: 'localhost',
-        protocol: 'http'
+        protocol: 'http:'
       },
       destroy: jest.fn()
     }

@@ -16,7 +16,7 @@ module.exports = {
         let info
         if (handle._httpMessage) {
           const { path, method, host, protocol } = handle._httpMessage
-          info = `${method} ${protocol}://${host}${path}`
+          info = `${method} ${protocol}//${host}${path}`
         } else {
           const { localAddress, localPort, remoteAddress, remotePort } = handle
           info = `from ${localAddress}:${localPort} to ${remoteAddress}:${remotePort}`
