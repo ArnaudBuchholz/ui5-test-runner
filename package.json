@@ -49,7 +49,7 @@
     "ps-tree": "^1.2.0",
     "punybind": "^1.2.1",
     "punyexpr": "1.1.1",
-    "reserve": "2.2.0"
+    "reserve": "2.3.0"
   },
   "devDependencies": {
     "@openui5/types": "^1.136.0",
