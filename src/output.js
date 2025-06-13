@@ -15,6 +15,9 @@ const interactive = process.stdout.columns !== undefined && !inJest
 const $output = Symbol('output')
 const $outputStart = Symbol('output-start')
 const $outputProgress = Symbol('output-progress')
+const $logServerIncomingCount = Symbol('log-server-incoming')
+const $logServerRedirectedCount = Symbol('log-server-redirected')
+const $logServerClosedCount = Symbol('log-server-closed')
 
 if (!interactive) {
   const UTF8_BOM_CODE = '\ufeff'
@@ -295,8 +298,16 @@ function build (job) {
       }
     },
 
-    redirected: wrap(({ method, url, statusCode, timeSpent }) => {
-      if (url.startsWith('/_/progress')) {
+    logServerIncoming: wrap(({ id, method, url }) => {
+      if (url.startsWith('/_/')) {
+        return // avoids pollution
+      }
+      job[$logServerIncomingCount] = (job[$logServerIncomingCount] || 0) + 1
+      log(job, p80()`🛜 INC ${id.toString(36).toUpperCase().padStart(4, ' ')} ${method.padEnd(7, ' ')} ${pad.lt(url)}`)
+    }),
+
+    logServerRedirected: wrap(({ id, method, url, statusCode, timeSpent }) => {
+      if (url.startsWith('/_/')) {
         return // avoids pollution
       }
       let statusText
@@ -305,7 +316,20 @@ function build (job) {
       } else {
         statusText = statusCode
       }
-      log(job, p80()`${method.padEnd(7, ' ')} ${pad.lt(url)} ${statusText} ${timeSpent.toString().padStart(4, ' ')}ms`)
+      job[$logServerRedirectedCount] = (job[$logServerRedirectedCount] || 0) + 1
+      log(job, p80()`🛜 SRV ${id.toString(36).toUpperCase().padStart(4, ' ')} ${method.padEnd(7, ' ')} ${pad.lt(url)} ${statusText} ${timeSpent.toString().padStart(4, ' ')}ms`)
+    }),
+
+    logServerClosed: wrap(({ id, method, url }) => {
+      if (url.startsWith('/_/')) {
+        return // avoids pollution
+      }
+      job[$logServerClosedCount] = (job[$logServerClosedCount] || 0) + 1
+      log(job, p80()`🛜 CLS ${id.toString(36).toUpperCase().padStart(4, ' ')} ${method.padEnd(7, ' ')} ${pad.lt(url)}`)
+    }),
+
+    logServerSummary: wrap(() => {
+      log(job, p80()`🛜  requests: ${job[$logServerIncomingCount] || 0} incoming, ${job[$logServerRedirectedCount] || 0} redirected, ${job[$logServerClosedCount] || 0} closed.`)
     }),
 
     status (status) {

@@ -85,7 +85,10 @@ async function main () {
   output.debug('reserve', 'configuration', configuration)
   const server = serve(configuration)
   if (job.logServer) {
-    server.on('redirected', output.redirected)
+    server
+      .on('incoming', output.logServerIncoming)
+      .on('redirected', output.logServerRedirected)
+      .on('closed', output.logServerClosed)
   }
 
   const { promise: serverStarted, resolve: serverReady, reject: serverError } = allocPromise()
@@ -149,6 +152,9 @@ async function main () {
   }
   output.stop()
   await server.close()
+  if (job.logServer) {
+    output.logServerSummary()
+  }
   if (startedCommand) {
     await startedCommand.stop()
   }

@@ -81,7 +81,10 @@ async function capabilities (job) {
     })
     const server = serve(configuration)
     if (job.logServer) {
-      server.on('redirected', output.redirected)
+      server
+        .on('incoming', output.logServerIncoming)
+        .on('redirected', output.logServerRedirected)
+        .on('closed', output.logServerClosed)
     }
     server.on('error', (error) => {
       output.error('REserve error:', error)
