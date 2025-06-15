@@ -151,7 +151,8 @@ async function main () {
     await end(job)
   }
   output.stop()
-  await server.close()
+  await server.close({ close: true })
+  await new Promise(resolve => setTimeout(resolve, 100)) // wait for server handles to be released
   if (job.logServer) {
     output.logServerSummary()
   }
