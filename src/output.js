@@ -18,6 +18,7 @@ const $outputProgress = Symbol('output-progress')
 const $logServerIncomingCount = Symbol('log-server-incoming')
 const $logServerRedirectedCount = Symbol('log-server-redirected')
 const $logServerClosedCount = Symbol('log-server-closed')
+const $logServerRequests = Symbol('log-server-requests')
 
 if (!interactive) {
   const UTF8_BOM_CODE = '\ufeff'
@@ -303,6 +304,8 @@ function build (job) {
         return // avoids pollution
       }
       job[$logServerIncomingCount] = (job[$logServerIncomingCount] || 0) + 1
+      job[$logServerRequests] ??= {}
+      job[$logServerRequests][id] = { method, url }
       log(job, p80()`🛜 INC ${id.toString(36).toUpperCase().padStart(4, ' ')} ${method.padEnd(7, ' ')} ${pad.lt(url)}`)
     }),
 
@@ -317,6 +320,11 @@ function build (job) {
         statusText = statusCode
       }
       job[$logServerRedirectedCount] = (job[$logServerRedirectedCount] || 0) + 1
+      const request = job[$logServerRequests][id]
+      request.redirected = true
+      if (request.closed) {
+        delete job[$logServerRequests][id]
+      }
       log(job, p80()`🛜 SRV ${id.toString(36).toUpperCase().padStart(4, ' ')} ${method.padEnd(7, ' ')} ${pad.lt(url)} ${statusText} ${timeSpent.toString().padStart(4, ' ')}ms`)
     }),
 
@@ -325,11 +333,19 @@ function build (job) {
         return // avoids pollution
       }
       job[$logServerClosedCount] = (job[$logServerClosedCount] || 0) + 1
+      const request = job[$logServerRequests][id]
+      request.closed = true
+      if (request.redirected) {
+        delete job[$logServerRequests][id]
+      }
       log(job, p80()`🛜 CLS ${id.toString(36).toUpperCase().padStart(4, ' ')} ${method.padEnd(7, ' ')} ${pad.lt(url)}`)
     }),
 
     logServerSummary: wrap(() => {
       log(job, p80()`🛜  requests: ${job[$logServerIncomingCount] || 0} incoming, ${job[$logServerRedirectedCount] || 0} redirected, ${job[$logServerClosedCount] || 0} closed.`)
+      if (job[$logServerRequests] && Object.keys(job[$logServerRequests]).length) {
+        log(job, job[$logServerRequests])
+      }
     }),
 
     status (status) {
