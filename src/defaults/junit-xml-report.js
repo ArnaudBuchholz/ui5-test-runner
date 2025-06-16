@@ -24,9 +24,9 @@ async function main () {
   const job = require(join(reportDir, 'job.js'))
   o('<?xml version="1.0" encoding="UTF-8"?>')
   o('<testsuites>')
-  const urls = Object.keys(job.qunitPages)
+  const urls = Object.keys(job.qunitPages || {})
   for (const url of urls) {
-    const qunitPage = job.qunitPages[url]
+    const qunitPage = job.qunitPages[url] || { modules: [] }
     for (const module of qunitPage.modules) {
       o(`  <testsuite
     name="${xmlEscape(url)}"
