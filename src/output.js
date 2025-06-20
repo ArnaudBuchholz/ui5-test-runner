@@ -10,8 +10,6 @@ const {
 } = require('./symbols')
 const { filename, noop, pad } = require('./tools')
 
-const inJest = typeof jest !== 'undefined'
-const interactive = process.stdout.columns !== undefined && !inJest
 const $output = Symbol('output')
 const $outputStart = Symbol('output-start')
 const $outputProgress = Symbol('output-progress')
@@ -19,22 +17,9 @@ const $logServerIncomingCount = Symbol('log-server-incoming')
 const $logServerRedirectedCount = Symbol('log-server-redirected')
 const $logServerClosedCount = Symbol('log-server-closed')
 const $logServerRequests = Symbol('log-server-requests')
+const $interactive = Symbol('interactive')
 
-if (!interactive) {
-  const UTF8_BOM_CODE = '\ufeff'
-  process.stdout.write(UTF8_BOM_CODE)
-}
-
-let cons
-if (inJest) {
-  cons = {
-    log: noop,
-    warn: noop,
-    error: noop
-  }
-} else {
-  cons = console
-}
+let cons = console
 
 const formatTime = duration => {
   duration = Math.ceil(duration / 1000)
@@ -129,7 +114,7 @@ function progress (job, cleanFirst = true) {
     })
   }
   const sequence = []
-  if (interactive) {
+  if (job[$interactive]) {
     if (cleanFirst) {
       sequence.push(...buildCleanSequence(job))
     }
@@ -248,8 +233,21 @@ function browserIssue (job, { type, url, code, dir }) {
 }
 
 function build (job) {
+  let interactive = !job.ci
+  const inJest = typeof jest !== 'undefined'
+  if (inJest) {
+    cons = { log: noop, warn: noop, error: noop }
+    interactive = false
+  } else if (process.stdout.columns === undefined || !process.stdout.isTTY) {
+    interactive = false
+  }
+  if (!interactive) {
+    const UTF8_BOM_CODE = '\ufeff'
+    process.stdout.write(UTF8_BOM_CODE)
+  }
   let wrap
   if (interactive) {
+    job[$interactive] = true
     wrap = method => function () {
       clean(job)
       try {
@@ -476,6 +474,12 @@ function build (job) {
       log(job, p80()`⚠️ [SKIPIF] Skipping execution (--if)`)
     }),
 
+    batchStartingTask: wrap((label) => {
+      if (!interactive) {
+        log(`${label}...`)
+      }
+    }),
+
     batchFailed: wrap((batch, reason) => {
       log(job, p80()`⚠️ [BATCHF] Failed to resolve batch ${batch}: ${reason}`)
     }),
@@ -662,8 +666,6 @@ function build (job) {
 }
 
 module.exports = {
-  interactive,
-
   getOutput (job) {
     if (!job[$output]) {
       job[$output] = build(job)
