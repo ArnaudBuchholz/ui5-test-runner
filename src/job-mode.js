@@ -40,7 +40,8 @@ function buildAndCheckMode (job) {
       'config',
       'batchMode',
       'batchId',
-      'batchLabel'
+      'batchLabel',
+      'ci'
     ])
     return 'capabilities'
   }
