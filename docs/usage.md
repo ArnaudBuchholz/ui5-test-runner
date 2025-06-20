@@ -29,6 +29,7 @@ Check additional information below.
 | --offline [flag] | 💻🔗🧪📡 | Limit network usage (implies --no-npm-install)|`false` |
 | --env &lt;name=value...> | 💻🔗🧪📡 | Set environment variable| |
 | --localhost &lt;host> | 💻🔗🧪📡 | [💣 use carefully] Hostname for legacy URLs and callbacks|`"localhost"` |
+| --ci [flag] | 💻🔗🧪📡 | CI mode (no interactive output)|`false` |
 | --webapp &lt;path> | 💻🔗 | Base folder of the web application (relative to cwd)|`"webapp"` |
 | -pf, --page-filter &lt;regexp> | 💻🔗📡 | Filter out pages not matching the regexp| |
 | -pp, --page-params &lt;params> | 💻🔗📡 | Add parameters to page URL| |
@@ -60,7 +61,7 @@ Check additional information below.
 | --start-wait-method &lt;method> | 💻🔗 | HTTP method to check the waited URL|`"GET"` |
 | --start-timeout &lt;timeout> | 💻🔗 | Maximum waiting time for the start command (based on when the first URL becomes available)|`5000` |
 | --end &lt;script> | 💻🔗 | End script (will receive path to `job.js`)| |
-| --end-timeout &lt;timeout> | 💻🔗 | Maximum waiting time for the end script|`5000` |
+| --end-timeout &lt;timeout> | 💻🔗 | Maximum waiting time for the end script|`15000` |
 | --ui5 &lt;url> | 💻📡 | UI5 url|`"https://ui5.sap.com"` |
 | --disable-ui5 [flag] | 💻📡 | Disable UI5 mapping (also disable libs)|`false` |
 | --libs &lt;lib...> | 💻📡 | Library mapping (&lt;relative>=&lt;path> or &lt;path>)| |
