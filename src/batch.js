@@ -2,7 +2,7 @@ const { open, readdir, stat, unlink } = require('fs/promises')
 const { extname, isAbsolute, join } = require('path')
 const { allocPromise, filename } = require('./tools')
 const { fork } = require('child_process')
-const { interactive, getOutput, newProgress } = require('./output')
+const { getOutput, newProgress } = require('./output')
 const { parallelize } = require('./parallelize')
 const { $statusProgressCount } = require('./symbols')
 const { $valueSources } = require('./symbols')
@@ -56,9 +56,7 @@ const task = async function (batchItem) {
   const reportDir = join(job.reportDir, id)
   progress.label = `${label} (${id})`
   progress.count = 1
-  if (!interactive) {
-    output.log(`${label}...`)
-  }
+  output.batchStartingTask(label)
   const { promise, resolve, reject } = allocPromise()
   const parameters = [
     ...args,

@@ -37,7 +37,6 @@ jest.mock('./output', () => {
   }
   return {
     getOutput: () => output,
-    interactive: true,
     newProgress: () => progress
   }
 })
