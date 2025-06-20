@@ -476,7 +476,7 @@ function build (job) {
 
     batchStartingTask: wrap((label) => {
       if (!interactive) {
-        log(`${label}...`)
+        log(job, p80()`${label}...`)
       }
     }),
 
