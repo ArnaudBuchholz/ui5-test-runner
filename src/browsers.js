@@ -14,6 +14,10 @@ let lastScreenshotId = 0
 const screenshots = {}
 
 async function instantiate (job, config) {
+  if (job.browserArgs.some((arg) => !arg.trim())) {
+    getOutput(job).emptyBrowserArg()
+    job.browserArgs = job.browserArgs.filter((arg) => arg.trim())
+  }
   const { dir, url } = config
   await recreateDir(dir)
   const browserConfig = {
