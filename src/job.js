@@ -420,8 +420,8 @@ function finalize (job) {
   }
 }
 
-function fromCmdLine (cwd, args) {
-  let job = parse(cwd, args)
+function fromCmdLine (cwd, cmdLineArgs) {
+  let job = parse(cwd, cmdLineArgs)
 
   let defaultPath
   const isConfigSet = job[$valueSources].config === 'cli'
@@ -452,15 +452,18 @@ function fromCmdLine (cwd, args) {
       defaults.cwd = dirname(defaultPath)
     }
     const { before, after, browser } = buildArgs(defaults)
-    const sep = args.indexOf('--')
-    if (sep === -1) {
-      args = [...before, ...args, ...after, '--', ...browser]
-    } else {
-      args = [...before, ...args.slice(0, sep), ...after, '--', ...browser, ...args.slice(sep + 1)]
-    }
+    const sep = cmdLineArgs.indexOf('--')
+    const args = sep === -1
+      ? [...before, ...cmdLineArgs, ...after, '--', ...browser]
+      : [...before, ...cmdLineArgs.slice(0, sep), ...after, '--', ...browser, ...cmdLineArgs.slice(sep + 1)]
     job = parse(cwd, args)
+    job.configContent = defaults
+    job.configArgs = args
+  } else {
+    job.configContent = 'none'
   }
 
+  job.cmdLineArgs = cmdLineArgs
   finalize(job)
   return job
 }
