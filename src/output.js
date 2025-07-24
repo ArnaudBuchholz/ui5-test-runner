@@ -249,12 +249,14 @@ function build (job) {
   if (interactive) {
     job[$interactive] = true
     wrap = method => function () {
+      let result
       clean(job)
       try {
-        method.call(this, ...arguments)
+        result = method.call(this, ...arguments)
       } finally {
         progress(job, false)
       }
+      return result
     }
   } else {
     wrap = method => method
@@ -266,18 +268,18 @@ function build (job) {
     reportIntervalId: undefined,
     lines: 0,
 
-    version: () => {
+    version: wrap(() => {
       const { name, version = 'dev' } = require(join(__dirname, '../package.json'))
       log(job, p80()`${name}@${version}`)
       if (job.debugDevMode) {
         log(job, p80()`⚠️  Development mode ⚠️`)
       }
       return { name, version }
-    },
+    }),
 
-    serving: url => {
+    serving: wrap((url) => {
       log(job, p80()`Server running at ${pad.lt(url)}`)
-    },
+    }),
 
     log: wrap((...texts) => {
       log(job, ...texts)
@@ -421,6 +423,10 @@ function build (job) {
 
     packageNotLatest (name, latestVersion) {
       wrap(() => log(job, `⚠️ [PKGVRS] latest version of ${name} is ${latestVersion}`))()
+    },
+
+    emptyBrowserArg () {
+      wrap(() => log(job, '⚠️ [EBWARG] Empty browser argument filtered out'))()
     },
 
     detectedLeakOfHandles () {
