@@ -70,10 +70,10 @@ const task = async function (batchItem) {
       .filter(name => job[$valueSources][name] === 'cli')
       .forEach(name => {
         const longName = toLongName(name)
-        const option = batchParameters[longName]
+        const option = batchParameters[longName] || batchParameters['no-' + longName]
         if (option) {
-          parameters.push(`--${longName}`)
-          if (!option.optional && !option.negate) {
+          parameters.push(option.long)
+          if (!option.negate) {
             if (name === 'env') {
               Object.keys(job.env).forEach(key => {
                 parameters.push(`${key}=${job.env[key]}`)

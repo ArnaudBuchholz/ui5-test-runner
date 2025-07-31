@@ -255,6 +255,7 @@ describe('src/batch', () => {
         globalTimeout: 1000,
         failFast: true,
         reportGenerator: ['a', 'b'],
+        npmInstall: false,
         env: {
           DEBUG: 'true'
         },
@@ -266,7 +267,8 @@ describe('src/batch', () => {
           failFast: 'cli',
           reportGenerator: 'cli',
           noCoverage: 'cli',
-          env: 'cli'
+          env: 'cli',
+          noNpmInstall: 'cli'
         }
       }, {
         id: 'TEST',
@@ -279,10 +281,11 @@ describe('src/batch', () => {
         '--batch-mode',
         '--report-dir', '/report/TEST',
         '--global-timeout', '1000',
-        '--fail-fast',
+        '--fail-fast', 'true',
         '--report-generator', 'a', 'b',
         '--no-coverage',
-        '--env', 'DEBUG=true'
+        '--env', 'DEBUG=true',
+        '--no-npm-install'
       ])
     })
 
