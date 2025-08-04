@@ -3,6 +3,8 @@
 let browser
 let page
 
+console.time('⏲ run      ')
+
 require('./browser')({
   metadata: {
     name: 'puppeteer',
@@ -52,7 +54,10 @@ require('./browser')({
     consoleWriter,
     networkWriter
   }) {
+    console.timeEnd('⏲ run      ')
+    console.time('⏲ require  ')
     const puppeteer = require(modules.puppeteer)
+    console.timeEnd('⏲ require  ')
 
     let args = []
     let product
@@ -62,6 +67,7 @@ require('./browser')({
       args = options.chromeArgs()
     }
 
+    console.time('⏲ launch   ')
     browser = await puppeteer.launch({
       product,
       executablePath: options.binary,
@@ -69,6 +75,7 @@ require('./browser')({
       defaultViewport: null,
       args
     })
+    console.timeEnd('⏲ launch   ')
 
     page = (await browser.pages())[0]
 
@@ -94,14 +101,18 @@ require('./browser')({
         })
       })
 
+    console.time('⏲ scripts  ')
     if (scripts && scripts.length) {
       for (const script of scripts) {
         await page.evaluateOnNewDocument(script)
       }
     }
+    console.timeEnd('⏲ scripts  ')
 
     await page.setDefaultNavigationTimeout(0)
+    console.time('⏲ navigate ')
     await page.goto(url)
+    console.timeEnd('⏲ navigate ')
   },
 
   async error ({ error: e, exit }) {
