@@ -1,0 +1,7 @@
+{
+  "batchId": "JS_LEGACY_SUITE",
+  "batchLabel": "Legacy JS QUnit Suite",
+  "cwd": "../sample.js",
+  "testsuite": "test/testsuite.suite.qunit.html",
+  "end": "../e2e/check.js --qunit-pages 2"
+}
