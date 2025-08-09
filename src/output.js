@@ -277,6 +277,10 @@ function build (job) {
       return { name, version }
     }),
 
+    serveOpenUI5: wrap(() => {
+      log(job, p80()`Serving openui5@${job.openui5version}`)
+    }),
+
     serving: wrap((url) => {
       log(job, p80()`Server running at ${pad.lt(url)}`)
     }),

@@ -1,7 +1,7 @@
 'use strict'
 
 const { Command, Option, InvalidArgumentError } = require('commander')
-const { statSync, accessSync, constants } = require('fs')
+const { statSync, accessSync, constants, readFileSync } = require('fs')
 const { dirname, join, isAbsolute } = require('path')
 const { name, description, version = 'dev' } = require(join(__dirname, '../package.json'))
 const { getOutput } = require('./output')
@@ -330,6 +330,19 @@ function finalize (job) {
 
   const output = getOutput(job)
 
+  if (job.openui5) {
+    const packageJsonPath = join(job.cwd, 'package.json')
+    checkAccess({ path: packageJsonPath, label: 'Missing OpenUI5 package.json', file: true })
+    try {
+      const { name, version } = JSON.parse(readFileSync(packageJsonPath, 'utf8'))
+      if (name !== 'openui5') {
+        throw new Error('expected package name to be openui5')
+      }
+      job.openui5version = version
+    } catch(e) {
+      throw new Error('Invalid OpenUI5 package.json: ' + e.message)
+    }
+  }
   if (job.coverage) {
     function overrideIfNotSet (option, valueFromSettings) {
       if (valueFromSettings && job[$valueSources][option] !== 'cli') {
@@ -362,7 +375,7 @@ function finalize (job) {
 
   if (job.mode === 'url') {
     const port = job.port.toString()
-    job[$remoteOnLegacy] = job.url.every(url => {
+    job[$remoteOnLegacy] = job.url && job.url.every(url => {
       // ignore host name since the machine might be exposed with any name
       const parsedUrl = new URL(url)
       return parsedUrl.port === port
