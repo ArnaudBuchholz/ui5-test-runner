@@ -3,5 +3,6 @@
   "batchLabel": "Puppeteer browser",
   "capabilities": null,
   "debugKeepReport": null,
-  "browser": "$/puppeteer.js"
+  "browser": "$/puppeteer.js",
+  "browserArgs": ["--unsecure"]
 }
