@@ -1,0 +1,7 @@
+{
+  "batchId": "JS_REMOTE_QUNIT_SUITE",
+  "batchLabel": "Remote JS QUnit Suite",
+  "if": "NODE_MAJOR_VERSION >= 20",
+  "url": ["http://localhost:8080/test/testsuite.suite.qunit.html"],
+  "end": "../e2e/check.js --qunit-pages 2"
+}

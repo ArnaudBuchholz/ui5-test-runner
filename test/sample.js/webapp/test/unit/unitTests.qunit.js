@@ -7,6 +7,8 @@ sap.ui.getCore().attachInit(function () {
   'use strict'
 
   sap.ui.require(['unit/controller/App.qunit'], function () {
-    QUnit.start()
+    if (!QUnit.config.started) {
+      QUnit.start()
+    }
   })
 })

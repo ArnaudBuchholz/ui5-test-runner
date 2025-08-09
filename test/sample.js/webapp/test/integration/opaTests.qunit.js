@@ -8,6 +8,8 @@ sap.ui.getCore().attachInit(function () {
     'integration/PageJourney',
     'integration/HelloJourney'
   ], function () {
-    QUnit.start()
+    if (!QUnit.config.started) {
+      QUnit.start()
+    }
   })
 })
