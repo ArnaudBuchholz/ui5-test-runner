@@ -146,9 +146,16 @@ const openui5mappings = async job => {
   const folders = await readdir(basePath)
   const namespaces = folders.filter(name => name.startsWith('sap.'));
 
-  // sap.ui.core needs special handling
+  for (const namespace of namespaces) {
+    if (namespace === 'sap.ui.core') {
+      break; // sap.ui.core needs special handling
+    }
+    const path = namespace.replaceAll(/\./g, '/');
+    mappings.push(...map(path + '/', `${namespace}/src/${path}`, true));
+  }
   mappings.push(...map('', 'sap.ui.core/src', false));
   mappings.push(...map('sap/base/', 'sap.ui.core/src/sap/base', true));
+  mappings.push(...map('sap/ui/', 'sap.ui.core/src/sap/ui', true));
   
   return mappings;
 }
