@@ -10,8 +10,12 @@ framework:
   name: OpenUI5
   version: "1.139.0"
   libraries:
-    - name: sap.m
     - name: sap.ui.core
+    - name: sap.f
+    - name: sap.m
+    - name: sap.tnt
+    - name: sap.ui.codeeditor
+    - name: sap.ui.documentation
     - name: themelib_sap_horizon
 server:
   settings:
