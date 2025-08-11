@@ -167,6 +167,8 @@ resources/sap/m/p13n/handler/xConfigHandler.js
 resources/sap/m/_thirdparty/purify.js
 resources/sap/m/table/columnmenu/Menu.js
 
+resources/sap/ui/unified/Calendar.js
+
 test-resources/sap/ui/qunit/testrunner.css
 test-resources/sap/ui/qunit/testrunner.html
 test-resources/sap/ui/qunit/TestRunner.js
