@@ -11,7 +11,7 @@ module.exports = async job => check({
     cors,
     ...job.mappings ?? [],
     ...job.serveOnly ? [] : endpoints(job),
-    ...ui5(job),
+    ...await ui5(job),
     ...job.serveOnly ? [] : await coverage(job),
     {
       // Project mapping
