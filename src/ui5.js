@@ -128,17 +128,30 @@ const openui5mappings = async job => {
   const mappings = []
 
   const map = (base, path, deep) => {
+    output.debug('openui5', `base=${base}, path=${path}, deep=${deep}`)
     const matchSubPath = deep ? '([^?]*)' : '([^/?]*)'
     const match = new RegExp(`/resources\\/${base.replaceAll(/\//g, '\\/')}${matchSubPath}(?:\\?.*)?$`)
+    const testMatch = new RegExp(`/test-resources\\/${base.replaceAll(/\//g, '\\/')}${matchSubPath}(?:\\?.*)?$`)
+    const testPath = path.replace(/\bsrc\b/, 'test')
     return [{
       match,
       custom: (request, _, captured) => {
-        output.log(request.url, match, path + '/' + captured)
+        output.debug('openui5', request.url, match, path + '/' + captured)
       }
     }, {
       match,
       file: '$1',
       cwd: join(basePath, path),
+      static: true
+    }, {
+      match: testMatch,
+      custom: (request, _, captured) => {
+        output.debug('openui5', request.url, testMatch, testPath + '/' + captured)
+      }
+    }, {
+      match: testMatch,
+      file: '$1',
+      cwd: join(basePath, testPath),
       static: true
     }]
   }
@@ -148,7 +161,7 @@ const openui5mappings = async job => {
 
   for (const namespace of namespaces) {
     if (namespace === 'sap.ui.core') {
-      break // sap.ui.core needs special handling
+      continue // sap.ui.core needs special handling
     }
     const path = namespace.replaceAll(/\./g, '/')
     mappings.push(...map(path + '/', `${namespace}/src/${path}`, true))
