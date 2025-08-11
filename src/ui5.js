@@ -2,7 +2,7 @@
 
 const { dirname, join } = require('path')
 const { createWriteStream } = require('fs')
-const { mkdir, unlink, stat } = require('fs').promises
+const { mkdir, unlink, stat, readdir } = require('fs').promises
 const { capture } = require('reserve')
 const { getOutput, newProgress } = require('./output')
 const { download } = require('./tools')
@@ -119,10 +119,38 @@ const ui5mappings = job => {
   return mappings
 }
 
-const openui5mappings = job => {
+const openui5mappings = async job => {
   const output = getOutput(job)
   output.serveOpenUI5()
-  return []
+
+  const basePath = join(job.cwd, 'src');
+
+  const mappings = [];
+
+  const map = (base, path, deep) => {
+    const matchSubPath = deep ? '([^?]*)' : '([^/?]*)';
+    const match = new RegExp(`/resources\\/${base.replaceAll(/\//g, '\\/')}${matchSubPath}(?:\\?.*)?$`);
+    return [{
+      match,
+      custom: (request, _, captured) => {
+        output.log(request.url, match, path + '/' + captured)
+      }
+    }, {
+      match,
+      file: `$1`,
+      cwd: join(basePath, path),
+      static: true
+    }]
+  }
+
+  const folders = await readdir(basePath)
+  const namespaces = folders.filter(name => name.startsWith('sap.'));
+
+  // sap.ui.core needs special handling
+  mappings.push(...map('', 'sap.ui.core/src', false));
+  mappings.push(...map('sap/base/', 'sap.ui.core/src/sap/base', true));
+  
+  return mappings;
 }
 
 module.exports = {
@@ -166,9 +194,9 @@ module.exports = {
     progress.done()
   },
 
-  mappings: job => {
+  mappings: async job => {
     if (job.openui5) {
-      return openui5mappings(job)
+      return await openui5mappings(job)
     }
     if (job.disableUi5) {
       return []
