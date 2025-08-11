@@ -339,7 +339,7 @@ function finalize (job) {
         throw new Error('expected package name to be openui5')
       }
       job.openui5version = version
-    } catch(e) {
+    } catch (e) {
       throw new Error('Invalid OpenUI5 package.json: ' + e.message)
     }
   }

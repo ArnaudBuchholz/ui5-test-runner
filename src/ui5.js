@@ -123,13 +123,13 @@ const openui5mappings = async job => {
   const output = getOutput(job)
   output.serveOpenUI5()
 
-  const basePath = join(job.cwd, 'src');
+  const basePath = join(job.cwd, 'src')
 
-  const mappings = [];
+  const mappings = []
 
   const map = (base, path, deep) => {
-    const matchSubPath = deep ? '([^?]*)' : '([^/?]*)';
-    const match = new RegExp(`/resources\\/${base.replaceAll(/\//g, '\\/')}${matchSubPath}(?:\\?.*)?$`);
+    const matchSubPath = deep ? '([^?]*)' : '([^/?]*)'
+    const match = new RegExp(`/resources\\/${base.replaceAll(/\//g, '\\/')}${matchSubPath}(?:\\?.*)?$`)
     return [{
       match,
       custom: (request, _, captured) => {
@@ -137,27 +137,27 @@ const openui5mappings = async job => {
       }
     }, {
       match,
-      file: `$1`,
+      file: '$1',
       cwd: join(basePath, path),
       static: true
     }]
   }
 
   const folders = await readdir(basePath)
-  const namespaces = folders.filter(name => name.startsWith('sap.'));
+  const namespaces = folders.filter(name => name.startsWith('sap.'))
 
   for (const namespace of namespaces) {
     if (namespace === 'sap.ui.core') {
-      break; // sap.ui.core needs special handling
+      break // sap.ui.core needs special handling
     }
-    const path = namespace.replaceAll(/\./g, '/');
-    mappings.push(...map(path + '/', `${namespace}/src/${path}`, true));
+    const path = namespace.replaceAll(/\./g, '/')
+    mappings.push(...map(path + '/', `${namespace}/src/${path}`, true))
   }
-  mappings.push(...map('', 'sap.ui.core/src', false));
-  mappings.push(...map('sap/base/', 'sap.ui.core/src/sap/base', true));
-  mappings.push(...map('sap/ui/', 'sap.ui.core/src/sap/ui', true));
-  
-  return mappings;
+  mappings.push(...map('', 'sap.ui.core/src', false))
+  mappings.push(...map('sap/base/', 'sap.ui.core/src/sap/base', true))
+  mappings.push(...map('sap/ui/', 'sap.ui.core/src/sap/ui', true))
+
+  return mappings
 }
 
 module.exports = {
