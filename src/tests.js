@@ -51,6 +51,9 @@ async function probeUrl (job, url) {
         'post.js',
         'qunit-redirect.js'
       ]
+      if (job.jest) {
+        scripts.push('jest2qunit.js')
+      }
     }
     await start(job, url, scripts)
   } catch (error) {
@@ -68,6 +71,9 @@ async function runTestPage (job, url) {
         'post.js',
         'qunit-hooks.js'
       ]
+      if (job.jest) {
+        scripts.push('jest2qunit.js')
+      }
       if (job.coverage && !job.coverageProxy) {
         scripts.push(
           'opa-iframe-coverage.js',

@@ -114,7 +114,7 @@ function getCommand (cwd) {
     .option('--env <name=value...>', '[💻🔗🧪📡] Set environment variable', arrayOf(string))
     .option('--localhost <host>', `[💻🔗🧪📡] ${DANGEROUS_OPTION} Hostname for legacy URLs and callbacks`, string, 'localhost')
     .option('--ci [flag]', '[💻🔗🧪📡] CI mode (no interactive output)', boolean, false)
-
+    
     // Common to legacy and url
     .option('--webapp <path>', '[💻🔗] Base folder of the web application (relative to cwd)', 'webapp')
     .option('-pf, --page-filter <regexp>', '[💻🔗📡] Filter out pages not matching the regexp')
@@ -128,6 +128,7 @@ function getCommand (cwd) {
     .option('-so, --split-opa [flag]', '[💻🔗📡] Split OPA tests using QUnit modules', boolean, false)
     .option('-rg, --report-generator <path...>', '[💻🔗📡] Report generator paths (relative to cwd or use $/ for provided ones)', ['$/report.js'])
     .option('--progress-page <path>', '[💻🔗📡] Progress page path (relative to cwd or use $/ for provided ones)', '$/report/default.html')
+    .option('--jest [flag]', `[💻🔗📡] ${EXPERIMENTAL_OPTION} Simulate jest environment`)
 
     .option('--coverage [flag]', '[💻🔗📡] Enable or disable code coverage', boolean)
     .option('--no-coverage', '[💻🔗📡] Disable code coverage')
@@ -156,7 +157,7 @@ function getCommand (cwd) {
     // Specific to legacy (and might be used with url if pointing to local project)
     .option('--ui5 <url>', '[💻📡] UI5 url', url, 'https://ui5.sap.com')
     .option('--disable-ui5 [flag]', '[💻📡] Disable UI5 mapping (also disable libs)', boolean, false)
-    .addOption(new Option('--openui5 [flag]', '[💻📡] Special handling for OpenUI5 repository testing', boolean, false).hideHelp())
+    .option('--openui5 [flag]', `[💻📡] ${EXPERIMENTAL_OPTION} Special handling for OpenUI5 repository testing`, boolean, false)
     .option('--libs <lib...>', '[💻📡] Library mapping (<relative>=<path> or <path>)', arrayOf(lib))
     .option('--mappings <mapping...>', '[💻📡] Custom mapping (<match>=<file|url>(<config>))', arrayOf(mapping))
     .option('--cache <path>', '[💻📡] Cache UI5 resources locally in the given folder (empty to disable)')
