@@ -9,6 +9,7 @@ const {
   $statusProgressTotal
 } = require('./symbols')
 const { filename, noop, pad } = require('./tools')
+const os = require('os');
 
 const $output = Symbol('output')
 const $outputStart = Symbol('output-start')
@@ -270,7 +271,23 @@ function build (job) {
 
     version: wrap(() => {
       const { name, version = 'dev' } = require(join(__dirname, '../package.json'))
-      log(job, p80()`${name}@${version}`)
+      log(job, p80()`       _ ____        _            _                                         
+ _   _(_) ___|      | |_ ___  ___| |_      _ __ _   _ _ __  _ __   ___ _ __ 
+| | | | |___ \\ _____| __/ _ \\/ __| __|____| '__| | | | '_ \\| '_ \\ / _ \\ '__|
+| |_| | |___) |_____| ||  __/\\__ \\ ||_____| |  | |_| | | | | | | |  __/ |   
+ \\__,_|_|____/       \\__\\___||___/\\__|    |_|   \\__,_|_| |_|_| |_|\\___|_|   `)
+      log(job, p80()`${name}@${version} / ${new Date().toISOString()} / ${os.machine()}`)
+      const cpus = {};
+      for (const { model } of os.cpus()) {
+        if (cpus[model]) {
+          ++cpus[model]
+        } else {
+          cpus[model] = 1
+        }
+      }
+      for (const [model, count] of Object.entries(cpus)) {
+        log(job, p80()`${count}x ${model}`)
+      }
       if (job.debugDevMode) {
         log(job, p80()`⚠️  Development mode ⚠️`)
       }
