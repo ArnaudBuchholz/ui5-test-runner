@@ -114,7 +114,7 @@ function getCommand (cwd) {
     .option('--env <name=value...>', '[💻🔗🧪📡] Set environment variable', arrayOf(string))
     .option('--localhost <host>', `[💻🔗🧪📡] ${DANGEROUS_OPTION} Hostname for legacy URLs and callbacks`, string, 'localhost')
     .option('--ci [flag]', '[💻🔗🧪📡] CI mode (no interactive output)', boolean, false)
-    
+
     // Common to legacy and url
     .option('--webapp <path>', '[💻🔗] Base folder of the web application (relative to cwd)', 'webapp')
     .option('-pf, --page-filter <regexp>', '[💻🔗📡] Filter out pages not matching the regexp')
