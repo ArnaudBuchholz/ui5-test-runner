@@ -1,0 +1,10 @@
+{
+  "batchId": "JS_REMOTE_JEST",
+  "batchLabel": "Remote JS Jest",
+  "if": "NODE_MAJOR_VERSION >= 20",
+  "jest": true,
+  "url": ["http://localhost:8080/test/unit/unitTests.jest.html"],
+  "end": "../e2e/check.js --qunit-pages 2",
+  "browserArgs": ["--visible"],
+  "keepAlive": true
+}
