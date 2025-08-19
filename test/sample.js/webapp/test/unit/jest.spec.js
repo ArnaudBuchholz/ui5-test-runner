@@ -92,6 +92,16 @@ describe('Jest Features Showcase', () => {
       addSpy.mockRestore() // Clean up the spy
     })
 
+    test('jest.spyon twice', () => {
+      const addSpy1 = jest.spyOn(calculator, 'add')
+      const addSpy2 = jest.spyOn(calculator, 'add')
+      expect(addSpy1).toStrictEqual(addSpy2)
+      calculator.add(2, 3)
+      expect(addSpy1).toHaveBeenCalled()
+      expect(addSpy2).toHaveBeenCalled()
+      addSpy2.mockRestore() // Clean up the spy
+    })
+
     test('jest.fn() for mock functions', () => {
       const mockCallback = jest.fn(x => 42 + x);
       [0, 1].forEach(mockCallback)
@@ -213,11 +223,13 @@ describe('Jest Features Showcase', () => {
     })
 
     // Assertions count
-    test.todo('assertions count', () => {
+    test.skip('assertions count', () => {
       expect.hasAssertions()
       expect(1).toBe(1)
       expect(true).toBeTruthy()
       expect.assertions(2)
     })
+
+    test.todo('other specificities')
   })
 })
