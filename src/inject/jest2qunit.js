@@ -32,10 +32,12 @@
   let _sinonSandbox
   const jestSpy = (sinonStub) => new Proxy(Object.assign(sinonStub, {
     [$raw]: sinonStub,
-    mockImplementation (callback) { sinonStub.callsFake(callback) },
-    mockImplementationOnce (callback) { sinonStub.onCall(0).callsFake(callback) },
-    mockResolvedValueOnce (value) { sinonStub.onCall(0).callsFake(() => Promise.resolve(value)) },
-    mockReturnValue (value) { sinonStub.returns(value) },
+    mockImplementation (callback) { sinonStub.callsFake(callback); return this },
+    mockImplementationOnce (callback) { sinonStub.onCall(0).callsFake(callback); return this },
+    mockResolvedValue (value) { sinonStub.returns(Promise.resolve(value)); return this },
+    mockResolvedValueOnce (value) { sinonStub.onCall(0).returns(Promise.resolve(value)); return this },
+    mockReturnValue (value) { sinonStub.returns(value); return this },
+    mockReturnValueOnce (value) { sinonStub.onCall(0).returns(value); return this },
     mockRestore () { sinonStub.restore() },
     get mock () {
       return new Proxy({}, {
@@ -71,30 +73,30 @@
     value = unproxify(value)
     let not = false
     const proxy = new Proxy({
-      toBe (expected) { not ? QUnit.assert.notEqual(value, unproxify(expected)) : QUnit.assert.equal(value, unproxify(expected)) },
-      toBeDefined () { QUnit.assert.notStrictEqual(value, undefined) },
-      toBeUndefined () { QUnit.assert.strictEqual(value, undefined) },
-      toBeNull () { QUnit.assert.strictEqual(value, null) },
-      toBeNaN () { QUnit.assert.ok(isNaN(value)) },
-      toBeTruthy () { QUnit.assert.ok(!!value) },
-      toBeFalsy () { QUnit.assert.ok(!value) },
-      toEqual (expected) { not ? QUnit.assert.notDeepEqual(value, unproxify(expected)) : QUnit.assert.deepEqual(value, unproxify(expected)) },
-      toStrictEqual (expected) { not ? QUnit.assert.strictEqual(value, unproxify(expected)) : QUnit.assert.strictEqual(value, unproxify(expected)) },
-      toBeGreaterThan (expected) { QUnit.assert.ok(value > expected) },
-      toBeGreaterThanOrEqual (expected) { QUnit.assert.ok(value >= expected) },
-      toBeLessThan (expected) { QUnit.assert.ok(value < expected) },
-      toBeLessThanOrEqual (expected) { QUnit.assert.ok(value <= expected) },
-      toMatch (expected) { QUnit.assert.ok(expected.test(value)) },
-      toContain (expected) { QUnit.assert.ok(value.includes(expected)) },
-      toThrow (expected) { QUnit.assert.throws(value, expected) },
+      toBe (expected) { QUnit.assert[not ? 'notEqual' : 'equal'](value, unproxify(expected)) },
+      toBeDefined () { QUnit.assert[not ? 'strictEqual' : 'notStrictEqual'](value, undefined) },
+      toBeUndefined () { QUnit.assert[not ? 'notStrictEqual' : 'strictEqual'](value, undefined) },
+      toBeNull () { QUnit.assert[not ? 'notStrictEqual' : 'strictEqual'](value, null) },
+      toBeNaN () { QUnit.assert[not ? 'notOk' : 'ok'](isNaN(value)) },
+      toBeTruthy () { QUnit.assert[not ? 'notOk' : 'ok'](!!value) },
+      toBeFalsy () { QUnit.assert[not ? 'notOk' : 'ok'](!value) },
+      toEqual (expected) { QUnit.assert[not ? 'notDeepEqual' : 'deepEqual'](value, unproxify(expected)) },
+      toStrictEqual (expected) { QUnit.assert[not ? 'notStrictEqual' : 'strictEqual'](value, unproxify(expected)) },
+      toBeGreaterThan (expected) { QUnit.assert[not ? 'notOk' : 'ok'](value > expected) },
+      toBeGreaterThanOrEqual (expected) { QUnit.assert[not ? 'notOk' : 'ok'](value >= expected) },
+      toBeLessThan (expected) { QUnit.assert[not ? 'notOk' : 'ok'](value < expected) },
+      toBeLessThanOrEqual (expected) { QUnit.assert[not ? 'notOk' : 'ok'](value <= expected) },
+      toMatch (expected) { QUnit.assert[not ? 'notOk' : 'ok'](expected.test(value)) },
+      toContain (expected) { QUnit.assert[not ? 'notOk' : 'ok'](value.includes(expected)) },
+      toThrow (expected) { not ? QUnit.assert.ok(false, 'expect.not.toThrows not implemented') : QUnit.assert.throws(value, expected) },
       toBeCloseTo (expected, numDigits = 2) {
         const factor = 10 ** numDigits
         const round = (x) => Math.floor(x * factor) / factor
-        QUnit.assert.strictEqual(round(value), round(expected))
+        QUnit.assert[not ? 'notStrictEqual' : 'strictEqual'](round(value), round(expected))
       },
-      toHaveBeenCalled () { not ? QUnit.assert.ok(!value.called) : QUnit.assert.ok(value.called) },
-      toHaveBeenCalledTimes (n) { QUnit.assert.strictEqual(value.callCount, n) },
-      toHaveBeenCalledWith (...args) { QUnit.assert.ok(value.calledWith(...args)) }
+      toHaveBeenCalled () { QUnit.assert[not ? 'notOk' : 'ok'](value.called) },
+      toHaveBeenCalledTimes (n) { QUnit.assert[not ? 'notStrictEqual' : 'strictEqual'](value.callCount, n) },
+      toHaveBeenCalledWith (...args) { QUnit.assert[not ? 'notOk' : 'ok'](value.calledWith(...args)) }
     }, {
       _type: 'expect',
       get,
@@ -131,7 +133,12 @@
   test.skip = (label, callback) => bddApi('it', { label, callback, skip: true })
   test.todo = (label, callback) => bddApi('it', { label, callback, todo: true })
 
+  const $alreadyConvertedToQUnit = Symbol('alreadyConvertedToQUnit')
   const toQUnit = (describe) => {
+    if (describe[$alreadyConvertedToQUnit]) {
+      return
+    }
+    describe[$alreadyConvertedToQUnit] = true
     QUnit.module(describe.label ?? '(root)', function (hooks) {
       if (describe.beforeAll) {
         hooks.before(async () => Promise.all(describe.beforeAll.map(callback => callback())))
@@ -188,10 +195,7 @@
 
     currentDescribe = parentDescribe
     if (currentDescribe === rootDescribe) {
-      afterAll(() => {
-        _sinonSandbox.restore()
-        _sinonSandbox = undefined
-      })
+      rootDescribe[$alreadyConvertedToQUnit] = false
       toQUnit(rootDescribe)
     }
   }
