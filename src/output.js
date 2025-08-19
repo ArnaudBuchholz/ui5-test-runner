@@ -9,7 +9,7 @@ const {
   $statusProgressTotal
 } = require('./symbols')
 const { filename, noop, pad } = require('./tools')
-const os = require('os');
+const os = require('os')
 
 const $output = Symbol('output')
 const $outputStart = Symbol('output-start')
@@ -278,7 +278,7 @@ function build (job) {
  \\__,_|_|____/       \\__\\___||___/\\__|    |_|   \\__,_|_| |_|_| |_|\\___|_|   `)
       const now = new Date()
       log(job, p80()`${name}@${version} / ${now.toISOString()} / ${now.toString()}`)
-      const cpus = {};
+      const cpus = {}
       for (const { model } of os.cpus()) {
         if (cpus[model]) {
           ++cpus[model]
