@@ -276,7 +276,8 @@ function build (job) {
 | | | | |___ \\ _____| __/ _ \\/ __| __|____| '__| | | | '_ \\| '_ \\ / _ \\ '__|
 | |_| | |___) |_____| ||  __/\\__ \\ ||_____| |  | |_| | | | | | | |  __/ |   
  \\__,_|_|____/       \\__\\___||___/\\__|    |_|   \\__,_|_| |_|_| |_|\\___|_|   `)
-      log(job, p80()`${name}@${version} / ${new Date().toISOString()} / ${os.machine()}`)
+      const now = new Date()
+      log(job, p80()`${name}@${version} / ${now.toISOString()} / ${now.toString()}`)
       const cpus = {};
       for (const { model } of os.cpus()) {
         if (cpus[model]) {
@@ -286,7 +287,7 @@ function build (job) {
         }
       }
       for (const [model, count] of Object.entries(cpus)) {
-        log(job, p80()`${count}x ${model}`)
+        log(job, p80()`${os.machine()} / ${count}x ${model}`)
       }
       if (job.debugDevMode) {
         log(job, p80()`⚠️  Development mode ⚠️`)
