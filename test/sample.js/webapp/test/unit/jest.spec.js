@@ -114,7 +114,8 @@ describe('Jest Features Showcase', () => {
 
     test('mockImplementation', () => {
       const myMock = jest.fn()
-      myMock.mockImplementation(() => 'mocked value')
+      const result = myMock.mockImplementation(() => 'mocked value')
+      expect(result).toStrictEqual(myMock)
       expect(myMock()).toBe('mocked value')
     })
 
@@ -122,6 +123,27 @@ describe('Jest Features Showcase', () => {
       const myMock = jest.fn()
       myMock.mockReturnValue('mocked return')
       expect(myMock()).toBe('mocked return')
+    })
+
+    test('mockReturnValueOnce', () => {
+      const mockCallback = jest.fn(x => 42 + x)
+      mockCallback.mockReturnValueOnce(0)
+      expect(mockCallback(0)).toStrictEqual(0)
+      expect(mockCallback(0)).toStrictEqual(42)
+    })
+
+    test('mockResolvedValue', async () => {
+      const myMock = jest.fn()
+      myMock.mockResolvedValue('OK')
+      expect(await myMock()).toStrictEqual('OK')
+    })
+
+    test('mockResolvedValueOnce', async () => {
+      const myMock = jest.fn()
+      myMock.mockResolvedValue('OK')
+      myMock.mockResolvedValueOnce('KO')
+      expect(await myMock()).toStrictEqual('KO')
+      expect(await myMock()).toStrictEqual('OK')
     })
   })
 
