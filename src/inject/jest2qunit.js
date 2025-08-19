@@ -13,8 +13,25 @@
 
   const debug = (...args) => console.log('🐞', ...args)
 
+  const $raw = Symbol('raw')
+  const unproxify = (value) => value && (value[$raw] ?? value)
+
+  const get = function (target, property) {
+    if (target[property] !== undefined) {
+      return target[property]
+    }
+    if (typeof property === 'symbol') {
+      return undefined // otherwise returned previously
+    }
+    if (typeof this[property] === 'function') {
+      return this[property](target)
+    }
+    Jest2QUnitError.throw(`${this._type}.${property} is missing`)
+  }
+
   let _sinonSandbox
-  const jestSpy = (sinonStub, impl) => new Proxy(Object.assign(sinonStub, {
+  const jestSpy = (sinonStub) => new Proxy(Object.assign(sinonStub, {
+    [$raw]: sinonStub,
     mockImplementation (callback) { sinonStub.callsFake(callback) },
     mockImplementationOnce (callback) { sinonStub.onCall(0).callsFake(callback) },
     mockResolvedValueOnce (value) { sinonStub.onCall(0).callsFake(() => Promise.resolve(value)) },
@@ -22,18 +39,13 @@
     mockRestore () { sinonStub.restore() },
     get mock () {
       return new Proxy({}, {
-        get (target, property) {
-          if (property === 'calls') { return sinonStub.args }
-          if (property === 'results') { return sinonStub.returnValues.map(value => ({ value })) }
-          Jest2QUnitError.throw(`jestSpy.mock.${property} is missing`)
-        }
+        _type: 'jestSpy.mock',
+        get,
+        calls () { return sinonStub.args },
+        results () { return sinonStub.returnValues.map(value => ({ value })) }
       })
     }
-  }), {
-    get (target, property) {
-      return target[property] ?? Jest2QUnitError.throw(`jestSpy.${property} is missing`)
-    }
-  })
+  }), { _type: 'jestSpy', get })
 
   const jest = new Proxy({
     fn (impl) {
@@ -45,28 +57,29 @@
     },
     spyOn (object, property) {
       const impl = object[property]
-      const spy = jestSpy(_sinonSandbox.stub(object, property), impl)
+      if (impl[$raw]) { // already looks like a spy
+        return impl
+      }
+      const spy = jestSpy(_sinonSandbox.stub(object, property))
       spy.mockImplementation(impl)
       return spy
     },
     clearAllMocks () { _sinonSandbox.resetHistory() }
-  }, {
-    get (target, property) {
-      return target[property] ?? Jest2QUnitError.throw(`jest.${property} is missing`)
-    }
-  })
+  }, { _type: 'jest', get })
 
   const expect = (value) => {
+    value = unproxify(value)
     let not = false
     const proxy = new Proxy({
-      toBe (expected) { not ? QUnit.assert.notEqual(value, expected) : QUnit.assert.equal(value, expected) },
+      toBe (expected) { not ? QUnit.assert.notEqual(value, unproxify(expected)) : QUnit.assert.equal(value, unproxify(expected)) },
       toBeDefined () { QUnit.assert.notStrictEqual(value, undefined) },
       toBeUndefined () { QUnit.assert.strictEqual(value, undefined) },
       toBeNull () { QUnit.assert.strictEqual(value, null) },
       toBeNaN () { QUnit.assert.ok(isNaN(value)) },
       toBeTruthy () { QUnit.assert.ok(!!value) },
       toBeFalsy () { QUnit.assert.ok(!value) },
-      toEqual (expected) { not ? QUnit.assert.notDeepEqual(value, expected) : QUnit.assert.deepEqual(value, expected) },
+      toEqual (expected) { not ? QUnit.assert.notDeepEqual(value, unproxify(expected)) : QUnit.assert.deepEqual(value, unproxify(expected)) },
+      toStrictEqual (expected) { not ? QUnit.assert.strictEqual(value, unproxify(expected)) : QUnit.assert.strictEqual(value, unproxify(expected)) },
       toBeGreaterThan (expected) { QUnit.assert.ok(value > expected) },
       toBeGreaterThanOrEqual (expected) { QUnit.assert.ok(value >= expected) },
       toBeLessThan (expected) { QUnit.assert.ok(value < expected) },
@@ -83,12 +96,11 @@
       toHaveBeenCalledTimes (n) { QUnit.assert.strictEqual(value.callCount, n) },
       toHaveBeenCalledWith (...args) { QUnit.assert.ok(value.calledWith(...args)) }
     }, {
-      get (target, property) {
-        if (property === 'not') {
-          not = !not
-          return proxy
-        }
-        return target[property] ?? Jest2QUnitError.throw(`expect.${property} is missing`)
+      _type: 'expect',
+      get,
+      not () {
+        not = !not
+        return proxy
       }
     })
     return proxy
@@ -107,9 +119,11 @@
   }
 
   const beforeAll = (callback) => bddApi('beforeAll', callback)
+  const before = (callback) => bddApi('beforeAll', callback)
   const beforeEach = (callback) => bddApi('beforeEach', callback)
   const afterEach = (callback) => bddApi('afterEach', callback)
   const afterAll = (callback) => bddApi('afterAll', callback)
+  const after = (callback) => bddApi('afterAll', callback)
   const it = (label, callback) => bddApi('it', { label, callback })
   it.skip = (label, callback) => bddApi('it', { label, callback, skip: true })
   it.todo = (label, callback) => bddApi('it', { label, callback, todo: true })
@@ -186,9 +200,11 @@
     jest,
     expect,
     beforeAll,
+    before,
     beforeEach,
     afterEach,
     afterAll,
+    after,
     it,
     test,
     describe
