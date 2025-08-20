@@ -2,7 +2,7 @@
 
 const { dirname, join } = require('path')
 const { createWriteStream } = require('fs')
-const { mkdir, unlink, stat, readdir } = require('fs').promises
+const { mkdir, unlink, stat, readdir, readFile } = require('fs').promises
 const { capture } = require('reserve')
 const { getOutput, newProgress } = require('./output')
 const { download } = require('./tools')
@@ -168,6 +168,51 @@ const openui5mappings = async job => {
     const path = namespace.replaceAll(/\./g, '/')
     mappings.push(...map(path + '/', `${namespace}/src/${path}`, true))
   }
+
+  // Some ui.core files require version replacement
+  const versionedFiles = [
+    'sap/ui/Global.js',
+    'sap/ui/Device.js',
+    'sap/ui/core/library.js',
+    'sap/ui/core/Core.js',
+    'sap/ui/core/Configuration.js',
+    'sap/ui/core/getCompatibilityVersion.js'
+  ]
+  for (const versionedFile of versionedFiles) {
+    const content = await readFile(join(basePath, 'sap.ui.core/src', versionedFile), 'utf8')
+    const versionedContent = content.replaceAll(/\$\{version\}/g, job.openui5version)
+    mappings.push({
+      match: new RegExp(`/resources\\/${versionedFile.replace(/\//g, '\\/')}(?:\\?.*)?$`),
+      custom: [
+        versionedContent,
+        {
+          headers: {
+            'content-type': 'application/javascript'
+          }
+        }
+      ]
+    })
+  }
+
+  // sap-ui-version.json
+  mappings.push({
+    match: new RegExp('/resources\\/sap-ui-version.json(?:\\?.*)?$'),
+    custom: [
+      {
+        name: 'openui5-testsuite',
+        version: job.openui5version,
+        buildTimestamp: new Date().toISOString().substring(0, 19).replaceAll(/[-T:]/g, ''),
+        scmRevision: '',
+        libraries: []
+      },
+      {
+        headers: {
+          'content-type': 'application/json'
+        }
+      }
+    ]
+  })
+
   mappings.push(...map('', 'sap.ui.core/src', false))
   mappings.push(...map('sap/base/', 'sap.ui.core/src/sap/base', true))
   mappings.push(...map('sap/ui/', 'sap.ui.core/src/sap/ui', true))
