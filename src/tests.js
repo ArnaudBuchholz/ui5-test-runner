@@ -108,14 +108,18 @@ async function process (job) {
   await save(job)
   job.testPageUrls = []
 
+  let probingRound = 1
+  const parallel = job.probeParallel || job.parallel
   job.status = 'Probing urls'
   do {
     if (job.testPageUrls.length) {
+      ++probingRound
+      job.status = `Probing urls (${probingRound})`
       job.url = job.testPageUrls
       job.testPageUrls = []
     }
     try {
-      await parallelize(task(job, probeUrl), job.url, job.parallel)
+      await parallelize(task(job, probeUrl), job.url, parallel)
     } catch (e) {
       output.genericError(e)
       job.failed = true
