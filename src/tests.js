@@ -109,12 +109,20 @@ async function process (job) {
   job.testPageUrls = []
 
   job.status = 'Probing urls'
-  try {
-    await parallelize(task(job, probeUrl), job.url, job.parallel)
-  } catch (e) {
-    output.genericError(e)
-    job.failed = true
-  }
+  do {
+    if (job.testPageUrls.length) {
+      job.url = job.testPageUrls
+      job.testPageUrls = []
+    }
+    try {
+      await parallelize(task(job, probeUrl), job.url, job.parallel)
+    } catch (e) {
+      output.genericError(e)
+      job.failed = true
+      break
+    }
+    getOutput(job).debug('probe', 'from', job.url, 'to', job.testPageUrls)
+  } while (job.deepProbe && job.url.length !== job.testPageUrls.length)
 
   /* istanbul ignore else */
   if (!job.debugProbeOnly && !job.failed) {
