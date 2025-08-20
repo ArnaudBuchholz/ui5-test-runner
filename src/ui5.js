@@ -142,6 +142,7 @@ const openui5mappings = async job => {
       match,
       file: '$1',
       cwd: join(basePath, path),
+      'caching-strategy': 'modified',
       static: true
     }, {
       match: testMatch,
@@ -152,6 +153,7 @@ const openui5mappings = async job => {
       match: testMatch,
       file: '$1',
       cwd: join(basePath, testPath),
+      'caching-strategy': 'modified',
       static: true
     }]
   }
