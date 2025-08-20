@@ -69,6 +69,13 @@
     clearAllMocks () { _sinonSandbox.resetHistory() }
   }, { _type: 'jest', get })
 
+  class NotThrowError extends Error {
+    constructor() {
+      super('expect.not.toThrows failed');
+      this.name = 'NotThrowError';
+    }
+  }
+
   const expect = (value) => {
     value = unproxify(value)
     let not = false
@@ -81,14 +88,14 @@
       toBeTruthy () { QUnit.assert[not ? 'notOk' : 'ok'](!!value) },
       toBeFalsy () { QUnit.assert[not ? 'notOk' : 'ok'](!value) },
       toEqual (expected) { QUnit.assert[not ? 'notDeepEqual' : 'deepEqual'](value, unproxify(expected)) },
-      toStrictEqual (expected) { QUnit.assert[not ? 'notStrictEqual' : 'strictEqual'](value, unproxify(expected)) },
+      toStrictEqual (expected) { QUnit.assert[not ? 'notDeepEqual' : 'deepEqual'](value, unproxify(expected)) },
       toBeGreaterThan (expected) { QUnit.assert[not ? 'notOk' : 'ok'](value > expected) },
       toBeGreaterThanOrEqual (expected) { QUnit.assert[not ? 'notOk' : 'ok'](value >= expected) },
       toBeLessThan (expected) { QUnit.assert[not ? 'notOk' : 'ok'](value < expected) },
       toBeLessThanOrEqual (expected) { QUnit.assert[not ? 'notOk' : 'ok'](value <= expected) },
       toMatch (expected) { QUnit.assert[not ? 'notOk' : 'ok'](expected.test(value)) },
       toContain (expected) { QUnit.assert[not ? 'notOk' : 'ok'](value.includes(expected)) },
-      toThrow (expected) { not ? QUnit.assert.ok(false, 'expect.not.toThrows not implemented') : QUnit.assert.throws(value, expected) },
+      toThrow (expected) { not ? QUnit.assert.throws(() => { value(); throw new NotThrowError }, NotThrowError) : QUnit.assert.throws(value, expected) },
       toBeCloseTo (expected, numDigits = 2) {
         const factor = 10 ** numDigits
         const round = (x) => Math.floor(x * factor) / factor
