@@ -70,9 +70,9 @@
   }, { _type: 'jest', get })
 
   class NotThrowError extends Error {
-    constructor() {
-      super('expect.not.toThrows failed');
-      this.name = 'NotThrowError';
+    constructor () {
+      super('expect.not.toThrows failed')
+      this.name = 'NotThrowError'
     }
   }
 
@@ -95,7 +95,7 @@
       toBeLessThanOrEqual (expected) { QUnit.assert[not ? 'notOk' : 'ok'](value <= expected) },
       toMatch (expected) { QUnit.assert[not ? 'notOk' : 'ok'](expected.test(value)) },
       toContain (expected) { QUnit.assert[not ? 'notOk' : 'ok'](value.includes(expected)) },
-      toThrow (expected) { not ? QUnit.assert.throws(() => { value(); throw new NotThrowError }, NotThrowError) : QUnit.assert.throws(value, expected) },
+      toThrow (expected) { not ? QUnit.assert.throws(() => { value(); throw new NotThrowError() }, NotThrowError) : QUnit.assert.throws(value, expected) },
       toBeCloseTo (expected, numDigits = 2) {
         const factor = 10 ** numDigits
         const round = (x) => Math.floor(x * factor) / factor
