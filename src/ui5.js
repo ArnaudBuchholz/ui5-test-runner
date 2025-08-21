@@ -161,10 +161,25 @@ const openui5mappings = async job => {
   const folders = await readdir(basePath)
   const namespaces = folders.filter(name => name.startsWith('sap.'))
 
+  const buildTimestamp = new Date().toISOString().substring(0, 19).replaceAll(/[-T:]/g, '')
+  const sapUiVersion = {
+    name: 'openui5-testsuite',
+    version: job.openui5version,
+    buildTimestamp,
+    scmRevision: '',
+    libraries: []
+  }
+
   for (const namespace of namespaces) {
     if (namespace === 'sap.ui.core') {
       continue // sap.ui.core needs special handling
     }
+    sapUiVersion.libraries.push({
+      name: namespace,
+      version: job.openui5version,
+      buildTimestamp,
+      scmRevision: ''
+    })
     const path = namespace.replaceAll(/\./g, '/')
     mappings.push(...map(path + '/', `${namespace}/src/${path}`, true))
   }
@@ -196,15 +211,9 @@ const openui5mappings = async job => {
 
   // sap-ui-version.json
   mappings.push({
-    match: new RegExp('/resources\\/sap-ui-version.json(?:\\?.*)?$'),
+    match: /\/resources\/sap-ui-version.json(?:\?.*)?$/,
     custom: [
-      {
-        name: 'openui5-testsuite',
-        version: job.openui5version,
-        buildTimestamp: new Date().toISOString().substring(0, 19).replaceAll(/[-T:]/g, ''),
-        scmRevision: '',
-        libraries: []
-      },
+      sapUiVersion,
       {
         headers: {
           'content-type': 'application/json'
