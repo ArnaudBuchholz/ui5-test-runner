@@ -110,13 +110,19 @@ async function process (job) {
 
   let probingRound = 1
   const parallel = job.probeParallel || job.parallel
+  const confirmedTestPageUrls = []
   job.status = 'Probing urls'
   do {
     if (job.testPageUrls.length) {
       ++probingRound
       job.status = `Probing urls (${probingRound})`
-      job.url = job.testPageUrls
-      job.testPageUrls = []
+      job.url = job.testPageUrls.filter(url => !confirmedTestPageUrls.includes(url))
+      if (job.url.length) {
+        job.testPageUrls = []
+      } else {
+        job.testPageUrls = confirmedTestPageUrls
+        break
+      }
     }
     try {
       await parallelize(task(job, probeUrl), job.url, parallel)
@@ -125,8 +131,16 @@ async function process (job) {
       job.failed = true
       break
     }
-    getOutput(job).debug('probe', 'from', job.url, 'to', job.testPageUrls)
-  } while (job.deepProbe && job.url.length !== job.testPageUrls.length)
+    job.testPageUrls.forEach(url => {
+      if ((job.url.includes(url) && !confirmedTestPageUrls.includes(url)) ||
+        (job.openui5 && url.includes('/resources/sap/ui/test/starter/Test.qunit.html?testsuite=') && url.includes('&test='))
+      ) {
+        confirmedTestPageUrls.push(url)
+        getOutput(job).debug('probe', 'confirmed:', url)
+      }
+    })
+    getOutput(job).debug('probe', 'from', job.url.length, 'to', job.testPageUrls.length, 'confirmed', confirmedTestPageUrls.length)
+  } while (job.deepProbe)
 
   /* istanbul ignore else */
   if (!job.debugProbeOnly && !job.failed) {
