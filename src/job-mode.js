@@ -45,7 +45,7 @@ function buildAndCheckMode (job) {
     ])
     return 'capabilities'
   }
-  if (job.openui5 || (job.url && job.url.length)) {
+  if (job.url && job.url.length) {
     check(job, undefined, [
       'ui5',
       'libs',

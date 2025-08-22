@@ -133,7 +133,7 @@ async function process (job) {
     }
     job.testPageUrls.forEach(url => {
       if ((job.url.includes(url) && !confirmedTestPageUrls.includes(url)) ||
-        (job.openui5 && url.includes('/resources/sap/ui/test/starter/Test.qunit.html?testsuite=') && url.includes('&test='))
+        (url.includes('/resources/sap/ui/test/starter/Test.qunit.html?testsuite=') && url.includes('&test='))
       ) {
         confirmedTestPageUrls.push(url)
         getOutput(job).debug('probe', 'confirmed:', url)

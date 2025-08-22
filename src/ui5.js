@@ -2,7 +2,7 @@
 
 const { dirname, join } = require('path')
 const { createWriteStream } = require('fs')
-const { mkdir, unlink, stat, readdir, readFile } = require('fs').promises
+const { mkdir, unlink, stat } = require('fs').promises
 const { capture } = require('reserve')
 const { getOutput, newProgress } = require('./output')
 const { download } = require('./tools')
@@ -119,116 +119,6 @@ const ui5mappings = job => {
   return mappings
 }
 
-const openui5mappings = async job => {
-  const output = getOutput(job)
-  output.serveOpenUI5()
-
-  const basePath = join(job.cwd, 'src')
-
-  const mappings = []
-
-  const map = (base, path, deep) => {
-    output.debug('openui5', `base=${base}, path=${path}, deep=${deep}`)
-    const matchSubPath = deep ? '([^?]*)' : '([^/?]*)'
-    const match = new RegExp(`/resources\\/${base.replaceAll(/\//g, '\\/')}${matchSubPath}(?:\\?.*)?$`)
-    const testMatch = new RegExp(`/test-resources\\/${base.replaceAll(/\//g, '\\/')}${matchSubPath}(?:\\?.*)?$`)
-    const testPath = path.replace(/\bsrc\b/, 'test')
-    return [{
-      match,
-      custom: (request, _, captured) => {
-        output.debug('openui5', request.url, match, path + '/' + captured)
-      }
-    }, {
-      match,
-      file: '$1',
-      cwd: join(basePath, path),
-      'caching-strategy': 'modified',
-      static: true
-    }, {
-      match: testMatch,
-      custom: (request, _, captured) => {
-        output.debug('openui5', request.url, testMatch, testPath + '/' + captured)
-      }
-    }, {
-      match: testMatch,
-      file: '$1',
-      cwd: join(basePath, testPath),
-      'caching-strategy': 'modified',
-      static: true
-    }]
-  }
-
-  const folders = await readdir(basePath)
-  const namespaces = folders.filter(name => name.startsWith('sap.'))
-
-  const buildTimestamp = new Date().toISOString().substring(0, 19).replaceAll(/[-T:]/g, '')
-  const sapUiVersion = {
-    name: 'openui5-testsuite',
-    version: job.openui5version,
-    buildTimestamp,
-    scmRevision: '',
-    libraries: []
-  }
-
-  for (const namespace of namespaces) {
-    if (namespace === 'sap.ui.core') {
-      continue // sap.ui.core needs special handling
-    }
-    sapUiVersion.libraries.push({
-      name: namespace,
-      version: job.openui5version,
-      buildTimestamp,
-      scmRevision: ''
-    })
-    const path = namespace.replaceAll(/\./g, '/')
-    mappings.push(...map(path + '/', `${namespace}/src/${path}`, true))
-  }
-
-  // Some ui.core files require version replacement
-  const versionedFiles = [
-    'sap/ui/Global.js',
-    'sap/ui/Device.js',
-    'sap/ui/core/library.js',
-    'sap/ui/core/Core.js',
-    'sap/ui/core/Configuration.js',
-    'sap/ui/core/getCompatibilityVersion.js'
-  ]
-  for (const versionedFile of versionedFiles) {
-    const content = await readFile(join(basePath, 'sap.ui.core/src', versionedFile), 'utf8')
-    const versionedContent = content.replaceAll(/\$\{version\}/g, job.openui5version)
-    mappings.push({
-      match: new RegExp(`/resources\\/${versionedFile.replace(/\//g, '\\/')}(?:\\?.*)?$`),
-      custom: [
-        versionedContent,
-        {
-          headers: {
-            'content-type': 'application/javascript'
-          }
-        }
-      ]
-    })
-  }
-
-  // sap-ui-version.json
-  mappings.push({
-    match: /\/resources\/sap-ui-version.json(?:\?.*)?$/,
-    custom: [
-      sapUiVersion,
-      {
-        headers: {
-          'content-type': 'application/json'
-        }
-      }
-    ]
-  })
-
-  mappings.push(...map('', 'sap.ui.core/src', false))
-  mappings.push(...map('sap/base/', 'sap.ui.core/src/sap/base', true))
-  mappings.push(...map('sap/ui/', 'sap.ui.core/src/sap/ui', true))
-
-  return mappings
-}
-
 module.exports = {
   preload: async job => {
     const cacheBase = buildCacheBase(job)
@@ -271,9 +161,6 @@ module.exports = {
   },
 
   mappings: async job => {
-    if (job.openui5) {
-      return await openui5mappings(job)
-    }
     if (job.disableUi5) {
       return []
     }

@@ -1,7 +1,7 @@
 'use strict'
 
 const { Command, Option, InvalidArgumentError } = require('commander')
-const { statSync, accessSync, constants, readFileSync } = require('fs')
+const { statSync, accessSync, constants } = require('fs')
 const { dirname, join, isAbsolute } = require('path')
 const { name, description, version = 'dev' } = require(join(__dirname, '../package.json'))
 const { getOutput } = require('./output')
@@ -159,7 +159,6 @@ function getCommand (cwd) {
     // Specific to legacy (and might be used with url if pointing to local project)
     .option('--ui5 <url>', '[💻📡] UI5 url', url, 'https://ui5.sap.com')
     .option('--disable-ui5 [flag]', '[💻📡] Disable UI5 mapping (also disable libs)', boolean, false)
-    .option('--openui5 [flag]', `[💻📡] ${EXPERIMENTAL_OPTION} Special handling for OpenUI5 repository testing`, boolean, false)
     .option('--libs <lib...>', '[💻📡] Library mapping (<relative>=<path> or <path>)', arrayOf(lib))
     .option('--mappings <mapping...>', '[💻📡] Custom mapping (<match>=<file|url>(<config>))', arrayOf(mapping))
     .option('--cache <path>', '[💻📡] Cache UI5 resources locally in the given folder (empty to disable)')
@@ -333,19 +332,6 @@ function finalize (job) {
 
   const output = getOutput(job)
 
-  if (job.openui5) {
-    const packageJsonPath = join(job.cwd, 'package.json')
-    checkAccess({ path: packageJsonPath, label: 'Missing OpenUI5 package.json', file: true })
-    try {
-      const { name, version } = JSON.parse(readFileSync(packageJsonPath, 'utf8'))
-      if (name !== 'openui5') {
-        throw new Error('expected package name to be openui5')
-      }
-      job.openui5version = version
-    } catch (e) {
-      throw new Error('Invalid OpenUI5 package.json: ' + e.message)
-    }
-  }
   if (job.coverage) {
     function overrideIfNotSet (option, valueFromSettings) {
       if (valueFromSettings && job[$valueSources][option] !== 'cli') {
