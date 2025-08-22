@@ -99,10 +99,9 @@ async function main () {
       output.serving(url)
       serverReady()
     })
-    .on('error', error => {
-      output.serverError(error)
-      send({ msg: 'error', error })
-      serverError()
+    .on('error', ({ reason }) => {
+      send({ msg: 'error', reason })
+      serverError(reason)
     })
   await serverStarted
   if (job.preload) {
