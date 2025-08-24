@@ -108,13 +108,16 @@ async function process (job) {
   await save(job)
   job.testPageUrls = []
 
-  let probingRound = 1
+  let probingRound = 0
   const parallel = job.probeParallel || job.parallel
   const confirmedTestPageUrls = []
   job.status = 'Probing urls'
   do {
-    if (job.testPageUrls.length) {
-      ++probingRound
+    ++probingRound
+    if (probingRound === 2) {
+      if (job.testPageUrls.length === 0) {
+        break
+      }
       job.status = `Probing urls (${probingRound})`
       job.url = job.testPageUrls.filter(url => !confirmedTestPageUrls.includes(url))
       if (job.url.length) {
