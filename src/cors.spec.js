@@ -30,8 +30,8 @@ describe('src/cors', () => {
     expect(response.statusCode).toStrictEqual(200)
     expect(response.headers).toMatchObject({
       'access-control-allow-origin': origin,
-      'access-control-allow-headers': 'content-type, content-length, x-page-url',
-      'access-control-allow-methods': 'GET, POST, PUT, DELETE, OPTIONS',
+      'access-control-allow-headers': '*',
+      'access-control-allow-methods': '*',
       'access-control-allow-credentials': 'true'
     })
   })

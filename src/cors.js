@@ -7,8 +7,8 @@ module.exports = {
       response.writeHead(200, {
         'Access-Control-Allow-Origin': origin,
         Vary: 'Origin',
-        'Access-Control-Allow-Headers': 'content-type, content-length, x-page-url, sap-passport',
-        'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+        'Access-Control-Allow-Headers': '*',
+        'Access-Control-Allow-Methods': '*',
         'Access-Control-Allow-Credentials': 'true'
       })
       response.end()
