@@ -131,6 +131,7 @@ function getCommand (cwd) {
     .option('-rg, --report-generator <path...>', '[💻🔗📡] Report generator paths (relative to cwd or use $/ for provided ones)', ['$/report.js'])
     .option('--progress-page <path>', '[💻🔗📡] Progress page path (relative to cwd or use $/ for provided ones)', '$/report/default.html')
     .option('--jest [flag]', `[💻🔗📡] ${EXPERIMENTAL_OPTION} Simulate jest environment`)
+    .option('--qunit-batch-size <size>', `[💻🔗📡] ${EXPERIMENTAL_OPTION} QUnit hooks batch size (disables screenshots)`, integer, 0)
 
     .option('--coverage [flag]', '[💻🔗📡] Enable or disable code coverage', boolean)
     .option('--no-coverage', '[💻🔗📡] Disable code coverage')
@@ -369,6 +370,11 @@ function finalize (job) {
       const parsedUrl = new URL(url)
       return parsedUrl.port === port
     })
+  }
+
+  if (job.qunitBatchSize) {
+    job.screenshot = false
+    job.screenshotOnFailure = false
   }
 
   job[$status] = 'Starting'

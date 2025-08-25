@@ -68,10 +68,16 @@ async function runTestPage (job, url) {
   try {
     let scripts
     if (job.browserCapabilities.scripts) {
-      scripts = [
+      scripts = []
+      if (job.qunitBatchSize) {
+        scripts.push(
+          `(function () { window['ui5-test-runner/batch'] = ${job.qunitBatchSize} }())`
+        )
+      }
+      scripts.push(
         'post.js',
         'qunit-hooks.js'
-      ]
+      )
       if (job.jest) {
         scripts.push('jest2qunit.js')
       }
