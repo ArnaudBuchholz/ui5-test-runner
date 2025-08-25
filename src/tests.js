@@ -115,7 +115,7 @@ async function process (job) {
   job.status = 'Probing urls'
   do {
     ++probingRound
-    if (probingRound === 2) {
+    if (probingRound >= 2) {
       if (job.testPageUrls.length === 0) {
         break
       }
