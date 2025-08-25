@@ -239,8 +239,39 @@ describe('simulate', () => {
             await post('/_/QUnit/begin', referer, { totalTests: 0, modules: [] })
             await post('/_/QUnit/done', referer, { failed: 0 })
             await post('/_/QUnit/testStart', referer, { module: 'module', name: 'test', testId: '1', modules: [{ name: 'M1', tests: [{ testId: '1' }] }] })
+            await post('/_/QUnit/log', referer, { module: 'module', name: 'test', testId: '1', modules: [{ name: 'M1', tests: [{ testId: '1' }] }] })
             await post('/_/QUnit/testDone', referer, { testId: '1', failed: 0, passed: 1 })
             await post('/_/QUnit/done', referer, { failed: 0 })
+          }
+        }
+        await safeExecute()
+      })
+
+      it('succeeded', () => {
+        expect(job.failed).toStrictEqual(false)
+      })
+    })
+
+    describe('simple test execution (qunit batch)', () => {
+      beforeAll(async () => {
+        await setup('simple-early')
+        pages = {
+          'testsuite.qunit.html': async referer => {
+            await post('/_/addTestPages', referer, {
+              type: 'suite',
+              pages: [
+                referer.replace('testsuite.qunit.html', 'page1.html')
+              ]
+            })
+          },
+          'page1.html': async referer => {
+            await post('/_/QUnit/batch', referer, [
+              ['QUnit/begin', { totalTests: 0, modules: [] }],
+              ['QUnit/testStart', { module: 'module', name: 'test', testId: '1', modules: [{ name: 'M1', tests: [{ testId: '1' }] }] }],
+              ['QUnit/log', { module: 'module', name: 'test', testId: '1', modules: [{ name: 'M1', tests: [{ testId: '1' }] }] }],
+              ['QUnit/testDone', { testId: '1', failed: 0, passed: 1 }],
+              ['QUnit/done', { failed: 0 }]
+            ])
           }
         }
         await safeExecute()
