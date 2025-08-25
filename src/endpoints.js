@@ -134,19 +134,19 @@ module.exports = job => {
             for (const [hook, hookData] of data) {
               switch (hook) {
                 case 'QUnit/begin':
-                  begin(job, url, hookData)
+                  await begin(job, url, hookData)
                   break
                 case 'QUnit/testStart':
-                  testStart(job, url, hookData)
+                  await testStart(job, url, hookData)
                   break
                 case 'QUnit/log':
-                  log(job, url, hookData)
+                  await log(job, url, hookData)
                   break
                 case 'QUnit/testDone':
-                  testDone(job, url, hookData)
+                  await testDone(job, url, hookData)
                   break
                 case 'QUnit/done':
-                  done(job, url, hookData)
+                  await done(job, url, hookData)
                   break
               }
             }
