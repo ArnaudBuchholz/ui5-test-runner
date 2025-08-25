@@ -7,6 +7,8 @@
   }
 
   const base = window['ui5-test-runner/base-host'] || ''
+  const probe = window['ui5-test-runner/probe'] || false
+  const batchSize = !probe && (window['ui5-test-runner/batch'] || 0)
   const XHR = window.XMLHttpRequest
 
   let lastPost = Promise.resolve()
@@ -77,7 +79,7 @@
 
   const xPageUrl = top.location.toString()
 
-  window[MODULE] = function post (url, data) {
+  function post (url, data) {
     function request () {
       return new Promise(function (resolve, reject) {
         const xhr = new XHR()
@@ -103,4 +105,16 @@
     }
     return lastPost
   }
+
+  const aggregatedData = []
+
+  function batch (url, data) {
+    aggregatedData.push([url, data])
+    if (url === 'QUnit/done' || aggregatedData.length === batchSize) {
+      post('QUnit/batch', [...aggregatedData])
+      aggregatedData.length = 0
+    }
+  }
+
+  window[MODULE] = batchSize ? batch : post
 }())

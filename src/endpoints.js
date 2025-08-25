@@ -123,6 +123,38 @@ module.exports = job => {
         match: '^/_/QUnit/done',
         custom: endpoint('QUnit/done', async (url, report) => done(job, url, report))
       }, {
+      // Fast batch endpoint for QUnit (no screenshot)
+        match: '^/_/QUnit/batch',
+        custom: async (request, response) => {
+          const url = extractPageUrl(request.headers)
+          const data = await body(request)
+          response.writeHead(200)
+          response.end()
+          try {
+            for (const [hook, hookData] of data) {
+              switch (hook) {
+                case 'QUnit/begin':
+                  begin(job, url, hookData)
+                  break
+                case 'QUnit/testStart':
+                  testStart(job, url, hookData)
+                  break
+                case 'QUnit/log':
+                  log(job, url, hookData)
+                  break
+                case 'QUnit/testDone':
+                  testDone(job, url, hookData)
+                  break
+                case 'QUnit/done':
+                  done(job, url, hookData)
+                  break
+              }
+            }
+          } catch (error) {
+            getOutput(job).endpointError({ api: 'QUnit/batch', url, data, error })
+          }
+        }
+      }, {
       // UI to follow progress
         match: '^/_/progress.html',
         cwd: dirname(job.progressPage),

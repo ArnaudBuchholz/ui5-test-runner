@@ -48,6 +48,7 @@ async function probeUrl (job, url) {
     let scripts
     if (job.browserCapabilities.scripts) {
       scripts = [
+        '(function () { window[\'ui5-test-runner/probe\'] = true }())',
         'post.js',
         'qunit-redirect.js'
       ]

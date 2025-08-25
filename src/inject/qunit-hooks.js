@@ -47,21 +47,24 @@
 
     QUnit.log(function (log) {
       let ready = false
-      post('QUnit/log', extend(log))
-        .then(undefined, function () {
-          console.error('Failed to POST to QUnit/log (no timestamp)', log)
-        })
-        .then(function () {
-          ready = true
-        })
-      if (isOpa()) {
-        window.sap.ui.test.Opa5.prototype.waitFor({
-          timeout: 10,
-          autoWait: false, // Ignore interactable constraint
-          check: function () {
-            return ready
-          }
-        })
+      const result = post('QUnit/log', extend(log))
+      if (result && result.then) {
+        result
+          .then(undefined, function () {
+            console.error('Failed to POST to QUnit/log (no timestamp)', log)
+          })
+          .then(function () {
+            ready = true
+          })
+        if (isOpa()) {
+          window.sap.ui.test.Opa5.prototype.waitFor({
+            timeout: 10,
+            autoWait: false, // Ignore interactable constraint
+            check: function () {
+              return ready
+            }
+          })
+        }
       }
     })
 
