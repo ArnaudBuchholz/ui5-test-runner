@@ -134,17 +134,37 @@ describe('Jest Features Showcase', () => {
 
     test('mockResolvedValue', async () => {
       const myMock = jest.fn()
-      myMock.mockResolvedValue('OK')
-      expect(await myMock()).toStrictEqual('OK')
+      myMock.mockResolvedValue(0)
+      expect(await myMock()).toStrictEqual(0)
+    })
+
+    test('mockResolvedValue (using expect.resolves)', async () => {
+      const myMock = jest.fn()
+      myMock.mockResolvedValue(0)
+      await expect(myMock()).resolves.toStrictEqual(0)
     })
 
     test('mockResolvedValueOnce', async () => {
       const myMock = jest.fn()
-      myMock.mockResolvedValue('OK')
-      myMock.mockResolvedValueOnce('KO')
-      expect(await myMock()).toStrictEqual('KO')
-      expect(await myMock()).toStrictEqual('OK')
+      myMock.mockResolvedValue(0)
+      myMock.mockResolvedValueOnce(1)
+      expect(await myMock()).toStrictEqual(1)
+      expect(await myMock()).toStrictEqual(0)
     })
+
+    // test('mockRejectedValue', async () => {
+    //   const myMock = jest.fn()
+    //   myMock.mockRejectedValue(0)
+    //   expect(await myMock()).toStrictEqual(0)
+    // })
+
+    // test('mockRejectedValueOnce', async () => {
+    //   const myMock = jest.fn()
+    //   myMock.mockResolvedValue(0)
+    //   myMock.mockResolvedValueOnce(1)
+    //   expect(await myMock()).toStrictEqual(1)
+    //   expect(await myMock()).toStrictEqual(0)
+    // })
   })
 
   // 3. Matchers
@@ -224,6 +244,14 @@ describe('Jest Features Showcase', () => {
       expect(throwError).toThrow(Error)
       expect(throwError).toThrow('it broke')
       expect(throwError).toThrow(/broke/)
+    })
+
+    test('.not.toThrow()', () => {
+      const nope = () => {}
+      expect(nope).not.toThrow()
+      expect(nope).not.toThrow(Error)
+      expect(nope).not.toThrow('it broke')
+      expect(nope).not.toThrow(/broke/)
     })
 
     // Asymmetric Matchers
