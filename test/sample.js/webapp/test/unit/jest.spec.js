@@ -152,19 +152,30 @@ describe('Jest Features Showcase', () => {
       expect(await myMock()).toStrictEqual(0)
     })
 
-    // test('mockRejectedValue', async () => {
-    //   const myMock = jest.fn()
-    //   myMock.mockRejectedValue(0)
-    //   expect(await myMock()).toStrictEqual(0)
-    // })
+    test('mockRejectedValue', async () => {
+      const myMock = jest.fn()
+      myMock.mockRejectedValue(0)
+      try {
+        await myMock()
+        throw new Error('unreachable')
+      } catch (e) {
+        expect(e).toStrictEqual(0)
+      }
+    })
 
-    // test('mockRejectedValueOnce', async () => {
-    //   const myMock = jest.fn()
-    //   myMock.mockResolvedValue(0)
-    //   myMock.mockResolvedValueOnce(1)
-    //   expect(await myMock()).toStrictEqual(1)
-    //   expect(await myMock()).toStrictEqual(0)
-    // })
+    test('mockRejectedValue (using expect.rejects)', async () => {
+      const myMock = jest.fn()
+      myMock.mockRejectedValue(0)
+      await expect(myMock()).rejects.toStrictEqual(0)
+    })
+
+    test('mockRejectedValueOnce', async () => {
+      const myMock = jest.fn()
+      myMock.mockRejectedValue(0)
+      myMock.mockRejectedValueOnce(1)
+      expect(myMock()).rejects.toStrictEqual(1)
+      expect(myMock()).rejects.toStrictEqual(0)
+    })
   })
 
   // 3. Matchers
@@ -172,67 +183,88 @@ describe('Jest Features Showcase', () => {
     // Truthiness
     test('.toBeNull()', () => {
       expect(null).toBeNull()
+      expect(1).not.toBeNull()
     })
     test('.toBeDefined()', () => {
       expect(1).toBeDefined()
+      expect(undefined).not.toBeDefined()
     })
     test('.toBeUndefined()', () => {
       expect(undefined).toBeUndefined()
+      expect(1).not.toBeUndefined()
     })
     test('.toBeTruthy()', () => {
       expect(true).toBeTruthy()
       expect(1).toBeTruthy()
       expect('hello').toBeTruthy()
+      expect(false).not.toBeTruthy()
+      expect(0).not.toBeTruthy()
+      expect('').not.toBeTruthy()
     })
     test('.toBeFalsy()', () => {
       expect(false).toBeFalsy()
       expect(0).toBeFalsy()
       expect('').toBeFalsy()
+      expect(true).not.toBeFalsy()
+      expect(1).not.toBeFalsy()
+      expect('hello').not.toBeFalsy()
     })
     test('.toBeNaN()', () => {
       expect(NaN).toBeNaN()
+      expect(1).not.toBeNaN()
     })
 
     // Equality
     test('.toBe()', () => {
       expect(1).toBe(1)
+      expect(2).not.toBe(1)
       const obj = {}
       expect(obj).toBe(obj) // Same object reference
+      expect({}).not.toBe(obj) // Different object reference
     })
 
     test('.toEqual()', () => {
       const obj1 = { a: 1 }
-      const obj2 = { a: 1 }
-      expect(obj1).toEqual(obj2) // Deep equality
+      expect(obj1).toEqual({ a: 1 }) // Deep equality
+      expect(obj1).not.toEqual({ a: 2 })
       expect([1, 2, 3]).toEqual([1, 2, 3])
+      expect([1, 2, 3]).not.toEqual([3, 2, 1])
     })
 
     // Numbers
     test('.toBeGreaterThan()', () => {
       expect(10).toBeGreaterThan(5)
+      expect(10).not.toBeGreaterThan(15)
     })
     test('.toBeGreaterThanOrEqual()', () => {
       expect(10).toBeGreaterThanOrEqual(10)
+      expect(10).not.toBeGreaterThanOrEqual(15)
     })
     test('.toBeLessThan()', () => {
       expect(5).toBeLessThan(10)
+      expect(5).not.toBeLessThan(0)
     })
     test('.toBeLessThanOrEqual()', () => {
       expect(10).toBeLessThanOrEqual(10)
+      expect(10).not.toBeLessThanOrEqual(0)
     })
     test('.toBeCloseTo()', () => {
       expect(0.1 + 0.2).toBeCloseTo(0.3)
+      expect(0.1 + 0.2).not.toBeCloseTo(50)
     })
 
     // Strings
     test('.toMatch()', () => {
       expect('hello world').toMatch(/world/)
+      expect('hello world').not.toMatch(/country/)
     })
 
     // Arrays and iterables
     test('.toContain()', () => {
       expect([1, 2, 3]).toContain(2)
+      expect([1, 2, 3]).not.toContain(4)
       expect('hello').toContain('ell')
+      expect('hello').not.toContain('world')
     })
 
     // Exceptions
@@ -244,9 +276,7 @@ describe('Jest Features Showcase', () => {
       expect(throwError).toThrow(Error)
       expect(throwError).toThrow('it broke')
       expect(throwError).toThrow(/broke/)
-    })
 
-    test('.not.toThrow()', () => {
       const nope = () => {}
       expect(nope).not.toThrow()
       expect(nope).not.toThrow(Error)
@@ -264,12 +294,6 @@ describe('Jest Features Showcase', () => {
       expect({ a: 1, b: 2 }).toEqual(expect.objectContaining({ a: 1 }))
       expect('long string').toEqual(expect.stringContaining('string'))
       expect('string with numbers 123').toEqual(expect.stringMatching(/[0-9]+/))
-    })
-
-    // .not
-    test('.not', () => {
-      expect(1).not.toBe(2)
-      expect({ a: 1 }).not.toEqual({ a: 2 })
     })
 
     // Assertions count

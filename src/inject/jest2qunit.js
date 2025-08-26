@@ -11,8 +11,6 @@
     }
   }
 
-  const debug = (...args) => console.log('🐞', ...args)
-
   const $raw = Symbol('raw')
   const unproxify = (value) => value && (value[$raw] ?? value)
 
@@ -80,53 +78,54 @@
         : JSON.stringify(value)
 
   const negate = method => method.startsWith('not')
-    ? method.charAt(4).toLowerCase() + method.substring(5)
+    ? method.charAt(3).toLowerCase() + method.substring(4)
     : 'not' + method.charAt(0).toUpperCase() + method.substring(1)
 
   const expectQUnit = params => {
-    let { not, operator, method = 'ok', value, expected, callback } = params
+    let { label = 'expect(result)', not, method, assert = 'ok', value, compute, expected, expectedLabel = stringify(expected) } = params
     if (expected) {
       expected = unproxify(expected)
     }
     if (not) {
-      method = negate(method)
+      assert = negate(assert)
     }
-    const message = `expect(result)${not ? '.not' : ''}.${operator}${!operator.includes('(') ? '(' + stringify(expected) + ')' : ''}`
+    const message = `${label}${not ? '.not' : ''}.${method}${!method.includes('(') ? '(' + expectedLabel + ')' : ''}`
     const parameters = []
-    if ('expected' in params && !['ok', 'notOk'].includes(method)) {
+    if ('expected' in params && !['ok', 'notOk'].includes(assert)) {
       parameters.push(expected)
     }
     parameters.push(message)
     return value && value.then
-      ? value.then(resolvedValue => QUnit.assert[method](callback ? callback(resolvedValue) : resolvedValue, ...parameters))
-      : QUnit.assert[method](callback ? callback(value) : value, ...parameters)
+      ? value.then(resolvedValue => QUnit.assert[assert](compute ? compute(resolvedValue) : resolvedValue, ...parameters))
+      : QUnit.assert[assert](compute ? compute(value) : value, ...parameters)
   }
 
-  const expect = (value) => {
+  const expect = (value, label) => {
     value = unproxify(value)
     let not = false
     const proxy = new Proxy({
-      toBe: (expected) => expectQUnit({ not, operator: 'toBe', method: 'equal', value, expected }),
-      toBeDefined: () => expectQUnit({ not, operator: 'toBeDefined()', method: 'notStrictEqual', value, expected: undefined }),
-      toBeUndefined: () => expectQUnit({ not, operator: 'toBeUndefined()', method: 'strictEqual', value, expected: undefined }),
-      toBeNull: () => expectQUnit({ not, operator: 'toBeNull()', method: 'strictEqual', value, expected: null }),
-      toBeNaN: () => expectQUnit({ not, operator: 'toBeNaN()', value, callback: value => isNaN(value) }),
-      toBeTruthy: () => expectQUnit({ not, operator: 'toBeTruthy()', value }),
-      toBeFalsy: () => expectQUnit({ not, operator: 'toBeFalsy()', value, callback: value => !value }),
-      toEqual: (expected) => expectQUnit({ not, operator: 'toEqual', method: 'deepEqual', value, expected }),
-      toStrictEqual: (expected) => expectQUnit({ not, operator: 'toStrictEqual', method: 'deepEqual', value, expected }),
-      toBeGreaterThan: (expected) => expectQUnit({ not, operator: 'toBeGreaterThan', value, callback: value => value > expected, expected }),
-      toBeGreaterThanOrEqual: (expected) => expectQUnit({ not, operator: 'toBeGreaterThanOrEqual', value, callback: value => value >= expected, expected }),
-      toBeLessThan: (expected) => expectQUnit({ not, operator: 'toBeLessThan', value, callback: value => value < expected, expected }),
-      toBeLessThanOrEqual: (expected) => expectQUnit({ not, operator: 'toBeLessThanOrEqual', value, callback: value => value <= expected, expected }),
-      toMatch: (expected) => expectQUnit({ not, operator: 'toMatch', value, callback: value => expected.test(value), expected }),
-      toContain: (expected) => expectQUnit({ not, operator: 'toContain', value, callback: value => value.includes(expected), expected }),
+      toBe: (expected) => expectQUnit({ label, not, method: 'toBe', assert: 'equal', value, expected }),
+      toBeDefined: () => expectQUnit({ label, not, method: 'toBeDefined()', assert: 'notStrictEqual', value, expected: undefined }),
+      toBeUndefined: () => expectQUnit({ label, not, method: 'toBeUndefined()', assert: 'strictEqual', value, expected: undefined }),
+      toBeNull: () => expectQUnit({ label, not, method: 'toBeNull()', assert: 'strictEqual', value, expected: null }),
+      toBeNaN: () => expectQUnit({ label, not, method: 'toBeNaN()', value, compute: value => isNaN(value) }),
+      toBeTruthy: () => expectQUnit({ label, not, method: 'toBeTruthy()', value }),
+      toBeFalsy: () => expectQUnit({ label, not, method: 'toBeFalsy()', value, compute: value => !value }),
+      toEqual: (expected) => expectQUnit({ label, not, method: 'toEqual', assert: 'deepEqual', value, expected }),
+      toStrictEqual: (expected) => expectQUnit({ label, not, method: 'toStrictEqual', assert: 'deepEqual', value, expected }),
+      toBeGreaterThan: (expected) => expectQUnit({ label, not, method: 'toBeGreaterThan', value, compute: value => value > expected, expected }),
+      toBeGreaterThanOrEqual: (expected) => expectQUnit({ label, not, method: 'toBeGreaterThanOrEqual', value, compute: value => value >= expected, expected }),
+      toBeLessThan: (expected) => expectQUnit({ label, not, method: 'toBeLessThan', value, compute: value => value < expected, expected }),
+      toBeLessThanOrEqual: (expected) => expectQUnit({ label, not, method: 'toBeLessThanOrEqual', value, compute: value => value <= expected, expected }),
+      toMatch: (expected) => expectQUnit({ label, not, method: 'toMatch', value, compute: value => expected.test(value), expected }),
+      toContain: (expected) => expectQUnit({ label, not, method: 'toContain', value, compute: value => value.includes(expected), expected }),
       // TODO: handle
       toThrow: (expected) => expectQUnit({
+        label,
         not,
-        operator: 'toThrow',
+        method: 'toThrow',
         value,
-        callback: value => {
+        compute: value => {
           try {
             value()
             return false
@@ -140,17 +139,18 @@
             return true
           }
         },
-        expected: typeof expected === 'function' ? expected.name : expected
+        expected,
+        expectedLabel: typeof expected === 'function' && expected.name ? expected.name : undefined
       }),
       toBeCloseTo: (expected, numDigits = 2) => {
         const factor = 10 ** numDigits
         const round = (x) => Math.floor(x * factor) / factor
-        return expectQUnit({ not, operator: 'toBeCloseTo', method: 'strictEqual', value: round(value), expected: round(expected) })
+        return expectQUnit({ label, not, method: 'toBeCloseTo', assert: 'strictEqual', value: round(value), expected: round(expected) })
       },
       // Not async
-      toHaveBeenCalled: () => expectQUnit({ not, operator: 'toHaveBeenCalled()', value, callback: value => value.called }),
-      toHaveBeenCalledTimes: (n) => expectQUnit({ not, operator: 'toHaveBeenCalledTimes', method: 'strictEqual', value, callback: value => value.callCount, expected: n }),
-      toHaveBeenCalledWith: (...args) => expectQUnit({ not, operator: `toHaveBeenCalledWith(${args.map(stringify).join(', ')})`, value, callback: value => value.calledWith(...args) })
+      toHaveBeenCalled: () => expectQUnit({ label, not, method: 'toHaveBeenCalled()', value, compute: value => value.called }),
+      toHaveBeenCalledTimes: (n) => expectQUnit({ label, not, method: 'toHaveBeenCalledTimes', assert: 'strictEqual', value, compute: value => value.callCount, expected: n }),
+      toHaveBeenCalledWith: (...args) => expectQUnit({ label, not, method: `toHaveBeenCalledWith(${args.map(stringify).join(', ')})`, value, compute: value => value.calledWith(...args) })
     }, {
       _type: 'expect',
       get,
@@ -165,7 +165,7 @@
         if (typeof value.then !== 'function') {
           Jest2QUnitError.throw('expected value must be thenable')
         }
-        return expect(value.then(value => value, reason => QUnit.assert.ok(false, reason)))
+        return expect(value.then(value => value, reason => QUnit.assert.ok(false, reason)), 'expect(result).resolves')
       },
       rejects () {
         if (not) {
@@ -174,7 +174,7 @@
         if (typeof value.then !== 'function') {
           Jest2QUnitError.throw('expected value must be thenable')
         }
-        return expect(value.then(() => QUnit.assert.ok(false, 'Promise should not be fulfilled'), reason => reason))
+        return expect(value.then(() => QUnit.assert.ok(false, 'Promise should not be fulfilled'), reason => reason), 'expect(result).rejects')
       }
     })
     return proxy
@@ -185,7 +185,6 @@
 
   const bddApi = (type, data) => {
     const { label } = data
-    debug(`${type}(${label ? '"' + label + '"' : ''})`)
     if (!currentDescribe[type]) {
       currentDescribe[type] = []
     }
@@ -266,7 +265,6 @@
     }
     parentDescribe.describe.push(currentDescribe)
 
-    debug(`describe("${label}")`)
     callback()
 
     currentDescribe = parentDescribe
