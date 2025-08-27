@@ -1,6 +1,6 @@
 'use strict'
 
-const { join } = require('path')
+const { join, isAbsolute } = require('path')
 const { readFile, writeFile } = require('fs').promises
 const zlib = require('zlib')
 const [,, reportDir] = process.argv
@@ -60,12 +60,15 @@ async function main () {
 
   const decompress = minifyJs(await readDefault('decompress.js'))
   log('📦 decompress      :', decompress.length)
-  const rawJob = require(join(process.cwd(), reportDir, 'job.js'))
+  const jobPath = isAbsolute(reportDir) ? reportDir : join(process.cwd(), reportDir)
+  log('📦 job path        :', jobPath)
+  const rawJob = require(join(jobPath, 'job.js'))
   const json = JSON.stringify(rawJob)
   log('📦 json            :', json.length)
   const buffer = zlib.gzipSync(json)
   const base64 = buffer.toString('base64')
   log('📦 json (Gzip/b64) :', base64.length)
+  log('📦 compression     :', (100 * base64.length / json.length).toFixed(2) + '%')
 
   await writeFile(join(reportDir, 'report.html'), html
     .replace(/(>|\}\})\r?\n\s*</g, (_, c) => `${c}<`)
