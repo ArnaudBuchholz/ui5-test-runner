@@ -184,7 +184,6 @@
   let currentDescribe = rootDescribe
 
   const bddApi = (type, data) => {
-    const { label } = data
     if (!currentDescribe[type]) {
       currentDescribe[type] = []
     }
