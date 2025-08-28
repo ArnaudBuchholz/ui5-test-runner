@@ -218,7 +218,7 @@ function checkAccess ({ path, label, file /*, write */ }) {
     // }
     accessSync(path, mode)
   } catch (error) {
-    throw new Error(`Unable to access ${label}, check your settings`)
+    throw new Error(`Unable to access ${label || path}, check your settings`)
   }
   const stat = statSync(path)
   if (file) {
