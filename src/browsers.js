@@ -14,8 +14,9 @@ let lastScreenshotId = 0
 const screenshots = {}
 
 async function instantiate (job, config) {
+  const output = getOutput(job)
   if (job.browserArgs.some((arg) => !arg.trim())) {
-    getOutput(job).emptyBrowserArg()
+    output.emptyBrowserArg()
     job.browserArgs = job.browserArgs.filter((arg) => arg.trim())
   }
   const { dir, url } = config
@@ -47,6 +48,9 @@ async function instantiate (job, config) {
       getOutput(job).browserFailed(url, code, dir)
     }
     resolve(code)
+  })
+  childProcess.on('error', err => {
+    output.browserChildProcessError(url, err)
   })
   childProcess.closed = promise
   childProcess.stdoutFilename = stdoutFilename

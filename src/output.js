@@ -494,6 +494,10 @@ function build (job) {
       browserIssue(job, { type: 'failed', url, code, dir })
     }),
 
+    browserChildProcessError: wrap((url, { code }) => {
+      log(job, p80()`⚠️ [BRWCPE] Child process error ${code}: ${pad.lt(url)}`)
+    }),
+
     skipIf: wrap(() => {
       log(job, p80()`⚠️ [SKIPIF] Skipping execution (--if)`)
     }),

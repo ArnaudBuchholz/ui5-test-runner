@@ -13,3 +13,4 @@
 | **BATCHM** | Displayed when a batch item is executed, see [Batch mode](https://arnaudbuchholz.github.io/ui5-test-runner/batch/). |
 | **HDLEAK** | Before terminating, the runner checks if any Node.js handle remains active that may prevent the shutdown. |
 | **EBWARG** | Empty browser argument filtered out. |
+| **BRWCPE** | Unexpected error issued by the browser child process. |
