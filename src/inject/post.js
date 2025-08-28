@@ -9,7 +9,6 @@
   const base = window['ui5-test-runner/base-host'] || ''
   const probe = window['ui5-test-runner/probe'] || false
   const batchSize = !probe && (window['ui5-test-runner/batch'] || 0)
-  const XHR = window.XMLHttpRequest
 
   let lastPost = Promise.resolve()
 
@@ -79,8 +78,26 @@
 
   const xPageUrl = top.location.toString()
 
-  function post (url, data) {
-    function request () {
+  const nativeFetch = window.fetch
+  let request
+  if (nativeFetch) {
+    request = async function (url, data) {
+      const response = await nativeFetch(base + '/_/' + url, {
+        method: 'POST',
+        headers: {
+          'x-page-url': xPageUrl,
+          'content-type': 'application/json'
+        },
+        body: stringify(data)
+      })
+      if (response.status !== 200) {
+        throw response.statusText
+      }
+      return response.text()
+    }
+  } else {
+    const XHR = window.XMLHttpRequest
+    request = function (url, data) {
       return new Promise(function (resolve, reject) {
         const xhr = new XHR()
         xhr.addEventListener('load', () => {
@@ -96,7 +113,10 @@
         xhr.send(json)
       })
     }
-    lastPost = lastPost.then(request)
+  }
+
+  function post (url, data) {
+    lastPost = lastPost.then(() => request(url, data))
     if (!window.__unsafe__) {
       lastPost = lastPost
         .then(undefined, function (reason) {

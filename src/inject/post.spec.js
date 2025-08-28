@@ -48,6 +48,7 @@ XMLHttpRequest.prototype = {
   }
 }
 
+global.window.fetch = undefined // TODO should also test it
 global.window.XMLHttpRequest = XMLHttpRequest
 
 require('./post')
