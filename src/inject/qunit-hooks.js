@@ -36,6 +36,10 @@
   }
 
   function installQUnitHooks () {
+    if (window !== window.top || window !== window.parent) {
+      return // Do not install in iframe
+    }
+
     QUnit.begin(function (details) {
       details.isOpa = isOpa()
       return post('QUnit/begin', details)
