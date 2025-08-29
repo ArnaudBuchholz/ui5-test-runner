@@ -81,10 +81,10 @@ describe('src/batch', () => {
   describe('configuration folder', () => {
     it('associates folder to current working directory', async () => {
       await batch({
-        cwd: join(__dirname, '..'),
+        cwd: join(__dirname, '../test'),
         parallel: 2,
         batch: [
-          'test/sample.js'
+          'sample.js'
         ]
       })
       expect(parallelize).toHaveBeenCalledWith(expect.any(Function), [{
@@ -130,21 +130,21 @@ describe('src/batch', () => {
   describe('error handling', () => {
     it('generates a warning when a file is not suffixed with .json', async () => {
       await batch({
-        cwd: join(__dirname, '..'),
+        cwd: join(__dirname, '../test'),
         parallel: 2,
         batch: [
-          'test/e2e/check.js'
+          'e2e/check.js'
         ]
       })
       expect(parallelize).not.toHaveBeenCalled()
-      expect(getOutput({}).batchFailed).toHaveBeenCalledWith('test/e2e/check.js', 'only folders and JSON configuration files are supported')
+      expect(getOutput({}).batchFailed).toHaveBeenCalledWith('e2e/check.js', 'only folders and JSON configuration files are supported')
       expect(getOutput({}).batchFailed).toHaveBeenCalledWith(expect.any(Array), 'no match')
     })
 
     it('generates a warning when a configuration file is not a valid JSON', async () => {
       const path = join(__dirname, '../test/not_a_valid_json.json')
       await batch({
-        cwd: join(__dirname, '..'),
+        cwd: join(__dirname, '../test'),
         parallel: 2,
         batch: [
           path
@@ -157,7 +157,7 @@ describe('src/batch', () => {
 
     it('generates a warning when the regular expression is invalid', async () => {
       await batch({
-        cwd: join(__dirname, '..'),
+        cwd: join(__dirname, '../test'),
         parallel: 2,
         batch: [
           '*'
@@ -170,10 +170,10 @@ describe('src/batch', () => {
 
     it('generates a warning when no batch item is matching', async () => {
       await batch({
-        cwd: join(__dirname, '..'),
+        cwd: join(__dirname, '../test/e2e'),
         parallel: 2,
         batch: [
-          'test/e2e/NOPE.json'
+          'NOPE.json'
         ]
       })
       expect(parallelize).not.toHaveBeenCalled()
