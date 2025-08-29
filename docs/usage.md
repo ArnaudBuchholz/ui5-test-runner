@@ -30,6 +30,8 @@ Check additional information below.
 | --env &lt;name=value...> | 💻🔗🧪📡 | Set environment variable| |
 | --localhost &lt;host> | 💻🔗🧪📡 | [💣 use carefully] Hostname for legacy URLs and callbacks|`"localhost"` |
 | --ci [flag] | 💻🔗🧪📡 | CI mode (no interactive output)|`false` |
+| --deep-probe [flag] | 💻🔗🧪📡 | Deep probe (recursive, slower)|`false` |
+| --probe-parallel &lt;count> | 💻🔗🧪📡 | Number of parallel probes (0 to use --parallel)|`0` |
 | --webapp &lt;path> | 💻🔗 | Base folder of the web application (relative to cwd)|`"webapp"` |
 | -pf, --page-filter &lt;regexp> | 💻🔗📡 | Filter out pages not matching the regexp| |
 | -pp, --page-params &lt;params> | 💻🔗📡 | Add parameters to page URL| |
@@ -42,6 +44,8 @@ Check additional information below.
 | -so, --split-opa [flag] | 💻🔗📡 | Split OPA tests using QUnit modules|`false` |
 | -rg, --report-generator &lt;path...> | 💻🔗📡 | Report generator paths (relative to cwd or use $/ for provided ones)|`["$/report.js"]` |
 | --progress-page &lt;path> | 💻🔗📡 | Progress page path (relative to cwd or use $/ for provided ones)|`"$/report/default.html"` |
+| --jest [flag] | 💻🔗📡 | [⚠️ experimental] Simulate jest environment| |
+| --qunit-batch-size &lt;size> | 💻🔗📡 | [⚠️ experimental] QUnit hooks batch size (disables screenshots)|`0` |
 | --coverage [flag] | 💻🔗📡 | Enable or disable code coverage| |
 | --no-coverage | 💻🔗📡 | Disable code coverage| |
 | -cs, --coverage-settings &lt;path> | 💻🔗📡 | Path to a custom .nycrc.json file providing settings for instrumentation (relative to cwd or use $/ for provided ones)|`"$/.nycrc.json"` |
