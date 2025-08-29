@@ -76,7 +76,7 @@ async function main () {
     .replace('<script src="/_/punyexpr.js"></script>', `<script>${punyexpr}</script>`)
     .replace('<script src="/_/punybind.js"></script>', `<script>${punybind}</script>`)
     .replace('<script src="/_/report/common.js"></script>', `<script>${common}</script>`)
-    .replace('<script src="/_/report/main.js"></script>', `<script>const module={};${decompress};let job={};decompress("${base64}").then(json=>{job=json});${main}</script>`)
+    .replace('<script src="/_/report/main.js"></script>', `<script>${decompress};let job={};decompress("${base64}").then(json=>{job=json;report.ready.then(update=>update({...json,elapsed:report.elapsed}))});${main}</script>`)
   )
   log('✅ generated.')
 }
