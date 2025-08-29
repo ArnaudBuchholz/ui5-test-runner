@@ -1,5 +1,5 @@
 /* global DecompressionStream */
-// eslint-disable-next-line no-unused-vars
+/* eslint-disable-next-line no-unused-vars */
 async function decompress (base64) {
   const bin = atob(base64)
   const uint8Array = new Uint8Array(bin.length)
