@@ -1,3 +1,5 @@
+/* global DecompressionStream */
+
 'use strict'
 
 const { parseArgs } = require('node:util')
@@ -65,12 +67,17 @@ async function main () {
     virtualConsole.on('jsdomError', (error) => {
       errors.push(error)
     })
-    const dom = new JSDOM(reportHtml, { runScripts: 'dangerously', virtualConsole })
+    const dom = new JSDOM(reportHtml, {
+      runScripts: 'dangerously',
+      virtualConsole,
+      beforeParse: (window) => Object.assign(window, { DecompressionStream, ReadableStream, Response })
+    })
     if (errors.length > 0) {
       assert.fail(`Errors in report.html: ${errors.join('\n')}`)
     }
     await new Promise((resolve) => setTimeout(resolve, 100)) // Wait for the report to be updated
     assert.strictEqual(dom.window.document.querySelector('h1').textContent, 'Test report', 'Report title is correct')
+    assert.strictEqual(dom.window.document.querySelector('div.elapsed').textContent.includes('Duration'), true, 'Report duration is displayed')
   }
 
   if (qunitPages) {
