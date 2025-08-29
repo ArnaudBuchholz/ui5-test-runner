@@ -65,9 +65,10 @@
               'circular:array': [].concat(value) // 'new' object
             }
           }
-          return Object.assign({
-            'circular:id': id
-          }, value)
+          return {
+            'circular:id': id,
+            ...value
+          }
         }
       }
       return value
