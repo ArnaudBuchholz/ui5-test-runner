@@ -4,7 +4,8 @@
   "description": "Standalone test runner for UI5",
   "main": "index.js",
   "bin": {
-    "ui5-test-runner": "./index.js"
+    "ui5-test-runner": "./index.js",
+    "fetch-maven-deps": "./indexMaven.js"
   },
   "engines": {
     "node": ">=18"
@@ -23,7 +24,9 @@
     "test:text-report": "node ./src/defaults/text-report.js ./test/report",
     "build:doc": "node build/doc",
     "clean": "npm uninstall -g ui5-test-runner puppeteer nyc selenium-webdriver playwright webdriverio jsdom",
-    "update": "ncu -i --format group"
+    "update": "ncu -i --format group",
+    "=============== LOCAL DEVELOPMENT ====================": "",
+    "refreshNode": "rm -rf package-lock.json && rm -rf node_modules && npm install"
   },
   "repository": {
     "type": "git",
@@ -63,7 +66,12 @@
     "rimraf": "^6.0.1",
     "standard": "^17.1.2",
     "typescript": "^5.8.3",
-    "ui5-tooling-transpile": "^3.8.0"
+    "adm-zip": "^0.5.12",
+    "js-yaml": "^4.1.0",
+    "ui5-tooling-transpile": "^3.8.0",
+    "xml2js": "^0.6.2",
+    "yargs": "^17.7.2",
+    "start-server-and-test": "^2.0.3"
   },
   "optionalDependencies": {
     "fsevents": "^2.3.3"
