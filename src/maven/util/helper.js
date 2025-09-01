@@ -205,5 +205,8 @@ module.exports = {
     incrementLogIndex: () => { return _incrementLogIndex(); },
     readCLIArgs: async () => { return await _readCLIArgs(); },
     parseString: async (xml) => { return await _parseString(xml); },
-    compareVersions: (version1, version2) => { return _compareVersions(version1, version2); }
+    compareVersions: (version1, version2) => { return _compareVersions(version1, version2); },
+    isInRange: (min, max) => _buildVersionFilter(`[${min},${max})`),
+    _millisToMinutesAndSeconds: (millis) => { return _millisToMinutesAndSeconds(millis); }
 };
+    
