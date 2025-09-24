@@ -10,6 +10,7 @@ const {
 } = require('./symbols')
 const { filename, noop, pad } = require('./tools')
 const os = require('os')
+const { describeHandle } = require('./clean')
 
 const $output = Symbol('output')
 const $outputStart = Symbol('output-start')
@@ -134,6 +135,15 @@ function progress (job, cleanFirst = true) {
     const { rss, heapTotal, heapUsed, external, arrayBuffers } = memoryUsage()
     const fmt = size => `${(size / (1024 * 1024)).toFixed(2)}M`
     sequence.push(`MEM r:${fmt(rss)}, h:${fmt(heapUsed)}/${fmt(heapTotal)}, x:${fmt(external)}, a:${fmt(arrayBuffers)}\n`)
+  }
+  if (job.debugHandles) {
+    ++output.lines
+    const activeHandles = process._getActiveHandles ? process._getActiveHandles() : []
+    sequence.push(`HANDLES ${activeHandles.length}\n`)
+    for (const handle of activeHandles) {
+      ++output.lines
+      sequence.push(`\t${describeHandle(handle).label}\n`)
+    }
   }
   if (job[$outputProgress]) {
     output.lines += job[$outputProgress].length

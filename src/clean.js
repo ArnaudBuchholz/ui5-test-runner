@@ -1,27 +1,43 @@
 const { getOutput } = require('./output')
+const { ServerResponse } = require('http')
 
 module.exports = {
+  describeHandle (handle) {
+    const className = handle && handle.constructor && handle.constructor.name
+    let label = className
+    if (['TLSSocket', 'Socket'].includes(className)) {
+        if (handle._httpMessage instanceof ServerResponse) {
+          const { path, method, host, protocol } = handle._httpMessage.req
+          label += ` HTTP ${method} ${protocol}//${host}${path}`
+        } else if (handle.localAddress) {
+          const { localAddress, localPort, remoteAddress, remotePort } = handle
+          label += ` from ${localAddress}:${localPort} to ${remoteAddress}:${remotePort}`
+        // } else {
+
+        }
+    } else if (className === 'WriteStream') {
+      label += ` columns: ${handle.columns} rows: ${handle.rows} fd: ${handle.fd} isTTY: ${handle.isTTY}`
+    } else if (className === 'Server') {
+      label += ` connections: ${handle._connections} events: ${handle._eventsCount}`
+    } else if (className === 'ChildProcess') {
+      label += ` pid: ${handle.pid} ${handle.spawnfile}`
+    }
+    return { className, label }
+  },
+
   cleanHandles (job) {
     const output = getOutput(job)
     const activeHandles = process._getActiveHandles ? process._getActiveHandles() : []
     let displayWarning = true
     for (const handle of activeHandles) {
-      const className = handle && handle.constructor && handle.constructor.name
-      output.debug('handle', 'active handle', className)
-      if (className === 'TLSSocket') {
+      const { className, label } = describeHandle(handle)
+      output.debug('handle', 'active handle', label)
+      if (className === 'TLSSocket' || className === 'Socket') {
         if (displayWarning) {
           displayWarning = false
           output.detectedLeakOfHandles()
         }
-        let info
-        if (handle._httpMessage) {
-          const { path, method, host, protocol } = handle._httpMessage
-          info = `${method} ${protocol}//${host}${path}`
-        } else {
-          const { localAddress, localPort, remoteAddress, remotePort } = handle
-          info = `from ${localAddress}:${localPort} to ${remoteAddress}:${remotePort}`
-        }
-        output.debug('handle', 'TLS socket', info)
+        output.debug('handle', className, label)
         handle.destroy()
       }
     }
