@@ -10,7 +10,7 @@ const {
 } = require('./symbols')
 const { filename, noop, pad } = require('./tools')
 const os = require('os')
-const { describeHandle } = require('./clean')
+const { describeHandle } = require('./handle')
 
 const $output = Symbol('output')
 const $outputStart = Symbol('output-start')

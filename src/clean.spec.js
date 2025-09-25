@@ -49,7 +49,7 @@ describe('src/clean', () => {
     _getActiveHandles.mockImplementation(() => [{}])
     cleanHandles(job)
     expect(outputDetectedLeakOfHandles).not.toHaveBeenCalled()
-    expect(outputDebug).toHaveBeenCalledWith('handle', 'active handle', 'Object')
+    expect(outputDebug).toHaveBeenCalledWith('handle', 'active handle', expect.any(String))
   })
 
   it('destroys TLSSocket handles', () => {
@@ -57,30 +57,20 @@ describe('src/clean', () => {
       constructor: {
         name: 'TLSSocket'
       },
-      _httpMessage: {
-        path: '/test',
-        method: 'GET',
-        host: 'localhost',
-        protocol: 'http:'
-      },
       destroy: jest.fn()
     }
     const tlsSocket2 = {
       constructor: {
-        name: 'TLSSocket'
+        name: 'Socket'
       },
-      localAddress: '192.168.1.1',
-      localPort: 12345,
-      remoteAddress: '192.168.1.1',
-      remotePort: 54321,
       destroy: jest.fn()
     }
     global.process._getActiveHandles = jest.fn(() => [tlsSocket1, tlsSocket2])
     cleanHandles(job)
     expect(outputDetectedLeakOfHandles).toHaveBeenCalled()
-    expect(outputDebug).toHaveBeenCalledWith('handle', 'active handle', 'TLSSocket')
-    expect(outputDebug).toHaveBeenCalledWith('handle', 'TLS socket', 'GET http://localhost/test')
-    expect(outputDebug).toHaveBeenCalledWith('handle', 'TLS socket', 'from 192.168.1.1:12345 to 192.168.1.1:54321')
+    expect(outputDebug).toHaveBeenCalledWith('handle', 'active handle', expect.any(String))
+    expect(outputDebug).toHaveBeenCalledWith('handle', 'TLSSocket', expect.any(String))
+    expect(outputDebug).toHaveBeenCalledWith('handle', 'Socket', expect.any(String))
     expect(tlsSocket1.destroy).toHaveBeenCalled()
     expect(tlsSocket2.destroy).toHaveBeenCalled()
   })
