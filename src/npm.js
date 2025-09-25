@@ -80,7 +80,9 @@ function getSafeJobAndOutput (nullableJob) {
     return { job: nullableJob, output: getOutput(nullableJob) }
   }
   return {
-    job: {},
+    job: {
+      offline: true
+    },
     output: {
       debug: noop,
       resolvedPackage: noop,
