@@ -140,9 +140,16 @@ function progress (job, cleanFirst = true) {
     ++output.lines
     const activeHandles = process._getActiveHandles ? process._getActiveHandles() : []
     sequence.push(`HANDLES ${activeHandles.length}\n`)
-    for (const handle of activeHandles) {
+    for (let index = 0; index < activeHandles.length; ++index) {
+      const handle = activeHandles[index];
+      let bullet = index === activeHandles.length - 1 ? '└' : '├';
       ++output.lines
-      sequence.push(`\t${describeHandle(handle).label}\n`)
+      const handleDescription = describeHandle(handle).label
+      if (handleDescription.length > process.stdout.columns - 4) {
+        sequence.push(`${bullet}─ ${handleDescription.slice(0, process.stdout.columns - 4)}\n`)
+      } else {
+        sequence.push(`${bullet}─ ${handleDescription}\n`)
+      }
     }
   }
   if (job[$outputProgress]) {
