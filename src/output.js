@@ -141,8 +141,8 @@ function progress (job, cleanFirst = true) {
     const activeHandles = process._getActiveHandles ? process._getActiveHandles() : []
     sequence.push(`HANDLES ${activeHandles.length}\n`)
     for (let index = 0; index < activeHandles.length; ++index) {
-      const handle = activeHandles[index];
-      let bullet = index === activeHandles.length - 1 ? '└' : '├';
+      const handle = activeHandles[index]
+      const bullet = index === activeHandles.length - 1 ? '└' : '├'
       ++output.lines
       const handleDescription = describeHandle(handle).label
       if (handleDescription.length > process.stdout.columns - 4) {
