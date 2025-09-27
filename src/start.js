@@ -2,9 +2,7 @@ const { exec } = require('child_process')
 const { stat, readFile } = require('fs/promises')
 const { join } = require('path')
 const { getOutput } = require('./output')
-const psTreeNodeCb = require('ps-tree')
-const { promisify } = require('util')
-const psTree = promisify(psTreeNodeCb)
+const pidtree = require('pidtree')
 
 async function start (job) {
   const { startWaitUrl: url, startWaitMethod: method } = job
@@ -40,23 +38,23 @@ async function start (job) {
     }
   }
 
-  let childProcessExited = false
+  let startProcessExited = false
   output.debug('start', 'Starting command :', start)
-  const childProcess = exec(start, {
+  const startProcess = exec(start, {
     cwd: job.cwd,
     windowsHide: true
   })
-  childProcess.on('close', () => {
-    output.debug('start', 'start command process exited')
-    childProcessExited = true
+  startProcess.on('close', () => {
+    output.debug('start', 'Start command process exited')
+    startProcessExited = true
   })
-  output.monitor(childProcess)
+  output.monitor(startProcess)
 
   job.status = 'Waiting for URL to be reachable'
 
   const begin = Date.now()
   // eslint-disable-next-line no-unmodified-loop-condition
-  while (!childProcessExited && Date.now() - begin <= job.startTimeout) {
+  while (!startProcessExited && Date.now() - begin <= job.startTimeout) {
     try {
       const response = await fetch(url, { method })
       output.debug('start', url, response.status)
@@ -69,20 +67,59 @@ async function start (job) {
     }
   }
 
-  if (childProcessExited) {
-    throw new Error(`Start command failed with exit code ${childProcess.exitCode}`)
+  if (startProcessExited) {
+    throw new Error(`Start command failed with exit code ${startProcess.exitCode}`)
   }
 
   const stop = async () => {
-    output.debug('start', 'Getting child processes...')
-    const childProcesses = await psTree(childProcess.pid)
-    for (const child of childProcesses) {
-      output.debug('start', 'Terminating process', child.PID)
-      try {
-        process.kill(child.PID, 'SIGKILL')
-      } catch (e) {
-        output.debug('start', 'Failed to terminate process', child.PID, ':', e)
+    job.status = 'Terminating start command'
+    const begin = new Date()
+    while (!startProcessExited && Date.now() - begin <= job.startTimeout) {
+      output.debug('start', `Getting start command ${startProcess.pid} child processes...`)
+      const childProcesses = await pidtree(startProcess.pid, { advanced: true })
+      output.debug('start', 'Child processes', JSON.stringify(childProcesses))
+      if (childProcesses.length === 0) {
+        try {
+          output.debug('start', 'Terminating start command')
+          process.kill(startProcess.pid, 'SIGKILL')
+        } catch (e) {
+          output.debug('start', 'Failed to terminate start command', startProcess.pid, ':', e)
+        }
+      } else {
+        const depth = {}
+        let deepest = 1
+        let deepless = childProcesses.length
+        while (deepless > 0) {
+          for (const { ppid, pid } of childProcesses) {
+            if (ppid == startProcess.pid) {
+              depth[pid] = 1
+              --deepless
+            } else {
+              const parentDepth = depth[ppid]
+              if (parentDepth !== undefined) {
+                depth[pid] = parentDepth + 1
+                deepest = Math.max(deepest, parentDepth + 1)
+                --deepless
+              }
+            }
+          }
+        }
+        output.debug('start', 'Child processes', JSON.stringify(depth), 'terminating', deepest)
+        for (const { pid } of childProcesses) {
+          if (depth[pid] === deepest) {
+            output.debug('start', 'Terminating start child process', pid)
+            try {
+              process.kill(pid, 'SIGKILL')
+            } catch (e) {
+              output.debug('start', 'Failed to terminate start child process', pid, ':', e)
+            }
+          }
+        }
       }
+      await new Promise(resolve => setTimeout(resolve, 250))
+    }
+    if (!startProcessExited) {
+      output.failedToTerminateStartCommand()
     }
   }
 

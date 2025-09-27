@@ -457,7 +457,7 @@ function build (job) {
     },
 
     packageNotLatest (name, latestVersion) {
-      wrap(() => log(job, `⚠️ [PKGVRS] latest version of ${name} is ${latestVersion}`))()
+      wrap(() => log(job, `⚠️ [PKGVRS] Latest version of ${name} is ${latestVersion}`))()
     },
 
     emptyBrowserArg () {
@@ -465,7 +465,11 @@ function build (job) {
     },
 
     detectedLeakOfHandles () {
-      wrap(() => log(job, '⚠️ [HDLEAK] leaking Node.js handle(s) detected. This may cause issues with the shutdown'))()
+      wrap(() => log(job, '⚠️ [HDLEAK] Leaking Node.js handle(s) detected. This may cause issues with the shutdown'))()
+    },
+
+    failedToTerminateStartCommand () {
+      wrap(() => log(job, '⚠️ [STRTCT] Failed to terminate start command. This may cause issues with the shutdown'))()
     },
 
     browserStart (url) {

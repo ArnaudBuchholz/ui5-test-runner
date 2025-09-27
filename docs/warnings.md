@@ -11,6 +11,7 @@
 | **SKIPIF** | When the condition specified using `--if` returns a [falsy value](https://developer.mozilla.org/en-US/docs/Glossary/Falsy), the runner execution is skipped. |
 | **BATCHF** | Invalid batch (`--batch`) specification, reason is specified in the trace. |
 | **BATCHM** | Displayed when a batch item is executed, see [Batch mode](https://arnaudbuchholz.github.io/ui5-test-runner/batch/). |
+| **STRTCT** | Failed to terminate start command. |
 | **HDLEAK** | Before terminating, the runner checks if any Node.js handle remains active that may prevent the shutdown. |
 | **EBWARG** | Empty browser argument filtered out. |
 | **BRWCPE** | Unexpected error issued by the browser child process. |

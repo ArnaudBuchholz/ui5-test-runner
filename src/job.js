@@ -149,10 +149,11 @@ function getCommand (cwd) {
     .option('-w, --watch [flag]', '[💻🔗] Monitor the webapp folder (or the one specified with --watch-folder) and re-execute tests on change', boolean, false)
     .option('--watch-folder <path>', '[💻🔗] Folder to monitor with watch (enables --watch if not specified)', string)
 
-    .option('--start <command>', '[💻🔗] Start command (might be an NPM script or a shell command)', string)
+    .option('--start <command>', '[💻🔗] Start command (might be an NPM script or a shell command) ⚠️ the command is killed on tests completion', string)
     .option('--start-wait-url <command>', '[💻🔗] URL to wait for (🔗 defaulted to first url)', url)
     .option('--start-wait-method <method>', '[💻🔗] HTTP method to check the waited URL', 'GET')
-    .option('--start-timeout <timeout>', '[💻🔗] Maximum waiting time for the start command (based on when the first URL becomes available)', timeout, 5000)
+
+    .option('--start-timeout <timeout>', '[💻🔗] Maximum waiting time for the start command (based on when the first URL becomes available, also used for termination)', timeout, 5000)
 
     .option('--end <script>', '[💻🔗] End script (will receive path to `job.js`)', string)
     .option('--end-timeout <timeout>', '[💻🔗] Maximum waiting time for the end script', timeout, 15000)

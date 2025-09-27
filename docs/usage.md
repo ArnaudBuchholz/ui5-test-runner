@@ -60,10 +60,10 @@ Check additional information below.
 | -s, --serve-only [flag] | 💻🔗 | Serve only|`false` |
 | -w, --watch [flag] | 💻🔗 | Monitor the webapp folder (or the one specified with --watch-folder) and re-execute tests on change|`false` |
 | --watch-folder &lt;path> | 💻🔗 | Folder to monitor with watch (enables --watch if not specified)| |
-| --start &lt;command> | 💻🔗 | Start command (might be an NPM script or a shell command)| |
+| --start &lt;command> | 💻🔗 | Start command (might be an NPM script or a shell command) ⚠️ the command is killed on tests completion| |
 | --start-wait-url &lt;command> | 💻🔗 | URL to wait for (🔗 defaulted to first url)| |
 | --start-wait-method &lt;method> | 💻🔗 | HTTP method to check the waited URL|`"GET"` |
-| --start-timeout &lt;timeout> | 💻🔗 | Maximum waiting time for the start command (based on when the first URL becomes available)|`5000` |
+| --start-timeout &lt;timeout> | 💻🔗 | Maximum waiting time for the start command (based on when the first URL becomes available, also used for termination)|`5000` |
 | --end &lt;script> | 💻🔗 | End script (will receive path to `job.js`)| |
 | --end-timeout &lt;timeout> | 💻🔗 | Maximum waiting time for the end script|`15000` |
 | --ui5 &lt;url> | 💻📡 | UI5 url|`"https://ui5.sap.com"` |
