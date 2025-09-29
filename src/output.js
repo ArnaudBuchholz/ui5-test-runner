@@ -294,7 +294,7 @@ function build (job) {
 | |_| | |___) |_____| ||  __/\\__ \\ ||_____| |  | |_| | | | | | | |  __/ |   
  \\__,_|_|____/       \\__\\___||___/\\__|    |_|   \\__,_|_| |_|_| |_|\\___|_|   `)
       const now = new Date()
-      log(job, p80()`${name}@${version} / ${now.toISOString()} / ${now.toString()}`)
+      log(job, p80()`${name}@${version} / Node.js ${process.version} / ${now.toISOString()} (${now.getTimezoneOffset()})`)
       const cpus = {}
       for (const { model } of os.cpus()) {
         if (cpus[model]) {
