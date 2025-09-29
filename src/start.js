@@ -74,6 +74,7 @@ async function start (job) {
   const stop = async () => {
     job.status = 'Terminating start command'
     const begin = new Date()
+    // eslint-disable-next-line no-unmodified-loop-condition
     while (!startProcessExited && Date.now() - begin <= job.startTimeout) {
       output.debug('start', `Getting start command ${startProcess.pid} child processes...`)
       const childProcesses = await pidtree(startProcess.pid, { advanced: true })
@@ -91,7 +92,7 @@ async function start (job) {
         let deepless = childProcesses.length
         while (deepless > 0) {
           for (const { ppid, pid } of childProcesses) {
-            if (ppid == startProcess.pid) {
+            if (ppid === startProcess.pid) {
               depth[pid] = 1
               --deepless
             } else {
