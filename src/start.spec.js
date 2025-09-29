@@ -1,13 +1,23 @@
 const { mock: mockChildProcess } = require('child_process')
 const { join } = require('path')
 const { start } = require('./start')
+const pidtree = require('pidtree')
 
-jest.mock('ps-tree', () => (_, cb) => cb(null, [{
-  PID: 1
-}, {
-  PID: 2
-}]))
+jest.mock('pidtree', () => jest.fn())
 jest.spyOn(process, 'kill')
+jest.mock('./output', () => {
+  const output = new Proxy({}, {
+    get (target, property) {
+      if (!target[property]) {
+        target[property] = jest.fn()
+      }
+      return target[property]
+    }
+  })
+  return {
+    getOutput: () => output
+  }
+})
 
 describe('src/start', () => {
   let job
@@ -18,10 +28,13 @@ describe('src/start', () => {
 
   beforeEach(() => {
     process.kill.mockClear()
+    process.kill.mockImplementation(() => {})
+    pidtree.mockClear()
+    pidtree.mockImplementation(() => [])
     returnUrlAnswerAfter = 500 // ms
     job = {
       cwd: __dirname,
-      startTimeout: 5000,
+      startTimeout: 1000,
       startWaitUrl: VALID_URL,
       startCommand: 'start'
     }
@@ -110,10 +123,19 @@ describe('src/start', () => {
   })
 
   it('stops the command by killing all children processes', async () => {
+    const pids = [{ ppid: 0, pid: 1 }, { ppid: 0, pid: 2 }, { ppid: 1, pid: 3 }]
+    pidtree.mockImplementation(() => pids)
+    process.kill.mockImplementation((pidToKill) => {
+      const index = pids.findIndex(({ pid }) => pid === pidToKill)
+      expect(index).not.toEqual(-1)
+      pids.splice(index, 1)
+    })
     const started = await start(job)
+    job.startTimeout = 1000
     await started.stop()
-    expect(process.kill).toHaveBeenCalledTimes(2)
+    expect(process.kill).toHaveBeenNthCalledWith(1, 3, 'SIGKILL')
     expect(process.kill).toHaveBeenCalledWith(1, 'SIGKILL')
     expect(process.kill).toHaveBeenCalledWith(2, 'SIGKILL')
+    expect(process.kill).toHaveBeenNthCalledWith(4, 0, 'SIGKILL')
   })
 })
