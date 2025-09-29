@@ -683,6 +683,15 @@ function build (job) {
       } else {
         log(job, p`│ ${pad.w(error.toString())} │`)
       }
+      if (error.cause) {
+        log(job, p`├────────${pad.x('─')}──┤`)
+        log(job, p`│ Cause : ${pad.x(' ')} │`)
+        if (error.cause.stack) {
+          log(job, p`│ ${pad.w(error.cause.stack)} │`)
+        } else {
+          log(job, p`│ ${pad.w(error.cause.toString())} │`)
+        }
+      }
       log(job, p`└──────────${pad.x('─')}┘`)
     }),
 

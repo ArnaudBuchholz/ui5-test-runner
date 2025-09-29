@@ -169,7 +169,7 @@ async function buildAllIndex (job) {
       await writeFile(join(job.coverageTempDir, 'all-index.json'), `{${index.join(',')}}`)
     }
   } catch (e) {
-    output.genericError(e)
+    output.genericError(e, e.url)
     output.noInfoForAllCoverage()
   } finally {
     progress.done()
