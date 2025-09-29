@@ -83,6 +83,7 @@ class ChildProcess extends EventEmitter {
     }
   }
 
+  get pid () { return 0 }
   get api () { return this._api }
   get scriptPath () { return this._scriptPath }
   get args () { return this._args }
