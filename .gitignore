@@ -26,6 +26,8 @@ node_modules/
 
 .env
 
+dist/
+
 # generated during tests
 tmp/
 e2e/
