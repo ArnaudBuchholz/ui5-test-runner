@@ -15,7 +15,7 @@
     "test:samples": "npm run test:samples:js && npm run test:samples:ts",
     "test:samples:js": "npm run test:sample:js:legacy && npm run test:sample:js:coverage:legacy && npm run test:sample:js:legacy-remote && npm run test:sample:js:coverage:legacy-remote && npm run test:sample:js:remote && npm run test:sample:js:coverage:remote && npm run test:sample:js:basic-authent && npm run test:sample:js:legacy:split-opa && npm run test:sample:js:remote:split-opa",
     "test:coverall": "rimraf .nyc_output && jest --coverageDirectory .nyc_output --coverageReporters json && nyc --silent --no-clean npm run test:e2e && nyc merge .nyc_output .nyc_output/final/coverage.json && nyc report --temp-dir .nyc_output/final/ --report-dir coverage --branches 80 --functions 80 --lines 80 --statements 80",
-    "test:unit": "jest",
+    "test:unit": "vitest run",
     "test:unit:debug": "node --inspect node_modules/jest/bin/jest.js --runInBand --no-coverage",
     "pretest:e2e": "npm install -g puppeteer selenium-webdriver playwright webdriverio jsdom",
     "test:e2e": "node . --batch \"test/e2e/[\\w_]*\\.json\" --report-dir e2e --start \"node test/e2e/serve.js\" --start-wait-url http://localhost:8081 --start-wait-method HEAD --start-timeout 30s",
