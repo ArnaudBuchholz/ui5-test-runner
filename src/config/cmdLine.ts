@@ -1,7 +1,17 @@
 import type { Config } from './Config.js';
+import { finalizeConfig as finalizeConfigImpl } from './finalize.js';
 
-export const fromCmdLine = (cwd: string, argv: string[]): Config => {
-  const config: Config = { cwd };
+export const fromCmdLine = async (
+  cwd: string,
+  argv: string[],
+  {
+    finalizeConfig,
+    platform
+  }: {
+    finalizeConfig?: typeof finalizeConfigImpl,
+    platform?: Parameters<typeof finalizeConfigImpl>[1]
+  } = {}) => {
+  const config: Partial<Config> = { cwd };
 
-  return config;
+  return await (finalizeConfig ?? finalizeConfigImpl)(config, platform);
 };
