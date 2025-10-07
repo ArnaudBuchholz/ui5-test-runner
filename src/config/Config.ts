@@ -15,7 +15,17 @@ export const options = [
     description: 'Port to use (0 to use any free one)',
     default: 0,
     type: 'integer'
-  }
+  },
+  {
+    name: 'version',
+    description: 'Shows version',
+    type: 'boolean',
+  },
+  {
+    name: 'help',
+    description: 'Shows help',
+    type: 'boolean',
+  },
 ] as const;
 
 export type Config = {

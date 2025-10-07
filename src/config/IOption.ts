@@ -5,7 +5,7 @@ export const OptionType = {
   url: 'url',
   boolean: 'boolean',
   timeout: 'timeout',
-  integer: 'integer'
+  integer: 'integer',
 } as const;
 
 export type OptionType = (typeof OptionType)[keyof typeof OptionType];

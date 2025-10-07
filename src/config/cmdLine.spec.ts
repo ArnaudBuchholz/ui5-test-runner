@@ -1,9 +1,40 @@
-import { it, expect } from 'vitest';
+import { it, expect, vi, beforeEach } from 'vitest';
 import { fromCmdLine } from './cmdLine.js';
-import type { IJobConfig } from './Config.js';
+import { Modes } from './modes.js';
 
-it('copies cwd', () => {
-  expect(fromCmdLine('/usr/test', [])).toStrictEqual<IJobConfig>({
-    cwd: '/usr/test'
+const CWD = '/usr/test';
+
+const finalizeConfig = vi.fn().mockImplementation(async (value) => value);
+
+beforeEach(() => {
+  finalizeConfig.mockClear();
+});
+
+it('forwards partial config to finalizeConfig', async () => {
+  await fromCmdLine(CWD, [], { finalizeConfig });
+  expect(finalizeConfig).toHaveBeenCalled();
+});
+
+it('returns the result of finalizeConfig', async () => {
+  const uniqueObject = { uid: Date.now() };
+  finalizeConfig.mockResolvedValueOnce(uniqueObject);
+  const result = await fromCmdLine(CWD, [], { finalizeConfig });
+  expect(result).toStrictEqual(uniqueObject);
+});
+
+it('copies cwd', async () => {
+  await expect(fromCmdLine(CWD, [])).resolves.toStrictEqual({
+    cwd: CWD
+  });
+});
+
+it('fails on unknown long option', async () => {
+  await expect(fromCmdLine(CWD, ['--unknown'])).rejects.toThrowError('Unknown option');
+});
+
+it('sets boolean option', async () => {
+  await expect(fromCmdLine(CWD, ['--help'])).resolves.toStrictEqual({
+    cwd: CWD,
+    help: true
   });
 });
