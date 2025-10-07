@@ -2,15 +2,23 @@ import { getPlatformSingleton } from '../platform.js';
 import { options } from './Config.js';
 import type { Config } from './Config.js';
 import { finalizeConfig as finalizeConfigImpl } from './finalize.js';
-import { IOption, OptionType } from './IOption.js';
+import type { IOption } from './IOption.js';
+import { OptionType } from './IOption.js';
 
 const setOption = (config: Partial<Config>, option: IOption, value?: string) => {
-  if (!value) {
-    if (option.type === OptionType.boolean) {
+  const name = option.name as keyof Config;
+  if (!value && option.type === OptionType.boolean) {
+    Object.assign(config, {
+      [name]: true
+    });
+  }
+  if (value !== undefined && option.multiple) {
+    if (!(option.name in config)) {
       Object.assign(config, {
-        [option.name]: true
+        [name]: []
       });
     }
+    (config[name] as string[]).push(value);
   }
 };
 
@@ -18,25 +26,42 @@ export const fromCmdLine = async (
   cwd: string,
   argv: string[],
   dependencies: {
-    finalizeConfig?: typeof finalizeConfigImpl,
-    platform?: Parameters<typeof finalizeConfigImpl>[1]
-  } = {}) => {
+    finalizeConfig?: typeof finalizeConfigImpl;
+    platform?: Parameters<typeof finalizeConfigImpl>[1];
+  } = {}
+) => {
   const config: Partial<Config> = { cwd };
   const { finalizeConfig = finalizeConfigImpl } = dependencies;
   const { platform = getPlatformSingleton() } = dependencies;
 
   let currentOption: IOption | undefined;
-  for (const arg of argv) {
-    if (arg.startsWith('--')) {
+  for (const argument of argv) {
+    if (argument.startsWith('--')) {
       if (currentOption) {
         setOption(config, currentOption);
       }
-      const criteria = arg.slice(2);
+      const criteria = argument.slice(2);
       const option = options.find(({ name }) => name === criteria);
       if (!option) {
         throw new Error('Unknown option');
       }
       currentOption = option as IOption;
+      continue;
+    }
+    if (argument.startsWith('-')) {
+      if (currentOption) {
+        setOption(config, currentOption);
+      }
+      const criteria = argument.slice(1);
+      const option = options.find(({ short }) => short === criteria);
+      if (!option) {
+        throw new Error('Unknown option');
+      }
+      currentOption = option as IOption;
+      continue;
+    }
+    if (currentOption !== undefined) {
+      setOption(config, currentOption, argument);
     }
   }
   if (currentOption) {

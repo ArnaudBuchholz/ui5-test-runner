@@ -4,7 +4,7 @@ export const Modes = {
   help: 'help',
   legacy: 'legacy',
   remote: 'remote',
-  version: 'version',
+  version: 'version'
 } as const;
 
 export type Modes = (typeof Modes)[keyof typeof Modes];

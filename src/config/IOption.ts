@@ -5,13 +5,12 @@ export const OptionType = {
   url: 'url',
   boolean: 'boolean',
   timeout: 'timeout',
-  integer: 'integer',
+  integer: 'integer'
 } as const;
 
 export type OptionType = (typeof OptionType)[keyof typeof OptionType];
 
-export type InferOptionType<T extends OptionType> =
-  T extends 'boolean'
+export type InferOptionType<T extends OptionType> = T extends 'boolean'
   ? boolean
   : T extends 'timeout'
     ? string | number
@@ -25,6 +24,6 @@ export interface IOption<T extends OptionType = OptionType> {
   description: string;
   type: T;
   multiple?: true;
-  default: InferOptionType<T>;
+  default?: InferOptionType<T>;
   defaultLabel?: string;
 }

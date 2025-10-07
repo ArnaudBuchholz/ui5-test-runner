@@ -1,6 +1,5 @@
 import { it, expect, vi, beforeEach } from 'vitest';
 import { fromCmdLine } from './cmdLine.js';
-import { Modes } from './modes.js';
 
 const CWD = '/usr/test';
 
@@ -36,5 +35,19 @@ it('sets boolean option', async () => {
   await expect(fromCmdLine(CWD, ['--help'])).resolves.toStrictEqual({
     cwd: CWD,
     help: true
+  });
+});
+
+it('sets multiple option (long name)', async () => {
+  await expect(fromCmdLine(CWD, ['--url', 'a', 'b'])).resolves.toStrictEqual({
+    cwd: CWD,
+    url: ['a', 'b']
+  });
+});
+
+it('sets multiple option (short name)', async () => {
+  await expect(fromCmdLine(CWD, ['-u', 'a', 'b'])).resolves.toStrictEqual({
+    cwd: CWD,
+    url: ['a', 'b']
   });
 });
