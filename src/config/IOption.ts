@@ -13,7 +13,7 @@ export type OptionType = (typeof OptionType)[keyof typeof OptionType];
 export type InferOptionType<T extends OptionType> = T extends 'boolean'
   ? boolean
   : T extends 'timeout'
-    ? string | number
+    ? number
     : T extends 'integer'
       ? number
       : string;

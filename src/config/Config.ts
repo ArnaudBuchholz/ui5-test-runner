@@ -6,9 +6,9 @@ export const options = [
     name: 'cwd',
     short: 'c',
     description: 'Set working directory',
+    type: OptionType.folder,
     default: process.cwd(),
-    defaultLabel: 'current working directory',
-    type: OptionType.folder
+    defaultLabel: 'current working directory'
   },
   {
     name: 'version',
@@ -33,11 +33,24 @@ export const options = [
     multiple: true
   },
   {
+    name: 'config',
+    description: 'Configuration file (relative to cwd)',
+    type: OptionType.file,
+    default: 'ui5-test-runner.json'
+  },
+  {
     name: 'port',
     short: 'p',
     description: 'Port to use (0 to use any free one)',
-    default: 0,
-    type: OptionType.integer
+    type: OptionType.integer,
+    default: 0
+  },
+  {
+    name: 'report-dir',
+    short: 'r',
+    description: 'Directory to output test reports (relative to cwd)',
+    type: OptionType.file,
+    default: 'report'
   }
 ] as const;
 
@@ -50,6 +63,8 @@ type GetConfig<K extends ConfigKeys> = Extract<(typeof options)[number], { name:
 
 export type Config = {
   [K in ConfigKeys as HasDefault<GetConfig<K>> extends true ? K : never]: ConfigType<GetConfig<K>>;
+} & {
+  [K in ConfigKeys as HasDefault<GetConfig<K>> extends true ? `${K}Set` : never]?: true;
 } & {
   [K in ConfigKeys as HasDefault<GetConfig<K>> extends true ? never : K]?: ConfigType<GetConfig<K>>;
 };

@@ -7,19 +7,45 @@ import { OptionType } from './IOption.js';
 
 const setOption = (config: Partial<Config>, option: IOption, value?: string) => {
   const name = option.name as keyof Config;
-  if (!value && option.type === OptionType.boolean) {
-    Object.assign(config, {
-      [name]: true
-    });
-  }
-  if (value !== undefined && option.multiple) {
-    if (!(option.name in config)) {
+  let set = false;
+  if (value === undefined) {
+    if (option.type === OptionType.boolean) {
       Object.assign(config, {
-        [name]: []
+        [name]: true
+      });
+      set = true;
+    }
+  } else {
+    if (option.multiple) {
+      if (!(option.name in config)) {
+        Object.assign(config, {
+          [name]: []
+        });
+      }
+      (config[name] as string[]).push(value);
+    } else {
+      Object.assign(config, {
+        [name]: value
       });
     }
-    (config[name] as string[]).push(value);
+    set = true;
   }
+  if (set && option.default !== undefined) {
+    Object.assign(config, {
+      [`${name}Set`]: true
+    });
+  }
+};
+
+const switchOption = (config: Partial<Config>, currentOption: IOption | undefined, newOptionName: string): IOption => {
+  if (currentOption) {
+    setOption(config, currentOption);
+  }
+  const option = options.find(({ name, short }) => name === newOptionName || short === newOptionName);
+  if (!option) {
+    throw new Error('Unknown option');
+  }
+  return option;
 };
 
 export const fromCmdLine = async (
@@ -37,27 +63,11 @@ export const fromCmdLine = async (
   let currentOption: IOption | undefined;
   for (const argument of argv) {
     if (argument.startsWith('--')) {
-      if (currentOption) {
-        setOption(config, currentOption);
-      }
-      const criteria = argument.slice(2);
-      const option = options.find(({ name }) => name === criteria);
-      if (!option) {
-        throw new Error('Unknown option');
-      }
-      currentOption = option as IOption;
+      currentOption = switchOption(config, currentOption, argument.slice(2));
       continue;
     }
     if (argument.startsWith('-')) {
-      if (currentOption) {
-        setOption(config, currentOption);
-      }
-      const criteria = argument.slice(1);
-      const option = options.find(({ short }) => short === criteria);
-      if (!option) {
-        throw new Error('Unknown option');
-      }
-      currentOption = option as IOption;
+      currentOption = switchOption(config, currentOption, argument.slice(1));
       continue;
     }
     if (currentOption !== undefined) {

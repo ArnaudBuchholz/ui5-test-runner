@@ -31,23 +31,61 @@ it('fails on unknown long option', async () => {
   await expect(fromCmdLine(CWD, ['--unknown'])).rejects.toThrowError('Unknown option');
 });
 
-it('sets boolean option', async () => {
-  await expect(fromCmdLine(CWD, ['--help'])).resolves.toStrictEqual({
-    cwd: CWD,
-    help: true
-  });
-});
+const testCases: { label: string; args: string[]; expected: object }[] = [
+  {
+    label: 'sets boolean option',
+    args: ['--help'],
+    expected: {
+      help: true
+    }
+  },
+  {
+    label: 'sets multiple option (long name)',
+    args: ['--url', 'a', 'b'],
+    expected: {
+      url: ['a', 'b']
+    }
+  },
+  {
+    label: 'sets multiple option (short name)',
+    args: ['-u', 'a', 'b'],
+    expected: {
+      url: ['a', 'b']
+    }
+  },
+  {
+    label: 'ignores multiple option when no value is passed',
+    args: ['--url'],
+    expected: {}
+  },
+  {
+    label: 'supports more than one declaration of multiple option',
+    args: ['-u', 'a', '--url', 'b'],
+    expected: {
+      url: ['a', 'b']
+    }
+  },
+  {
+    label: 'knows which option has been set explicitely',
+    args: ['--cwd', '/usr/overridden'],
+    expected: {
+      cwd: '/usr/overridden',
+      cwdSet: true
+    }
+  }
+];
+// TODO: what if --cwd --url a ? error or ignore
+// TODO: how to handle -- => browserArgs
 
-it('sets multiple option (long name)', async () => {
-  await expect(fromCmdLine(CWD, ['--url', 'a', 'b'])).resolves.toStrictEqual({
-    cwd: CWD,
-    url: ['a', 'b']
+for (const { label, args, expected } of testCases) {
+  it(label, async () => {
+    await expect(fromCmdLine(CWD, args)).resolves.toStrictEqual(
+      Object.assign(
+        {
+          cwd: CWD
+        },
+        expected
+      )
+    );
   });
-});
-
-it('sets multiple option (short name)', async () => {
-  await expect(fromCmdLine(CWD, ['-u', 'a', 'b'])).resolves.toStrictEqual({
-    cwd: CWD,
-    url: ['a', 'b']
-  });
-});
+}
