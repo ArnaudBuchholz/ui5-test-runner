@@ -72,6 +72,14 @@ const testCases: { label: string; args: string[]; expected: object }[] = [
       cwd: '/usr/overridden',
       cwdSet: true
     }
+  },
+  {
+    label: 'translates option names from lowerCamelCase to kebabCase',
+    args: ['--report-dir', 'overridden'],
+    expected: {
+      reportDir: 'overridden',
+      reportDirSet: true
+    }
   }
 ];
 // TODO: what if --cwd --url a ? error or ignore

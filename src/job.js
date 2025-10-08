@@ -104,6 +104,8 @@ function getCommand (cwd) {
     .option('-l, --log-server [flag]', '[💻🔗🧪📡] Log inner server traces', boolean, false)
     .option('-p, --parallel <count>', '[💻🔗🧪] Number of parallel tests executions', integer, 2)
     .option('-b, --browser <command>', '[💻🔗🧪📡] Browser instantiation command (relative to cwd or use $/ for provided ones)', '$/puppeteer.js')
+
+    // TODO
     .option('--browser-args <argument...>', '[💻🔗🧪📡] Browser instantiation command parameters (use -- instead)')
     .option('--alternate-npm-path <path>', '[💻🔗📡] Alternate NPM path to look for packages (priority: local, alternate, global)')
     .option('--no-npm-install', '[💻🔗🧪📡] Prevent any NPM install (execution may fail if a dependency is missing)')

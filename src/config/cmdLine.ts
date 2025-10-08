@@ -5,6 +5,19 @@ import { finalizeConfig as finalizeConfigImpl } from './finalize.js';
 import type { IOption } from './IOption.js';
 import { OptionType } from './IOption.js';
 
+const indexedOptions: { [key in string]?: IOption } = {};
+for (const option of options) {
+  const { name } = option;
+  indexedOptions[name] = option;
+  if ('short' in option) {
+    indexedOptions[option.short] = option;
+  }
+  const kebabCase = name.replaceAll(/[A-Z]/g, (letter) => `-${letter.toLocaleLowerCase()}`);
+  if (name !== kebabCase) {
+    indexedOptions[kebabCase] = option;
+  }
+}
+
 const setOption = (config: Partial<Config>, option: IOption, value?: string) => {
   const name = option.name as keyof Config;
   let set = false;
@@ -37,11 +50,11 @@ const setOption = (config: Partial<Config>, option: IOption, value?: string) => 
   }
 };
 
-const switchOption = (config: Partial<Config>, currentOption: IOption | undefined, newOptionName: string): IOption => {
+const switchOption = (config: Partial<Config>, currentOption: IOption | undefined, name: string): IOption => {
   if (currentOption) {
     setOption(config, currentOption);
   }
-  const option = options.find(({ name, short }) => name === newOptionName || short === newOptionName);
+  const option = indexedOptions[name];
   if (!option) {
     throw new Error('Unknown option');
   }

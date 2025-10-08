@@ -46,11 +46,56 @@ export const options = [
     default: 0
   },
   {
-    name: 'report-dir',
+    name: 'reportDir',
     short: 'r',
     description: 'Directory to output test reports (relative to cwd)',
     type: OptionType.file,
     default: 'report'
+  },
+  {
+    name: 'pageTimeout',
+    short: 'pt',
+    description:
+      'Limit the page execution time, fails the page if it takes longer than the timeout (0 means no timeout)',
+    type: OptionType.timeout
+  },
+  {
+    name: 'failFast',
+    short: 'f',
+    description: 'Stop the execution after the first failing page',
+    type: OptionType.boolean
+  },
+  {
+    name: 'failOpaFast',
+    short: 'fo',
+    description: 'Stop the OPA page execution after the first failing test',
+    type: OptionType.boolean
+  },
+  {
+    name: 'keepAlive',
+    short: 'k',
+    description: 'Keep the server alive',
+    type: OptionType.boolean
+  },
+  {
+    name: 'logServer',
+    short: 'l',
+    description: 'Log inner server traces',
+    type: OptionType.boolean
+  },
+  {
+    name: 'parallel',
+    short: 'p',
+    description: 'Number of parallel tests executions',
+    type: OptionType.integer,
+    default: 2
+  },
+  {
+    name: 'browser',
+    short: 'b',
+    description: 'Browser instantiation command (relative to cwd or use $/ for provided ones)',
+    type: OptionType.file,
+    default: '$/puppeteer.js'
   }
 ] as const;
 
