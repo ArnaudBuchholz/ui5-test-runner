@@ -1,14 +1,15 @@
+import { it, expect } from 'vitest';
 import { OptionType } from '../IOption.js';
 import { boolean } from './boolean.js';
 import { checkValidator } from './checkValidator.test.js';
 
-// eslint-disable sonarjs/no-empty-test-file -- tests are implemented through checkValidator
+it('is a function', () => expect(typeof boolean).toStrictEqual('function'));
 
 checkValidator({
   validator: boolean,
   option: {
     description: 'Boolean option',
-    name: 'bool',
+    name: 'boolean',
     type: OptionType.boolean
   },
   valid: [
@@ -19,7 +20,7 @@ checkValidator({
     { value: false, expected: false },
     { value: 'false', expected: false },
     { value: 'off', expected: false },
-    { value: 0, expected: false },
+    { value: 0, expected: false }
   ],
   invalid: [{ value: null }]
 });

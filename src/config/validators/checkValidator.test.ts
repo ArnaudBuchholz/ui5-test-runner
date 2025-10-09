@@ -17,7 +17,8 @@ export const checkValidator = ({
   describe(`validators/${validator.name}`, () => {
     for (const { value, expected } of valid) {
       it(`converts ${JSON.stringify(value)} to ${JSON.stringify(expected)}`, async () => {
-        await expect(validator(option, value)).resolves.toStrictEqual(expected);
+        const result = await validator(option, value);
+        expect(result).toStrictEqual(expected);
       });
     }
     for (const { value, message } of invalid) {

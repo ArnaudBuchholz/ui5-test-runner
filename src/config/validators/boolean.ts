@@ -7,13 +7,13 @@ const BOOLEAN_FALSE = new Set<unknown>(['false', 'off', 0]);
 
 export const boolean: OptionValidator = (option: IOption, value: unknown) => {
   if (typeof value === 'boolean') {
-    return Promise.resolve(value);
+    return value;
   }
   if (BOOLEAN_TRUE.has(value)) {
-    return Promise.resolve(true);
+    return true;
   }
   if (BOOLEAN_FALSE.has(value)) {
-    return Promise.resolve(false);
+    return false;
   }
-  return Promise.reject(new OptionValidationError(option));
+  throw new OptionValidationError(option);
 };
