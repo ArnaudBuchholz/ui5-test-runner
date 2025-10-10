@@ -1,16 +1,16 @@
 import { describe, it, expect } from 'vitest';
-import type { IOption } from '../IOption.js';
+import type { IOption, OptionType } from '../IOption.js';
 import type { OptionValidator } from './OptionValidator.js';
 import { OptionValidationError } from '../OptionValidationError.js';
 
-export const checkValidator = ({
+export const checkValidator = <T extends OptionType>({
   validator,
   option,
   valid,
   invalid
 }: {
-  validator: OptionValidator;
-  option: IOption;
+  validator: OptionValidator<T>;
+  option: IOption<T>;
   valid: { value: unknown; expected: unknown }[];
   invalid: { value: unknown; message?: string }[];
 }) => {

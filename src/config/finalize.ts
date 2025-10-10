@@ -4,10 +4,10 @@ import { getPlatformSingleton } from '../platform.js';
 import type { Config } from './Config.js';
 
 export const finalizeConfig = async (
-  config: Partial<Config>,
+  config: object,
   platform: IFileStat & IFileAccess = getPlatformSingleton()
 ): Promise<Config> => {
-  if (!config.cwd) {
+  if (!('cwd' in config)) {
     throw new Error('cwd is required');
   }
   return config as Config;

@@ -23,10 +23,12 @@ type ConfigKeys = keyof Config;
 export type CmdLineConfig = {
   [K in ConfigKeys as Config[K] extends string[] | undefined ? K : never]?: string[];
 } & {
-  [K in ConfigKeys as Config[K] extends string[] | undefined ? never : K]?: string | boolean;
+  [K in ConfigKeys as Config[K] extends boolean | undefined ? K : never]?: string | boolean;
 } & {
-  errors: OptionValidationError[],
-  positionals: string[],
+  [K in ConfigKeys as Config[K] extends string[] | boolean | undefined ? never : K]?: string;
+} & {
+  errors: unknown[];
+  positionals: string[];
 };
 
 const setOption = (config: CmdLineConfig, option: IOption, value?: string) => {
@@ -86,40 +88,32 @@ export const fromCmdLine = async (
   const { finalizeConfig = finalizeConfigImpl } = dependencies;
   const { platform = getPlatformSingleton() } = dependencies;
 
-  const errors: unknown[] = [];
-
   let currentOption: IOption | undefined;
   for (const argument of argv) {
-    try {
-      if (argument.startsWith('--')) {
-        currentOption = switchOption(config, currentOption, argument.slice(2));
-        continue;
+    if (argument.startsWith('--')) {
+      currentOption = switchOption(config, currentOption, argument.slice(2));
+      continue;
+    }
+    if (argument.startsWith('-')) {
+      currentOption = switchOption(config, currentOption, argument.slice(1));
+      continue;
+    }
+    if (currentOption !== undefined) {
+      setOption(config, currentOption, argument);
+      if (currentOption.multiple !== true) {
+        currentOption = undefined;
       }
-      if (argument.startsWith('-')) {
-        currentOption = switchOption(config, currentOption, argument.slice(1));
-        continue;
-      }
-      if (currentOption !== undefined) {
-        setOption(config, currentOption, argument);
-        if (currentOption.multiple !== true) {
-          currentOption = undefined;
-        }
-      }
-    } catch (error) {
-      errors.push(error);
     }
   }
   if (currentOption) {
-    try {
-      setOption(config, currentOption);
-    } catch (error) {
-      errors.push(error);
-    }
+    setOption(config, currentOption);
   }
+
+  const { errors, ...configWithoutErrors } = config;
 
   let finalConfig: Config;
   try {
-    finalConfig = await (finalizeConfig ?? finalizeConfigImpl)(config, platform);
+    finalConfig = await (finalizeConfig ?? finalizeConfigImpl)(configWithoutErrors, platform);
   } catch (error) {
     errors.push(error);
   }
@@ -127,7 +121,7 @@ export const fromCmdLine = async (
   if (errors.length === 1) {
     throw errors[0];
   } else if (errors.length > 0) {
-    throw new AggregateError(errors);
+    throw new AggregateError(errors, 'Multiple errors occurred');
   }
 
   return finalConfig!;

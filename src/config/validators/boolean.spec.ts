@@ -9,7 +9,7 @@ checkValidator({
   option: {
     description: 'Boolean option',
     name: 'boolean',
-    type: 'boolean',
+    type: 'boolean'
   },
   valid: [
     { value: true, expected: true },
