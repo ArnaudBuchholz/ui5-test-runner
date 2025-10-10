@@ -1,5 +1,4 @@
 import { it, expect } from 'vitest';
-import { OptionType } from '../IOption.js';
 import { boolean } from './boolean.js';
 import { checkValidator } from './checkValidator.test.js';
 
@@ -10,7 +9,7 @@ checkValidator({
   option: {
     description: 'Boolean option',
     name: 'boolean',
-    type: OptionType.boolean
+    type: 'boolean',
   },
   valid: [
     { value: true, expected: true },

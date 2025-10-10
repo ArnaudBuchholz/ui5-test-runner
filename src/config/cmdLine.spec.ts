@@ -1,6 +1,7 @@
 import { it, expect, vi, beforeEach } from 'vitest';
 import { fromCmdLine } from './cmdLine.js';
 import { OptionValidationError } from './OptionValidationError.js';
+import type { Config } from './Config.js';
 
 const CWD = '/usr/test';
 
@@ -32,7 +33,11 @@ it('fails on unknown long option', async () => {
   await expect(fromCmdLine(CWD, ['--unknown'])).rejects.toThrowError('Unknown option');
 });
 
-const testCases: { label: string; args: string[]; expected: object }[] = [
+const testCases: {
+  label: string;
+  args: string[];
+  expected: Partial<Config> | { error: string; option: string } | { errors: { message: string; option: string }[] };
+}[] = [
   {
     label: 'sets boolean option',
     args: ['--help'],

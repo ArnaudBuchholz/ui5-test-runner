@@ -3,7 +3,6 @@ import { options } from './Config.js';
 import type { Config } from './Config.js';
 import { finalizeConfig as finalizeConfigImpl } from './finalize.js';
 import type { IOption } from './IOption.js';
-import { OptionType } from './IOption.js';
 import { OptionValidationError } from './OptionValidationError.js';
 
 const indexedOptions: { [key in string]?: IOption } = {};
@@ -23,7 +22,7 @@ const setOption = (config: Partial<Config>, option: IOption, value?: string) => 
   const name = option.name as keyof Config;
   let set = false;
   if (value === undefined) {
-    if (option.type === OptionType.boolean) {
+    if (option.type === 'boolean') {
       Object.assign(config, {
         [name]: true
       });

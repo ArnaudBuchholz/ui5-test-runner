@@ -2,7 +2,7 @@ import type { IOption } from '../IOption.js';
 import { OptionValidationError } from '../OptionValidationError.js';
 import type { OptionValidator } from './OptionValidator.js';
 
-export const timeout: OptionValidator = (option: IOption, value: unknown) => {
+export const timeout: OptionValidator<'timeout'> = (option: IOption, value: unknown) => {
   if (typeof value === 'string') {
     if (value === 'none') {
       return 0;

@@ -1,14 +1,4 @@
-export const OptionType = {
-  string: 'string',
-  folder: 'folder',
-  file: 'file',
-  url: 'url',
-  boolean: 'boolean',
-  timeout: 'timeout',
-  integer: 'integer'
-} as const;
-
-export type OptionType = (typeof OptionType)[keyof typeof OptionType];
+export type OptionType = 'string' | 'folder' | 'file' | 'url' | 'boolean' | 'timeout' | 'integer';
 
 export type InferOptionType<T extends OptionType> = T extends 'boolean'
   ? boolean

@@ -1,5 +1,4 @@
 import { it, expect } from 'vitest';
-import { OptionType } from '../IOption.js';
 import { timeout } from './timeout.js';
 import { checkValidator } from './checkValidator.test.js';
 
@@ -10,7 +9,7 @@ checkValidator({
   option: {
     description: 'Timeout option',
     name: 'timeout',
-    type: OptionType.timeout
+    type: 'timeout'
   },
   valid: [
     { value: 0, expected: 0 },
