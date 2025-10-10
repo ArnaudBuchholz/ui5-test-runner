@@ -18,7 +18,18 @@ for (const option of options) {
   }
 }
 
-const setOption = (config: Partial<Config>, option: IOption, value?: string) => {
+type ConfigKeys = keyof Config;
+// The command line config contains mostly strings (or array of strings for multiple params)
+export type CmdLineConfig = {
+  [K in ConfigKeys as Config[K] extends string[] | undefined ? K : never]?: string[];
+} & {
+  [K in ConfigKeys as Config[K] extends string[] | undefined ? never : K]?: string | boolean;
+} & {
+  errors: OptionValidationError[],
+  positionals: string[],
+};
+
+const setOption = (config: CmdLineConfig, option: IOption, value?: string) => {
   const name = option.name as keyof Config;
   let set = false;
   if (value === undefined) {
@@ -28,7 +39,7 @@ const setOption = (config: Partial<Config>, option: IOption, value?: string) => 
       });
       set = true;
     } else if (option.multiple !== true) {
-      throw new OptionValidationError(option, 'Missing value');
+      config.errors.push(new OptionValidationError(option, 'Missing value'));
     }
   } else {
     if (option.multiple) {
@@ -52,13 +63,13 @@ const setOption = (config: Partial<Config>, option: IOption, value?: string) => 
   }
 };
 
-const switchOption = (config: Partial<Config>, currentOption: IOption | undefined, name: string): IOption => {
+const switchOption = (config: CmdLineConfig, currentOption: IOption | undefined, name: string): IOption => {
   if (currentOption) {
     setOption(config, currentOption);
   }
   const option = indexedOptions[name];
   if (!option) {
-    throw new Error('Unknown option');
+    throw new OptionValidationError({ name, type: 'string', description: 'unknown' }, 'Unknown option');
   }
   return option;
 };
@@ -71,7 +82,7 @@ export const fromCmdLine = async (
     platform?: Parameters<typeof finalizeConfigImpl>[1];
   } = {}
 ) => {
-  const config: Partial<Config> = { cwd };
+  const config: CmdLineConfig = { cwd, errors: [], positionals: [] };
   const { finalizeConfig = finalizeConfigImpl } = dependencies;
   const { platform = getPlatformSingleton() } = dependencies;
 
