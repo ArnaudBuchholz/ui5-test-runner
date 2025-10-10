@@ -105,8 +105,10 @@ function getCommand (cwd) {
     .option('-p, --parallel <count>', '[💻🔗🧪] Number of parallel tests executions', integer, 2)
     .option('-b, --browser <command>', '[💻🔗🧪📡] Browser instantiation command (relative to cwd or use $/ for provided ones)', '$/puppeteer.js')
 
-    // TODO
+    // TO BE REPLACED WITH SPECIFIC ARGUMENTS (less frequently used)
     .option('--browser-args <argument...>', '[💻🔗🧪📡] Browser instantiation command parameters (use -- instead)')
+
+    // TODO
     .option('--alternate-npm-path <path>', '[💻🔗📡] Alternate NPM path to look for packages (priority: local, alternate, global)')
     .option('--no-npm-install', '[💻🔗🧪📡] Prevent any NPM install (execution may fail if a dependency is missing)')
     .option('-bt, --browser-close-timeout <timeout>', '[💻🔗🧪📡] Maximum waiting time for browser close', timeout, 2000)

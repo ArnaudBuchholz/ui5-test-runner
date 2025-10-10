@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import type { IOption } from '../IOption.js';
 import type { OptionValidator } from './OptionValidator.js';
-import { OptionValidationError } from './OptionValidationError.js';
+import { OptionValidationError } from '../OptionValidationError.js';
 
 export const checkValidator = ({
   validator,

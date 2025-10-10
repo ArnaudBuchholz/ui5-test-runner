@@ -1,5 +1,5 @@
 import type { IOption } from '../IOption.js';
-import { OptionValidationError } from './OptionValidationError.js';
+import { OptionValidationError } from '../OptionValidationError.js';
 import type { OptionValidator } from './OptionValidator.js';
 
 export const timeout: OptionValidator = (option: IOption, value: unknown) => {

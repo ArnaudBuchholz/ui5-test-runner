@@ -1,4 +1,4 @@
-import type { IOption } from '../IOption.js';
+import type { IOption } from './IOption.js';
 
 export class OptionValidationError extends Error {
   constructor(

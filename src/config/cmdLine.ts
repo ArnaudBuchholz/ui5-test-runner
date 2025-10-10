@@ -4,6 +4,7 @@ import type { Config } from './Config.js';
 import { finalizeConfig as finalizeConfigImpl } from './finalize.js';
 import type { IOption } from './IOption.js';
 import { OptionType } from './IOption.js';
+import { OptionValidationError } from './OptionValidationError.js';
 
 const indexedOptions: { [key in string]?: IOption } = {};
 for (const option of options) {
@@ -27,6 +28,8 @@ const setOption = (config: Partial<Config>, option: IOption, value?: string) => 
         [name]: true
       });
       set = true;
+    } else if (option.multiple !== true) {
+      throw new OptionValidationError(option, 'Missing value');
     }
   } else {
     if (option.multiple) {
@@ -85,6 +88,9 @@ export const fromCmdLine = async (
     }
     if (currentOption !== undefined) {
       setOption(config, currentOption, argument);
+      if (currentOption.multiple !== true) {
+        currentOption = undefined;
+      }
     }
   }
   if (currentOption) {

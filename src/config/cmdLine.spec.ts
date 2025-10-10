@@ -1,5 +1,6 @@
 import { it, expect, vi, beforeEach } from 'vitest';
 import { fromCmdLine } from './cmdLine.js';
+import { OptionValidationError } from './OptionValidationError.js';
 
 const CWD = '/usr/test';
 
@@ -37,6 +38,20 @@ const testCases: { label: string; args: string[]; expected: object }[] = [
     args: ['--help'],
     expected: {
       help: true
+    }
+  },
+  {
+    label: 'sets boolean option (with value)',
+    args: ['--help', 'true'],
+    expected: {
+      help: 'true'
+    }
+  },
+  {
+    label: 'sets boolean option (with value)',
+    args: ['--help', 'false'],
+    expected: {
+      help: 'false'
     }
   },
   {
@@ -80,20 +95,44 @@ const testCases: { label: string; args: string[]; expected: object }[] = [
       reportDir: 'overridden',
       reportDirSet: true
     }
+  },
+  {
+    label: 'fails if a string option does not receive a value',
+    args: ['--cwd', '--url', 'a'],
+    expected: {
+      error: 'Missing value'
+    }
+  },
+  {
+    label: 'fails if a non boolean option does not receive a value',
+    args: ['--page-timeout', '--url', 'a'],
+    expected: {
+      error: 'Missing value'
+    }
   }
 ];
-// TODO: what if --cwd --url a ? error or ignore
-// TODO: how to handle -- => browserArgs
 
 for (const { label, args, expected } of testCases) {
   it(label, async () => {
-    await expect(fromCmdLine(CWD, args)).resolves.toStrictEqual(
-      Object.assign(
-        {
-          cwd: CWD
-        },
-        expected
-      )
-    );
+    if ('error' in expected) {
+      try {
+        await fromCmdLine(CWD, args);
+        expect.unreachable();
+      } catch (error) {
+        expect(error).toBeInstanceOf(OptionValidationError);
+        if (error instanceof OptionValidationError) {
+          expect(error.message).toStrictEqual(expected.error);
+        }
+      }
+    } else {
+      await expect(fromCmdLine(CWD, args)).resolves.toStrictEqual(
+        Object.assign(
+          {
+            cwd: CWD
+          },
+          expected
+        )
+      );
+    }
   });
 }

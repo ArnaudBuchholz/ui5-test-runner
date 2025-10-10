@@ -1,5 +1,5 @@
 import type { IOption } from '../IOption.js';
-import { OptionValidationError } from './OptionValidationError.js';
+import { OptionValidationError } from '../OptionValidationError.js';
 import type { OptionValidator } from './OptionValidator.js';
 
 const BOOLEAN_TRUE = new Set<unknown>(['true', 'on', 1]);
