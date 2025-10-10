@@ -75,26 +75,49 @@ export const fromCmdLine = async (
   const { finalizeConfig = finalizeConfigImpl } = dependencies;
   const { platform = getPlatformSingleton() } = dependencies;
 
+  const errors: unknown[] = [];
+
   let currentOption: IOption | undefined;
   for (const argument of argv) {
-    if (argument.startsWith('--')) {
-      currentOption = switchOption(config, currentOption, argument.slice(2));
-      continue;
-    }
-    if (argument.startsWith('-')) {
-      currentOption = switchOption(config, currentOption, argument.slice(1));
-      continue;
-    }
-    if (currentOption !== undefined) {
-      setOption(config, currentOption, argument);
-      if (currentOption.multiple !== true) {
-        currentOption = undefined;
+    try {
+      if (argument.startsWith('--')) {
+        currentOption = switchOption(config, currentOption, argument.slice(2));
+        continue;
       }
+      if (argument.startsWith('-')) {
+        currentOption = switchOption(config, currentOption, argument.slice(1));
+        continue;
+      }
+      if (currentOption !== undefined) {
+        setOption(config, currentOption, argument);
+        if (currentOption.multiple !== true) {
+          currentOption = undefined;
+        }
+      }
+    } catch (error) {
+      errors.push(error);
     }
   }
   if (currentOption) {
-    setOption(config, currentOption);
+    try {
+      setOption(config, currentOption);
+    } catch (error) {
+      errors.push(error);
+    }
   }
 
-  return await (finalizeConfig ?? finalizeConfigImpl)(config, platform);
+  let finalConfig: Config;
+  try {
+    finalConfig = await (finalizeConfig ?? finalizeConfigImpl)(config, platform);
+  } catch (error) {
+    errors.push(error);
+  }
+
+  if (errors.length === 1) {
+    throw errors[0];
+  } else if (errors.length > 0) {
+    throw new AggregateError(errors);
+  }
+
+  return finalConfig!;
 };

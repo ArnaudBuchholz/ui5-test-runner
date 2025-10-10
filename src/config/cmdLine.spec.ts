@@ -33,10 +33,18 @@ it('fails on unknown long option', async () => {
   await expect(fromCmdLine(CWD, ['--unknown'])).rejects.toThrowError('Unknown option');
 });
 
+type ConfigKeys = keyof Config;
+// The command line config contains mostly strings (or array of strings for multiple params)
+type CmdLineConfig = {
+  [K in ConfigKeys as Config[K] extends string[] | undefined ? K : never]?: string[];
+} & {
+  [K in ConfigKeys as Config[K] extends string[] | undefined ? never : K]?: string | boolean;
+};
+
 const testCases: {
   label: string;
   args: string[];
-  expected: Partial<Config> | { error: string; option: string } | { errors: { message: string; option: string }[] };
+  expected: CmdLineConfig | { error: string; option: string } | { errors: { message: string; option: string }[] };
 }[] = [
   {
     label: 'sets boolean option',
@@ -105,14 +113,32 @@ const testCases: {
     label: 'fails if a string option does not receive a value',
     args: ['--cwd', '--url', 'a'],
     expected: {
-      error: 'Missing value'
+      error: 'Missing value',
+      option: 'cwd'
     }
   },
   {
     label: 'fails if a non boolean option does not receive a value',
     args: ['--page-timeout', '--url', 'a'],
     expected: {
-      error: 'Missing value'
+      error: 'Missing value',
+      option: 'pageTimeout'
+    }
+  },
+  {
+    label: 'aggregate the errors',
+    args: ['--page-timeout', '--cwd', '--url', 'a'],
+    expected: {
+      errors: [
+        {
+          message: 'Missing value',
+          option: 'pageTimeout'
+        },
+        {
+          message: 'Missing value',
+          option: 'cwd'
+        }
+      ]
     }
   }
 ];
@@ -127,6 +153,24 @@ for (const { label, args, expected } of testCases) {
         expect(error).toBeInstanceOf(OptionValidationError);
         if (error instanceof OptionValidationError) {
           expect(error.message).toStrictEqual(expected.error);
+          expect(error.option.name).toStrictEqual(expected.option);
+        }
+      }
+    } else if ('errors' in expected) {
+      try {
+        await fromCmdLine(CWD, args);
+        expect.unreachable();
+      } catch (error) {
+        expect(error).toBeInstanceOf(AggregateError);
+        if (error instanceof AggregateError) {
+          expect(error.errors.length).toStrictEqual(expected.errors.length);
+          for (let index = 0; index < expected.errors.length; ++index) {
+            const { message, option } = expected.errors[index]!;
+            const errorItem = error.errors[index];
+            expect(errorItem).toBeInstanceOf(OptionValidationError);
+            expect(errorItem.message).toStrictEqual(message);
+            expect(errorItem.option.name).toStrictEqual(option);
+          }
         }
       }
     } else {
