@@ -1,0 +1,97 @@
+export const options = [
+  {
+    name: 'cwd',
+    short: 'c',
+    description: 'Set working directory',
+    type: 'folder',
+    default: process.cwd(),
+    defaultLabel: 'current working directory'
+  },
+  {
+    name: 'version',
+    description: 'Shows version',
+    type: 'boolean'
+  },
+  {
+    name: 'help',
+    description: 'Shows help',
+    type: 'boolean'
+  },
+  {
+    name: 'capabilities',
+    description: 'Run browser tests',
+    type: 'boolean'
+  },
+  {
+    name: 'url',
+    short: 'u',
+    description: 'URL of the testsuite / page to test',
+    type: 'url',
+    multiple: true
+  },
+  {
+    name: 'config',
+    description: 'Configuration file (relative to cwd)',
+    type: 'file',
+    default: 'ui5-test-runner.json'
+  },
+  {
+    name: 'port',
+    short: 'p',
+    description: 'Port to use (0 to use any free one)',
+    type: 'integer',
+    default: 0
+  },
+  {
+    name: 'reportDir',
+    short: 'r',
+    description: 'Directory to output test reports (relative to cwd)',
+    type: 'file',
+    default: 'report'
+  },
+  {
+    name: 'pageTimeout',
+    short: 'pt',
+    description:
+      'Limit the page execution time, fails the page if it takes longer than the timeout (0 means no timeout)',
+    type: 'timeout'
+  },
+  {
+    name: 'failFast',
+    short: 'f',
+    description: 'Stop the execution after the first failing page',
+    type: 'boolean'
+  },
+  {
+    name: 'failOpaFast',
+    short: 'fo',
+    description: 'Stop the OPA page execution after the first failing test',
+    type: 'boolean'
+  },
+  {
+    name: 'keepAlive',
+    short: 'k',
+    description: 'Keep the server alive',
+    type: 'boolean'
+  },
+  {
+    name: 'logServer',
+    short: 'l',
+    description: 'Log inner server traces',
+    type: 'boolean'
+  },
+  {
+    name: 'parallel',
+    short: 'p',
+    description: 'Number of parallel tests executions',
+    type: 'integer',
+    default: 2
+  },
+  {
+    name: 'browser',
+    short: 'b',
+    description: 'Browser instantiation command (relative to cwd or use $/ for provided ones)',
+    type: 'file',
+    default: '$/puppeteer.js'
+  }
+] as const;
