@@ -5,93 +5,93 @@ export const options = [
     description: 'Set working directory',
     type: 'folder',
     default: process.cwd(),
-    defaultLabel: 'current working directory'
+    defaultLabel: 'current working directory',
   },
   {
     name: 'version',
     description: 'Shows version',
-    type: 'boolean'
+    type: 'boolean',
   },
   {
     name: 'help',
     description: 'Shows help',
-    type: 'boolean'
+    type: 'boolean',
   },
   {
     name: 'capabilities',
     description: 'Run browser tests',
-    type: 'boolean'
+    type: 'boolean',
   },
   {
     name: 'url',
     short: 'u',
     description: 'URL of the testsuite / page to test',
     type: 'url',
-    multiple: true
+    multiple: true,
   },
   {
     name: 'config',
-    description: 'Configuration file (relative to cwd)',
+    description: 'Configuration file',
     type: 'file',
-    default: 'ui5-test-runner.json'
+    default: 'ui5-test-runner.json',
   },
   {
     name: 'port',
     short: 'p',
     description: 'Port to use (0 to use any free one)',
     type: 'integer',
-    default: 0
+    default: 0,
   },
   {
     name: 'reportDir',
     short: 'r',
-    description: 'Directory to output test reports (relative to cwd)',
-    type: 'file',
-    default: 'report'
+    description: 'Directory to output test reports',
+    type: 'folder',
+    default: 'report',
   },
   {
     name: 'pageTimeout',
     short: 'pt',
-    description:
-      'Limit the page execution time, fails the page if it takes longer than the timeout (0 means no timeout)',
-    type: 'timeout'
+    description: 'Limit the page execution time, fails the page if it takes longer than the timeout',
+    type: 'timeout',
+    default: 0,
   },
   {
     name: 'failFast',
     short: 'f',
     description: 'Stop the execution after the first failing page',
-    type: 'boolean'
+    type: 'boolean',
   },
   {
     name: 'failOpaFast',
     short: 'fo',
     description: 'Stop the OPA page execution after the first failing test',
-    type: 'boolean'
+    type: 'boolean',
   },
   {
     name: 'keepAlive',
     short: 'k',
     description: 'Keep the server alive',
-    type: 'boolean'
+    type: 'boolean',
   },
   {
     name: 'logServer',
     short: 'l',
     description: 'Log inner server traces',
-    type: 'boolean'
+    type: 'boolean',
   },
   {
     name: 'parallel',
     short: 'p',
     description: 'Number of parallel tests executions',
     type: 'integer',
-    default: 2
+    default: 2,
   },
   {
     name: 'browser',
     short: 'b',
     description: 'Browser instantiation command (relative to cwd or use $/ for provided ones)',
     type: 'file',
-    default: '$/puppeteer.js'
-  }
+    default: '$/puppeteer.js',
+  },
 ] as const;
