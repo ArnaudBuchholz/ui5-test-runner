@@ -1,8 +1,9 @@
 import { readFile } from 'node:fs/promises';
 
-const optionsMd = (await readFile('src/config/options.md', 'utf8')).split('\n');
-const properties = optionsMd[0].split('|').slice(1, -1);
-const options = optionsMd.slice(2);
+const optionsMarkdownContent = await readFile('src/config/options.md', 'utf8');
+const optionsMarkdownLines = optionsMarkdownContent.split('\n');
+const properties = optionsMarkdownLines[0].split('|').slice(1, -1);
+const options = optionsMarkdownLines.slice(2);
 console.log('export const options = [');
 for (const option of options) {
   if (!option) {

@@ -1,5 +1,5 @@
 import type { InferOptionType, IOption } from './IOption.js';
-import { options } from './options.js';
+import type { options } from './options.js';
 
 type HasDefault<T> = T extends { default: unknown } ? true : false;
 type ConfigType<T extends IOption> = T['multiple'] extends true

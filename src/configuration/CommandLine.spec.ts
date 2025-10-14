@@ -1,44 +1,47 @@
-import { it, expect, vi, beforeEach } from 'vitest';
-import { fromCmdLine } from './CommandLine.js';
-import type { CmdLineConfig } from './CommandLine.js';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { CommandLine } from './CommandLine.js';
+import type { CommandLineConfiguration } from './CommandLine.js';
 import { OptionValidationError } from './OptionValidationError.js';
+import { ConfigurationValidator } from './ConfigurationValidator.js';
+import type { Configuration } from './Configuration.js';
 
 const CWD = '/usr/test';
 
-const finalizeConfig = vi.fn().mockImplementation(async (value) => value);
+const validateConfiguration = vi
+  .spyOn(ConfigurationValidator, 'validate')
+  .mockImplementation(async (configuration) => configuration as Configuration);
 
 beforeEach(() => {
-  finalizeConfig.mockClear();
+  validateConfiguration.mockClear();
 });
 
-it('forwards partial config to finalizeConfig', async () => {
-  await fromCmdLine(CWD, [], { finalizeConfig });
-  expect(finalizeConfig).toHaveBeenCalled();
+it('forwards partial config to ConfigurationValidator', async () => {
+  await CommandLine.buildConfigurationFrom(CWD, []);
+  expect(validateConfiguration).toHaveBeenCalled();
 });
 
 it('returns the result of finalizeConfig', async () => {
-  const uniqueObject = { uid: Date.now() };
-  finalizeConfig.mockResolvedValueOnce(uniqueObject);
-  const result = await fromCmdLine(CWD, [], { finalizeConfig });
+  const uniqueObject = { uid: Date.now() } as unknown as Configuration;
+  validateConfiguration.mockResolvedValueOnce(uniqueObject);
+  const result = await CommandLine.buildConfigurationFrom(CWD, []);
   expect(result).toStrictEqual(uniqueObject);
 });
 
 it('copies cwd', async () => {
-  await expect(fromCmdLine(CWD, [])).resolves.toStrictEqual({
-    cwd: CWD,
-    positionals: []
+  await expect(CommandLine.buildConfigurationFrom(CWD, [])).resolves.toStrictEqual({
+    cwd: CWD
   });
 });
 
 it('fails on unknown long option', async () => {
-  await expect(fromCmdLine(CWD, ['--unknown'])).rejects.toThrowError('Unknown option');
+  await expect(CommandLine.buildConfigurationFrom(CWD, ['--unknown'])).rejects.toThrowError('Unknown option');
 });
 
 const testCases: {
   label: string;
   args: string[];
   expected:
-    | (Omit<CmdLineConfig, 'errors' | 'positionals'> & { positionals?: string[] })
+    | Omit<CommandLineConfiguration, 'errors'>
     | { error: string; option: string }
     | { errors: { message: string; option: string }[] };
 }[] = [
@@ -143,7 +146,7 @@ for (const { label, args, expected } of testCases) {
   it(label, async () => {
     if ('error' in expected) {
       try {
-        await fromCmdLine(CWD, args);
+        await CommandLine.buildConfigurationFrom(CWD, args);
         expect.unreachable();
       } catch (error) {
         expect(error).toBeInstanceOf(OptionValidationError);
@@ -153,7 +156,7 @@ for (const { label, args, expected } of testCases) {
       }
     } else if ('errors' in expected) {
       try {
-        await fromCmdLine(CWD, args);
+        await CommandLine.buildConfigurationFrom(CWD, args);
         expect.unreachable();
       } catch (error) {
         expect(error).toBeInstanceOf(AggregateError);
@@ -169,11 +172,10 @@ for (const { label, args, expected } of testCases) {
         }
       }
     } else {
-      await expect(fromCmdLine(CWD, args)).resolves.toStrictEqual(
+      await expect(CommandLine.buildConfigurationFrom(CWD, args)).resolves.toStrictEqual(
         Object.assign(
           {
-            cwd: CWD,
-            positionals: []
+            cwd: CWD
           },
           expected
         )
@@ -181,3 +183,77 @@ for (const { label, args, expected } of testCases) {
     }
   });
 }
+
+describe('positional arguments', () => {
+  it('recognizes URLs', async () => {
+    const configuration = await CommandLine.buildConfigurationFrom(CWD, ['https://server.domain/path']);
+    expect(configuration.url).toStrictEqual(['https://server.domain/path']);
+  });
+
+  it('fails with a specific error otherwise', async () => {
+    try {
+      await CommandLine.buildConfigurationFrom(CWD, ['unknown']);
+      expect.unreachable();
+    } catch (error) {
+      expect(error).toBeInstanceOf(OptionValidationError);
+      const optionValidationError = error as OptionValidationError;
+      expect(optionValidationError.message).toStrictEqual('Unable to process: unknown');
+      expect(optionValidationError.option.name).toStrictEqual('positional');
+    }
+  });
+});
+
+describe('handling ConfigurationValidator error(s)', () => {
+  it('returns ConfigurationValidator error', async () => {
+    const validationError = new Error('error');
+    validateConfiguration.mockRejectedValueOnce(validationError);
+    try {
+      await CommandLine.buildConfigurationFrom(CWD, []);
+      expect.unreachable();
+    } catch (error) {
+      expect(error).toStrictEqual(error);
+    }
+  });
+
+  it('returns ConfigurationValidator errors', async () => {
+    const aggregatedValidationErrors = new AggregateError([new Error('error1'), new Error('error2')], 'message');
+    validateConfiguration.mockRejectedValueOnce(aggregatedValidationErrors);
+    try {
+      await CommandLine.buildConfigurationFrom(CWD, []);
+      expect.unreachable();
+    } catch (error) {
+      expect(error).toStrictEqual(aggregatedValidationErrors);
+    }
+  });
+
+  it('aggregates ConfigurationValidator error', async () => {
+    const validationError = new Error('error');
+    validateConfiguration.mockRejectedValueOnce(validationError);
+    try {
+      await CommandLine.buildConfigurationFrom(CWD, ['--cwd', '--url']);
+      expect.unreachable();
+    } catch (error) {
+      expect(error).toBeInstanceOf(AggregateError);
+      if (error instanceof AggregateError) {
+        expect(error.errors.length).toStrictEqual(2);
+        expect(error.errors[1]).toStrictEqual(validationError);
+      }
+    }
+  });
+
+  it('aggregates ConfigurationValidator errors', async () => {
+    const aggregatedValidationErrors = new AggregateError([new Error('error1'), new Error('error2')], 'message');
+    validateConfiguration.mockRejectedValueOnce(aggregatedValidationErrors);
+    try {
+      await CommandLine.buildConfigurationFrom(CWD, ['--cwd', '--url']);
+      expect.unreachable();
+    } catch (error) {
+      expect(error).toBeInstanceOf(AggregateError);
+      if (error instanceof AggregateError) {
+        expect(error.errors.length).toStrictEqual(3);
+        expect(error.errors[1]).toStrictEqual(aggregatedValidationErrors.errors[0]);
+        expect(error.errors[2]).toStrictEqual(aggregatedValidationErrors.errors[1]);
+      }
+    }
+  });
+});
