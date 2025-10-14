@@ -1,7 +1,6 @@
-import { getPlatformSingleton } from '../platform.js';
-import { options } from './Config.js';
-import type { Config } from './Config.js';
-import { finalizeConfig as finalizeConfigImpl } from './finalize.js';
+import { options } from './options.js';
+import type { Configuration } from './Configuration.js';
+import { ConfigurationValidator, finalizeConfig as finalizeConfigImpl } from './ConfigurationValidator.js';
 import type { IOption } from './IOption.js';
 import { OptionValidationError } from './OptionValidationError.js';
 
@@ -18,21 +17,21 @@ for (const option of options) {
   }
 }
 
-type ConfigKeys = keyof Config;
+type ConfigKeys = keyof Configuration;
 // The command line config contains mostly strings (or array of strings for multiple params)
 export type CmdLineConfig = {
-  [K in ConfigKeys as Config[K] extends string[] | undefined ? K : never]?: string[];
+  [K in ConfigKeys as Configuration[K] extends string[] | undefined ? K : never]?: string[];
 } & {
-  [K in ConfigKeys as Config[K] extends boolean | undefined ? K : never]?: string | boolean;
+  [K in ConfigKeys as Configuration[K] extends boolean | undefined ? K : never]?: string | boolean;
 } & {
-  [K in ConfigKeys as Config[K] extends string[] | boolean | undefined ? never : K]?: string;
+  [K in ConfigKeys as Configuration[K] extends string[] | boolean | undefined ? never : K]?: string;
 } & {
   errors: unknown[];
   positionals: string[];
 };
 
 const setOption = (config: CmdLineConfig, option: IOption, value?: string) => {
-  const name = option.name as keyof Config;
+  const name = option.name as keyof Configuration;
   let set = false;
   if (value === undefined) {
     if (option.type === 'boolean') {
@@ -76,17 +75,15 @@ const switchOption = (config: CmdLineConfig, currentOption: IOption | undefined,
   return option;
 };
 
+export class CommandLine {
+  static async buildConfigFrom () {}
+}
+
 export const fromCmdLine = async (
   cwd: string,
-  argv: string[],
-  dependencies: {
-    finalizeConfig?: typeof finalizeConfigImpl;
-    platform?: Parameters<typeof finalizeConfigImpl>[1];
-  } = {}
+  argv: string[]
 ) => {
   const config: CmdLineConfig = { cwd, errors: [], positionals: [] };
-  const { finalizeConfig = finalizeConfigImpl } = dependencies;
-  const { platform = getPlatformSingleton() } = dependencies;
 
   let currentOption: IOption | undefined;
   for (const argument of argv) {
@@ -111,9 +108,9 @@ export const fromCmdLine = async (
 
   const { errors, ...configWithoutErrors } = config;
 
-  let finalConfig: Config;
+  let finalConfig: Configuration;
   try {
-    finalConfig = await (finalizeConfig ?? finalizeConfigImpl)(configWithoutErrors, platform);
+    finalConfig = await ConfigurationValidator.validate(configWithoutErrors);
   } catch (error) {
     errors.push(error);
   }

@@ -1,6 +1,6 @@
 import { it, expect, vi, beforeEach } from 'vitest';
-import { fromCmdLine } from './cmdLine.js';
-import type { CmdLineConfig } from './cmdLine.js';
+import { fromCmdLine } from './CommandLine.js';
+import type { CmdLineConfig } from './CommandLine.js';
 import { OptionValidationError } from './OptionValidationError.js';
 
 const CWD = '/usr/test';

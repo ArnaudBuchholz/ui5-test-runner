@@ -8,7 +8,7 @@ type ConfigType<T extends IOption> = T['multiple'] extends true
 type ConfigKeys = (typeof options)[number]['name'];
 type GetConfig<K extends ConfigKeys> = Extract<(typeof options)[number], { name: K }>;
 
-export type Config = {
+export type Configuration = {
   [K in ConfigKeys as HasDefault<GetConfig<K>> extends true ? K : never]: ConfigType<GetConfig<K>>;
 } & {
   [K in ConfigKeys as HasDefault<GetConfig<K>> extends true ? `${K}Set` : never]?: true;
