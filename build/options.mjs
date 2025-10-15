@@ -20,7 +20,7 @@ for (const option of options) {
       console.log(`    ${property}: true,`);
     } else if (property === 'default') {
       console.log(`    ${property}: ${value},`);
-    } else {
+    } else if (property !== 'flags') {
       console.log(`    ${property}: '${value}',`);
     }
   }
