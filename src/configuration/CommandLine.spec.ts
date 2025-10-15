@@ -186,9 +186,21 @@ for (const { label, args, expected } of testCases) {
 
 describe('positional arguments', () => {
   it('recognizes URLs', async () => {
-    const configuration = await CommandLine.buildConfigurationFrom(CWD, ['https://server.domain/path']);
-    expect(configuration.url).toStrictEqual(['https://server.domain/path']);
+    await expect(CommandLine.buildConfigurationFrom(CWD, ['https://server.domain/path'])).resolves.toStrictEqual({
+      cwd: CWD,
+      url: ['https://server.domain/path']
+    });
   });
+
+  const shortcuts = ['capabilities', 'version', 'help'];
+  for (const shortcut of shortcuts) {
+    it(`provides shortcut for ${shortcut}`, async () => {
+      await expect(CommandLine.buildConfigurationFrom(CWD, [shortcut])).resolves.toStrictEqual({
+        cwd: CWD,
+        [shortcut]: true
+      });
+    });
+  }
 
   it('fails with a specific error otherwise', async () => {
     try {

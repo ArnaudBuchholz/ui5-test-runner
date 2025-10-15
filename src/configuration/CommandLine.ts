@@ -92,6 +92,13 @@ const handlePositional = (configuration: CommandLineConfiguration, value: string
     setOption(configuration, indexedOptions.url, value);
     return;
   }
+  const shortcuts = ['capabilities', 'version', 'help'] as const;
+  for (const shortcut of shortcuts) {
+    if (value === shortcut) {
+      setOption(configuration, indexedOptions[shortcut]);
+      return;
+    }
+  }
   configuration.errors.push(new OptionValidationError(positionalOption, `Unable to process: ${value}`));
 };
 
