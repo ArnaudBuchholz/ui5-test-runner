@@ -56,7 +56,7 @@
     "@openui5/types": "^1.141.1",
     "@stylistic/eslint-plugin": "^5.4.0",
     "@stylistic/eslint-plugin-js": "^4.4.1",
-    "@types/node": "^24.7.1",
+    "@types/node": "^24.7.2",
     "@ui5/cli": "^4.0.30",
     "@ui5/middleware-code-coverage": "^2.0.1",
     "@vitest/coverage-v8": "^3.2.4",
@@ -72,15 +72,15 @@
     "eslint-plugin-unicorn": "^61.0.2",
     "globals": "^16.4.0",
     "markdownlint-cli": "^0.45.0",
-    "npm-check-updates": "^19.0.0",
+    "npm-check-updates": "^19.1.0",
     "rimraf": "^6.0.1",
     "stylelint": "^16.25.0",
     "stylelint-config-standard": "^39.0.1",
     "tsx": "^4.20.6",
     "typescript": "^5.9.3",
-    "typescript-eslint": "^8.46.0",
+    "typescript-eslint": "^8.46.1",
     "ui5-tooling-transpile": "^3.9.2",
-    "vite": "^7.1.9",
+    "vite": "^7.1.10",
     "vitest": "^3.2.4"
   }
 }
