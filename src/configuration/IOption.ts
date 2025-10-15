@@ -1,4 +1,4 @@
-export type OptionType = 'string' | 'folder' | 'file' | 'url' | 'boolean' | 'timeout' | 'integer';
+export type OptionType = 'string' | 'folder' | 'file' | 'url' | 'regexp' | 'boolean' | 'timeout' | 'integer';
 
 export type InferOptionType<T extends OptionType> = T extends 'boolean'
   ? boolean
