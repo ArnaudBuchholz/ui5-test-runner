@@ -1,8 +1,19 @@
-export type OptionType = 'string' | 'folder' | 'file' | 'url' | 'regexp' | 'boolean' | 'timeout' | 'integer';
+export type OptionType = 
+  | 'string'
+  | 'folder'
+  | 'file'
+  | 'url'
+  | 'regexp'
+  | 'ui5Mapping'
+  | 'reserveMapping'
+  | 'boolean'
+  | 'timeout'
+  | 'integer'
+  | 'percent';
 
 export type InferOptionType<T extends OptionType> = T extends 'boolean'
   ? boolean
-  : T extends 'timeout'
+  : T extends 'timeout' | 'percent'
     ? number
     : T extends 'integer'
       ? number
