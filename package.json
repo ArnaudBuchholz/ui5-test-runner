@@ -10,7 +10,7 @@
     "node": ">=22"
   },
   "scripts": {
-    "lint": "eslint **/*.mjs --fix && eslint **/*.ts --fix",
+    "lint": "eslint **/*.mjs --fix && eslint src/**/*.ts --fix",
     "build:options": "node build/options.mjs > ./src/configuration/options.ts",
     "test": "npm run test:unit && npm run test:e2e",
     "test:samples": "npm run test:samples:js && npm run test:samples:ts",
