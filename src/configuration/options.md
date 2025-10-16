@@ -6,7 +6,7 @@
 |capabilities||Run browser tests|boolean||||🧪
 |url|u|URL of the testsuite / page to test|url|✅|||🔗
 |config||Configuration file|file||'ui5-test-runner.json'||💻🔗🧪
-|port|p|Port to use|integer||||💻🔗🧪
+|port||Port to use|integer||||💻🔗🧪
 |reportDir|r|Directory to output test reports|folder||'report'||💻🔗🧪
 |pageTimeout|pt|Limit the page execution time, fails the page if it takes longer than the timeout|timeout||||💻🔗🧪📡
 |failFast|f|Stop the execution after the first failing page|boolean||||💻🔗🧪📡
@@ -16,8 +16,8 @@
 |parallel|p|Number of parallel tests executions|integer||2||💻🔗🧪📡
 |browser|b|Browser instantiation command (relative to cwd or use $/ for provided ones)|file||'$/puppeteer.js'||💻🔗🧪📡
 |alternateNpmPath||Alternate NPM path to look for packages (priority: local, alternate, global)|folder||||💻🔗📡
-|noNpmInstall||Prevent any NPM install (execution may fail if a dependency is missing)'|boolean||||💻🔗🧪📡
-|browserCloseTimeout|bt|Maximum waiting time for browser close|timeout||2s||💻🔗🧪📡
+|noNpmInstall||Prevent any NPM install (execution may fail if a dependency is missing)|boolean||||💻🔗🧪📡
+|browserCloseTimeout|bt|Maximum waiting time for browser close|timeout||'2s'||💻🔗🧪📡
 |browserRetry|br|Browser instantiation retries : if the command fails unexpectedly, it is re-executed|integer||1||💻🔗🧪📡
 |outputInterval|oi|Interval for reporting progress on non interactive output (CI/CD)|timeout||3000||💻🔗🧪📡
 |offline||Limit network usage (implies --no-npm-install)|boolean||||💻🔗🧪📡
@@ -66,21 +66,14 @@
 |cache||Cache UI5 resources locally in the given folder|folder||||💻📡
 |preload||Preload UI5 libraries in the cache folder (only if --cache is used)|string|✅|||💻📡
 |testsuite||Path of the testsuite file (relative to webapp, URL parameters are supported)|file||'test/testsuite.qunit.html'||💻
-
-    // Specific to coverage in url mode (experimental)
-    .option('-cp, --coverage-proxy [flag]', `[🔗] ${EXPERIMENTAL_OPTION} use internal proxy to instrument remote files`, boolean, false)
-    .option('-cpi, --coverage-proxy-include <regexp>', `[🔗] ${EXPERIMENTAL_OPTION} urls to instrument for coverage`, regex, '.*')
-    .option('-cpe, --coverage-proxy-exclude <regexp>', `[🔗] ${EXPERIMENTAL_OPTION} urls to ignore for coverage`, regex, '/((test-)?resources|tests?)/')
-
-    // Batch mode related
-    .addOption(new Option('--batch-mode', 'Changes the way options are defaulted (in particular coverage temporary folders)', boolean).hideHelp())
-    .option('--batch <specification...>', 'Batch specification', arrayOf(string))
-    .option('--batch-id <id>', 'Batch id (used for naming report folder)', string)
-    .option('--batch-label <label>', 'Batch label (used while reporting on execution)', string)
-    .option('--if <condition>', 'Condition runner execution', string)
-
-|name|short|description|type|multiple|default|defaultLabel|flags
-|---|---|---|---|---|---|---|---|
+|coverageProxy|cp|Use internal proxy to instrument remote files|boolean||||🥼🔗
+|coverageProxyInclude|cpi|Urls to instrument for coverage|regexp||'.*'||🥼🔗
+|coverageProxyExclude|cpe|Urls to ignore for coverage|regexp||'/((test-)?resources\|tests?)/'||🥼🔗
+|batchMode||Changes the way options are defaulted (in particular coverage temporary folders)|boolean||||⛔
+|batch||Batch specification|string|✅
+|batchId||Batch id (used for naming report folder)|string
+|batchLabel||Batch label (used while reporting on execution)|string
+|if||Condition runner execution|string
 |debugDevMode|||boolean||||🐞
 |debugProbeOnly|||boolean||||🐞
 |debugKeepBrowserOpen|||boolean||||🐞
