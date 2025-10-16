@@ -19,22 +19,19 @@ export type InferOptionType<T extends OptionType> = T extends 'boolean'
       ? number
       : string;
 
-export type Option<T extends OptionType = OptionType> =
+export type Option<T extends OptionType = OptionType> = {
+  name: string;
+  short?: string;
+  description: string;
+  type: T;
+  defaultLabel?: string;
+} & (
   | {
-      name: string;
-      short?: string;
-      description: string;
-      type: T;
       multiple?: false;
       default?: InferOptionType<T>;
-      defaultLabel?: string;
     }
   | {
-      name: string;
-      short?: string;
-      description: string;
-      type: T;
       multiple: true;
       default?: readonly InferOptionType<T>[];
-      defaultLabel?: string;
-    };
+    }
+);
