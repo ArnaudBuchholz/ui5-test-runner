@@ -9,7 +9,7 @@ const names = new Set();
 const shorts = new Set();
 
 const check = (name, short) => {
-  if (names.has(name) || short && shorts.has(short)) {
+  if (names.has(name) || (short && shorts.has(short))) {
     console.error('⚠️  duplicate name / short detected:', name, short);
   }
   names.add(name);
@@ -25,10 +25,10 @@ for (const option of options) {
   }
   console.log('  {');
   const values = option
-    .replaceAll(/\\\|/g, 'ǁ')
+    .replaceAll(String.raw`\|`, 'ǁ')
     .split('|')
     .slice(1)
-    .map(value => value.replaceAll(/ǁ/g, '|'));
+    .map((value) => value.replaceAll('ǁ', '|'));
   check(values[0], values[1]);
   for (const [index, property] of properties.entries()) {
     const value = values[index];

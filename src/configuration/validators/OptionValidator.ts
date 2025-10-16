@@ -1,6 +1,6 @@
-import type { InferOptionType, IOption, OptionType } from '../IOption.js';
+import type { InferOptionType, Option, OptionType } from '../Option.js';
 
 export type OptionValidator<T extends OptionType> = (
-  option: IOption<T>,
+  option: Option<T>,
   value: unknown
 ) => Promise<InferOptionType<T>> | InferOptionType<T>;

@@ -1,4 +1,4 @@
-import type { OptionType } from '../IOption.js';
+import type { OptionType } from '../Option.js';
 import type { OptionValidator } from './OptionValidator.js';
 import { boolean } from './boolean.js';
 import { timeout } from './timeout.js';

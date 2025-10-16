@@ -1,13 +1,13 @@
 import { options } from './options.js';
 import type { Configuration } from './Configuration.js';
 import { ConfigurationValidator } from './ConfigurationValidator.js';
-import type { IOption } from './IOption.js';
+import type { Option } from './Option.js';
 import { OptionValidationError } from './OptionValidationError.js';
 import { looksLikeAnUrl } from './validators/url.js';
 
 type ConfigurationKeys = keyof Configuration;
 
-type IndexedOptions = { [key in ConfigurationKeys]: IOption } & { [key in string]?: IOption };
+type IndexedOptions = { [key in ConfigurationKeys]: Option } & { [key in string]?: Option };
 const indexedOptions = {} as IndexedOptions;
 for (const option of options) {
   const { name } = option;
@@ -32,7 +32,7 @@ export type CommandLineConfiguration = {
   errors: unknown[];
 };
 
-const setOption = (configuration: CommandLineConfiguration, option: IOption, value?: string) => {
+const setOption = (configuration: CommandLineConfiguration, option: Option, value?: string) => {
   const name = option.name as keyof Configuration;
   let set = false;
   if (value === undefined) {
@@ -68,9 +68,9 @@ const setOption = (configuration: CommandLineConfiguration, option: IOption, val
 
 const switchOption = (
   configuration: CommandLineConfiguration,
-  currentOption: IOption | undefined,
+  currentOption: Option | undefined,
   name: string
-): IOption => {
+): Option => {
   if (currentOption) {
     setOption(configuration, currentOption);
   }
@@ -81,7 +81,7 @@ const switchOption = (
   return option;
 };
 
-const positionalOption: IOption = {
+const positionalOption: Option = {
   name: 'positional',
   description: 'Any argument not prefixed with an option',
   type: 'string'
@@ -103,7 +103,7 @@ const handlePositional = (configuration: CommandLineConfiguration, value: string
 };
 
 const traverseArguments = (configuration: CommandLineConfiguration, argv: string[]) => {
-  let currentOption: IOption | undefined;
+  let currentOption: Option | undefined;
   for (const argument of argv) {
     if (argument.startsWith('--')) {
       currentOption = switchOption(configuration, currentOption, argument.slice(2));

@@ -1,8 +1,8 @@
-import type { IOption } from './IOption.js';
+import type { Option } from './Option.js';
 
 export class OptionValidationError extends Error {
   constructor(
-    private _option: IOption,
+    private _option: Option,
     message: string = 'Invalid value'
   ) {
     super(message);

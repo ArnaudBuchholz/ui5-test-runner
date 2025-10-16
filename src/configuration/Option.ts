@@ -1,4 +1,4 @@
-export type OptionType = 
+export type OptionType =
   | 'string'
   | 'folder'
   | 'file'
@@ -19,12 +19,12 @@ export type InferOptionType<T extends OptionType> = T extends 'boolean'
       ? number
       : string;
 
-export interface IOption<T extends OptionType = OptionType> {
+export type Option<T extends OptionType = OptionType> = {
   name: string;
   short?: string;
   description: string;
   type: T;
   multiple?: true;
-  default?: InferOptionType<T>;
+  default?: InferOptionType<T> | readonly InferOptionType<T>[];
   defaultLabel?: string;
-}
+};

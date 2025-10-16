@@ -74,14 +74,14 @@
 |batchId||Batch id (used for naming report folder)|string
 |batchLabel||Batch label (used while reporting on execution)|string
 |if||Condition runner execution|string
-|debugDevMode|||boolean||||🐞
-|debugProbeOnly|||boolean||||🐞
-|debugKeepBrowserOpen|||boolean||||🐞
-|debugMemory|||boolean||||🐞
-|debugHandles|||boolean||||🐞
-|debugKeepReport|||boolean||||🐞
-|debugCapabilitiesTest|||boolean||||🐞
-|debugCapabilitiesNoTimeout|||boolean||||🐞
-|debugCapabilitiesNoScript|||boolean||||🐞
-|debugCoverageNoCustomFs|||boolean||||🐞
-|debugVerbose|||string|✅|||🐞
+|debugDevMode||Enables development mode in REserve|boolean||||🐞
+|debugProbeOnly||Stops after probing pages|boolean||||🐞
+|debugKeepBrowserOpen||Keeps the browser open after the test completed|boolean||||🐞
+|debugMemory||Collect memory statistics|boolean||||🐞
+|debugHandles||Collect handles statistics|boolean||||🐞
+|debugKeepReport||Keep report after capabilities succeeded|boolean||||🐞
+|debugCapabilitiesTest||Test filter for capabilities|boolean||||🐞
+|debugCapabilitiesNoTimeout||Prevents timeout during capabilities|boolean||||🐞
+|debugCapabilitiesNoScript||Prevents browser scripts during capabilities|boolean||||🐞
+|debugCoverageNoCustomFs||Disable the use of custom file system for coverage|boolean||||🐞
+|debugVerbose||Output debug traces|string|✅|||🐞
