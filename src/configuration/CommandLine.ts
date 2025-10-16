@@ -1,4 +1,4 @@
-import { options } from './options.js';
+import { indexedOptions } from './indexedOptions.js';
 import type { Configuration } from './Configuration.js';
 import { ConfigurationValidator } from './ConfigurationValidator.js';
 import type { Option } from './Option.js';
@@ -6,20 +6,6 @@ import { OptionValidationError } from './OptionValidationError.js';
 import { looksLikeAnUrl } from './validators/url.js';
 
 type ConfigurationKeys = keyof Configuration;
-
-type IndexedOptions = { [key in ConfigurationKeys]: Option } & { [key in string]?: Option };
-const indexedOptions = {} as IndexedOptions;
-for (const option of options) {
-  const { name } = option;
-  indexedOptions[name] = option;
-  if ('short' in option) {
-    indexedOptions[option.short] = option;
-  }
-  const kebabCase = name.replaceAll(/[A-Z]/g, (letter) => `-${letter.toLocaleLowerCase()}`);
-  if (name !== kebabCase) {
-    indexedOptions[kebabCase] = option;
-  }
-}
 
 // The command line config contains mostly strings (or array of strings for multiple params)
 export type CommandLineConfiguration = {
