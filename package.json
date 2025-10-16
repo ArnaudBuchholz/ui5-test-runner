@@ -11,7 +11,7 @@
   },
   "scripts": {
     "lint": "eslint **/*.mjs --fix && eslint **/*.ts --fix",
-    "build:options": "node build/options.mjs > ./src/config/options.ts",
+    "build:options": "node build/options.mjs > ./src/configuration/options.ts",
     "test": "npm run test:unit && npm run test:e2e",
     "test:samples": "npm run test:samples:js && npm run test:samples:ts",
     "test:samples:js": "npm run test:sample:js:legacy && npm run test:sample:js:coverage:legacy && npm run test:sample:js:legacy-remote && npm run test:sample:js:coverage:legacy-remote && npm run test:sample:js:remote && npm run test:sample:js:coverage:remote && npm run test:sample:js:basic-authent && npm run test:sample:js:legacy:split-opa && npm run test:sample:js:remote:split-opa",
