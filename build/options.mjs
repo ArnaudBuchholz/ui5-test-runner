@@ -18,7 +18,9 @@ const check = (name, short) => {
   }
 };
 
-console.log('export const options = [');
+console.log(`import { Platform } from '../Platform.js';
+
+export const options = [`);
 for (const option of options) {
   if (!option) {
     continue;

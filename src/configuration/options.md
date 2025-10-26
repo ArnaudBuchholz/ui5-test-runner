@@ -1,6 +1,6 @@
 |name|short|description|type|multiple|default|defaultLabel|flags
 |---|---|---|---|---|---|---|---|
-|cwd|c|Set working directory|folder||process.cwd()|current working directory|💻🔗🧪
+|cwd|c|Set working directory|folder||Platform.cwd()|current working directory|💻🔗🧪
 |version||Shows version|boolean
 |help||Shows help|boolean
 |capabilities||Run browser tests|boolean||||🧪
