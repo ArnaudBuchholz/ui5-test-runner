@@ -18,8 +18,8 @@ export class Platform {
 
   static readonly join = join;
 
-  static readonly threadId = threadId;
-  static readonly isMainThread = isMainThread;
+  static get threadId () { return threadId }
+  static get isMainThread () { return isMainThread };
   static createBroadcastChannel (name: 'logger') {
     return new BroadcastChannel(name);
   }
