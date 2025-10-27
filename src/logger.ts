@@ -60,7 +60,7 @@ const log = (level: LogLevel, attributes: LogAttributes) => {
   const allAttributes = {
     timestamp: Date.now(),
     level,
-    processId: process.pid,
+    processId: Platform.pid,
     threadId: Platform.threadId,
     isMainThread: Platform.isMainThread,
     ...attributes

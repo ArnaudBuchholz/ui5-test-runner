@@ -8,6 +8,7 @@ const WORKER_FLAGS = ['--experimental-strip-types', '--disable-warning=Experimen
 
 /** This class simplifies mocking during tests */
 export class Platform {
+  static readonly pid = process.pid;
   static readonly cwd = process.cwd;
   static readonly threadCpuUsage = process.threadCpuUsage;
   static readonly memoryUsage = process.memoryUsage;
