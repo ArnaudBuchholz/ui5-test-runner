@@ -7,7 +7,7 @@
     "ui5-test-runner": "./index.js"
   },
   "engines": {
-    "node": ">=22"
+    "node": ">=22.21"
   },
   "scripts": {
     "lint": "eslint **/*.mjs --fix && eslint src/**/*.ts --fix",
