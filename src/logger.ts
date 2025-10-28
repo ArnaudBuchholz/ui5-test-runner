@@ -1,4 +1,5 @@
 import { Platform } from './Platform.js';
+import assert from 'node:assert/strict';
 
 export type LogAttributes = {
   source: string;
@@ -12,9 +13,9 @@ export const LogLevel = {
   info: 'info',
   warn: 'warn',
   error: 'error',
-  fatal: 'fatal',
-} as const
-export type LogLevel = typeof LogLevel[keyof typeof LogLevel];
+  fatal: 'fatal'
+} as const;
+export type LogLevel = (typeof LogLevel)[keyof typeof LogLevel];
 
 export type InternalLogAttributes = {
   /** Time stamp (UNIX epoch) */
@@ -31,27 +32,25 @@ export type InternalLogAttributes = {
 
 const channel = Platform.createBroadcastChannel('logger');
 let worker: ReturnType<typeof Platform.createWorker> | undefined;
-if (Platform.isMainThread) {
-  worker = Platform.createWorker('logger');
-}
 const buffer: (InternalLogAttributes & LogAttributes)[] = [];
 let ready = false;
 
 const metricsMonitorInterval = setInterval(() => {
   logger.debug({ source: 'metric', message: 'threadCpuUsage', data: Platform.threadCpuUsage() });
   logger.debug({ source: 'metric', message: 'memoryUsage', data: Platform.memoryUsage() });
-}, 1000)
+}, 1000);
 
 channel.onmessage = (event: any) => {
   if (event.data.ready) {
     ready = true;
-    if (buffer.length) {
+    if (buffer.length > 0) {
       for (const buffered of buffer) {
         channel.postMessage(buffered);
       }
       buffer.length = 0;
     }
   } else if (event.data.terminate) {
+    clearInterval(metricsMonitorInterval);
     channel.close();
   }
 };
@@ -72,23 +71,36 @@ const log = (level: LogLevel, attributes: LogAttributes) => {
     buffer.push(allAttributes);
     channel.postMessage({ isReady: true });
   }
-}
+};
 
 export const logger = {
-  debug(attributes: LogAttributes) { log('debug', attributes); },
-  info(attributes: LogAttributes) { log('info', attributes); },
-  warn(attributes: LogAttributes) { log('warn', attributes); },
-  error(attributes: LogAttributes) { log('error', attributes); },
-  fatal(attributes: LogAttributes) { log('fatal', attributes); },
+  open(cwd: string) {
+    assert.ok(Platform.isMainThread, 'Call logger.open only in main thread');
+    worker = Platform.createWorker('logger', { cwd });
+  },
+
+  debug(attributes: LogAttributes) {
+    log('debug', attributes);
+  },
+  info(attributes: LogAttributes) {
+    log('info', attributes);
+  },
+  warn(attributes: LogAttributes) {
+    log('warn', attributes);
+  },
+  error(attributes: LogAttributes) {
+    log('error', attributes);
+  },
+  fatal(attributes: LogAttributes) {
+    log('fatal', attributes);
+  },
 
   async close() {
-    clearInterval(metricsMonitorInterval);
-    if (worker) {
-      const { promise, resolve } = Promise.withResolvers();
-      worker.on('exit', resolve);
-      channel.postMessage({ terminate: true });
-      await promise;
-    }
-    channel.close();
+    assert.ok(Platform.isMainThread, 'Call logger.close only in main thread');
+    assert.ok(worker, 'Call logger.close only after opening');
+    const { promise, resolve } = Promise.withResolvers();
+    worker.on('exit', resolve);
+    channel.postMessage({ terminate: true });
+    await promise;
   }
 };
