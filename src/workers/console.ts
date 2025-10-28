@@ -2,7 +2,7 @@ import { Platform } from '../Platform.js';
 import type { InternalLogAttributes, LogAttributes } from '../logger.js';
 
 const log = (attributes: InternalLogAttributes & LogAttributes) => {
-  const { level, timestamp, processId = 0, threadId = 0, message, data }  = attributes;
+  const { level, timestamp, processId = 0, threadId = 0, message, data } = attributes;
   const icon = {
     debug: '🐞',
     info: '🛈',
@@ -11,7 +11,7 @@ const log = (attributes: InternalLogAttributes & LogAttributes) => {
     fatal: '💣'
   }[level];
   console.log(icon, timestamp, processId, threadId, message, data ? JSON.stringify(data) : '');
-}
+};
 
 const channel = Platform.createBroadcastChannel('logger');
 channel.onmessage = (event: any) => {
@@ -20,4 +20,4 @@ channel.onmessage = (event: any) => {
   } else {
     log(event.data as InternalLogAttributes & LogAttributes);
   }
-}
+};

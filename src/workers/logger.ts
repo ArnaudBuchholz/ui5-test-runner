@@ -17,7 +17,7 @@ const gzFlushBuffer = () => {
     return;
   }
 
-  const dataToWrite = gzBuffer.map(log => JSON.stringify(log)).join('\n') + '\n';
+  const dataToWrite = gzBuffer.map((log) => JSON.stringify(log)).join('\n') + '\n';
   gzipStream.write(dataToWrite);
 
   gzBuffer.length = 0;
@@ -36,16 +36,17 @@ const log = (attributes: InternalLogAttributes & LogAttributes) => {
   } else if (!gzFlushTimeout) {
     gzFlushTimeout = setTimeout(gzFlushBuffer, GZ_FLUSH_INTERVAL_MS);
   }
-}
+};
 
-const _log = (attributes: LogAttributes) => log({
-  timestamp: Date.now(),
-  level: 'info',
-  processId: process.pid,
-  threadId: Platform.threadId,
-  isMainThread: Platform.isMainThread,
-  ...attributes
-} satisfies InternalLogAttributes & LogAttributes);
+const _log = (attributes: LogAttributes) =>
+  log({
+    timestamp: Date.now(),
+    level: 'info',
+    processId: process.pid,
+    threadId: Platform.threadId,
+    isMainThread: Platform.isMainThread,
+    ...attributes
+  } satisfies InternalLogAttributes & LogAttributes);
 
 const channel = new BroadcastChannel('logger');
 channel.onmessage = (event: any) => {
@@ -59,7 +60,7 @@ channel.onmessage = (event: any) => {
   } else {
     log(event.data);
   }
-}
+};
 
 _log({ source: 'logger', message: 'Logger ready' });
 channel.postMessage({ ready: true });
