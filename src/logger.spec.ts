@@ -3,15 +3,18 @@ import { Platform } from './Platform.js';
 import { AssertionError } from 'node:assert';
 
 vi.mock('./Platform.js', async () => {
-  const channel = { postMessage: vi.fn(), onmessage: undefined as unknown, close: vi.fn() };
+  const channel = { postMessage: vi.fn(), onmessage: undefined as ((data: unknown) => void) | undefined, close: vi.fn() };
   const worker = new EventTarget();
-  Object.assign(worker, { postMessage: vi.fn() });
+  Object.assign(worker, {
+    on: worker.addEventListener,
+    postMessage: vi.fn(),
+  });
   const Platform = {
-    pid: Math.floor(Math.random() * 100),
+    pid: Math.floor(Date.now() / 1000),
     createBroadcastChannel: vi.fn(() => channel),
     createWorker: vi.fn(() => worker),
     isMainThread: false,
-    threadId: Math.floor(Math.random() * 100),
+    threadId: Math.floor(Date.now() / 1000) + 1,
     threadCpuUsage: () => ({ cpu: 1 }),
     memoryUsage: () => ({ rss: 123 })
   };

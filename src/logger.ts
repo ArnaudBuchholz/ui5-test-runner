@@ -40,8 +40,8 @@ const metricsMonitorInterval = setInterval(() => {
   logger.debug({ source: 'metric', message: 'memoryUsage', data: Platform.memoryUsage() });
 }, 1000);
 
-channel.onmessage = (event: any) => {
-  if (event.data.ready) {
+channel.onmessage = (event: { data: object }) => {
+  if ('ready' in event.data) {
     ready = true;
     if (buffer.length > 0) {
       for (const buffered of buffer) {
@@ -49,7 +49,7 @@ channel.onmessage = (event: any) => {
       }
       buffer.length = 0;
     }
-  } else if (event.data.terminate) {
+  } else if ('terminate' in event.data) {
     clearInterval(metricsMonitorInterval);
     channel.close();
   }
