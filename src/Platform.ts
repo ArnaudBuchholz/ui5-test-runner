@@ -9,9 +9,15 @@ const WORKER_FLAGS = ['--experimental-strip-types', '--disable-warning=Experimen
 /** This class simplifies mocking during tests */
 export class Platform {
   static readonly pid = process.pid;
-  static readonly cwd = process.cwd;
-  static readonly threadCpuUsage = process.threadCpuUsage;
-  static readonly memoryUsage = process.memoryUsage;
+  static cwd() {
+    return process.cwd();
+  }
+  static threadCpuUsage() {
+    return process.threadCpuUsage();
+  }
+  static memoryUsage() {
+    return process.memoryUsage();
+  }
 
   static readonly stat = stat;
   static readonly access = access;
@@ -33,6 +39,8 @@ export class Platform {
     return worker;
   }
 
-  static readonly createGzip = zlib.createGzip;
+  static createGzip() {
+    return zlib.createGzip();
+  }
   static readonly Z_FULL_FLUSH = zlib.constants.Z_FULL_FLUSH;
 }

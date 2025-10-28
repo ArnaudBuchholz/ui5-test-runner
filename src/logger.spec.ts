@@ -3,9 +3,8 @@ import { Platform } from './Platform.js';
 import { AssertionError } from 'node:assert';
 
 vi.mock('./Platform.js', async () => {
-  const { EventEmitter } = await import('node:stream');
-  const channel = { postMessage: vi.fn(), onmessage: undefined as any, close: vi.fn() };
-  const worker = new EventEmitter();
+  const channel = { postMessage: vi.fn(), onmessage: undefined as unknown, close: vi.fn() };
+  const worker = new EventTarget();
   Object.assign(worker, { postMessage: vi.fn() });
   const Platform = {
     pid: Math.floor(Math.random() * 100),
