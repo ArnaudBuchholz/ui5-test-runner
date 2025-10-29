@@ -12,7 +12,8 @@ export default defineConfig({
         'vite.config.mjs',
         'src/**/*.spec.ts',
         'src/**/index.ts',
-        'test/**'
+        'test/**',
+        'src/Platform.ts',
       ]
     }
   }
