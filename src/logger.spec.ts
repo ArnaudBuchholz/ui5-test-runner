@@ -3,11 +3,15 @@ import { Platform } from './Platform.js';
 import { AssertionError } from 'node:assert';
 
 vi.mock('./Platform.js', async () => {
-  const channel = { postMessage: vi.fn(), onmessage: undefined as ((data: unknown) => void) | undefined, close: vi.fn() };
+  const channel = {
+    postMessage: vi.fn(),
+    onmessage: undefined as ((data: unknown) => void) | undefined,
+    close: vi.fn()
+  };
   const worker = new EventTarget();
   Object.assign(worker, {
     on: worker.addEventListener,
-    postMessage: vi.fn(),
+    postMessage: vi.fn()
   });
   const Platform = {
     pid: Math.floor(Date.now() / 1000),
@@ -27,10 +31,19 @@ beforeEach(async () => {
   vi.useFakeTimers();
 });
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any -- Simpler this way
+const postMessage = (channel: ReturnType<typeof Platform.createBroadcastChannel>, data: any) => channel.onmessage(data);
+
 describe('general', () => {
   it('opens a broadcast channel to communicate with the logger thread', async () => {
     await import('./logger.js');
     expect(Platform.createBroadcastChannel).toHaveBeenCalledWith('logger');
+  });
+
+  it('attaches a listener to the channel', async () => {
+    await import('./logger.js');
+    const channel = Platform.createBroadcastChannel('logger');
+    expect(channel.onmessage).not.toBeUndefined();
   });
 
   it('caches traces while waiting for the logger thread to start (and query for readyness)', async () => {
@@ -50,7 +63,7 @@ describe('general', () => {
     const { logger } = await import('./logger.js');
     const channel = Platform.createBroadcastChannel('logger');
     logger.debug({ source: 'test', message: 'test' });
-    channel.onmessage({ data: { ready: true } } as any);
+    postMessage(channel, { data: { ready: true } });
     expect(channel.postMessage).toHaveBeenCalledWith(
       expect.objectContaining({
         source: 'test',
@@ -63,7 +76,7 @@ describe('general', () => {
     const { logger } = await import('./logger.js');
     const timestamp = Date.now(); // because of fake timers
     const channel = Platform.createBroadcastChannel('logger');
-    channel.onmessage({ data: { ready: true } } as any);
+    postMessage(channel, { data: { ready: true } });
     logger.debug({ source: 'test', message: 'test' });
     expect(channel.postMessage).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -83,7 +96,7 @@ describe('general', () => {
     it(`offers ${level} method that translates to ${level} trace level`, async () => {
       const { logger } = await import('./logger.js');
       const channel = Platform.createBroadcastChannel('logger');
-      channel.onmessage({ data: { ready: true } } as any);
+      postMessage(channel, { data: { ready: true } });
       logger[level]({ source: 'test', message: 'test' });
       expect(channel.postMessage).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -96,7 +109,7 @@ describe('general', () => {
   it('closes the broadcast channel when the terminate signal is received', async () => {
     await import('./logger.js');
     const channel = Platform.createBroadcastChannel('logger');
-    channel.onmessage({ data: { terminate: true } } as any);
+    postMessage(channel, { data: { terminate: true } });
     expect(channel.close).toHaveBeenCalled();
   });
 
@@ -120,7 +133,7 @@ describe('general', () => {
     const { logger } = await import('./logger.js');
     vi.spyOn(logger, 'debug');
     const channel = Platform.createBroadcastChannel('logger');
-    channel.onmessage({ data: { terminate: true } } as any);
+    postMessage(channel, { data: { terminate: true } });
     vi.advanceTimersToNextTimer();
     expect(logger.debug).not.toHaveBeenCalled();
   });
@@ -136,7 +149,7 @@ describe('open', () => {
     expect(Platform.createWorker).not.toHaveBeenCalled();
   });
 
-  it('creates the logger worker if on the main thread', async () => {
+  it('creates the logger worker', async () => {
     Object.assign(Platform, { isMainThread: true });
     const { logger } = await import('./logger.js');
     logger.open(cwd);
@@ -161,14 +174,14 @@ describe('close', () => {
     expect(channel.postMessage).not.toHaveBeenCalled();
   });
 
-  it('closes the logger worker if on the main thread', async () => {
+  it('closes the logger worker', async () => {
     Object.assign(Platform, { isMainThread: true });
     const { logger } = await import('./logger.js');
     const channel = Platform.createBroadcastChannel('logger');
     const worker = Platform.createWorker('logger');
     logger.open(cwd);
     const closing = logger.close();
-    worker.emit('exit');
+    (worker as unknown as EventTarget).dispatchEvent(new CustomEvent('exit'));
     await closing;
     expect(channel.postMessage).toHaveBeenCalledWith({ terminate: true });
   });
