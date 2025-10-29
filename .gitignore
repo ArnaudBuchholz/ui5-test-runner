@@ -41,3 +41,6 @@ test/report/report.html
 
 # IDE
 .vscode/
+
+#eslint cache
+.eslintcache
