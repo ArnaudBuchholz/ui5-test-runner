@@ -112,6 +112,7 @@ export default [
           checkInfinity: true
         }
       ],
+      'unicorn/prefer-add-event-listener': 'off',
       'sonarjs/todo-tag': 'warn'
     }
   },
