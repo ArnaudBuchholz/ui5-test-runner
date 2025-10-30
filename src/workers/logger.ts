@@ -1,10 +1,17 @@
 import { Platform } from '../Platform.js';
+import { assert } from '../assert.js';
 import type { InternalLogAttributes, LogAttributes } from '../logger.js';
 
 const LOG_FILE_NAME = `app-${new Date().toISOString().slice(0, 19).replaceAll(/[-:]/g, '').replace('T', '-')}.log`;
 
-// TODO use Config.cwd instead
-const fileStream = Platform.createWriteStream(Platform.join(Platform.cwd(), LOG_FILE_NAME + '.gz'));
+const assertIfValidWorkerData: (value: object) => asserts value is { cwd: string } = (value) => {
+  assert('cwd' in value);
+  assert(typeof value.cwd === 'string');
+};
+assertIfValidWorkerData(Platform.workerData);
+
+const { cwd } = Platform.workerData;
+const fileStream = Platform.createWriteStream(Platform.join(cwd, LOG_FILE_NAME + '.gz'));
 const gzipStream = Platform.createGzip({ flush: Platform.Z_FULL_FLUSH });
 gzipStream.pipe(fileStream);
 const gzBuffer: (string | [string, object])[] = [];
@@ -49,13 +56,15 @@ const _log = (attributes: LogAttributes) =>
   } satisfies InternalLogAttributes & LogAttributes);
 
 const channel = new BroadcastChannel('logger');
-channel.onmessage = (event: any) => {
-  if (event.data.terminate) {
+channel.onmessage = (event: {
+  data: { terminate: true } | { isReady: true } | (LogAttributes & InternalLogAttributes);
+}) => {
+  if ('terminate' in event.data) {
     _log({ source: 'logger', message: 'Logger terminating' });
     channel.close();
     gzFlushBuffer();
     gzipStream.end();
-  } else if (event.data.isReady) {
+  } else if ('isReady' in event.data) {
     channel.postMessage({ ready: true });
   } else {
     log(event.data);
