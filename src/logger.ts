@@ -1,5 +1,12 @@
 import { Platform } from './Platform.js';
-import assert from 'node:assert/strict';
+import assert from 'node:assert/strict'; // can't use ./logger.js because of dependency loop
+
+type ErrorAttributes = {
+  name: string;
+  message: string;
+  stack?: string;
+  cause?: ErrorAttributes;
+};
 
 export type LogAttributes = {
   source: string;
@@ -55,15 +62,33 @@ channel.onmessage = (event: { data: object }) => {
   }
 };
 
+const convertErrorToAttributes = (error: unknown): ErrorAttributes => {
+  if (!(error instanceof Error)) {
+    return convertErrorToAttributes(new Error(JSON.stringify(error)));
+  }
+  const attributes: ErrorAttributes = {
+    name: error.name,
+    message: error.message,
+    stack: error.stack
+  };
+  if (error.cause) {
+    attributes.cause = convertErrorToAttributes(error.cause);
+  }
+  return attributes;
+};
+
 const log = (level: LogLevel, attributes: LogAttributes) => {
-  const allAttributes = {
+  const allAttributes: InternalLogAttributes & LogAttributes = {
     timestamp: Date.now(),
     level,
     processId: Platform.pid,
     threadId: Platform.threadId,
     isMainThread: Platform.isMainThread,
     ...attributes
-  } satisfies InternalLogAttributes & LogAttributes;
+  };
+  if (attributes.error) {
+    allAttributes.error = convertErrorToAttributes(attributes.error);
+  }
   if (ready) {
     channel.postMessage(allAttributes);
   } else {

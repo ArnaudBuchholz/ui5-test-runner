@@ -91,6 +91,70 @@ describe('general', () => {
     );
   });
 
+  describe('error handling', () => {
+    it('extracts error information', async () => {
+      const { logger } = await import('./logger.js');
+      const channel = Platform.createBroadcastChannel('logger');
+      postMessage(channel, { data: { ready: true } });
+      const error = new Error('error');
+      logger.debug({ source: 'test', message: 'test', error });
+      expect(channel.postMessage).toHaveBeenCalledWith(
+        expect.objectContaining({
+          source: 'test',
+          message: 'test',
+          error: {
+            name: 'Error',
+            message: 'error',
+            stack: expect.any(String)
+          }
+        })
+      );
+    });
+
+    it('extracts cause', async () => {
+      const { logger } = await import('./logger.js');
+      const channel = Platform.createBroadcastChannel('logger');
+      postMessage(channel, { data: { ready: true } });
+      const error = new Error('error');
+      error.cause = new Error('cause');
+      logger.debug({ source: 'test', message: 'test', error });
+      expect(channel.postMessage).toHaveBeenCalledWith(
+        expect.objectContaining({
+          source: 'test',
+          message: 'test',
+          error: {
+            name: 'Error',
+            message: 'error',
+            stack: expect.any(String),
+            cause: {
+              name: 'Error',
+              message: 'cause',
+              stack: expect.any(String)
+            }
+          }
+        })
+      );
+    });
+
+    it('extrapolates error information', async () => {
+      const { logger } = await import('./logger.js');
+      const channel = Platform.createBroadcastChannel('logger');
+      postMessage(channel, { data: { ready: true } });
+      logger.debug({ source: 'test', message: 'test', error: 'string' });
+      expect(channel.postMessage).toHaveBeenCalledWith(
+        expect.objectContaining({
+          source: 'test',
+          message: 'test',
+          error: {
+            name: 'Error',
+            message: '"string"',
+            stack: expect.any(String)
+          }
+        })
+      );
+    });
+  });
+
   const levels = ['debug', 'info', 'warn', 'error', 'fatal'] as const;
   for (const level of levels) {
     it(`offers ${level} method that translates to ${level} trace level`, async () => {
@@ -112,8 +176,11 @@ describe('general', () => {
     postMessage(channel, { data: { terminate: true } });
     expect(channel.close).toHaveBeenCalled();
   });
+});
 
+describe('Metrics automatic monitoring', () => {
   it('monitors thread metrics automatically', async () => {
+    Object.assign(Platform, { isMainThread: true });
     const { logger } = await import('./logger.js');
     vi.spyOn(logger, 'debug');
     vi.advanceTimersToNextTimer();
@@ -139,7 +206,7 @@ describe('general', () => {
   });
 });
 
-const cwd = '/~/test';
+const cwd = '~/test';
 
 describe('open', () => {
   it('fails if not on the main thread', async () => {
