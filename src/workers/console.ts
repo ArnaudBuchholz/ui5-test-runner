@@ -14,10 +14,10 @@ const log = (attributes: InternalLogAttributes & LogAttributes) => {
 };
 
 const channel = Platform.createBroadcastChannel('logger');
-channel.onmessage = (event: any) => {
-  if (event.data.terminate) {
+channel.onmessage = (event: { data: { terminate: true } | (InternalLogAttributes & LogAttributes) }) => {
+  if ('terminate' in event.data) {
     channel.close();
   } else {
-    log(event.data as InternalLogAttributes & LogAttributes);
+    log(event.data);
   }
 };
