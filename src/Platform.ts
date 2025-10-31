@@ -17,7 +17,7 @@ export class Platform {
   static readonly access = access;
   static readonly createWriteStream = createWriteStream;
 
-  static readonly join = join;
+  static readonly join = (...arguments_: string[]) => join(...arguments_).replaceAll('\\', '/');
 
   static readonly threadId = threadId;
   static readonly isMainThread = isMainThread;
