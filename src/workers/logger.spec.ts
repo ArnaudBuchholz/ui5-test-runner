@@ -1,6 +1,6 @@
 import { it, expect, vi } from 'vitest';
 import { Platform } from '../Platform.js';
-import './logger.js';
+import { MAX_BUFFER_SIZE } from './logger.js';
 
 // Must be done before importing ./logger.ts
 vi.hoisted(() => {
@@ -60,16 +60,33 @@ it('answers isReady by posting { ready: true }', () => {
   expect(channel.postMessage).toHaveBeenCalledWith({ from: 'me', isReady: true, ready: true });
 });
 
-it('compress the traces before zipping (no data)', () => {
+it('flushes the traces after a timeout', () => {
   vi.advanceTimersToNextTimer(); // flush buffer
   const gzipStream = Platform.createGzip();
   vi.mocked(gzipStream.write).mockClear();
-  postMessage({ 
+  postMessage({
     timestamp: Date.now(),
     level: 'info',
     processId: process.pid,
     threadId: Platform.threadId,
-    isMainThread: Platform.isMainThread,
+    isMainThread: false,
+    source: 'test',
+    message: 'test'
+  });
+  vi.advanceTimersToNextTimer(); // flush buffer
+  expect(gzipStream.write).toHaveBeenCalled();
+});
+
+it('compress the traces before zipping (no data)', () => {
+  vi.advanceTimersToNextTimer(); // flush buffer
+  const gzipStream = Platform.createGzip();
+  vi.mocked(gzipStream.write).mockClear();
+  postMessage({
+    timestamp: Date.now(),
+    level: 'info',
+    processId: process.pid,
+    threadId: Platform.threadId,
+    isMainThread: true, // for coverage
     source: 'test',
     message: 'test'
   });
@@ -77,11 +94,11 @@ it('compress the traces before zipping (no data)', () => {
   expect(gzipStream.write).toHaveBeenCalledWith(expect.any(String));
 });
 
-it.only('compress the traces before zipping (data)', () => {
+it('compress the traces before zipping (data)', () => {
   vi.advanceTimersToNextTimer(); // flush buffer
   const gzipStream = Platform.createGzip();
   vi.mocked(gzipStream.write).mockClear();
-  postMessage({ 
+  postMessage({
     timestamp: Date.now(),
     level: 'info',
     processId: process.pid,
@@ -95,11 +112,25 @@ it.only('compress the traces before zipping (data)', () => {
   expect(gzipStream.write).toHaveBeenCalled();
   const stringified = (vi.mocked(gzipStream.write).mock.calls[0] as [string, unknown])[0];
   const parsed = JSON.parse(stringified);
-  console.log(parsed);
-  expect(parsed).toHaveBeenCalledWith([
-    expect.any(String),
-    { hello: 'world' }
-  ]);
+  expect(parsed).toStrictEqual([expect.any(String), { hello: 'world' }]);
+});
+
+it('flushes traces after a threshold count', () => {
+  vi.advanceTimersToNextTimer(); // flush buffer
+  const gzipStream = Platform.createGzip();
+  vi.mocked(gzipStream.write).mockClear();
+  for (let index = 0; index < MAX_BUFFER_SIZE; ++index) {
+    postMessage({
+      timestamp: Date.now(),
+      level: 'info',
+      processId: process.pid,
+      threadId: Platform.threadId,
+      isMainThread: Platform.isMainThread,
+      source: 'test',
+      message: 'test'
+    });
+  }
+  expect(gzipStream.write).toHaveBeenCalledTimes(1);
 });
 
 it('closes everything when the terminate signal is received', () => {
