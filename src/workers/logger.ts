@@ -55,7 +55,7 @@ const _log = (attributes: LogAttributes) =>
     ...attributes
   } satisfies InternalLogAttributes & LogAttributes);
 
-const channel = new BroadcastChannel('logger');
+const channel = Platform.createBroadcastChannel('logger');
 channel.onmessage = (event: {
   data: { terminate: true } | { isReady: true } | (LogAttributes & InternalLogAttributes);
 }) => {
@@ -65,7 +65,7 @@ channel.onmessage = (event: {
     gzFlushBuffer();
     gzipStream.end();
   } else if ('isReady' in event.data) {
-    channel.postMessage({ ready: true });
+    channel.postMessage({ ...event.data, ready: true });
   } else {
     log(event.data);
   }
