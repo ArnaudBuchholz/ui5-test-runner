@@ -11,7 +11,6 @@ vi.hoisted(() => {
 vi.mock('../Platform.js', async (importActual) => {
   // eslint-disable-next-line @typescript-eslint/consistent-type-imports -- TODO: understand the error
   const actual = await importActual<typeof import('../Platform.js')>();
-  console.log(actual.Platform.createGzip);
   const channel = {
     postMessage: vi.fn(),
     onmessage: undefined as ((data: unknown) => void) | undefined,
@@ -30,7 +29,6 @@ vi.mock('../Platform.js', async (importActual) => {
     createWriteStream: vi.fn(() => writeStream),
     createGzip: vi.fn(() => gzipStream)
   };
-  console.log(Platform.createGzip);
   return { Platform };
 });
 
@@ -60,6 +58,48 @@ it('broadcasts an initial { ready: true }', () => {
 it('answers isReady by posting { ready: true }', () => {
   postMessage({ from: 'me', isReady: true });
   expect(channel.postMessage).toHaveBeenCalledWith({ from: 'me', isReady: true, ready: true });
+});
+
+it('compress the traces before zipping (no data)', () => {
+  vi.advanceTimersToNextTimer(); // flush buffer
+  const gzipStream = Platform.createGzip();
+  vi.mocked(gzipStream.write).mockClear();
+  postMessage({ 
+    timestamp: Date.now(),
+    level: 'info',
+    processId: process.pid,
+    threadId: Platform.threadId,
+    isMainThread: Platform.isMainThread,
+    source: 'test',
+    message: 'test'
+  });
+  vi.advanceTimersToNextTimer(); // flush buffer
+  expect(gzipStream.write).toHaveBeenCalledWith(expect.any(String));
+});
+
+it.only('compress the traces before zipping (data)', () => {
+  vi.advanceTimersToNextTimer(); // flush buffer
+  const gzipStream = Platform.createGzip();
+  vi.mocked(gzipStream.write).mockClear();
+  postMessage({ 
+    timestamp: Date.now(),
+    level: 'info',
+    processId: process.pid,
+    threadId: Platform.threadId,
+    isMainThread: Platform.isMainThread,
+    source: 'test',
+    message: 'test',
+    data: { hello: 'world' }
+  });
+  vi.advanceTimersToNextTimer(); // flush buffer
+  expect(gzipStream.write).toHaveBeenCalled();
+  const stringified = (vi.mocked(gzipStream.write).mock.calls[0] as [string, unknown])[0];
+  const parsed = JSON.parse(stringified);
+  console.log(parsed);
+  expect(parsed).toHaveBeenCalledWith([
+    expect.any(String),
+    { hello: 'world' }
+  ]);
 });
 
 it('closes everything when the terminate signal is received', () => {
