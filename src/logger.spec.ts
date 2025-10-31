@@ -31,8 +31,9 @@ beforeEach(async () => {
   vi.useFakeTimers();
 });
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any -- Simpler this way
-const postMessage = (channel: ReturnType<typeof Platform.createBroadcastChannel>, data: any) => channel.onmessage(data);
+const postMessage = (channel: ReturnType<typeof Platform.createBroadcastChannel>, data: unknown) =>
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  channel.onmessage({ data } as any);
 
 describe('general', () => {
   it('opens a broadcast channel to communicate with the logger thread', async () => {
@@ -63,7 +64,7 @@ describe('general', () => {
     const { logger } = await import('./logger.js');
     const channel = Platform.createBroadcastChannel('logger');
     logger.debug({ source: 'test', message: 'test' });
-    postMessage(channel, { data: { ready: true } });
+    postMessage(channel, { ready: true });
     expect(channel.postMessage).toHaveBeenCalledWith(
       expect.objectContaining({
         source: 'test',
@@ -76,7 +77,7 @@ describe('general', () => {
     const { logger } = await import('./logger.js');
     const timestamp = Date.now(); // because of fake timers
     const channel = Platform.createBroadcastChannel('logger');
-    postMessage(channel, { data: { ready: true } });
+    postMessage(channel, { ready: true });
     logger.debug({ source: 'test', message: 'test' });
     expect(channel.postMessage).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -95,7 +96,7 @@ describe('general', () => {
     it('extracts error information', async () => {
       const { logger } = await import('./logger.js');
       const channel = Platform.createBroadcastChannel('logger');
-      postMessage(channel, { data: { ready: true } });
+      postMessage(channel, { ready: true });
       const error = new Error('error');
       logger.debug({ source: 'test', message: 'test', error });
       expect(channel.postMessage).toHaveBeenCalledWith(
@@ -114,7 +115,7 @@ describe('general', () => {
     it('extracts cause', async () => {
       const { logger } = await import('./logger.js');
       const channel = Platform.createBroadcastChannel('logger');
-      postMessage(channel, { data: { ready: true } });
+      postMessage(channel, { ready: true });
       const error = new Error('error');
       error.cause = new Error('cause');
       logger.debug({ source: 'test', message: 'test', error });
@@ -139,7 +140,7 @@ describe('general', () => {
     it('extrapolates error information', async () => {
       const { logger } = await import('./logger.js');
       const channel = Platform.createBroadcastChannel('logger');
-      postMessage(channel, { data: { ready: true } });
+      postMessage(channel, { ready: true });
       logger.debug({ source: 'test', message: 'test', error: 'string' });
       expect(channel.postMessage).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -160,7 +161,7 @@ describe('general', () => {
     it(`offers ${level} method that translates to ${level} trace level`, async () => {
       const { logger } = await import('./logger.js');
       const channel = Platform.createBroadcastChannel('logger');
-      postMessage(channel, { data: { ready: true } });
+      postMessage(channel, { ready: true });
       logger[level]({ source: 'test', message: 'test' });
       expect(channel.postMessage).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -173,7 +174,7 @@ describe('general', () => {
   it('closes the broadcast channel when the terminate signal is received', async () => {
     await import('./logger.js');
     const channel = Platform.createBroadcastChannel('logger');
-    postMessage(channel, { data: { terminate: true } });
+    postMessage(channel, { terminate: true });
     expect(channel.close).toHaveBeenCalled();
   });
 });
@@ -200,7 +201,7 @@ describe('Metrics automatic monitoring', () => {
     const { logger } = await import('./logger.js');
     vi.spyOn(logger, 'debug');
     const channel = Platform.createBroadcastChannel('logger');
-    postMessage(channel, { data: { terminate: true } });
+    postMessage(channel, { terminate: true });
     vi.advanceTimersToNextTimer();
     expect(logger.debug).not.toHaveBeenCalled();
   });

@@ -15,13 +15,14 @@ vi.mock('../Platform.js', async () => {
   return { Platform };
 });
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any -- Simpler this way
-const postMessage = (channel: ReturnType<typeof Platform.createBroadcastChannel>, data: any) => channel.onmessage(data);
+const postMessage = (channel: ReturnType<typeof Platform.createBroadcastChannel>, data: unknown) =>
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  channel.onmessage({ data } as any);
 
 it('closes the broadcast channel when the terminate signal is received', async () => {
   await import('./console.js');
   const channel = Platform.createBroadcastChannel('logger');
-  postMessage(channel, { data: { terminate: true } });
+  postMessage(channel, { terminate: true });
   expect(channel.close).toHaveBeenCalled();
 });
 
@@ -29,13 +30,11 @@ it('logs traces coming in (no filtering for now)', async () => {
   await import('./console.js');
   const channel = Platform.createBroadcastChannel('logger');
   postMessage(channel, {
-    data: {
-      level: 'debug',
-      timestamp: Date.now(),
-      processId: 0,
-      threadId: 0,
-      message: 'Hello World !'
-    }
+    level: 'debug',
+    timestamp: Date.now(),
+    processId: 0,
+    threadId: 0,
+    message: 'Hello World !'
   });
   expect(spyOnLog).toHaveBeenCalled();
 });
