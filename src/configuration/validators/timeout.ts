@@ -1,8 +1,7 @@
-import type { Option } from '../Option.js';
 import { OptionValidationError } from '../OptionValidationError.js';
 import type { OptionValidator } from './OptionValidator.js';
 
-export const timeout: OptionValidator<'timeout'> = (option: Option, value: unknown) => {
+export const timeout: OptionValidator<'timeout'> = (option, value) => {
   if (typeof value === 'string') {
     if (value === 'none') {
       return 0;

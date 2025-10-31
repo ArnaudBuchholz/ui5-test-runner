@@ -1,11 +1,10 @@
-import type { Option } from '../Option.js';
 import { OptionValidationError } from '../OptionValidationError.js';
 import type { OptionValidator } from './OptionValidator.js';
 
 const BOOLEAN_TRUE = new Set<unknown>(['true', 'on', 1]);
 const BOOLEAN_FALSE = new Set<unknown>(['false', 'off', 0]);
 
-export const boolean: OptionValidator<'boolean'> = (option: Option, value: unknown) => {
+export const boolean: OptionValidator<'boolean'> = (option, value) => {
   if (typeof value === 'boolean') {
     return value;
   }
