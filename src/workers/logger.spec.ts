@@ -24,6 +24,6 @@ vi.mock('../Platform.js', async (importActual) => {
 
 it('opens a broadcast channel to communicate with the logger thread', async () => {
   expect(Platform.createBroadcastChannel).toBeCalledTimes(2);
-  expect(Platform.createBroadcastChannel).toHaveBeenNthCalledWith(0, 'logger');
   expect(Platform.createBroadcastChannel).toHaveBeenNthCalledWith(1, 'logger');
+  expect(Platform.createBroadcastChannel).toHaveBeenNthCalledWith(2, 'logger');
 });
