@@ -62,7 +62,7 @@ const switchOption = (
   }
   const option = indexedOptions[name];
   if (!option) {
-    throw new OptionValidationError({ name, type: 'string', description: 'unknown' }, 'Unknown option');
+    throw OptionValidationError.createUnknown(name);
   }
   return option;
 };
