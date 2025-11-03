@@ -1,7 +1,13 @@
-import { it, expect, describe } from 'vitest';
+import { it, expect, describe, vi } from 'vitest';
 import { ConfigurationValidator } from './ConfigurationValidator.js';
 import { OptionValidationError } from './OptionValidationError.js';
 import { indexedOptions } from './indexedOptions.js';
+import { validators } from './validators/index.js';
+import type { OptionType } from './Option.js';
+
+for (const key of Object.keys(validators)) {
+  validators[key as OptionType] = vi.fn((option, value) => value);
+}
 
 describe('defaults', () => {
   it('adds defaults', async () => {
@@ -56,5 +62,11 @@ describe('validation', () => {
     await expect(ConfigurationValidator.validate({ 'page-timeout': 10 })).rejects.toThrowError(
       new OptionValidationError(indexedOptions.pageTimeout, 'Do not use kebab-case')
     );
+  });
+
+  it('calls the corresponding option validator', async () => {
+    await ConfigurationValidator.validate({ cwd: '/test/user', pageTimeout: 10 });
+    expect(validators.folder).toHaveBeenCalledWith(indexedOptions.cwd, '/test/user', expect.any(Object));
+    expect(validators.timeout).toHaveBeenCalledWith(indexedOptions.pageTimeout, 10, expect.any(Object));
   });
 });
