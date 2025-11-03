@@ -498,3 +498,31 @@ export const options = [
     multiple: true
   }
 ] as const;
+
+export const defaults = {
+  cwd: Platform.cwd(),
+  config: 'ui5-test-runner.json',
+  reportDir: 'report',
+  parallel: 2,
+  browser: '$/puppeteer.js',
+  browserCloseTimeout: '2s',
+  browserRetry: 1,
+  outputInterval: 3000,
+  localhost: 'localhost',
+  pageCloseTimeout: 250,
+  screenshotOnFailure: true,
+  screenshotTimeout: 5000,
+  reportGenerator: ['$/report.js'],
+  coverageSettings: '$/.nycrc.json',
+  coverageTempDir: '.nyc_output',
+  coverageReportDir: '.coverage',
+  coverageReporters: ['lcov', 'cobertura'],
+  coverageRemoteScanner: '$/scan-ui5.js',
+  startWaitMethod: 'GET',
+  startTimeout: 5000,
+  endTimeout: 5000,
+  ui5: 'https://ui5.sap.com',
+  testsuite: 'test/testsuite.qunit.html',
+  coverageProxyInclude: '.*',
+  coverageProxyExclude: '/((test-)?resources|tests?)/'
+} as const;

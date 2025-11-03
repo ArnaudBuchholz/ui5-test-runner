@@ -16,7 +16,10 @@ const check = (name, short) => {
   if (short) {
     shorts.add(short);
   }
+  return name;
 };
+
+const defaults = [];
 
 console.log(`import { Platform } from '../Platform.js';
 
@@ -31,7 +34,7 @@ for (const option of options) {
     .split('|')
     .slice(1)
     .map((value) => value.replaceAll('ǁ', '|'));
-  check(values[0], values[1]);
+  const name = check(values[0], values[1]);
   for (const [index, property] of properties.entries()) {
     const value = values[index];
     if (!value) {
@@ -40,6 +43,7 @@ for (const option of options) {
     if (property === 'multiple') {
       console.log(`    ${property}: true,`);
     } else if (property === 'default') {
+      defaults.push(`  ${name}: ${value},`);
       console.log(`    ${property}: ${value},`);
     } else if (property !== 'flags') {
       console.log(`    ${property}: '${value}',`);
@@ -48,4 +52,8 @@ for (const option of options) {
 
   console.log('  },');
 }
-console.log('] as const;');
+console.log(`] as const;
+  
+export const defaults = {
+${defaults.join('\n')}
+} as const;`);

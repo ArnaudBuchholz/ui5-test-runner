@@ -93,19 +93,10 @@ const testCases: {
     }
   },
   {
-    label: 'knows which option has been set explicitely',
-    args: ['--cwd', '/usr/overridden'],
-    expected: {
-      cwd: '/usr/overridden',
-      cwdSet: true
-    }
-  },
-  {
     label: 'translates option names from lowerCamelCase to kebabCase',
     args: ['--report-dir', 'overridden'],
     expected: {
-      reportDir: 'overridden',
-      reportDirSet: true
+      reportDir: 'overridden'
     }
   },
   {

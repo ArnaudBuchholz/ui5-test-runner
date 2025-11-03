@@ -11,7 +11,5 @@ type GetConfig<K extends ConfigKeys> = Extract<(typeof options)[number], { name:
 export type Configuration = {
   [K in ConfigKeys as HasDefault<GetConfig<K>> extends true ? K : never]: ConfigType<GetConfig<K>>;
 } & {
-  [K in ConfigKeys as HasDefault<GetConfig<K>> extends true ? `${K}Set` : never]?: true;
-} & {
   [K in ConfigKeys as HasDefault<GetConfig<K>> extends true ? never : K]?: ConfigType<GetConfig<K>>;
 };

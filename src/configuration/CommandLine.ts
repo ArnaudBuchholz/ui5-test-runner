@@ -20,13 +20,11 @@ export type CommandLineConfiguration = {
 
 const setOption = (configuration: CommandLineConfiguration, option: Option, value?: string) => {
   const name = option.name as keyof Configuration;
-  let set = false;
   if (value === undefined) {
     if (option.type === 'boolean') {
       Object.assign(configuration, {
         [name]: true
       });
-      set = true;
     } else if (option.multiple !== true) {
       configuration.errors.push(new OptionValidationError(option, 'Missing value'));
     }
@@ -43,12 +41,6 @@ const setOption = (configuration: CommandLineConfiguration, option: Option, valu
         [name]: value
       });
     }
-    set = true;
-  }
-  if (set && option.default !== undefined) {
-    Object.assign(configuration, {
-      [`${name}Set`]: true
-    });
   }
 };
 
