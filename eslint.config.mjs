@@ -13,5 +13,11 @@ export default [
         ...globals.node
       }
     }
+  },
+  {
+    files: ['src/configuration/validators/**.ts'],
+    rules: {
+      'sonarjs/no-empty-test-file': 'off'
+    }
   }
 ];

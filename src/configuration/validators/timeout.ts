@@ -19,7 +19,7 @@ export const timeout: OptionValidator<'timeout'> = (option, value) => {
       value = int;
     }
   }
-  if (typeof value === 'number' && !Number.isNaN(value) && value >= 0) {
+  if (typeof value === 'number' && !Number.isNaN(value) && value >= 0 && value < Number.POSITIVE_INFINITY) {
     return value;
   }
   throw new OptionValidationError(option);

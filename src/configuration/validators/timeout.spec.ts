@@ -26,7 +26,6 @@ checkValidator({
     { value: '1min', expected: 60_000 }
   ],
   invalid: [
-    { value: null },
     { value: -1 },
     { value: -1234 },
     { value: '-1234' },

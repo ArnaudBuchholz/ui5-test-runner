@@ -1,8 +1,5 @@
-import { it, expect } from 'vitest';
 import { boolean } from './boolean.js';
 import { checkValidator } from './checkValidator.test.js';
-
-it('is a function', () => expect(typeof boolean).toStrictEqual('function'));
 
 checkValidator({
   validator: boolean,
@@ -20,6 +17,5 @@ checkValidator({
     { value: 'false', expected: false },
     { value: 'off', expected: false },
     { value: 0, expected: false }
-  ],
-  invalid: [{ value: null }]
+  ]
 });

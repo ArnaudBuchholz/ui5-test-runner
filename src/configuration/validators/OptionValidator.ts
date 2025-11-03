@@ -4,5 +4,5 @@ import type { Configuration } from '../Configuration.js';
 export type OptionValidator<T extends OptionType> = (
   option: Option,
   value: unknown,
-  configuration: Configuration,
+  configuration: Configuration
 ) => Promise<InferOptionType<T>> | InferOptionType<T>;
