@@ -6,6 +6,7 @@ type ErrorAttributes = {
   message: string;
   stack?: string;
   cause?: ErrorAttributes;
+  errors?: ErrorAttributes[];
 };
 
 export type LogAttributes = {
@@ -73,6 +74,9 @@ const convertErrorToAttributes = (error: unknown): ErrorAttributes => {
   };
   if (error.cause) {
     attributes.cause = convertErrorToAttributes(error.cause);
+  }
+  if (error instanceof AggregateError) {
+    attributes.errors = error.errors.map(convertErrorToAttributes);
   }
   return attributes;
 };

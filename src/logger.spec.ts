@@ -137,6 +137,37 @@ describe('general', () => {
       );
     });
 
+    it('supports AggregateError', async () => {
+      const { logger } = await import('./logger.js');
+      const channel = Platform.createBroadcastChannel('logger');
+      postMessage(channel, { ready: true });
+      const error = new AggregateError([new Error('error1'), new Error('error2')], 'aggregate error');
+      logger.debug({ source: 'test', message: 'test', error });
+      expect(channel.postMessage).toHaveBeenCalledWith(
+        expect.objectContaining({
+          source: 'test',
+          message: 'test',
+          error: {
+            name: 'AggregateError',
+            message: 'aggregate error',
+            stack: expect.any(String),
+            errors: [
+              {
+                name: 'Error',
+                message: 'error1',
+                stack: expect.any(String)
+              },
+              {
+                name: 'Error',
+                message: 'error2',
+                stack: expect.any(String)
+              }
+            ]
+          }
+        })
+      );
+    });
+
     it('extrapolates error information', async () => {
       const { logger } = await import('./logger.js');
       const channel = Platform.createBroadcastChannel('logger');
