@@ -7,10 +7,12 @@ export class OptionValidationError extends Error {
 
   constructor(
     private _option: Option,
-    message: string = 'Invalid value'
+    message: string = 'Invalid value',
+    cause?: unknown
   ) {
     super(message);
     this.name = 'OptionValidationError';
+    this.cause = cause;
   }
 
   get option() {

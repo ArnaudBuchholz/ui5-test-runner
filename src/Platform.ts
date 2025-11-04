@@ -1,6 +1,6 @@
-import { access, stat } from 'node:fs/promises';
+import { access, stat, constants } from 'node:fs/promises';
 import { createWriteStream } from 'node:fs';
-import { join } from 'node:path';
+import { join, isAbsolute } from 'node:path';
 import { BroadcastChannel, Worker, isMainThread, threadId, workerData } from 'node:worker_threads';
 import zlib from 'node:zlib';
 
@@ -13,10 +13,12 @@ export class Platform {
   static readonly threadCpuUsage = process.threadCpuUsage.bind(process);
   static readonly memoryUsage = process.memoryUsage.bind(process);
 
+  static readonly fsConstants = constants;
   static readonly stat = stat;
   static readonly access = access;
   static readonly createWriteStream = createWriteStream;
 
+  static readonly isAbsolute = isAbsolute;
   static readonly join = (...arguments_: string[]) => join(...arguments_).replaceAll('\\', '/');
 
   static readonly threadId = threadId;
