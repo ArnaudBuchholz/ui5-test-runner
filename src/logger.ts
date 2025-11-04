@@ -76,7 +76,7 @@ const convertErrorToAttributes = (error: unknown): ErrorAttributes => {
     attributes.cause = convertErrorToAttributes(error.cause);
   }
   if (error instanceof AggregateError) {
-    attributes.errors = error.errors.map(convertErrorToAttributes);
+    attributes.errors = error.errors.map((item) => convertErrorToAttributes(item));
   }
   return attributes;
 };
