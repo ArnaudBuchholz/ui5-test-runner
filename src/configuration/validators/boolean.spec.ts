@@ -1,5 +1,5 @@
 import { boolean } from './boolean.js';
-import { checkValidator } from './checkValidator.test.js';
+import { checkValidator, noIntegers } from './checkValidator.test.js';
 
 checkValidator({
   validator: boolean,
@@ -17,5 +17,8 @@ checkValidator({
     { value: 'false', expected: false },
     { value: 'off', expected: false },
     { value: 0, expected: false }
+  ],
+  invalid: [
+    ...noIntegers.filter(({ value }) => ![0, 1].includes(value)),
   ]
 });

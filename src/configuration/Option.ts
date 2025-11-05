@@ -1,16 +1,16 @@
 export type OptionType =
-  | 'string'
-  | 'folder'
-  | 'folder-recreate'
-  | 'file'
-  | 'url'
-  | 'regexp'
-  | 'ui5Mapping'
-  | 'reserveMapping'
   | 'boolean'
-  | 'timeout'
+  | 'file'
+  | 'folder-recreate'
+  | 'folder'
   | 'integer'
-  | 'percent';
+  | 'percent'
+  | 'regexp'
+  | 'reserveMapping'
+  | 'string'
+  | 'timeout'
+  | 'ui5Mapping'
+  | 'url';
 
 export type InferOptionType<T extends OptionType> = T extends 'boolean'
   ? boolean
