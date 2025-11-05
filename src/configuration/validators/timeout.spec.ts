@@ -1,8 +1,5 @@
-import { it, expect } from 'vitest';
 import { timeout } from './timeout.js';
 import { checkValidator } from './checkValidator.test.js';
-
-it('is a function', () => expect(typeof timeout).toStrictEqual('function'));
 
 checkValidator({
   validator: timeout,
