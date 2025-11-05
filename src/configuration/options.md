@@ -7,7 +7,7 @@
 |url|u|URL of the testsuite / page to test|url|✅|||🔗
 |config||Configuration file|file||'ui5-test-runner.json'||💻🔗🧪
 |port||Port to use|integer||||💻🔗🧪
-|reportDir|r|Directory to output test reports|folder||'report'||💻🔗🧪
+|reportDir|r|Directory to output test reports|folder-recreate||'report'||💻🔗🧪
 |pageTimeout|pt|Limit the page execution time, fails the page if it takes longer than the timeout|timeout||||💻🔗🧪📡
 |failFast|f|Stop the execution after the first failing page|boolean||||💻🔗🧪📡
 |failOpaFast|fo|Stop the OPA page execution after the first failing test|boolean||||💻🔗🧪📡
@@ -42,8 +42,8 @@
 |coverage||Enable or disable code coverage|boolean||||💻🔗📡
 |noCoverage||Disable code coverage|boolean||||💻🔗📡
 |coverageSettings|cs|Path to a custom .nycrc.json file providing settings for instrumentation|file||'$/.nycrc.json'||💻🔗📡
-|coverageTempDir|ctd|Directory to output raw coverage information to|folder||'.nyc_output'||💻🔗
-|coverageReportDir|crd|Directory to store the coverage report files|folder||'.coverage'||💻🔗
+|coverageTempDir|ctd|Directory to output raw coverage information to|folder-recreate||'.nyc_output'||💻🔗
+|coverageReportDir|crd|Directory to store the coverage report files|folder-recreate||'.coverage'||💻🔗
 |coverageReporters|cr|List of nyc reporters to use (text is always used)|string|✅|['lcov', 'cobertura']||💻🔗📡
 |coverageCheckBranches|ccb|What % of branches must be covered|percent||||💻🔗📡
 |coverageCheckFunctions|ccf|What % of functions must be covered|percent||||💻🔗📡
@@ -63,12 +63,12 @@
 |disableUi5||Disable UI5 mapping (also disable libs)|boolean||||💻📡
 |libs||UI5 library mapping (<relative>=<path> or <path>)|ui5Mapping|✅|||💻📡
 |mappings||REserve custom mapping (<match>=<file\|url>(<config>))|reserveMapping|✅|||💻📡
-|cache||Cache UI5 resources locally in the given folder|folder||||💻📡
+|cache||Cache UI5 resources locally in the given folder|folder-recreate||||💻📡
 |preload||Preload UI5 libraries in the cache folder (only if --cache is used)|string|✅|||💻📡
 |testsuite||Path of the testsuite file (relative to webapp, URL parameters are supported)|file||'test/testsuite.qunit.html'||💻
-|coverageProxy|cp|Use internal proxy to instrument remote files|boolean||||🥼🔗
-|coverageProxyInclude|cpi|Urls to instrument for coverage|regexp||'.*'||🥼🔗
-|coverageProxyExclude|cpe|Urls to ignore for coverage|regexp||'/((test-)?resources\|tests?)/'||🥼🔗
+|coverageProxy|cp|Use internal proxy to instrument remote files|boolean||||🥼💻🔗
+|coverageProxyInclude|cpi|Urls to instrument for coverage|regexp||'.*'||🥼💻🔗
+|coverageProxyExclude|cpe|Urls to ignore for coverage|regexp||'/((test-)?resources\|tests?)/'||🥼💻🔗
 |batchMode||Changes the way options are defaulted (in particular coverage temporary folders)|boolean||||⛔
 |batch||Batch specification|string|✅
 |batchId||Batch id (used for naming report folder)|string

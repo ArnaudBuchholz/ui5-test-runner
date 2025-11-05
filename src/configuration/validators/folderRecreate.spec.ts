@@ -1,5 +1,5 @@
 import { it, expect, vi } from 'vitest';
-import { folder } from './folder.js';
+import { folderRecreate } from './folderRecreate.js';
 import { checkValidator, noBooleans, noIntegers, noNumbers } from './checkValidator.test.js';
 import { Platform } from '../../Platform.js';
 import type { Configuration } from '../Configuration.js';
@@ -8,15 +8,28 @@ import { OptionValidationError } from '../OptionValidationError.js';
 const VALID_ROOT = '/usr/arnaud/git/' as const;
 const VALID_FOLDER_NAME = 'project' as const;
 const VALID_PATH = VALID_ROOT + VALID_FOLDER_NAME;
+const READ_ONLY_PATH = VALID_ROOT + 'read-only';
+const readOnlyAccessError: Error & { code?: string } = new Error('read-only');
+readOnlyAccessError.code = 'EACCES';
+const NOT_EXISTING_PATH = VALID_ROOT + 'not-exist';
+const notExistAccessError: Error & { code?: string } = new Error('read-only');
+notExistAccessError.code = 'ENOENT';
 const INVALID_ACCESS_PATH = VALID_ROOT + 'invalid-access';
 const invalidAccess = new Error('Invalid access');
 const INVALID_STAT_PATH = VALID_ROOT + 'invalid-stat';
 const invalidStat = new Error('Invalid stat');
 const FILE_PATH = VALID_ROOT + 'file';
 
-vi.spyOn(Platform, 'access').mockImplementation(async (path) => {
-  if (path === VALID_PATH || path === INVALID_STAT_PATH || path === FILE_PATH) {
+vi.spyOn(Platform, 'access').mockImplementation(async (path, mode) => {
+  expect(mode).toStrictEqual(Platform.fsConstants.R_OK | Platform.fsConstants.W_OK);
+  if (path === VALID_PATH || path === INVALID_STAT_PATH || path === FILE_PATH ) {
     return;
+  }
+  if (path === READ_ONLY_PATH) {
+    throw readOnlyAccessError;
+  }
+  if (path === NOT_EXISTING_PATH) {
+    throw notExistAccessError;
   }
   throw invalidAccess;
 });
@@ -36,34 +49,35 @@ vi.spyOn(Platform, 'stat').mockImplementation(async (path) => {
 });
 
 const OPTION = {
-  description: 'Folder option',
-  name: 'folder',
-  type: 'folder'
+  description: 'Folder-recreate option',
+  name: 'folder-recreate',
+  type: 'folder-recreate'
 } as const;
 
 checkValidator({
-  validator: folder,
+  validator: folderRecreate,
   option: OPTION,
   valid: [
     { value: VALID_PATH, expected: VALID_PATH },
-    { value: VALID_FOLDER_NAME, expected: VALID_PATH, configuration: { cwd: VALID_ROOT } }
+    { value: VALID_FOLDER_NAME, expected: VALID_PATH, configuration: { cwd: VALID_ROOT } },
+    { value: NOT_EXISTING_PATH, expected: NOT_EXISTING_PATH }
   ],
-  invalid: [{ value: INVALID_ACCESS_PATH }, { value: INVALID_STAT_PATH }, { value: FILE_PATH }, ...noBooleans, ...noIntegers, ...noNumbers]
+  invalid: [{ value: READ_ONLY_PATH }, { value: INVALID_STAT_PATH }, { value: INVALID_ACCESS_PATH }, { value: FILE_PATH }, ...noBooleans, ...noIntegers, ...noNumbers]
 });
 
-it('sets the cause when returning the error (invalid-access)', async () => {
+it('sets the cause when returning the error (read-only-access)', async () => {
   try {
-    await folder(OPTION, INVALID_ACCESS_PATH, {} as Configuration);
+    await folderRecreate(OPTION, READ_ONLY_PATH, {} as Configuration);
     expect.unreachable();
   } catch (error) {
     expect.assert(error instanceof OptionValidationError);
-    expect(error.cause).toStrictEqual(invalidAccess);
+    expect(error.cause).toStrictEqual(readOnlyAccessError);
   }
 });
 
 it('sets the cause when returning the error (invalid-stat)', async () => {
   try {
-    await folder(OPTION, INVALID_STAT_PATH, {} as Configuration);
+    await folderRecreate(OPTION, INVALID_STAT_PATH, {} as Configuration);
     expect.unreachable();
   } catch (error) {
     expect.assert(error instanceof OptionValidationError);

@@ -46,7 +46,7 @@ export const options = [
     name: 'reportDir',
     short: 'r',
     description: 'Directory to output test reports',
-    type: 'folder',
+    type: 'folder-recreate',
     default: 'report'
   },
   {
@@ -254,14 +254,14 @@ export const options = [
     name: 'coverageTempDir',
     short: 'ctd',
     description: 'Directory to output raw coverage information to',
-    type: 'folder',
+    type: 'folder-recreate',
     default: '.nyc_output'
   },
   {
     name: 'coverageReportDir',
     short: 'crd',
     description: 'Directory to store the coverage report files',
-    type: 'folder',
+    type: 'folder-recreate',
     default: '.coverage'
   },
   {
@@ -381,7 +381,7 @@ export const options = [
   {
     name: 'cache',
     description: 'Cache UI5 resources locally in the given folder',
-    type: 'folder'
+    type: 'folder-recreate'
   },
   {
     name: 'preload',

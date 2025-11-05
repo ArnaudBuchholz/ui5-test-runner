@@ -1,6 +1,7 @@
 export type OptionType =
   | 'string'
   | 'folder'
+  | 'folder-recreate'
   | 'file'
   | 'url'
   | 'regexp'
