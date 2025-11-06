@@ -13,5 +13,5 @@ export const validators: { [key in OptionType]: OptionValidator<key> } = {
   'folder-recreate': folderRecreate,
   percent,
   string,
-  timeout,
+  timeout
 };

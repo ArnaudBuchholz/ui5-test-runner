@@ -18,7 +18,5 @@ checkValidator({
     { value: 'off', expected: false },
     { value: 0, expected: false }
   ],
-  invalid: [
-    ...noIntegers.filter(({ value }) => ![0, 1].includes(value)),
-  ]
+  invalid: noIntegers.filter(({ value }) => ![0, 1].includes(value))
 });

@@ -16,9 +16,14 @@ export const invalidValues: InvalidValues = [
 
 export const noIntegers = [{ value: 0 }, { value: 1 }, { value: -1 }] as const satisfies InvalidValues;
 
-export const noNumbers = [{ value: 0.5 }, { value: -0.5 }, { value: 1.5 }, { value: -1.5 }] as const satisfies InvalidValues;
+export const noNumbers = [
+  { value: 0.5 },
+  { value: -0.5 },
+  { value: 1.5 },
+  { value: -1.5 }
+] as const satisfies InvalidValues;
 
-export const noBooleans = [{ value: true }, { value: false }] as const  satisfies InvalidValues;
+export const noBooleans = [{ value: true }, { value: false }] as const satisfies InvalidValues;
 
 const stringify = (value: unknown) => {
   if (typeof value === 'symbol') {

@@ -20,7 +20,7 @@ checkValidator({
     { value: '10%', expected: 10 },
     { value: '50%', expected: 50 },
     { value: '80.97%', expected: 80.97 },
-    { value: '100%', expected: 100 },
+    { value: '100%', expected: 100 }
   ],
   invalid: [
     ...noBooleans,

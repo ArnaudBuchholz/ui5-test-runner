@@ -48,7 +48,14 @@ checkValidator({
     { value: VALID_PATH, expected: VALID_PATH },
     { value: VALID_FOLDER_NAME, expected: VALID_PATH, configuration: { cwd: VALID_ROOT } }
   ],
-  invalid: [{ value: INVALID_ACCESS_PATH }, { value: INVALID_STAT_PATH }, { value: FILE_PATH }, ...noBooleans, ...noIntegers, ...noNumbers]
+  invalid: [
+    { value: INVALID_ACCESS_PATH },
+    { value: INVALID_STAT_PATH },
+    { value: FILE_PATH },
+    ...noBooleans,
+    ...noIntegers,
+    ...noNumbers
+  ]
 });
 
 it('sets the cause when returning the error (invalid-access)', async () => {

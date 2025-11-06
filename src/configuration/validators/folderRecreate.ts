@@ -27,5 +27,5 @@ export const folderRecreate: OptionValidator<'folder-recreate'> = async (option,
   } catch (error) {
     throw new OptionValidationError(option, 'Unable to check type', error);
   }
-  return path;  
+  return path;
 };

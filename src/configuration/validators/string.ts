@@ -6,4 +6,4 @@ export const string: OptionValidator<'string'> = (option, value) => {
     throw new OptionValidationError(option);
   }
   return value;
-}
+};

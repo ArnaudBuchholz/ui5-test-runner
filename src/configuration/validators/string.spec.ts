@@ -8,13 +8,6 @@ checkValidator({
     name: 'string',
     type: 'string'
   },
-  valid: [
-    { value: 'hello world !', expected: 'hello world !' },
-  ],
-  invalid: [
-    { value: '' },
-    ...noBooleans,
-    ...noIntegers,
-    ...noNumbers
-  ]
+  valid: [{ value: 'hello world !', expected: 'hello world !' }],
+  invalid: [{ value: '' }, ...noBooleans, ...noIntegers, ...noNumbers]
 });

@@ -3,10 +3,11 @@ import type { OptionValidator } from './OptionValidator.js';
 
 export const percent: OptionValidator<'percent'> = (option, value) => {
   if (typeof value === 'string') {
-    const match = /^(\d*(:?\.\d*)?)%$/.exec(value);
+    // eslint-disable-next-line security/detect-unsafe-regex -- Safe enough
+    const match = /^(\d{0,3}(:?\.\d{0,3})?)%$/.exec(value);
     if (match) {
       const [, digits = '0'] = match;
-      let float = Number.parseFloat(digits);
+      const float = Number.parseFloat(digits);
       if (float >= 0 && float <= 100) {
         value = float;
       }

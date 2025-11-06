@@ -22,7 +22,7 @@ const FILE_PATH = VALID_ROOT + 'file';
 
 vi.spyOn(Platform, 'access').mockImplementation(async (path, mode) => {
   expect(mode).toStrictEqual(Platform.fsConstants.R_OK | Platform.fsConstants.W_OK);
-  if (path === VALID_PATH || path === INVALID_STAT_PATH || path === FILE_PATH ) {
+  if (path === VALID_PATH || path === INVALID_STAT_PATH || path === FILE_PATH) {
     return;
   }
   if (path === READ_ONLY_PATH) {
@@ -62,7 +62,15 @@ checkValidator({
     { value: VALID_FOLDER_NAME, expected: VALID_PATH, configuration: { cwd: VALID_ROOT } },
     { value: NOT_EXISTING_PATH, expected: NOT_EXISTING_PATH }
   ],
-  invalid: [{ value: READ_ONLY_PATH }, { value: INVALID_STAT_PATH }, { value: INVALID_ACCESS_PATH }, { value: FILE_PATH }, ...noBooleans, ...noIntegers, ...noNumbers]
+  invalid: [
+    { value: READ_ONLY_PATH },
+    { value: INVALID_STAT_PATH },
+    { value: INVALID_ACCESS_PATH },
+    { value: FILE_PATH },
+    ...noBooleans,
+    ...noIntegers,
+    ...noNumbers
+  ]
 });
 
 it('sets the cause when returning the error (read-only-access)', async () => {
