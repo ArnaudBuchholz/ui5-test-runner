@@ -38,6 +38,9 @@ const stringify = (value: unknown) => {
   if (value === Number.NEGATIVE_INFINITY) {
     return '-∞';
   }
+  if (value instanceof RegExp) {
+    return value.toString();
+  }
   return JSON.stringify(value);
 };
 

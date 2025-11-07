@@ -18,7 +18,9 @@ export type InferOptionType<T extends OptionType> = T extends 'boolean'
     ? number
     : T extends 'integer'
       ? number
-      : string;
+      : T extends 'regexp'
+        ? RegExp
+        : string;
 
 export type Option<T extends OptionType = OptionType> = {
   name: string;

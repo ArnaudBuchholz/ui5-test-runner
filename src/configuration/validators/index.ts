@@ -6,6 +6,7 @@ import { folderRecreate } from './folderRecreate.js';
 import { folder } from './folder.js';
 import { integer }  from './integer.js';
 import { percent } from './percent.js';
+import { regexp } from './regexp.js';
 import { string } from './string.js';
 import { timeout } from './timeout.js';
 
@@ -16,6 +17,7 @@ export const validators: { [key in OptionType]: OptionValidator<key> } = {
   folder,
   integer,
   percent,
+  regexp,
   string,
   timeout
 };
