@@ -1,3 +1,4 @@
+import type { Modes } from './Modes.js';
 import type { InferOptionType, Option } from './Option.js';
 import type { options } from './options.js';
 
@@ -12,4 +13,6 @@ export type Configuration = {
   [K in ConfigKeys as HasDefault<GetConfig<K>> extends true ? K : never]: ConfigType<GetConfig<K>>;
 } & {
   [K in ConfigKeys as HasDefault<GetConfig<K>> extends true ? never : K]?: ConfigType<GetConfig<K>>;
+} & {
+  mode: Modes;
 };

@@ -4,6 +4,9 @@ import { OptionValidationError } from './OptionValidationError.js';
 import { indexedOptions } from './indexedOptions.js';
 import { validators } from './validators/index.js';
 import type { OptionType } from './Option.js';
+import { defaults } from './options.js';
+import type { Configuration } from './Configuration.js';
+import { Modes } from './Modes.js';
 
 for (const key of Object.keys(validators)) {
   validators[key as OptionType] = vi.fn((option, value) => value);
@@ -68,5 +71,27 @@ describe('validation', () => {
     await ConfigurationValidator.validate({ cwd: '/test/user', pageTimeout: 10 });
     expect(validators.folder).toHaveBeenCalledWith(indexedOptions.cwd, '/test/user', expect.any(Object));
     expect(validators.timeout).toHaveBeenCalledWith(indexedOptions.pageTimeout, 10, expect.any(Object));
+  });
+
+  it.skip('may return multiple errors');
+});
+
+describe('mode', () => {
+  const config = (options: Partial<Configuration>): Configuration => Object.assign(Object.create(defaults), options);
+
+  it('sets to remote when url is used', () => {
+    expect(ConfigurationValidator.computeMode(config({ url: ['http://localhost:8080 '] }))).toBe(Modes.remote);
+  });
+
+  it('sets to help when help is used', () => {
+    expect(ConfigurationValidator.computeMode(config({ help: true }))).toBe(Modes.help);
+  });
+
+  it('sets to version when version is used', () => {
+    expect(ConfigurationValidator.computeMode(config({ version: true }))).toBe(Modes.version);
+  });
+
+  it('sets to legacy otherwise', () => {
+    expect(ConfigurationValidator.computeMode(config({}))).toBe(Modes.legacy);
   });
 });
