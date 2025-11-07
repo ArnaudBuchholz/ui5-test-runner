@@ -31,6 +31,7 @@ checkValidator({
     { value: '-1%' },
     { value: '1 %' },
     { value: ' 1%' },
+    { value: '999%' },
     { value: 'abc' }
   ]
 });
