@@ -1,5 +1,5 @@
 import { integer } from './integer.js';
-import { checkValidator, noBooleans } from './checkValidator.test.js';
+import { checkValidator, noBooleans, noNumbers } from './checkValidator.test.js';
 
 checkValidator({
   validator: integer,
@@ -16,7 +16,7 @@ checkValidator({
   ],
   invalid: [
     ...noBooleans,
-    ...noBooleans,
+    ...noNumbers,
     { value: '' },
     { value: 'Hello World !'},
   ]
