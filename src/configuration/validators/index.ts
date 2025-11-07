@@ -1,5 +1,6 @@
-import type { OptionType } from '../Option.js';
+import type { Option, OptionType } from '../Option.js';
 import type { OptionValidator } from './OptionValidator.js';
+import { OptionValidationError } from '../OptionValidationError.js';
 import { boolean } from './boolean.js';
 import { file } from './file.js';
 import { folderRecreate } from './folderRecreate.js';
@@ -9,6 +10,9 @@ import { percent } from './percent.js';
 import { regexp } from './regexp.js';
 import { string } from './string.js';
 import { timeout } from './timeout.js';
+import { url } from './url.js';
+
+const notImplemented = (option: Option) => { throw new OptionValidationError(option, 'Validation not yet implemented'); }
 
 export const validators: { [key in OptionType]: OptionValidator<key> } = {
   boolean,
@@ -18,6 +22,9 @@ export const validators: { [key in OptionType]: OptionValidator<key> } = {
   integer,
   percent,
   regexp,
+  reserveMapping: notImplemented,
   string,
-  timeout
+  timeout,
+  ui5Mapping: notImplemented,
+  url,
 };
