@@ -60,7 +60,7 @@
     "@types/node": "^24.10.0",
     "@ui5/cli": "^4.0.34",
     "@ui5/middleware-code-coverage": "^2.0.2",
-    "@vitest/coverage-v8": "^4.0.7",
+    "@vitest/coverage-v8": "^4.0.8",
     "dotenv": "^17.2.3",
     "dpdm": "^3.14.0",
     "eslint": "^9.39.1",
@@ -81,7 +81,7 @@
     "typescript": "^5.9.3",
     "typescript-eslint": "^8.46.3",
     "ui5-tooling-transpile": "^3.9.2",
-    "vite": "^7.2.1",
-    "vitest": "^4.0.7"
+    "vite": "^7.2.2",
+    "vitest": "^4.0.8"
   }
 }
