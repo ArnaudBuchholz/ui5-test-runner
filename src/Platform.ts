@@ -1,4 +1,4 @@
-import { access, stat, constants } from 'node:fs/promises';
+import { access, stat, constants, readFile } from 'node:fs/promises';
 import { createWriteStream } from 'node:fs';
 import { join, isAbsolute } from 'node:path';
 import { BroadcastChannel, Worker, isMainThread, threadId, workerData } from 'node:worker_threads';
@@ -17,6 +17,7 @@ export class Platform {
   static readonly stat = stat;
   static readonly access = access;
   static readonly createWriteStream = createWriteStream;
+  static readonly readFile = readFile;
 
   static readonly isAbsolute = isAbsolute;
   static readonly join = (...arguments_: string[]) => join(...arguments_).replaceAll('\\', '/');
