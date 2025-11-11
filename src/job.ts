@@ -1,4 +1,4 @@
-import { Configuration } from './configuration/Configuration.js';
+import type { Configuration } from './configuration/Configuration.js';
 import { Modes } from './configuration/Modes.js';
 import { Platform } from './Platform.js';
 
