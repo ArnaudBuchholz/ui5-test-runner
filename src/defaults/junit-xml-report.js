@@ -47,6 +47,9 @@ async function main () {
       time="${time}"`
 }
     >`)
+        if (test.screenshot) {
+          o(`<system-out>[[ATTACHMENT|${join(reportDir, qunitPage.id, test.screenshot)}]]</system-out>`)
+        }
         if (test.skip) {
           o('      <skipped></skipped>')
         } else if (!test.report) {
@@ -85,3 +88,4 @@ main()
   .then((code = 0) => {
     process.exit(code)
   })
+module.exports = main
