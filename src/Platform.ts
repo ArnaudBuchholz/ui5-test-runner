@@ -4,9 +4,7 @@ import { join, isAbsolute } from 'node:path';
 import { BroadcastChannel, Worker, isMainThread, threadId, workerData } from 'node:worker_threads';
 import zlib from 'node:zlib';
 import type { ChildProcess } from 'node:child_process';
-import { spawn } from 'node:child_process';
-
-const WORKER_FLAGS = ['--experimental-strip-types', '--disable-warning=ExperimentalWarning'];
+import { spawn, exec } from 'node:child_process';
 
 class Process {
   private _stdout: string[] = [];
@@ -67,10 +65,20 @@ export class Platform {
   static readonly isMainThread = isMainThread;
   static readonly createBroadcastChannel: (name: 'logger') => BroadcastChannel = (name) => new BroadcastChannel(name);
   static readonly createWorker: (name: string, data?: unknown) => Worker = (name, data) => {
-    const workerPath = join(__dirname, `workers/${name}.ts`);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { _preload_modules: preloadModules } = process as any;
+    let argv: string[] = [];
+    let workerPath: string;
+    const tsx = preloadModules.find((path: string) => path.includes('tsx'));
+    if (tsx) {
+      workerPath = tsx;
+      argv = [join(__dirname, `workers/${name}.ts`)];
+    } else {
+      workerPath = join(__dirname, `workers/${name}.js`);
+    }
     const worker = new Worker(workerPath, {
+      argv,
       workerData: data,
-      execArgv: WORKER_FLAGS
     });
     return worker;
   };
@@ -79,6 +87,13 @@ export class Platform {
   static readonly spawn: (command: string, arguments_: string[]) => Process = (command, arguments_) => {
     try {
       return new Process(spawn(command, arguments_));
+    } catch (error) {
+      throw error;
+    }
+  };
+  static readonly exec: (command: string, arguments_: string[]) => Process = (command, arguments_) => {
+    try {
+      return new Process(exec(`${command} ${arguments_.join(' ')}`));
     } catch (error) {
       throw error;
     }
