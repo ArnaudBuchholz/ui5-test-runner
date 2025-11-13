@@ -18,8 +18,11 @@ export const execute = async (configuration: Configuration) => {
     // Simple test
     const browser = await BrowserFactory.build('puppeteer');
     await browser.setup({});
-    const page = await browser.newWindow({ scripts: [], url: 'https://ui5.sap.com/test-resources/sap/m/demokit/cart/webapp/test/testsuite.qunit.html' });
-    await new Promise(resolve => setTimeout(resolve, 5000));
+    const page = await browser.newWindow({
+      scripts: [],
+      url: 'https://ui5.sap.com/test-resources/sap/m/demokit/cart/webapp/test/testsuite.qunit.html'
+    });
+    await new Promise((resolve) => setTimeout(resolve, 5000));
     await page.close();
     await browser.shutdown();
     await logger.stop(); // should stop console too

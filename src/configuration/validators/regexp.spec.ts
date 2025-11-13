@@ -11,13 +11,7 @@ checkValidator({
   valid: [
     { value: 'abc', expected: /abc/ },
     { value: /abc/, expected: /abc/ },
-    { value: '/abc/gi', expected: /abc/gi },
+    { value: '/abc/gi', expected: /abc/gi }
   ],
-  invalid: [
-    ...noBooleans,
-    ...noNumbers,
-    ...noIntegers,
-    { value: '' },
-    { value: '*' },
-  ]
+  invalid: [...noBooleans, ...noNumbers, ...noIntegers, { value: '' }, { value: '*' }]
 });

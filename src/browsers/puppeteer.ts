@@ -13,7 +13,7 @@ export const factory = async (): Promise<IBrowser> => {
       logger.info({ source: 'puppeteer', message: 'setup', data: settings });
       browser = await launch({
         headless: false,
-        defaultViewport: null,
+        defaultViewport: null
       });
       return {
         screenshotFormat: '.png'
@@ -22,14 +22,16 @@ export const factory = async (): Promise<IBrowser> => {
 
     async newWindow(settings) {
       logger.info({ source: 'puppeteer', message: 'newWindow', data: settings });
-      let page = await browser?.newPage();
+      const page = await browser?.newPage();
       page?.goto(settings.url);
       return {
-        screenshot(path: string) { throw new Error('Not implemented'); },
+        screenshot(path: string) {
+          throw new Error('Not implemented');
+        },
         async close() {
           await page?.close();
         }
-      }
+      };
     },
 
     async shutdown() {

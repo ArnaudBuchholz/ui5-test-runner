@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { Platform } from './Platform.js';
 import { AssertionError } from 'node:assert';
-import { Configuration } from './configuration/Configuration.js';
+import type { Configuration } from './configuration/Configuration.js';
 
 vi.mock('./Platform.js', async () => {
   const channel = {

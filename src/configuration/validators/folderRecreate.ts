@@ -4,10 +4,7 @@ import { Platform } from '../../Platform.js';
 import type { Option } from '../Option.js';
 import type { Configuration } from '../Configuration.js';
 
-export const fsOption = async (  option: Option,
-  value: unknown,
-  configuration: Configuration
-): Promise<string> => {
+export const fsOption = async (option: Option, value: unknown, configuration: Configuration): Promise<string> => {
   if (typeof value !== 'string') {
     throw new OptionValidationError(option, 'Expected string');
   }
@@ -40,6 +37,6 @@ export const fsOption = async (  option: Option,
     throw new OptionValidationError(option, 'Unable to check type', error);
   }
   return path;
-}
+};
 
 export const folderRecreate: OptionValidator<'folder-recreate'> = fsOption;
