@@ -1,5 +1,7 @@
+import assert from 'node:assert/strict';
 import { Platform } from '../Platform.js';
 import type { InternalLogAttributes, LogAttributes } from '../logger.js';
+import type { Configuration } from '../configuration/Configuration.js';
 
 const log = (attributes: InternalLogAttributes & LogAttributes) => {
   const { level, timestamp, processId = 0, threadId = 0, message, data } = attributes;
@@ -20,4 +22,9 @@ channel.onmessage = (event: { data: { terminate: true } | (InternalLogAttributes
   } else {
     log(event.data);
   }
+};
+
+export const start = (configuration: Configuration) => {
+  assert.ok(Platform.isMainThread, 'Call console.start only in main thread');
+  Platform.createWorker('console', { configuration });
 };
