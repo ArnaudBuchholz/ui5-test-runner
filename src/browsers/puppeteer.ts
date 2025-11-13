@@ -1,16 +1,40 @@
 import type { IBrowser } from './IBrowser.js';
-import type { launch as launchFunction } from 'puppeteer';
+import type { launch as launchFunction, Browser } from 'puppeteer';
 import { Npm } from '../Npm.js';
+import { logger } from '../logger.js';
 
 export const factory = async (): Promise<IBrowser> => {
-  const { launch } = (await Npm.import('puppeteer')) as { launch: typeof launchFunction };
+  const puppeteer = await Npm.import('puppeteer');
+  const { launch } = puppeteer as { launch: typeof launchFunction };
+  let browser: Browser | undefined;
 
   return {
-    setup() {
-      throw new Error('nope');
+    async setup(settings) {
+      logger.info({ source: 'puppeteer', message: 'setup', data: settings });
+      browser = await launch({
+        headless: false,
+        defaultViewport: null,
+      });
+      return {
+        screenshotFormat: '.png'
+      };
     },
-    newWindow() {
-      throw new Error('nope');
+
+    async newWindow(settings) {
+      logger.info({ source: 'puppeteer', message: 'newWindow', data: settings });
+      let page = await browser?.newPage();
+      page?.goto(settings.url);
+      return {
+        screenshot(path: string) { throw new Error('Not implemented'); },
+        async close() {
+          await page?.close();
+        }
+      }
+    },
+
+    async shutdown() {
+      // TODO close any remaining pages
+      await browser?.close();
     }
   };
 };
