@@ -2,7 +2,7 @@
 
 // Based on specification from llg[.]cubic[.]org/docs/junit/
 
-const { join } = require('path')
+const { join, basename } = require('path')
 const { writeFile } = require('fs').promises
 const [, , reportDir] = process.argv
 
@@ -48,7 +48,7 @@ async function main () {
 }
     >`)
         if (test.screenshot) {
-          o(`<system-out>[[ATTACHMENT|${join(reportDir, qunitPage.id, test.screenshot)}]]</system-out>`)
+          o(`      <system-out>[[ATTACHMENT|${join(basename(reportDir), qunitPage.id, test.screenshot)}]]</system-out>`)
         }
         if (test.skip) {
           o('      <skipped></skipped>')

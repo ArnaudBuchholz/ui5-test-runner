@@ -1,7 +1,7 @@
 
 const { join } = require('path')
-const { createDir, cleanDir } = require('../tools');
-const { copyFile, readFile } = require('fs').promises
+const { createDir } = require('../tools');
+const { copyFile, readFile, rm } = require('fs').promises
 
 
 
@@ -23,7 +23,7 @@ describe('junit-xml-report', () => {
   }
   const mockExit = jest.spyOn(process, 'exit').mockImplementation(() => { });
   it("Should add attachment to system-output for failed tests with screenshot", async () => {
-
+    const mockExit = jest.spyOn(process, 'exit').mockImplementation(() => { });
     await copyFile(
       join(__dirname, '../../test/reporting/jobWithFailedTestAndScreenshot.js'),
       join(__dirname, '../../tmp/junit-xml-report/job.js')
@@ -31,7 +31,7 @@ describe('junit-xml-report', () => {
 
     await executeXMLReporter();
     const junitReport = await readFile(join(reportDir, 'junit.xml'), 'utf-8')
-    expect(junitReport).toContain(`<system-out>[[ATTACHMENT|${reportDir}/C2FfERHrn7E/da43b785.png]]</system-out>`);
+    expect(junitReport).toContain(`<system-out>[[ATTACHMENT|junit-xml-report/C2FfERHrn7E/da43b785.png]]</system-out>`);
     expect(mockExit).toHaveBeenCalledWith(0);
   });
   it("Should not attachment to system-output for failed test without screenshot", async () => {
@@ -44,7 +44,7 @@ describe('junit-xml-report', () => {
 
     await executeXMLReporter();
     const junitReport = await readFile(join(reportDir, 'junit.xml'), 'utf-8')
-    expect(junitReport).not.toContain(`<system-out>[[ATTACHMENT|${reportDir}/C2FfERHrn7E/da43b785.png]]</system-out>`);
+    expect(junitReport).not.toContain(`<system-out>[[ATTACHMENT|junit-xml-report/C2FfERHrn7E/da43b785.png]]</system-out>`);
     expect(mockExit).toHaveBeenCalledWith(0);
   });
 })
