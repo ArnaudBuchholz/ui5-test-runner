@@ -67,17 +67,17 @@ export class Platform {
   static readonly createWorker: (name: string, data?: unknown) => Worker = (name, data) => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const { _preload_modules: preloadModules } = process as any;
-    let argv: string[] = [];
+    let execArgv: string[] = [];
     let workerPath: string;
     const tsx = preloadModules.find((path: string) => path.includes('tsx'));
     if (tsx) {
-      workerPath = tsx;
-      argv = [join(__dirname, `workers/${name}.ts`)];
+      workerPath = join(__dirname, `workers/${name}.ts`);
+      execArgv = ['--require', 'tsx']
     } else {
       workerPath = join(__dirname, `workers/${name}.js`);
     }
     const worker = new Worker(workerPath, {
-      argv,
+      execArgv,
       workerData: data,
     });
     return worker;
