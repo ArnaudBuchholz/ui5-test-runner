@@ -1,5 +1,6 @@
+import { Configuration } from './configuration/Configuration.js';
 import { Platform } from './Platform.js';
-import assert from 'node:assert/strict'; // can't use ./logger.js because of dependency loop
+import assert from 'node:assert/strict';
 
 type ErrorAttributes = {
   name: string;
@@ -103,9 +104,9 @@ const log = (level: LogLevel, attributes: LogAttributes) => {
 };
 
 export const logger = {
-  open(cwd: string) {
-    assert.ok(Platform.isMainThread, 'Call logger.open only in main thread');
-    worker = Platform.createWorker('logger', { cwd });
+  start(configuration: Configuration) {
+    assert.ok(Platform.isMainThread, 'Call logger.start only in main thread');
+    worker = Platform.createWorker('logger', { configuration });
   },
 
   debug(attributes: LogAttributes) {
@@ -124,9 +125,9 @@ export const logger = {
     log('fatal', attributes);
   },
 
-  async close() {
-    assert.ok(Platform.isMainThread, 'Call logger.close only in main thread');
-    assert.ok(worker, 'Call logger.close only after opening');
+  async stop() {
+    assert.ok(Platform.isMainThread, 'Call logger.stop only in main thread');
+    assert.ok(worker, 'Call logger.stop only after starting');
     const { promise, resolve } = Promise.withResolvers();
     worker.on('exit', resolve);
     channel.postMessage({ terminate: true });

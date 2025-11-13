@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { Platform } from './Platform.js';
 import { AssertionError } from 'node:assert';
+import { Configuration } from './configuration/Configuration.js';
 
 vi.mock('./Platform.js', async () => {
   const channel = {
@@ -244,14 +245,14 @@ describe('open', () => {
   it('fails if not on the main thread', async () => {
     Object.assign(Platform, { isMainThread: false });
     const { logger } = await import('./logger.js');
-    expect(() => logger.open(cwd)).toThrowError(AssertionError);
+    expect(() => logger.start({ cwd } as Configuration)).toThrowError(AssertionError);
     expect(Platform.createWorker).not.toHaveBeenCalled();
   });
 
   it('creates the logger worker', async () => {
     Object.assign(Platform, { isMainThread: true });
     const { logger } = await import('./logger.js');
-    logger.open(cwd);
+    logger.start({ cwd } as Configuration);
     expect(Platform.createWorker).toHaveBeenCalledWith('logger', { cwd });
   });
 });
@@ -261,7 +262,7 @@ describe('close', () => {
     Object.assign(Platform, { isMainThread: false });
     const { logger } = await import('./logger.js');
     const channel = Platform.createBroadcastChannel('logger');
-    await expect(() => logger.close()).rejects.toThrowError(AssertionError);
+    await expect(() => logger.stop()).rejects.toThrowError(AssertionError);
     expect(channel.postMessage).not.toHaveBeenCalled();
   });
 
@@ -269,7 +270,7 @@ describe('close', () => {
     Object.assign(Platform, { isMainThread: true });
     const { logger } = await import('./logger.js');
     const channel = Platform.createBroadcastChannel('logger');
-    await expect(() => logger.close()).rejects.toThrowError(AssertionError);
+    await expect(() => logger.stop()).rejects.toThrowError(AssertionError);
     expect(channel.postMessage).not.toHaveBeenCalled();
   });
 
@@ -278,8 +279,8 @@ describe('close', () => {
     const { logger } = await import('./logger.js');
     const channel = Platform.createBroadcastChannel('logger');
     const worker = Platform.createWorker('logger');
-    logger.open(cwd);
-    const closing = logger.close();
+    logger.start({ cwd } as Configuration);
+    const closing = logger.stop();
     (worker as unknown as EventTarget).dispatchEvent(new CustomEvent('exit'));
     await closing;
     expect(channel.postMessage).toHaveBeenCalledWith({ terminate: true });
