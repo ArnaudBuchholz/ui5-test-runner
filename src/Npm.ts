@@ -49,7 +49,9 @@ export const Npm = {
       if (latestVersion !== installedVersion) {
         logger.warn({ source: 'npm', message: `[PKGVRS] Latest version of ${moduleName} is ${latestVersion}` });
       }
-    } catch {}
+    } catch (error) {
+      logger.error({ source: 'npm', message: 'Failed in checkIfLatestVersion', error });
+    }
   },
 
   /** Locate the module (or install it globally) then import it */
