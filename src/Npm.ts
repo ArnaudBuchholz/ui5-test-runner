@@ -10,8 +10,8 @@ let roots: Promise<Roots> | undefined;
 
 const getRoots = async () => {
   if (!roots) {
-    const localRoot = Platform.spawn('npm', ['root']);
-    const globalRoot = Platform.spawn('npm', ['root', '--global']);
+    const localRoot = Platform.exec('npm', ['root']);
+    const globalRoot = Platform.exec('npm', ['root', '--global']);
     roots = Promise.all([localRoot.closed, globalRoot.closed]).then(() => {
       return {
         local: localRoot.stdout,
