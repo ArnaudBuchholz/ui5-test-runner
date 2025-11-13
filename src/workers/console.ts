@@ -19,7 +19,7 @@ const channel = Platform.createBroadcastChannel('logger');
 channel.onmessage = (event: { data: { terminate: true } | (InternalLogAttributes & LogAttributes) }) => {
   if ('terminate' in event.data) {
     channel.close();
-  } else {
+  } else if (!('isReady' in event.data)) {
     log(event.data);
   }
 };
