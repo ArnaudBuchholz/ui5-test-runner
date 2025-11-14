@@ -47,6 +47,19 @@ class Process {
 
 /** This class simplifies mocking during tests */
 export class Platform {
+  /** Detect if local development */
+  static get isLocalDevelopment () {
+    if (process.env['IS_LOCAL_DEVELOPMENT']) {
+      return true;
+    }
+    if (isMainThread) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const { _preload_modules: preloadModules } = process as any;
+      return !!preloadModules.find((path: string) => path.includes('tsx'));
+    }
+    return false;
+  }
+
   static readonly pid = process.pid;
   static readonly cwd = process.cwd.bind(process);
   static readonly threadCpuUsage = process.threadCpuUsage.bind(process);
@@ -66,20 +79,27 @@ export class Platform {
   static readonly createBroadcastChannel: (name: 'logger') => BroadcastChannel = (name) => new BroadcastChannel(name);
   static readonly createWorker: (name: string, data?: unknown) => Worker = (name, data) => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const { _preload_modules: preloadModules } = process as any;
     let execArgv: string[] = [];
     let workerPath: string;
-    const tsx = preloadModules.find((path: string) => path.includes('tsx'));
-    if (tsx) {
+    let env;
+    if (Platform.isLocalDevelopment) {
       workerPath = join(__dirname, `workers/${name}.ts`);
-      execArgv = ['--require', 'tsx']
+      execArgv = ['--require', 'tsx'];
+      env = {
+        IS_LOCAL_DEVELOPMENT: 'true'
+      }
     } else {
       workerPath = join(__dirname, `workers/${name}.js`);
     }
     const worker = new Worker(workerPath, {
       execArgv,
-      workerData: data,
+      env,
+      workerData: data
     });
+    if (Platform.isLocalDevelopment) {
+      worker.on('online', () => console.log(`🧢 Worker ${name} online`));
+      worker.on('exit', () => console.log(`🧢 Worker ${name} offline`));
+    }
     return worker;
   };
   static readonly workerData = workerData as object;
