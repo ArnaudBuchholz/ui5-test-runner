@@ -48,7 +48,7 @@ class Process {
 /** This class simplifies mocking during tests */
 export class Platform {
   /** Detect if local development */
-  static get isLocalDevelopment () {
+  static get isLocalDevelopment() {
     if (process.env['IS_LOCAL_DEVELOPMENT']) {
       return true;
     }
@@ -78,22 +78,21 @@ export class Platform {
   static readonly isMainThread = isMainThread;
   static readonly createBroadcastChannel: (name: 'logger') => BroadcastChannel = (name) => new BroadcastChannel(name);
   static readonly createWorker: (name: string, data?: unknown) => Worker = (name, data) => {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     let execArgv: string[] = [];
     let workerPath: string;
-    let env;
+    let environment;
     if (Platform.isLocalDevelopment) {
       workerPath = join(__dirname, `workers/${name}.ts`);
       execArgv = ['--require', 'tsx'];
-      env = {
+      environment = {
         IS_LOCAL_DEVELOPMENT: 'true'
-      }
+      };
     } else {
       workerPath = join(__dirname, `workers/${name}.js`);
     }
     const worker = new Worker(workerPath, {
       execArgv,
-      env,
+      env: environment,
       workerData: data
     });
     if (Platform.isLocalDevelopment) {
