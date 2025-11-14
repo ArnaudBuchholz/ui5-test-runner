@@ -47,3 +47,6 @@ test/report/report.html
 
 # log files
 *.log.gz
+
+# tsx files
+undefined/*
