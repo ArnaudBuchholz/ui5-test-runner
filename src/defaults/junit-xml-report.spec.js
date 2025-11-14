@@ -26,7 +26,7 @@ describe('junit-xml-report', () => {
     expect(junitReport).toContain('<system-out>[[ATTACHMENT|junit-xml-report/C2FfERHrn7E/da43b785.png]]</system-out>')
     expect(mockExit).toHaveBeenCalledWith(0)
   })
-  it('Should not attachment to system-output for failed test without screenshot', async () => {
+  it('Should not add attachment to system-output for failed test without screenshot', async () => {
     await copyFile(
       join(__dirname, '../../test/reporting/jobWithFailedTestNoScreenshot.js'),
       join(__dirname, '../../tmp/junit-xml-report/job.js')
