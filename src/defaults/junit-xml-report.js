@@ -88,4 +88,3 @@ main()
   .then((code = 0) => {
     process.exit(code)
   })
-module.exports = main
