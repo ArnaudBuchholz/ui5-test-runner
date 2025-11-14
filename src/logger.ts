@@ -40,7 +40,8 @@ export type InternalLogAttributes = {
 };
 
 const channel = Platform.createBroadcastChannel('logger');
-let worker: ReturnType<typeof Platform.createWorker> | undefined;
+let loggerWorker: ReturnType<typeof Platform.createWorker> | undefined;
+let consoleWorker: ReturnType<typeof Platform.createWorker> | undefined;
 const buffer: (InternalLogAttributes & LogAttributes)[] = [];
 let ready = false;
 
@@ -106,7 +107,8 @@ const log = (level: LogLevel, attributes: LogAttributes) => {
 export const logger = {
   start(configuration: Configuration) {
     assert.ok(Platform.isMainThread, 'Call logger.start only in main thread');
-    worker = Platform.createWorker('logger', { configuration });
+    loggerWorker = Platform.createWorker('logger', { configuration });
+    consoleWorker = Platform.createWorker('console', { configuration });
   },
 
   debug(attributes: LogAttributes) {
@@ -127,10 +129,14 @@ export const logger = {
 
   async stop() {
     assert.ok(Platform.isMainThread, 'Call logger.stop only in main thread');
-    assert.ok(worker, 'Call logger.stop only after starting');
-    const { promise, resolve } = Promise.withResolvers();
-    worker.on('exit', resolve);
+    assert.ok(loggerWorker && consoleWorker, 'Call logger.stop only after starting');
+    clearInterval(metricsMonitorInterval);
+    const { promise: loggerPromise, resolve: loggerExited } = Promise.withResolvers();
+    const { promise: consolePromise, resolve: consoleExited } = Promise.withResolvers();
+    loggerWorker.on('exit', loggerExited);
+    consoleWorker.on('exit', consoleExited);
     channel.postMessage({ terminate: true });
-    await promise;
+    await Promise.all([ loggerPromise, consolePromise ]);
+    channel.close();
   }
 };
