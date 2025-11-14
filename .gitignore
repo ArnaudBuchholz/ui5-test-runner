@@ -44,3 +44,6 @@ test/report/report.html
 
 #eslint cache
 .eslintcache
+
+# log files
+*.log.gz
