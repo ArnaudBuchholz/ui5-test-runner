@@ -10,8 +10,16 @@ type ErrorAttributes = {
   errors?: ErrorAttributes[];
 };
 
+export const LogSource = {
+  metric: 'metric',
+  logger: 'logger',
+  npm: 'npm',
+  puppeteer: 'puppeteer'
+};
+export type LogSource = (typeof LogSource)[keyof typeof LogSource];
+
 export type LogAttributes = {
-  source: string;
+  source: LogSource;
   message: string;
   error?: unknown;
   data?: object;
@@ -136,7 +144,7 @@ export const logger = {
     loggerWorker.on('exit', loggerExited);
     consoleWorker.on('exit', consoleExited);
     channel.postMessage({ terminate: true });
-    await Promise.all([ loggerPromise, consolePromise ]);
+    await Promise.all([loggerPromise, consolePromise]);
     channel.close();
   }
 };
