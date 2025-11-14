@@ -1,8 +1,21 @@
 import { Platform } from '../Platform.js';
 import type { InternalLogAttributes, LogAttributes } from '../logger.js';
+import { LogSource } from '../logger.js';
+
+const start = Date.now();
+const maxLogSourceSize = Object.values(LogSource).reduce((max, source) => Math.max(max, source.length), 0);
+
+const formatDiff = (diffInMs: number) => {
+  if (diffInMs < 0) {
+    return '00:00';
+  }
+  const seconds = Math.floor(diffInMs / 1000);
+  const minutes = Math.floor(seconds / 60);
+  return minutes.toString().padStart(2, '0') + ':' + (seconds % 60).toString().padStart(2, '0');
+};
 
 const log = (attributes: InternalLogAttributes & LogAttributes) => {
-  const { level, timestamp, processId = 0, threadId = 0, message, data } = attributes;
+  const { level, timestamp, source, message, data } = attributes;
   const icon = {
     debug: '🐞',
     info: '  ',
@@ -10,7 +23,15 @@ const log = (attributes: InternalLogAttributes & LogAttributes) => {
     error: '❌',
     fatal: '💣'
   }[level];
-  console.log(icon, timestamp, processId, threadId, message, data ? JSON.stringify(data) : '');
+  if (source !== 'metric') {
+    console.log(
+      icon,
+      formatDiff(timestamp - start),
+      source.padEnd(maxLogSourceSize, ' '),
+      message,
+      data ? JSON.stringify(data) : ''
+    );
+  }
 };
 
 const channel = Platform.createBroadcastChannel('logger');
