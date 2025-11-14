@@ -16,7 +16,6 @@ describe('junit-xml-report', () => {
   }
   const mockExit = jest.spyOn(process, 'exit').mockImplementation(() => { })
   it('Should add attachment to system-output for failed tests with screenshot', async () => {
-    const mockExit = jest.spyOn(process, 'exit').mockImplementation(() => { })
     await copyFile(
       join(__dirname, '../../test/reporting/jobWithFailedTestAndScreenshot.js'),
       join(__dirname, '../../tmp/junit-xml-report/job.js')
