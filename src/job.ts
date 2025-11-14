@@ -3,7 +3,6 @@ import type { Configuration } from './configuration/Configuration.js';
 import { Modes } from './configuration/Modes.js';
 import { logger } from './logger.js';
 import { Platform } from './Platform.js';
-import { start as startConsole } from './workers/console.js';
 
 export const execute = async (configuration: Configuration) => {
   if (configuration.mode === Modes.version) {
@@ -14,7 +13,6 @@ export const execute = async (configuration: Configuration) => {
     console.log('Please check https://arnaudbuchholz.github.io/ui5-test-runner/');
   } else {
     logger.start(configuration);
-    startConsole(configuration);
     // Simple test
     const browser = await BrowserFactory.build('puppeteer');
     await browser.setup({});
@@ -25,6 +23,7 @@ export const execute = async (configuration: Configuration) => {
     await new Promise((resolve) => setTimeout(resolve, 5000));
     await page.close();
     await browser.shutdown();
-    await logger.stop(); // should stop console too
+    await logger.stop();
+    console.log('🧢 done.');
   }
 };
