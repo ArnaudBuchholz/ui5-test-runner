@@ -15,7 +15,7 @@ const formatDiff = (diffInMs: number) => {
 };
 
 const log = (attributes: InternalLogAttributes & LogAttributes) => {
-  const { level, timestamp, source, message, data } = attributes;
+  const { level, timestamp, source, message, data, error } = attributes;
   const icon = {
     debug: '🐞',
     info: '  ',
@@ -29,7 +29,8 @@ const log = (attributes: InternalLogAttributes & LogAttributes) => {
       formatDiff(timestamp - start),
       source.padEnd(maxLogSourceSize, ' '),
       message,
-      data ? JSON.stringify(data) : ''
+      data ? JSON.stringify(data) : '',
+      error ? `${(error as Error).name} ${(error as Error).message}` : ''
     );
   }
 };
