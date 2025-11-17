@@ -10,12 +10,12 @@ module.exports = async ({
   const chrome = require(join(settings.modules['selenium-webdriver'], 'chrome'))
 
   const chromeOptions = new chrome.Options()
-  if (!options.visible) {
-    chromeOptions.addArguments('--headless=new')
-    chromeOptions.addArguments('--log-level=3')
+  const chromeArgs = options.chromeArgs()
+  for (const arg of chromeArgs) {
+    if (arg !== 'true') {
+      chromeOptions.addArguments(arg)
+    }
   }
-  chromeOptions.addArguments('--start-maximized')
-  chromeOptions.addArguments('--disable-extensions')
   chromeOptions.setLoggingPrefs(loggingPreferences)
   if (options.binary) {
     chromeOptions.setChromeBinaryPath(options.binary)
