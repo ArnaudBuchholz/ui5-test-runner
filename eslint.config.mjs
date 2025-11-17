@@ -19,5 +19,11 @@ export default [
     rules: {
       'sonarjs/no-empty-test-file': 'off'
     }
+  },
+  {
+    files: ['src/inject/**.ts'],
+    rules: {
+      'unicorn/prefer-global-this': 'off'
+    }
   }
 ];
