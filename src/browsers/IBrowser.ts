@@ -1,4 +1,5 @@
 export interface IWindow {
+  eval(script: string): Promise<unknown>;
   screenshot(path: string): Promise<void>;
   close(): Promise<void>;
 }

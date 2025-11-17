@@ -25,6 +25,9 @@ export const factory = async (): Promise<IBrowser> => {
       const page = await browser?.newPage();
       page?.goto(settings.url);
       return {
+        async eval(script: string) {
+          return await page?.evaluate(script);
+        },
         screenshot(path: string) {
           throw new Error('Not implemented');
         },
