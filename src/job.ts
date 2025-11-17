@@ -16,12 +16,36 @@ export const execute = async (configuration: Configuration) => {
     // Simple test
     const browser = await BrowserFactory.build('puppeteer');
     await browser.setup({});
-    const page = await browser.newWindow({
-      scripts: [],
-      url: 'https://ui5.sap.com/test-resources/sap/m/demokit/cart/webapp/test/testsuite.qunit.html'
-    });
-    await new Promise((resolve) => setTimeout(resolve, 5000));
-    await page.close();
+    const urls = [
+      'https://ui5.sap.com/test-resources/sap/m/demokit/cart/webapp/test/testsuite.qunit.html',
+      'https://ui5.sap.com/test-resources/sap/m/demokit/cart/webapp/test/Test.qunit.html?testsuite=test-resources/sap/ui/demo/cart/testsuite.qunit&test=unit/unitTests',
+      'https://ui5.sap.com/test-resources/sap/m/demokit/cart/webapp/test/Test.qunit.html?testsuite=test-resources%2Fsap%2Fui%2Fdemo%2Fcart%2Ftestsuite.qunit&test=integration%2FopaTestsComponent#/categories',
+      'https://ui5.sap.com/test-resources/sap/m/demokit/cart/webapp/test/Test.qunit.html?testsuite=test-resources/sap/ui/demo/cart/testsuite.qunit&test=integration/opaTestsIFrame'
+    ];
+    const pages = [];
+    for (const url of urls) {
+      const page = await browser.newWindow({
+        scripts: [],
+        url
+      });
+      pages.push(page);
+    }
+    let done = false;
+    while (!done) {
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+      for (let index = 0; index < urls.length; ++index) {
+        const page = pages[index]!;
+        try {
+          const value = await page.eval('QUnit.config');
+          console.log(urls[index], value ? 'OK' : 'KO');
+        } catch {
+          console.log(urls[index], 'error');
+        }
+      }
+    }
+    for (const page of pages) {
+      await page.close();
+    }
     await browser.shutdown();
     await logger.stop();
     console.log('🧢 done.');
