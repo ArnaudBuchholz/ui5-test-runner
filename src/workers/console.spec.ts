@@ -34,6 +34,7 @@ it('logs traces coming in (no filtering for now)', async () => {
     timestamp: Date.now(),
     processId: 0,
     threadId: 0,
+    source: 'test',
     message: 'Hello World !'
   });
   expect(spyOnLog).toHaveBeenCalled();

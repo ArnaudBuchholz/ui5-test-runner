@@ -25,7 +25,7 @@ vi.mock('../Platform.js', async (importActual) => {
   const Platform = {
     ...actual.Platform,
     createBroadcastChannel: vi.fn(() => channel),
-    workerData: { cwd: './tmp' },
+    workerData: { configuration: { cwd: './tmp' } },
     createWriteStream: vi.fn(() => writeStream),
     createGzip: vi.fn(() => gzipStream)
   };

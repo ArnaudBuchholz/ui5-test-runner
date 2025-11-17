@@ -253,7 +253,7 @@ describe('open', () => {
     Object.assign(Platform, { isMainThread: true });
     const { logger } = await import('./logger.js');
     logger.start({ cwd } as Configuration);
-    expect(Platform.createWorker).toHaveBeenCalledWith('logger', { cwd });
+    expect(Platform.createWorker).toHaveBeenCalledWith('logger', { configuration: { cwd } });
   });
 });
 
