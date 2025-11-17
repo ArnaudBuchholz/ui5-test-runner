@@ -55,7 +55,7 @@ export class Platform {
     if (isMainThread) {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const { _preload_modules: preloadModules } = process as any;
-      return !!preloadModules.find((path: string) => path.includes('tsx'));
+      return preloadModules.some((path: string) => path.includes('tsx'));
     }
     return false;
   }
@@ -104,18 +104,10 @@ export class Platform {
   static readonly workerData = workerData as object;
 
   static readonly spawn: (command: string, arguments_: string[]) => Process = (command, arguments_) => {
-    try {
-      return new Process(spawn(command, arguments_));
-    } catch (error) {
-      throw error;
-    }
+    return new Process(spawn(command, arguments_));
   };
   static readonly exec: (command: string, arguments_: string[]) => Process = (command, arguments_) => {
-    try {
-      return new Process(exec(`${command} ${arguments_.join(' ')}`));
-    } catch (error) {
-      throw error;
-    }
+    return new Process(exec(`${command} ${arguments_.join(' ')}`));
   };
 
   static readonly createGzip = zlib.createGzip.bind(zlib);

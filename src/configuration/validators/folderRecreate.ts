@@ -4,11 +4,7 @@ import { Platform } from '../../Platform.js';
 import type { Option } from '../Option.js';
 import type { Configuration } from '../Configuration.js';
 
-export const fsOption = async (option: Option, value: unknown, configuration: Configuration): Promise<string> => {
-  if (typeof value !== 'string') {
-    throw new OptionValidationError(option, 'Expected string');
-  }
-  const path = Platform.isAbsolute(value) ? value : Platform.join(configuration.cwd, value);
+const fsCheckAccess = async (option: Option, path: string): Promise<string | undefined> => {
   try {
     const mode = Platform.fsConstants.R_OK | (option.type === 'folder-recreate' ? Platform.fsConstants.W_OK : 0);
     await Platform.access(path, mode);
@@ -25,6 +21,10 @@ export const fsOption = async (option: Option, value: unknown, configuration: Co
       throw new OptionValidationError(option, `Unable to access ${option.type}`, error);
     }
   }
+  return undefined;
+};
+
+const fsCheckStat = async (option: Option, path: string): Promise<void> => {
   try {
     const stat = await Platform.stat(path);
     if (option.type !== 'file' && !stat.isDirectory()) {
@@ -36,6 +36,18 @@ export const fsOption = async (option: Option, value: unknown, configuration: Co
   } catch (error) {
     throw new OptionValidationError(option, 'Unable to check type', error);
   }
+};
+
+export const fsOption = async (option: Option, value: unknown, configuration: Configuration): Promise<string> => {
+  if (typeof value !== 'string') {
+    throw new OptionValidationError(option, 'Expected string');
+  }
+  const path = Platform.isAbsolute(value) ? value : Platform.join(configuration.cwd, value);
+  const accessChecked = await fsCheckAccess(option, path);
+  if (accessChecked !== undefined) {
+    return accessChecked;
+  }
+  await fsCheckStat(option, path);
   return path;
 };
 

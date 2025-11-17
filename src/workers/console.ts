@@ -3,7 +3,7 @@ import type { InternalLogAttributes, LogAttributes } from '../logger.js';
 import { LogSource } from '../logger.js';
 
 const start = Date.now();
-const maxLogSourceSize = Object.values(LogSource).reduce((max, source) => Math.max(max, source.length), 0);
+const maxLogSourceSize = Math.max(...Object.values(LogSource).map((source) => source.length));
 
 const formatDiff = (diffInMs: number) => {
   if (diffInMs < 0) {

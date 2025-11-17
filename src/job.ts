@@ -30,16 +30,18 @@ export const execute = async (configuration: Configuration) => {
       });
       pages.push(page);
     }
-    let done = false;
+    const done = false;
     while (!done) {
       await new Promise((resolve) => setTimeout(resolve, 1000));
-      for (let index = 0; index < urls.length; ++index) {
+      for (const [index, url_] of urls.entries()) {
         const page = pages[index]!;
+        const url = url_.split('/test/')[1];
         try {
-          const value = await page.eval('QUnit.config');
-          console.log(urls[index], value ? 'OK' : 'KO');
+          // Value must be serializable...
+          const value = await page.eval('QUnit.config.modules');
+          console.log(url, value ? 'OK' : 'KO');
         } catch {
-          console.log(urls[index], 'error');
+          console.log(url, 'error');
         }
       }
     }

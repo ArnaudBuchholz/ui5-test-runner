@@ -23,12 +23,12 @@ export const factory = async (): Promise<IBrowser> => {
     async newWindow(settings) {
       logger.info({ source: 'puppeteer', message: 'newWindow', data: settings });
       const page = await browser?.newPage();
-      page?.goto(settings.url);
+      await page?.goto(settings.url);
       return {
         async eval(script: string) {
           return await page?.evaluate(script);
         },
-        screenshot(path: string) {
+        screenshot(/* path: string */) {
           throw new Error('Not implemented');
         },
         async close() {
