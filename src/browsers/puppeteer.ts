@@ -23,6 +23,9 @@ export const factory = async (): Promise<IBrowser> => {
     async newWindow(settings) {
       logger.info({ source: 'puppeteer', message: 'newWindow', data: settings });
       const page = await browser?.newPage();
+      for (const script of settings.scripts) {
+        await page?.evaluateOnNewDocument(script);
+      }
       await page?.goto(settings.url);
       return {
         async eval(script: string) {

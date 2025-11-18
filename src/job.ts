@@ -5,6 +5,8 @@ import { logger } from './logger.js';
 import { Platform } from './Platform.js';
 
 export const execute = async (configuration: Configuration) => {
+  const inject = await Platform.readFile(Platform.join(__dirname, './inject/inject.js'), 'utf8');
+
   if (configuration.mode === Modes.version) {
     const packageFile = await Platform.readFile('package.json', 'utf8');
     const packageJson = JSON.parse(packageFile);
@@ -25,7 +27,7 @@ export const execute = async (configuration: Configuration) => {
     const pages = [];
     for (const url of urls) {
       const page = await browser.newWindow({
-        scripts: [],
+        scripts: [inject],
         url
       });
       pages.push(page);
@@ -38,8 +40,8 @@ export const execute = async (configuration: Configuration) => {
         const url = url_.split('/test/')[1];
         try {
           // Value must be serializable...
-          const value = await page.eval('QUnit.config.modules');
-          console.log(url, value ? 'OK' : 'KO');
+          const value = await page.eval('window[\'ui5-test-runner\']');
+          console.log(url, value);
         } catch {
           console.log(url, 'error');
         }
