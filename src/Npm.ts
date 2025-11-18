@@ -28,7 +28,7 @@ export const Npm = {
     try {
       const response = await fetch(`https://registry.npmjs.org/${moduleName}/latest`);
       if (response.status / 100 === 2) {
-        const { version } = await response.json();
+        const { version } = (await response.json()) as { version: string };
         return version;
       }
       throw new Error(`Response status code ${response.status}`);
@@ -44,7 +44,7 @@ export const Npm = {
       const { local, global } = await getRoots();
       const { version: installedVersion } = JSON.parse(
         await Platform.readFile(Platform.join(isLocal ? local : global, moduleName, 'package.json'), 'utf8')
-      );
+      ) as { version: string };
       logger.info({ source: 'npm', message: `Installed version of ${moduleName} is ${installedVersion}` });
       const latestVersion = await Npm.getLatestVersion(moduleName);
       if (latestVersion !== installedVersion) {
@@ -59,7 +59,7 @@ export const Npm = {
   async import(moduleName: string): Promise<unknown> {
     logger.debug({ source: 'npm', message: `Npm.import(${moduleName})` });
     try {
-      const module = await import(moduleName);
+      const module = (await import(moduleName)) as unknown;
       logger.debug({ source: 'npm', message: `Module ${moduleName} found locally` });
       void this.checkIfLatestVersion(moduleName, true);
       return module;

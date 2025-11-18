@@ -3,7 +3,7 @@ import { UI5_TEST_RUNNER } from './contants.js';
 // Extend the Window interface to include __coverage__
 declare global {
   interface Window {
-    __coverage__?: any;
+    __coverage__?: unknown;
   }
 }
 

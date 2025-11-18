@@ -30,10 +30,10 @@ class Process {
   constructor(private _childProcess: ChildProcess) {
     const { promise, resolve } = Promise.withResolvers<void>();
     this._closed = promise;
-    this._childProcess.stdout?.on('data', (data) => {
+    this._childProcess.stdout?.on('data', (data: string) => {
       this._stdout.push(data);
     });
-    this._childProcess.stderr?.on('data', (data) => {
+    this._childProcess.stderr?.on('data', (data: string) => {
       this._stderr.push(data);
     });
     this._childProcess.on('close', (code) => {
@@ -53,8 +53,7 @@ export class Platform {
       return true;
     }
     if (isMainThread) {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const { _preload_modules: preloadModules } = process as any;
+      const { _preload_modules: preloadModules } = process as unknown as { _preload_modules: string[] };
       return preloadModules.some((path: string) => path.includes('tsx'));
     }
     return false;
@@ -106,7 +105,8 @@ export class Platform {
   static readonly spawn: (command: string, arguments_: string[]) => Process = (command, arguments_) => {
     return new Process(spawn(command, arguments_));
   };
-  static readonly exec: (command: string, arguments_: string[]) => Process = (command, arguments_) => {
+  static readonly exec: (command: 'npm', arguments_: string[]) => Process = (command, arguments_) => {
+    // eslint-disable-next-line sonarjs/os-command, security/detect-child-process -- list of commands is restricted
     return new Process(exec(`${command} ${arguments_.join(' ')}`));
   };
 

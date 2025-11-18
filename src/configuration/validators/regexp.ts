@@ -9,7 +9,7 @@ export const regexp: OptionValidator<'regexp'> = (option, value) => {
     throw new OptionValidationError(option);
   }
   try {
-    const match = value.match(/^\/(.+)\/(\w*)$/);
+    const match = /^\/(.+)\/(\w*)$/.exec(value);
     if (match) {
       const [, pattern = '', flags = ''] = match;
       return new RegExp(pattern, flags);

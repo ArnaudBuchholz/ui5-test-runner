@@ -8,10 +8,9 @@ const main = async () => {
   const indexOfCli = process.argv.findIndex((value) => value.endsWith('cli.ts') || value.endsWith('cli.js'));
   const configuration = await CommandLine.buildConfigurationFrom(Platform.cwd(), process.argv.slice(indexOfCli + 1));
   await execute(configuration);
-}
+};
 
-main()
-  .catch((reason) => {
-    console.error(reason);
-    process.exitCode = -1;
-  });
+main().catch((error) => {
+  console.error(error);
+  process.exitCode = -1;
+});
