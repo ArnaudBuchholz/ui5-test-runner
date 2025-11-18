@@ -14,8 +14,8 @@ const getRoots = async () => {
     const globalRoot = Platform.exec('npm', ['root', '--global']);
     roots = Promise.all([localRoot.closed, globalRoot.closed]).then(() => {
       return {
-        local: localRoot.stdout,
-        global: globalRoot.stdout
+        local: localRoot.stdout.trim(),
+        global: globalRoot.stdout.trim()
       };
     });
   }
@@ -45,6 +45,7 @@ export const Npm = {
       const { version: installedVersion } = JSON.parse(
         await Platform.readFile(Platform.join(isLocal ? local : global, moduleName, 'package.json'), 'utf8')
       );
+      logger.info({ source: 'npm', message: `Installed version of ${moduleName} is ${installedVersion}` });
       const latestVersion = await Npm.getLatestVersion(moduleName);
       if (latestVersion !== installedVersion) {
         logger.warn({ source: 'npm', message: `[PKGVRS] Latest version of ${moduleName} is ${latestVersion}` });
