@@ -7,18 +7,29 @@
   } else {
     //main window
 
+    function jsUnitTestSuite() {
+      jsUnitTestSuite.pages = [];
+    }
+
+    jsUnitTestSuite.prototype.addTestPage = function (url) {
+      jsUnitTestSuite.pages.push(url);
+    }
+
+    window.jsUnitTestSuite = jsUnitTestSuite
+
     const ui5TestRunner = {
       status: 'pending'
     };
 
     window['ui5-test-runner'] = ui5TestRunner;
 
-    window.addEventListener('load', function () {
+    window.addEventListener('load', async function () {
       ui5TestRunner.loaded = Date.now();
       if (typeof suite === 'function') {
         ui5TestRunner.type = 'suite';
-        //   suite()
-        //   post('addTestPages', { type: 'suite', pages })
+        await suite();
+        ui5TestRunner.pages = jsUnitTestSuite.pages ?? 'none';
+        ui5TestRunner.status = 'done';
       } else if (typeof QUnit === 'undefined') {
         ui5TestRunner.type = 'unknown';
         //   post('addTestPages', { type: 'none' })
