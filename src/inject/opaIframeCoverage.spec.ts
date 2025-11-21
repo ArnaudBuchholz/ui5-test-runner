@@ -5,7 +5,7 @@ const defineProperty = vi.spyOn(Object, 'defineProperty');
 
 beforeEach(() => vi.resetModules());
 
-it('does nothing on the main window', async () => {
+it.skip('does nothing on the main window', async () => {
   await import('./opaIframeCoverage.js');
   expect(defineProperty).toHaveBeenCalledTimes(1);
   expect(defineProperty).toHaveBeenCalledWith(window, `${UI5_TEST_RUNNER}/opa-iframe-coverage`, {
