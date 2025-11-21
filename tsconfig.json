@@ -22,7 +22,7 @@
     "noPropertyAccessFromIndexSignature": true,
     "allowUnusedLabels": false,
     "allowUnreachableCode": false,
-    "erasableSyntaxOnly": false,
+    "erasableSyntaxOnly": true,
     "skipLibCheck": true,
     "resolveJsonModule": true,
     "moduleResolution": "Bundler",
