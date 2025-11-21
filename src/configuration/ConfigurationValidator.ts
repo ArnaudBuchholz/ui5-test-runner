@@ -28,6 +28,22 @@ const assertIfConfiguration: (value: object) => asserts value is Configuration =
   }
 };
 
+const validateValue = async (option: (typeof options)[number], configuration: Configuration) => {
+  const value = configuration[option.name];
+  if ('multiple' in option) {
+    const validatedValues = [];
+    if (Array.isArray(value)) {
+      for (const valueItem of value) {
+        validatedValues.push(await validators[option.type](option, valueItem, configuration));
+      }
+    } else {
+      validatedValues.push(await validators[option.type](option, value, configuration));
+    }
+    return validatedValues;
+  }
+  return await validators[option.type](option, value, configuration);
+};
+
 export const ConfigurationValidator = {
   merge(configuration: Configuration): Promise<Configuration> {
     return Promise.resolve(configuration);
@@ -54,7 +70,7 @@ export const ConfigurationValidator = {
     for (const option of options) {
       if (Object.hasOwnProperty.call(merged, option.name)) {
         Object.assign(merged, {
-          [option.name]: await validators[option.type](option, merged[option.name], merged)
+          [option.name]: await validateValue(option, merged)
         });
       }
     }

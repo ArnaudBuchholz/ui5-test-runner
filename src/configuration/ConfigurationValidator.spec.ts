@@ -73,6 +73,24 @@ describe('validation', () => {
     expect(validators.timeout).toHaveBeenCalledWith(indexedOptions.pageTimeout, 10, expect.any(Object));
   });
 
+  it('calls the corresponding validator (multiple)', async () => {
+    await ConfigurationValidator.validate({
+      cwd: '/test/user',
+      url: ['http://localhost:8080', 'http://localhost:8081']
+    });
+    expect(validators.url).toHaveBeenCalledWith(indexedOptions.url, 'http://localhost:8080', expect.any(Object));
+    expect(validators.url).toHaveBeenCalledWith(indexedOptions.url, 'http://localhost:8081', expect.any(Object));
+  });
+
+  it('converts the unique multiple value into an array', async () => {
+    const validated = await ConfigurationValidator.validate({
+      cwd: '/test/user',
+      url: 'http://localhost:8080'
+    });
+    expect(validators.url).toHaveBeenCalledWith(indexedOptions.url, 'http://localhost:8080', expect.any(Object));
+    expect(validated.url).toStrictEqual(['http://localhost:8080']);
+  });
+
   it.skip('may return multiple errors');
 });
 
