@@ -25,6 +25,6 @@ export const parallelize = async <INPUT, OUTPUT = INPUT>(
       }
     }
   };
-  await Promise.all(Array.from({ length: parallel }).fill(0).map(fiber));
+  await Promise.all(Array.from({ length: parallel }, fiber));
   return results;
 };
