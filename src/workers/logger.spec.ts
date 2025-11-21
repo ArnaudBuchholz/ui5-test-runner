@@ -24,6 +24,7 @@ vi.mock('../Platform.js', async (importActual) => {
   };
   const Platform = {
     ...actual.Platform,
+    isMainThread: false, // This worker is not in the main thread
     createBroadcastChannel: vi.fn(() => channel),
     workerData: { configuration: { cwd: './tmp' } },
     createWriteStream: vi.fn(() => writeStream),

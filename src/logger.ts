@@ -47,30 +47,37 @@ export type InternalLogAttributes = {
   isMainThread: boolean;
 };
 
-const channel = Platform.createBroadcastChannel('logger');
+// TODO understand why channel does not appear as a problem as it might be used before being defined
+let channel: ReturnType<typeof Platform.createBroadcastChannel>;
 let loggerWorker: ReturnType<typeof Platform.createWorker> | undefined;
 let consoleWorker: ReturnType<typeof Platform.createWorker> | undefined;
 const buffer: (InternalLogAttributes & LogAttributes)[] = [];
 let ready = false;
 
-const metricsMonitorInterval = setInterval(() => {
-  logger.debug({ source: 'metric', message: 'threadCpuUsage', data: Platform.threadCpuUsage() });
-  logger.debug({ source: 'metric', message: 'memoryUsage', data: Platform.memoryUsage() });
-}, 1000);
+let metricsMonitorInterval: ReturnType<typeof setInterval>;
 
-channel.onmessage = (event: { data: object }) => {
-  if ('ready' in event.data) {
-    ready = true;
-    if (buffer.length > 0) {
-      for (const buffered of buffer) {
-        channel.postMessage(buffered);
+const start = () => {
+  channel = Platform.createBroadcastChannel('logger');
+
+  metricsMonitorInterval = setInterval(() => {
+    logger.debug({ source: 'metric', message: 'threadCpuUsage', data: Platform.threadCpuUsage() });
+    logger.debug({ source: 'metric', message: 'memoryUsage', data: Platform.memoryUsage() });
+  }, 1000);
+
+  channel.onmessage = (event: { data: object }) => {
+    if ('ready' in event.data) {
+      ready = true;
+      if (buffer.length > 0) {
+        for (const buffered of buffer) {
+          channel.postMessage(buffered);
+        }
+        buffer.length = 0;
       }
-      buffer.length = 0;
+    } else if ('terminate' in event.data) {
+      clearInterval(metricsMonitorInterval);
+      channel.close();
     }
-  } else if ('terminate' in event.data) {
-    clearInterval(metricsMonitorInterval);
-    channel.close();
-  }
+  };
 };
 
 const convertErrorToAttributes = (error: unknown): ErrorAttributes => {
@@ -108,13 +115,18 @@ const log = (level: LogLevel, attributes: LogAttributes) => {
   } else {
     // Not aware if the logger is ready, buffering and asking
     buffer.push(allAttributes);
-    channel.postMessage({ isReady: true });
+    channel?.postMessage({ isReady: true });
   }
 };
+
+if (!Platform.isMainThread) {
+  start();
+}
 
 export const logger = {
   start(configuration: Configuration) {
     assert.ok(Platform.isMainThread, 'Call logger.start only in main thread');
+    start();
     loggerWorker = Platform.createWorker('logger', { configuration });
     consoleWorker = Platform.createWorker('console', { configuration });
   },

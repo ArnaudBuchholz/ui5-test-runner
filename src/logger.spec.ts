@@ -27,6 +27,7 @@ vi.mock('./Platform.js', async () => {
 });
 
 beforeEach(async () => {
+  Object.assign(Platform, { isMainThread: false });
   vi.resetAllMocks();
   vi.resetModules();
   vi.useFakeTimers();
@@ -37,9 +38,15 @@ const postMessage = (channel: ReturnType<typeof Platform.createBroadcastChannel>
   channel.onmessage({ data } as any);
 
 describe('general', () => {
-  it('opens a broadcast channel to communicate with the logger thread', async () => {
+  it('opens a broadcast channel to communicate with the logger thread (!Platform.isMainThread)', async () => {
     await import('./logger.js');
     expect(Platform.createBroadcastChannel).toHaveBeenCalledWith('logger');
+  });
+
+  it('waits for start before opening a broadcast channel to communicate with the logger thread (Platform.isMainThread)', async () => {
+    Object.assign(Platform, { isMainThread: true });
+    await import('./logger.js');
+    expect(Platform.createBroadcastChannel).not.toHaveBeenCalled();
   });
 
   it('attaches a listener to the channel', async () => {
@@ -213,7 +220,6 @@ describe('general', () => {
 
 describe('Metrics automatic monitoring', () => {
   it('monitors thread metrics automatically', async () => {
-    Object.assign(Platform, { isMainThread: true });
     const { logger } = await import('./logger.js');
     vi.spyOn(logger, 'debug');
     vi.advanceTimersToNextTimer();
@@ -259,7 +265,6 @@ describe('open', () => {
 
 describe('close', () => {
   it('fails if not on the main thread', async () => {
-    Object.assign(Platform, { isMainThread: false });
     const { logger } = await import('./logger.js');
     const channel = Platform.createBroadcastChannel('logger');
     await expect(() => logger.stop()).rejects.toThrowError(AssertionError);
