@@ -13,45 +13,48 @@ export const execute = async (configuration: Configuration) => {
     console.log(packageJson.version);
   } else if (configuration.mode === Modes.help) {
     console.log('Please check https://arnaudbuchholz.github.io/ui5-test-runner/');
-  } else {
-    logger.start(configuration);
-    // Simple test
-    const browser = await BrowserFactory.build('puppeteer');
-    await browser.setup({});
-    const urls = [
-      'https://ui5.sap.com/test-resources/sap/m/demokit/cart/webapp/test/testsuite.qunit.html',
-      'https://ui5.sap.com/test-resources/sap/m/demokit/cart/webapp/test/Test.qunit.html?testsuite=test-resources/sap/ui/demo/cart/testsuite.qunit&test=unit/unitTests',
-      'https://ui5.sap.com/test-resources/sap/m/demokit/cart/webapp/test/Test.qunit.html?testsuite=test-resources%2Fsap%2Fui%2Fdemo%2Fcart%2Ftestsuite.qunit&test=integration%2FopaTestsComponent#/categories',
-      'https://ui5.sap.com/test-resources/sap/m/demokit/cart/webapp/test/Test.qunit.html?testsuite=test-resources/sap/ui/demo/cart/testsuite.qunit&test=integration/opaTestsIFrame'
-    ];
-    const pages = [];
-    for (const url of urls) {
-      const page = await browser.newWindow({
-        scripts: [inject],
-        url
-      });
-      pages.push(page);
-    }
-    const done = false;
-    while (!done) {
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-      for (const [index, url_] of urls.entries()) {
-        const page = pages[index]!;
-        const url = url_.split('/test/')[1];
-        try {
-          // Value must be serializable...
-          const value = await page.eval('window[\'ui5-test-runner\']');
-          console.log(url, value);
-        } catch {
-          console.log(url, 'error');
+  } else
+    try {
+      logger.start(configuration);
+      if (!configuration.url) {
+        logger.fatal({ source: 'job', message: 'Expected URLs to be set' });
+        throw new Error('stop');
+      }
+      // Simple test
+      const browser = await BrowserFactory.build('puppeteer');
+      await browser.setup({});
+      const urls = configuration.url;
+      const pages = [];
+      for (const url of urls) {
+        const page = await browser.newWindow({
+          scripts: [inject],
+          url
+        });
+        pages.push(page);
+      }
+      const done = false;
+      while (!done) {
+        await new Promise((resolve) => setTimeout(resolve, 1000));
+        for (const [index, url_] of urls.entries()) {
+          const page = pages[index]!;
+          const url = url_.split('/test/')[1];
+          try {
+            // Value must be serializable...
+            const value = await page.eval("window['ui5-test-runner']");
+            console.log(url, value);
+          } catch {
+            console.log(url, 'error');
+          }
         }
       }
+      for (const page of pages) {
+        await page.close();
+      }
+      await browser.shutdown();
+    } catch (error) {
+      logger.error({ source: 'job', message: 'An error occurred', error });
+    } finally {
+      await logger.stop();
+      console.log('🧢 done.');
     }
-    for (const page of pages) {
-      await page.close();
-    }
-    await browser.shutdown();
-    await logger.stop();
-    console.log('🧢 done.');
-  }
 };
