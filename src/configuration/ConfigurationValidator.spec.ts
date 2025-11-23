@@ -3,13 +3,14 @@ import { ConfigurationValidator } from './ConfigurationValidator.js';
 import { OptionValidationError } from './OptionValidationError.js';
 import { indexedOptions } from './indexedOptions.js';
 import { validators } from './validators/index.js';
-import type { OptionType } from './Option.js';
+import type { Option, OptionType } from './Option.js';
 import { defaults } from './options.js';
 import type { Configuration } from './Configuration.js';
 import { Modes } from './Modes.js';
+import type { OptionValidator } from './validators/OptionValidator.js';
 
 for (const key of Object.keys(validators)) {
-  validators[key as OptionType] = vi.fn((option, value) => value);
+  validators[key as OptionType] = vi.fn((option: Option, value: unknown) => value) as OptionValidator<OptionType>;
 }
 
 describe('defaults', () => {
@@ -95,7 +96,7 @@ describe('validation', () => {
 });
 
 describe('mode', () => {
-  const config = (options: Partial<Configuration>): Configuration => Object.assign(Object.create(defaults), options);
+  const config = (options: Partial<Configuration>) => Object.assign(Object.create(defaults), options) as Configuration;
 
   it('sets to remote when url is used', () => {
     expect(ConfigurationValidator.computeMode(config({ url: ['http://localhost:8080 '] }))).toBe(Modes.remote);

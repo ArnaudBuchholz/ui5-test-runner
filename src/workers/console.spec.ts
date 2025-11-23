@@ -3,7 +3,7 @@ import { Platform } from '../Platform.js';
 
 const spyOnLog = vi.spyOn(console, 'log').mockImplementation(() => {}); // No output
 
-vi.mock('../Platform.js', async () => {
+vi.mock('../Platform.js', () => {
   const channel = {
     postMessage: vi.fn(),
     onmessage: undefined as ((data: unknown) => void) | undefined,
@@ -16,7 +16,7 @@ vi.mock('../Platform.js', async () => {
 });
 
 const postMessage = (channel: ReturnType<typeof Platform.createBroadcastChannel>, data: unknown) =>
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-argument
   channel.onmessage({ data } as any);
 
 it('closes the broadcast channel when the terminate signal is received', async () => {

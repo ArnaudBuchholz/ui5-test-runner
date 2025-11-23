@@ -9,7 +9,7 @@ const CWD = '/usr/test';
 
 const validateConfiguration = vi
   .spyOn(ConfigurationValidator, 'validate')
-  .mockImplementation(async (configuration) => configuration as Configuration);
+  .mockImplementation((configuration) => Promise.resolve(configuration as Configuration));
 
 beforeEach(() => {
   validateConfiguration.mockClear();
@@ -155,8 +155,8 @@ for (const { label, args, expected } of testCases) {
           expect(error.errors.length).toStrictEqual(expected.errors.length);
           for (let index = 0; index < expected.errors.length; ++index) {
             const { message, option } = expected.errors[index]!;
-            const errorItem = error.errors[index];
-            expect(errorItem).toBeInstanceOf(OptionValidationError);
+            const errorItem = error.errors[index] as Error;
+            expect.assert(errorItem instanceof OptionValidationError);
             expect(errorItem.message).toStrictEqual(message);
             expect(errorItem.option.name).toStrictEqual(option);
           }

@@ -34,10 +34,10 @@ vi.mock('../Platform.js', async (importActual) => {
 });
 
 const channel = Platform.createBroadcastChannel('logger');
-// eslint-disable-next-line @typescript-eslint/no-explicit-any -- Simpler this way
+// eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-argument -- Simpler this way
 const postMessage = (data: unknown) => channel.onmessage({ data } as any);
 
-it('opens a broadcast channel to communicate with the logger instances', async () => {
+it('opens a broadcast channel to communicate with the logger instances', () => {
   expect(Platform.createBroadcastChannel).toBeCalledTimes(3);
   for (let n = 1; n <= 3; ++n) {
     expect(Platform.createBroadcastChannel).toHaveBeenNthCalledWith(n, 'logger');
@@ -112,7 +112,7 @@ it('compress the traces before zipping (data)', () => {
   vi.advanceTimersToNextTimer(); // flush buffer
   expect(gzipStream.write).toHaveBeenCalled();
   const stringified = (vi.mocked(gzipStream.write).mock.calls[0] as [string, unknown])[0];
-  const parsed = JSON.parse(stringified);
+  const parsed = JSON.parse(stringified) as [string, object];
   expect(parsed).toStrictEqual([expect.any(String), { hello: 'world' }]);
 });
 
