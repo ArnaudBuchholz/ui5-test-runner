@@ -1,4 +1,4 @@
-# UI5 Test runner
+# UI5 Test runner 6️⃣
 
 [![Node.js CI](https://github.com/ArnaudBuchholz/ui5-test-runner/actions/workflows/node.js.yml/badge.svg)](https://github.com/ArnaudBuchholz/ui5-test-runner/actions/workflows/node.js.yml)
 [![Package Quality](https://npm.packagequality.com/shield/ui5-test-runner.svg)](https://packagequality.com/#?package=ui5-test-runner)
@@ -19,7 +19,7 @@ A self-sufficient test runner for UI5 applications enabling parallel execution o
 
 ## 💿 How to install
 
-* Works with [Node.js](https://nodejs.org/en/download/) >= 18
+* Works with [Node.js](https://nodejs.org/en/download/) >= 24
 * Local installation
   * `npm install --save-dev ui5-test-runner`
   * Trigger either with `npx ui5-test-runner` or through an npm script invoking `ui5-test-runner`
@@ -36,6 +36,7 @@ A self-sufficient test runner for UI5 applications enabling parallel execution o
 
 | Version | Reason | 
 |-|-|
+| **6**.0.0 | • Drop support of Node.js < 24 |
 | **5**.0.0 | • Some coverage reports now includes **all** files, leading to a potential decrease of coverage |
 | **4**.0.0 | • Drop support of Node.js 16 |
 | **3**.0.0 | • Drop support of Node.js 14 |

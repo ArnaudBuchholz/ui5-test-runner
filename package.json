@@ -11,7 +11,7 @@
     "provenance": true
   },  
   "engines": {
-    "node": ">=22.21"
+    "node": ">=24.11.1"
   },
   "scripts": {
     "cli": "tsx src/cli.ts",
