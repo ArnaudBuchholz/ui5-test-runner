@@ -77,7 +77,13 @@ async function start (job) {
     // eslint-disable-next-line no-unmodified-loop-condition
     while (!startProcessExited && Date.now() - begin <= job.startTimeout) {
       output.debug('start', `Getting start command ${startProcess.pid} child processes...`)
-      const childProcesses = await pidtree(startProcess.pid, { advanced: true })
+      let childProcesses
+      try {
+        childProcesses = await pidtree(startProcess.pid, { advanced: true })
+      } catch (e) {
+        output.genericError(e)
+        break
+      }
       output.debug('start', 'Child processes', JSON.stringify(childProcesses))
       if (childProcesses.length === 0) {
         try {
@@ -121,6 +127,7 @@ async function start (job) {
     }
     if (!startProcessExited) {
       output.failedToTerminateStartCommand()
+      startProcess.kill()
     }
   }
 

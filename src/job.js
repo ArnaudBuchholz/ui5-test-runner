@@ -20,7 +20,8 @@ function buildArgs (parameters) {
   const after = []
   let browser = []
   Object.keys(parameters).forEach(name => {
-    if (name === '--') {
+    if (name === '--' || name === 'browserArgs') {
+      browser = parameters[name]
       return
     }
     const value = parameters[name]
@@ -41,9 +42,6 @@ function buildArgs (parameters) {
       }
     }
   })
-  if (parameters['--']) {
-    browser = parameters['--']
-  }
   const stringify = args => args.map(value => value.toString())
   return {
     before: stringify(before),

@@ -9,7 +9,8 @@
   ],
   "collectCoverage": true,
   "collectCoverageFrom": [
-    "src/*.js"
+    "src/*.js",
+    "src/defaults/junit-xml-report.js"
   ],
   "coveragePathIgnorePatterns": [
     "\\.spec\\.js",

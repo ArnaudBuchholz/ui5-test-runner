@@ -49,3 +49,4 @@ A self-sufficient test runner for UI5 applications enabling parallel execution o
 * [Marian Zeis](https://github.com/marianfoo): Documentation page revamp [PR #54](https://github.com/ArnaudBuchholz/ui5-test-runner/pull/54)
 * [Raj Singh](https://github.com/rajxsingh): Basic HTTP Authentication in Puppeteer [PR #71](https://github.com/ArnaudBuchholz/ui5-test-runner/pull/71)
 * [Andreas Kunz](https://github.com/akudev): Improved documentation for TypeScript testing and reviewed `nyc` settings handling [PR #110](https://github.com/ArnaudBuchholz/ui5-test-runner/pull/110)
+* [Juri Zeisler](https://github.com/juriz889): Added screenshots to the JUnit XML Report [PR #158](https://github.com/ArnaudBuchholz/ui5-test-runner/pull/158)

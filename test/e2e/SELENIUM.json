@@ -4,5 +4,5 @@
   "capabilities": null,
   "debugKeepReport": null,
   "browser": "$/selenium-webdriver.js",
-  "browserArgs": ["--browser", "chrome"]
+  "browserArgs": ["--browser", "chrome", "--unsecure"]
 }

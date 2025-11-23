@@ -30,7 +30,8 @@ require('./browser')({
       ['browser', 'chrome', 'firefox', 'edge'],
       'visible',
       ['-s, --server <server>', 'Selenium server URL', url],
-      'binary'
+      'binary',
+      'unsecure'
     ]
   },
 

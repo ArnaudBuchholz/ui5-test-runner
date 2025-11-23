@@ -25,6 +25,7 @@ describe('src/start', () => {
   const VALID_URL = 'http://localhost/valid'
   const INVALID_URL = 'http://localhost/invalid'
   let startExecuted = false
+  let childProcessInstance
 
   beforeEach(() => {
     process.kill.mockClear()
@@ -41,7 +42,10 @@ describe('src/start', () => {
     mockChildProcess({
       api: 'exec',
       scriptPath: 'start',
-      exec: () => { startExecuted = true },
+      exec: (childProcess) => {
+        childProcessInstance = childProcess
+        startExecuted = true
+      },
       close: false
     })
     let firstFetch
@@ -137,5 +141,14 @@ describe('src/start', () => {
     expect(process.kill).toHaveBeenCalledWith(1, 'SIGKILL')
     expect(process.kill).toHaveBeenCalledWith(2, 'SIGKILL')
     expect(process.kill).toHaveBeenNthCalledWith(4, 0, 'SIGKILL')
+  })
+
+  it('uses simple kill on the child process otherwise', async () => {
+    pidtree.mockImplementation(() => { throw new Error('pidtree failure') })
+    const started = await start(job)
+    job.startTimeout = 1000
+    await started.stop()
+    expect(process.kill).not.toHaveBeenCalled()
+    expect(childProcessInstance.killed).toStrictEqual(true) // killed directly
   })
 })

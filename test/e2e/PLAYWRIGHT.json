@@ -3,5 +3,6 @@
   "batchLabel": "Playwright browser",
   "capabilities": null,
   "debugKeepReport": null,
-  "browser": "$/playwright.js"
+  "browser": "$/playwright.js",
+  "browserArgs": ["--unsecure"]
 }

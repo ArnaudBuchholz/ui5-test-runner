@@ -7,17 +7,15 @@ const { filename, allocPromise } = require('./tools')
 const { fork } = require('child_process')
 const { getOutput } = require('./output')
 
-async function serialize (job, filename, json) {
-  await writeFile(join(job.reportDir, `${filename}.js`), `module.exports = ${JSON.stringify(json, (key, value) => {
+async function save (job) {
+  // Ensure the file is treated as CommonJS
+  await writeFile(join(job.reportDir, 'package.json'), '{"type": "commonjs"}')
+  await writeFile(join(job.reportDir, 'job.js'), `module.exports = ${JSON.stringify(job, (key, value) => {
     if (value && value instanceof RegExp) {
       return value.toString()
     }
     return value
   }, 2)}`)
-}
-
-async function save (job) {
-  await serialize(job, 'job', job)
 }
 
 function generateTextReport (job) {

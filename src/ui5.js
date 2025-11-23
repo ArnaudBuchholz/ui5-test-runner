@@ -18,7 +18,7 @@ const buildCacheBase = job => {
 
 const ui5mappings = job => {
   const cacheBase = buildCacheBase(job)
-  const match = /\/((?:test-)?resources\/.*)/
+  const match = /\/((?:test-)?resources\/.*)/ // Captured value never starts with /
   const ifCacheEnabled = (request, url, match) => job.cache
   const uncachable = {}
   const cachingInProgress = {}
@@ -80,7 +80,7 @@ const ui5mappings = job => {
     // UI5 from url
     method: ['GET', 'HEAD'],
     match,
-    url: `${job.ui5}/$1`,
+    url: new URL('$1', job.ui5).toString(),
     'ignore-unverifiable-certificate': true
   }]
 

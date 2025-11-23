@@ -4,6 +4,7 @@ on:
   workflow_dispatch:
 
 permissions:
+  actions: read
   contents: write
   issues: write
   pull-requests: write
@@ -20,10 +21,10 @@ jobs:
         with:
           node-version: 22
           registry-url: https://registry.npmjs.org/
+      - name: Update npm
+        run: npm install -g npm@latest
+      - run: npm install
       - name: Semantic release
-        run: |
-          echo '//registry.npmjs.org/:_authToken=${{ secrets.NPM_TOKEN  }}' > ${{ github.workspace }}/.npmrc
-          npx --y semantic-release@latest
+        run: npm run semantic-release
         env:
-          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

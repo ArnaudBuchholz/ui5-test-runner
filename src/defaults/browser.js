@@ -158,9 +158,11 @@ module.exports = ({
         '--disable-gpu',
         '--disable-extensions',
         '--log-level=3',
-        `--window-size=${options.viewportWidth},${options.viewportHeight}`,
-        `--lang=${options.language.join(',')}`
+        `--window-size=${options.viewportWidth},${options.viewportHeight}`
       ]
+      if (options.language) {
+        args.push(`--lang=${options.language.join(',')}`)
+      }
       if (!options.visible) {
         args.push('--headless=new')
       }

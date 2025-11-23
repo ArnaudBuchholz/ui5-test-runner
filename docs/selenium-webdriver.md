@@ -26,6 +26,7 @@ Supported browsers :
   --visible [flag]       Show the browser (default: false)
   -s, --server <server>  Selenium server URL
   --binary <binary>      Binary path
+  -u, --unsecure         Disable security features (default: false)
 ```
 
 ## Implementation notes

@@ -469,7 +469,7 @@ function build (job) {
     },
 
     failedToTerminateStartCommand () {
-      wrap(() => log(job, '⚠️ [STRTCT] Failed to terminate start command. This may cause issues with the shutdown'))()
+      wrap(() => log(job, '⚠️ [STRTCT] Failed to query and terminate all start command child processes, some may leak'))()
     },
 
     browserStart (url) {

@@ -6,6 +6,10 @@
   "bin": {
     "ui5-test-runner": "./index.js"
   },
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
+  },  
   "engines": {
     "node": ">=22.21"
   },
@@ -31,7 +35,8 @@
     "test:text-report": "node ./src/defaults/text-report.js ./test/report",
     "build:doc": "node build/doc",
     "clean": "npm uninstall -g ui5-test-runner puppeteer nyc selenium-webdriver playwright webdriverio jsdom",
-    "update": "ncu -i --format group"
+    "update": "ncu -i --format group",
+    "semantic-release": "semantic-release"
   },
   "repository": {
     "type": "git",

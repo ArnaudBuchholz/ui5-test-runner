@@ -76,8 +76,15 @@ require('./browser')({
     networkWriter
   }) {
     const browsers = require(modules.playwright)
+    const args = []
+
+    if (options.browser === 'chromium' && options.unsecure) {
+      args.push('--disable-web-security')
+    }
+
     browser = await browsers[options.browser].launch({
-      headless: !options.visible
+      headless: !options.visible,
+      args
     })
 
     let recordVideo
