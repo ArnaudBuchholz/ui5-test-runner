@@ -23,7 +23,7 @@ export default [
   ...tseslint.config(eslint.configs.recommended, tseslint.configs.recommended, importPlugin.flatConfigs.recommended),
   ...tseslint.configs.recommendedTypeCheckedOnly.map((config) => ({
     ...config,
-    ignores: ['**/*.spec.ts', '**/*.[cm]js', '**/*.js'],
+    ignores: ['**/*.[cm]js', '**/*.js'],
     languageOptions: {
       parserOptions: {
         projectService: true,

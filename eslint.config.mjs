@@ -46,5 +46,12 @@ export default [
     rules: {
       'unicorn/prefer-top-level-await': 'off'
     }
+  },
+  // unbound methods in spec files are common due to mocking
+  {
+    files: ['**/*.spec.ts'],
+    rules: {
+      '@typescript-eslint/unbound-method': 'off'
+    }
   }
 ];
