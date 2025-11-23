@@ -26,6 +26,8 @@ node_modules/
 
 .env
 
+dist/
+
 # generated during tests
 tmp/
 e2e/
@@ -39,3 +41,12 @@ test/report/report.html
 
 # IDE
 .vscode/
+
+#eslint cache
+.eslintcache
+
+# log files
+*.log.gz
+
+# tsx files
+undefined/*

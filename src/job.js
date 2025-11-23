@@ -102,11 +102,16 @@ function getCommand (cwd) {
     .option('-l, --log-server [flag]', '[💻🔗🧪📡] Log inner server traces', boolean, false)
     .option('-p, --parallel <count>', '[💻🔗🧪] Number of parallel tests executions', integer, 2)
     .option('-b, --browser <command>', '[💻🔗🧪📡] Browser instantiation command (relative to cwd or use $/ for provided ones)', '$/puppeteer.js')
+
+    // TO BE REPLACED WITH SPECIFIC ARGUMENTS (less frequently used)
     .option('--browser-args <argument...>', '[💻🔗🧪📡] Browser instantiation command parameters (use -- instead)')
+
     .option('--alternate-npm-path <path>', '[💻🔗📡] Alternate NPM path to look for packages (priority: local, alternate, global)')
     .option('--no-npm-install', '[💻🔗🧪📡] Prevent any NPM install (execution may fail if a dependency is missing)')
     .option('-bt, --browser-close-timeout <timeout>', '[💻🔗🧪📡] Maximum waiting time for browser close', timeout, 2000)
     .option('-br, --browser-retry <count>', '[💻🔗🧪📡] Browser instantiation retries : if the command fails unexpectedly, it is re-executed (0 means no retry)', 1)
+
+    // TODO
     .option('-oi, --output-interval <interval>', '[💻🔗🧪📡] Interval for reporting progress on non interactive output (CI/CD) (0 means no output)', timeout, 30000)
     .option('--offline [flag]', '[💻🔗🧪📡] Limit network usage (implies --no-npm-install)', boolean, false)
     .option('--env <name=value...>', '[💻🔗🧪📡] Set environment variable', arrayOf(string))
