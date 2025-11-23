@@ -229,3 +229,36 @@ it('collects the errors', async () => {
     )
   );
 });
+
+it('offers an helper to stop all processing', async () => {
+  const reason = new Error('STOP');
+  const result = await parallelize(
+    function (value) {
+      if (value === 'd') {
+        this.stop(reason);
+      }
+      return value;
+    },
+    list,
+    4
+  );
+  expect(result.length).toStrictEqual(4);
+  expect(result).toStrictEqual([
+    {
+      status: 'fulfilled',
+      value: 'a',
+    },
+    {
+      status: 'fulfilled',
+      value: 'b',
+    },
+    {
+      status: 'fulfilled',
+      value: 'c',
+    },
+    {
+      status: 'rejected',
+      reason
+    },
+  ]);
+});
