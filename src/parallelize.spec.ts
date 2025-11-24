@@ -141,10 +141,10 @@ it('augments parallelism (if needed) when the list is growing', async () => {
     async (value) => {
       ++active;
       maxActive = Math.max(maxActive, active);
+      await new Promise((resolve) => setTimeout(resolve, 10));
       if (value === 'a') {
         partial.push('b', 'c');
       }
-      await new Promise((resolve) => setTimeout(resolve, 10));
       --active;
       return value;
     },
