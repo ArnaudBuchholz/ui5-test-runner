@@ -14,25 +14,25 @@ const INVALID_STAT_PATH = VALID_ROOT + 'invalid-stat';
 const invalidStat = new Error('Invalid stat');
 const FILE_PATH = VALID_ROOT + 'file';
 
-vi.spyOn(Platform, 'access').mockImplementation(async (path) => {
+vi.spyOn(Platform, 'access').mockImplementation((path) => {
   if (path === VALID_PATH || path === INVALID_STAT_PATH || path === FILE_PATH) {
-    return;
+    return Promise.resolve();
   }
-  throw invalidAccess;
+  return Promise.reject(invalidAccess);
 });
 
-vi.spyOn(Platform, 'stat').mockImplementation(async (path) => {
+vi.spyOn(Platform, 'stat').mockImplementation((path) => {
   if (path === VALID_PATH) {
-    return {
+    return Promise.resolve({
       isDirectory: () => true
-    } as Awaited<ReturnType<typeof Platform.stat>>;
+    } as Awaited<ReturnType<typeof Platform.stat>>);
   }
   if (path === FILE_PATH) {
-    return {
+    return Promise.resolve({
       isDirectory: () => false
-    } as Awaited<ReturnType<typeof Platform.stat>>;
+    } as Awaited<ReturnType<typeof Platform.stat>>);
   }
-  throw invalidStat;
+  return Promise.reject(invalidStat);
 });
 
 const OPTION = {

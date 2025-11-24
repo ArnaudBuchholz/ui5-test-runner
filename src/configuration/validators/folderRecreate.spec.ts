@@ -20,32 +20,32 @@ const INVALID_STAT_PATH = VALID_ROOT + 'invalid-stat';
 const invalidStat = new Error('Invalid stat');
 const FILE_PATH = VALID_ROOT + 'file';
 
-vi.spyOn(Platform, 'access').mockImplementation(async (path, mode) => {
+vi.spyOn(Platform, 'access').mockImplementation((path, mode) => {
   expect(mode).toStrictEqual(Platform.fsConstants.R_OK | Platform.fsConstants.W_OK);
   if (path === VALID_PATH || path === INVALID_STAT_PATH || path === FILE_PATH) {
-    return;
+    return Promise.resolve();
   }
   if (path === READ_ONLY_PATH) {
-    throw readOnlyAccessError;
+    return Promise.reject(readOnlyAccessError);
   }
   if (path === NOT_EXISTING_PATH) {
-    throw notExistAccessError;
+    return Promise.reject(notExistAccessError);
   }
-  throw invalidAccess;
+  return Promise.reject(invalidAccess);
 });
 
-vi.spyOn(Platform, 'stat').mockImplementation(async (path) => {
+vi.spyOn(Platform, 'stat').mockImplementation((path) => {
   if (path === VALID_PATH) {
-    return {
+    return Promise.resolve({
       isDirectory: () => true
-    } as Awaited<ReturnType<typeof Platform.stat>>;
+    } as Awaited<ReturnType<typeof Platform.stat>>);
   }
   if (path === FILE_PATH) {
-    return {
+    return Promise.resolve({
       isDirectory: () => false
-    } as Awaited<ReturnType<typeof Platform.stat>>;
+    } as Awaited<ReturnType<typeof Platform.stat>>);
   }
-  throw invalidStat;
+  return Promise.reject(invalidStat);
 });
 
 const OPTION = {
