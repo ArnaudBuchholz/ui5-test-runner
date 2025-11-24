@@ -35,6 +35,8 @@
         //   post('addTestPages', { type: 'none' })
       } else {
         ui5TestRunner.type = 'QUnit';
+        // detect if OPA
+        
       }
     });
 

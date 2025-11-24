@@ -23,7 +23,7 @@ export default [
   },
   // These modules are designed to be used in a browser
   {
-    files: ['src/inject/**.ts'],
+    files: ['src/agent/**.ts'],
     languageOptions: {
       globals: {
         ...globals.browser
