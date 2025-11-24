@@ -8,7 +8,7 @@ import { Platform } from './Platform.js';
 export const execute = async (configuration: Configuration) => {
   if (configuration.mode === Modes.version) {
     const packageFile = await Platform.readFile('package.json', 'utf8');
-    const packageJson = JSON.parse(packageFile);
+    const packageJson = JSON.parse(packageFile) as { version: string };
     console.log(packageJson.version);
   } else if (configuration.mode === Modes.help) {
     console.log('Please check https://arnaudbuchholz.github.io/ui5-test-runner/');
