@@ -246,19 +246,19 @@ it('offers an helper to stop all processing', async () => {
   expect(result).toStrictEqual([
     {
       status: 'fulfilled',
-      value: 'a',
+      value: 'a'
     },
     {
       status: 'fulfilled',
-      value: 'b',
+      value: 'b'
     },
     {
       status: 'fulfilled',
-      value: 'c',
+      value: 'c'
     },
     {
       status: 'rejected',
       reason
-    },
+    }
   ]);
 });

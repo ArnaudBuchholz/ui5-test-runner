@@ -3,7 +3,9 @@ import { Platform } from './Platform.js';
 import { AssertionError } from 'node:assert';
 import type { Configuration } from './configuration/Configuration.js';
 
-vi.mock('./Platform.js', async () => {
+const expectAnyString = expect.any(String) as string;
+
+vi.mock('./Platform.js', () => {
   const channel = {
     postMessage: vi.fn(),
     onmessage: undefined as ((data: unknown) => void) | undefined,
@@ -26,7 +28,7 @@ vi.mock('./Platform.js', async () => {
   return { Platform };
 });
 
-beforeEach(async () => {
+beforeEach(() => {
   Object.assign(Platform, { isMainThread: false });
   vi.resetAllMocks();
   vi.resetModules();
@@ -34,7 +36,7 @@ beforeEach(async () => {
 });
 
 const postMessage = (channel: ReturnType<typeof Platform.createBroadcastChannel>, data: unknown) =>
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-argument
   channel.onmessage({ data } as any);
 
 describe('general', () => {
@@ -114,7 +116,7 @@ describe('general', () => {
           error: {
             name: 'Error',
             message: 'error',
-            stack: expect.any(String)
+            stack: expectAnyString
           }
         })
       );
@@ -134,11 +136,11 @@ describe('general', () => {
           error: {
             name: 'Error',
             message: 'error',
-            stack: expect.any(String),
+            stack: expectAnyString,
             cause: {
               name: 'Error',
               message: 'cause',
-              stack: expect.any(String)
+              stack: expectAnyString
             }
           }
         })
@@ -158,17 +160,17 @@ describe('general', () => {
           error: {
             name: 'AggregateError',
             message: 'aggregate error',
-            stack: expect.any(String),
+            stack: expectAnyString,
             errors: [
               {
                 name: 'Error',
                 message: 'error1',
-                stack: expect.any(String)
+                stack: expectAnyString
               },
               {
                 name: 'Error',
                 message: 'error2',
-                stack: expect.any(String)
+                stack: expectAnyString
               }
             ]
           }
@@ -188,7 +190,7 @@ describe('general', () => {
           error: {
             name: 'Error',
             message: '"string"',
-            stack: expect.any(String)
+            stack: expectAnyString
           }
         })
       );
