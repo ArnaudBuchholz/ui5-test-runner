@@ -10,20 +10,38 @@ type ErrorAttributes = {
   errors?: ErrorAttributes[];
 };
 
-export const LogSource = {
+const GenericLogSource = {
   metric: 'metric',
   logger: 'logger',
   npm: 'npm',
-  puppeteer: 'puppeteer'
-};
+  puppeteer: 'puppeteer',
+  job: 'job'
+} as const;
+type GenericLogSource = (typeof GenericLogSource)[keyof typeof GenericLogSource];
+
+export const LogSource = {
+  ...GenericLogSource,
+  progress: 'progress'
+} as const;
 export type LogSource = (typeof LogSource)[keyof typeof LogSource];
 
 export type LogAttributes = {
-  source: LogSource;
   message: string;
   error?: unknown;
-  data?: object;
-};
+} & (
+  | {
+      source: GenericLogSource;
+      data?: object;
+    }
+  | {
+      source: 'progress';
+      data: {
+        uid: string;
+        value: number;
+        max: number;
+      };
+    }
+);
 
 export const LogLevel = {
   debug: 'debug',
