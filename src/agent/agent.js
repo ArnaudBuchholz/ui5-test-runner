@@ -17,6 +17,26 @@
 
     window.jsUnitTestSuite = jsUnitTestSuite
 
+    const isOpa = () => {
+      try {
+        return !!window.sap.ui.test.Opa5;
+      } catch (e) {
+        return false;
+      }
+    };
+
+    const updateQUnitProgress = () => {
+      let count = 0;
+      let done = 0;
+      for (const module of QUnit.config.modules) {
+        const { passed, failed, skipped, todo, total } = module.suiteReport.getTestCounts();
+        count += total - skipped - todo;
+        done += module.testsRun;
+      }
+      ui5TestRunner.count = count;
+      ui5TestRunner.done = done;
+    };
+
     const ui5TestRunner = {
       status: 'pending'
     };
@@ -35,14 +55,23 @@
         //   post('addTestPages', { type: 'none' })
       } else {
         ui5TestRunner.type = 'QUnit';
-        // detect if OPA
-        
+        ui5TestRunner.opa = isOpa();
+
+        QUnit.testStart(() => {
+          updateQUnitProgress();
+        });
+
+        QUnit.testDone(() => {
+          updateQUnitProgress();
+          
+        });
+
+        QUnit.done(() => {
+          updateQUnitProgress();
+          ui5TestRunner.status = 'done';
+        });
       }
     });
-
-    setInterval(() => {
-      ui5TestRunner.ts = Date.now();
-    }, 250);
   }
 
 }());
