@@ -1,4 +1,4 @@
-export type Status = {
+export type AgentFeedback = {
   status: 'pending' | 'done';
 } & (
   | {
