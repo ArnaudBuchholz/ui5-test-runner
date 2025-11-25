@@ -55,7 +55,10 @@
         //   post('addTestPages', { type: 'none' })
       } else {
         ui5TestRunner.type = 'QUnit';
-        ui5TestRunner.opa = isOpa();
+
+        QUnit.begin(() => {
+          ui5TestRunner.opa = isOpa();
+        });
 
         QUnit.testStart(() => {
           updateQUnitProgress();
@@ -63,7 +66,6 @@
 
         QUnit.testDone(() => {
           updateQUnitProgress();
-          
         });
 
         QUnit.done(() => {
