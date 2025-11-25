@@ -1,3 +1,4 @@
+import { AgentFeedback } from './agent/Feedback.js';
 import { BrowserFactory } from './browsers/factory.js';
 import type { Configuration } from './configuration/Configuration.js';
 import { Modes } from './configuration/Modes.js';
@@ -34,11 +35,7 @@ export const execute = async (configuration: Configuration) => {
           while (inProgress) {
             try {
               // Value must be serializable...
-              const value = (await page.eval("window['ui5-test-runner']")) as {
-                status: 'pending' | 'done';
-                type: 'suite' | 'unknown' | 'QUnit';
-                pages: string[];
-              };
+              const value = (await page.eval("window['ui5-test-runner']")) as AgentFeedback;
               console.log(label, value);
               if (value.status === 'done') {
                 inProgress = false;
