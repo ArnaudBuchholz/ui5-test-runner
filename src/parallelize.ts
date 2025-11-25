@@ -18,9 +18,15 @@ export const parallelize = async <INPUT, OUTPUT = INPUT>(
       throw reason;
     }
   };
+  let active = 0;
+  let { promise, resolve } = Promise.withResolvers<Array<PromiseSettledResult<OUTPUT>>>();
   const fiber = async (): Promise<void> => {
+    ++active;
     while (!stopped && index < queue.length) {
       const current = index++;
+      if (active < parallel && index < queue.length) {
+        void fiber();
+      }
       try {
         const input = queue[current];
         assert(input !== undefined);
@@ -35,7 +41,10 @@ export const parallelize = async <INPUT, OUTPUT = INPUT>(
         };
       }
     }
+    if (--active === 0) {
+      resolve(results);
+    }
   };
-  await Promise.all(Array.from({ length: parallel }, fiber));
-  return results;
+  void fiber();
+  return promise;
 };
