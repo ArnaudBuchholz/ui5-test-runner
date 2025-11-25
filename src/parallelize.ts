@@ -19,7 +19,7 @@ export const parallelize = async <INPUT, OUTPUT = INPUT>(
     }
   };
   let active = 0;
-  let { promise, resolve } = Promise.withResolvers<Array<PromiseSettledResult<OUTPUT>>>();
+  const { promise, resolve } = Promise.withResolvers<Array<PromiseSettledResult<OUTPUT>>>();
   const fiber = async (): Promise<void> => {
     ++active;
     while (!stopped && index < queue.length) {

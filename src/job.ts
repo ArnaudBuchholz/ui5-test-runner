@@ -1,4 +1,4 @@
-import { AgentFeedback } from './agent/Feedback.js';
+import type { AgentFeedback } from './agent/Feedback.js';
 import { BrowserFactory } from './browsers/factory.js';
 import type { Configuration } from './configuration/Configuration.js';
 import { Modes } from './configuration/Modes.js';
