@@ -1,5 +1,5 @@
-import { access, stat, constants, readFile } from 'node:fs/promises';
-import { createWriteStream } from 'node:fs';
+import { access, stat, constants, readFile, mkdir } from 'node:fs/promises';
+import { createWriteStream, writeFileSync } from 'node:fs';
 import { join, isAbsolute } from 'node:path';
 import { BroadcastChannel, Worker, isMainThread, threadId, workerData } from 'node:worker_threads';
 import zlib from 'node:zlib';
@@ -27,7 +27,10 @@ class Process {
     return this._closed;
   }
 
-  constructor(private _childProcess: ChildProcess) {
+  private _childProcess: ChildProcess;
+
+  constructor(childProcess: ChildProcess) {
+    this._childProcess = childProcess;
     const { promise, resolve } = Promise.withResolvers<void>();
     this._closed = promise;
     this._childProcess.stdout?.on('data', (data: string) => {
@@ -59,6 +62,11 @@ export class Platform {
     return false;
   }
 
+  static readonly isTextTerminal = process.stdout.columns !== undefined && process.stdout.isTTY;
+  static writeOnTerminal (text: string) {
+    process.stdout.write(text);
+  }
+
   static readonly pid = process.pid;
   static readonly cwd = process.cwd.bind(process);
   static readonly threadCpuUsage = process.threadCpuUsage.bind(process);
@@ -69,6 +77,8 @@ export class Platform {
   static readonly access = access;
   static readonly createWriteStream = createWriteStream;
   static readonly readFile = readFile;
+  static readonly writeFileSync = writeFileSync;
+  static readonly mkdir = mkdir;
 
   static readonly isAbsolute = isAbsolute;
   static readonly join = (...arguments_: string[]) => join(...arguments_).replaceAll('\\', '/');
