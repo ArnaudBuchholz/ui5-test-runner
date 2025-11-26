@@ -35,15 +35,18 @@ export const execute = async (configuration: Configuration) => {
           while (inProgress) {
             try {
               // Value must be serializable...
-              const value = (await page.eval("window['ui5-test-runner']")) as AgentFeedback;
-              console.log(label, value);
-              if (value.status === 'done') {
+              const feedback = (await page.eval("window['ui5-test-runner']")) as AgentFeedback;
+              if (feedback.status === 'done') {
                 inProgress = false;
-                if (value.type === 'suite') {
-                  for (const page of value.pages) {
+                if (feedback.type === 'suite') {
+                  for (const page of feedback.pages) {
                     const pageUrl = new URL(page, url).toString();
                     urls.push(pageUrl);
                   }
+                }
+              } else if (feedback.type === 'QUnit') {
+                if (feedback.total > 0) {
+                  logger.info({ source: 'progress', message: url, data: { max: feedback.total, value: feedback.executed, uid: url }});
                 }
               }
             } catch {
