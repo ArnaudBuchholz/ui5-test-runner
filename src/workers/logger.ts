@@ -1,5 +1,4 @@
 import { Platform } from '../Platform.js';
-import { assert } from '../assert.js';
 import type { InternalLogAttributes, LogAttributes } from '../logger.js';
 import type { Configuration } from '../configuration/Configuration.js';
 
@@ -8,15 +7,8 @@ const FLUSH_INTERVAL_MS = 200;
 
 const LOG_FILE_NAME = `app-${new Date().toISOString().slice(0, 19).replaceAll(/[-:]/g, '').replace('T', '-')}.log`;
 
-const assertIfValidWorkerData: (value: object) => asserts value is { configuration: Configuration } = (value) => {
-  assert('configuration' in value);
-  assert(typeof value.configuration === 'object' && value.configuration !== null);
-  assert('cwd' in value.configuration);
-  assert(typeof value.configuration.cwd === 'string');
-};
-assertIfValidWorkerData(Platform.workerData);
+const { cwd } = (Platform.workerData as { configuration: Configuration }).configuration;
 
-const { cwd } = Platform.workerData.configuration;
 const fileStream = Platform.createWriteStream(Platform.join(cwd, LOG_FILE_NAME + '.gz'));
 const gzipStream = Platform.createGzip({ flush: Platform.Z_FULL_FLUSH });
 gzipStream.pipe(fileStream);
