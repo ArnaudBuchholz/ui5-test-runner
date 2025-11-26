@@ -10,7 +10,7 @@ export const factory = async (): Promise<IBrowser> => {
 
   return {
     async setup(settings) {
-      logger.info({ source: 'puppeteer', message: 'setup', data: settings });
+      logger.debug({ source: 'puppeteer', message: 'setup', data: settings });
       browser = await launch({
         headless: false,
         defaultViewport: null
@@ -21,7 +21,7 @@ export const factory = async (): Promise<IBrowser> => {
     },
 
     async newWindow(settings) {
-      logger.info({ source: 'puppeteer', message: 'newWindow', data: settings });
+      logger.debug({ source: 'puppeteer', message: 'newWindow', data: settings });
       const page = await browser?.newPage();
       for (const script of settings.scripts) {
         await page?.evaluateOnNewDocument(script);
