@@ -26,15 +26,15 @@
     };
 
     const updateQUnitProgress = () => {
-      let count = 0;
-      let done = 0;
+      let aggregatedTotal = 0;
+      let aggregatedExecuted = 0;
       for (const module of QUnit.config.modules) {
         const { passed, failed, skipped, todo, total } = module.suiteReport.getTestCounts();
-        count += total - skipped - todo;
-        done += module.testsRun;
+        aggregatedTotal += total - skipped - todo;
+        aggregatedExecuted += module.testsRun;
       }
-      ui5TestRunner.count = count;
-      ui5TestRunner.done = done;
+      ui5TestRunner.total = aggregatedTotal;
+      ui5TestRunner.executed = aggregatedExecuted;
     };
 
     const ui5TestRunner = {

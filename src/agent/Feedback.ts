@@ -12,7 +12,9 @@ export type AgentFeedback = {
       type: 'QUnit';
       /** OPA detected */
       opa: boolean;
-
-      count: number;
+      /** Number of tests executed so far */
+      executed: number;
+      /** Total number of tests */
+      total: number;
     }
 );
