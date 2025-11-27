@@ -5,6 +5,7 @@ import { BroadcastChannel, Worker, isMainThread, threadId, workerData } from 'no
 import zlib from 'node:zlib';
 import type { ChildProcess } from 'node:child_process';
 import { spawn, exec } from 'node:child_process';
+import { machine, cpus } from 'node:os';
 
 class Process {
   private _stdout: string[] = [];
@@ -67,6 +68,9 @@ export class Platform {
     process.stdout.write(text);
   }
 
+  static readonly nodeVersion = process.version;
+  static readonly machine = machine;
+  static readonly cpus = cpus;
   static readonly pid = process.pid;
   static readonly cwd = process.cwd.bind(process);
   static readonly threadCpuUsage = process.threadCpuUsage.bind(process);
