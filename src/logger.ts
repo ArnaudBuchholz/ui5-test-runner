@@ -1,75 +1,14 @@
 import type { Configuration } from './configuration/Configuration.js';
+import type { LogErrorAttributes, InternalLogAttributes, LogAttributes, LogLevel, LogMessage } from './loggerTypes.js';
 import { Platform } from './Platform.js';
 import assert from 'node:assert/strict';
-
-type ErrorAttributes = {
-  name: string;
-  message: string;
-  stack?: string;
-  cause?: ErrorAttributes;
-  errors?: ErrorAttributes[];
-};
-
-const GenericLogSource = {
-  metric: 'metric',
-  logger: 'logger',
-  npm: 'npm',
-  puppeteer: 'puppeteer',
-  job: 'job'
-} as const;
-type GenericLogSource = (typeof GenericLogSource)[keyof typeof GenericLogSource];
-
-export const LogSource = {
-  ...GenericLogSource,
-  progress: 'progress'
-} as const;
-export type LogSource = (typeof LogSource)[keyof typeof LogSource];
-
-export type LogAttributes = {
-  message: string;
-  error?: unknown;
-} & (
-  | {
-      source: GenericLogSource;
-      data?: object;
-    }
-  | {
-      source: 'progress';
-      data: {
-        uid: string;
-        value: number;
-        max: number;
-      };
-    }
-);
-
-export const LogLevel = {
-  debug: 'debug',
-  info: 'info',
-  warn: 'warn',
-  error: 'error',
-  fatal: 'fatal'
-} as const;
-export type LogLevel = (typeof LogLevel)[keyof typeof LogLevel];
-
-export type InternalLogAttributes = {
-  /** Time stamp (UNIX epoch) */
-  timestamp: number;
-  /** level */
-  level: LogLevel;
-  /** process id */
-  processId: number;
-  /** thread id */
-  threadId: number;
-  /** indicates if this is the main thread */
-  isMainThread: boolean;
-};
 
 // TODO understand why channel does not appear as a problem as it might be used before being defined
 let channel: ReturnType<typeof Platform.createBroadcastChannel>;
 let loggerWorker: ReturnType<typeof Platform.createWorker> | undefined;
 let consoleWorker: ReturnType<typeof Platform.createWorker> | undefined;
 const buffer: (InternalLogAttributes & LogAttributes)[] = [];
+const waitingFor = ['console', 'logger'];
 let ready = false;
 
 let metricsMonitorInterval: ReturnType<typeof setInterval>;
@@ -82,27 +21,35 @@ const start = () => {
     logger.debug({ source: 'metric', message: 'memoryUsage', data: Platform.memoryUsage() });
   }, 1000);
 
-  channel.onmessage = (event: { data: object }) => {
-    if ('ready' in event.data) {
-      ready = true;
-      if (buffer.length > 0) {
+  channel.onmessage = (event: { data: LogMessage }) => {
+    const { data: message } = event;
+    if (message.command === 'ready') {
+      const index = waitingFor.indexOf(message.source);
+      if (index !== -1) {
+        waitingFor.splice(index, 1);
+      }
+      ready = waitingFor.length === 0;
+      if (ready && buffer.length > 0) {
         for (const buffered of buffer) {
-          channel.postMessage(buffered);
+          channel.postMessage({
+            command: 'log',
+            ...buffered
+          } satisfies LogMessage);
         }
         buffer.length = 0;
       }
-    } else if ('terminate' in event.data) {
+    } else if (message.command === 'terminate') {
       clearInterval(metricsMonitorInterval);
       channel.close();
     }
   };
 };
 
-const convertErrorToAttributes = (error: unknown): ErrorAttributes => {
+const convertErrorToAttributes = (error: unknown): LogErrorAttributes => {
   if (!(error instanceof Error)) {
     return convertErrorToAttributes(new Error(JSON.stringify(error)));
   }
-  const attributes: ErrorAttributes = {
+  const attributes: LogErrorAttributes = {
     name: error.name,
     message: error.message,
     stack: error.stack
@@ -129,11 +76,14 @@ const log = (level: LogLevel, attributes: LogAttributes) => {
     allAttributes.error = convertErrorToAttributes(attributes.error);
   }
   if (ready) {
-    channel.postMessage(allAttributes);
+    channel.postMessage({
+      command: 'log',
+      ...allAttributes
+    } satisfies LogMessage);
   } else {
-    // Not aware if the logger is ready, buffering and asking
+    // Not all workers are ready, buffering and asking
     buffer.push(allAttributes);
-    channel?.postMessage({ isReady: true });
+    channel?.postMessage({ command: 'isReady' } satisfies LogMessage);
   }
 };
 
@@ -173,7 +123,7 @@ export const logger = {
     const { promise: consolePromise, resolve: consoleExited } = Promise.withResolvers();
     loggerWorker.on('exit', loggerExited);
     consoleWorker.on('exit', consoleExited);
-    channel.postMessage({ terminate: true });
+    channel.postMessage({ command: 'terminate' } satisfies LogMessage);
     await Promise.all([loggerPromise, consolePromise]);
     channel.close();
   }
