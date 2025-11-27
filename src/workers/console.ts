@@ -1,5 +1,6 @@
 import { Platform } from '../Platform.js';
-import type { InternalLogAttributes, LogAttributes } from '../loggerTypes.js';
+import type { InternalLogAttributes, LogAttributes, LogMessage } from '../loggerTypes.js';
+import '../logger.js';
 import { LogSource } from '../loggerTypes.js';
 import type { Configuration } from '../configuration/Configuration.js';
 
@@ -53,11 +54,17 @@ const log = (attributes: InternalLogAttributes & LogAttributes) => {
 };
 
 const channel = Platform.createBroadcastChannel('logger');
-channel.onmessage = (event: { data: { terminate: true } | (InternalLogAttributes & LogAttributes) }) => {
-  if ('terminate' in event.data) {
+channel.onmessage = (event: { data: LogMessage }) => {
+  const { data: message } = event;
+  if (message.command === 'terminate') {
     channel.close();
-  } else if ('message' in event.data) {
-    log(event.data);
+  } else if (message.command === 'isReady') {
+    channel.postMessage({
+      command: 'ready',
+      source: 'console'
+    } satisfies LogMessage);
+  } else if (message.command === 'log') {
+    log(message);
   }
 };
 
@@ -66,3 +73,8 @@ out(`       _ ____        _            _
 | | | | |___ \\ _____| __/ _ \\/ __| __|____| '__| | | | '_ \\| '_ \\ / _ \\ '__|
 | |_| | |___) |_____| ||  __/\\__ \\ ||_____| |  | |_| | | | | | | |  __/ |   
  \\__,_|_|____/       \\__\\___||___/\\__|    |_|   \\__,_|_| |_|_| |_|\\___|_|   \n`);
+
+channel.postMessage({
+  command: 'ready',
+  source: 'console'
+} satisfies LogMessage);
