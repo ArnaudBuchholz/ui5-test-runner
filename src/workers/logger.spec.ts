@@ -1,6 +1,7 @@
 import { it, expect, vi } from 'vitest';
 import { Platform } from '../Platform.js';
 import { MAX_BUFFER_SIZE } from './logger.js';
+import { LogMessage } from '../loggerTypes.js';
 
 // Must be done before importing ./logger.ts
 vi.hoisted(() => {
@@ -35,7 +36,7 @@ vi.mock('../Platform.js', async (importActual) => {
 
 const channel = Platform.createBroadcastChannel('logger');
 // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-argument -- Simpler this way
-const postMessage = (data: unknown) => channel.onmessage({ data } as any);
+const postMessage = (data: LogMessage) => channel.onmessage({ data } as any);
 
 it('opens a broadcast channel to communicate with the logger instances', () => {
   expect(Platform.createBroadcastChannel).toBeCalledTimes(3);
@@ -53,12 +54,12 @@ it('creates a gzip file', () => {
 });
 
 it('broadcasts an initial { ready: true }', () => {
-  expect(channel.postMessage).toHaveBeenCalledWith({ ready: true });
+  expect(channel.postMessage).toHaveBeenCalledWith({ command: 'ready', source: 'logger' } satisfies LogMessage);
 });
 
 it('answers isReady by posting { ready: true }', () => {
-  postMessage({ from: 'me', isReady: true });
-  expect(channel.postMessage).toHaveBeenCalledWith({ from: 'me', isReady: true, ready: true });
+  postMessage({ command: 'isReady' });
+  expect(channel.postMessage).toHaveBeenCalledWith({ command: 'ready', source: 'logger' } satisfies LogMessage);
 });
 
 it('flushes the traces after a timeout', () => {
