@@ -1,6 +1,6 @@
 import { Platform } from '../Platform.js';
-import type { InternalLogAttributes, LogAttributes } from '../logger.js';
-import { LogSource } from '../logger.js';
+import type { InternalLogAttributes, LogAttributes } from '../loggerTypes.js';
+import { LogSource } from '../loggerTypes.js';
 import type { Configuration } from '../configuration/Configuration.js';
 
 const STARTED_AT = Date.now();
@@ -10,13 +10,13 @@ const { ci, reportDir } = (Platform.workerData as { configuration: Configuration
 
 const interactive = !ci && Platform.isTextTerminal;
 if (!interactive) {
-  const UTF8_BOM_CODE = '\ufeff';
+  const UTF8_BOM_CODE = '\uFEFF';
   Platform.writeOnTerminal(UTF8_BOM_CODE);
 }
 
 const out = (text: string): void => {
   Platform.writeFileSync(Platform.join(reportDir, 'output.txt'), text, {
-    encoding: 'utf-8',
+    encoding: 'utf8',
     flag: 'a'
   });
   Platform.writeOnTerminal(text);
@@ -40,9 +40,7 @@ const log = (attributes: InternalLogAttributes & LogAttributes) => {
     error: '❌',
     fatal: '💣'
   }[level];
-  if (source === 'progress') {
-
-  } else if (source !== 'metric' && level !== 'debug') {
+  if (source !== 'progress' && source !== 'metric' && level !== 'debug') {
     console.log(
       icon,
       formatDiff(timestamp - STARTED_AT),
@@ -68,4 +66,3 @@ out(`       _ ____        _            _
 | | | | |___ \\ _____| __/ _ \\/ __| __|____| '__| | | | '_ \\| '_ \\ / _ \\ '__|
 | |_| | |___) |_____| ||  __/\\__ \\ ||_____| |  | |_| | | | | | | |  __/ |   
  \\__,_|_|____/       \\__\\___||___/\\__|    |_|   \\__,_|_| |_|_| |_|\\___|_|   \n`);
-

@@ -1,5 +1,5 @@
 import { Platform } from '../Platform.js';
-import type { InternalLogAttributes, LogAttributes } from '../logger.js';
+import type { InternalLogAttributes, LogAttributes } from '../loggerTypes.js';
 import type { Configuration } from '../configuration/Configuration.js';
 
 export const MAX_BUFFER_SIZE = 50;

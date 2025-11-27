@@ -63,8 +63,8 @@ export class Platform {
     return false;
   }
 
-  static readonly isTextTerminal = process.stdout.columns !== undefined && process.stdout.isTTY;
-  static writeOnTerminal (text: string) {
+  static readonly isTextTerminal = process.stdout.isTTY;
+  static writeOnTerminal(text: string) {
     process.stdout.write(text);
   }
 

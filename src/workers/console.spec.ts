@@ -12,7 +12,7 @@ vi.mock('../Platform.js', () => {
   const Platform = {
     createBroadcastChannel: vi.fn(() => channel),
     writeOnTerminal: vi.fn(),
-    writeFileSync: vi.fn(),
+    writeFileSync: vi.fn()
   };
   return { Platform };
 });

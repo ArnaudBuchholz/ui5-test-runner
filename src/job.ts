@@ -46,10 +46,12 @@ export const execute = async (configuration: Configuration) => {
                     urls.push(pageUrl);
                   }
                 }
-              } else if (feedback.type === 'QUnit') {
-                if (feedback.total > 0) {
-                  logger.info({ source: 'progress', message: url, data: { max: feedback.total, value: feedback.executed, uid: url }});
-                }
+              } else if (feedback.type === 'QUnit' && feedback.total > 0) {
+                logger.info({
+                  source: 'progress',
+                  message: url,
+                  data: { max: feedback.total, value: feedback.executed, uid: url }
+                });
               }
             } catch {
               console.log(label, 'error');
