@@ -1,6 +1,7 @@
 import { Platform } from '../Platform.js';
-import type { InternalLogAttributes, LogAttributes } from '../loggerTypes.js';
+import type { InternalLogAttributes, LogAttributes, LogMessage } from '../loggerTypes.js';
 import type { Configuration } from '../configuration/Configuration.js';
+import '../logger.js';
 
 export const MAX_BUFFER_SIZE = 50;
 const FLUSH_INTERVAL_MS = 200;
@@ -48,20 +49,25 @@ const _log = (attributes: LogAttributes) =>
   } satisfies InternalLogAttributes & LogAttributes);
 
 const channel = Platform.createBroadcastChannel('logger');
-channel.onmessage = (event: {
-  data: { terminate: true } | { isReady: true } | (LogAttributes & InternalLogAttributes);
-}) => {
-  if ('terminate' in event.data) {
+channel.onmessage = (event: { data: LogMessage }) => {
+  const { data: message } = event;
+  if (message.command === 'terminate') {
     _log({ source: 'logger', message: 'Logger terminating' });
     channel.close();
     gzFlushBuffer();
     gzipStream.end();
-  } else if ('isReady' in event.data) {
-    channel.postMessage({ ...event.data, ready: true });
-  } else {
-    log(event.data);
+  } else if (message.command === 'isReady') {
+    channel.postMessage({
+      command: 'ready',
+      source: 'logger'
+    } satisfies LogMessage);
+  } else if (message.command === 'log') {
+    log(message);
   }
 };
 
 _log({ source: 'logger', message: 'Logger ready' });
-channel.postMessage({ ready: true });
+channel.postMessage({
+  command: 'ready',
+  source: 'logger'
+} satisfies LogMessage);
