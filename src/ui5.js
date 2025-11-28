@@ -16,18 +16,37 @@ const buildCacheBase = job => {
   return join(job.cache || '', hostName.replace(':', '_'), version || '')
 }
 
-const ui5mappings = job => {
+const ui5mappings = async job => {
   const cacheBase = buildCacheBase(job)
   const match = /\/((?:test-)?resources\/.*)/ // Captured value never starts with /
-  const ifCacheEnabled = (request, url, match) => job.cache
+  const ifCacheEnabled = () => job.cache
   const uncachable = {}
   const cachingInProgress = {}
 
+  let { ui5 } = job
+  if (!ui5.endsWith('/')) {
+    ui5 += '/'
+  }
+  const mappingUrl = new URL('$1', ui5).toString()
+
+  const inJest = typeof jest !== 'undefined'
+  if (!inJest) {
+    const versionUrl = mappingUrl.replace('$1', 'resources/sap-ui-version.json')
+    const versionResponse = await fetch(versionUrl)
+    if (versionResponse.status !== 200) {
+      getOutput(job).log('Unable to fetch UI5 version: ' + versionResponse.status + ' ' + versionResponse.statusText)
+      throw new Error('Unable to fetch UI5 version')
+    }
+    const version = await versionResponse.json()
+    const { version: coreVersion } = version.libraries.find(({ name }) => name === 'sap.ui.core')
+    getOutput(job).log('UI5 version used by the local server: ' + coreVersion)
+  }
+
   const mappings = [{
     /* Prevent caching issues :
-      * - Caching was not possible (99% URL does not exist)
-      * - Caching is in progress (must wait for the end of the writing stream)
-      */
+     * - Caching was not possible (99% URL does not exist)
+     * - Caching is in progress (must wait for the end of the writing stream)
+     */
     match,
     'if-match': ifCacheEnabled,
     custom: async (request, response, path) => {
@@ -42,15 +61,13 @@ const ui5mappings = job => {
         await cachingPromise
       }
     }
-  }, {
-    // UI5 from cache
+  }, { // UI5 from cache
     match,
     'if-match': ifCacheEnabled,
     cwd: cacheBase,
     file: '$1',
     static: !job.debugDevMode
-  }, {
-    // UI5 caching
+  }, { // UI5 caching
     method: 'GET',
     match,
     'if-match': ifCacheEnabled,
@@ -76,11 +93,10 @@ const ui5mappings = job => {
           delete cachingInProgress[path]
         })
     }
-  }, {
-    // UI5 from url
+  }, { // UI5 from url
     method: ['GET', 'HEAD'],
     match,
-    url: new URL('$1', job.ui5).toString(),
+    url: mappingUrl,
     'ignore-unverifiable-certificate': true
   }]
 
