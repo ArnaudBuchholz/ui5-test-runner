@@ -4,7 +4,7 @@ on:
     paths:
       - docs/**
     branches:
-      - main
+      - 5.x.y
 permissions:
   contents: write
 jobs:

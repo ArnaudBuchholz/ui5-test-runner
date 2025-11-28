@@ -4,18 +4,13 @@
 name: Node.js CI
 
 on:
+  workflow_dispatch:
   push:
     paths-ignore:
       - 'docs/**'
       - 'articles/**'
       - '.github/**'
-    branches: [ main ]
-  pull_request:
-    paths-ignore:
-      - 'docs/**'
-      - 'articles/**'
-      - '.github/**'
-    branches: [ main ]
+    branches: [ 5.x.y ]
 
 jobs:
   build:
