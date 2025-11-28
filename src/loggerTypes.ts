@@ -67,9 +67,6 @@ export type LogMessage =
       command: 'terminate';
     }
   | {
-      command: 'isReady';
-    }
-  | {
       command: 'ready';
       source: 'logger' | 'console';
     }

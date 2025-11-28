@@ -2,6 +2,7 @@ import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { Platform } from './Platform.js';
 import { AssertionError } from 'node:assert';
 import type { Configuration } from './configuration/Configuration.js';
+import type { LogMessage } from './loggerTypes.js';
 
 const expectAnyString = expect.any(String) as string;
 
@@ -35,9 +36,14 @@ beforeEach(() => {
   vi.useFakeTimers();
 });
 
-const postMessage = (channel: ReturnType<typeof Platform.createBroadcastChannel>, data: unknown) =>
+const postMessage = (channel: ReturnType<typeof Platform.createBroadcastChannel>, data: LogMessage) =>
   // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-argument
   channel.onmessage({ data } as any);
+
+const ready = (channel: ReturnType<typeof Platform.createBroadcastChannel>) => {
+  postMessage(channel, { command: 'ready', source: 'console' });
+  postMessage(channel, { command: 'ready', source: 'logger' });
+};
 
 describe('general', () => {
   it('opens a broadcast channel to communicate with the logger thread (!Platform.isMainThread)', async () => {
@@ -60,24 +66,23 @@ describe('general', () => {
   it('caches traces while waiting for the logger thread to start (and query for readyness)', async () => {
     const { logger } = await import('./logger.js');
     const channel = Platform.createBroadcastChannel('logger');
-    logger.debug({ source: 'test', message: 'test' });
+    logger.debug({ source: 'job', message: 'test' });
     expect(channel.postMessage).not.toHaveBeenCalledWith(
       expect.objectContaining({
-        source: 'test',
+        source: 'job',
         message: 'test'
       })
     );
-    expect(channel.postMessage).toHaveBeenCalledWith({ isReady: true });
   });
 
   it('sends traces when the logger thread starts', async () => {
     const { logger } = await import('./logger.js');
     const channel = Platform.createBroadcastChannel('logger');
-    logger.debug({ source: 'test', message: 'test' });
-    postMessage(channel, { ready: true });
+    logger.debug({ source: 'job', message: 'test' });
+    ready(channel);
     expect(channel.postMessage).toHaveBeenCalledWith(
       expect.objectContaining({
-        source: 'test',
+        source: 'job',
         message: 'test'
       })
     );
@@ -87,8 +92,8 @@ describe('general', () => {
     const { logger } = await import('./logger.js');
     const timestamp = Date.now(); // because of fake timers
     const channel = Platform.createBroadcastChannel('logger');
-    postMessage(channel, { ready: true });
-    logger.debug({ source: 'test', message: 'test' });
+    ready(channel);
+    logger.debug({ source: 'job', message: 'test' });
     expect(channel.postMessage).toHaveBeenCalledWith(
       expect.objectContaining({
         timestamp,
@@ -96,7 +101,7 @@ describe('general', () => {
         processId: Platform.pid,
         threadId: Platform.threadId,
         isMainThread: Platform.isMainThread,
-        source: 'test',
+        source: 'job',
         message: 'test'
       })
     );
@@ -106,12 +111,12 @@ describe('general', () => {
     it('extracts error information', async () => {
       const { logger } = await import('./logger.js');
       const channel = Platform.createBroadcastChannel('logger');
-      postMessage(channel, { ready: true });
+      ready(channel);
       const error = new Error('error');
-      logger.debug({ source: 'test', message: 'test', error });
+      logger.debug({ source: 'job', message: 'test', error });
       expect(channel.postMessage).toHaveBeenCalledWith(
         expect.objectContaining({
-          source: 'test',
+          source: 'job',
           message: 'test',
           error: {
             name: 'Error',
@@ -125,13 +130,13 @@ describe('general', () => {
     it('extracts cause', async () => {
       const { logger } = await import('./logger.js');
       const channel = Platform.createBroadcastChannel('logger');
-      postMessage(channel, { ready: true });
+      ready(channel);
       const error = new Error('error');
       error.cause = new Error('cause');
-      logger.debug({ source: 'test', message: 'test', error });
+      logger.debug({ source: 'job', message: 'test', error });
       expect(channel.postMessage).toHaveBeenCalledWith(
         expect.objectContaining({
-          source: 'test',
+          source: 'job',
           message: 'test',
           error: {
             name: 'Error',
@@ -150,12 +155,12 @@ describe('general', () => {
     it('supports AggregateError', async () => {
       const { logger } = await import('./logger.js');
       const channel = Platform.createBroadcastChannel('logger');
-      postMessage(channel, { ready: true });
+      ready(channel);
       const error = new AggregateError([new Error('error1'), new Error('error2')], 'aggregate error');
-      logger.debug({ source: 'test', message: 'test', error });
+      logger.debug({ source: 'job', message: 'test', error });
       expect(channel.postMessage).toHaveBeenCalledWith(
         expect.objectContaining({
-          source: 'test',
+          source: 'job',
           message: 'test',
           error: {
             name: 'AggregateError',
@@ -181,11 +186,11 @@ describe('general', () => {
     it('extrapolates error information', async () => {
       const { logger } = await import('./logger.js');
       const channel = Platform.createBroadcastChannel('logger');
-      postMessage(channel, { ready: true });
-      logger.debug({ source: 'test', message: 'test', error: 'string' });
+      ready(channel);
+      logger.debug({ source: 'job', message: 'test', error: 'string' });
       expect(channel.postMessage).toHaveBeenCalledWith(
         expect.objectContaining({
-          source: 'test',
+          source: 'job',
           message: 'test',
           error: {
             name: 'Error',
@@ -202,8 +207,8 @@ describe('general', () => {
     it(`offers ${level} method that translates to ${level} trace level`, async () => {
       const { logger } = await import('./logger.js');
       const channel = Platform.createBroadcastChannel('logger');
-      postMessage(channel, { ready: true });
-      logger[level]({ source: 'test', message: 'test' });
+      ready(channel);
+      logger[level]({ source: 'job', message: 'test' });
       expect(channel.postMessage).toHaveBeenCalledWith(
         expect.objectContaining({
           level
@@ -215,7 +220,7 @@ describe('general', () => {
   it('closes the broadcast channel when the terminate signal is received', async () => {
     await import('./logger.js');
     const channel = Platform.createBroadcastChannel('logger');
-    postMessage(channel, { terminate: true });
+    postMessage(channel, { command: 'terminate' });
     expect(channel.close).toHaveBeenCalled();
   });
 });
@@ -241,7 +246,7 @@ describe('Metrics automatic monitoring', () => {
     const { logger } = await import('./logger.js');
     vi.spyOn(logger, 'debug');
     const channel = Platform.createBroadcastChannel('logger');
-    postMessage(channel, { terminate: true });
+    postMessage(channel, { command: 'terminate' });
     vi.advanceTimersToNextTimer();
     expect(logger.debug).not.toHaveBeenCalled();
   });
@@ -290,6 +295,6 @@ describe('close', () => {
     const closing = logger.stop();
     (worker as unknown as EventTarget).dispatchEvent(new CustomEvent('exit'));
     await closing;
-    expect(channel.postMessage).toHaveBeenCalledWith({ terminate: true });
+    expect(channel.postMessage).toHaveBeenCalledWith({ command: 'terminate' });
   });
 });

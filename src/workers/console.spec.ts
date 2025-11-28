@@ -1,6 +1,6 @@
 import { it, expect, vi } from 'vitest';
 import { Platform } from '../Platform.js';
-import { LogLevel, LogMessage, LogSource } from '../loggerTypes.js';
+import type { LogMessage, LogSource } from '../loggerTypes.js';
 
 const spyOnLog = vi.spyOn(console, 'log').mockImplementation(() => {}); // No output
 

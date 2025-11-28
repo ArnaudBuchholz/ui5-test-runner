@@ -56,11 +56,6 @@ channel.onmessage = (event: { data: LogMessage }) => {
     channel.close();
     gzFlushBuffer();
     gzipStream.end();
-  } else if (message.command === 'isReady') {
-    channel.postMessage({
-      command: 'ready',
-      source: 'logger'
-    } satisfies LogMessage);
   } else if (message.command === 'log') {
     log(message);
   }

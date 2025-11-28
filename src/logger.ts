@@ -83,7 +83,6 @@ const log = (level: LogLevel, attributes: LogAttributes) => {
   } else {
     // Not all workers are ready, buffering and asking
     buffer.push(allAttributes);
-    channel?.postMessage({ command: 'isReady' } satisfies LogMessage);
   }
 };
 

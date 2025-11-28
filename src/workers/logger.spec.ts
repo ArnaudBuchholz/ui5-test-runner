@@ -1,7 +1,7 @@
 import { it, expect, vi } from 'vitest';
 import { Platform } from '../Platform.js';
 import { MAX_BUFFER_SIZE } from './logger.js';
-import { LogMessage } from '../loggerTypes.js';
+import type { LogMessage } from '../loggerTypes.js';
 
 // Must be done before importing ./logger.ts
 vi.hoisted(() => {
@@ -57,22 +57,18 @@ it('broadcasts an initial { ready: true }', () => {
   expect(channel.postMessage).toHaveBeenCalledWith({ command: 'ready', source: 'logger' } satisfies LogMessage);
 });
 
-it('answers isReady by posting { ready: true }', () => {
-  postMessage({ command: 'isReady' });
-  expect(channel.postMessage).toHaveBeenCalledWith({ command: 'ready', source: 'logger' } satisfies LogMessage);
-});
-
 it('flushes the traces after a timeout', () => {
   vi.advanceTimersToNextTimer(); // flush buffer
   const gzipStream = Platform.createGzip();
   vi.mocked(gzipStream.write).mockClear();
   postMessage({
+    command: 'log',
     timestamp: Date.now(),
     level: 'info',
     processId: process.pid,
     threadId: Platform.threadId,
     isMainThread: false,
-    source: 'test',
+    source: 'job',
     message: 'test'
   });
   vi.advanceTimersToNextTimer(); // flush buffer
@@ -84,12 +80,13 @@ it('compress the traces before zipping (no data)', () => {
   const gzipStream = Platform.createGzip();
   vi.mocked(gzipStream.write).mockClear();
   postMessage({
+    command: 'log',
     timestamp: Date.now(),
     level: 'info',
     processId: process.pid,
     threadId: Platform.threadId,
     isMainThread: true, // for coverage
-    source: 'test',
+    source: 'job',
     message: 'test'
   });
   vi.advanceTimersToNextTimer(); // flush buffer
@@ -101,12 +98,13 @@ it('compress the traces before zipping (data)', () => {
   const gzipStream = Platform.createGzip();
   vi.mocked(gzipStream.write).mockClear();
   postMessage({
+    command: 'log',
     timestamp: Date.now(),
     level: 'info',
     processId: process.pid,
     threadId: Platform.threadId,
     isMainThread: Platform.isMainThread,
-    source: 'test',
+    source: 'job',
     message: 'test',
     data: { hello: 'world' }
   });
@@ -123,12 +121,13 @@ it('flushes traces after a threshold count', () => {
   vi.mocked(gzipStream.write).mockClear();
   for (let index = 0; index < MAX_BUFFER_SIZE; ++index) {
     postMessage({
+      command: 'log',
       timestamp: Date.now(),
       level: 'info',
       processId: process.pid,
       threadId: Platform.threadId,
       isMainThread: Platform.isMainThread,
-      source: 'test',
+      source: 'job',
       message: 'test'
     });
   }
@@ -136,7 +135,7 @@ it('flushes traces after a threshold count', () => {
 });
 
 it('closes everything when the terminate signal is received', () => {
-  postMessage({ terminate: true });
+  postMessage({ command: 'terminate' });
   expect(channel.close).toHaveBeenCalled();
   const gzipStream = Platform.createGzip();
   expect(gzipStream.end).toHaveBeenCalled();

@@ -58,11 +58,6 @@ channel.onmessage = (event: { data: LogMessage }) => {
   const { data: message } = event;
   if (message.command === 'terminate') {
     channel.close();
-  } else if (message.command === 'isReady') {
-    channel.postMessage({
-      command: 'ready',
-      source: 'console'
-    } satisfies LogMessage);
   } else if (message.command === 'log') {
     log(message);
   }
