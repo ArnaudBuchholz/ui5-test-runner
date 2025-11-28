@@ -30,6 +30,7 @@ const ui5mappings = async job => {
   const mappingUrl = new URL('$1', ui5).toString()
 
   const inJest = typeof jest !== 'undefined'
+  /* istanbul ignore next */
   if (!inJest) {
     const versionUrl = mappingUrl.replace('$1', 'resources/sap-ui-version.json')
     const versionResponse = await fetch(versionUrl)
