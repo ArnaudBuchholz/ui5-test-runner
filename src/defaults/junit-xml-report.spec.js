@@ -3,15 +3,11 @@ const { allocPromise, recreateDir } = require('../tools')
 const { copyFile, readFile } = require('fs').promises
 
 describe('junit-xml-report', () => {
-  jest.replaceProperty(process, 'argv', ['', '', join(__dirname, '../../tmp/junit-xml-report')])
 
-  const reportDir = join(__dirname, '../../tmp/junit-xml-report')
+  const baseReportDir = join(__dirname, '../../tmp/junit-xml-report')
   const mockExit = jest.spyOn(process, 'exit')
 
-  beforeEach(async () => {
-    await recreateDir(reportDir)
-    await jest.resetModules()
-  })
+  beforeEach(() => jest.resetModules());
 
   async function executeXMLReporter () {
     const { promise, resolve } = allocPromise()
@@ -22,26 +18,32 @@ describe('junit-xml-report', () => {
   }
 
   it('Should add attachment to system-output for failed tests with screenshot', async () => {
+    const reportDir = join(baseReportDir, 'screenshot')
+    await recreateDir(reportDir)
+    jest.replaceProperty(process, 'argv', ['', '', reportDir])
     await copyFile(
       join(__dirname, '../../test/reporting/jobWithFailedTestAndScreenshot.js'),
-      join(__dirname, '../../tmp/junit-xml-report/job.js')
+      join(reportDir, 'job.js')
     )
 
     await executeXMLReporter()
     const junitReport = await readFile(join(reportDir, 'junit.xml'), 'utf-8')
-    expect(junitReport).toMatch(/<system-out>\[\[ATTACHMENT\|junit-xml-report[\\/]C2FfERHrn7E[\\/]da43b785.png\]\]<\/system-out>/)
+    expect(junitReport).toMatch(/<system-out>\[\[ATTACHMENT\|screenshot[\\/]C2FfERHrn7E[\\/]da43b785.png\]\]<\/system-out>/)
     expect(mockExit).toHaveBeenCalledWith(0)
   })
 
   it('Should not add attachment to system-output for failed test without screenshot', async () => {
+    const reportDir = join(baseReportDir, 'no-screenshot')
+    await recreateDir(reportDir)
+    jest.replaceProperty(process, 'argv', ['', '', reportDir])
     await copyFile(
       join(__dirname, '../../test/reporting/jobWithFailedTestNoScreenshot.js'),
-      join(__dirname, '../../tmp/junit-xml-report/job.js')
+      join(reportDir, 'job.js')
     )
 
     await executeXMLReporter()
     const junitReport = await readFile(join(reportDir, 'junit.xml'), 'utf-8')
-    expect(junitReport).not.toMatch(/<system-out>\[\[ATTACHMENT\|junit-xml-report[\\/]C2FfERHrn7E[\\/]da43b785.png\]\]<\/system-out>/)
+    expect(junitReport).not.toMatch(/<system-out>/)
     expect(mockExit).toHaveBeenCalledWith(0)
   })
 })
