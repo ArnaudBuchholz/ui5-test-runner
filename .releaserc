@@ -1,0 +1,5 @@
+{
+  "branches": [
+    { "name": "5.x.y", "channel": "latest" }
+  ]
+}
