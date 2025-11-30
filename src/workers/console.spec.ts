@@ -1,6 +1,7 @@
 import { it, expect, vi } from 'vitest';
 import { Platform } from '../Platform.js';
 import type { LogMessage, LogSource } from '../loggerTypes.js';
+import { LogLevel } from '../loggerTypes.js';
 
 const spyOnLog = vi.spyOn(console, 'log').mockImplementation(() => {}); // No output
 
@@ -36,7 +37,7 @@ it('logs traces coming in (no filtering for now)', async () => {
   const channel = Platform.createBroadcastChannel('logger');
   postMessage(channel, {
     command: 'log',
-    level: 'info',
+    level: LogLevel.info,
     timestamp: Date.now(),
     processId: 0,
     threadId: 0,

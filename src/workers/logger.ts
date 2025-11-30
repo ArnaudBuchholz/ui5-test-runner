@@ -1,5 +1,6 @@
 import { Platform } from '../Platform.js';
 import type { InternalLogAttributes, LogAttributes, LogMessage } from '../loggerTypes.js';
+import { LogLevel } from '../loggerTypes.js';
 import type { Configuration } from '../configuration/Configuration.js';
 import '../logger.js';
 
@@ -29,7 +30,7 @@ const reduceNumber = (value: number) => Number(value).toString(36);
 
 const log = (attributes: InternalLogAttributes & LogAttributes) => {
   const { level, timestamp, processId, threadId, isMainThread, source, message, data } = attributes;
-  const compressed = `${level.charAt(0)}${reduceNumber(timestamp)}:${reduceNumber(processId)}:${reduceNumber(threadId)}${isMainThread ? '!' : ''}:${source}:${message}`;
+  const compressed = `${level.toString()}${reduceNumber(timestamp)}:${reduceNumber(processId)}:${reduceNumber(threadId)}${isMainThread ? '!' : ''}:${source}:${message}`;
   gzBuffer.push(data ? [compressed, data] : compressed);
   if (gzBuffer.length >= MAX_BUFFER_SIZE) {
     gzFlushBuffer();
@@ -41,7 +42,7 @@ const log = (attributes: InternalLogAttributes & LogAttributes) => {
 const _log = (attributes: LogAttributes) =>
   log({
     timestamp: Date.now(),
-    level: 'info',
+    level: LogLevel.info,
     processId: process.pid,
     threadId: Platform.threadId,
     isMainThread: Platform.isMainThread,

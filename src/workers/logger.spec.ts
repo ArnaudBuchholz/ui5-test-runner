@@ -2,6 +2,7 @@ import { it, expect, vi } from 'vitest';
 import { Platform } from '../Platform.js';
 import { MAX_BUFFER_SIZE } from './logger.js';
 import type { LogMessage } from '../loggerTypes.js';
+import { LogLevel } from '../loggerTypes.js';
 
 // Must be done before importing ./logger.ts
 vi.hoisted(() => {
@@ -64,7 +65,7 @@ it('flushes the traces after a timeout', () => {
   postMessage({
     command: 'log',
     timestamp: Date.now(),
-    level: 'info',
+    level: LogLevel.info,
     processId: process.pid,
     threadId: Platform.threadId,
     isMainThread: false,
@@ -82,7 +83,7 @@ it('compress the traces before zipping (no data)', () => {
   postMessage({
     command: 'log',
     timestamp: Date.now(),
-    level: 'info',
+    level: LogLevel.info,
     processId: process.pid,
     threadId: Platform.threadId,
     isMainThread: true, // for coverage
@@ -100,7 +101,7 @@ it('compress the traces before zipping (data)', () => {
   postMessage({
     command: 'log',
     timestamp: Date.now(),
-    level: 'info',
+    level: LogLevel.info,
     processId: process.pid,
     threadId: Platform.threadId,
     isMainThread: Platform.isMainThread,
@@ -123,7 +124,7 @@ it('flushes traces after a threshold count', () => {
     postMessage({
       command: 'log',
       timestamp: Date.now(),
-      level: 'info',
+      level: LogLevel.info,
       processId: process.pid,
       threadId: Platform.threadId,
       isMainThread: Platform.isMainThread,

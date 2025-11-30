@@ -1,7 +1,7 @@
 import { Platform } from '../Platform.js';
 import type { InternalLogAttributes, LogAttributes, LogMessage } from '../loggerTypes.js';
 import '../logger.js';
-import { LogSource } from '../loggerTypes.js';
+import { LogLevel, LogSource } from '../loggerTypes.js';
 import type { Configuration } from '../configuration/Configuration.js';
 
 const STARTED_AT = Date.now();
@@ -35,13 +35,13 @@ const formatDiff = (diffInMs: number) => {
 const log = (attributes: InternalLogAttributes & LogAttributes) => {
   const { level, timestamp, source, message, data, error } = attributes;
   const icon = {
-    debug: '🐞',
-    info: '  ',
-    warn: '⚠️',
-    error: '❌',
-    fatal: '💣'
+    [LogLevel.debug]: '🐞',
+    [LogLevel.info]: '  ',
+    [LogLevel.warn]: '⚠️',
+    [LogLevel.error]: '❌',
+    [LogLevel.fatal]: '💣'
   }[level];
-  if (source !== 'progress' && source !== 'metric' && level !== 'debug') {
+  if (source !== 'progress' && source !== 'metric' && level !== LogLevel.debug) {
     console.log(
       icon,
       formatDiff(timestamp - STARTED_AT),

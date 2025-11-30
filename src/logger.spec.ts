@@ -2,6 +2,7 @@ import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { Platform } from './Platform.js';
 import { AssertionError } from 'node:assert';
 import type { Configuration } from './configuration/Configuration.js';
+import { LogLevel } from './loggerTypes.js';
 import type { LogMessage } from './loggerTypes.js';
 
 const expectAnyString = expect.any(String) as string;
@@ -97,7 +98,7 @@ describe('general', () => {
     expect(channel.postMessage).toHaveBeenCalledWith(
       expect.objectContaining({
         timestamp,
-        level: 'debug',
+        level: LogLevel.debug,
         processId: Platform.pid,
         threadId: Platform.threadId,
         isMainThread: Platform.isMainThread,
@@ -211,7 +212,7 @@ describe('general', () => {
       logger[level]({ source: 'job', message: 'test' });
       expect(channel.postMessage).toHaveBeenCalledWith(
         expect.objectContaining({
-          level
+          level: LogLevel[level]
         })
       );
     });

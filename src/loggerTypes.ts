@@ -40,11 +40,11 @@ export type LogAttributes = {
 );
 
 export const LogLevel = {
-  debug: 'debug',
-  info: 'info',
-  warn: 'warn',
-  error: 'error',
-  fatal: 'fatal'
+  debug: 0,
+  info: 1,
+  warn: 2,
+  error: 3,
+  fatal: 4
 } as const;
 export type LogLevel = (typeof LogLevel)[keyof typeof LogLevel];
 

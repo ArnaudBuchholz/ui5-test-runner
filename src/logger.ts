@@ -1,5 +1,6 @@
 import type { Configuration } from './configuration/Configuration.js';
-import type { LogErrorAttributes, InternalLogAttributes, LogAttributes, LogLevel, LogMessage } from './loggerTypes.js';
+import type { LogErrorAttributes, InternalLogAttributes, LogAttributes, LogMessage } from './loggerTypes.js';
+import { LogLevel } from './loggerTypes.js';
 import { Platform } from './Platform.js';
 import assert from 'node:assert/strict';
 
@@ -99,19 +100,19 @@ export const logger = {
   },
 
   debug(attributes: LogAttributes) {
-    log('debug', attributes);
+    log(LogLevel.debug, attributes);
   },
   info(attributes: LogAttributes) {
-    log('info', attributes);
+    log(LogLevel.info, attributes);
   },
   warn(attributes: LogAttributes) {
-    log('warn', attributes);
+    log(LogLevel.warn, attributes);
   },
   error(attributes: LogAttributes) {
-    log('error', attributes);
+    log(LogLevel.error, attributes);
   },
   fatal(attributes: LogAttributes) {
-    log('fatal', attributes);
+    log(LogLevel.fatal, attributes);
   },
 
   async stop() {
