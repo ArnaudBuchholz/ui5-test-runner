@@ -64,13 +64,13 @@
     "reserve": "2.3.4"
   },
   "devDependencies": {
-    "@openui5/types": "^1.142.0",
+    "@openui5/types": "^1.143.0",
     "@stylistic/eslint-plugin": "^5.6.1",
     "@stylistic/eslint-plugin-js": "^4.4.1",
     "@types/node": "^24.10.1",
-    "@ui5/cli": "^4.0.36",
+    "@ui5/cli": "^4.0.37",
     "@ui5/middleware-code-coverage": "^2.0.2",
-    "@vitest/coverage-v8": "^4.0.12",
+    "@vitest/coverage-v8": "^4.0.14",
     "dotenv": "^17.2.3",
     "dpdm": "^3.14.0",
     "eslint": "^9.39.1",
@@ -86,13 +86,13 @@
     "npm-check-updates": "^19.1.2",
     "puppeteer": "^24.31.0",
     "rimraf": "^6.1.2",
-    "stylelint": "^16.25.0",
+    "stylelint": "^16.26.1",
     "stylelint-config-standard": "^39.0.1",
-    "tsx": "^4.20.6",
+    "tsx": "^4.21.0",
     "typescript": "^5.9.3",
-    "typescript-eslint": "^8.47.0",
+    "typescript-eslint": "^8.48.0",
     "ui5-tooling-transpile": "^3.9.2",
-    "vite": "^7.2.4",
-    "vitest": "^4.0.12"
+    "vite": "^7.2.6",
+    "vitest": "^4.0.14"
   }
 }
