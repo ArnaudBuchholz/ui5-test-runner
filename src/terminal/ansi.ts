@@ -14,7 +14,3 @@ export const ANSI_MAGENTA = `${CSI}35m`;
 export const ANSI_RED = `${CSI}31m`;
 export const ANSI_WHITE = `${CSI}37m`;
 export const ANSI_YELLOW = `${CSI}33m`;
-
-export const ANSI_FULL_BLOCK = `\u2588`; // █
-export const ANSI_LIGHT_SHADE = `\u2591`; // ░
-export const ANSI_ELLIPSIS = `\u2026`; // …
