@@ -1,22 +1,10 @@
-import { ANSI_ELLIPSIS, ANSI_FULL_BLOCK, ANSI_LIGHT_SHADE } from '../ansi.js';
+import { ANSI_ELLIPSIS, ANSI_FULL_BLOCK, ANSI_LIGHT_SHADE } from './ansi.js';
 import { assert } from '../assert.js';
 import type { InternalLogAttributes, LogAttributes } from '../loggerTypes.js';
 import { LogLevel } from '../loggerTypes.js';
 
 export class ProgressBar {
   static readonly WIDTH = 10;
-  static readonly list: ProgressBar[] = [];
-
-  private _uid: string;
-
-  get uid() {
-    return this._uid;
-  }
-
-  constructor(uid: string) {
-    this._uid = uid;
-    ProgressBar.list.push(this);
-  }
 
   private _maxState: number = LogLevel.info;
   private _value = 0;
@@ -36,7 +24,7 @@ export class ProgressBar {
   render(width: number) {
     const ratio = this._max === 0 ? 0 : this._value / this._max;
     const filled = Math.floor(ProgressBar.WIDTH * Math.min(ratio, 1));
-    const spaceLeft = width - ProgressBar.WIDTH - 13;
+    const spaceLeft = width - ProgressBar.WIDTH - 7;
     const { length: labelLength } = this._label;
     const label =
       labelLength > spaceLeft
@@ -52,10 +40,5 @@ export class ProgressBar {
       '% ',
       label
     ].join('');
-  }
-
-  remove() {
-    const pos = ProgressBar.list.indexOf(this);
-    ProgressBar.list.splice(pos, 1);
   }
 }
