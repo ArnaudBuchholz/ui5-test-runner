@@ -28,11 +28,13 @@ export class ProgressBar {
     const { length: labelLength } = this._label;
     const label =
       labelLength > spaceLeft
-        ? `${ANSI_ELLIPSIS}${this._label.slice(Math.max(0, labelLength - spaceLeft - 1))}`
+        ? `...${this._label.slice(Math.max(0, labelLength - spaceLeft + 3))}`
         : this._label;
     return [
-      ''.padEnd(filled, ANSI_FULL_BLOCK),
-      ''.padEnd(ProgressBar.WIDTH - filled, ANSI_LIGHT_SHADE),
+      '[',
+      ''.padEnd(filled, '#'),
+      ''.padEnd(ProgressBar.WIDTH - filled, '-'),
+      ']',
       Math.floor(100 * ratio)
         .toString()
         .padStart(3, ' ')

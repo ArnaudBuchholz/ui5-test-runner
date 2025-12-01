@@ -3,51 +3,51 @@ import { ProgressBar } from './ProgressBar.js';
 import { LogLevel } from '../loggerTypes.js';
 
 const tests: { label: string; logs: object[]; width?: number; expected: string }[] = [
-  // {
-  //   label: '0%',
-  //   logs: [
-  //     {
-  //       level: LogLevel.info,
-  //       source: 'progress',
-  //       message: 'test',
-  //       data: {
-  //         value: 0,
-  //         max: 100
-  //       }
-  //     }
-  //   ],
-  //   expected: '░░░░░░░░░░  0% test'
-  // },
-  // {
-  //   label: '50%',
-  //   logs: [
-  //     {
-  //       level: LogLevel.info,
-  //       source: 'progress',
-  //       message: 'test',
-  //       data: {
-  //         value: 50,
-  //         max: 100
-  //       }
-  //     }
-  //   ],
-  //   expected: '█████░░░░░ 50% test'
-  // },
-  // {
-  //   label: '100%',
-  //   logs: [
-  //     {
-  //       level: LogLevel.info,
-  //       source: 'progress',
-  //       message: 'test',
-  //       data: {
-  //         value: 100,
-  //         max: 100
-  //       }
-  //     }
-  //   ],
-  //   expected: '██████████100% test'
-  // },
+  {
+    label: '0%',
+    logs: [
+      {
+        level: LogLevel.info,
+        source: 'progress',
+        message: 'test',
+        data: {
+          value: 0,
+          max: 100
+        }
+      }
+    ],
+    expected: '[----------]  0% test'
+  },
+  {
+    label: '50%',
+    logs: [
+      {
+        level: LogLevel.info,
+        source: 'progress',
+        message: 'test',
+        data: {
+          value: 50,
+          max: 100
+        }
+      }
+    ],
+    expected: '[#####-----] 50% test'
+  },
+  {
+    label: '100%',
+    logs: [
+      {
+        level: LogLevel.info,
+        source: 'progress',
+        message: 'test',
+        data: {
+          value: 100,
+          max: 100
+        }
+      }
+    ],
+    expected: '[##########]100% test'
+  },
   {
     label: 'truncates label',
     logs: [
@@ -61,8 +61,8 @@ const tests: { label: string; logs: object[]; width?: number; expected: string }
         }
       }
     ],
-    width: 20,    
-    expected: '█░░░░░░░░░ 10% …abel'
+    width: 25,    
+    expected: '[#---------] 10% ...label'
   }
 ] as const;
 
