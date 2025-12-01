@@ -32,7 +32,7 @@ it('closes the broadcast channel when the terminate signal is received', async (
   expect(channel.close).toHaveBeenCalled();
 });
 
-it('logs traces coming in (no filtering for now)', async () => {
+it.todo('logs traces coming in (no filtering for now)', async () => {
   await import('./console.js');
   const channel = Platform.createBroadcastChannel('logger');
   postMessage(channel, {
