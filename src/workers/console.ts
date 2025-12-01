@@ -1,11 +1,12 @@
 import { Platform } from '../Platform.js';
 import type { InternalLogAttributes, LogAttributes, LogMessage } from '../loggerTypes.js';
 import '../logger.js';
-import { LogLevel, LogSource } from '../loggerTypes.js';
+import { LogLevel } from '../loggerTypes.js';
 import type { Configuration } from '../configuration/Configuration.js';
+import { stripVTControlCharacters } from 'node:util';
+import { ANSI_BLUE, ANSI_HIDE_CURSOR, ANSI_MAGENTA, ANSI_RED, ANSI_SHOW_CURSOR, ANSI_WHITE, ANSI_YELLOW } from '../terminal/ansi.js';
 
 const STARTED_AT = Date.now();
-const MAX_LOG_SOURCE_SIZE = Math.max(...Object.values(LogSource).map((source) => source.length));
 
 const { ci, reportDir } = (Platform.workerData as { configuration: Configuration }).configuration;
 
@@ -15,12 +16,24 @@ if (!interactive) {
   Platform.writeOnTerminal(UTF8_BOM_CODE);
 }
 
-const out = (text: string): void => {
-  Platform.writeFileSync(Platform.join(reportDir, 'output.txt'), text, {
+const writeOnReport = (text: string): void => {
+  Platform.writeFileSync(Platform.join(reportDir, 'output.txt'), stripVTControlCharacters(text), {
     encoding: 'utf8',
     flag: 'a'
   });
-  Platform.writeOnTerminal(text);
+}
+
+const writeOnTerminal = (text: string): void => {
+  if (interactive) {
+    Platform.writeOnTerminal(text);
+  } else {
+    Platform.writeOnTerminal(stripVTControlCharacters(text));
+  }
+}
+
+const writeOnAll = (text: string): void => {
+  writeOnReport(text);
+  writeOnTerminal(text);
 };
 
 const formatDiff = (diffInMs: number) => {
@@ -32,24 +45,35 @@ const formatDiff = (diffInMs: number) => {
   return minutes.toString().padStart(2, '0') + ':' + (seconds % 60).toString().padStart(2, '0');
 };
 
+const logs: string[] = [];
+
+const icons = {
+  [LogLevel.debug]: ANSI_BLUE + '<o>',
+  [LogLevel.info]: '  ',
+  [LogLevel.warn]: ANSI_YELLOW + '/!\\',
+  [LogLevel.error]: ANSI_RED + '(X)',
+  [LogLevel.fatal]: ANSI_MAGENTA + 'o*!'
+} as const;
+
 const log = (attributes: InternalLogAttributes & LogAttributes) => {
   const { level, timestamp, source, message, data, error } = attributes;
-  const icon = {
-    [LogLevel.debug]: '🐞',
-    [LogLevel.info]: '  ',
-    [LogLevel.warn]: '⚠️',
-    [LogLevel.error]: '❌',
-    [LogLevel.fatal]: '💣'
-  }[level];
   if (source !== 'progress' && source !== 'metric' && level !== LogLevel.debug) {
-    console.log(
-      icon,
+    const output = [
+      icons[level],
+      ANSI_YELLOW,
       formatDiff(timestamp - STARTED_AT),
-      source.padEnd(MAX_LOG_SOURCE_SIZE, ' '),
+      ANSI_WHITE,
       message,
       data ? JSON.stringify(data) : '',
-      error ? `${(error as Error).name} ${(error as Error).message}` : ''
-    );
+      error ? `${ANSI_RED}${(error as Error).name} ${(error as Error).message}` : '',
+      ANSI_YELLOW,
+    ].join('');
+    if (interactive) {
+      logs.push(output);
+      writeOnReport(output);
+    } else {
+      writeOnAll(output);
+    }
   }
 };
 
@@ -58,12 +82,24 @@ channel.onmessage = (event: { data: LogMessage }) => {
   const { data: message } = event;
   if (message.command === 'terminate') {
     channel.close();
+    if (interactive) {
+      Platform.writeOnTerminal(ANSI_SHOW_CURSOR);
+    }
   } else if (message.command === 'log') {
     log(message);
   }
 };
 
-out(`       _ ____        _            _                                         
+const TICKS = ['|', '/', '-', '\\'];
+let interactiveIntervalId: ReturnType<typeof setInterval> | undefined;
+
+
+
+if (interactive) {
+  Platform.writeOnTerminal(ANSI_HIDE_CURSOR);
+}
+
+writeOnAll(`       _ ____        _            _                                         
  _   _(_) ___|      | |_ ___  ___| |_      _ __ _   _ _ __  _ __   ___ _ __ 
 | | | | |___ \\ _____| __/ _ \\/ __| __|____| '__| | | | '_ \\| '_ \\ / _ \\ '__|
 | |_| | |___) |_____| ||  __/\\__ \\ ||_____| |  | |_| | | | | | | |  __/ |   
