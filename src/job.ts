@@ -57,6 +57,11 @@ export const execute = async (configuration: Configuration) => {
               console.log(label, 'error');
             }
           }
+          logger.info({
+            source: 'progress',
+            message: url,
+            data: { max: 1, value: 1, uid: url, remove: true }
+          });
           await page.close();
         },
         urls,

@@ -35,6 +35,7 @@ export type LogAttributes = {
         uid: string;
         value: number;
         max: number;
+        remove?: true;
       };
     }
 );
