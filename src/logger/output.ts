@@ -3,38 +3,13 @@ import type { InternalLogAttributes, LogAttributes, LogMessage } from '../logger
 import '../logger.js';
 import { LogLevel } from '../loggerTypes.js';
 import type { Configuration } from '../configuration/Configuration.js';
-import { stripVTControlCharacters } from 'node:util';
-import { ANSI_BLUE, ANSI_HIDE_CURSOR, ANSI_MAGENTA, ANSI_RED, ANSI_SHOW_CURSOR, ANSI_WHITE, ANSI_YELLOW } from '../terminal/ansi.js';
+import { ANSI_BLUE, ANSI_MAGENTA, ANSI_RED, ANSI_WHITE, ANSI_YELLOW } from '../terminal/ansi.js';
+import { LoggerOutputFactory } from './output/factory.js';
 
 const STARTED_AT = Date.now();
 
-const { ci, reportDir } = (Platform.workerData as { configuration: Configuration }).configuration;
-
-const interactive = !ci && Platform.isTextTerminal;
-if (!interactive) {
-  const UTF8_BOM_CODE = '\uFEFF';
-  Platform.writeOnTerminal(UTF8_BOM_CODE);
-}
-
-const writeOnReport = (text: string): void => {
-  Platform.writeFileSync(Platform.join(reportDir, 'output.txt'), stripVTControlCharacters(text), {
-    encoding: 'utf8',
-    flag: 'a'
-  });
-}
-
-const writeOnTerminal = (text: string): void => {
-  if (interactive) {
-    Platform.writeOnTerminal(text);
-  } else {
-    Platform.writeOnTerminal(stripVTControlCharacters(text));
-  }
-}
-
-const writeOnAll = (text: string): void => {
-  writeOnReport(text);
-  writeOnTerminal(text);
-};
+const configuration = (Platform.workerData as { configuration: Configuration }).configuration;
+const outputInstance = LoggerOutputFactory.build(configuration);
 
 const formatDiff = (diffInMs: number) => {
   if (diffInMs < 0) {
@@ -44,8 +19,6 @@ const formatDiff = (diffInMs: number) => {
   const minutes = Math.floor(seconds / 60);
   return minutes.toString().padStart(2, '0') + ':' + (seconds % 60).toString().padStart(2, '0');
 };
-
-const logs: string[] = [];
 
 const icons = {
   [LogLevel.debug]: ANSI_BLUE + '<o>',
@@ -66,14 +39,9 @@ const log = (attributes: InternalLogAttributes & LogAttributes) => {
       message,
       data ? JSON.stringify(data) : '',
       error ? `${ANSI_RED}${(error as Error).name} ${(error as Error).message}` : '',
-      ANSI_YELLOW,
+      ANSI_YELLOW
     ].join('');
-    if (interactive) {
-      logs.push(output);
-      writeOnReport(output);
-    } else {
-      writeOnAll(output);
-    }
+    outputInstance.appendToLoggerOutput(output);
   }
 };
 
@@ -82,24 +50,13 @@ channel.onmessage = (event: { data: LogMessage }) => {
   const { data: message } = event;
   if (message.command === 'terminate') {
     channel.close();
-    if (interactive) {
-      Platform.writeOnTerminal(ANSI_SHOW_CURSOR);
-    }
+    outputInstance.closeLoggerOutput();
   } else if (message.command === 'log') {
     log(message);
   }
 };
 
-const TICKS = ['|', '/', '-', '\\'];
-let interactiveIntervalId: ReturnType<typeof setInterval> | undefined;
-
-
-
-if (interactive) {
-  Platform.writeOnTerminal(ANSI_HIDE_CURSOR);
-}
-
-writeOnAll(`       _ ____        _            _                                         
+outputInstance.appendToLoggerOutput(`       _ ____        _            _                                         
  _   _(_) ___|      | |_ ___  ___| |_      _ __ _   _ _ __  _ __   ___ _ __ 
 | | | | |___ \\ _____| __/ _ \\/ __| __|____| '__| | | | '_ \\| '_ \\ / _ \\ '__|
 | |_| | |___) |_____| ||  __/\\__ \\ ||_____| |  | |_| | | | | | | |  __/ |   
@@ -107,5 +64,5 @@ writeOnAll(`       _ ____        _            _
 
 channel.postMessage({
   command: 'ready',
-  source: 'console'
+  source: 'output'
 } satisfies LogMessage);

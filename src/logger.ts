@@ -95,8 +95,8 @@ export const logger = {
   start(configuration: Configuration) {
     assert.ok(Platform.isMainThread, 'Call logger.start only in main thread');
     start();
-    loggerWorker = Platform.createWorker('logger', { configuration });
-    consoleWorker = Platform.createWorker('console', { configuration });
+    loggerWorker = Platform.createWorker('logger/allCompressed', { configuration });
+    consoleWorker = Platform.createWorker('logger/output', { configuration });
   },
 
   debug(attributes: LogAttributes) {

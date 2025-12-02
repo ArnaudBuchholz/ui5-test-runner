@@ -25,15 +25,21 @@ const postMessage = (channel: ReturnType<typeof Platform.createBroadcastChannel>
   // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-argument
   channel.onmessage({ data } as any);
 
+it('broadcasts an initial { ready: true }', async () => {
+  await import('./output.js');
+  const channel = Platform.createBroadcastChannel('logger');
+  expect(channel.postMessage).toHaveBeenCalledWith({ command: 'ready', source: 'output' } satisfies LogMessage);
+});
+
 it('closes the broadcast channel when the terminate signal is received', async () => {
-  await import('./console.js');
+  await import('./output.js');
   const channel = Platform.createBroadcastChannel('logger');
   postMessage(channel, { command: 'terminate' });
   expect(channel.close).toHaveBeenCalled();
 });
 
 it.todo('logs traces coming in (no filtering for now)', async () => {
-  await import('./console.js');
+  await import('./output.js');
   const channel = Platform.createBroadcastChannel('logger');
   postMessage(channel, {
     command: 'log',

@@ -1,6 +1,6 @@
 import { it, expect, vi } from 'vitest';
 import { Platform } from '../Platform.js';
-import { MAX_BUFFER_SIZE } from './logger.js';
+import { MAX_BUFFER_SIZE } from './allCompressed.js';
 import type { LogMessage } from '../loggerTypes.js';
 import { LogLevel } from '../loggerTypes.js';
 
@@ -55,7 +55,7 @@ it('creates a gzip file', () => {
 });
 
 it('broadcasts an initial { ready: true }', () => {
-  expect(channel.postMessage).toHaveBeenCalledWith({ command: 'ready', source: 'logger' } satisfies LogMessage);
+  expect(channel.postMessage).toHaveBeenCalledWith({ command: 'ready', source: 'allCompressed' } satisfies LogMessage);
 });
 
 it('flushes the traces after a timeout', () => {

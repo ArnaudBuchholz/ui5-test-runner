@@ -69,7 +69,7 @@ export type LogMessage =
     }
   | {
       command: 'ready';
-      source: 'logger' | 'console';
+      source: 'allCompressed' | 'output';
     }
   | ({
       command: 'log';

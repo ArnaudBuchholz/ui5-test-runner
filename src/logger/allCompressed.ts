@@ -65,5 +65,5 @@ channel.onmessage = (event: { data: LogMessage }) => {
 _log({ source: 'logger', message: 'Logger ready' });
 channel.postMessage({
   command: 'ready',
-  source: 'logger'
+  source: 'allCompressed'
 } satisfies LogMessage);

@@ -263,11 +263,12 @@ describe('open', () => {
     expect(Platform.createWorker).not.toHaveBeenCalled();
   });
 
-  it('creates the logger worker', async () => {
+  it('creates the logger workers', async () => {
     Object.assign(Platform, { isMainThread: true });
     const { logger } = await import('./logger.js');
     logger.start({ cwd } as Configuration);
-    expect(Platform.createWorker).toHaveBeenCalledWith('logger', { configuration: { cwd } });
+    expect(Platform.createWorker).toHaveBeenCalledWith('logger/allCompressed', { configuration: { cwd } });
+    expect(Platform.createWorker).toHaveBeenCalledWith('logger/output', { configuration: { cwd } });
   });
 });
 
