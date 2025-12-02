@@ -95,13 +95,13 @@ export class Platform {
     let workerPath: string;
     let environment;
     if (Platform.isLocalDevelopment) {
-      workerPath = join(__dirname, `workers/${name}.ts`);
+      workerPath = join(__dirname, `${name}.ts`);
       execArgv = ['--require', 'tsx'];
       environment = {
         IS_LOCAL_DEVELOPMENT: 'true'
       };
     } else {
-      workerPath = join(__dirname, `workers/${name}.js`);
+      workerPath = join(__dirname, `${name}.js`);
     }
     const worker = new Worker(workerPath, {
       execArgv,
