@@ -1,4 +1,3 @@
-import { ANSI_ELLIPSIS, ANSI_FULL_BLOCK, ANSI_LIGHT_SHADE } from './ansi.js';
 import { assert } from '../assert.js';
 import type { InternalLogAttributes, LogAttributes } from '../loggerTypes.js';
 import { LogLevel } from '../loggerTypes.js';
@@ -27,9 +26,7 @@ export class ProgressBar {
     const spaceLeft = width - ProgressBar.WIDTH - 7;
     const { length: labelLength } = this._label;
     const label =
-      labelLength > spaceLeft
-        ? `...${this._label.slice(Math.max(0, labelLength - spaceLeft + 3))}`
-        : this._label;
+      labelLength > spaceLeft ? `...${this._label.slice(Math.max(0, labelLength - spaceLeft + 3))}` : this._label;
     return [
       '[',
       ''.padEnd(filled, '#'),

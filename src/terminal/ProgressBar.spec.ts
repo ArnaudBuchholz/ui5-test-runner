@@ -61,7 +61,7 @@ const tests: { label: string; logs: object[]; width?: number; expected: string }
         }
       }
     ],
-    width: 25,    
+    width: 25,
     expected: '[#---------] 10% ...label'
   }
 ] as const;
