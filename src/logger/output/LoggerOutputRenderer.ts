@@ -14,7 +14,7 @@ const formatDiff = (diffInMs: number) => {
 
 const icons = {
   [LogLevel.debug]: ANSI_BLUE + '<o>',
-  [LogLevel.info]: '  ',
+  [LogLevel.info]: '   ',
   [LogLevel.warn]: ANSI_YELLOW + '/!\\',
   [LogLevel.error]: ANSI_RED + '(X)',
   [LogLevel.fatal]: ANSI_MAGENTA + 'o*!'
@@ -32,6 +32,7 @@ export const LoggerOutputRenderer = {
         icons[level],
         ANSI_YELLOW,
         formatDiff(timestamp - startedAt),
+        ' ',
         ANSI_WHITE,
         message,
         data ? JSON.stringify(data) : '',
