@@ -20,8 +20,12 @@ const icons = {
   [LogLevel.fatal]: ANSI_MAGENTA + 'o*!'
 } as const;
 
-export class LoggerOutputRenderer {
-  static render (configuration: Configuration, startedAt: ReturnType<typeof Date.now>, attributes: InternalLogAttributes): string | void {
+export const LoggerOutputRenderer = {
+  render(
+    configuration: Configuration,
+    startedAt: ReturnType<typeof Date.now>,
+    attributes: InternalLogAttributes
+  ): string | void {
     const { level, timestamp, source, message, data, error } = attributes;
     if (source !== 'progress' && source !== 'metric' && level !== LogLevel.debug) {
       return [
@@ -36,4 +40,4 @@ export class LoggerOutputRenderer {
       ].join('');
     }
   }
-}
+};
