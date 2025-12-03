@@ -36,7 +36,8 @@ export const LoggerOutputRenderer = {
         message,
         data ? JSON.stringify(data) : '',
         error ? `${ANSI_RED}${(error as Error).name} ${(error as Error).message}` : '',
-        ANSI_YELLOW
+        ANSI_YELLOW,
+        '\n'
       ].join('');
     }
   }
