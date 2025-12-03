@@ -7,6 +7,7 @@ import type { ChildProcess } from 'node:child_process';
 import { spawn, exec } from 'node:child_process';
 import { machine, cpus } from 'node:os';
 import type { Configuration } from './configuration/Configuration.js';
+import { ANSI_BLUE, ANSI_WHITE } from './terminal/ansi.js';
 
 class Process {
   private _stdout: string[] = [];
@@ -110,8 +111,8 @@ export class Platform {
       workerData: data
     });
     if (Platform.isLocalDevelopment) {
-      worker.on('online', () => console.log(`🧢 Worker ${name} online`));
-      worker.on('exit', () => console.log(`🧢 Worker ${name} offline`));
+      worker.on('online', () => console.log(`${ANSI_BLUE}[~]${ANSI_WHITE} Worker ${name} online`));
+      worker.on('exit', () => console.log(`${ANSI_BLUE}[~]${ANSI_WHITE} Worker ${name} offline`));
     }
     return worker;
   };
