@@ -32,9 +32,7 @@ const start = () => {
     const { data: message } = event;
     if (message.command === 'ready') {
       const index = waitingFor.indexOf(message.source);
-      if (index !== -1) {
-        waitingFor.splice(index, 1);
-      }
+      waitingFor.splice(index, 1); // Only two ready messages will be sent
       ready = waitingFor.length === 0;
       if (ready && buffer.length > 0) {
         for (const buffered of buffer) {
