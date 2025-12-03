@@ -6,6 +6,7 @@ import zlib from 'node:zlib';
 import type { ChildProcess } from 'node:child_process';
 import { spawn, exec } from 'node:child_process';
 import { machine, cpus } from 'node:os';
+import type { Configuration } from './configuration/Configuration.js';
 
 class Process {
   private _stdout: string[] = [];
@@ -114,7 +115,7 @@ export class Platform {
     }
     return worker;
   };
-  static readonly workerData = workerData as object;
+  static readonly workerData = workerData as { configuration: Configuration };
 
   static readonly spawn: (command: string, arguments_: string[]) => Process = (command, arguments_) => {
     return new Process(spawn(command, arguments_));
