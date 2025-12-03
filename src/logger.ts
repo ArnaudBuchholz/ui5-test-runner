@@ -1,6 +1,12 @@
 import type { Configuration } from './configuration/Configuration.js';
-import type { LogErrorAttributes, InternalLogAttributes, LogAttributes, LogMessage } from './loggerTypes.js';
-import { LogLevel } from './loggerTypes.js';
+import type {
+  LogErrorAttributes,
+  InternalLogAttributes,
+  LogAttributes,
+  LogMessage,
+  ReadySource
+} from './logger/types.js';
+import { LogLevel, toInternalLogAttributes } from './logger/types.js';
 import { Platform } from './Platform.js';
 import assert from 'node:assert/strict';
 
@@ -8,8 +14,8 @@ import assert from 'node:assert/strict';
 let channel: ReturnType<typeof Platform.createBroadcastChannel>;
 let loggerWorker: ReturnType<typeof Platform.createWorker> | undefined;
 let consoleWorker: ReturnType<typeof Platform.createWorker> | undefined;
-const buffer: (InternalLogAttributes & LogAttributes)[] = [];
-const waitingFor = ['console', 'logger'];
+const buffer: InternalLogAttributes[] = [];
+const waitingFor: ReadySource[] = ['allCompressed', 'output'];
 let ready = false;
 
 let metricsMonitorInterval: ReturnType<typeof setInterval>;
@@ -65,14 +71,7 @@ const convertErrorToAttributes = (error: unknown): LogErrorAttributes => {
 };
 
 const log = (level: LogLevel, attributes: LogAttributes) => {
-  const allAttributes: InternalLogAttributes & LogAttributes = {
-    timestamp: Date.now(),
-    level,
-    processId: Platform.pid,
-    threadId: Platform.threadId,
-    isMainThread: Platform.isMainThread,
-    ...attributes
-  };
+  const allAttributes = toInternalLogAttributes(attributes, level);
   if (attributes.error) {
     allAttributes.error = convertErrorToAttributes(attributes.error);
   }

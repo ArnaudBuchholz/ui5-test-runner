@@ -1,8 +1,8 @@
 import { it, expect, vi } from 'vitest';
 import { Platform } from '../Platform.js';
 import { MAX_BUFFER_SIZE } from './allCompressed.js';
-import type { LogMessage } from '../loggerTypes.js';
-import { LogLevel } from '../loggerTypes.js';
+import type { LogMessage } from './types.js';
+import { LogLevel } from './types.js';
 
 // Must be done before importing ./logger.ts
 vi.hoisted(() => {

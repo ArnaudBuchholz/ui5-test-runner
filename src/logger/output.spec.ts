@@ -1,9 +1,19 @@
-import { it, expect, vi } from 'vitest';
+import { it, expect, vi, beforeEach } from 'vitest';
 import { Platform } from '../Platform.js';
-import type { LogMessage, LogSource } from '../loggerTypes.js';
-import { LogLevel } from '../loggerTypes.js';
+import type { LogMessage } from './types.js';
+import { LogLevel } from './types.js';
+import { LoggerOutputFactory } from './output/factory.js';
+import { LoggerOutputRenderer } from './output/LoggerOutputRenderer.js';
 
-const spyOnLog = vi.spyOn(console, 'log').mockImplementation(() => {}); // No output
+const appendToLoggerOutput = vi.fn();
+const closeLoggerOutput = vi.fn();
+vi.spyOn(LoggerOutputFactory, 'build').mockReturnValue({
+  appendToLoggerOutput,
+  closeLoggerOutput
+});
+const render = vi.spyOn(LoggerOutputRenderer, 'render').mockReturnValue('log');
+
+vi.useFakeTimers();
 
 vi.mock('../Platform.js', () => {
   const channel = {
@@ -13,13 +23,12 @@ vi.mock('../Platform.js', () => {
   };
   const Platform = {
     workerData: { configuration: { cwd: './tmp', reportDir: './tmp' } },
-    join: (a: string, b: string) => `${a}/${b}`,
-    createBroadcastChannel: vi.fn(() => channel),
-    writeOnTerminal: vi.fn(),
-    writeFileSync: vi.fn()
+    createBroadcastChannel: vi.fn(() => channel)
   };
   return { Platform };
 });
+
+beforeEach(() => vi.clearAllMocks());
 
 const postMessage = (channel: ReturnType<typeof Platform.createBroadcastChannel>, data: LogMessage) =>
   // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-argument
@@ -31,24 +40,55 @@ it('broadcasts an initial { ready: true }', async () => {
   expect(channel.postMessage).toHaveBeenCalledWith({ command: 'ready', source: 'output' } satisfies LogMessage);
 });
 
-it('closes the broadcast channel when the terminate signal is received', async () => {
+it('closes the broadcast channel and the loggerOutput when the terminate signal is received', async () => {
   await import('./output.js');
   const channel = Platform.createBroadcastChannel('logger');
   postMessage(channel, { command: 'terminate' });
   expect(channel.close).toHaveBeenCalled();
+  expect(closeLoggerOutput).toHaveBeenCalled();
 });
 
-it.todo('logs traces coming in (no filtering for now)', async () => {
+it('logs traces if renderer allows it', async () => {
   await import('./output.js');
   const channel = Platform.createBroadcastChannel('logger');
-  postMessage(channel, {
+  const logMessage: LogMessage = {
     command: 'log',
+    timestamp: 123,
     level: LogLevel.info,
-    timestamp: Date.now(),
-    processId: 0,
-    threadId: 0,
-    source: 'test' as LogSource,
+    processId: 1,
+    threadId: 2,
+    isMainThread: true,
+    source: 'job',
     message: 'Hello World !'
-  } as LogMessage);
-  expect(spyOnLog).toHaveBeenCalled();
+  };
+  postMessage(channel, logMessage);
+  expect(render).toHaveBeenCalledWith(
+    Platform.workerData.configuration,
+    vi.getMockedSystemTime()?.getTime(),
+    logMessage
+  );
+  expect(appendToLoggerOutput).toHaveBeenCalledWith('log');
+});
+
+it('does not log traces if renderer denies it', async () => {
+  await import('./output.js');
+  const channel = Platform.createBroadcastChannel('logger');
+  const logMessage: LogMessage = {
+    command: 'log',
+    timestamp: 123,
+    level: LogLevel.info,
+    processId: 1,
+    threadId: 2,
+    isMainThread: true,
+    source: 'job',
+    message: 'Hello World !'
+  };
+  render.mockReturnValueOnce();
+  postMessage(channel, logMessage);
+  expect(render).toHaveBeenCalledWith(
+    Platform.workerData.configuration,
+    vi.getMockedSystemTime()?.getTime(),
+    logMessage
+  );
+  expect(appendToLoggerOutput).not.toHaveBeenCalledWith('log');
 });

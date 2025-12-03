@@ -1,8 +1,8 @@
 import { Platform } from '../../Platform.js';
 import type { Configuration } from '../../configuration/Configuration.js';
 import type { ILoggerOutput } from './ILoggerOutput.js';
-import { InteractiveLoggerOutput } from './InteractiveOutput.js';
-import { StaticLoggerOutput } from './StaticOutput.js';
+import { InteractiveLoggerOutput } from './InteractiveLoggerOutput.js';
+import { StaticLoggerOutput } from './StaticLoggerOutput.js';
 
 export const LoggerOutputFactory = {
   build(configuration: Configuration): ILoggerOutput {

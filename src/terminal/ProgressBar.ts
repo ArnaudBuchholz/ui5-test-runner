@@ -1,6 +1,6 @@
 import { assert } from '../assert.js';
-import type { InternalLogAttributes, LogAttributes } from '../loggerTypes.js';
-import { LogLevel } from '../loggerTypes.js';
+import type { InternalLogAttributes, LogAttributes } from '../logger/types.js';
+import { LogLevel } from '../logger/types.js';
 
 export class ProgressBar {
   static readonly WIDTH = 10;

@@ -2,8 +2,8 @@ import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { Platform } from './Platform.js';
 import { AssertionError } from 'node:assert';
 import type { Configuration } from './configuration/Configuration.js';
-import { LogLevel } from './loggerTypes.js';
-import type { LogMessage } from './loggerTypes.js';
+import { LogLevel } from './logger/types.js';
+import type { LogMessage } from './logger/types.js';
 
 const expectAnyString = expect.any(String) as string;
 
@@ -42,8 +42,8 @@ const postMessage = (channel: ReturnType<typeof Platform.createBroadcastChannel>
   channel.onmessage({ data } as any);
 
 const ready = (channel: ReturnType<typeof Platform.createBroadcastChannel>) => {
-  postMessage(channel, { command: 'ready', source: 'console' });
-  postMessage(channel, { command: 'ready', source: 'logger' });
+  postMessage(channel, { command: 'ready', source: 'allCompressed' });
+  postMessage(channel, { command: 'ready', source: 'output' });
 };
 
 describe('general', () => {

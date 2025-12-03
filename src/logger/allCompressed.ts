@@ -1,6 +1,6 @@
 import { Platform } from '../Platform.js';
-import type { InternalLogAttributes, LogAttributes, LogMessage } from '../loggerTypes.js';
-import { LogLevel } from '../loggerTypes.js';
+import type { InternalLogAttributes, LogAttributes, LogMessage } from './types.js';
+import { LogLevel, toInternalLogAttributes } from './types.js';
 import type { Configuration } from '../configuration/Configuration.js';
 import '../logger.js';
 
@@ -28,7 +28,7 @@ const gzFlushBuffer = () => {
 
 const reduceNumber = (value: number) => Number(value).toString(36);
 
-const log = (attributes: InternalLogAttributes & LogAttributes) => {
+const log = (attributes: InternalLogAttributes) => {
   const { level, timestamp, processId, threadId, isMainThread, source, message, data } = attributes;
   const compressed = `${level.toString()}${reduceNumber(timestamp)}:${reduceNumber(processId)}:${reduceNumber(threadId)}${isMainThread ? '!' : ''}:${source}:${message}`;
   gzBuffer.push(data ? [compressed, data] : compressed);
@@ -39,15 +39,7 @@ const log = (attributes: InternalLogAttributes & LogAttributes) => {
   }
 };
 
-const _log = (attributes: LogAttributes) =>
-  log({
-    timestamp: Date.now(),
-    level: LogLevel.info,
-    processId: process.pid,
-    threadId: Platform.threadId,
-    isMainThread: Platform.isMainThread,
-    ...attributes
-  } satisfies InternalLogAttributes & LogAttributes);
+const _log = (attributes: LogAttributes) => log(toInternalLogAttributes(attributes, LogLevel.info));
 
 const channel = Platform.createBroadcastChannel('logger');
 channel.onmessage = (event: { data: LogMessage }) => {

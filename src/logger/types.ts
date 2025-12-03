@@ -1,3 +1,5 @@
+import { Platform } from '../Platform.js';
+
 export type LogErrorAttributes = {
   name: string;
   message: string;
@@ -60,7 +62,18 @@ export type InternalLogAttributes = {
   threadId: number;
   /** indicates if this is the main thread */
   isMainThread: boolean;
-};
+} & LogAttributes;
+
+export const toInternalLogAttributes = (attributes: LogAttributes, level: LogLevel): InternalLogAttributes => ({
+  timestamp: Date.now(),
+  level,
+  processId: Platform.pid,
+  threadId: Platform.threadId,
+  isMainThread: Platform.isMainThread,
+  ...attributes
+});
+
+export type ReadySource = 'allCompressed' | 'output';
 
 /** To be used on the broadcast channel */
 export type LogMessage =
@@ -69,9 +82,8 @@ export type LogMessage =
     }
   | {
       command: 'ready';
-      source: 'allCompressed' | 'output';
+      source: ReadySource;
     }
   | ({
       command: 'log';
-    } & InternalLogAttributes &
-      LogAttributes);
+    } & InternalLogAttributes);
