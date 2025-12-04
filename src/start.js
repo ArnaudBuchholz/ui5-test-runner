@@ -127,6 +127,7 @@ async function start (job) {
     }
     if (!startProcessExited) {
       output.failedToTerminateStartCommand()
+      startProcess.unref() // the runner shall not be blocked by this process
       startProcess.kill()
     }
   }
