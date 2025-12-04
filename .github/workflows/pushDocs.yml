@@ -1,10 +1,10 @@
 name: docs
 on:
-  # push:
-  #   paths:
-  #     - docs/**
-  #   branches:
-  #     - main
+  push:
+    paths:
+      - docs/**
+    branches:
+      - 5.x.y
 permissions:
   contents: write
 jobs:
