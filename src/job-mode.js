@@ -41,16 +41,13 @@ function buildAndCheckMode (job) {
       'batchMode',
       'batchId',
       'batchLabel',
-      'ci'
+      'ci',
+      'if'
     ])
     return 'capabilities'
   }
   if (job.url && job.url.length) {
     check(job, undefined, [
-      'ui5',
-      'libs',
-      'mappings',
-      'cache',
       'testsuite'
     ])
     return 'url'
