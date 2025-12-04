@@ -17,6 +17,7 @@ const buildCacheBase = job => {
 }
 
 const ui5mappings = async job => {
+  const output = getOutput(job)
   const cacheBase = buildCacheBase(job)
   const match = /\/((?:test-)?resources\/.*)/ // Captured value never starts with /
   const ifCacheEnabled = () => job.cache
@@ -35,12 +36,12 @@ const ui5mappings = async job => {
     const versionUrl = mappingUrl.replace('$1', 'resources/sap-ui-version.json')
     const versionResponse = await fetch(versionUrl)
     if (versionResponse.status !== 200) {
-      getOutput(job).log('Unable to fetch UI5 version: ' + versionResponse.status + ' ' + versionResponse.statusText)
+      output.log('Unable to fetch UI5 version: ' + versionResponse.status + ' ' + versionResponse.statusText)
       throw new Error('Unable to fetch UI5 version')
     }
     const version = await versionResponse.json()
     const { version: coreVersion } = version.libraries.find(({ name }) => name === 'sap.ui.core')
-    getOutput(job).log('UI5 version used by the local server: ' + coreVersion)
+    output.log('UI5 version used by the local server: ' + coreVersion)
   }
 
   const mappings = [{
@@ -86,7 +87,7 @@ const ui5mappings = async job => {
           file.end()
           uncachable[path] = true
           if (response.statusCode !== 404) {
-            getOutput(job).failedToCacheUI5resource(path, response.statusCode)
+            output.failedToCacheUI5resource(path, response.statusCode)
           }
           return unlink(cachePath)
         })
@@ -107,12 +108,24 @@ const ui5mappings = async job => {
     }
     const relativeUrl = relative.replace(/\//g, '\\/')
     if (source.startsWith(job.webapp)) {
-      const relativeAbsoluteUrl = '/' + relativePath(job.webapp, source).replace(/\\/g, '/')
-      getOutput(job).debug('libs', `${relative} maps to webapp sub directory, use internal redirection to ${relativeAbsoluteUrl}`)
-      mappings.unshift({
-        match: new RegExp(`\\/resources\\/${relativeUrl}(.*)`),
-        custom: (request, response, $1) => `${relativeAbsoluteUrl}${$1}`
-      })
+      if (relative === '*') {
+        // Special handling to support webapp/resources folder (/!\ coverage won't be extracted for those files)
+        output.debug('libs', '* map to webapp sub directory (expected resources), use file access')
+        mappings.unshift({
+          match: /\/resources\/(.*)/,
+          cwd: source,
+          file: '$1',
+          static: !job.watch && !job.debugDevMode
+        })
+      } else {
+        // Use redirection to support local coverage instrumentation
+        const relativeAbsoluteUrl = '/' + relativePath(job.webapp, source).replace(/\\/g, '/')
+        output.debug('libs', `${relative} maps to webapp sub directory, use internal redirection to ${relativeAbsoluteUrl}`)
+        mappings.unshift({
+          match: new RegExp(`\\/resources\\/${relativeUrl}(.*)`),
+          custom: (request, response, $1) => `${relativeAbsoluteUrl}${$1}`
+        })
+      }
     } else {
       mappings.unshift({
         match: new RegExp(`\\/resources\\/${relativeUrl}(.*)`),
@@ -123,9 +136,9 @@ const ui5mappings = async job => {
         match: new RegExp(`\\/resources\\/${relativeUrl}(.*)`),
         custom: (request, response, $1) => {
           if ($1 === undefined) {
-            getOutput(job).debug('libs', `Unable to map ${relative} : $1 is undefined`)
+            output.debug('libs', `Unable to map ${relative} : $1 is undefined`)
           } else {
-            getOutput(job).debug('libs', `Unable to map ${relative}/${$1} to ${join(source, $1)}`)
+            output.debug('libs', `Unable to map ${relative}/${$1} to ${join(source, $1)}`)
           }
           return 404
         }

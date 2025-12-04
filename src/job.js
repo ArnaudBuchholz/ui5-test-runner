@@ -159,7 +159,7 @@ function getCommand (cwd) {
     // Specific to legacy (and might be used with url if pointing to local project)
     .option('--ui5 <url>', '[💻📡] UI5 url', url, 'https://ui5.sap.com')
     .option('--disable-ui5 [flag]', '[💻📡] Disable UI5 mapping (also disable libs)', boolean, false)
-    .option('--libs <lib...>', '[💻📡] Library mapping (<relative>=<path> or <path>)', arrayOf(lib))
+    .option('--libs <lib...>', '[💻📡] Library mapping (<relative>=<path> or <path>), use *=webapp/resources to map resources sub folder', arrayOf(lib))
     .option('--mappings <mapping...>', '[💻📡] Custom mapping (<match>=<file|url>(<config>))', arrayOf(mapping))
     .option('--cache <path>', '[💻📡] Cache UI5 resources locally in the given folder (empty to disable)')
     .option('--preload <library...>', '[💻📡] Preload UI5 libraries in the cache folder (only if --cache is used)', arrayOf(string))
