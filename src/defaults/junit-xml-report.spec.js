@@ -3,11 +3,10 @@ const { allocPromise, recreateDir } = require('../tools')
 const { copyFile, readFile } = require('fs').promises
 
 describe('junit-xml-report', () => {
-
   const baseReportDir = join(__dirname, '../../tmp/junit-xml-report')
   const mockExit = jest.spyOn(process, 'exit')
 
-  beforeEach(() => jest.resetModules());
+  beforeEach(() => jest.resetModules())
 
   async function executeXMLReporter () {
     const { promise, resolve } = allocPromise()
