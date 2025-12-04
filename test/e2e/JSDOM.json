@@ -1,6 +1,7 @@
 {
   "batchId": "JSDOM",
   "batchLabel": "JSDOM browser",
+  "if": "E2E_IGNORE_BROWSER !== 'true'",
   "capabilities": null,
   "debugKeepReport": null,
   "browser": "$/jsdom.js"

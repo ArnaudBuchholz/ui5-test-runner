@@ -1,6 +1,7 @@
 {
   "batchId": "SELENIUM",
   "batchLabel": "Selenium-webdriver browser (chrome)",
+  "if": "E2E_IGNORE_BROWSER !== 'true'",
   "capabilities": null,
   "debugKeepReport": null,
   "browser": "$/selenium-webdriver.js",
