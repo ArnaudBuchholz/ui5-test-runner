@@ -2,6 +2,7 @@
   "batchId": "JS_LEGACY_NO_SCRIPT",
   "batchLabel": "Legacy JS Sample (no script injection)",
   "cwd": "../sample.js",
+  "libs": ["*=webapp/resources"],
   "debugCapabilitiesNoScript": null,
   "end": "../e2e/check.js --qunit-pages 2"
 }

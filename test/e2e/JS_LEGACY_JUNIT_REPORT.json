@@ -2,6 +2,7 @@
   "batchId": "JS_LEGACY_JUNIT_REPORT",
   "batchLabel": "Legacy JS Sample with junit XML report",
   "cwd": "../sample.js",
+  "libs": ["*=webapp/resources"],
   "reportGenerator": ["$/report.js", "$/junit-xml-report.js"],
   "end": "../e2e/check.js --qunit-pages 2 --junit-xml-report"
 }

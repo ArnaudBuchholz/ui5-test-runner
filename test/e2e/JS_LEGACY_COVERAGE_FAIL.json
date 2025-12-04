@@ -2,6 +2,7 @@
   "batchId": "JS_LEGACY_COVERAGE_FAIL",
   "batchLabel": "Legacy JS Sample with coverage threshold failure",
   "cwd": "../sample.js",
+  "libs": ["*=webapp/resources"],
   "noScreenshot": null,
   "coverage": true,
   "coverageSettings": "./.nycrc.json",

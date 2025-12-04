@@ -2,5 +2,6 @@
   "batchId": "JS_LEGACY",
   "batchLabel": "Legacy JS Sample",
   "cwd": "../sample.js",
+  "libs": ["*=webapp/resources"],
   "end": "../e2e/check.js --qunit-pages 2"
 }

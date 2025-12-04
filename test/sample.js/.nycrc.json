@@ -2,6 +2,8 @@
   "all": true,
   "sourceMap": false,
   "exclude": [
-    "**/test/**/*.js"
+    "**/test/**/*.js",
+    "resources/**/*.js",
+    "report/**/*.js"
   ]  
 }

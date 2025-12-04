@@ -2,6 +2,7 @@
   "batchId": "JS_LEGACY_OPA_404",
   "batchLabel": "Legacy JS Sample",
   "cwd": "../sample.js",
+  "libs": ["*=webapp/resources"],
   "testsuite": "test/testsuite.qunit-opa-404.html",
   "globalTimeout": "15s",
   "end": "../e2e/check.js --failed"

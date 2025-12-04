@@ -6,6 +6,9 @@
   }, {
     "custom": "./basic_authent.js"
   }, {
+    "match": "/resources/(.*)",
+    "file": "./webapp/resources/$1"
+  }, {
     "match": "/([test-]*resources/.*)",
     "url": "https://ui5.sap.com/$1"
   }, {
