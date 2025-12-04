@@ -16,6 +16,7 @@
     "\\.spec\\.js",
     "output\\.js",
     "handle\\.js",
+    "coverage\\.js",
     "b\\capabilities\\b"
   ],
   "coverageThreshold": {
