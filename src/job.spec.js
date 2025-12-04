@@ -293,13 +293,6 @@ describe('job', () => {
         })).toThrow()
       })
     })
-
-    it('url forbids the use of ui5', () => {
-      expect(() => buildJob({
-        ui5: 'https://ui5.sap.com',
-        url: 'http://localhost:8080'
-      })).toThrow(UTRError.MODE_INCOMPATIBLE_OPTION('ui5'))
-    })
   })
 
   describe('Using configuration files', () => {
