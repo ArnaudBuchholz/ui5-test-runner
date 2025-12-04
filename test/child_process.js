@@ -93,6 +93,7 @@ class ChildProcess extends EventEmitter {
   get stderr () { return this._stderr }
   get exitCode () { return this._exitCode }
 
+  unref () {}
   kill () {
     this._killed = true
   }
