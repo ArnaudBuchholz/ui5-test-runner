@@ -68,7 +68,7 @@ Check additional information below.
 | --end-timeout &lt;timeout> | 💻🔗 | Maximum waiting time for the end script|`15000` |
 | --ui5 &lt;url> | 💻📡 | UI5 url|`"https://ui5.sap.com"` |
 | --disable-ui5 [flag] | 💻📡 | Disable UI5 mapping (also disable libs)|`false` |
-| --libs &lt;lib...> | 💻📡 | Library mapping (&lt;relative>=&lt;path> or &lt;path>)| |
+| --libs &lt;lib...> | 💻📡 | Library mapping (&lt;relative>=&lt;path> or &lt;path>), use *=webapp/resources to map resources sub folder| |
 | --mappings &lt;mapping...> | 💻📡 | Custom mapping (&lt;match>=&lt;file\|url>(&lt;config>))| |
 | --cache &lt;path> | 💻📡 | Cache UI5 resources locally in the given folder (empty to disable)| |
 | --preload &lt;library...> | 💻📡 | Preload UI5 libraries in the cache folder (only if --cache is used)| |
