@@ -4,12 +4,12 @@
 name: Node.js CI
 
 on:
-  # push:
-  #   paths-ignore:
-  #     - 'docs/**'
-  #     - 'articles/**'
-  #     - '.github/**'
-  #   branches: [ main ]
+  push:
+    paths-ignore:
+      - 'docs/**'
+      - 'articles/**'
+      - '.github/**'
+    branches: [ 5.x.y ]
   # pull_request:
   #   paths-ignore:
   #     - 'docs/**'
