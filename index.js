@@ -58,13 +58,13 @@ async function main () {
   }
   output.reportOnJobProgress()
   checkLatest(job, name, version)
-  if (job.mode === 'capabilities') {
-    return capabilities(job)
-  }
   if (job.if && !executeIf(job)) {
     output.skipIf()
     output.stop()
     return
+  }
+  if (job.mode === 'capabilities') {
+    return capabilities(job)
   }
 
   let startedCommand
