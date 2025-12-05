@@ -23,7 +23,7 @@
 |offline||Limit network usage (implies --no-npm-install)|boolean||||💻🔗🧪📡
 |env||Set environment variable (syntax: name=value)|string|✅|||💻🔗🧪📡
 |localhost||Hostname for legacy URLs and callbacks|string||'localhost'||💣💻🔗🧪📡
-|ci||CI mode (no interactive output)|boolean||||💻🔗🧪📡
+|ci||CI mode (no interactive output)|boolean|!process.stdout.isTTY|||💻🔗🧪📡
 |deepProbe||Deep probe (recursive, slower)|boolean||||💻🔗🧪📡
 |probeParallel||Number of parallel probes (0 to use --parallel)|integer||||💻🔗🧪📡
 |webapp||Base folder of the web application|folder||||💻🔗
