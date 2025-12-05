@@ -1,27 +1,33 @@
 import { stripVTControlCharacters } from 'node:util';
 import { Platform } from '../../Platform.js';
-import type { ILoggerOutput } from './ILoggerOutput.js';
-import { appendToReport } from './report.js';
+import { AbstractLoggerOutput } from './AbstractLoggerOutput.js';
 import type { Configuration } from '../../configuration/Configuration.js';
 import { ANSI_HIDE_CURSOR, ANSI_SHOW_CURSOR } from '../../terminal/ansi.js';
+import { InternalLogAttributes } from '../types.js';
 
 // const TICKS = ['|', '/', '-', '\\'];
 // let interactiveIntervalId: ReturnType<typeof setInterval> | undefined;
 
-export class InteractiveLoggerOutput implements ILoggerOutput {
-  private _reportDir: string;
+export class InteractiveLoggerOutput extends AbstractLoggerOutput {
+  private _noColor: boolean;
 
   constructor(configuration: Configuration) {
-    this._reportDir = configuration.reportDir;
+    super(configuration);
+    this._noColor = !!process.env['NO_COLOR'];
     Platform.writeOnTerminal(ANSI_HIDE_CURSOR);
   }
 
-  appendToLoggerOutput(lines: string): void {
-    appendToReport(this._reportDir, stripVTControlCharacters(lines));
-    Platform.writeOnTerminal(lines);
+  addTextToLoggerOutput(lines: string): void {
+    const raw = stripVTControlCharacters(lines);
+    this.addToReport(raw);
+    Platform.writeOnTerminal(this._noColor ? raw : lines);
   }
 
-  closeLoggerOutput(): void {
+  protected override renderAttributes(attributes: InternalLogAttributes): boolean {
+    return true;
+  }
+
+  override closeLoggerOutput(): void {
     Platform.writeOnTerminal(ANSI_SHOW_CURSOR);
   }
 }

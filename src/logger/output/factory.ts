@@ -1,13 +1,12 @@
-import { Platform } from '../../Platform.js';
 import type { Configuration } from '../../configuration/Configuration.js';
-import type { ILoggerOutput } from './ILoggerOutput.js';
+import { AbstractLoggerOutput } from './AbstractLoggerOutput.js';
 import { InteractiveLoggerOutput } from './InteractiveLoggerOutput.js';
 import { StaticLoggerOutput } from './StaticLoggerOutput.js';
 
 export const LoggerOutputFactory = {
-  build(configuration: Configuration): ILoggerOutput {
+  build(configuration: Configuration): AbstractLoggerOutput {
     const { ci } = configuration;
-    return !ci && Platform.isTextTerminal
+    return !ci
       ? new InteractiveLoggerOutput(configuration)
       : new StaticLoggerOutput(configuration);
   }
