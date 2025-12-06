@@ -1,8 +1,9 @@
-import { it, expect, vi } from 'vitest';
+import { it, expect, vi, beforeAll } from 'vitest';
 import { Platform } from '../Platform.js';
-import { MAX_BUFFER_SIZE } from './allCompressed.js';
+import { MAX_BUFFER_SIZE, workerMain } from './allCompressed.js';
 import type { LogMessage } from './types.js';
 import { LogLevel } from './types.js';
+import type { Configuration } from '../configuration/Configuration.js';
 
 // Must be done before importing ./logger.ts
 vi.hoisted(() => {
@@ -28,12 +29,13 @@ vi.mock('../Platform.js', async (importActual) => {
     ...actual.Platform,
     isMainThread: false, // This worker is not in the main thread
     createBroadcastChannel: vi.fn(() => channel),
-    workerData: { configuration: { cwd: './tmp' } },
     createWriteStream: vi.fn(() => writeStream),
     createGzip: vi.fn(() => gzipStream)
   };
   return { Platform };
 });
+
+beforeAll(() => workerMain({ configuration: { cwd: './tmp' } } as { configuration: Configuration }));
 
 const channel = Platform.createBroadcastChannel('logger');
 // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-argument -- Simpler this way
