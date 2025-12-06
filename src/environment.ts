@@ -3,7 +3,7 @@ import { Platform } from './Platform.js';
 
 export const logEnvironnement = async () => {
   const { name, version } = JSON.parse(
-    await Platform.readFile(Platform.join(__dirname, '../package.json'), 'utf8')
+    await Platform.readFile(Platform.join(Platform.sourcesRoot, '../package.json'), 'utf8')
   ) as { name: string; version: string };
   const now = new Date();
   logger.info({
