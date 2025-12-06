@@ -17,7 +17,7 @@ export const execute = async (configuration: Configuration) => {
   } else {
     logger.start(configuration);
     await logEnvironnement();
-    const agent = await Platform.readFile(Platform.join(__dirname, './agent/agent.js'), 'utf8');
+    const agent = await Platform.readFile(Platform.join(Platform.sourcesRoot, './agent/agent.js'), 'utf8');
     try {
       if (!configuration.url) {
         logger.fatal({ source: 'job', message: 'Expected URLs to be set' });
