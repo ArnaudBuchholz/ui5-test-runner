@@ -26,10 +26,10 @@ export type LogSource = (typeof LogSource)[keyof typeof LogSource];
 export type LogAttributes = {
   message: string;
   error?: unknown;
+  data?: object;
 } & (
   | {
       source: GenericLogSource;
-      data?: object;
     }
   | {
       source: 'progress';
