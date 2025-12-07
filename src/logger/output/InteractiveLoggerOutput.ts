@@ -3,7 +3,7 @@ import { Platform } from '../../Platform.js';
 import { AbstractLoggerOutput } from './AbstractLoggerOutput.js';
 import type { Configuration } from '../../configuration/Configuration.js';
 import { ANSI_HIDE_CURSOR, ANSI_SHOW_CURSOR } from '../../terminal/ansi.js';
-import { InternalLogAttributes } from '../types.js';
+import type { InternalLogAttributes } from '../types.js';
 
 // const TICKS = ['|', '/', '-', '\\'];
 // let interactiveIntervalId: ReturnType<typeof setInterval> | undefined;
