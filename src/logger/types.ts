@@ -40,6 +40,9 @@ export type LogAttributes = {
         remove?: true;
       };
     }
+  | {
+      source: 'assert';
+    }
 );
 
 export const LogLevel = {
