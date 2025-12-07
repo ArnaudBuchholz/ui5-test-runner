@@ -5,12 +5,15 @@ export class OptionValidationError extends Error {
     return new OptionValidationError({ name, type: 'string', description: 'unknown' }, 'Unknown option');
   }
 
+  private _option: Option;
+
   constructor(
-    private _option: Option,
+    option: Option,
     message: string = 'Invalid value',
     cause?: unknown
   ) {
     super(message);
+    this._option = option;
     this.name = 'OptionValidationError';
     this.cause = cause;
   }
