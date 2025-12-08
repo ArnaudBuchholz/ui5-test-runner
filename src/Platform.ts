@@ -1,13 +1,16 @@
 import { access, stat, constants, readFile, mkdir } from 'node:fs/promises';
 import { createWriteStream, writeFileSync } from 'node:fs';
-import { join, isAbsolute } from 'node:path';
-import { BroadcastChannel, Worker, isMainThread, threadId, workerData } from 'node:worker_threads';
+import { join, isAbsolute, dirname, extname } from 'node:path';
+import { BroadcastChannel, Worker, isMainThread, threadId } from 'node:worker_threads';
 import zlib from 'node:zlib';
 import type { ChildProcess } from 'node:child_process';
 import { spawn, exec } from 'node:child_process';
 import { machine, cpus } from 'node:os';
-import type { Configuration } from './configuration/Configuration.js';
+import { fileURLToPath } from 'node:url';
 import { ANSI_BLUE, ANSI_WHITE } from './terminal/ansi.js';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
 class Process {
   private _stdout: string[] = [];
@@ -53,16 +56,8 @@ class Process {
 
 /** This class simplifies mocking during tests */
 export class Platform {
-  /** Detect if local development */
-  static get isLocalDevelopment() {
-    if (process.env['IS_LOCAL_DEVELOPMENT']) {
-      return true;
-    }
-    if (isMainThread) {
-      const { _preload_modules: preloadModules } = process as unknown as { _preload_modules: string[] };
-      return preloadModules.some((path: string) => path.includes('tsx'));
-    }
-    return false;
+  static get sourcesRoot() {
+    return __dirname;
   }
 
   static readonly isTextTerminal = process.stdout.isTTY;
@@ -93,30 +88,23 @@ export class Platform {
   static readonly isMainThread = isMainThread;
   static readonly createBroadcastChannel: (name: 'logger') => BroadcastChannel = (name) => new BroadcastChannel(name);
   static readonly createWorker: (name: string, data?: unknown) => Worker = (name, data) => {
-    let execArgv: string[] = [];
-    let workerPath: string;
-    let environment;
-    if (Platform.isLocalDevelopment) {
-      workerPath = join(__dirname, `${name}.ts`);
-      execArgv = ['--require', 'tsx'];
-      environment = {
-        IS_LOCAL_DEVELOPMENT: 'true'
-      };
-    } else {
-      workerPath = join(__dirname, `${name}.js`);
-    }
-    const worker = new Worker(workerPath, {
+    const extension = extname(import.meta.url);
+    const bootstrapPath = join(__dirname, 'workerBootstrap' + extension);
+    const workerPath = join(__dirname, name + extension);
+    const execArgv = extension === '.ts' ? ['--no-warnings', '--import', join(__dirname, '../js2ts.mjs')] : [];
+    const worker = new Worker(bootstrapPath, {
       execArgv,
-      env: environment,
-      workerData: data
+      workerData: {
+        path: workerPath,
+        data
+      }
     });
-    if (Platform.isLocalDevelopment) {
+    if (extension === '.ts') {
       worker.on('online', () => console.log(`${ANSI_BLUE}[~]${ANSI_WHITE} Worker ${name} online`));
       worker.on('exit', () => console.log(`${ANSI_BLUE}[~]${ANSI_WHITE} Worker ${name} offline`));
     }
     return worker;
   };
-  static readonly workerData = workerData as { configuration: Configuration };
 
   static readonly spawn: (command: string, arguments_: string[]) => Process = (command, arguments_) => {
     return new Process(spawn(command, arguments_));
