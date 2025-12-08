@@ -7,10 +7,11 @@ import type { ChildProcess } from 'node:child_process';
 import { spawn, exec } from 'node:child_process';
 import { machine, cpus } from 'node:os';
 import { fileURLToPath } from 'node:url';
-import { ANSI_BLUE, ANSI_WHITE } from './terminal/ansi.js';
+import { ANSI_BLUE, ANSI_RED, ANSI_WHITE } from './terminal/ansi.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
+const __developmentMode = __filename.endsWith('.ts');
 
 class Process {
   private _stdout: string[] = [];
@@ -99,7 +100,7 @@ export class Platform {
         data
       }
     });
-    if (extension === '.ts') {
+    if (__developmentMode) {
       worker.on('online', () => console.log(`${ANSI_BLUE}[~]${ANSI_WHITE} Worker ${name} online`));
       worker.on('exit', () => console.log(`${ANSI_BLUE}[~]${ANSI_WHITE} Worker ${name} offline`));
     }
@@ -116,4 +117,34 @@ export class Platform {
 
   static readonly createGzip = zlib.createGzip.bind(zlib);
   static readonly Z_FULL_FLUSH = zlib.constants.Z_FULL_FLUSH;
+
+  static readonly SIGINT_ANY = 0;
+  static readonly SIGINT_LOGGER = 999;
+
+  static registerSigIntHandler(callback: () => void | Promise<void>, type = this.SIGINT_ANY) {
+    if (type === Platform.SIGINT_LOGGER) {
+      _sigIntLoggerHandler = callback;
+    } else {
+      _sigIntHandlers.push(callback);
+    }
+  }
+}
+
+const _sigIntHandlers: (() => void | Promise<void>)[] = [];
+let _sigIntLoggerHandler: () => void | Promise<void> | undefined;
+
+if (isMainThread) {
+  // eslint-disable-next-line @typescript-eslint/no-misused-promises -- Promise not expected but used to wait before exiting
+  process.on('SIGINT', async () => {
+    if (__developmentMode) {
+      console.log(`${ANSI_BLUE}[~]${ANSI_WHITE} ${ANSI_RED}SIGINT${ANSI_WHITE} received`);
+    }
+    for (const handler of _sigIntHandlers) {
+      await handler();
+    }
+    if (_sigIntLoggerHandler) {
+      await _sigIntLoggerHandler();
+    }
+    process.exit(process.exitCode);
+  });
 }

@@ -88,12 +88,15 @@ if (!Platform.isMainThread) {
   start();
 }
 
+let stopping: Promise<void> | undefined;
+
 export const logger = {
   start(configuration: Configuration) {
     assert.ok(Platform.isMainThread, 'Call logger.start only in main thread');
     start();
     loggerWorker = Platform.createWorker('logger/allCompressed', { configuration });
     consoleWorker = Platform.createWorker('logger/output', { configuration });
+    Platform.registerSigIntHandler(() => logger.stop(), Platform.SIGINT_LOGGER);
   },
 
   debug(attributes: LogAttributes) {
@@ -114,6 +117,11 @@ export const logger = {
 
   async stop() {
     assert.ok(Platform.isMainThread, 'Call logger.stop only in main thread');
+    if (stopping) {
+      return await stopping;
+    }
+    const { promise, resolve } = Promise.withResolvers<void>();
+    stopping = promise;
     assert.ok(loggerWorker && consoleWorker, 'Call logger.stop only after starting');
     clearInterval(metricsMonitorInterval);
     const { promise: loggerPromise, resolve: loggerExited } = Promise.withResolvers();
@@ -123,5 +131,6 @@ export const logger = {
     channel.postMessage({ command: 'terminate' } satisfies LogMessage);
     await Promise.all([loggerPromise, consolePromise]);
     channel.close();
+    resolve();
   }
 };

@@ -6,6 +6,7 @@ import { logEnvironnement } from './environment.js';
 import { logger } from './logger.js';
 import { parallelize } from './parallelize.js';
 import { Platform } from './Platform.js';
+import { ANSI_BLUE, ANSI_WHITE } from './terminal/ansi.js';
 
 export const execute = async (configuration: Configuration) => {
   if (configuration.mode === Modes.version) {
@@ -16,6 +17,7 @@ export const execute = async (configuration: Configuration) => {
     console.log('Please check https://arnaudbuchholz.github.io/ui5-test-runner/');
   } else {
     logger.start(configuration);
+
     await logEnvironnement();
     const agent = await Platform.readFile(Platform.join(Platform.sourcesRoot, './agent/agent.js'), 'utf8');
     try {
@@ -26,15 +28,17 @@ export const execute = async (configuration: Configuration) => {
       const urls = configuration.url;
       const browser = await BrowserFactory.build('puppeteer');
       await browser.setup({});
-      await parallelize(
-        async (url: string) => {
+      let stopRequested = false;
+      const promise = parallelize(
+        // eslint-disable-next-line sonarjs/cognitive-complexity -- Temporary
+        async function (url: string) {
           const page = await browser.newWindow({
             scripts: [agent],
             url
           });
           const label = url.split('/test/')[1];
           let inProgress = true;
-          while (inProgress) {
+          while (inProgress && !stopRequested) {
             try {
               // Value must be serializable...
               const feedback = (await page.eval("window['ui5-test-runner']")) as AgentFeedback;
@@ -57,6 +61,9 @@ export const execute = async (configuration: Configuration) => {
               console.log(label, 'error');
             }
           }
+          if (stopRequested) {
+            this.stop(new Error('Stop requested'));
+          }
           logger.info({
             source: 'progress',
             message: url,
@@ -67,12 +74,17 @@ export const execute = async (configuration: Configuration) => {
         urls,
         2
       );
+      Platform.registerSigIntHandler(async () => {
+        stopRequested = true;
+        await promise;
+      });
+      await promise;
       await browser.shutdown();
     } catch (error) {
       logger.error({ source: 'job', message: 'An error occurred', error });
     } finally {
       await logger.stop();
-      console.log('🧢 done.');
+      console.log(`${ANSI_BLUE}[~]${ANSI_WHITE} done.`);
     }
   }
 };

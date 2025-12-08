@@ -2,6 +2,7 @@ import type { IBrowser } from './IBrowser.js';
 import type { launch as launchFunction, Browser } from 'puppeteer';
 import { Npm } from '../Npm.js';
 import { logger } from '../logger.js';
+import { Platform } from '../Platform.js';
 
 export const factory = async (): Promise<IBrowser> => {
   const puppeteer = await Npm.import('puppeteer');
@@ -13,7 +14,13 @@ export const factory = async (): Promise<IBrowser> => {
       logger.debug({ source: 'puppeteer', message: 'setup', data: settings });
       browser = await launch({
         headless: false,
-        defaultViewport: null
+        defaultViewport: null,
+        handleSIGINT: false
+      });
+      Platform.registerSigIntHandler(() => {
+        // eslint-disable-next-line sonarjs/void-use -- Contradicting with non awaited promise
+        void browser?.close();
+        browser = undefined;
       });
       return {
         screenshotFormat: '.png'
