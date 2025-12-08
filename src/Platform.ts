@@ -91,8 +91,9 @@ export class Platform {
   static readonly createWorker: (name: string, data?: unknown) => Worker = (name, data) => {
     const extension = extname(import.meta.url);
     const bootstrapPath = join(__dirname, 'workerBootstrap' + extension);
-    const workerPath = join(__dirname, name + extension);
-    const execArgv = extension === '.ts' ? ['--no-warnings', '--import', join(__dirname, '../js2ts.mjs')] : [];
+    const workerPath = './' + name + extension;
+    const js2tsUrl = new URL('../js2ts.mjs', import.meta.url).toString();
+    const execArgv = extension === '.ts' ? ['--no-warnings', '--import', js2tsUrl] : [];
     const worker = new Worker(bootstrapPath, {
       execArgv,
       workerData: {
