@@ -30,7 +30,7 @@ export abstract class AbstractLoggerOutput {
     this._startedAt = Date.now();
   }
 
-  protected render (attributes: InternalLogAttributes): string | void {
+  protected render(attributes: InternalLogAttributes): string | void {
     const { level, timestamp, source, message, data, error } = attributes;
     if (source !== 'progress' && source !== 'metric' && level !== LogLevel.debug) {
       return [
@@ -53,10 +53,11 @@ export abstract class AbstractLoggerOutput {
       encoding: 'utf8',
       flag: 'a'
     });
-  };
+  }
 
   abstract addTextToLoggerOutput(lines: string): void;
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars -- They must belong to the signature
   protected renderAttributes(attributes: InternalLogAttributes): boolean {
     return true;
   }
