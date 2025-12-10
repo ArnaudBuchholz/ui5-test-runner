@@ -1,5 +1,4 @@
 // see https://gist.github.com/fnky/458719343aabd01cfb17a3a4f7296797
-// use utils.stripVTControlCharacters to remove them
 
 const ESC = '\u001B';
 const CSI = `${ESC}[`;
