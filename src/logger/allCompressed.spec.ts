@@ -11,39 +11,16 @@ vi.hoisted(() => {
   vi.setSystemTime(new Date('2025-10-30T21:56:00.000Z'));
 });
 
-vi.mock('../Platform.js', async (importActual) => {
-  // eslint-disable-next-line @typescript-eslint/consistent-type-imports -- TODO: understand the error
-  const actual = await importActual<typeof import('../Platform.js')>();
-  const channel = {
-    postMessage: vi.fn(),
-    onmessage: undefined as ((data: unknown) => void) | undefined,
-    close: vi.fn()
-  };
-  const writeStream = {};
-  const gzipStream = {
-    pipe: vi.fn(),
-    write: vi.fn(),
-    end: vi.fn()
-  };
-  const Platform = {
-    ...actual.Platform,
-    isMainThread: false, // This worker is not in the main thread
-    createBroadcastChannel: vi.fn(() => channel),
-    createWriteStream: vi.fn(() => writeStream),
-    createGzip: vi.fn(() => gzipStream)
-  };
-  return { Platform };
+beforeAll(() => {
+  Object.assign(Platform, { isMainThread: false }); // This worker is not in the main thread
+  workerMain({ configuration: { cwd: './tmp' } } as { configuration: Configuration });
 });
 
-beforeAll(() => workerMain({ configuration: { cwd: './tmp' } } as { configuration: Configuration }));
-
 const channel = Platform.createBroadcastChannel('logger');
-// eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-argument -- Simpler this way
-const postMessage = (data: LogMessage) => channel.onmessage({ data } as any);
 
 it('opens a broadcast channel to communicate with the logger instances', () => {
-  expect(Platform.createBroadcastChannel).toBeCalledTimes(3);
-  for (let n = 1; n <= 3; ++n) {
+  expect(Platform.createBroadcastChannel).toBeCalledTimes(2);
+  for (let n = 1; n <= 2; ++n) {
     expect(Platform.createBroadcastChannel).toHaveBeenNthCalledWith(n, 'logger');
   }
 });
@@ -64,7 +41,7 @@ it('flushes the traces after a timeout', () => {
   vi.advanceTimersToNextTimer(); // flush buffer
   const gzipStream = Platform.createGzip();
   vi.mocked(gzipStream.write).mockClear();
-  postMessage({
+  channel.postMessage({
     command: 'log',
     timestamp: Date.now(),
     level: LogLevel.info,
@@ -82,7 +59,7 @@ it('compress the traces before zipping (no data)', () => {
   vi.advanceTimersToNextTimer(); // flush buffer
   const gzipStream = Platform.createGzip();
   vi.mocked(gzipStream.write).mockClear();
-  postMessage({
+  channel.postMessage({
     command: 'log',
     timestamp: Date.now(),
     level: LogLevel.info,
@@ -100,7 +77,7 @@ it('compress the traces before zipping (data)', () => {
   vi.advanceTimersToNextTimer(); // flush buffer
   const gzipStream = Platform.createGzip();
   vi.mocked(gzipStream.write).mockClear();
-  postMessage({
+  channel.postMessage({
     command: 'log',
     timestamp: Date.now(),
     level: LogLevel.info,
@@ -123,7 +100,7 @@ it('flushes traces after a threshold count', () => {
   const gzipStream = Platform.createGzip();
   vi.mocked(gzipStream.write).mockClear();
   for (let index = 0; index < MAX_BUFFER_SIZE; ++index) {
-    postMessage({
+    channel.postMessage({
       command: 'log',
       timestamp: Date.now(),
       level: LogLevel.info,
@@ -138,7 +115,7 @@ it('flushes traces after a threshold count', () => {
 });
 
 it('closes everything when the terminate signal is received', () => {
-  postMessage({ command: 'terminate' });
+  channel.postMessage({ command: 'terminate' });
   expect(channel.close).toHaveBeenCalled();
   const gzipStream = Platform.createGzip();
   expect(gzipStream.end).toHaveBeenCalled();

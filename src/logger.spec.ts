@@ -6,29 +6,7 @@ import { LogLevel } from './logger/types.js';
 import type { LogMessage } from './logger/types.js';
 
 const expectAnyString = expect.any(String) as string;
-
-vi.mock('./Platform.js', () => {
-  const channel = {
-    postMessage: vi.fn(),
-    onmessage: undefined as ((data: unknown) => void) | undefined,
-    close: vi.fn()
-  };
-  const worker = new EventTarget();
-  Object.assign(worker, {
-    on: worker.addEventListener,
-    postMessage: vi.fn()
-  });
-  const Platform = {
-    pid: Math.floor(Date.now() / 1000),
-    createBroadcastChannel: vi.fn(() => channel),
-    createWorker: vi.fn(() => worker),
-    isMainThread: false,
-    threadId: Math.floor(Date.now() / 1000) + 1,
-    threadCpuUsage: () => ({ cpu: 1 }),
-    memoryUsage: () => ({ rss: 123 })
-  };
-  return { Platform };
-});
+const expectAnyNumber = expect.any(Number) as number;
 
 beforeEach(() => {
   Object.assign(Platform, { isMainThread: false });
@@ -234,12 +212,21 @@ describe('Metrics automatic monitoring', () => {
     expect(logger.debug).toHaveBeenCalledWith({
       source: 'metric',
       message: 'threadCpuUsage',
-      data: Platform.threadCpuUsage()
+      data: {
+        system: expectAnyNumber,
+        user: expectAnyNumber
+      }
     });
     expect(logger.debug).toHaveBeenCalledWith({
       source: 'metric',
       message: 'memoryUsage',
-      data: Platform.memoryUsage()
+      data: {
+        arrayBuffers: expectAnyNumber,
+        external: expectAnyNumber,
+        heapTotal: expectAnyNumber,
+        heapUsed: expectAnyNumber,
+        rss: expectAnyNumber
+      }
     });
   });
 

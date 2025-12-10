@@ -18,26 +18,10 @@ const addAttributesToLoggerOutput = vi
 const closeLoggerOutput = vi.spyOn(TestLoggerOutput.prototype, 'closeLoggerOutput').mockReturnValue();
 vi.spyOn(LoggerOutputFactory, 'build').mockImplementation((configuration) => new TestLoggerOutput(configuration));
 
-vi.mock('../Platform.js', () => {
-  const channel = {
-    postMessage: vi.fn(),
-    onmessage: undefined as ((data: unknown) => void) | undefined,
-    close: vi.fn()
-  };
-  const Platform = {
-    createBroadcastChannel: vi.fn(() => channel)
-  };
-  return { Platform };
-});
-
 beforeEach(() => {
   vi.clearAllMocks();
   workerMain({ configuration: { cwd: './tmp', reportDir: './tmp' } as Configuration });
 });
-
-const postMessage = (channel: ReturnType<typeof Platform.createBroadcastChannel>, data: LogMessage) =>
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-argument
-  channel.onmessage({ data } as any);
 
 it('broadcasts an initial { ready: true }', () => {
   const channel = Platform.createBroadcastChannel('logger');
@@ -60,13 +44,13 @@ it('forwards log attributes to the loggerOutput', () => {
     source: 'job',
     message: 'Hello World !'
   };
-  postMessage(channel, logMessage);
+  channel.postMessage(logMessage);
   expect(addAttributesToLoggerOutput).toHaveBeenCalledWith(logMessage);
 });
 
 it('closes the broadcast channel and the loggerOutput when the terminate signal is received', () => {
   const channel = Platform.createBroadcastChannel('logger');
-  postMessage(channel, { command: 'terminate' });
+  channel.postMessage({ command: 'terminate' });
   expect(channel.close).toHaveBeenCalled();
   expect(closeLoggerOutput).toHaveBeenCalled();
 });
