@@ -1,11 +1,9 @@
 import { assert } from '../assert.js';
 import type { InternalLogAttributes } from '../logger/types.js';
-import { LogLevel } from '../logger/types.js';
 
 export class ProgressBar {
   static readonly WIDTH = 10;
 
-  private _maxState: number = LogLevel.info;
   private _value = 0;
   private _max = 0;
   private _label = '';
@@ -18,9 +16,6 @@ export class ProgressBar {
     assert(attributes.source === 'progress');
     this._value = attributes.data.value;
     this._max = attributes.data.max;
-    if (attributes.level > this._maxState) {
-      this._maxState = attributes.level;
-    }
     this._label = attributes.message;
   }
 
