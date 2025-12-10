@@ -4,14 +4,11 @@ import '../logger.js';
 import type { Configuration } from '../configuration/Configuration.js';
 import { LoggerOutputFactory } from './output/factory.js';
 
-const fromHexaCode = (value: string): { r: number; g: number; b: number } => {
-  const [, r, g, b] = /#([0-9A-F][0-9A-F])([0-9A-F][0-9A-F])([0-9A-F][0-9A-F])/.exec(value) ?? [0, '0', '0', '0'];
-  return {
-    r: Number.parseInt(r, 16),
-    g: Number.parseInt(g, 16),
-    b: Number.parseInt(b, 16)
-  };
-};
+const fromHexaCode = (value: string): { r: number; g: number; b: number } => ({
+  r: Number.parseInt(value.slice(1, 3), 16),
+  g: Number.parseInt(value.slice(3, 5), 16),
+  b: Number.parseInt(value.slice(5, 7), 16)
+});
 
 export const workerMain = ({ configuration }: { configuration: Configuration }) => {
   const loggerOutput = LoggerOutputFactory.build(configuration);
