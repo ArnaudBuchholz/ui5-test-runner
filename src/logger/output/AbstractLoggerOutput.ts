@@ -32,6 +32,7 @@ export abstract class AbstractLoggerOutput {
 
   protected render(attributes: InternalLogAttributes): string | void {
     const { level, timestamp, source, message, data, error } = attributes;
+    // TODO: adjust for LogLevel.debug based on configuration (--debug-verbose)
     if (source !== 'progress' && source !== 'metric' && level !== LogLevel.debug) {
       return [
         icons[level],
@@ -56,7 +57,7 @@ export abstract class AbstractLoggerOutput {
 
   abstract addTextToLoggerOutput(formatted: string, raw: string): void;
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars -- They must belong to the signature
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars -- attributes must belong to the signature
   protected renderAttributes(attributes: InternalLogAttributes): boolean {
     return true;
   }

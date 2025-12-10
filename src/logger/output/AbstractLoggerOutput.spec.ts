@@ -3,7 +3,7 @@ import { AbstractLoggerOutput } from './AbstractLoggerOutput.js';
 import type { Configuration } from '../../configuration/Configuration.js';
 import type { InternalLogAttributes } from '../types';
 import { LogLevel } from '../types.js';
-import { ANSI_YELLOW, ANSI_WHITE, ANSI_RED } from '../../terminal/ansi.js';
+import { ANSI_YELLOW, ANSI_WHITE, ANSI_RED, ANSI_MAGENTA } from '../../terminal/ansi.js';
 import { Platform } from '../../Platform.js';
 
 class TestLoggerOutput extends AbstractLoggerOutput {
@@ -22,9 +22,58 @@ const addTextToLoggerOutput = vi.spyOn(loggerOuput, 'addTextToLoggerOutput');
 
 beforeEach(() => vi.clearAllMocks());
 
-it('render usual traces', () => {
+it('render usual traces (info)', () => {
   loggerOuput.addAttributesToLoggerOutput({
     timestamp: Date.now(),
+    source: 'job',
+    level: LogLevel.info,
+    message: 'test'
+  } as InternalLogAttributes);
+  const expectedString = `   ${ANSI_YELLOW}00:00${ANSI_WHITE} test\n`;
+  expect(addTextToLoggerOutput).toHaveBeenCalledWith(expectedString, Platform.stripVTControlCharacters(expectedString));
+  expect(Platform.writeFileSync).toHaveBeenCalledWith(
+    'tmp/output.txt',
+    Platform.stripVTControlCharacters(expectedString),
+    { encoding: 'utf8', flag: 'a' }
+  );
+});
+
+it('render usual traces (warn)', () => {
+  loggerOuput.addAttributesToLoggerOutput({
+    timestamp: Date.now(),
+    source: 'job',
+    level: LogLevel.warn,
+    message: 'test'
+  } as InternalLogAttributes);
+  const expectedString = `${ANSI_YELLOW}/!\\${ANSI_YELLOW}00:00${ANSI_WHITE} test\n`;
+  expect(addTextToLoggerOutput).toHaveBeenCalledWith(expectedString, Platform.stripVTControlCharacters(expectedString));
+});
+
+it('render usual traces (error)', () => {
+  loggerOuput.addAttributesToLoggerOutput({
+    timestamp: Date.now(),
+    source: 'job',
+    level: LogLevel.error,
+    message: 'test'
+  } as InternalLogAttributes);
+  const expectedString = `${ANSI_RED}(X)${ANSI_YELLOW}00:00${ANSI_WHITE} test\n`;
+  expect(addTextToLoggerOutput).toHaveBeenCalledWith(expectedString, Platform.stripVTControlCharacters(expectedString));
+});
+
+it('render usual traces (fatal)', () => {
+  loggerOuput.addAttributesToLoggerOutput({
+    timestamp: Date.now(),
+    source: 'job',
+    level: LogLevel.fatal,
+    message: 'test'
+  } as InternalLogAttributes);
+  const expectedString = `${ANSI_MAGENTA}o*!${ANSI_YELLOW}00:00${ANSI_WHITE} test\n`;
+  expect(addTextToLoggerOutput).toHaveBeenCalledWith(expectedString, Platform.stripVTControlCharacters(expectedString));
+});
+
+it('render usual traces (edge case: timestamp occurs before the logger start)', () => {
+  loggerOuput.addAttributesToLoggerOutput({
+    timestamp: Date.now() - 60_000,
     source: 'job',
     level: LogLevel.info,
     message: 'test'
