@@ -199,4 +199,49 @@ describe('progress handling', () => {
 `);
     });
   });
+
+  describe('task status', () => {
+    it('creates a new progress bar', () => {
+      expect(loggerOuput.progressMap['task1']).toBeUndefined();
+      loggerOuput.addAttributesToLoggerOutput({
+        timestamp: Date.now(),
+        source: 'progress',
+        level: LogLevel.info,
+        message: 'Executing tests',
+        data: {
+          uid: 'task1',
+          value: 0,
+          max: 1
+        }
+      } as InternalLogAttributes);
+      expect.assert(loggerOuput.progressMap['task1'] !== undefined);
+    });
+
+    it('removes the progress bar', () => {
+      loggerOuput.addAttributesToLoggerOutput({
+        timestamp: Date.now(),
+        source: 'progress',
+        level: LogLevel.info,
+        message: 'Executing tests',
+        data: {
+          uid: 'task1',
+          value: 0,
+          max: 1
+        }
+      } as InternalLogAttributes);
+      loggerOuput.addAttributesToLoggerOutput({
+        timestamp: Date.now(),
+        source: 'progress',
+        level: LogLevel.info,
+        message: 'Executing tests',
+        data: {
+          uid: 'task1',
+          value: 0,
+          max: 1,
+          remove: true
+        }
+      } as InternalLogAttributes);
+      expect(loggerOuput.progressMap['task1']).toBeUndefined();
+    });
+  });
 });
