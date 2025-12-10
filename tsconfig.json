@@ -1,33 +1,11 @@
 {
-  "include": ["src/"],
-  "compilerOptions": {
-    "outDir": "dist",
-    "declaration": true,
-    "removeComments": true,
-    "esModuleInterop": true,
-    "forceConsistentCasingInFileNames": true,
-    "strict": true,
-    "noImplicitAny": true,
-    "strictNullChecks": true,
-    "strictFunctionTypes": true,
-    "strictBindCallApply": true,
-    "strictPropertyInitialization": true,
-    "noImplicitThis": true,
-    "useUnknownInCatchVariables": true,
-    "alwaysStrict": true,
-    "noUnusedLocals": true,
-    "noImplicitReturns": true,
-    "noFallthroughCasesInSwitch": true,
-    "noUncheckedIndexedAccess": true,
-    "noImplicitOverride": true,
-    "noPropertyAccessFromIndexSignature": true,
-    "allowUnusedLabels": false,
-    "allowUnreachableCode": false,
-    "erasableSyntaxOnly": true,
-    "skipLibCheck": true,
-    "resolveJsonModule": true,
-    "moduleResolution": "Bundler",
-    "target": "ESNext",
-    "module": "esnext"
-  }
+  "files": [],
+  "references": [
+    {
+      "path": "./tsconfig.cli.json"
+    },
+    {
+      "path": "./tsconfig.vitest.json"
+    }
+  ]
 }
