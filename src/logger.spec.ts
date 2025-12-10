@@ -275,15 +275,29 @@ describe('close', () => {
     expect(channel.postMessage).not.toHaveBeenCalled();
   });
 
+  const simulateWorkersExit = () => {
+    const worker = Platform.createWorker('logger');
+    (worker as unknown as EventTarget).dispatchEvent(new CustomEvent('exit'));
+  };
+
   it('closes the logger worker', async () => {
     Object.assign(Platform, { isMainThread: true });
     const { logger } = await import('./logger.js');
     const channel = Platform.createBroadcastChannel('logger');
-    const worker = Platform.createWorker('logger');
     logger.start({ cwd } as Configuration);
     const closing = logger.stop();
-    (worker as unknown as EventTarget).dispatchEvent(new CustomEvent('exit'));
+    simulateWorkersExit();
     await closing;
     expect(channel.postMessage).toHaveBeenCalledWith({ command: 'terminate' });
+  });
+
+  it('supports multiple closing', async () => {
+    Object.assign(Platform, { isMainThread: true });
+    const { logger } = await import('./logger.js');
+    logger.start({ cwd } as Configuration);
+    const firstClose = logger.stop();
+    const secondClose = logger.stop();
+    simulateWorkersExit();
+    await expect(Promise.all([firstClose, secondClose])).resolves.toStrictEqual([undefined, undefined]);
   });
 });
