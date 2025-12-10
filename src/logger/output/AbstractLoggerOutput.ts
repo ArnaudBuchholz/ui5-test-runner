@@ -3,6 +3,7 @@ import type { Configuration } from '../../configuration/Configuration.js';
 import type { InternalLogAttributes } from '../types.js';
 import { LogLevel } from '../types.js';
 import { ANSI_BLUE, ANSI_MAGENTA, ANSI_RED, ANSI_WHITE, ANSI_YELLOW } from '../../terminal/ansi.js';
+import { ProgressBar } from '../../terminal/ProgressBar.js';
 
 const formatDiff = (diffInMs: number) => {
   if (diffInMs < 0) {
@@ -28,6 +29,9 @@ export abstract class AbstractLoggerOutput {
   constructor(configuration: Configuration) {
     this._configuration = configuration;
     this._startedAt = Date.now();
+    this._progressMap = {
+      '': new ProgressBar()
+    };
   }
 
   protected render(attributes: InternalLogAttributes): string | void {
@@ -57,8 +61,33 @@ export abstract class AbstractLoggerOutput {
 
   abstract addTextToLoggerOutput(formatted: string, raw: string): void;
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars -- attributes must belong to the signature
+  private _lastStatus = '';
+  private _progressMap: { [key in string]?: ProgressBar } & { '': ProgressBar };
+
+  get progressMap() {
+    return this._progressMap;
+  }
+
   protected renderAttributes(attributes: InternalLogAttributes): boolean {
+    if (attributes.source === 'progress') {
+      const uid = attributes.data.uid;
+      let progress = this._progressMap[uid];
+      if (!progress) {
+        progress = new ProgressBar();
+        this._progressMap[uid] = progress;
+      }
+      progress.update(attributes);
+      if (attributes.data.remove) {
+        delete this._progressMap[uid];
+      }
+      if (!uid && progress.label !== this._lastStatus) {
+        this._lastStatus = progress.label;
+        this.addToReport(`
+   ${formatDiff(attributes.timestamp - this._startedAt)}|${this._lastStatus}
+   -----+${''.padStart(this._lastStatus.length, '-')}
+`);
+      }
+    }
     return true;
   }
 
