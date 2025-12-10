@@ -8,6 +8,7 @@ import { spawn, exec } from 'node:child_process';
 import { machine, cpus } from 'node:os';
 import { fileURLToPath } from 'node:url';
 import { ANSI_BLUE, ANSI_RED, ANSI_WHITE } from './terminal/ansi.js';
+import { stripVTControlCharacters } from 'node:util';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -118,6 +119,8 @@ export class Platform {
 
   static readonly createGzip = zlib.createGzip.bind(zlib);
   static readonly Z_FULL_FLUSH = zlib.constants.Z_FULL_FLUSH;
+
+  static readonly stripVTControlCharacters = stripVTControlCharacters;
 
   static readonly SIGINT_ANY = 0;
   static readonly SIGINT_LOGGER = 999;

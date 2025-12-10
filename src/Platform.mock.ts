@@ -32,6 +32,8 @@ vi.mock(import('./Platform.js'), async (importActual) => {
       sourcesRoot: actual.Platform.sourcesRoot,
       writeOnTerminal: vi.fn(),
       createWriteStream: vi.fn(() => writeStream),
+      readFile: vi.fn(),
+      writeFileSync: vi.fn(),
       createBroadcastChannel: vi.fn(() => channel),
       createWorker: vi.fn(() => worker),
       createGzip: vi.fn(() => gzipStream),
