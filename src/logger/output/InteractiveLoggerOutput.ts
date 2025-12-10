@@ -1,4 +1,3 @@
-import { stripVTControlCharacters } from 'node:util';
 import { Platform } from '../../Platform.js';
 import { AbstractLoggerOutput } from './AbstractLoggerOutput.js';
 import type { Configuration } from '../../configuration/Configuration.js';
@@ -16,10 +15,8 @@ export class InteractiveLoggerOutput extends AbstractLoggerOutput {
     Platform.writeOnTerminal(ANSI_HIDE_CURSOR);
   }
 
-  addTextToLoggerOutput(lines: string): void {
-    const raw = stripVTControlCharacters(lines);
-    this.addToReport(raw);
-    Platform.writeOnTerminal(this._noColor ? raw : lines);
+  addTextToLoggerOutput(formatted: string, raw: string): void {
+    Platform.writeOnTerminal(this._noColor ? raw : formatted);
   }
 
   override closeLoggerOutput(): void {

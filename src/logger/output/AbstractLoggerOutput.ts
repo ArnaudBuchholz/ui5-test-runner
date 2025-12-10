@@ -37,12 +37,11 @@ export abstract class AbstractLoggerOutput {
         icons[level],
         ANSI_YELLOW,
         formatDiff(timestamp - this._startedAt),
-        ' ',
         ANSI_WHITE,
+        ' ',
         message,
-        data ? JSON.stringify(data) : '',
-        error ? `${ANSI_RED}${(error as Error).name} ${(error as Error).message}` : '',
-        ANSI_YELLOW,
+        data ? ` ${JSON.stringify(data)}` : '',
+        error ? ` ${ANSI_RED}${(error as Error).name} ${(error as Error).message}` : '',
         '\n'
       ].join('');
     }
@@ -55,7 +54,7 @@ export abstract class AbstractLoggerOutput {
     });
   }
 
-  abstract addTextToLoggerOutput(lines: string): void;
+  abstract addTextToLoggerOutput(formatted: string, raw: string): void;
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars -- They must belong to the signature
   protected renderAttributes(attributes: InternalLogAttributes): boolean {
@@ -66,7 +65,9 @@ export abstract class AbstractLoggerOutput {
     if (this.renderAttributes(attributes)) {
       const rendered = this.render(attributes);
       if (rendered) {
-        this.addTextToLoggerOutput(rendered);
+        const raw = Platform.stripVTControlCharacters(rendered);
+        this.addTextToLoggerOutput(rendered, raw);
+        this.addToReport(raw);
       }
     }
   }
