@@ -10,6 +10,10 @@ export class ProgressBar {
   private _max = 0;
   private _label = '';
 
+  get label() {
+    return this._label;
+  }
+
   update(attributes: InternalLogAttributes) {
     assert(attributes.source === 'progress');
     this._value = attributes.data.value;
@@ -21,23 +25,27 @@ export class ProgressBar {
   }
 
   render(width: number) {
-    const ratio = this._max === 0 ? 0 : this._value / this._max;
-    const filled = Math.floor(ProgressBar.WIDTH * Math.min(ratio, 1));
-    const spaceLeft = width - ProgressBar.WIDTH - 7;
+    let spaceLeft = width;
+    let progressBar: string[] = [];
+    if (this._max !== 0) {
+      const ratio = this._value / this._max;
+      const filled = Math.floor(ProgressBar.WIDTH * Math.min(ratio, 1));
+      spaceLeft = width - ProgressBar.WIDTH - 7;
+      progressBar = [
+        '[',
+        ''.padEnd(filled, '#'),
+        ''.padEnd(ProgressBar.WIDTH - filled, '-'),
+        ']',
+        Math.floor(100 * ratio)
+          .toString()
+          .padStart(3, ' ')
+          .toString(),
+        '% '
+      ];
+    }
     const { length: labelLength } = this._label;
     const label =
       labelLength > spaceLeft ? `...${this._label.slice(Math.max(0, labelLength - spaceLeft + 3))}` : this._label;
-    return [
-      '[',
-      ''.padEnd(filled, '#'),
-      ''.padEnd(ProgressBar.WIDTH - filled, '-'),
-      ']',
-      Math.floor(100 * ratio)
-        .toString()
-        .padStart(3, ' ')
-        .toString(),
-      '% ',
-      label
-    ].join('');
+    return [...progressBar, label].join('');
   }
 }

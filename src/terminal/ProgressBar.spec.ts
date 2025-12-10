@@ -63,6 +63,21 @@ const tests: { label: string; logs: object[]; width?: number; expected: string }
     ],
     width: 25,
     expected: '[#---------] 10% ...label'
+  },
+  {
+    label: 'No percent',
+    logs: [
+      {
+        level: LogLevel.info,
+        source: 'progress',
+        message: 'test',
+        data: {
+          value: 0,
+          max: 0
+        }
+      }
+    ],
+    expected: 'test'
   }
 ] as const;
 
