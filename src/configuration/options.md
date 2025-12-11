@@ -1,8 +1,8 @@
 |name|short|description|type|multiple|default|defaultLabel|flags
 |---|---|---|---|---|---|---|---|
 |cwd|c|Set working directory|folder||Platform.cwd()|current working directory|💻🔗🧪
-|version||Shows version|boolean
-|help||Shows help|boolean
+|version||Shows version|boolean|
+|help||Shows help|boolean|
 |capabilities||Run browser tests|boolean||||🧪
 |url|u|URL of the testsuite / page to test|url|✅|||🔗
 |config||Configuration file|file||'ui5-test-runner.json'||💻🔗🧪
@@ -23,7 +23,7 @@
 |offline||Limit network usage (implies --no-npm-install)|boolean||||💻🔗🧪📡
 |env||Set environment variable (syntax: name=value)|string|✅|||💻🔗🧪📡
 |localhost||Hostname for legacy URLs and callbacks|string||'localhost'||💣💻🔗🧪📡
-|ci||CI mode (no interactive output)|boolean|!process.stdout.isTTY|||💻🔗🧪📡
+|ci||CI mode (no interactive output)|boolean||!process.stdout.isTTY \|\| !process.stdout.columns||💻🔗🧪📡
 |deepProbe||Deep probe (recursive, slower)|boolean||||💻🔗🧪📡
 |probeParallel||Number of parallel probes (0 to use --parallel)|integer||||💻🔗🧪📡
 |webapp||Base folder of the web application|folder||||💻🔗
@@ -71,9 +71,9 @@
 |coverageProxyExclude|cpe|Urls to ignore for coverage|regexp||'/((test-)?resources\|tests?)/'||🥼💻🔗
 |batchMode||Changes the way options are defaulted (in particular coverage temporary folders)|boolean||||⛔
 |batch||Batch specification|string|✅
-|batchId||Batch id (used for naming report folder)|string
-|batchLabel||Batch label (used while reporting on execution)|string
-|if||Condition runner execution|string
+|batchId||Batch id (used for naming report folder)|string|
+|batchLabel||Batch label (used while reporting on execution)|string|
+|if||Condition runner execution|string|
 |debugDevMode||Enables development mode in REserve|boolean||||🐞
 |debugProbeOnly||Stops after probing pages|boolean||||🐞
 |debugKeepBrowserOpen||Keeps the browser open after the test completed|boolean||||🐞

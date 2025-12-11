@@ -12,12 +12,14 @@ export const options = [
   {
     name: 'version',
     description: 'Shows version',
-    type: 'boolean'
+    type: 'boolean',
+    multiple: true
   },
   {
     name: 'help',
     description: 'Shows help',
-    type: 'boolean'
+    type: 'boolean',
+    multiple: true
   },
   {
     name: 'capabilities',
@@ -144,7 +146,8 @@ export const options = [
   {
     name: 'ci',
     description: 'CI mode (no interactive output)',
-    type: 'boolean'
+    type: 'boolean',
+    default: !process.stdout.isTTY || !process.stdout.columns
   },
   {
     name: 'deepProbe',
@@ -429,17 +432,20 @@ export const options = [
   {
     name: 'batchId',
     description: 'Batch id (used for naming report folder)',
-    type: 'string'
+    type: 'string',
+    multiple: true
   },
   {
     name: 'batchLabel',
     description: 'Batch label (used while reporting on execution)',
-    type: 'string'
+    type: 'string',
+    multiple: true
   },
   {
     name: 'if',
     description: 'Condition runner execution',
-    type: 'string'
+    type: 'string',
+    multiple: true
   },
   {
     name: 'debugDevMode',
@@ -509,6 +515,7 @@ export const defaults = {
   browserRetry: 1,
   outputInterval: 3000,
   localhost: 'localhost',
+  ci: !process.stdout.isTTY || !process.stdout.columns,
   pageCloseTimeout: 250,
   screenshotOnFailure: true,
   screenshotTimeout: 5000,
