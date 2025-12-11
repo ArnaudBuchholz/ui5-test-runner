@@ -8,7 +8,8 @@ import { workerMain } from './output.js';
 import type { Configuration } from '../configuration/Configuration.js';
 
 class TestLoggerOutput extends AbstractLoggerOutput {
-  addTextToLoggerOutput() {}
+  override addTextToLoggerOutput() {}
+  override closeLoggerOutput(): void {}
 }
 
 const addTextToLoggerOutput = vi.spyOn(TestLoggerOutput.prototype, 'addTextToLoggerOutput').mockReturnValue();

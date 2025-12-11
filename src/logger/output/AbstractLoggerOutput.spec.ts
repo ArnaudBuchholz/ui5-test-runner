@@ -226,7 +226,7 @@ describe('progress handling', () => {
         timestamp: Date.now(),
         source: 'progress',
         level: LogLevel.info,
-        message: 'Executing tests',
+        message: 'test',
         data: {
           uid: 'task1',
           value: 0,
@@ -237,7 +237,7 @@ describe('progress handling', () => {
         timestamp: Date.now(),
         source: 'progress',
         level: LogLevel.info,
-        message: 'Executing tests',
+        message: 'test',
         data: {
           uid: 'task1',
           value: 0,
