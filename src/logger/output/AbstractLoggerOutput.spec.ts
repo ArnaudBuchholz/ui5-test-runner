@@ -17,6 +17,7 @@ class TestLoggerOutput extends AbstractLoggerOutput {
     super.addToReport(rawText);
   }
   override addTextToLoggerOutput(): void {}
+  override closeLoggerOutput(): void {}
 }
 
 vi.setSystemTime(new Date('2025-12-10T00:00:00.000Z'));
@@ -207,17 +208,20 @@ describe('progress handling', () => {
         timestamp: Date.now(),
         source: 'progress',
         level: LogLevel.info,
-        message: 'Executing tests',
+        message: 'test',
         data: {
           uid: 'task1',
           value: 0,
           max: 1
         }
       } as InternalLogAttributes);
-      expect.assert(loggerOuput.progressMap['task1'] !== undefined);
+      const progressBar = loggerOuput.progressMap['task1'];
+      expect.assert(progressBar !== undefined);
+      expect(progressBar.label).toStrictEqual('test');
+      expect(addTextToLoggerOutput).not.toHaveBeenCalled();
     });
 
-    it('removes the progress bar', () => {
+    it('removes the progress bar when the remove option is set', () => {
       loggerOuput.addAttributesToLoggerOutput({
         timestamp: Date.now(),
         source: 'progress',
@@ -242,6 +246,7 @@ describe('progress handling', () => {
         }
       } as InternalLogAttributes);
       expect(loggerOuput.progressMap['task1']).toBeUndefined();
+      expect(addTextToLoggerOutput).not.toHaveBeenCalled();
     });
   });
 });

@@ -87,6 +87,7 @@ export abstract class AbstractLoggerOutput {
    -----+${''.padStart(this._lastStatus.length, '-')}
 `);
       }
+      return false;
     }
     return true;
   }
@@ -102,5 +103,5 @@ export abstract class AbstractLoggerOutput {
     }
   }
 
-  closeLoggerOutput(): void {}
+  abstract closeLoggerOutput(): void;
 }
