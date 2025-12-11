@@ -52,7 +52,7 @@ export abstract class AbstractLoggerOutput {
     }
   }
 
-  protected addToReport(rawText: string): void {
+  addToReport(rawText: string): void {
     Platform.writeFileSync(Platform.join(this._configuration.reportDir, 'output.txt'), rawText, {
       encoding: 'utf8',
       flag: 'a'

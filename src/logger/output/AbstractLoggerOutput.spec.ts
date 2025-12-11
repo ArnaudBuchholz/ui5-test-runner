@@ -13,9 +13,6 @@ class TestLoggerOutput extends AbstractLoggerOutput {
     } as Configuration);
   }
 
-  public override addToReport(rawText: string): void {
-    super.addToReport(rawText);
-  }
   override addTextToLoggerOutput(): void {}
   override closeLoggerOutput(): void {}
 }

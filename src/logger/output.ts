@@ -58,7 +58,8 @@ export const workerMain = ({ configuration }: { configuration: Configuration }) 
     )
     .join('\n');
 
-  loggerOutput.addTextToLoggerOutput(logo + '\u001B[0m\n');
+  loggerOutput.addToReport(rawLogo + '\n');
+  loggerOutput.addTextToLoggerOutput(logo + '\u001B[0m\n', rawLogo + '\n');
 
   channel.postMessage({
     command: 'ready',

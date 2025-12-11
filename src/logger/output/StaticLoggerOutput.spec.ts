@@ -8,13 +8,7 @@ import { LogLevel } from '../types.js';
 vi.useFakeTimers();
 beforeEach(() => vi.clearAllMocks());
 
-class TestStaticLoggerOutput extends StaticLoggerOutput {
-  public override addToReport(rawText: string): void {
-    super.addToReport(rawText);
-  }
-}
-
-const loggerOuput = new TestStaticLoggerOutput({
+const loggerOuput = new StaticLoggerOutput({
   reportDir: './tmp',
   outputInterval: 250
 } as Configuration);

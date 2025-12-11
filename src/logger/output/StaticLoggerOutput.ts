@@ -21,7 +21,7 @@ export class StaticLoggerOutput extends AbstractLoggerOutput {
     }
   }
 
-  protected override addToReport(rawText: string): void {
+  override addToReport(rawText: string): void {
     super.addToReport(rawText);
     Platform.writeOnTerminal(rawText);
   }
