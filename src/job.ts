@@ -84,7 +84,7 @@ export const execute = async (configuration: Configuration) => {
       logger.error({ source: 'job', message: 'An error occurred', error });
     } finally {
       await logger.stop();
-      console.log(`${ANSI_BLUE}[~]${ANSI_WHITE} done.`);
+      console.log(`${ANSI_BLUE}[~]${ANSI_WHITE}done.`);
     }
   }
 };

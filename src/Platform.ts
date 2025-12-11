@@ -103,8 +103,8 @@ export class Platform {
       }
     });
     if (__developmentMode) {
-      worker.on('online', () => console.log(`${ANSI_BLUE}[~]${ANSI_WHITE} Worker ${name} online`));
-      worker.on('exit', () => console.log(`${ANSI_BLUE}[~]${ANSI_WHITE} Worker ${name} offline`));
+      worker.on('online', () => console.log(`${ANSI_BLUE}[~]${ANSI_WHITE}Worker ${name} online`));
+      worker.on('exit', () => console.log(`${ANSI_BLUE}[~]${ANSI_WHITE}Worker ${name} offline`));
     }
     return worker;
   };
@@ -141,7 +141,7 @@ if (isMainThread) {
   // eslint-disable-next-line @typescript-eslint/no-misused-promises -- Promise not expected but used to wait before exiting
   process.on('SIGINT', async () => {
     if (__developmentMode) {
-      console.log(`${ANSI_BLUE}[~]${ANSI_WHITE} ${ANSI_RED}SIGINT${ANSI_WHITE} received`);
+      console.log(`${ANSI_BLUE}[~]${ANSI_WHITE}${ANSI_RED}SIGINT${ANSI_WHITE} received`);
     }
     for (const handler of _sigIntHandlers) {
       await handler();

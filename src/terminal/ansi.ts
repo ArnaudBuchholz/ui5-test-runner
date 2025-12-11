@@ -13,3 +13,9 @@ export const ANSI_MAGENTA = `${CSI}35m`;
 export const ANSI_RED = `${CSI}31m`;
 export const ANSI_WHITE = `${CSI}37m`;
 export const ANSI_YELLOW = `${CSI}33m`;
+
+export const ANSI_SAVE_POS_DEC = `${ESC}7`;
+export const ANSI_LOAD_POS_DEC = `${ESC}8`;
+
+export const ANSI_SAVE_POS_SCO = `${ESC}s`;
+export const ANSI_LOAD_POS_SCO = `${ESC}u`;
