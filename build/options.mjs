@@ -36,7 +36,7 @@ for (const option of options) {
     .map((value) => value.replaceAll('ǁ', '|'));
   const name = check(values[0], values[1]);
   for (const [index, property] of properties.entries()) {
-    const value = values[index];
+    const value = values[index]?.trim();
     if (!value) {
       continue;
     }

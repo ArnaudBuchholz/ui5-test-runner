@@ -1,8 +1,8 @@
 |name|short|description|type|multiple|default|defaultLabel|flags
 |---|---|---|---|---|---|---|---|
 |cwd|c|Set working directory|folder||Platform.cwd()|current working directory|💻🔗🧪
-|version||Shows version|boolean|
-|help||Shows help|boolean|
+|version||Shows version|boolean
+|help||Shows help|boolean
 |capabilities||Run browser tests|boolean||||🧪
 |url|u|URL of the testsuite / page to test|url|✅|||🔗
 |config||Configuration file|file||'ui5-test-runner.json'||💻🔗🧪
@@ -71,9 +71,9 @@
 |coverageProxyExclude|cpe|Urls to ignore for coverage|regexp||'/((test-)?resources\|tests?)/'||🥼💻🔗
 |batchMode||Changes the way options are defaulted (in particular coverage temporary folders)|boolean||||⛔
 |batch||Batch specification|string|✅
-|batchId||Batch id (used for naming report folder)|string|
-|batchLabel||Batch label (used while reporting on execution)|string|
-|if||Condition runner execution|string|
+|batchId||Batch id (used for naming report folder)|string
+|batchLabel||Batch label (used while reporting on execution)|string
+|if||Condition runner execution|string
 |debugDevMode||Enables development mode in REserve|boolean||||🐞
 |debugProbeOnly||Stops after probing pages|boolean||||🐞
 |debugKeepBrowserOpen||Keeps the browser open after the test completed|boolean||||🐞

@@ -12,14 +12,12 @@ export const options = [
   {
     name: 'version',
     description: 'Shows version',
-    type: 'boolean',
-    multiple: true
+    type: 'boolean'
   },
   {
     name: 'help',
     description: 'Shows help',
-    type: 'boolean',
-    multiple: true
+    type: 'boolean'
   },
   {
     name: 'capabilities',
@@ -432,20 +430,17 @@ export const options = [
   {
     name: 'batchId',
     description: 'Batch id (used for naming report folder)',
-    type: 'string',
-    multiple: true
+    type: 'string'
   },
   {
     name: 'batchLabel',
     description: 'Batch label (used while reporting on execution)',
-    type: 'string',
-    multiple: true
+    type: 'string'
   },
   {
     name: 'if',
     description: 'Condition runner execution',
-    type: 'string',
-    multiple: true
+    type: 'string'
   },
   {
     name: 'debugDevMode',
