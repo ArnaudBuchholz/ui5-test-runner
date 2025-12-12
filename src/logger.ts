@@ -9,6 +9,7 @@ import type {
 import { LogLevel, toInternalLogAttributes } from './logger/types.js';
 import { Platform } from './Platform.js';
 import assert from 'node:assert/strict';
+import { toPlainObject } from './utils/object.js';
 
 // TODO understand why channel does not appear as a problem as it might be used before being defined
 let channel: ReturnType<typeof Platform.createBroadcastChannel>;
@@ -94,8 +95,8 @@ export const logger = {
   start(configuration: Configuration) {
     assert.ok(Platform.isMainThread, 'Call logger.start only in main thread');
     start();
-    loggerWorker = Platform.createWorker('logger/allCompressed', { configuration });
-    consoleWorker = Platform.createWorker('logger/output', { configuration });
+    loggerWorker = Platform.createWorker('logger/allCompressed', { configuration: toPlainObject(configuration) });
+    consoleWorker = Platform.createWorker('logger/output', { configuration: toPlainObject(configuration) });
     Platform.registerSigIntHandler(() => logger.stop(), Platform.SIGINT_LOGGER);
   },
 
