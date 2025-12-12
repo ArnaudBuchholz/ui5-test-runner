@@ -6,6 +6,7 @@ import type { InternalLogAttributes } from '../types.js';
 import { LogLevel } from '../types.js';
 
 vi.useFakeTimers();
+vi.setSystemTime(new Date('2025-12-12T00:00:00.000Z'));
 beforeEach(() => vi.clearAllMocks());
 
 const loggerOuput = new StaticLoggerOutput({
@@ -22,6 +23,11 @@ it('does not output if called on addTextToLoggerOutput', () => {
 it('writes all output from addToReport', () => {
   loggerOuput.addToReport('hello');
   expect(Platform.writeOnTerminal).toHaveBeenCalledWith('hello');
+});
+
+it('dumps nothing when no progress', async () => {
+  await vi.advanceTimersToNextTimerAsync();
+  expect(addToReport).not.toHaveBeenCalled();
 });
 
 it('dumps progress report using an interval', async () => {
@@ -48,8 +54,12 @@ it('dumps progress report using an interval', async () => {
     }
   } as InternalLogAttributes);
   await vi.advanceTimersToNextTimerAsync();
-  expect(addToReport).toHaveBeenCalledWith(expect.stringContaining('10% test1'));
-  expect(addToReport).toHaveBeenCalledWith(expect.stringContaining('90% test2'));
+  expect(addToReport).toHaveBeenCalledWith(`
+   00:00|Progress
+   -----+--------
+`);
+  expect(addToReport).toHaveBeenCalledWith(expect.stringContaining('10% test1\n'));
+  expect(addToReport).toHaveBeenCalledWith(expect.stringContaining('90% test2\n'));
 });
 
 it('clears the interval on closeLoggerOutput', async () => {

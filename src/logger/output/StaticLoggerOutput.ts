@@ -14,10 +14,16 @@ export class StaticLoggerOutput extends AbstractLoggerOutput {
     const keys = Object.keys(this.progressMap)
       .filter((key) => key !== '')
       .toSorted((a: string, b: string) => a.localeCompare(b));
+    if (keys.length) {
+      this.addToReport(`
+   ${this.formatDiff(Date.now())}|Progress
+   -----+--------
+`);
+    }
     for (const key of keys) {
       const progressBar = this.progressMap[key]!; // key is coming from Object.keys
       const rendered = progressBar.render(80);
-      this.addToReport(rendered);
+      this.addToReport(rendered + '\n');
     }
   }
 

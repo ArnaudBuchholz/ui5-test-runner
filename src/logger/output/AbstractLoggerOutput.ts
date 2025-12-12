@@ -5,15 +5,6 @@ import { LogLevel } from '../types.js';
 import { ANSI_BLUE, ANSI_MAGENTA, ANSI_RED, ANSI_WHITE, ANSI_YELLOW } from '../../terminal/ansi.js';
 import { ProgressBar } from '../../terminal/ProgressBar.js';
 
-const formatDiff = (diffInMs: number) => {
-  if (diffInMs < 0) {
-    return '00:00';
-  }
-  const seconds = Math.floor(diffInMs / 1000);
-  const minutes = Math.floor(seconds / 60);
-  return minutes.toString().padStart(2, '0') + ':' + (seconds % 60).toString().padStart(2, '0');
-};
-
 const icons = {
   [LogLevel.debug]: ANSI_BLUE + '<o>',
   [LogLevel.info]: '   ',
@@ -34,6 +25,16 @@ export abstract class AbstractLoggerOutput {
     };
   }
 
+  protected formatDiff (timestamp: number) {
+    const diffInMs = timestamp - this._startedAt;
+    if (diffInMs < 0) {
+      return '00:00';
+    }
+    const seconds = Math.floor(diffInMs / 1000);
+    const minutes = Math.floor(seconds / 60);
+    return minutes.toString().padStart(2, '0') + ':' + (seconds % 60).toString().padStart(2, '0');
+  }
+
   protected render(attributes: InternalLogAttributes): string | void {
     const { level, timestamp, source, message, data, error } = attributes;
     // TODO: adjust for LogLevel.debug based on configuration (--debug-verbose)
@@ -41,7 +42,7 @@ export abstract class AbstractLoggerOutput {
       return [
         icons[level],
         ANSI_YELLOW,
-        formatDiff(timestamp - this._startedAt),
+        this.formatDiff(timestamp),
         ANSI_WHITE,
         ' ',
         message,
@@ -83,7 +84,7 @@ export abstract class AbstractLoggerOutput {
       if (!uid && progress.label !== this._lastStatus) {
         this._lastStatus = progress.label;
         this.addToReport(`
-   ${formatDiff(attributes.timestamp - this._startedAt)}|${this._lastStatus}
+   ${this.formatDiff(attributes.timestamp)}|${this._lastStatus}
    -----+${''.padStart(this._lastStatus.length, '-')}
 `);
       }
