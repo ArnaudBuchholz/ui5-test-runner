@@ -2,6 +2,7 @@ import type { AgentFeedback } from './agent/Feedback.js';
 import { BrowserFactory } from './browsers/factory.js';
 import type { Configuration } from './configuration/Configuration.js';
 import { Modes } from './configuration/Modes.js';
+import { defaults } from './configuration/options.js';
 import { logEnvironnement } from './environment.js';
 import { logger } from './logger.js';
 import { parallelize } from './parallelize.js';
@@ -17,6 +18,7 @@ export const execute = async (configuration: Configuration) => {
     console.log('Please check https://arnaudbuchholz.github.io/ui5-test-runner/');
   } else {
     logger.start(configuration);
+    logger.info({ source: 'job', message: 'Configuration', data: { defaults, configuration } });
 
     await logEnvironnement();
     const agent = await Platform.readFile(Platform.join(Platform.sourcesRoot, './agent/agent.js'), 'utf8');
