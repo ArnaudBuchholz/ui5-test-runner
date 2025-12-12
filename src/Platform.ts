@@ -144,10 +144,18 @@ if (isMainThread) {
       console.log(`${ANSI_BLUE}[~]${ANSI_WHITE}${ANSI_RED}SIGINT${ANSI_WHITE} received`);
     }
     for (const handler of _sigIntHandlers) {
-      await handler();
+      try {
+        await handler();
+      } catch {
+        // ignore
+      }
     }
     if (_sigIntLoggerHandler) {
-      await _sigIntLoggerHandler();
+      try {
+        await _sigIntLoggerHandler();
+      } catch {
+        // ignore
+      }
     }
     process.exit(process.exitCode);
   });
