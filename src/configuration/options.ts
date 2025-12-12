@@ -145,7 +145,7 @@ export const options = [
     name: 'ci',
     description: 'CI mode (no interactive output)',
     type: 'boolean',
-    default: !process.stdout.isTTY || !process.stdout.columns
+    default: !process.stdout.isTTY
   },
   {
     name: 'deepProbe',
@@ -510,7 +510,7 @@ export const defaults = {
   browserRetry: 1,
   outputInterval: 3000,
   localhost: 'localhost',
-  ci: !process.stdout.isTTY || !process.stdout.columns,
+  ci: !process.stdout.isTTY,
   pageCloseTimeout: 250,
   screenshotOnFailure: true,
   screenshotTimeout: 5000,
