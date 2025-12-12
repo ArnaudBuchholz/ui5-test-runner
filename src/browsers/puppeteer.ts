@@ -6,6 +6,7 @@ import { Platform } from '../Platform.js';
 
 export const factory = async (): Promise<IBrowser> => {
   const puppeteer = await Npm.import('puppeteer');
+  // TODO: may need to npx puppeteer browsers install chrome
   const { launch } = puppeteer as { launch: typeof launchFunction };
   let browser: Browser | undefined;
 
