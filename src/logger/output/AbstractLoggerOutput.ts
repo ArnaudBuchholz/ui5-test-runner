@@ -60,8 +60,6 @@ export abstract class AbstractLoggerOutput {
     });
   }
 
-  abstract addTextToLoggerOutput(formatted: string, raw: string): void;
-
   private _lastStatus = '';
   private _progressMap: { [key in string]?: ProgressBar } & { '': ProgressBar };
 
@@ -104,5 +102,7 @@ export abstract class AbstractLoggerOutput {
     }
   }
 
+  abstract terminalResized(width: number): void;
+  abstract addTextToLoggerOutput(formatted: string, raw: string): void;
   abstract closeLoggerOutput(): void;
 }

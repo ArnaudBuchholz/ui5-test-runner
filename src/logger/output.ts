@@ -19,9 +19,10 @@ export const workerMain = ({ configuration }: { configuration: Configuration }) 
     if (message.command === 'terminate') {
       channel.close();
       loggerOutput.closeLoggerOutput();
-      /* istanbul ignore else */
     } else if (message.command === 'log') {
       loggerOutput.addAttributesToLoggerOutput(message);
+    } else if (message.command === 'terminal-resized') {
+      loggerOutput.terminalResized(message.width);
     }
   };
 

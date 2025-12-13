@@ -8,10 +8,12 @@ import { workerMain } from './output.js';
 import type { Configuration } from '../configuration/Configuration.js';
 
 class TestLoggerOutput extends AbstractLoggerOutput {
-  override addTextToLoggerOutput() {}
-  override closeLoggerOutput(): void {}
+  terminalResized() {}
+  addTextToLoggerOutput() {}
+  closeLoggerOutput(): void {}
 }
 
+const terminalResized = vi.spyOn(TestLoggerOutput.prototype, 'terminalResized');
 const addTextToLoggerOutput = vi.spyOn(TestLoggerOutput.prototype, 'addTextToLoggerOutput').mockReturnValue();
 const addAttributesToLoggerOutput = vi
   .spyOn(TestLoggerOutput.prototype, 'addAttributesToLoggerOutput')
@@ -47,6 +49,16 @@ it('forwards log attributes to the loggerOutput', () => {
   };
   channel.postMessage(logMessage);
   expect(addAttributesToLoggerOutput).toHaveBeenCalledWith(logMessage);
+});
+
+it('forwards terminal width to the loggerOutput', () => {
+  const channel = Platform.createBroadcastChannel('logger');
+  const logMessage: LogMessage = {
+    command: 'terminal-resized',
+    width: 80
+  };
+  channel.postMessage(logMessage);
+  expect(terminalResized).toHaveBeenCalledWith(80);
 });
 
 it('closes the broadcast channel and the loggerOutput when the terminate signal is received', () => {

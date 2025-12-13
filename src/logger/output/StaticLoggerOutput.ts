@@ -32,9 +32,9 @@ export class StaticLoggerOutput extends AbstractLoggerOutput {
     Platform.writeOnTerminal(rawText);
   }
 
+  terminalResized() {}
   addTextToLoggerOutput() {}
-
-  override closeLoggerOutput(): void {
+  closeLoggerOutput(): void {
     clearInterval(this._progressReportInterval);
   }
 }

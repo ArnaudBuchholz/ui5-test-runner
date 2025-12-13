@@ -13,8 +13,9 @@ class TestLoggerOutput extends AbstractLoggerOutput {
     } as Configuration);
   }
 
-  override addTextToLoggerOutput(): void {}
-  override closeLoggerOutput(): void {}
+  terminalResized(): void {}
+  addTextToLoggerOutput(): void {}
+  closeLoggerOutput(): void {}
 }
 
 vi.setSystemTime(new Date('2025-12-10T00:00:00.000Z'));
