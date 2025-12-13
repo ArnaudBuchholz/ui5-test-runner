@@ -66,6 +66,12 @@ export class Platform {
   static writeOnTerminal(text: string) {
     process.stdout.write(text);
   }
+  static get terminalWidth() {
+    return process.stdout.columns;
+  }
+  static onTerminalResize(callback: () => void) {
+    process.stdout.on('resize', callback);
+  }
 
   static readonly nodeVersion = process.version;
   static readonly machine = machine;

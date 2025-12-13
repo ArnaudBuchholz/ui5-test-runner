@@ -37,7 +37,8 @@ vi.mock(import('./Platform.js'), async (importActual) => {
       createBroadcastChannel: vi.fn(() => channel),
       createWorker: vi.fn(() => worker),
       createGzip: vi.fn(() => gzipStream),
-      registerSigIntHandler: vi.fn()
+      registerSigIntHandler: vi.fn(),
+      onTerminalResize: vi.fn()
     }
   } as unknown as typeof actual;
 });
