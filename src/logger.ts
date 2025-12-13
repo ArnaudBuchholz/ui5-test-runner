@@ -17,9 +17,17 @@ let loggerWorker: ReturnType<typeof Platform.createWorker> | undefined;
 let consoleWorker: ReturnType<typeof Platform.createWorker> | undefined;
 const buffer: InternalLogAttributes[] = [];
 const waitingFor: ReadySource[] = ['allCompressed', 'output'];
-let ready = false;
+let ready = !Platform.isMainThread;
 
 let metricsMonitorInterval: ReturnType<typeof setInterval>;
+
+// Only the main thread can access terminal as TTY
+const terminalResized = () => {
+  channel?.postMessage({
+    command: 'terminal-resized',
+    width: Platform.terminalWidth
+  } satisfies LogMessage);
+};
 
 const start = () => {
   channel = Platform.createBroadcastChannel('logger');
@@ -31,7 +39,8 @@ const start = () => {
 
   channel.onmessage = (event: { data: LogMessage }) => {
     const { data: message } = event;
-    if (message.command === 'ready') {
+    if (message.command === 'ready' && Platform.isMainThread) {
+      terminalResized();
       const index = waitingFor.indexOf(message.source);
       waitingFor.splice(index, 1); // Only two ready messages will be sent
       ready = waitingFor.length === 0;
@@ -98,6 +107,7 @@ export const logger = {
     loggerWorker = Platform.createWorker('logger/allCompressed', { configuration: toPlainObject(configuration) });
     consoleWorker = Platform.createWorker('logger/output', { configuration: toPlainObject(configuration) });
     Platform.registerSigIntHandler(() => logger.stop(), Platform.SIGINT_LOGGER);
+    Platform.onTerminalResize(terminalResized);
   },
 
   debug(attributes: LogAttributes) {

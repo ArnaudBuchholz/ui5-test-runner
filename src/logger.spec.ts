@@ -8,6 +8,9 @@ import type { LogMessage } from './logger/types.js';
 const expectAnyString = expect.any(String) as string;
 const expectAnyNumber = expect.any(Number) as number;
 
+// TODO: the main thread waits for the two outputs to be ready *before* sending the logs
+// TODO: the other threads do not wait (because started from the main thread)
+
 beforeEach(() => {
   Object.assign(Platform, { isMainThread: false });
   vi.resetAllMocks();
@@ -242,12 +245,13 @@ describe('Metrics automatic monitoring', () => {
 
 const cwd = '~/test';
 
-describe('open', () => {
+describe('start', () => {
   it('fails if not on the main thread', async () => {
     Object.assign(Platform, { isMainThread: false });
     const { logger } = await import('./logger.js');
     expect(() => logger.start({ cwd } as Configuration)).toThrowError(AssertionError);
     expect(Platform.createWorker).not.toHaveBeenCalled();
+    expect(Platform.onTerminalResize).not.toHaveBeenCalled();
   });
 
   it('creates the logger workers', async () => {
@@ -256,6 +260,7 @@ describe('open', () => {
     logger.start({ cwd } as Configuration);
     expect(Platform.createWorker).toHaveBeenCalledWith('logger/allCompressed', { configuration: { cwd } });
     expect(Platform.createWorker).toHaveBeenCalledWith('logger/output', { configuration: { cwd } });
+    expect(Platform.onTerminalResize).toHaveBeenCalled();
   });
 });
 
