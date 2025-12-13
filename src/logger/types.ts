@@ -87,6 +87,10 @@ export type LogMessage =
       command: 'ready';
       source: ReadySource;
     }
+  | {
+      command: 'terminal-resized';
+      width: number;
+    }
   | ({
       command: 'log';
     } & InternalLogAttributes);
