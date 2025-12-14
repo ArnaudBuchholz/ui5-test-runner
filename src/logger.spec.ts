@@ -53,6 +53,16 @@ describe('Main thread', () => {
     expect(Platform.onTerminalResize).toHaveBeenCalled();
   });
 
+  it('registers itself a sigIntHandler', async () => {
+    Object.assign(Platform, { isMainThread: true });
+    const { logger } = await import('./logger.js');
+    logger.start({ cwd } as Configuration);
+    expect(Platform.registerSigIntHandler).toHaveBeenCalledWith(
+      expect.any(Function) as unknown,
+      Platform.SIGINT_LOGGER
+    );
+  });
+
   it('sends traces when the logger thread starts', async () => {
     const { logger } = await import('./logger.js');
     logger.start({ cwd } as Configuration);
@@ -69,7 +79,6 @@ describe('Main thread', () => {
 
   describe('close', () => {
     it('fails if open has not been called', async () => {
-      Object.assign(Platform, { isMainThread: true });
       const { logger } = await import('./logger.js');
       const channel = Platform.createBroadcastChannel('logger');
       await expect(() => logger.stop()).rejects.toThrowError(AssertionError);
@@ -82,7 +91,6 @@ describe('Main thread', () => {
     };
 
     it('closes the logger worker', async () => {
-      Object.assign(Platform, { isMainThread: true });
       const { logger } = await import('./logger.js');
       const channel = Platform.createBroadcastChannel('logger');
       logger.start({ cwd } as Configuration);
@@ -93,13 +101,23 @@ describe('Main thread', () => {
     });
 
     it('supports multiple closing', async () => {
-      Object.assign(Platform, { isMainThread: true });
       const { logger } = await import('./logger.js');
       logger.start({ cwd } as Configuration);
       const firstClose = logger.stop();
       const secondClose = logger.stop();
       simulateWorkersExit();
       await expect(Promise.all([firstClose, secondClose])).resolves.toStrictEqual([undefined, undefined]);
+    });
+
+    it('closes if SIGINT is triggered', async () => {
+      const { logger } = await import('./logger.js');
+      const channel = Platform.createBroadcastChannel('logger');
+      logger.start({ cwd } as Configuration);
+      const handler = vi.mocked(Platform.registerSigIntHandler).mock.calls[0]![0];
+      const closing = handler();
+      simulateWorkersExit();
+      await closing;
+      expect(channel.postMessage).toHaveBeenCalledWith({ command: 'terminate' });
     });
   });
 });
