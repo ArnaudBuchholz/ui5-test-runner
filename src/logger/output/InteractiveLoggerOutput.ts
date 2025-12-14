@@ -1,5 +1,5 @@
 import { Platform } from '../../Platform.js';
-import { AbstractLoggerOutput } from './AbstractLoggerOutput.js';
+import { BaseLoggerOutput } from './BaseLoggerOutput.js';
 import type { Configuration } from '../../configuration/Configuration.js';
 import {
   ANSI_BLUE,
@@ -17,7 +17,7 @@ const TICKS_INTERVAL = 250;
 const TICKS_PICTURES = ['[|]', '[/]', '[-]', String.raw`[\]`];
 const TICKS_COLORS = [ANSI_BLUE, ANSI_CYAN, ANSI_MAGENTA, ANSI_CYAN, ANSI_YELLOW, ANSI_CYAN];
 
-export class InteractiveLoggerOutput extends AbstractLoggerOutput {
+export class InteractiveLoggerOutput extends BaseLoggerOutput {
   private _noColor: boolean;
   private _ticksInterval: ReturnType<typeof setInterval>;
   private _tick: number;
@@ -33,12 +33,12 @@ export class InteractiveLoggerOutput extends AbstractLoggerOutput {
     Platform.writeOnTerminal(ANSI_SAVE_POS_DEC);
   }
 
-  terminalResized(width: number): void {
+  override terminalResized(width: number): void {
     // TODO: reset display
     this._terminalWidth = width;
   }
 
-  addTextToLoggerOutput(formatted: string, raw: string): void {
+  override addTextToLoggerOutput(formatted: string, raw: string): void {
     Platform.writeOnTerminal(this._noColor ? raw : formatted);
     Platform.writeOnTerminal(ANSI_SAVE_POS_DEC);
   }
@@ -62,7 +62,7 @@ export class InteractiveLoggerOutput extends AbstractLoggerOutput {
     Platform.writeOnTerminal(rendered.slice(3) + '\n');
   }
 
-  closeLoggerOutput(): void {
+  override closeLoggerOutput(): void {
     clearInterval(this._ticksInterval);
     Platform.writeOnTerminal(ANSI_SHOW_CURSOR);
   }

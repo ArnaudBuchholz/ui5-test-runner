@@ -3,23 +3,17 @@ import { Platform } from '../Platform.js';
 import type { LogMessage } from './types.js';
 import { LogLevel } from './types.js';
 import { LoggerOutputFactory } from './output/factory.js';
-import { AbstractLoggerOutput } from './output/AbstractLoggerOutput.js';
+import { BaseLoggerOutput } from './output/BaseLoggerOutput.js';
 import { workerMain } from './output.js';
 import type { Configuration } from '../configuration/Configuration.js';
 
-class TestLoggerOutput extends AbstractLoggerOutput {
-  terminalResized() {}
-  addTextToLoggerOutput() {}
-  closeLoggerOutput(): void {}
-}
-
-const terminalResized = vi.spyOn(TestLoggerOutput.prototype, 'terminalResized');
-const addTextToLoggerOutput = vi.spyOn(TestLoggerOutput.prototype, 'addTextToLoggerOutput').mockReturnValue();
+const terminalResized = vi.spyOn(BaseLoggerOutput.prototype, 'terminalResized');
+const addTextToLoggerOutput = vi.spyOn(BaseLoggerOutput.prototype, 'addTextToLoggerOutput').mockReturnValue();
 const addAttributesToLoggerOutput = vi
-  .spyOn(TestLoggerOutput.prototype, 'addAttributesToLoggerOutput')
+  .spyOn(BaseLoggerOutput.prototype, 'addAttributesToLoggerOutput')
   .mockReturnValue();
-const closeLoggerOutput = vi.spyOn(TestLoggerOutput.prototype, 'closeLoggerOutput').mockReturnValue();
-vi.spyOn(LoggerOutputFactory, 'build').mockImplementation((configuration) => new TestLoggerOutput(configuration));
+const closeLoggerOutput = vi.spyOn(BaseLoggerOutput.prototype, 'closeLoggerOutput').mockReturnValue();
+vi.spyOn(LoggerOutputFactory, 'build').mockImplementation((configuration) => new BaseLoggerOutput(configuration));
 
 beforeEach(() => {
   vi.clearAllMocks();

@@ -13,7 +13,7 @@ const icons = {
   [LogLevel.fatal]: ANSI_MAGENTA + 'o*!'
 } as const;
 
-export abstract class AbstractLoggerOutput {
+export class BaseLoggerOutput {
   protected readonly _configuration: Configuration;
   protected readonly _startedAt: ReturnType<typeof Date.now>;
 
@@ -102,7 +102,7 @@ export abstract class AbstractLoggerOutput {
     }
   }
 
-  abstract terminalResized(width: number): void;
-  abstract addTextToLoggerOutput(formatted: string, raw: string): void;
-  abstract closeLoggerOutput(): void;
+  terminalResized(width: number): void {}
+  addTextToLoggerOutput(formatted: string, raw: string): void {}
+  closeLoggerOutput(): void {}
 }

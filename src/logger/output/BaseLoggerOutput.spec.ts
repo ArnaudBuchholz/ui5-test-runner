@@ -1,25 +1,15 @@
 import { it, expect, beforeEach, vi, describe } from 'vitest';
-import { AbstractLoggerOutput } from './AbstractLoggerOutput.js';
+import { BaseLoggerOutput } from './BaseLoggerOutput.js';
 import type { Configuration } from '../../configuration/Configuration.js';
 import type { InternalLogAttributes } from '../types';
 import { LogLevel } from '../types.js';
 import { ANSI_YELLOW, ANSI_WHITE, ANSI_RED, ANSI_MAGENTA } from '../../terminal/ansi.js';
 import { Platform } from '../../Platform.js';
 
-class TestLoggerOutput extends AbstractLoggerOutput {
-  constructor() {
-    super({
-      reportDir: './tmp'
-    } as Configuration);
-  }
-
-  terminalResized(): void {}
-  addTextToLoggerOutput(): void {}
-  closeLoggerOutput(): void {}
-}
-
 vi.setSystemTime(new Date('2025-12-10T00:00:00.000Z'));
-const loggerOuput = new TestLoggerOutput();
+const loggerOuput = new BaseLoggerOutput({
+  reportDir: './tmp'
+} as Configuration);
 const addTextToLoggerOutput = vi.spyOn(loggerOuput, 'addTextToLoggerOutput');
 const addToReport = vi.spyOn(loggerOuput, 'addToReport');
 

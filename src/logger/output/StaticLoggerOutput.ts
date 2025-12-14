@@ -1,8 +1,8 @@
 import type { Configuration } from '../../configuration/Configuration.js';
 import { Platform } from '../../Platform.js';
-import { AbstractLoggerOutput } from './AbstractLoggerOutput.js';
+import { BaseLoggerOutput } from './BaseLoggerOutput.js';
 
-export class StaticLoggerOutput extends AbstractLoggerOutput {
+export class StaticLoggerOutput extends BaseLoggerOutput {
   private _progressReportInterval: ReturnType<typeof setInterval>;
 
   constructor(configuration: Configuration) {
@@ -32,9 +32,7 @@ export class StaticLoggerOutput extends AbstractLoggerOutput {
     Platform.writeOnTerminal(rawText);
   }
 
-  terminalResized() {}
-  addTextToLoggerOutput() {}
-  closeLoggerOutput(): void {
+  override closeLoggerOutput(): void {
     clearInterval(this._progressReportInterval);
   }
 }

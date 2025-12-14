@@ -16,7 +16,7 @@ const loggerOuput = new StaticLoggerOutput({
 const addToReport = vi.spyOn(loggerOuput, 'addToReport');
 
 it('does not output if called on addTextToLoggerOutput', () => {
-  loggerOuput.addTextToLoggerOutput();
+  loggerOuput.addTextToLoggerOutput('abc', 'abc');
   expect(Platform.writeOnTerminal).not.toHaveBeenCalled();
 });
 
