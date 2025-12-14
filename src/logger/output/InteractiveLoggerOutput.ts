@@ -45,13 +45,14 @@ export class InteractiveLoggerOutput extends BaseLoggerOutput {
 
   tick(): void {
     Platform.writeOnTerminal(ANSI_LOAD_POS_DEC);
+    // TODO: clear the previous number of lines
     ++this._tick;
     const keys = Object.keys(this.progressMap)
       .filter((key) => key !== '')
       .toSorted((a: string, b: string) => a.localeCompare(b));
     for (const key of keys) {
       const progressBar = this.progressMap[key]!; // key is coming from Object.keys
-      const rendered = progressBar.render(this._terminalWidth);
+      const rendered = progressBar.render(this._terminalWidth - 1);
       Platform.writeOnTerminal(rendered + '\n');
     }
     Platform.writeOnTerminal(TICKS_COLORS[this._tick % TICKS_COLORS.length]!);
