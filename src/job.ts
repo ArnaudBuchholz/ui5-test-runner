@@ -53,6 +53,8 @@ export const execute = async (configuration: Configuration) => {
                   }
                 }
               } else if (feedback.type === 'QUnit' && feedback.total > 0) {
+                // TODO: generate a message *only if* the progress changed (otherwise it grows the log file)
+                // TODO: hash the URL to generate the UID
                 logger.info({
                   source: 'progress',
                   message: url,
