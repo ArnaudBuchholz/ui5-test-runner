@@ -58,7 +58,6 @@
   },
   "homepage": "https://github.com/ArnaudBuchholz/ui5-test-runner#readme",
   "dependencies": {
-    "cbor2": "^2.0.1",
     "pidtree": "^0.6.0",
     "punybind": "^1.2.1",
     "punyexpr": "1.2.0",
