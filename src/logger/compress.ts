@@ -1,155 +1,139 @@
 import type { InternalLogAttributes } from './types.js';
 import { LogLevel } from './types.js';
+import { isDeepStrictEqual } from 'node:util';
+import assert from 'node:assert/strict';
 
+const DIGITS = '0123456798abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
+
+const MAX_INDEX_DIGITS = 2; // 62**2=3844 values
 const CONTEXT_PROCESS_ID = 'p';
-const CONTEXT_THREAD_ID = 't';
 const CONTEXT_SOURCE_ID = 's';
+const MAX_TIMESTAMP_DIGITS = 8;
+const MAX_DWORD_DIGITS = 6;
+
+type ProcessContext = Pick<InternalLogAttributes, 'processId' | 'threadId' | 'isMainThread'>;
 
 /** Used to keep track of constantly repeated values */
-class CompressionContext {
-  private _processIds: number[];
-  private _threadIds: number[];
-  private _sources: string[];
+class Context {
+  static compressNumber(value: number, maxLength: number): string {
+    const digits: string[] = [];
+    while (value > 0) {
+      const digit = value % DIGITS.length;
+      digits.push(DIGITS[digit]!);
+      value = (value - digit) / DIGITS.length;
+    }
+    return digits.join('').padEnd(maxLength, '0');
+  }
 
-  constructor() {
-    this._processIds = [];
-    this._threadIds = [];
+  static uncompressNumber(value: string): number {
+    let result = 0;
+    let factor = 1;
+    for (const digit of value) {
+      const index = DIGITS.indexOf(digit);
+      result += index * factor;
+      factor *= DIGITS.length;
+    }
+    return result;
   }
 
   private fail(message: string): never {
     throw new Error(message);
   }
 
-  private _compressNumberFromList({ array, value, maxValueDigits, maxIndexDigits, contextKey }: {
-    array: number[];
-    value: number;
-    maxValueDigits: number;
-    maxIndexDigits: number;
-    contextKey: string;
+  private _compressWithList<T>({
+    array,
+    value,
+    compress
+  }: {
+    array: T[];
+    value: T;
+    compress: (value: T) => string[];
   }): { context: string; compressed: string } {
-    const index = array.indexOf(value);
+    const index = array.findIndex((candidate) => isDeepStrictEqual(candidate, value));
     if (index !== -1) {
-      const compressed = compressNumber(index, maxIndexDigits);
-
-      if (uncompressNumber(compressed) )
+      const compressed = Context.compressNumber(index, MAX_INDEX_DIGITS);
       return {
         context: '',
-        compressed: 
-      }
+        compressed
+      };
     }
+    const lastIndex = array.length;
     array.push(value);
-    const lastIndex = this._processIds.length - 1;
     return {
-      context: `${contextKey}${compressNumber(value, maxValueDigits)}\n`,
-      compressed: compressNumber(lastIndex, maxIndexDigits)
-    }
+      context: compress(value).join(''),
+      compressed: Context.compressNumber(lastIndex, MAX_INDEX_DIGITS)
+    };
   }
 
-  private _uncompressNumberFromList({ array, compressed }: {
-    array: number[];
-    compressed: string;
-
-  }): number {
-    const index = uncompressNumber(compressed);
-    return array[index] ?? this.fail('Invalid process id');
+  private _uncompressFromList<T>({ array, compressed }: { array: T[]; compressed: string }): T {
+    const index = Context.uncompressNumber(compressed);
+    return array[index] ?? this.fail('Invalid index');
   }
 
-  compressProcessId(value: number): { context: string; compressed: string } {
-    return this._compressNumberFromList({
-        array: this._processIds,
-        value,
-        maxValueDigits: MAX_DWORD_DIGITS,
-        maxIndexDigits: MAX_INDEX_DIGITS,
-        contextKey: CONTEXT_PROCESS_ID
+  private _processes: ProcessContext[] = [];
+
+  compressProcess(value: ProcessContext): { context: string; compressed: string } {
+    return this._compressWithList({
+      array: this._processes,
+      value,
+      compress: (value: ProcessContext) => [
+        CONTEXT_PROCESS_ID,
+        Context.compressNumber(value.processId, MAX_DWORD_DIGITS),
+        Context.compressNumber(value.threadId, MAX_DWORD_DIGITS),
+        value.isMainThread ? '!' : ''
+      ]
     });
   }
 
-  uncompressProcessId(compressed: string): number {
-    return this._uncompressNumberFromList({
-        array: this._processIds,
-        compressed
+  uncompressProcess(compressed: string): ProcessContext {
+    return this._uncompressFromList({
+      array: this._processes,
+      compressed
     });
   }
 
-  compressThreadId(value: number): { context: string; compressed: string } {
-    return this._compressNumberFromList({
-        array: this._threadIds,
-        value,
-        maxValueDigits: MAX_DWORD_DIGITS,
-        maxIndexDigits: MAX_INDEX_DIGITS,
-        contextKey: CONTEXT_THREAD_ID
+  private _sources: string[] = [];
+
+  compressSource(value: string): { context: string; compressed: string } {
+    return this._compressWithList({
+      array: this._sources,
+      value,
+      compress: (value: string) => [CONTEXT_SOURCE_ID, value]
     });
   }
 
-  uncompressThreadId(compressed: string): number {
-    return this._uncompressNumberFromList({
-        array: this._threadIds,
-        compressed
+  uncompressSource(compressed: string): string {
+    return this._uncompressFromList({
+      array: this._sources,
+      compressed
     });
   }
 }
 
-export const createCompressionContext = () => new CompressionContext();
+export const createCompressionContext = () => new Context() as unknown;
 
-const MAX_TIMESTAMP_DIGITS = 8;
-const MAX_DWORD_DIGITS = 6;
-const MAX_INDEX_DIGITS = 2; // 62**2=3844 values
 const LEVEL_MAPPING: { [key in LogLevel]: string } = {
   [LogLevel.debug]: 'D',
   [LogLevel.info]: 'I',
   [LogLevel.warn]: 'W',
   [LogLevel.error]: 'E',
-  [LogLevel.fatal]: 'F',
+  [LogLevel.fatal]: 'F'
 };
 
-const DIGITS = '0123456798abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
-
-const compressNumber = (value: number, maxLength: number): string => {
-  const digits: string[] = [];
-  while (value > 0) {
-    let digit = value % DIGITS.length;
-    digits.push(DIGITS[digit]!);
-    value = (value - digit) / DIGITS.length;
-  }
-  return digits.join('').padEnd(maxLength, '0');
-};
-
-const uncompressNumber = (value: string): number => {
-  let result = 0;
-  let factor = 1;
-  for (const digit of value) {
-    const index = DIGITS.indexOf(digit);
-    result += index * factor;
-    factor *= DIGITS.length;
-  }
-  return result;
-}
-
-export const compress = (context: CompressionContext, attributes: InternalLogAttributes): string => {
-  const compressed: string = [];
-  const { level, timestamp, processId, threadId, isMainThread, source, message, data } = attributes;
-  let processIdIndex = context.processIds.indexOf(processId)
-  if (context.processIds)
+export const compress = (context: unknown, attributes: InternalLogAttributes): string => {
+  assert.ok(context instanceof Context);
+  const { level, timestamp, source, message, data } = attributes;
   const cLevel = LEVEL_MAPPING[level];
-  const cTimestamp = compressNumber(timestamp, MAX_TIMESTAMP_DIGITS);
-  const cProcessId = context.compressProcessId(processId);
-  const cThreadId = context.compressThreadId(threadId);
-  const cIsMainThread = isMainThread ? '!': '';
+  const cTimestamp = Context.compressNumber(timestamp, MAX_TIMESTAMP_DIGITS);
+  const cProcess = context.compressProcess(attributes);
   const cSource = context.compressSource(source);
+  const compressed: string[] = [cLevel, cTimestamp, cProcess.compressed, cSource.compressed, message];
+  if (data) {
+    compressed.push('"', JSON.stringify(data));
+  }
+  return [cProcess.context, cSource.context, compressed.join('')].filter((line) => !!line).join('\n');
+};
 
-
-
-
-    const compressed = `${level.toString()}${reduceNumber(timestamp)}:${reduceNumber(processId)}:${reduceNumber(threadId)}${isMainThread ? '!' : ''}:${source}:${message}`;
-    gzBuffer.push(data ? [compressed, data] : compressed);
-    if (gzBuffer.length >= MAX_BUFFER_SIZE) {
-      gzFlushBuffer();
-    } else if (!gzFlushTimeout) {
-      gzFlushTimeout = setTimeout(gzFlushBuffer, FLUSH_INTERVAL_MS);
-    }
-
-}
-
-export const uncompress = (context: CompressionContext, compressed: string): InternalLogAttributes | null => {
+export const uncompress = (context: unknown, compressed: string): InternalLogAttributes | null => {
   return null; // augmented context
-}
+};
