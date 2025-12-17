@@ -21,7 +21,7 @@ for (const attributes of [
       const context = createCompressionContext();
       const json = JSON.stringify(attributes);
       compressed = compress(context, attributes);
-      expect(compress.length).toBeLessThan(json.length);
+      expect(compressed.length).toBeLessThan(json.length);
     });
 
     it('keeps the message integrity', () => {
