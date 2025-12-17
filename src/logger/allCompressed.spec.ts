@@ -1,6 +1,6 @@
 import { it, expect, vi, beforeAll } from 'vitest';
 import { Platform } from '../Platform.js';
-import { MAX_BUFFER_SIZE, workerMain } from './allCompressed.js';
+import { MAX_BUFFER_COUNT, workerMain } from './allCompressed.js';
 import type { LogMessage } from './types.js';
 import { LogLevel } from './types.js';
 import type { Configuration } from '../configuration/Configuration.js';
@@ -73,33 +73,11 @@ it('compress the traces before zipping (no data)', () => {
   expect(gzipStream.write).toHaveBeenCalledWith(expect.any(String));
 });
 
-it('compress the traces before zipping (data)', () => {
-  vi.advanceTimersToNextTimer(); // flush buffer
-  const gzipStream = Platform.createGzip();
-  vi.mocked(gzipStream.write).mockClear();
-  channel.postMessage({
-    command: 'log',
-    timestamp: Date.now(),
-    level: LogLevel.info,
-    processId: process.pid,
-    threadId: Platform.threadId,
-    isMainThread: Platform.isMainThread,
-    source: 'job',
-    message: 'test',
-    data: { hello: 'world' }
-  });
-  vi.advanceTimersToNextTimer(); // flush buffer
-  expect(gzipStream.write).toHaveBeenCalled();
-  const stringified = (vi.mocked(gzipStream.write).mock.calls[0] as [string, unknown])[0];
-  const parsed = JSON.parse(stringified) as [string, object];
-  expect(parsed).toStrictEqual([expect.any(String), { hello: 'world' }]);
-});
-
 it('flushes traces after a threshold count', () => {
   vi.advanceTimersToNextTimer(); // flush buffer
   const gzipStream = Platform.createGzip();
   vi.mocked(gzipStream.write).mockClear();
-  for (let index = 0; index < MAX_BUFFER_SIZE; ++index) {
+  for (let index = 0; index < MAX_BUFFER_COUNT; ++index) {
     channel.postMessage({
       command: 'log',
       timestamp: Date.now(),

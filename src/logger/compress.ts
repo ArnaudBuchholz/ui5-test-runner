@@ -146,7 +146,7 @@ export const compress = (context: unknown, attributes: InternalLogAttributes): s
   if (data) {
     compressed.push('"', JSON.stringify(data));
   }
-  return [cProcess.context, cSource.context, compressed.join('')].filter((line) => !!line).join('\n');
+  return [cProcess.context, cSource.context, compressed.join(''), ''].filter((line) => !!line).join('\n');
 };
 
 export const uncompress = (context: unknown, compressed: string): InternalLogAttributes[] => {

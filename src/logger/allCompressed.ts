@@ -3,10 +3,11 @@ import type { InternalLogAttributes, LogAttributes, LogMessage } from './types.j
 import { LogLevel, toInternalLogAttributes } from './types.js';
 import type { Configuration } from '../configuration/Configuration.js';
 import '../logger.js';
+import { createCompressionContext, compress } from './compress.js';
 
-export const MAX_BUFFER_SIZE = 50;
+export const MAX_BUFFER_COUNT = 50;
 const FLUSH_INTERVAL_MS = 200;
-const reduceNumber = (value: number) => Number(value).toString(36);
+const compressionContext = createCompressionContext();
 
 export const workerMain = ({ configuration }: { configuration: Configuration }) => {
   const LOG_FILE_NAME = `app-${new Date().toISOString().slice(0, 19).replaceAll(/[-:]/g, '').replace('T', '-')}.log`;
@@ -16,23 +17,21 @@ export const workerMain = ({ configuration }: { configuration: Configuration }) 
   const fileStream = Platform.createWriteStream(Platform.join(cwd, LOG_FILE_NAME + '.gz'));
   const gzipStream = Platform.createGzip({ flush: Platform.Z_FULL_FLUSH });
   gzipStream.pipe(fileStream);
-  const gzBuffer: (string | [string, object])[] = [];
+  const gzBuffer: string[] = [];
   let gzFlushTimeout: ReturnType<typeof setTimeout> | undefined;
 
   const gzFlushBuffer = () => {
-    const dataToWrite = gzBuffer.map((log) => JSON.stringify(log)).join('\n') + '\n';
-    gzipStream.write(dataToWrite);
-
+    for (const chunk of gzBuffer) {
+      gzipStream.write(chunk);
+    }
     gzBuffer.length = 0;
     clearTimeout(gzFlushTimeout);
     gzFlushTimeout = undefined;
   };
 
   const log = (attributes: InternalLogAttributes) => {
-    const { level, timestamp, processId, threadId, isMainThread, source, message, data } = attributes;
-    const compressed = `${level.toString()}${reduceNumber(timestamp)}:${reduceNumber(processId)}:${reduceNumber(threadId)}${isMainThread ? '!' : ''}:${source}:${message}`;
-    gzBuffer.push(data ? [compressed, data] : compressed);
-    if (gzBuffer.length >= MAX_BUFFER_SIZE) {
+    gzBuffer.push(compress(compressionContext, attributes));
+    if (gzBuffer.length >= MAX_BUFFER_COUNT) {
       gzFlushBuffer();
     } else if (!gzFlushTimeout) {
       gzFlushTimeout = setTimeout(gzFlushBuffer, FLUSH_INTERVAL_MS);
