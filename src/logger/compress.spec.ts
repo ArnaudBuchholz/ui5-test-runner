@@ -12,6 +12,16 @@ for (const attributes of [
     isMainThread: true,
     source: 'job',
     message: 'Simple trace'
+  },
+  {
+    timestamp: Date.now(),
+    level: LogLevel.info,
+    processId: 123,
+    threadId: 456,
+    isMainThread: true,
+    source: 'job',
+    message: 'Simple trace',
+    data: { hello: 'World !' }
   }
 ] satisfies InternalLogAttributes[]) {
   describe(attributes.message, () => {

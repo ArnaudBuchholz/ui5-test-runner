@@ -162,20 +162,33 @@ export const uncompress = (context: unknown, compressed: string): InternalLogAtt
         context.addSource(line);
       }
     } else {
-      const [, cTimestamp, cProcess, cSource, message] = split(
+      const [, cTimestamp, cProcess, cSource, messageAndData] = split(
         line,
         1,
         MAX_TIMESTAMP_DIGITS,
         MAX_INDEX_DIGITS,
         MAX_INDEX_DIGITS
       );
-      result.push({
+      let message: string;
+      let data: unknown;
+      const startOfJson = messageAndData.indexOf('"{');
+      if (startOfJson === -1) {
+        message = messageAndData ?? '';
+      } else {
+        message = messageAndData.slice(0, startOfJson);
+        data = JSON.parse(messageAndData.slice(startOfJson + 1));
+      }
+      const attributes = {
         level: level as LogLevel,
         timestamp: Context.uncompressNumber(cTimestamp),
         ...context.uncompressProcess(cProcess),
         source: context.uncompressSource(cSource) as LogSource,
         message
-      } as InternalLogAttributes);
+      } as InternalLogAttributes;
+      if (data) {
+        attributes.data = data;
+      }
+      result.push(attributes);
     }
   }
   return result;
