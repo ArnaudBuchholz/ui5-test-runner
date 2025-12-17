@@ -27,7 +27,7 @@ for (const attributes of [
     it('keeps the message integrity', () => {
       const context = createCompressionContext();
       const uncompressed = uncompress(context, compressed);
-      expect(uncompressed).toStrictEqual(attributes);
+      expect(uncompressed[0]).toStrictEqual(attributes);
     });
   });
 }
