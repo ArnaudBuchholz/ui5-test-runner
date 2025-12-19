@@ -3,14 +3,19 @@ import { LogLevel } from './types.js';
 import { isDeepStrictEqual } from 'node:util';
 import assert from 'node:assert/strict';
 import { split } from '../utils/string.js';
+import { ASCII_RECORD_SEPARATOR } from '../terminal/ascii.js';
 
-const DIGITS = '0123456798abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
-
-const MAX_INDEX_DIGITS = 2; // 62**2=3844 values
+const DIGITS = Array.from({ length: 127 - 32 })
+  .fill(0)
+  .map((_, index) => String.fromCodePoint(32 + index))
+  .join('');
+const JSON_VALUE_SEP = ASCII_RECORD_SEPARATOR;
+const MAX_INDEX_DIGITS = 2; // 95**2=9025 values
 const CONTEXT_PROCESS_ID = 'p';
 const CONTEXT_SOURCE_ID = 's';
+// const CONTEXT_TIMESTAMP_ID = 't'; // TODO save ticks every seconds (when traces are generated), consider relative offset as traces might be in any order
 const MAX_TIMESTAMP_DIGITS = 8;
-const MAX_DWORD_DIGITS = 6;
+const MAX_DWORD_DIGITS = 5;
 
 type ProcessContext = Pick<InternalLogAttributes, 'processId' | 'threadId' | 'isMainThread'>;
 
@@ -23,7 +28,7 @@ class Context {
       digits.push(DIGITS[digit]!);
       value = (value - digit) / DIGITS.length;
     }
-    return digits.join('').padEnd(maxLength, '0');
+    return digits.join('').padEnd(maxLength, DIGITS[0]);
   }
 
   static uncompressNumber(value: string): number {
@@ -77,22 +82,35 @@ class Context {
     return this._compressWithList({
       array: this._processes,
       value,
-      compress: (value: ProcessContext) => [
-        CONTEXT_PROCESS_ID,
-        Context.compressNumber(value.processId, MAX_DWORD_DIGITS),
-        Context.compressNumber(value.threadId, MAX_DWORD_DIGITS),
-        value.isMainThread ? '!' : ''
-      ]
+      compress: ({ processId, threadId, isMainThread }: ProcessContext) => {
+        if (threadId === -1) {
+          return [CONTEXT_PROCESS_ID, Context.compressNumber(processId, MAX_DWORD_DIGITS)];
+        }
+        return [
+          CONTEXT_PROCESS_ID,
+          Context.compressNumber(processId, MAX_DWORD_DIGITS),
+          Context.compressNumber(threadId, MAX_DWORD_DIGITS),
+          isMainThread ? '!' : ''
+        ];
+      }
     });
   }
 
   addProcess(compressed: string) {
     const [, cProcessId, cThreadId, cIsMainThread] = split(compressed, 1, MAX_DWORD_DIGITS, MAX_DWORD_DIGITS, 1);
-    this._processes.push({
-      processId: Context.uncompressNumber(cProcessId),
-      threadId: Context.uncompressNumber(cThreadId),
-      isMainThread: cIsMainThread === '!'
-    });
+    if (cThreadId) {
+      this._processes.push({
+        processId: Context.uncompressNumber(cProcessId),
+        threadId: Context.uncompressNumber(cThreadId),
+        isMainThread: cIsMainThread === '!'
+      });
+    } else {
+      this._processes.push({
+        processId: Context.uncompressNumber(cProcessId),
+        threadId: -1,
+        isMainThread: false
+      });
+    }
   }
 
   uncompressProcess(compressed: string): ProcessContext {
@@ -137,30 +155,41 @@ const LEVELS = Object.values(LEVEL_MAPPING).join('');
 
 export const compress = (context: unknown, attributes: InternalLogAttributes): string => {
   assert.ok(context instanceof Context);
-  const { level, timestamp, source, message, data } = attributes;
+  const { level, timestamp, processId, threadId, isMainThread, source, message, data } = attributes;
   const cLevel = LEVEL_MAPPING[level];
   const cTimestamp = Context.compressNumber(timestamp, MAX_TIMESTAMP_DIGITS);
-  const cProcess = context.compressProcess(attributes);
+  const cProcess = context.compressProcess({ processId, threadId, isMainThread });
   const cSource = context.compressSource(source);
   const compressed: string[] = [cLevel, cTimestamp, cProcess.compressed, cSource.compressed, message];
   if (data) {
-    compressed.push('"', JSON.stringify(data));
+    compressed.push(
+      JSON_VALUE_SEP,
+      JSON.stringify(data).replaceAll(/"(\w+)":/g, (_, name) => `${name}${JSON_VALUE_SEP}`)
+    );
   }
-  return [cProcess.context, cSource.context, compressed.join(''), ''].filter((line) => !!line).join('\n');
+  return [cProcess.context, cSource.context, compressed.join('')].filter((line) => !!line).join('\n') + '\n';
+};
+
+const augmentContext = (context: Context, line: string) => {
+  const firstChar = line.charAt(0);
+  if (firstChar === CONTEXT_PROCESS_ID) {
+    context.addProcess(line);
+  } else if (firstChar === CONTEXT_SOURCE_ID) {
+    context.addSource(line);
+  }
 };
 
 export const uncompress = (context: unknown, compressed: string): InternalLogAttributes[] => {
   assert.ok(context instanceof Context);
   const result: InternalLogAttributes[] = [];
   for (const line of compressed.split('\n')) {
+    if (!line) {
+      continue;
+    }
     const firstChar = line.charAt(0);
     const level = LEVELS.indexOf(firstChar);
     if (level === -1) {
-      if (firstChar === CONTEXT_PROCESS_ID) {
-        context.addProcess(line);
-      } else if (firstChar === CONTEXT_SOURCE_ID) {
-        context.addSource(line);
-      }
+      augmentContext(context, line);
     } else {
       const [, cTimestamp, cProcess, cSource, messageAndData] = split(
         line,
@@ -171,12 +200,16 @@ export const uncompress = (context: unknown, compressed: string): InternalLogAtt
       );
       let message: string;
       let data: unknown;
-      const startOfJson = messageAndData.indexOf('"{');
+      const startOfJson = messageAndData.indexOf(JSON_VALUE_SEP);
       if (startOfJson === -1) {
         message = messageAndData ?? '';
       } else {
         message = messageAndData.slice(0, startOfJson);
-        data = JSON.parse(messageAndData.slice(startOfJson + 1));
+        const json = messageAndData
+          .slice(startOfJson + 1)
+          // eslint-disable-next-line security/detect-non-literal-regexp -- Use constant rather than repeat the char code
+          .replaceAll(new RegExp(String.raw`(\w+)${JSON_VALUE_SEP}`, 'g'), (_, name) => `"${name}":`);
+        data = JSON.parse(json);
       }
       const attributes = {
         level: level as LogLevel,

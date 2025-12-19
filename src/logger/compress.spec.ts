@@ -3,7 +3,7 @@ import type { InternalLogAttributes } from './types.js';
 import { LogLevel } from './types.js';
 import { createCompressionContext, compress, uncompress } from './compress.js';
 
-for (const attributes of [
+const examples = [
   {
     timestamp: Date.now(),
     level: LogLevel.info,
@@ -20,10 +20,31 @@ for (const attributes of [
     threadId: 456,
     isMainThread: true,
     source: 'job',
-    message: 'Simple trace',
+    message: 'Trace with data',
     data: { hello: 'World !' }
+  },
+  {
+    timestamp: Date.now(),
+    level: LogLevel.info,
+    processId: 123,
+    threadId: 789,
+    isMainThread: false,
+    source: 'job',
+    message: 'Trace with complex data',
+    data: { hello: 'World !', object: { property: 123, test: 'abc:' } }
+  },
+  {
+    timestamp: Date.now(),
+    level: LogLevel.info,
+    processId: 456,
+    threadId: -1, // Unknown
+    isMainThread: false,
+    source: 'job',
+    message: 'Trace from external process'
   }
-] satisfies InternalLogAttributes[]) {
+] satisfies InternalLogAttributes[];
+
+for (const attributes of examples) {
   describe(attributes.message, () => {
     let compressed: string;
 
@@ -34,10 +55,31 @@ for (const attributes of [
       expect(compressed.length).toBeLessThan(json.length);
     });
 
+    it('ends the compressed buffer with a carriage return', () => {
+      expect(compressed.endsWith('\n')).toBe(true);
+    });
+
     it('keeps the message integrity', () => {
       const context = createCompressionContext();
       const uncompressed = uncompress(context, compressed);
+      expect.assert(uncompressed.length === 1);
       expect(uncompressed[0]).toStrictEqual(attributes);
     });
   });
 }
+
+it('does not duplicate information', () => {
+  const context = createCompressionContext();
+  const parts: string[] = [];
+  for (const attributes of examples) {
+    parts.push(compress(context, attributes));
+  }
+  const compressed = parts.join('');
+  console.log(compressed);
+  for (const line of compressed.split('\n')) {
+    if (line) {
+      // Ensure the line appears only once
+      expect(compressed.split(line).length).toStrictEqual(2);
+    }
+  }
+});
