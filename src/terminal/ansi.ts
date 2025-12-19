@@ -1,7 +1,8 @@
 // see https://gist.github.com/fnky/458719343aabd01cfb17a3a4f7296797
 
-const ESC = '\u001B';
-const CSI = `${ESC}[`;
+import { ASCII_ESCAPE } from './ascii.js';
+
+const CSI = `${ASCII_ESCAPE}[`;
 
 export const ANSI_HIDE_CURSOR = `${CSI}?25l`;
 export const ANSI_SHOW_CURSOR = `${CSI}?25h`;
@@ -14,8 +15,8 @@ export const ANSI_RED = `${CSI}31m`;
 export const ANSI_WHITE = `${CSI}37m`;
 export const ANSI_YELLOW = `${CSI}33m`;
 
-export const ANSI_SAVE_POS_DEC = `${ESC}7`;
-export const ANSI_LOAD_POS_DEC = `${ESC}8`;
+export const ANSI_SAVE_POS_DEC = `${ASCII_ESCAPE}7`;
+export const ANSI_LOAD_POS_DEC = `${ASCII_ESCAPE}8`;
 
-export const ANSI_SAVE_POS_SCO = `${ESC}s`;
-export const ANSI_LOAD_POS_SCO = `${ESC}u`;
+export const ANSI_SAVE_POS_SCO = `${ASCII_ESCAPE}s`;
+export const ANSI_LOAD_POS_SCO = `${ASCII_ESCAPE}u`;
