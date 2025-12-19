@@ -28,7 +28,7 @@ class Context {
       digits.push(DIGITS[digit]!);
       value = (value - digit) / DIGITS.length;
     }
-    return digits.join('').padEnd(maxLength, DIGITS[0]);
+    return digits.join('').padEnd(maxLength, DIGITS[0]!);
   }
 
   static uncompressNumber(value: string): number {
