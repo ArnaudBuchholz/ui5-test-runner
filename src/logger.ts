@@ -83,7 +83,7 @@ const log = (level: LogLevel, attributes: LogAttributes) => {
   if (attributes.error) {
     allAttributes.error = convertErrorToAttributes(attributes.error);
   }
-  if (ready) {
+  if (ready && !stopping) {
     channel.postMessage({
       command: 'log',
       ...allAttributes
@@ -135,6 +135,9 @@ export const logger = {
     stopping = promise;
     assert.ok(loggerWorker && consoleWorker, 'Call logger.stop only after starting');
     clearInterval(metricsMonitorInterval);
+    while (waitingFor.length > 0) {
+      await new Promise((resolve) => setTimeout(resolve, 250));
+    }
     const { promise: loggerPromise, resolve: loggerExited } = Promise.withResolvers();
     const { promise: consolePromise, resolve: consoleExited } = Promise.withResolvers();
     loggerWorker.on('exit', loggerExited);

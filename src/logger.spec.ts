@@ -94,7 +94,21 @@ describe('Main thread', () => {
       const { logger } = await import('./logger.js');
       const channel = Platform.createBroadcastChannel('logger');
       logger.start({ cwd } as Configuration);
+      ready(channel);
       const closing = logger.stop();
+      simulateWorkersExit();
+      await closing;
+      expect(channel.postMessage).toHaveBeenCalledWith({ command: 'terminate' });
+    });
+
+    it('closing must wait for the sub workers to be started first', async () => {
+      const { logger } = await import('./logger.js');
+      const channel = Platform.createBroadcastChannel('logger');
+      logger.start({ cwd } as Configuration);
+      const closing = logger.stop();
+      await vi.advanceTimersToNextTimerAsync();
+      ready(channel);
+      await vi.advanceTimersToNextTimerAsync();
       simulateWorkersExit();
       await closing;
       expect(channel.postMessage).toHaveBeenCalledWith({ command: 'terminate' });
@@ -102,7 +116,9 @@ describe('Main thread', () => {
 
     it('supports multiple closing', async () => {
       const { logger } = await import('./logger.js');
+      const channel = Platform.createBroadcastChannel('logger');
       logger.start({ cwd } as Configuration);
+      ready(channel);
       const firstClose = logger.stop();
       const secondClose = logger.stop();
       simulateWorkersExit();
@@ -113,6 +129,7 @@ describe('Main thread', () => {
       const { logger } = await import('./logger.js');
       const channel = Platform.createBroadcastChannel('logger');
       logger.start({ cwd } as Configuration);
+      ready(channel);
       const handler = vi.mocked(Platform.registerSigIntHandler).mock.calls[0]![0];
       const closing = handler();
       simulateWorkersExit();
