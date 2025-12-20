@@ -77,7 +77,7 @@ it('flushes traces after a threshold count', () => {
   vi.advanceTimersToNextTimer(); // flush buffer
   const gzipStream = Platform.createGzip();
   vi.mocked(gzipStream.write).mockClear();
-  for (let index = 0; index < MAX_BUFFER_COUNT; ++index) {
+  for (let index = 0; index < MAX_BUFFER_COUNT - 1; ++index) {
     channel.postMessage({
       command: 'log',
       timestamp: Date.now(),
@@ -89,7 +89,18 @@ it('flushes traces after a threshold count', () => {
       message: 'test'
     });
   }
-  expect(gzipStream.write).toHaveBeenCalledTimes(1);
+  expect(gzipStream.write).not.toHaveBeenCalled();
+  channel.postMessage({
+    command: 'log',
+    timestamp: Date.now(),
+    level: LogLevel.info,
+    processId: process.pid,
+    threadId: Platform.threadId,
+    isMainThread: Platform.isMainThread,
+    source: 'job',
+    message: 'test'
+  });
+  expect(gzipStream.write).toHaveBeenCalled();
 });
 
 it('closes everything when the terminate signal is received', () => {
