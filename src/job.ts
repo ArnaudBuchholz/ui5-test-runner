@@ -27,6 +27,7 @@ export const execute = async (configuration: Configuration) => {
         logger.fatal({ source: 'job', message: 'Expected URLs to be set' });
         throw new Error('stop');
       }
+      logger.info({ source: 'progress', message: 'Executing pages', data: { uid: '', value: 0, max: 0 }});
       const urls = configuration.url;
       const browser = await BrowserFactory.build('puppeteer');
       await browser.setup({});
