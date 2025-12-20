@@ -5,7 +5,7 @@ import assert from 'node:assert/strict';
 import { split } from '../utils/string.js';
 import { ASCII_RECORD_SEPARATOR } from '../terminal/ascii.js';
 
-const DIGITS = Array.from({ length: 127 - 32 })
+export const DIGITS = Array.from({ length: 127 - 32 })
   .fill(0)
   .map((_, index) => String.fromCodePoint(32 + index))
   .join('');
@@ -14,8 +14,8 @@ const MAX_INDEX_DIGITS = 2; // 95**2=9025 values
 const CONTEXT_PROCESS_ID = 'p';
 const CONTEXT_SOURCE_ID = 's';
 // const CONTEXT_TIMESTAMP_ID = 't'; // TODO save ticks every seconds (when traces are generated), consider relative offset as traces might be in any order
-const MAX_TIMESTAMP_DIGITS = 8;
-const MAX_DWORD_DIGITS = 5;
+export const MAX_TIMESTAMP_DIGITS = 7;
+export const MAX_DWORD_DIGITS = 5;
 
 type ProcessContext = Pick<InternalLogAttributes, 'processId' | 'threadId' | 'isMainThread'>;
 
@@ -28,7 +28,8 @@ class Context {
       digits.push(DIGITS[digit]!);
       value = (value - digit) / DIGITS.length;
     }
-    return digits.join('').padEnd(maxLength, DIGITS[0]!);
+    // eslint-disable-next-line sonarjs/argument-type -- DIGITS has at least one char
+    return digits.join('').padEnd(maxLength, DIGITS[0]);
   }
 
   static uncompressNumber(value: string): number {

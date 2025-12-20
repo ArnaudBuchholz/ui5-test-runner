@@ -1,7 +1,14 @@
 import { it, expect, describe } from 'vitest';
 import type { InternalLogAttributes } from './types.js';
 import { LogLevel } from './types.js';
-import { createCompressionContext, compress, uncompress } from './compress.js';
+import {
+  createCompressionContext,
+  compress,
+  uncompress,
+  DIGITS,
+  MAX_TIMESTAMP_DIGITS,
+  MAX_DWORD_DIGITS
+} from './compress.js';
 
 const examples = [
   {
@@ -43,6 +50,16 @@ const examples = [
     message: 'Trace from external process'
   }
 ] satisfies InternalLogAttributes[];
+
+it('supports timestamps until 2200', () => {
+  const maxTimeStamp = DIGITS.length ** MAX_TIMESTAMP_DIGITS;
+  expect(new Date(2200, 0, 1, 0, 0, 0, 0).getTime()).toBeLessThanOrEqual(maxTimeStamp);
+});
+
+it('supports DWORD encoding', () => {
+  const maxDwordValue = DIGITS.length ** MAX_DWORD_DIGITS;
+  expect(2 ** 32).toBeLessThanOrEqual(maxDwordValue);
+});
 
 for (const attributes of examples) {
   describe(attributes.message, () => {
