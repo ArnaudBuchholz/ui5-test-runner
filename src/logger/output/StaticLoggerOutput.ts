@@ -16,7 +16,7 @@ export class StaticLoggerOutput extends BaseLoggerOutput {
       .toSorted((a: string, b: string) => a.localeCompare(b));
     if (keys.length) {
       this.addToReport(`
-   ${this.formatDiff(Date.now())}|Progress
+   ${this.formatTimestamp(Date.now())}|Progress
    -----+--------
 `);
     }
