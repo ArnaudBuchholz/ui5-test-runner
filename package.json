@@ -16,9 +16,9 @@
   "scripts": {
     "cli": "node --no-warnings --experimental-strip-types --import ./js2ts.mjs src/cli.ts",
     "test:cli1": "npm run cli -- --url https://ui5.sap.com/test-resources/sap/m/demokit/cart/webapp/test/testsuite.qunit.html --report-dir tmp",
-    "test:cli2": "npm run cli -- --url 'https://ui5.sap.com/test-resources/sap/m/demokit/cart/webapp/test/Test.qunit.html?testsuite=test-resources/sap/ui/demo/cart/testsuite.qunit&test=unit/unitTests'",
-    "test:cli3": "npm run cli -- --url 'https://ui5.sap.com/test-resources/sap/m/demokit/cart/webapp/test/Test.qunit.html?testsuite=test-resources%2Fsap%2Fui%2Fdemo%2Fcart%2Ftestsuite.qunit&test=integration%2FopaTestsComponent#/categories'",
-    "test:cli4": "npm run cli -- --url 'https://ui5.sap.com/test-resources/sap/m/demokit/cart/webapp/test/Test.qunit.html?testsuite=test-resources/sap/ui/demo/cart/testsuite.qunit&test=integration/opaTestsIFrame'",
+    "test:cli2": "npm run cli -- --url 'https://ui5.sap.com/test-resources/sap/m/demokit/cart/webapp/test/Test.qunit.html?testsuite=test-resources/sap/ui/demo/cart/testsuite.qunit&test=unit/unitTests' --report-dir tmp",
+    "test:cli3": "npm run cli -- --url 'https://ui5.sap.com/test-resources/sap/m/demokit/cart/webapp/test/Test.qunit.html?testsuite=test-resources%2Fsap%2Fui%2Fdemo%2Fcart%2Ftestsuite.qunit&test=integration%2FopaTestsComponent#/categories' --report-dir tmp",
+    "test:cli4": "npm run cli -- --url 'https://ui5.sap.com/test-resources/sap/m/demokit/cart/webapp/test/Test.qunit.html?testsuite=test-resources/sap/ui/demo/cart/testsuite.qunit&test=integration/opaTestsIFrame' --report-dir tmp",
     "lint": "eslint *.mjs **/*.mjs src/*.ts src/**/*.ts --fix --cache --cache-strategy content && tsc --noEmit",
     "build:options": "node build/options.mjs > ./src/configuration/options.ts && npm run lint",
     "test": "npm run lint && npm run test:unit && npm run test:e2e",
