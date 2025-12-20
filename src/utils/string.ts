@@ -12,3 +12,15 @@ export function split(string: string, ...lengthes: number[]): string[] {
   }
   return result;
 }
+
+export const formatDuration = (ms: number): string => {
+  if (ms <= 0) {
+    return '00:00';
+  }
+  if (ms < 1000) {
+    return '0.' + ms.toString().padStart(3, '0');
+  }
+  const seconds = Math.floor(ms / 1000);
+  const minutes = Math.floor(seconds / 60);
+  return minutes.toString().padStart(2, '0') + ':' + (seconds % 60).toString().padStart(2, '0');
+};
