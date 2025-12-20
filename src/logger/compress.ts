@@ -43,6 +43,7 @@ class Context {
     return result;
   }
 
+  /* v8 ignore next */
   private fail(message: string): never {
     throw new Error(message);
   }
