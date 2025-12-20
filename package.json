@@ -84,7 +84,7 @@
     "globals": "^16.5.0",
     "markdownlint-cli": "^0.47.0",
     "npm-check-updates": "^19.2.0",
-    "puppeteer": "^24.33.1",
+    "puppeteer": "^24.34.0",
     "rimraf": "^6.1.2",
     "stylelint": "^16.26.1",
     "stylelint-config-standard": "^39.0.1",
