@@ -92,7 +92,6 @@ it('does not duplicate information', () => {
     parts.push(compress(context, attributes));
   }
   const compressed = parts.join('');
-  console.log(compressed);
   for (const line of compressed.split('\n')) {
     if (line) {
       // Ensure the line appears only once
