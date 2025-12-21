@@ -55,7 +55,7 @@ it('dumps progress report using an interval', async () => {
   } as InternalLogAttributes);
   await vi.advanceTimersToNextTimerAsync();
   expect(addToReport).toHaveBeenCalledWith(`
-   00:00|Progress
+   0.500|Progress
    -----+--------
 `);
   expect(addToReport).toHaveBeenCalledWith(expect.stringContaining('10% test1\n'));
