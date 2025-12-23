@@ -14,7 +14,8 @@
     "node": ">=24.11.1"
   },
   "scripts": {
-    "cli": "node --no-warnings --experimental-strip-types --import ./js2ts.mjs src/cli.ts",
+    "ts-run": "node --no-warnings --experimental-strip-types --import ./js2ts.mjs",
+    "cli": "npm run ts-run -- src/cli.ts",
     "test:cli1": "npm run cli -- --url https://ui5.sap.com/test-resources/sap/m/demokit/cart/webapp/test/testsuite.qunit.html --report-dir tmp",
     "test:cli2": "npm run cli -- --url 'https://ui5.sap.com/test-resources/sap/m/demokit/cart/webapp/test/Test.qunit.html?testsuite=test-resources/sap/ui/demo/cart/testsuite.qunit&test=unit/unitTests' --report-dir tmp",
     "test:cli3": "npm run cli -- --url 'https://ui5.sap.com/test-resources/sap/m/demokit/cart/webapp/test/Test.qunit.html?testsuite=test-resources%2Fsap%2Fui%2Fdemo%2Fcart%2Ftestsuite.qunit&test=integration%2FopaTestsComponent#/categories' --report-dir tmp",
