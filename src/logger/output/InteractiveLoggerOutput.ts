@@ -4,11 +4,16 @@ import type { Configuration } from '../../configuration/Configuration.js';
 import {
   ANSI_BLUE,
   ANSI_CYAN,
+  ANSI_ERASE_SCREEN,
+  ANSI_ERASE_TO_BEGIN,
+  ANSI_ERASE_TO_END,
+  ANSI_GOTO_HOME,
   ANSI_HIDE_CURSOR,
-  ANSI_LOAD_POS_DEC,
   ANSI_MAGENTA,
-  ANSI_SAVE_POS_DEC,
+  ANSI_REQUEST_CURSOR_POSITION,
+  ANSI_SETCOLUMN,
   ANSI_SHOW_CURSOR,
+  ANSI_UP,
   ANSI_WHITE,
   ANSI_YELLOW
 } from '../../terminal/ansi.js';
@@ -20,47 +25,65 @@ const TICKS_COLORS = [ANSI_BLUE, ANSI_CYAN, ANSI_MAGENTA, ANSI_CYAN, ANSI_YELLOW
 export class InteractiveLoggerOutput extends BaseLoggerOutput {
   private _noColor: boolean;
   private _ticksInterval: ReturnType<typeof setInterval>;
-  private _tick: number;
-  private _terminalWidth: number;
+  private _tick = 0;
+  private _terminalWidth = 80;
+  private _linesToErase: number = 0;
+  private _texts: string[] = [];
 
   constructor(configuration: Configuration) {
     super(configuration);
     this._noColor = !!process.env['NO_COLOR'];
     Platform.writeOnTerminal(ANSI_HIDE_CURSOR);
     this._ticksInterval = setInterval(this.tick.bind(this), TICKS_INTERVAL);
-    this._tick = 0;
-    this._terminalWidth = 80;
-    Platform.writeOnTerminal(ANSI_SAVE_POS_DEC);
   }
 
-  override terminalResized(width: number): void {
-    // TODO: reset display
+  private _clean() {
+    Platform.writeOnTerminal(ANSI_SETCOLUMN(0));
+    if (this._linesToErase) {
+      Platform.writeOnTerminal(ANSI_UP(this._linesToErase));
+      Platform.writeOnTerminal(ANSI_ERASE_TO_END);
+    }
+    this._linesToErase = 0;
+  }
+
+  override terminalResized(width: number) {
+    this._clean();
     this._terminalWidth = width;
+    this._progress();
   }
 
   override addTextToLoggerOutput(formatted: string, raw: string): void {
-    Platform.writeOnTerminal(this._noColor ? raw : formatted);
-    Platform.writeOnTerminal(ANSI_SAVE_POS_DEC);
+    this._texts.push(this._noColor ? raw : formatted);
   }
 
-  tick(): void {
-    Platform.writeOnTerminal(ANSI_LOAD_POS_DEC);
-    // TODO: clear the previous number of lines
-    ++this._tick;
+  private _progress () {
+    Platform.writeOnTerminal(ANSI_REQUEST_CURSOR_POSITION);
+    this._clean();
+    for (const text of this._texts) {
+      Platform.writeOnTerminal(text);
+    }
+    this._texts.length = 0;
     const keys = Object.keys(this.progressMap)
       .filter((key) => key !== '')
       .toSorted((a: string, b: string) => a.localeCompare(b));
     for (const key of keys) {
       const progressBar = this.progressMap[key]!; // key is coming from Object.keys
-      const rendered = progressBar.render(this._terminalWidth - 1);
-      Platform.writeOnTerminal(rendered + '\n');
+      const rendered = progressBar.render(this._terminalWidth - 4);
+      Platform.writeOnTerminal('   ' + rendered + '\n');
+      ++this._linesToErase;
     }
     Platform.writeOnTerminal(TICKS_COLORS[this._tick % TICKS_COLORS.length]!);
     Platform.writeOnTerminal(TICKS_PICTURES[this._tick % TICKS_PICTURES.length]!);
     Platform.writeOnTerminal(ANSI_WHITE);
     const progressBar = this.progressMap[''];
-    const rendered = progressBar.render(this._terminalWidth);
-    Platform.writeOnTerminal(rendered.slice(3) + '\n');
+    const rendered = progressBar.render(this._terminalWidth - 4);
+    Platform.writeOnTerminal(rendered + '\n');
+    ++this._linesToErase;
+  }
+
+  tick(): void {
+    ++this._tick;
+    this._progress();
   }
 
   override closeLoggerOutput(): void {
