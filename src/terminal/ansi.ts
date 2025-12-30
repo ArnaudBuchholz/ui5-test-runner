@@ -15,6 +15,7 @@ export const ANSI_RED = `${CSI}31m`;
 export const ANSI_WHITE = `${CSI}37m`;
 export const ANSI_YELLOW = `${CSI}33m`;
 
+export const ANSI_REQUEST_CURSOR_POSITION = `${CSI}6n`;
 export const ANSI_GOTO_HOME = `${CSI}H`;
 export const ANSI_GOTO = (line: number,column: number) => `${CSI}${line};${column}H`;
 export const ANSI_UP = (lines: number) => `${CSI}${lines}A`;
