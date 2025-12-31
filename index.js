@@ -74,10 +74,11 @@ async function main () {
 
   if (job.mode === 'batch') {
     return await batch(job)
-      .finally(() => {
+      .finally(async () => {
         if (startedCommand) {
-          return startedCommand.stop()
+          await startedCommand.stop()
         }
+        cleanHandles(job)
       })
   }
 
