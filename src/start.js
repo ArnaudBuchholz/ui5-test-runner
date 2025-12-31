@@ -2,7 +2,8 @@ const { exec } = require('child_process')
 const { stat, readFile } = require('fs/promises')
 const { join } = require('path')
 const { getOutput } = require('./output')
-const pidtree = require('pidtree')
+const { platform } = require('os')
+const { allocPromise } = require('./tools')
 
 async function start (job) {
   const { startWaitUrl: url, startWaitMethod: method } = job
@@ -73,62 +74,14 @@ async function start (job) {
 
   const stop = async () => {
     job.status = 'Terminating start command'
-    const begin = new Date()
-    // eslint-disable-next-line no-unmodified-loop-condition
-    while (!startProcessExited && Date.now() - begin <= job.startTimeout) {
-      output.debug('start', `Getting start command ${startProcess.pid} child processes...`)
-      let childProcesses
-      try {
-        childProcesses = await pidtree(startProcess.pid, { advanced: true })
-      } catch (e) {
-        output.genericError(e)
-        break
-      }
-      output.debug('start', 'Child processes', JSON.stringify(childProcesses))
-      if (childProcesses.length === 0) {
-        try {
-          output.debug('start', 'Terminating start command')
-          process.kill(startProcess.pid, 'SIGKILL')
-        } catch (e) {
-          output.debug('start', 'Failed to terminate start command', startProcess.pid, ':', e)
-        }
-      } else {
-        const depth = {}
-        let deepest = 1
-        let deepless = childProcesses.length
-        while (deepless > 0) {
-          for (const { ppid, pid } of childProcesses) {
-            if (ppid === startProcess.pid) {
-              depth[pid] = 1
-              --deepless
-            } else {
-              const parentDepth = depth[ppid]
-              if (parentDepth !== undefined) {
-                depth[pid] = parentDepth + 1
-                deepest = Math.max(deepest, parentDepth + 1)
-                --deepless
-              }
-            }
-          }
-        }
-        output.debug('start', 'Child processes', JSON.stringify(depth), 'terminating', deepest)
-        for (const { pid } of childProcesses) {
-          if (depth[pid] === deepest) {
-            output.debug('start', 'Terminating start child process', pid)
-            try {
-              process.kill(pid, 'SIGKILL')
-            } catch (e) {
-              output.debug('start', 'Failed to terminate start child process', pid, ':', e)
-            }
-          }
-        }
-      }
-      await new Promise(resolve => setTimeout(resolve, 250))
-    }
-    if (!startProcessExited) {
-      output.failedToTerminateStartCommand()
-      startProcess.unref() // the runner shall not be blocked by this process
-      startProcess.kill()
+    if (platform() === 'win32') {
+      const killProcess = exec(`taskkill /F /PID ${startProcess.pid}`)
+      const { promise, resolve } = allocPromise()
+      killProcess.on('close', resolve)
+      output.monitor(killProcess)
+      await promise
+    } else {
+      process.kill(-startProcess.pid)
     }
   }
 

@@ -83,7 +83,7 @@ class ChildProcess extends EventEmitter {
     }
   }
 
-  get pid () { return 0 }
+  get pid () { return this._pid }
   get api () { return this._api }
   get scriptPath () { return this._scriptPath }
   get args () { return this._args }
@@ -102,6 +102,7 @@ class ChildProcess extends EventEmitter {
 
   constructor ({ api, scriptPath, args, options = {} }) {
     super()
+    this._pid = Date.now() % 1000
     this._api = api
     this._connected = true
     this._scriptPath = scriptPath

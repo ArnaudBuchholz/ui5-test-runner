@@ -1,9 +1,8 @@
 const { mock: mockChildProcess } = require('child_process')
 const { join } = require('path')
 const { start } = require('./start')
-const pidtree = require('pidtree')
+const os = require('os')
 
-jest.mock('pidtree', () => jest.fn())
 jest.spyOn(process, 'kill')
 jest.mock('./output', () => {
   const output = new Proxy({}, {
@@ -18,10 +17,13 @@ jest.mock('./output', () => {
     getOutput: () => output
   }
 })
+jest.mock('os', () => ({
+  platform: jest.fn()
+}))
 
 describe('src/start', () => {
   let job
-  let returnUrlAnswerAfter // ms
+  let returnUrlAnswerAfterMs
   const VALID_URL = 'http://localhost/valid'
   const INVALID_URL = 'http://localhost/invalid'
   let startExecuted = false
@@ -30,9 +32,7 @@ describe('src/start', () => {
   beforeEach(() => {
     process.kill.mockClear()
     process.kill.mockImplementation(() => {})
-    pidtree.mockClear()
-    pidtree.mockImplementation(() => [])
-    returnUrlAnswerAfter = 500 // ms
+    returnUrlAnswerAfterMs = 500
     job = {
       cwd: __dirname,
       startTimeout: 1000,
@@ -53,7 +53,7 @@ describe('src/start', () => {
       if (firstFetch === undefined) {
         firstFetch = Date.now()
         throw new Error('E_CONNECT failed')
-      } else if (Date.now() - firstFetch < returnUrlAnswerAfter) {
+      } else if (Date.now() - firstFetch < returnUrlAnswerAfterMs) {
         throw new Error('E_CONNECT failed')
       }
       if (url === VALID_URL) {
@@ -108,13 +108,13 @@ describe('src/start', () => {
         exec: () => {},
         close: true
       })
-      returnUrlAnswerAfter = 5000
+      returnUrlAnswerAfterMs = 5000
       job.startCommandTimeout = 5000
       await expect(start(job)).rejects.toThrowError(/Start command failed with exit code/)
     })
 
     it('times out after expected limit and fails', async () => {
-      returnUrlAnswerAfter = 5000
+      returnUrlAnswerAfterMs = 5000
       job.startCommandTimeout = 500
       await expect(start(job)).rejects.toThrowError(/Timeout while waiting for/)
     })
@@ -126,29 +126,26 @@ describe('src/start', () => {
     })
   })
 
-  it('stops the command by killing all children processes', async () => {
-    const pids = [{ ppid: 0, pid: 1 }, { ppid: 0, pid: 2 }, { ppid: 1, pid: 3 }]
-    pidtree.mockImplementation(() => pids)
-    process.kill.mockImplementation((pidToKill) => {
-      const index = pids.findIndex(({ pid }) => pid === pidToKill)
-      expect(index).not.toEqual(-1)
-      pids.splice(index, 1)
+  it('stops the command by killing all children processes (win32)', async () => {
+    jest.mocked(os.platform).mockImplementation(() => 'win32')
+    let taskkilled = false
+    mockChildProcess({
+      api: 'exec',
+      scriptPath: 'taskkill',
+      exec: () => { taskkilled = true }
     })
     const started = await start(job)
     job.startTimeout = 1000
     await started.stop()
-    expect(process.kill).toHaveBeenNthCalledWith(1, 3, 'SIGKILL')
-    expect(process.kill).toHaveBeenCalledWith(1, 'SIGKILL')
-    expect(process.kill).toHaveBeenCalledWith(2, 'SIGKILL')
-    expect(process.kill).toHaveBeenNthCalledWith(4, 0, 'SIGKILL')
+    expect(process.kill).not.toHaveBeenCalled()
+    expect(taskkilled).toStrictEqual(true)
   })
 
-  it('uses simple kill on the child process otherwise', async () => {
-    pidtree.mockImplementation(() => { throw new Error('pidtree failure') })
+  it('stops the command by killing all children processes (!win32)', async () => {
+    jest.mocked(os.platform).mockImplementation(() => 'linux')
     const started = await start(job)
     job.startTimeout = 1000
     await started.stop()
-    expect(process.kill).not.toHaveBeenCalled()
-    expect(childProcessInstance.killed).toStrictEqual(true) // killed directly
+    expect(process.kill).toHaveBeenCalledWith(-childProcessInstance.pid)
   })
 })
