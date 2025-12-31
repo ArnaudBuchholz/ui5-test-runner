@@ -81,7 +81,11 @@ async function start (job) {
       output.monitor(killProcess)
       await promise
     } else {
-      process.kill(-startProcess.pid)
+      try {
+        process.kill(startProcess.pid)
+      } catch {
+        // ignore error
+      }
     }
   }
 

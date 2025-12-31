@@ -146,6 +146,6 @@ describe('src/start', () => {
     const started = await start(job)
     job.startTimeout = 1000
     await started.stop()
-    expect(process.kill).toHaveBeenCalledWith(-childProcessInstance.pid)
+    expect(process.kill).toHaveBeenCalledWith(childProcessInstance.pid)
   })
 })
