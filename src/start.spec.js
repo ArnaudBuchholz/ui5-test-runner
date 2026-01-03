@@ -28,6 +28,7 @@ describe('src/start', () => {
   const INVALID_URL = 'http://localhost/invalid'
   let startExecuted = false
   let childProcessInstance
+  const NPM_PATH = './npm/node_modules'
 
   beforeEach(() => {
     process.kill.mockClear()
@@ -40,13 +41,21 @@ describe('src/start', () => {
       startCommand: 'start'
     }
     mockChildProcess({
-      api: 'exec',
+      api: 'spawn',
       scriptPath: 'start',
       exec: (childProcess) => {
         childProcessInstance = childProcess
         startExecuted = true
       },
       close: false
+    })
+    mockChildProcess({
+      api: 'spawn',
+      scriptPath: 'npm',
+      args: [],
+      exec: (childProcess) => {
+        childProcess.stdout.write(`npm@1.1.1 ${NPM_PATH}`)
+      }
     })
     let firstFetch
     global.fetch = async (url) => {
@@ -75,9 +84,9 @@ describe('src/start', () => {
     job.startCommand = 'test'
     let executed = false
     mockChildProcess({
-      api: 'exec',
-      scriptPath: 'npm',
-      args: ['run', 'test'],
+      api: 'spawn',
+      scriptPath: process.argv[0],
+      args: [join(NPM_PATH, 'bin/npm-cli.js'), 'run', 'test'],
       exec: () => { executed = true },
       close: false
     })
@@ -90,7 +99,7 @@ describe('src/start', () => {
     job.startCommand = 'test2'
     let executed = false
     mockChildProcess({
-      api: 'exec',
+      api: 'spawn',
       scriptPath: 'test2',
       exec: () => { executed = true },
       close: false
@@ -103,10 +112,9 @@ describe('src/start', () => {
     it('detects command termination and fails', async () => {
       job.startCommand = 'close'
       mockChildProcess({
-        api: 'exec',
+        api: 'spawn',
         scriptPath: 'close',
-        exec: () => {},
-        close: true
+        exec: () => {}
       })
       returnUrlAnswerAfterMs = 5000
       job.startCommandTimeout = 5000
@@ -129,12 +137,13 @@ describe('src/start', () => {
   it('stops the command by killing all children processes (win32)', async () => {
     jest.mocked(os.platform).mockImplementation(() => 'win32')
     let taskkilled = false
+    const started = await start(job)
     mockChildProcess({
-      api: 'exec',
+      api: 'spawn',
       scriptPath: 'taskkill',
+      args: ['/F', '/T', '/PID', childProcessInstance.pid],
       exec: () => { taskkilled = true }
     })
-    const started = await start(job)
     job.startTimeout = 1000
     await started.stop()
     expect(process.kill).not.toHaveBeenCalled()
@@ -146,6 +155,6 @@ describe('src/start', () => {
     const started = await start(job)
     job.startTimeout = 1000
     await started.stop()
-    expect(process.kill).toHaveBeenCalledWith(childProcessInstance.pid)
+    expect(process.kill).toHaveBeenCalledWith(-childProcessInstance.pid)
   })
 })

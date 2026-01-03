@@ -100,19 +100,24 @@ class ChildProcess extends EventEmitter {
 
   get killed () { return !!this._killed }
 
-  constructor ({ api, scriptPath, args, options = {} }) {
+  constructor ({ api, scriptPath, args, options }) {
     super()
     this._pid = Date.now() % 1000
     this._api = api
     this._connected = true
     this._scriptPath = scriptPath
-    this._args = args
-    this._options = options
+    if (args && !Array.isArray(args)) {
+      this._args = []
+      this._options = args
+    } else {
+      this._args = args
+      this._options = options || {}
+    }
     this._stdout = new Channel()
     this._stderr = new Channel()
     this._exitCode = 0
-    if (options.stdio !== 'pipe') {
-      const [, stdout, stderr] = options.stdio || []
+    if (this._options.stdio !== 'pipe') {
+      const [, stdout, stderr] = this._options.stdio || []
       this._stdout.setFileHandle(stdout)
       this._stderr.setFileHandle(stderr)
     }
