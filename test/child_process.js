@@ -155,6 +155,21 @@ module.exports = {
     return childProcess
   },
 
+  spawn (scriptPath, args, options) {
+    const childProcess = new ChildProcess({
+      api: 'spawn',
+      scriptPath,
+      args,
+      options
+    })
+    const mock = find(childProcess)
+    if (mock.actual) {
+      return actualChildProcess.spawn(scriptPath, args, options)
+    }
+    handle(childProcess, mock)
+    return childProcess
+  },
+
   reset,
   mock
 }
