@@ -52,7 +52,8 @@ async function start (job) {
   output.debug('start', 'Spawning', [command, ...parameters])
   const startProcess = spawn(command, parameters, {
     cwd: job.cwd,
-    windowsHide: true
+    windowsHide: true,
+    detached: true
   })
   startProcess.on('close', () => {
     output.debug('start', 'Start command process exited')
