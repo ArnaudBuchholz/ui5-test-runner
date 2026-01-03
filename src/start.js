@@ -100,7 +100,7 @@ async function start (job) {
       try {
         process.kill(-startProcess.pid)
       } catch (error) {
-        output.debug('start', 'kill(-) failed', error)
+        output.genericError(error)
         return
       }
     }
