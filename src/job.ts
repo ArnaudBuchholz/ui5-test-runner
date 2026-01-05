@@ -18,7 +18,7 @@ export const execute = async (configuration: Configuration) => {
     console.log('Please check https://arnaudbuchholz.github.io/ui5-test-runner/');
   } else {
     logger.start(configuration);
-    logger.info({ source: 'job', message: 'Configuration', data: { defaults, configuration } });
+    logger.debug({ source: 'job', message: 'Configuration', data: { defaults, configuration } });
 
     await logEnvironnement();
     const agent = await Platform.readFile(Platform.join(Platform.sourcesRoot, './agent/agent.js'), 'utf8');
