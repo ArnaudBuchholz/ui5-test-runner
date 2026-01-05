@@ -1,26 +1,52 @@
 import { logger } from './logger.js';
 import { Platform } from './Platform.js';
+import { Process } from './Process.js';
+import type { IProcess } from './Process.js';
+import { memoize } from './utils/memoize.js';
 
-type Roots = {
-  local: string;
-  global: string;
-};
-
-let roots: Promise<Roots> | undefined;
-
-const getRoots = async () => {
-  if (!roots) {
-    const localRoot = Platform.exec('npm', ['root']);
-    const globalRoot = Platform.exec('npm', ['root', '--global']);
-    roots = Promise.all([localRoot.closed, globalRoot.closed]).then(() => {
-      return {
-        local: localRoot.stdout.trim(),
-        global: globalRoot.stdout.trim()
-      };
-    });
+const getNpmCliPath = memoize(async () => {
+  const npmChildProcess = Process.spawn('npm', [], {
+    shell: true
+  });
+  await npmChildProcess.closed;
+  const error = new Error('Unable to initialize NPM');
+  const match = /^npm@([^ ]+) (.*)$/gm.exec(npmChildProcess.stdout);
+  if (!match) {
+    logger.fatal({ source: 'npm', message: 'Unable to match NPM output', error });
+    throw error;
   }
-  return roots;
-};
+  const [, semver, path] = match;
+  if (!semver || !path) {
+    logger.fatal({ source: 'npm', message: 'Failed to parse NPM output', error, data: { semver, path } });
+    throw error;
+  }
+  logger.debug({ source: 'npm', message: `npm@${semver} ${path}` });
+  return Platform.join(path, 'bin/npm-cli.js')
+});
+
+const npm = async (...arguments_: string[]): Promise<IProcess> => {
+  const npmCliPath = await getNpmCliPath();
+  return Process.spawn('node', [npmCliPath, ...arguments_], {
+    detached: true // TODO: better ?
+  });
+}
+
+const getRoots = memoize(async () => {
+  const localRootProcess = await npm('root');
+  const globalRootProcess = await npm('root', '--global');
+  await Promise.all([
+    localRootProcess.closed,
+    globalRootProcess.closed,
+  ]);
+  // TODO check codes and stdout format
+  const local = localRootProcess.stdout.trim();
+  const global = globalRootProcess.stdout.trim();
+  logger.debug({ source: 'npm', message: 'Roots', data: { local, global }});
+  return {
+    local: localRootProcess.stdout.trim(),
+    global: globalRootProcess.stdout.trim()
+  };
+});
 
 export const Npm = {
   /** fetch the latest version info for the given module */
