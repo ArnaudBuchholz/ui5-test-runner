@@ -27,7 +27,7 @@ export class InteractiveLoggerOutput extends BaseLoggerOutput {
   private _ticksInterval: ReturnType<typeof setInterval>;
   private _tick = 0;
   private _terminalWidth = 80;
-  private _linesToErase: number = 0;
+  private _linesToErase: number[] = [];
   private _texts: string[] = [];
 
   constructor(configuration: Configuration) {
@@ -39,11 +39,19 @@ export class InteractiveLoggerOutput extends BaseLoggerOutput {
 
   private _clean() {
     Platform.writeOnTerminal(ANSI_SETCOLUMN(0));
-    if (this._linesToErase) {
-      Platform.writeOnTerminal(ANSI_UP(this._linesToErase));
+    if (this._linesToErase.length) {
+      let count = 0;
+      for (const width of this._linesToErase) {
+        if (width > this._terminalWidth) {
+          count += Math.ceil(width / this._terminalWidth);
+        } else {
+          ++count;
+        }
+      }
+      Platform.writeOnTerminal(ANSI_UP(count));
       Platform.writeOnTerminal(ANSI_ERASE_TO_END);
     }
-    this._linesToErase = 0;
+    this._linesToErase = [];
   }
 
   override terminalResized(width: number) {
@@ -57,7 +65,6 @@ export class InteractiveLoggerOutput extends BaseLoggerOutput {
   }
 
   private _progress () {
-    Platform.writeOnTerminal(ANSI_REQUEST_CURSOR_POSITION);
     this._clean();
     for (const text of this._texts) {
       Platform.writeOnTerminal(text);
@@ -70,7 +77,7 @@ export class InteractiveLoggerOutput extends BaseLoggerOutput {
       const progressBar = this.progressMap[key]!; // key is coming from Object.keys
       const rendered = progressBar.render(this._terminalWidth - 4);
       Platform.writeOnTerminal('   ' + rendered + '\n');
-      ++this._linesToErase;
+      this._linesToErase.push(3 + rendered.length);
     }
     Platform.writeOnTerminal(TICKS_COLORS[this._tick % TICKS_COLORS.length]!);
     Platform.writeOnTerminal(TICKS_PICTURES[this._tick % TICKS_PICTURES.length]!);
@@ -78,7 +85,7 @@ export class InteractiveLoggerOutput extends BaseLoggerOutput {
     const progressBar = this.progressMap[''];
     const rendered = progressBar.render(this._terminalWidth - 4);
     Platform.writeOnTerminal(rendered + '\n');
-    ++this._linesToErase;
+    this._linesToErase.push(3 + rendered.length);
   }
 
   tick(): void {
