@@ -2,9 +2,11 @@ import type { Configuration } from './src/configuration/Configuration.ts';
 import type { InternalLogAttributes } from './src/logger/types.ts';
 import { LogLevel } from './src/logger/types.ts';
 import { InteractiveLoggerOutput } from './src/logger/output/InteractiveLoggerOutput.ts';
-import { Platform } from './src/Platform.ts';
+import { Terminal } from './src/Platform.ts';
 
 const sleep = (time: number) => new Promise<void>((resolve) => setTimeout(() => resolve(), time));
+
+console.log('process.stdout.isTTY', process.stdout.isTTY);
 
 const output = new InteractiveLoggerOutput({ reportDir: './tmp' } as Configuration);
 
@@ -12,9 +14,17 @@ process.on('exit', () => {
   output.closeLoggerOutput();
 });
 
-Platform.onTerminalResize(() => {
-  output.terminalResized(Platform.terminalWidth);
+Terminal.setRawMode((data) => {
+  if (data.length === 1 && data[0] === 3) {
+    console.log('CTRL+C');
+    process.exit(0);
+  }
 });
+Terminal.onResize(() => {
+  console.log('Terminal resized', Terminal.width);
+  output.terminalResized(Terminal.width);
+});
+output.terminalResized(Terminal.width);
 
 await sleep(500);
 output.addAttributesToLoggerOutput({
@@ -41,4 +51,14 @@ while (true) {
         value: tick % 10
     }
   } as InternalLogAttributes)
+  output.addAttributesToLoggerOutput({
+  level: LogLevel.info,
+  source: 'progress',
+  message: `Terminal width: ${Terminal.width}`,
+  data: {
+    uid: 'width',
+    max: 0,
+    value: 0
+  }
+} as InternalLogAttributes)
 }
