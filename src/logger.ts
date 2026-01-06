@@ -7,7 +7,7 @@ import type {
   ReadySource
 } from './logger/types.js';
 import { LogLevel, toInternalLogAttributes } from './logger/types.js';
-import { Platform } from './Platform.js';
+import { Platform, Terminal } from './Platform.js';
 import assert from 'node:assert/strict';
 import { toPlainObject } from './utils/object.js';
 
@@ -25,7 +25,7 @@ let metricsMonitorInterval: ReturnType<typeof setInterval>;
 const terminalResized = () => {
   channel?.postMessage({
     command: 'terminal-resized',
-    width: Platform.terminalWidth
+    width: Terminal.width
   } satisfies LogMessage);
 };
 
@@ -107,7 +107,7 @@ export const logger = {
     loggerWorker = Platform.createWorker('logger/allCompressed', { configuration: toPlainObject(configuration) });
     consoleWorker = Platform.createWorker('logger/output', { configuration: toPlainObject(configuration) });
     Platform.registerSigIntHandler(() => logger.stop(), Platform.SIGINT_LOGGER);
-    Platform.onTerminalResize(terminalResized);
+    Terminal.onResize(terminalResized);
   },
 
   debug(attributes: LogAttributes) {

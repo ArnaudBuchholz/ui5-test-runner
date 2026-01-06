@@ -12,21 +12,26 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 const __developmentMode = __filename.endsWith('.ts');
 
-/** This class simplifies mocking during tests */
+export class Terminal {
+  static readonly isTTY = process.stdout.isTTY;
+  static setRawMode(callback: (buffer: Buffer) => void) {
+    process.stdin.setRawMode(true);
+    process.stdin.on('data', callback);
+  }
+  static write(text: string) {
+    process.stdout.write(text);
+  }
+  static get width() {
+    return process.stdout.columns;
+  }
+  static onResize(callback: () => void) {
+    process.stdout.on('resize', callback);
+  }
+}
+
 export class Platform {
   static get sourcesRoot() {
     return __dirname;
-  }
-
-  static readonly isTextTerminal = process.stdout.isTTY;
-  static writeOnTerminal(text: string) {
-    process.stdout.write(text);
-  }
-  static get terminalWidth() {
-    return process.stdout.columns;
-  }
-  static onTerminalResize(callback: () => void) {
-    process.stdout.on('resize', callback);
   }
 
   static readonly nodeVersion = process.version;

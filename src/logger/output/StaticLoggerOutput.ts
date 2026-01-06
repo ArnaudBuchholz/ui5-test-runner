@@ -1,5 +1,5 @@
 import type { Configuration } from '../../configuration/Configuration.js';
-import { Platform } from '../../Platform.js';
+import { Terminal } from '../../Platform.js';
 import { BaseLoggerOutput } from './BaseLoggerOutput.js';
 
 export class StaticLoggerOutput extends BaseLoggerOutput {
@@ -14,7 +14,7 @@ export class StaticLoggerOutput extends BaseLoggerOutput {
     const keys = Object.keys(this.progressMap)
       .filter((key) => key !== '')
       .toSorted((a: string, b: string) => a.localeCompare(b));
-    if (keys.length) {
+    if (keys.length > 0) {
       this.addToReport(`
    ${this.formatTimestamp(Date.now())}|Progress
    -----+--------
@@ -27,9 +27,12 @@ export class StaticLoggerOutput extends BaseLoggerOutput {
     }
   }
 
+  override terminalResized(): void {}
+  override addTextToLoggerOutput(): void {}
+
   override addToReport(rawText: string): void {
     super.addToReport(rawText);
-    Platform.writeOnTerminal(rawText);
+    Terminal.write(rawText);
   }
 
   override closeLoggerOutput(): void {

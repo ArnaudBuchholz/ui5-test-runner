@@ -27,18 +27,22 @@ vi.mock(import('./Platform.js'), async (importActual) => {
   });
   return {
     ...actual,
+    Terminal: {
+      ...actual.Terminal,
+      setRawMode: vi.fn(),
+      write: vi.fn(),
+      onResize: vi.fn()
+    },
     Platform: {
       ...actual.Platform,
       sourcesRoot: actual.Platform.sourcesRoot,
-      writeOnTerminal: vi.fn(),
       createWriteStream: vi.fn(() => writeStream),
       readFile: vi.fn(),
       writeFileSync: vi.fn(),
       createBroadcastChannel: vi.fn(() => channel),
       createWorker: vi.fn(() => worker),
       createGzip: vi.fn(() => gzipStream),
-      registerSigIntHandler: vi.fn(),
-      onTerminalResize: vi.fn()
+      registerSigIntHandler: vi.fn()
     }
   } as unknown as typeof actual;
 });

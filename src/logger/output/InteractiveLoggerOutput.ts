@@ -1,16 +1,12 @@
-import { Platform } from '../../Platform.js';
+import { Terminal } from '../../Platform.js';
 import { BaseLoggerOutput } from './BaseLoggerOutput.js';
 import type { Configuration } from '../../configuration/Configuration.js';
 import {
   ANSI_BLUE,
   ANSI_CYAN,
-  ANSI_ERASE_SCREEN,
-  ANSI_ERASE_TO_BEGIN,
   ANSI_ERASE_TO_END,
-  ANSI_GOTO_HOME,
   ANSI_HIDE_CURSOR,
   ANSI_MAGENTA,
-  ANSI_REQUEST_CURSOR_POSITION,
   ANSI_SETCOLUMN,
   ANSI_SHOW_CURSOR,
   ANSI_UP,
@@ -33,13 +29,17 @@ export class InteractiveLoggerOutput extends BaseLoggerOutput {
   constructor(configuration: Configuration) {
     super(configuration);
     this._noColor = !!process.env['NO_COLOR'];
-    Platform.writeOnTerminal(ANSI_HIDE_CURSOR);
+    // Terminal.setRawMode((buffer) => {
+    //   // Need to handle CTRL+C
+    //   console.log('input', buffer);
+    // });
+    Terminal.write(ANSI_HIDE_CURSOR);
     this._ticksInterval = setInterval(this.tick.bind(this), TICKS_INTERVAL);
   }
 
   private _clean() {
-    Platform.writeOnTerminal(ANSI_SETCOLUMN(0));
-    if (this._linesToErase.length) {
+    Terminal.write(ANSI_SETCOLUMN(0));
+    if (this._linesToErase.length > 0) {
       let count = 0;
       for (const width of this._linesToErase) {
         if (width > this._terminalWidth) {
@@ -48,8 +48,8 @@ export class InteractiveLoggerOutput extends BaseLoggerOutput {
           ++count;
         }
       }
-      Platform.writeOnTerminal(ANSI_UP(count));
-      Platform.writeOnTerminal(ANSI_ERASE_TO_END);
+      Terminal.write(ANSI_UP(count));
+      Terminal.write(ANSI_ERASE_TO_END);
     }
     this._linesToErase = [];
   }
@@ -64,10 +64,10 @@ export class InteractiveLoggerOutput extends BaseLoggerOutput {
     this._texts.push(this._noColor ? raw : formatted);
   }
 
-  private _progress () {
+  private _progress() {
     this._clean();
     for (const text of this._texts) {
-      Platform.writeOnTerminal(text);
+      Terminal.write(text);
     }
     this._texts.length = 0;
     const keys = Object.keys(this.progressMap)
@@ -76,15 +76,15 @@ export class InteractiveLoggerOutput extends BaseLoggerOutput {
     for (const key of keys) {
       const progressBar = this.progressMap[key]!; // key is coming from Object.keys
       const rendered = progressBar.render(this._terminalWidth - 4);
-      Platform.writeOnTerminal('   ' + rendered + '\n');
+      Terminal.write('   ' + rendered + '\n');
       this._linesToErase.push(3 + rendered.length);
     }
-    Platform.writeOnTerminal(TICKS_COLORS[this._tick % TICKS_COLORS.length]!);
-    Platform.writeOnTerminal(TICKS_PICTURES[this._tick % TICKS_PICTURES.length]!);
-    Platform.writeOnTerminal(ANSI_WHITE);
+    Terminal.write(TICKS_COLORS[this._tick % TICKS_COLORS.length]!);
+    Terminal.write(TICKS_PICTURES[this._tick % TICKS_PICTURES.length]!);
+    Terminal.write(ANSI_WHITE);
     const progressBar = this.progressMap[''];
     const rendered = progressBar.render(this._terminalWidth - 4);
-    Platform.writeOnTerminal(rendered + '\n');
+    Terminal.write(rendered + '\n');
     this._linesToErase.push(3 + rendered.length);
   }
 
@@ -95,6 +95,6 @@ export class InteractiveLoggerOutput extends BaseLoggerOutput {
 
   override closeLoggerOutput(): void {
     clearInterval(this._ticksInterval);
-    Platform.writeOnTerminal(ANSI_SHOW_CURSOR);
+    Terminal.write(ANSI_SHOW_CURSOR);
   }
 }

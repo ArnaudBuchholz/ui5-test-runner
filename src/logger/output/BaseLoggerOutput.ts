@@ -14,7 +14,7 @@ const icons = {
   [LogLevel.fatal]: ANSI_MAGENTA + 'o*!'
 } as const;
 
-export class BaseLoggerOutput {
+export abstract class BaseLoggerOutput {
   protected readonly _configuration: Configuration;
   protected readonly _startedAt = Date.now();
 
@@ -22,7 +22,7 @@ export class BaseLoggerOutput {
     this._configuration = configuration;
   }
 
-  protected formatTimestamp (timestamp: number) {
+  protected formatTimestamp(timestamp: number) {
     return formatDuration(timestamp - this._startedAt);
   }
 
@@ -77,7 +77,8 @@ export class BaseLoggerOutput {
         delete this._startedAtMap[uid];
         if (startedAt) {
           const duration = Date.now() - startedAt;
-          this.addToReport(`   ${this.formatTimestamp(attributes.timestamp)} << ${attributes.message} (${formatDuration(duration)}) [${uid}]
+          this
+            .addToReport(`   ${this.formatTimestamp(attributes.timestamp)} << ${attributes.message} (${formatDuration(duration)}) [${uid}]
 `);
         }
       }
@@ -104,7 +105,7 @@ export class BaseLoggerOutput {
     }
   }
 
-  terminalResized(width: number): void {}
-  addTextToLoggerOutput(formatted: string, raw: string): void {}
-  closeLoggerOutput(): void {}
+  abstract terminalResized(width: number): void;
+  abstract addTextToLoggerOutput(formatted: string, raw: string): void;
+  abstract closeLoggerOutput(): void;
 }
