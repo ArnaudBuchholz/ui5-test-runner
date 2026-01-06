@@ -14,7 +14,7 @@ const GenericLogSource = {
   npm: 'npm',
   puppeteer: 'puppeteer',
   job: 'job',
-  process: 'process',
+  process: 'process'
 } as const;
 type GenericLogSource = (typeof GenericLogSource)[keyof typeof GenericLogSource];
 
@@ -87,7 +87,7 @@ export const toInternalLogAttributes = (attributes: LogAttributes, level: LogLev
     threadId: Platform.threadId,
     isMainThread: Platform.isMainThread,
     ...attributes
-  }
+  };
 };
 
 export type ReadySource = 'allCompressed' | 'output';

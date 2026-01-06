@@ -21,7 +21,7 @@ const getNpmCliPath = memoize(async () => {
     throw error;
   }
   logger.debug({ source: 'npm', message: `npm@${semver} ${path}` });
-  return Platform.join(path, 'bin/npm-cli.js')
+  return Platform.join(path, 'bin/npm-cli.js');
 });
 
 const npm = async (...arguments_: string[]): Promise<IProcess> => {
@@ -29,19 +29,16 @@ const npm = async (...arguments_: string[]): Promise<IProcess> => {
   return Process.spawn('node', [npmCliPath, ...arguments_], {
     detached: true // TODO: better ?
   });
-}
+};
 
 const getRoots = memoize(async () => {
   const localRootProcess = await npm('root');
   const globalRootProcess = await npm('root', '--global');
-  await Promise.all([
-    localRootProcess.closed,
-    globalRootProcess.closed,
-  ]);
+  await Promise.all([localRootProcess.closed, globalRootProcess.closed]);
   // TODO check codes and stdout format
   const local = localRootProcess.stdout.trim();
   const global = globalRootProcess.stdout.trim();
-  logger.debug({ source: 'npm', message: 'Roots', data: { local, global }});
+  logger.debug({ source: 'npm', message: 'Roots', data: { local, global } });
   return {
     local: localRootProcess.stdout.trim(),
     global: globalRootProcess.stdout.trim()

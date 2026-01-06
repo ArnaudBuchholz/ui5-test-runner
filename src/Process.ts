@@ -21,10 +21,20 @@ export class Process implements IProcess {
     }
     try {
       const childProcess = spawn(command, arguments_, options);
-      logger.debug({ source: 'process', processId: childProcess.pid, message: 'spawn', data: { command, arguments: arguments_, options }});
+      logger.debug({
+        source: 'process',
+        processId: childProcess.pid,
+        message: 'spawn',
+        data: { command, arguments: arguments_, options }
+      });
       return new Process(childProcess);
     } catch (error) {
-      logger.error({ source: 'process', message: 'spawn failed', data: { command, arguments: arguments_, options }, error });
+      logger.error({
+        source: 'process',
+        message: 'spawn failed',
+        data: { command, arguments: arguments_, options },
+        error
+      });
       throw error;
     }
   };
@@ -56,16 +66,21 @@ export class Process implements IProcess {
     const { promise, resolve } = Promise.withResolvers<void>();
     this._closed = promise;
     this._childProcess.stdout?.on('data', (data: string) => {
-      logger.debug({ source: 'process', processId: this._childProcess.pid, message: data, data: { type: 'stdout' }});
+      logger.debug({ source: 'process', processId: this._childProcess.pid, message: data, data: { type: 'stdout' } });
       this._stdout.push(data);
     });
     this._childProcess.stderr?.on('data', (data: string) => {
-      logger.debug({ source: 'process', processId: this._childProcess.pid, message: data, data: { type: 'stderr' }});
+      logger.debug({ source: 'process', processId: this._childProcess.pid, message: data, data: { type: 'stderr' } });
       this._stderr.push(data);
     });
     this._childProcess.on('close', (code) => {
       this._code = code ?? 0;
-      logger.debug({ source: 'process', processId: this._childProcess.pid, message: 'closed', data: { code: this._code }});
+      logger.debug({
+        source: 'process',
+        processId: this._childProcess.pid,
+        message: 'closed',
+        data: { code: this._code }
+      });
       resolve();
     });
   }
