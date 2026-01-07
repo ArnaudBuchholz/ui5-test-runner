@@ -21,7 +21,6 @@ Terminal.setRawMode((data) => {
   }
 });
 Terminal.onResize(() => {
-  console.log('Terminal resized', Terminal.width);
   output.terminalResized(Terminal.width);
 });
 output.terminalResized(Terminal.width);
