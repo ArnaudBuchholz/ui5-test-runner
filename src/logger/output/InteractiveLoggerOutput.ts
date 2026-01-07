@@ -29,10 +29,6 @@ export class InteractiveLoggerOutput extends BaseLoggerOutput {
   constructor(configuration: Configuration) {
     super(configuration);
     this._noColor = !!process.env['NO_COLOR'];
-    // Terminal.setRawMode((buffer) => {
-    //   // Need to handle CTRL+C
-    //   console.log('input', buffer);
-    // });
     Terminal.write(ANSI_HIDE_CURSOR);
     this._ticksInterval = setInterval(this.tick.bind(this), TICKS_INTERVAL);
   }

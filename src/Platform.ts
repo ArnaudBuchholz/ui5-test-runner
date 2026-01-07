@@ -110,14 +110,8 @@ export class Platform {
       _sigIntHandlers.push(callback);
     }
   }
-}
 
-const _sigIntHandlers: (() => void | Promise<void>)[] = [];
-let _sigIntLoggerHandler: () => void | Promise<void> | undefined;
-
-if (isMainThread) {
-  // eslint-disable-next-line @typescript-eslint/no-misused-promises -- Promise not expected but used to wait before exiting
-  process.on('SIGINT', async () => {
+  static readonly onSigInt = async () => {
     if (__developmentMode) {
       console.log(`${ANSI_BLUE}[~]${ANSI_WHITE}${ANSI_RED}SIGINT${ANSI_WHITE} received`);
     }
@@ -136,5 +130,14 @@ if (isMainThread) {
       }
     }
     process.exit(process.exitCode);
+  };
+}
+
+const _sigIntHandlers: (() => void | Promise<void>)[] = [];
+let _sigIntLoggerHandler: () => void | Promise<void> | undefined;
+
+if (isMainThread) {
+  process.on('SIGINT', () => {
+    void Platform.onSigInt();
   });
 }

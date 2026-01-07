@@ -40,6 +40,7 @@ const start = () => {
   channel.onmessage = (event: { data: LogMessage }) => {
     const { data: message } = event;
     if (message.command === 'ready' && Platform.isMainThread) {
+      // TODO condition if !ci only
       terminalResized();
       const index = waitingFor.indexOf(message.source);
       waitingFor.splice(index, 1); // Only two ready messages will be sent
@@ -107,8 +108,14 @@ export const logger = {
     loggerWorker = Platform.createWorker('logger/allCompressed', { configuration: toPlainObject(configuration) });
     consoleWorker = Platform.createWorker('logger/output', { configuration: toPlainObject(configuration) });
     Platform.registerSigIntHandler(() => logger.stop(), Platform.SIGINT_LOGGER);
-    // TODO: if !configuration.ci, + Terminal.setRawMode to handle CTRL+C
-    Terminal.onResize(terminalResized);
+    if (!configuration.ci) {
+      Terminal.setRawMode((data) => {
+        if (data.length === 1 && data[0] === 3) {
+          void Platform.onSigInt();
+        }
+      });
+      Terminal.onResize(terminalResized);
+    }
   },
 
   debug(attributes: LogAttributes) {
