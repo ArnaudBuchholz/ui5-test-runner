@@ -107,6 +107,7 @@ export const logger = {
     loggerWorker = Platform.createWorker('logger/allCompressed', { configuration: toPlainObject(configuration) });
     consoleWorker = Platform.createWorker('logger/output', { configuration: toPlainObject(configuration) });
     Platform.registerSigIntHandler(() => logger.stop(), Platform.SIGINT_LOGGER);
+    // TODO: if !configuration.ci, + Terminal.setRawMode to handle CTRL+C
     Terminal.onResize(terminalResized);
   },
 
