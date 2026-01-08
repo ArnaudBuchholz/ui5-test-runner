@@ -6,7 +6,7 @@ import { validators } from './validators/index.js';
 import type { Option, OptionType } from './Option.js';
 import { defaults } from './options.js';
 import type { Configuration } from './Configuration.js';
-import { Modes } from './Modes.js';
+import { Modes } from '../modes/Modes.js';
 import type { OptionValidator } from './validators/OptionValidator.js';
 
 for (const key of Object.keys(validators)) {

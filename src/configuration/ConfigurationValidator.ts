@@ -3,7 +3,7 @@ import { options, defaults } from './options.js';
 import { indexedOptions } from './indexedOptions.js';
 import { validators } from './validators/index.js';
 import { OptionValidationError } from './OptionValidationError.js';
-import { Modes } from './Modes.js';
+import { Modes } from '../modes/Modes.js';
 
 const assertIfConfiguration: (value: object) => asserts value is Configuration = (value) => {
   const errors: OptionValidationError[] = [];
@@ -55,6 +55,9 @@ export const ConfigurationValidator = {
     }
     if (configuration.version) {
       return Modes.version;
+    }
+    if (configuration.log) {
+      return Modes.log;
     }
     if (configuration.url) {
       return Modes.remote;

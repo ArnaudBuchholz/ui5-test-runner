@@ -1,22 +1,27 @@
 import type { AgentFeedback } from './agent/Feedback.js';
 import { BrowserFactory } from './browsers/factory.js';
 import type { Configuration } from './configuration/Configuration.js';
-import { Modes } from './configuration/Modes.js';
+import { Modes } from './modes/Modes.js';
 import { defaults } from './configuration/options.js';
 import { logEnvironnement } from './environment.js';
 import { logger } from './logger.js';
 import { parallelize } from './parallelize.js';
 import { Platform } from './Platform.js';
 import { ANSI_BLUE, ANSI_WHITE } from './terminal/ansi.js';
+import { version } from './modes/version.js';
+import { help } from './modes/help.js';
+import { log } from './modes/log.js';
 
+// TODO: move below modes/
 export const execute = async (configuration: Configuration) => {
   if (configuration.mode === Modes.version) {
-    const packageFile = await Platform.readFile('package.json', 'utf8');
-    const packageJson = JSON.parse(packageFile) as { version: string };
-    console.log(packageJson.version);
+    await version();
   } else if (configuration.mode === Modes.help) {
-    console.log('Please check https://arnaudbuchholz.github.io/ui5-test-runner/');
+    help();
+  } else if (configuration.mode === Modes.log) {
+    await log(configuration);
   } else {
+    // TODO: new mode
     logger.start(configuration);
     logger.debug({ source: 'job', message: 'Configuration', data: { defaults, configuration } });
 

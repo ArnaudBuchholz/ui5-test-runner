@@ -1,4 +1,4 @@
-import type { Modes } from './Modes.js';
+import type { Modes } from '../modes/Modes.js';
 import type { InferOptionType, Option } from './Option.js';
 import type { options } from './options.js';
 

@@ -3,6 +3,7 @@ export const Modes = {
   capabilities: 'capabilities',
   help: 'help',
   legacy: 'legacy',
+  log: 'log',
   remote: 'remote',
   version: 'version'
 } as const;
