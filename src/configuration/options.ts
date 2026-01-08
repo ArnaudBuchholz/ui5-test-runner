@@ -20,6 +20,11 @@ export const options = [
     type: 'boolean'
   },
   {
+    name: 'log',
+    description: 'Read and dump log file (using jsonl format)',
+    type: 'file'
+  },
+  {
     name: 'capabilities',
     description: 'Run browser tests',
     type: 'boolean'
