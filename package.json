@@ -1,6 +1,6 @@
 {
   "name": "ui5-test-runner",
-  "version": "5.0.0",
+  "version": "6.0.0",
   "description": "Standalone test runner for UI5",
   "main": "index.js",
   "bin": {
@@ -84,15 +84,15 @@
     "eslint-plugin-unicorn": "^62.0.0",
     "globals": "^17.0.0",
     "markdownlint-cli": "^0.47.0",
-    "npm-check-updates": "^19.3.0",
+    "npm-check-updates": "^19.3.1",
     "puppeteer": "^24.34.0",
     "rimraf": "^6.1.2",
     "stylelint": "^16.26.1",
     "stylelint-config-standard": "^39.0.1",
     "typescript": "^5.9.3",
-    "typescript-eslint": "^8.51.0",
+    "typescript-eslint": "^8.52.0",
     "ui5-tooling-transpile": "^3.10.0",
-    "vite": "^7.3.0",
+    "vite": "^7.3.1",
     "vitest": "^4.0.16"
   }
 }
