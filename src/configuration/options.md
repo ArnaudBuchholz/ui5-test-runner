@@ -3,6 +3,7 @@
 |cwd|c|Set working directory|folder||Platform.cwd()|current working directory|💻🔗🧪
 |version||Shows version|boolean
 |help||Shows help|boolean
+|log||Read and dump log file (using jsonl format)|file||||🐞
 |capabilities||Run browser tests|boolean||||🧪
 |url|u|URL of the testsuite / page to test|url|✅|||🔗
 |config||Configuration file|file||'ui5-test-runner.json'||💻🔗🧪
