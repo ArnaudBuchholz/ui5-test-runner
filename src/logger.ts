@@ -40,7 +40,6 @@ const start = () => {
   channel.onmessage = (event: { data: LogMessage }) => {
     const { data: message } = event;
     if (message.command === 'ready' && Platform.isMainThread) {
-      // TODO condition if !ci only
       terminalResized();
       const index = waitingFor.indexOf(message.source);
       waitingFor.splice(index, 1); // Only two ready messages will be sent
@@ -153,6 +152,7 @@ export const logger = {
     channel.postMessage({ command: 'terminate' } satisfies LogMessage);
     await Promise.all([loggerPromise, consolePromise]);
     channel.close();
+    Terminal.setRawMode(false);
     resolve();
   }
 };
