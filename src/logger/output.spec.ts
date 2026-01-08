@@ -7,13 +7,19 @@ import { BaseLoggerOutput } from './output/BaseLoggerOutput.js';
 import { workerMain } from './output.js';
 import type { Configuration } from '../configuration/Configuration.js';
 
+class TestLoggerOutput extends BaseLoggerOutput {
+  override terminalResized(): void {}
+  override addTextToLoggerOutput(): void {}
+  override closeLoggerOutput(): void {}
+}
+
 const terminalResized = vi.spyOn(BaseLoggerOutput.prototype, 'terminalResized');
 const addTextToLoggerOutput = vi.spyOn(BaseLoggerOutput.prototype, 'addTextToLoggerOutput').mockReturnValue();
 const addAttributesToLoggerOutput = vi
   .spyOn(BaseLoggerOutput.prototype, 'addAttributesToLoggerOutput')
   .mockReturnValue();
 const closeLoggerOutput = vi.spyOn(BaseLoggerOutput.prototype, 'closeLoggerOutput').mockReturnValue();
-vi.spyOn(LoggerOutputFactory, 'build').mockImplementation((configuration) => new BaseLoggerOutput(configuration));
+vi.spyOn(LoggerOutputFactory, 'build').mockImplementation((configuration) => new TestLoggerOutput(configuration));
 
 beforeEach(() => {
   vi.clearAllMocks();

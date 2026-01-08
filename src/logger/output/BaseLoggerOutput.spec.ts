@@ -6,8 +6,14 @@ import { LogLevel } from '../types.js';
 import { ANSI_YELLOW, ANSI_WHITE, ANSI_RED, ANSI_MAGENTA } from '../../terminal/ansi.js';
 import { Platform } from '../../Platform.js';
 
+class TestLoggerOutput extends BaseLoggerOutput {
+  override terminalResized(): void {}
+  override addTextToLoggerOutput(): void {}
+  override closeLoggerOutput(): void {}
+}
+
 vi.setSystemTime(new Date('2025-12-10T00:00:00.000Z'));
-const loggerOuput = new BaseLoggerOutput({
+const loggerOuput = new TestLoggerOutput({
   reportDir: './tmp'
 } as Configuration);
 const addTextToLoggerOutput = vi.spyOn(loggerOuput, 'addTextToLoggerOutput');
