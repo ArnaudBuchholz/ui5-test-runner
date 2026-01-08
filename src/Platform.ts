@@ -1,5 +1,5 @@
 import { access, stat, constants, readFile, mkdir } from 'node:fs/promises';
-import { createWriteStream, writeFileSync } from 'node:fs';
+import { createReadStream, createWriteStream, writeFileSync } from 'node:fs';
 import { join, isAbsolute, dirname, extname } from 'node:path';
 import { BroadcastChannel, Worker, isMainThread, threadId } from 'node:worker_threads';
 import zlib from 'node:zlib';
@@ -14,9 +14,13 @@ const __developmentMode = __filename.endsWith('.ts');
 
 export class Terminal {
   static readonly isTTY = process.stdout.isTTY;
-  static setRawMode(callback: (buffer: Buffer) => void) {
-    process.stdin.setRawMode(true);
-    process.stdin.on('data', callback);
+  static setRawMode(callback: ((buffer: Buffer) => void) | false) {
+    if (callback === false) {
+      process.stdin.setRawMode(false);
+    } else {
+      process.stdin.setRawMode(true);
+      process.stdin.on('data', callback);
+    }
   }
   static write(text: string) {
     process.stdout.write(text);
@@ -41,10 +45,14 @@ export class Platform {
   static readonly cwd = process.cwd.bind(process);
   static readonly threadCpuUsage = process.threadCpuUsage.bind(process);
   static readonly memoryUsage = process.memoryUsage.bind(process);
+  static readonly setExitCode = (code: number) => {
+    process.exitCode = code;
+  };
 
   static readonly fsConstants = constants;
   static readonly stat = stat;
   static readonly access = access;
+  static readonly createReadStream = createReadStream;
   static readonly createWriteStream = createWriteStream;
   static readonly readFile = readFile;
   static readonly writeFileSync = writeFileSync;
@@ -96,6 +104,7 @@ export class Platform {
   };
 
   static readonly createGzip = zlib.createGzip.bind(zlib);
+  static readonly createGunzip = zlib.createGunzip.bind(zlib);
   static readonly Z_FULL_FLUSH = zlib.constants.Z_FULL_FLUSH;
 
   static readonly stripVTControlCharacters = stripVTControlCharacters;

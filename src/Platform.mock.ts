@@ -36,12 +36,14 @@ vi.mock(import('./Platform.js'), async (importActual) => {
     Platform: {
       ...actual.Platform,
       sourcesRoot: actual.Platform.sourcesRoot,
+      createReadStream: vi.fn(),
       createWriteStream: vi.fn(() => writeStream),
       readFile: vi.fn(),
       writeFileSync: vi.fn(),
       createBroadcastChannel: vi.fn(() => channel),
       createWorker: vi.fn(() => worker),
       createGzip: vi.fn(() => gzipStream),
+      createGunzip: vi.fn(),
       registerSigIntHandler: vi.fn()
     }
   } as unknown as typeof actual;
