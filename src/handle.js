@@ -28,6 +28,9 @@ module.exports = {
     } else if (className === 'WriteStream') {
       const fd = ['stdin', 'stdout', 'stderr'][handle.fd] || `fd: ${handle.fd}`
       label += ` ${fd} ${handle.columns}x${handle.rows} isTTY: ${handle.isTTY}`
+    } else if (className === 'ReadStream') {
+      const fd = ['stdin', 'stdout', 'stderr'][handle.fd] || `fd: ${handle.fd}`
+      label += ` ${fd} isTTY: ${handle.isTTY}`
     } else if (className === 'Server') {
       label += ` connections: ${handle._connections} events: ${handle._eventsCount}`
     } else if (className === 'ChildProcess') {

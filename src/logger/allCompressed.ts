@@ -11,10 +11,7 @@ const compressionContext = createCompressionContext();
 
 export const workerMain = ({ configuration }: { configuration: Configuration }) => {
   const LOG_FILE_NAME = `app-${new Date().toISOString().slice(0, 19).replaceAll(/[-:]/g, '').replace('T', '-')}.log`;
-
-  const { cwd } = configuration;
-
-  const fileStream = Platform.createWriteStream(Platform.join(cwd, LOG_FILE_NAME + '.gz'));
+  const fileStream = Platform.createWriteStream(Platform.join(configuration.reportDir, LOG_FILE_NAME + '.gz'));
   const gzipStream = Platform.createGzip({ flush: Platform.Z_FULL_FLUSH });
   gzipStream.pipe(fileStream);
   const gzBuffer: string[] = [];
