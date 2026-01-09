@@ -65,13 +65,15 @@ export class Process implements IProcess {
     this._childProcess = childProcess;
     const { promise, resolve } = Promise.withResolvers<void>();
     this._closed = promise;
-    this._childProcess.stdout?.on('data', (data: string) => {
-      logger.debug({ source: 'process', processId: this._childProcess.pid, message: data, data: { type: 'stdout' } });
-      this._stdout.push(data);
+    this._childProcess.stdout?.on('data', (buffer: Buffer) => {
+      const message = buffer.toString();
+      logger.debug({ source: 'process', processId: this._childProcess.pid, message, data: { type: 'stdout' } });
+      this._stdout.push(message);
     });
-    this._childProcess.stderr?.on('data', (data: string) => {
-      logger.debug({ source: 'process', processId: this._childProcess.pid, message: data, data: { type: 'stderr' } });
-      this._stderr.push(data);
+    this._childProcess.stderr?.on('data', (buffer: Buffer) => {
+      const message = buffer.toString();
+      logger.debug({ source: 'process', processId: this._childProcess.pid, message, data: { type: 'stderr' } });
+      this._stderr.push(message);
     });
     this._childProcess.on('close', (code) => {
       this._code = code ?? 0;
