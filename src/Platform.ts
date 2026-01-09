@@ -17,6 +17,7 @@ export class Terminal {
   static setRawMode(callback: ((buffer: Buffer) => void) | false) {
     if (callback === false) {
       process.stdin.setRawMode(false);
+      process.stdin.pause();
     } else {
       process.stdin.setRawMode(true);
       process.stdin.on('data', callback);
