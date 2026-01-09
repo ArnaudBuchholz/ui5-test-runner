@@ -11,6 +11,8 @@ import { Platform, Terminal } from './Platform.js';
 import assert from 'node:assert/strict';
 import { toPlainObject } from './utils/object.js';
 
+const startedAt = Date.now();
+
 // TODO understand why channel does not appear as a problem as it might be used before being defined
 let channel: ReturnType<typeof Platform.createBroadcastChannel>;
 let loggerWorker: ReturnType<typeof Platform.createWorker> | undefined;
@@ -105,7 +107,7 @@ export const logger = {
     assert.ok(Platform.isMainThread, 'Call logger.start only in main thread');
     start();
     loggerWorker = Platform.createWorker('logger/allCompressed', { configuration: toPlainObject(configuration) });
-    consoleWorker = Platform.createWorker('logger/output', { configuration: toPlainObject(configuration) });
+    consoleWorker = Platform.createWorker('logger/output', { configuration: toPlainObject(configuration), startedAt });
     Platform.registerSigIntHandler(() => logger.stop(), Platform.SIGINT_LOGGER);
     if (!configuration.ci) {
       Terminal.setRawMode((data) => {

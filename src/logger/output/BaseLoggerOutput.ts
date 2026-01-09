@@ -16,10 +16,11 @@ const icons = {
 
 export abstract class BaseLoggerOutput {
   protected readonly _configuration: Configuration;
-  protected readonly _startedAt = Date.now();
+  protected readonly _startedAt: number;
 
-  constructor(configuration: Configuration) {
+  constructor(configuration: Configuration, startedAt: number) {
     this._configuration = configuration;
+    this._startedAt = startedAt;
   }
 
   protected formatTimestamp(timestamp: number) {

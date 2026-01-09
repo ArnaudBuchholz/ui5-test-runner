@@ -26,8 +26,8 @@ export class InteractiveLoggerOutput extends BaseLoggerOutput {
   private _linesToErase: number[] = [];
   private _texts: string[] = [];
 
-  constructor(configuration: Configuration) {
-    super(configuration);
+  constructor(configuration: Configuration, startedAt: number) {
+    super(configuration, startedAt);
     this._noColor = !!process.env['NO_COLOR'];
     Terminal.write(ANSI_HIDE_CURSOR);
     this._ticksInterval = setInterval(this.tick.bind(this), TICKS_INTERVAL);

@@ -10,8 +10,8 @@ const fromHexaCode = (value: string): { r: number; g: number; b: number } => ({
   b: Number.parseInt(value.slice(5, 7), 16)
 });
 
-export const workerMain = ({ configuration }: { configuration: Configuration }) => {
-  const loggerOutput = LoggerOutputFactory.build(configuration);
+export const workerMain = ({ configuration, startedAt }: { configuration: Configuration, startedAt: number }) => {
+  const loggerOutput = LoggerOutputFactory.build(configuration, startedAt);
 
   const channel = Platform.createBroadcastChannel('logger');
   channel.onmessage = (event: { data: LogMessage }) => {

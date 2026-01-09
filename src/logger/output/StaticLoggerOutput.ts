@@ -5,8 +5,8 @@ import { BaseLoggerOutput } from './BaseLoggerOutput.js';
 export class StaticLoggerOutput extends BaseLoggerOutput {
   private _progressReportInterval: ReturnType<typeof setInterval>;
 
-  constructor(configuration: Configuration) {
-    super(configuration);
+  constructor(configuration: Configuration, startedAt: number) {
+    super(configuration, startedAt);
     this._progressReportInterval = setInterval(this.progressReport.bind(this), configuration.outputInterval);
   }
 
