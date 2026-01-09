@@ -75,7 +75,7 @@ class Context {
 
   private _uncompressFromList<T>({ array, compressed }: { array: T[]; compressed: string }): T {
     const index = Context.uncompressNumber(compressed);
-    return array[index] ?? this.fail('Invalid index');
+    return array[index] ?? this.fail(`Invalid index ${index} (length: ${array.length})`);
   }
 
   private _processes: ProcessContext[] = [];
@@ -162,7 +162,7 @@ export const compress = (context: unknown, attributes: InternalLogAttributes): s
   const cTimestamp = Context.compressNumber(timestamp, MAX_TIMESTAMP_DIGITS);
   const cProcess = context.compressProcess({ processId, threadId, isMainThread });
   const cSource = context.compressSource(source);
-  const compressed: string[] = [cLevel, cTimestamp, cProcess.compressed, cSource.compressed, message];
+  const compressed: string[] = [cLevel, cTimestamp, cProcess.compressed, cSource.compressed, message.replaceAll(/\r?\n/g, '\r')];
   if (data) {
     compressed.push(
       JSON_VALUE_SEP,
@@ -218,7 +218,7 @@ export const uncompress = (context: unknown, compressed: string): InternalLogAtt
         timestamp: Context.uncompressNumber(cTimestamp),
         ...context.uncompressProcess(cProcess),
         source: context.uncompressSource(cSource) as LogSource,
-        message
+        message: message.replaceAll(/\r/g, '\n')
       } as InternalLogAttributes;
       if (data) {
         attributes.data = data;
