@@ -91,6 +91,8 @@ export class InteractiveLoggerOutput extends BaseLoggerOutput {
 
   override closeLoggerOutput(): void {
     clearInterval(this._ticksInterval);
+    this._progress();
+    this._clean();
     Terminal.write(ANSI_SHOW_CURSOR);
   }
 }
