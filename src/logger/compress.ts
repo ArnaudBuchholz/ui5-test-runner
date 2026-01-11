@@ -157,16 +157,16 @@ const LEVELS = Object.values(LEVEL_MAPPING).join('');
 
 export const compress = (context: unknown, attributes: InternalLogAttributes): string => {
   assert.ok(context instanceof Context);
-  const { level, timestamp, processId, threadId, isMainThread, source, message, data } = attributes;
+  const { level, timestamp, processId, threadId, isMainThread, source, message, data, error } = attributes;
   const cLevel = LEVEL_MAPPING[level];
   const cTimestamp = Context.compressNumber(timestamp, MAX_TIMESTAMP_DIGITS);
   const cProcess = context.compressProcess({ processId, threadId, isMainThread });
   const cSource = context.compressSource(source);
   const compressed: string[] = [cLevel, cTimestamp, cProcess.compressed, cSource.compressed, message.replaceAll(/\r?\n/g, '\r')];
-  if (data) {
+  if (data || error ) {
     compressed.push(
       JSON_VALUE_SEP,
-      JSON.stringify(data).replaceAll(/"(\w+)":/g, (_, name) => `${name}${JSON_VALUE_SEP}`)
+      JSON.stringify([ data ?? 0, error ?? 0]).replaceAll(/"(\w+)":/g, (_, name) => `${name}${JSON_VALUE_SEP}`)
     );
   }
   return [cProcess.context, cSource.context, compressed.join('')].filter((line) => !!line).join('\n') + '\n';
@@ -193,7 +193,7 @@ export const uncompress = (context: unknown, compressed: string): InternalLogAtt
     if (level === -1) {
       augmentContext(context, line);
     } else {
-      const [, cTimestamp, cProcess, cSource, messageAndData] = split(
+      const [, cTimestamp, cProcess, cSource, messageAndExtra] = split(
         line,
         1,
         MAX_TIMESTAMP_DIGITS,
@@ -202,16 +202,17 @@ export const uncompress = (context: unknown, compressed: string): InternalLogAtt
       );
       let message: string;
       let data: unknown;
-      const startOfJson = messageAndData.indexOf(JSON_VALUE_SEP);
+      let error: unknown;
+      const startOfJson = messageAndExtra.indexOf(JSON_VALUE_SEP);
       if (startOfJson === -1) {
-        message = messageAndData ?? '';
+        message = messageAndExtra ?? '';
       } else {
-        message = messageAndData.slice(0, startOfJson);
-        const json = messageAndData
+        message = messageAndExtra.slice(0, startOfJson);
+        const json = messageAndExtra
           .slice(startOfJson + 1)
           // eslint-disable-next-line security/detect-non-literal-regexp -- Use constant rather than repeat the char code
           .replaceAll(new RegExp(String.raw`(\w+)${JSON_VALUE_SEP}`, 'g'), (_, name) => `"${name}":`);
-        data = JSON.parse(json);
+        [ data, error ] = JSON.parse(json);
       }
       const attributes = {
         level: level as LogLevel,
@@ -222,6 +223,9 @@ export const uncompress = (context: unknown, compressed: string): InternalLogAtt
       } as InternalLogAttributes;
       if (data) {
         attributes.data = data;
+      }
+      if (error) {
+        attributes.error = error;
       }
       result.push(attributes);
     }

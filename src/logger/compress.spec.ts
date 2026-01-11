@@ -48,6 +48,45 @@ const examples = [
     isMainThread: false,
     source: 'job',
     message: 'Trace from external process'
+  },
+  {
+    timestamp: Date.now(),
+    level: LogLevel.info,
+    processId: 123,
+    threadId: 789,
+    isMainThread: false,
+    source: 'job',
+    message: 'with error',
+    error: {
+      name: 'Error',
+      message: 'error',
+      stack: 'stack1',
+      cause: {
+        name: 'Error',
+        message: 'cause',
+        stack: 'stack2',
+      }
+    }
+  },
+  {
+    timestamp: Date.now(),
+    level: LogLevel.info,
+    processId: 123,
+    threadId: 789,
+    isMainThread: false,
+    source: 'job',
+    message: 'with error and data',
+    data: { hello: 'World !', object: { property: 123, test: 'abc:' } },
+    error: {
+      name: 'Error',
+      message: 'error',
+      stack: 'stack1',
+      cause: {
+        name: 'Error',
+        message: 'cause',
+        stack: 'stack2',
+      }
+    }
   }
 ] satisfies InternalLogAttributes[];
 
