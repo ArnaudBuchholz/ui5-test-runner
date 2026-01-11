@@ -1,6 +1,6 @@
 import type { ChildProcess, SpawnOptions } from 'node:child_process';
 import { spawn } from 'node:child_process';
-import { logger } from './logger.js';
+import { logger } from '../logger.js';
 
 export interface IProcess {
   readonly stdout: string;
@@ -9,8 +9,17 @@ export interface IProcess {
   readonly closed: Promise<void>;
 }
 
-/** This class simplifies mocking during tests */
 export class Process implements IProcess {
+  private static _list: Process[] = [];
+  static get list (): readonly Process[] { return Process._list; }
+
+  // TODO: invert dependency by having a central mechanism to register pending processes and know when to stop
+  private static _stopped = false;
+  static async stop () {
+    Process._stopped = true;
+    await Promise.allSettled(Process._list.map(process => process.closed));
+  }
+
   static readonly spawn: (command: string, arguments_: string[], options?: SpawnOptions) => IProcess = (
     command,
     arguments_,
@@ -20,6 +29,9 @@ export class Process implements IProcess {
       command = process.argv[0] as string;
     }
     try {
+      if (Process._stopped) {
+        throw new Error('stop called');
+      }
       const childProcess = spawn(command, arguments_, options);
       logger.debug({
         source: 'process',
@@ -62,6 +74,7 @@ export class Process implements IProcess {
   private _childProcess: ChildProcess;
 
   constructor(childProcess: ChildProcess) {
+    Process._list.push(this);
     this._childProcess = childProcess;
     const { promise, resolve } = Promise.withResolvers<void>();
     this._closed = promise;
@@ -83,6 +96,8 @@ export class Process implements IProcess {
         message: 'closed',
         data: { code: this._code }
       });
+      const index = Process._list.findIndex((process) => process === this);
+      Process._list.splice(index, 1);
       resolve();
     });
   }

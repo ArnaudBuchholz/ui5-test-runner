@@ -1,7 +1,6 @@
 import { logger } from './logger.js';
 import { Platform } from './Platform.js';
-import { Process } from './Process.js';
-import type { IProcess } from './Process.js';
+import { Process } from './platform/Process.js';
 import { memoize } from './utils/memoize.js';
 
 const getNpmCliPath = memoize(async () => {
@@ -24,7 +23,7 @@ const getNpmCliPath = memoize(async () => {
   return Platform.join(path, 'bin/npm-cli.js');
 });
 
-const npm = async (...arguments_: string[]): Promise<IProcess> => {
+const npm = async (...arguments_: string[]) => {
   const npmCliPath = await getNpmCliPath();
   return Process.spawn('node', [npmCliPath, ...arguments_], {
     detached: true // TODO: better ?

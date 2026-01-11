@@ -12,6 +12,7 @@ import { version } from './modes/version.js';
 import { help } from './modes/help.js';
 import { log } from './modes/log.js';
 import clean from './clean.js';
+import { Process } from './platform/Process.js';
 const { cleanHandles } = clean;
 
 // TODO: move below modes/
@@ -95,6 +96,7 @@ export const execute = async (configuration: Configuration) => {
     } catch (error) {
       logger.error({ source: 'job', message: 'An error occurred', error });
     } finally {
+      await Process.stop();
       await logger.stop();
       console.log(`${ANSI_BLUE}[~]${ANSI_WHITE}done.`);
       cleanHandles();
