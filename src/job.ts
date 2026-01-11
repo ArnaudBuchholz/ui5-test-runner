@@ -69,8 +69,8 @@ export const execute = async (configuration: Configuration) => {
                   data: { max: feedback.total, value: feedback.executed, uid: url }
                 });
               }
-            } catch {
-              console.log(label, 'error');
+            } catch (error) {
+              logger.error({ source: 'job', message: 'An error occurred', error, data: { label }});
             }
           }
           if (stopRequested) {
