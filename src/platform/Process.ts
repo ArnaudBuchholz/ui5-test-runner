@@ -11,13 +11,15 @@ export interface IProcess {
 
 export class Process implements IProcess {
   private static _list: Process[] = [];
-  static get list (): readonly Process[] { return Process._list; }
+  static get list(): readonly Process[] {
+    return Process._list;
+  }
 
   // TODO: invert dependency by having a central mechanism to register pending processes and know when to stop
   private static _stopped = false;
-  static async stop () {
+  static async stop() {
     Process._stopped = true;
-    await Promise.allSettled(Process._list.map(process => process.closed));
+    await Promise.allSettled(Process._list.map((process) => process.closed));
   }
 
   static readonly spawn: (command: string, arguments_: string[], options?: SpawnOptions) => IProcess = (
@@ -96,7 +98,7 @@ export class Process implements IProcess {
         message: 'closed',
         data: { code: this._code }
       });
-      const index = Process._list.findIndex((process) => process === this);
+      const index = Process._list.indexOf(this);
       Process._list.splice(index, 1);
       resolve();
     });
