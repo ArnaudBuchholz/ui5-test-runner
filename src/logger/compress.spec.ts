@@ -64,7 +64,7 @@ const examples = [
       cause: {
         name: 'Error',
         message: 'cause',
-        stack: 'stack2',
+        stack: 'stack2'
       }
     }
   },
@@ -84,7 +84,7 @@ const examples = [
       cause: {
         name: 'Error',
         message: 'cause',
-        stack: 'stack2',
+        stack: 'stack2'
       }
     }
   }

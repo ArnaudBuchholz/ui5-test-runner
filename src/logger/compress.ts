@@ -162,11 +162,17 @@ export const compress = (context: unknown, attributes: InternalLogAttributes): s
   const cTimestamp = Context.compressNumber(timestamp, MAX_TIMESTAMP_DIGITS);
   const cProcess = context.compressProcess({ processId, threadId, isMainThread });
   const cSource = context.compressSource(source);
-  const compressed: string[] = [cLevel, cTimestamp, cProcess.compressed, cSource.compressed, message.replaceAll(/\r?\n/g, '\r')];
-  if (data || error ) {
+  const compressed: string[] = [
+    cLevel,
+    cTimestamp,
+    cProcess.compressed,
+    cSource.compressed,
+    message.replaceAll(/\r?\n/g, '\r')
+  ];
+  if (data || error) {
     compressed.push(
       JSON_VALUE_SEP,
-      JSON.stringify([ data ?? 0, error ?? 0]).replaceAll(/"(\w+)":/g, (_, name) => `${name}${JSON_VALUE_SEP}`)
+      JSON.stringify([data ?? 0, error ?? 0]).replaceAll(/"(\w+)":/g, (_, name) => `${name}${JSON_VALUE_SEP}`)
     );
   }
   return [cProcess.context, cSource.context, compressed.join('')].filter((line) => !!line).join('\n') + '\n';
@@ -212,14 +218,14 @@ export const uncompress = (context: unknown, compressed: string): InternalLogAtt
           .slice(startOfJson + 1)
           // eslint-disable-next-line security/detect-non-literal-regexp -- Use constant rather than repeat the char code
           .replaceAll(new RegExp(String.raw`(\w+)${JSON_VALUE_SEP}`, 'g'), (_, name) => `"${name}":`);
-        [ data, error ] = JSON.parse(json);
+        [data, error] = JSON.parse(json) as [data: object | 0, error: object | 0];
       }
       const attributes = {
         level: level as LogLevel,
         timestamp: Context.uncompressNumber(cTimestamp),
         ...context.uncompressProcess(cProcess),
         source: context.uncompressSource(cSource) as LogSource,
-        message: message.replaceAll(/\r/g, '\n')
+        message: message.replaceAll('\r', '\n')
       } as InternalLogAttributes;
       if (data) {
         attributes.data = data;

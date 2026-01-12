@@ -6,6 +6,8 @@ import { StaticLoggerOutput } from './StaticLoggerOutput.js';
 export const LoggerOutputFactory = {
   build(configuration: Configuration, startedAt: number): BaseLoggerOutput {
     const { ci } = configuration;
-    return ci ? new StaticLoggerOutput(configuration, startedAt) : new InteractiveLoggerOutput(configuration, startedAt);
+    return ci
+      ? new StaticLoggerOutput(configuration, startedAt)
+      : new InteractiveLoggerOutput(configuration, startedAt);
   }
 };

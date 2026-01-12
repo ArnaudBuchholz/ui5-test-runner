@@ -9,12 +9,13 @@ export type LogErrorAttributes = {
 };
 
 const GenericLogSource = {
-  metric: 'metric',
-  logger: 'logger',
-  npm: 'npm',
-  puppeteer: 'puppeteer',
+  exit: 'exit',
   job: 'job',
-  process: 'process'
+  logger: 'logger',
+  metric: 'metric',
+  npm: 'npm',
+  process: 'process',
+  puppeteer: 'puppeteer'
 } as const;
 type GenericLogSource = (typeof GenericLogSource)[keyof typeof GenericLogSource];
 
@@ -44,6 +45,7 @@ export type LogAttributes = {
     }
   | {
       source: 'assert';
+      error: Error;
     }
 );
 
