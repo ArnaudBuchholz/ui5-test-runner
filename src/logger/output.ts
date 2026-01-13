@@ -1,4 +1,4 @@
-import { Platform } from '../Platform.js';
+import { Thread } from '../system/index.js';
 import type { LogMessage } from './types.js';
 import '../logger.js';
 import type { Configuration } from '../configuration/Configuration.js';
@@ -13,7 +13,7 @@ const fromHexaCode = (value: string): { r: number; g: number; b: number } => ({
 export const workerMain = ({ configuration, startedAt }: { configuration: Configuration; startedAt: number }) => {
   const loggerOutput = LoggerOutputFactory.build(configuration, startedAt);
 
-  const channel = Platform.createBroadcastChannel('logger');
+  const channel = Thread.createBroadcastChannel('logger');
   channel.onmessage = (event: { data: LogMessage }) => {
     const { data: message } = event;
     if (message.command === 'terminate') {

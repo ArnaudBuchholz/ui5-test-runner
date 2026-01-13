@@ -21,7 +21,7 @@ const check = (name, short) => {
 
 const defaults = [];
 
-console.log(`import { Platform } from '../Platform.js';
+console.log(`import { Host } from '../system/index.js';
 
 export const options = [`);
 for (const option of options) {

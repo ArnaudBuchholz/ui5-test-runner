@@ -1,5 +1,5 @@
+import { Terminal } from '../../system/index.js';
 import type { Configuration } from '../../configuration/Configuration.js';
-import { Terminal } from '../../Platform.js';
 import { BaseLoggerOutput } from './BaseLoggerOutput.js';
 
 export class StaticLoggerOutput extends BaseLoggerOutput {

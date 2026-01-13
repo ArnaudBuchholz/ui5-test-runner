@@ -1,4 +1,4 @@
-import { Platform } from '../Platform.js';
+import { FileSystem, Path, Thread, ZLib } from '../system/index.js';
 import type { InternalLogAttributes, LogAttributes, LogMessage } from './types.js';
 import { LogLevel, toInternalLogAttributes } from './types.js';
 import type { Configuration } from '../configuration/Configuration.js';
@@ -11,8 +11,8 @@ const compressionContext = createCompressionContext();
 
 export const workerMain = ({ configuration }: { configuration: Configuration }) => {
   const LOG_FILE_NAME = `app-${new Date().toISOString().slice(0, 19).replaceAll(/[-:]/g, '').replace('T', '-')}.log`;
-  const fileStream = Platform.createWriteStream(Platform.join(configuration.reportDir, LOG_FILE_NAME + '.gz'));
-  const gzipStream = Platform.createGzip({ flush: Platform.Z_FULL_FLUSH });
+  const fileStream = FileSystem.createWriteStream(Path.join(configuration.reportDir, LOG_FILE_NAME + '.gz'));
+  const gzipStream = ZLib.createGzip({ flush: ZLib.constants.Z_FULL_FLUSH });
   gzipStream.pipe(fileStream);
   const gzBuffer: string[] = [];
   let gzFlushTimeout: ReturnType<typeof setTimeout> | undefined;
@@ -37,7 +37,7 @@ export const workerMain = ({ configuration }: { configuration: Configuration }) 
 
   const _log = (attributes: LogAttributes) => log(toInternalLogAttributes(attributes, LogLevel.info));
 
-  const channel = Platform.createBroadcastChannel('logger');
+  const channel = Thread.createBroadcastChannel('logger');
   channel.onmessage = (event: { data: LogMessage }) => {
     const { data: message } = event;
     if (message.command === 'terminate') {

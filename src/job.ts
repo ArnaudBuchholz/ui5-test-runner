@@ -1,3 +1,4 @@
+import { __sourcesRoot, Exit, FileSystem, Path } from './system/index.js';
 import type { AgentFeedback } from './agent/Feedback.js';
 import { BrowserFactory } from './browsers/factory.js';
 import type { Configuration } from './configuration/Configuration.js';
@@ -6,12 +7,9 @@ import { defaults } from './configuration/options.js';
 import { logEnvironnement } from './environment.js';
 import { logger } from './logger.js';
 import { parallelize } from './parallelize.js';
-import { Platform } from './Platform.js';
-import { ANSI_BLUE, ANSI_WHITE } from './terminal/ansi.js';
 import { version } from './modes/version.js';
 import { help } from './modes/help.js';
 import { log } from './modes/log.js';
-import { Process } from './platform/Process.js';
 
 // TODO: move below modes/
 export const execute = async (configuration: Configuration) => {
@@ -27,7 +25,7 @@ export const execute = async (configuration: Configuration) => {
     logger.debug({ source: 'job', message: 'Configuration', data: { defaults, configuration } });
 
     await logEnvironnement();
-    const agent = await Platform.readFile(Platform.join(Platform.sourcesRoot, './agent/agent.js'), 'utf8');
+    const agent = await FileSystem.readFile(Path.join(__sourcesRoot, './agent/agent.js'), 'utf8');
     try {
       if (!configuration.url) {
         logger.fatal({ source: 'job', message: 'Expected URLs to be set' });
@@ -85,18 +83,18 @@ export const execute = async (configuration: Configuration) => {
         urls,
         2
       );
-      Platform.registerSigIntHandler(async () => {
-        stopRequested = true;
-        await promise;
+      const asyncTask = Exit.registerAsyncTask({
+        name: 'main job',
+        async stop() {
+          stopRequested = true;
+          await promise;
+        }
       });
       await promise;
+      asyncTask.unregister();
       await browser.shutdown();
     } catch (error) {
       logger.error({ source: 'job', message: 'An error occurred', error });
-    } finally {
-      await Process.stop();
-      await logger.stop();
-      console.log(`${ANSI_BLUE}[~]${ANSI_WHITE}done.`);
     }
   }
 };

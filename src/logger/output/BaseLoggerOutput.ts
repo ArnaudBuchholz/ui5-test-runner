@@ -1,4 +1,4 @@
-import { Platform } from '../../Platform.js';
+import { FileSystem, Path, Terminal } from '../../system/index.js';
 import type { Configuration } from '../../configuration/Configuration.js';
 import type { InternalLogAttributes } from '../types.js';
 import { LogLevel } from '../types.js';
@@ -46,7 +46,7 @@ export abstract class BaseLoggerOutput {
   }
 
   addToReport(rawText: string): void {
-    Platform.writeFileSync(Platform.join(this._configuration.reportDir, 'output.txt'), rawText, {
+    FileSystem.writeFileSync(Path.join(this._configuration.reportDir, 'output.txt'), rawText, {
       encoding: 'utf8',
       flag: 'a'
     });
@@ -99,7 +99,7 @@ export abstract class BaseLoggerOutput {
     if (this.renderAttributes(attributes)) {
       const rendered = this.render(attributes);
       if (rendered) {
-        const raw = Platform.stripVTControlCharacters(rendered);
+        const raw = Terminal.stripVTControlCharacters(rendered);
         this.addTextToLoggerOutput(rendered, raw);
         this.addToReport(raw);
       }

@@ -4,6 +4,7 @@ import { ANSI_BLUE, ANSI_WHITE } from '../terminal/ansi.js';
 import { __developmentMode } from './constants.js';
 
 export class Thread {
+  static readonly threadCpuUsage = process.threadCpuUsage.bind(process);
   static readonly createBroadcastChannel: (name: 'logger') => BroadcastChannel = (name) => new BroadcastChannel(name);
   static readonly createWorker: (name: string, data?: unknown) => Worker = (name, data) => {
     const extension = extname(import.meta.url);

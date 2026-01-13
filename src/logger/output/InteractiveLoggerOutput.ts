@@ -1,4 +1,4 @@
-import { Terminal } from '../../Platform.js';
+import { Terminal } from '../../system/index.js';
 import { BaseLoggerOutput } from './BaseLoggerOutput.js';
 import type { Configuration } from '../../configuration/Configuration.js';
 import {

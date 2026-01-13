@@ -1,17 +1,17 @@
+import { __sourcesRoot, FileSystem, Host, Path } from './system/index.js';
 import { logger } from './logger.js';
-import { Platform } from './Platform.js';
 
 export const logEnvironnement = async () => {
   const { name, version } = JSON.parse(
-    await Platform.readFile(Platform.join(Platform.sourcesRoot, '../package.json'), 'utf8')
+    await FileSystem.readFile(Path.join(__sourcesRoot, '../package.json'), 'utf8')
   ) as { name: string; version: string };
   const now = new Date();
   logger.info({
     source: 'job',
-    message: `${name}@${version} / Node.js ${Platform.nodeVersion} / ${now.toISOString()} (${now.getTimezoneOffset()})`
+    message: `${name}@${version} / Node.js ${Host.nodeVersion} / ${now.toISOString()} (${now.getTimezoneOffset()})`
   });
   const cpus: { [key in string]?: number } = {};
-  for (const { model } of Platform.cpus()) {
+  for (const { model } of Host.cpus()) {
     if (cpus[model]) {
       ++cpus[model];
     } else {
@@ -19,6 +19,6 @@ export const logEnvironnement = async () => {
     }
   }
   for (const [model, count] of Object.entries(cpus)) {
-    logger.info({ source: 'job', message: `${Platform.machine()} / ${count}x ${model}` });
+    logger.info({ source: 'job', message: `${Host.machine()} / ${count}x ${model}` });
   }
 };

@@ -1,4 +1,4 @@
-import { Platform } from '../Platform.js';
+import { Exit, FileSystem, ZLib } from '../system/index.js';
 import type { Configuration } from '../configuration/Configuration.js';
 import { uncompress, createCompressionContext } from '../logger/compress.js';
 
@@ -6,12 +6,12 @@ export const log = async (configuration: Configuration) => {
   const { log: logFileName } = configuration;
   if (!logFileName) {
     console.error('Invalid log filename');
-    Platform.setExitCode(-1);
+    Exit.code = -1;
     return;
   }
-  const logStats = await Platform.stat(logFileName);
-  const gunzip = Platform.createGunzip();
-  const input = Platform.createReadStream(logFileName);
+  const logStats = await FileSystem.stat(logFileName);
+  const gunzip = ZLib.createGunzip();
+  const input = FileSystem.createReadStream(logFileName);
   const chunks: Buffer[] = [];
   input
     .pipe(gunzip)
@@ -32,6 +32,6 @@ export const log = async (configuration: Configuration) => {
     })
     .on('error', (error) => {
       console.error(error);
-      Platform.setExitCode(-1);
+      Exit.code = -1;
     });
 };

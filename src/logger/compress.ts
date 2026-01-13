@@ -187,6 +187,50 @@ const augmentContext = (context: Context, line: string) => {
   }
 };
 
+const uncompressLine = (context: Context, line: string): InternalLogAttributes | undefined => {
+  const firstChar = line.charAt(0);
+  const level = LEVELS.indexOf(firstChar);
+  if (level === -1) {
+    augmentContext(context, line);
+    return;
+  }
+  const [, cTimestamp, cProcess, cSource, messageAndExtra] = split(
+    line,
+    1,
+    MAX_TIMESTAMP_DIGITS,
+    MAX_INDEX_DIGITS,
+    MAX_INDEX_DIGITS
+  );
+  let message: string;
+  let data: unknown;
+  let error: unknown;
+  const startOfJson = messageAndExtra.indexOf(JSON_VALUE_SEP);
+  if (startOfJson === -1) {
+    message = messageAndExtra ?? '';
+  } else {
+    message = messageAndExtra.slice(0, startOfJson);
+    const json = messageAndExtra
+      .slice(startOfJson + 1)
+      // eslint-disable-next-line security/detect-non-literal-regexp -- Use constant rather than repeat the char code
+      .replaceAll(new RegExp(String.raw`(\w+)${JSON_VALUE_SEP}`, 'g'), (_, name) => `"${name}":`);
+    [data, error] = JSON.parse(json) as [data: object | 0, error: object | 0];
+  }
+  const attributes = {
+    level: level as LogLevel,
+    timestamp: Context.uncompressNumber(cTimestamp),
+    ...context.uncompressProcess(cProcess),
+    source: context.uncompressSource(cSource) as LogSource,
+    message: message.replaceAll('\r', '\n')
+  } as InternalLogAttributes;
+  if (data) {
+    attributes.data = data;
+  }
+  if (error) {
+    attributes.error = error;
+  }
+  return attributes;
+};
+
 export const uncompress = (context: unknown, compressed: string): InternalLogAttributes[] => {
   assert.ok(context instanceof Context);
   const result: InternalLogAttributes[] = [];
@@ -194,45 +238,8 @@ export const uncompress = (context: unknown, compressed: string): InternalLogAtt
     if (!line) {
       continue;
     }
-    const firstChar = line.charAt(0);
-    const level = LEVELS.indexOf(firstChar);
-    if (level === -1) {
-      augmentContext(context, line);
-    } else {
-      const [, cTimestamp, cProcess, cSource, messageAndExtra] = split(
-        line,
-        1,
-        MAX_TIMESTAMP_DIGITS,
-        MAX_INDEX_DIGITS,
-        MAX_INDEX_DIGITS
-      );
-      let message: string;
-      let data: unknown;
-      let error: unknown;
-      const startOfJson = messageAndExtra.indexOf(JSON_VALUE_SEP);
-      if (startOfJson === -1) {
-        message = messageAndExtra ?? '';
-      } else {
-        message = messageAndExtra.slice(0, startOfJson);
-        const json = messageAndExtra
-          .slice(startOfJson + 1)
-          // eslint-disable-next-line security/detect-non-literal-regexp -- Use constant rather than repeat the char code
-          .replaceAll(new RegExp(String.raw`(\w+)${JSON_VALUE_SEP}`, 'g'), (_, name) => `"${name}":`);
-        [data, error] = JSON.parse(json) as [data: object | 0, error: object | 0];
-      }
-      const attributes = {
-        level: level as LogLevel,
-        timestamp: Context.uncompressNumber(cTimestamp),
-        ...context.uncompressProcess(cProcess),
-        source: context.uncompressSource(cSource) as LogSource,
-        message: message.replaceAll('\r', '\n')
-      } as InternalLogAttributes;
-      if (data) {
-        attributes.data = data;
-      }
-      if (error) {
-        attributes.error = error;
-      }
+    const attributes = uncompressLine(context, line);
+    if (attributes) {
       result.push(attributes);
     }
   }

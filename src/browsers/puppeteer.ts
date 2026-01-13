@@ -1,14 +1,15 @@
+import { Exit } from '../system/index.js';
 import type { IBrowser } from './IBrowser.js';
 import type { launch as launchFunction, Browser } from 'puppeteer';
 import { Npm } from '../Npm.js';
 import { logger } from '../logger.js';
-import { Platform } from '../Platform.js';
 
 export const factory = async (): Promise<IBrowser> => {
   const puppeteer = await Npm.import('puppeteer');
   // TODO: may need to npx puppeteer browsers install chrome
   const { launch } = puppeteer as { launch: typeof launchFunction };
   let browser: Browser | undefined;
+  let task: ReturnType<typeof Exit.registerAsyncTask>;
 
   return {
     async setup(settings) {
@@ -18,10 +19,11 @@ export const factory = async (): Promise<IBrowser> => {
         defaultViewport: null,
         handleSIGINT: false
       });
-      Platform.registerSigIntHandler(() => {
-        // eslint-disable-next-line sonarjs/void-use -- Contradicting with non awaited promise
-        void browser?.close();
-        browser = undefined;
+      task = Exit.registerAsyncTask({
+        name: 'puppeteer',
+        async stop() {
+          await browser?.close();
+        }
       });
       return {
         screenshotFormat: '.png'
@@ -51,6 +53,7 @@ export const factory = async (): Promise<IBrowser> => {
     async shutdown() {
       // TODO close any remaining pages
       await browser?.close();
+      task.unregister();
     }
   };
 };

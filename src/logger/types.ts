@@ -1,4 +1,4 @@
-import { Platform } from '../Platform.js';
+import { Host, Thread } from '../system/index.js';
 
 export type LogErrorAttributes = {
   name: string;
@@ -10,6 +10,7 @@ export type LogErrorAttributes = {
 
 const GenericLogSource = {
   exit: 'exit',
+  http: 'http',
   job: 'job',
   logger: 'logger',
   metric: 'metric',
@@ -85,9 +86,9 @@ export const toInternalLogAttributes = (attributes: LogAttributes, level: LogLev
   return {
     timestamp: Date.now(),
     level,
-    processId: Platform.pid,
-    threadId: Platform.threadId,
-    isMainThread: Platform.isMainThread,
+    processId: Host.pid,
+    threadId: Thread.threadId,
+    isMainThread: Thread.isMainThread,
     ...attributes
   };
 };

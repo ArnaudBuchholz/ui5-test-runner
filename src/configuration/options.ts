@@ -1,4 +1,4 @@
-import { Platform } from '../Platform.js';
+import { Host } from '../system/index.js';
 
 export const options = [
   {
@@ -6,7 +6,7 @@ export const options = [
     short: 'c',
     description: 'Set working directory',
     type: 'folder',
-    default: Platform.cwd(),
+    default: Host.cwd(),
     defaultLabel: 'current working directory'
   },
   {
@@ -506,7 +506,7 @@ export const options = [
 ] as const;
 
 export const defaults = {
-  cwd: Platform.cwd(),
+  cwd: Host.cwd(),
   config: 'ui5-test-runner.json',
   reportDir: 'report',
   parallel: 2,

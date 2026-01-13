@@ -1,3 +1,4 @@
+import { Exit, Host, Terminal, Thread } from './system/index.js';
 import type { Configuration } from './configuration/Configuration.js';
 import type {
   LogErrorAttributes,
@@ -7,19 +8,18 @@ import type {
   ReadySource
 } from './logger/types.js';
 import { LogLevel, toInternalLogAttributes } from './logger/types.js';
-import { Platform, Terminal } from './Platform.js';
 import assert from 'node:assert/strict';
 import { toPlainObject } from './utils/object.js';
 
 const startedAt = Date.now();
 
 // TODO understand why channel does not appear as a problem as it might be used before being defined
-let channel: ReturnType<typeof Platform.createBroadcastChannel>;
-let loggerWorker: ReturnType<typeof Platform.createWorker> | undefined;
-let consoleWorker: ReturnType<typeof Platform.createWorker> | undefined;
+let channel: ReturnType<typeof Thread.createBroadcastChannel>;
+let loggerWorker: ReturnType<typeof Thread.createWorker> | undefined;
+let consoleWorker: ReturnType<typeof Thread.createWorker> | undefined;
 const buffer: InternalLogAttributes[] = [];
 const waitingFor: ReadySource[] = ['allCompressed', 'output'];
-let ready = !Platform.isMainThread;
+let ready = !Thread.isMainThread;
 
 let metricsMonitorInterval: ReturnType<typeof setInterval>;
 
@@ -32,16 +32,16 @@ const terminalResized = () => {
 };
 
 const start = () => {
-  channel = Platform.createBroadcastChannel('logger');
+  channel = Thread.createBroadcastChannel('logger');
 
   metricsMonitorInterval = setInterval(() => {
-    logger.debug({ source: 'metric', message: 'threadCpuUsage', data: Platform.threadCpuUsage() });
-    logger.debug({ source: 'metric', message: 'memoryUsage', data: Platform.memoryUsage() });
+    logger.debug({ source: 'metric', message: 'threadCpuUsage', data: Thread.threadCpuUsage() });
+    logger.debug({ source: 'metric', message: 'memoryUsage', data: Host.memoryUsage() });
   }, 1000);
 
   channel.onmessage = (event: { data: LogMessage }) => {
     const { data: message } = event;
-    if (message.command === 'ready' && Platform.isMainThread) {
+    if (message.command === 'ready' && Thread.isMainThread) {
       terminalResized();
       const index = waitingFor.indexOf(message.source);
       waitingFor.splice(index, 1); // Only two ready messages will be sent
@@ -96,7 +96,7 @@ const log = (level: LogLevel, attributes: LogAttributes) => {
   }
 };
 
-if (!Platform.isMainThread) {
+if (!Thread.isMainThread) {
   start();
 }
 
@@ -104,15 +104,14 @@ let stopping: Promise<void> | undefined;
 
 export const logger = {
   start(configuration: Configuration) {
-    assert.ok(Platform.isMainThread, 'Call logger.start only in main thread');
+    assert.ok(Thread.isMainThread, 'Call logger.start only in main thread');
     start();
-    loggerWorker = Platform.createWorker('logger/allCompressed', { configuration: toPlainObject(configuration) });
-    consoleWorker = Platform.createWorker('logger/output', { configuration: toPlainObject(configuration), startedAt });
-    Platform.registerSigIntHandler(() => logger.stop(), Platform.SIGINT_LOGGER);
+    loggerWorker = Thread.createWorker('logger/allCompressed', { configuration: toPlainObject(configuration) });
+    consoleWorker = Thread.createWorker('logger/output', { configuration: toPlainObject(configuration), startedAt });
     if (!configuration.ci) {
       Terminal.setRawMode((data) => {
         if (data.length === 1 && data[0] === 3) {
-          void Platform.onSigInt();
+          void Exit.sigInt();
         }
       });
       Terminal.onResize(terminalResized);
@@ -136,7 +135,7 @@ export const logger = {
   },
 
   async stop() {
-    assert.ok(Platform.isMainThread, 'Call logger.stop only in main thread');
+    assert.ok(Thread.isMainThread, 'Call logger.stop only in main thread');
     if (stopping) {
       return await stopping;
     }

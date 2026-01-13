@@ -14,6 +14,18 @@ export default [
       }
     }
   },
+  {
+    rules: {
+      'unicorn/prevent-abbreviations': [
+        'error',
+        {
+          allowList: {
+            ZLib: true
+          }
+        }
+      ]
+    }
+  },
   // Need to disable this rule because tests are built with an external function
   {
     files: ['src/configuration/validators/**.ts'],
@@ -52,6 +64,15 @@ export default [
     files: ['**/*.spec.ts'],
     rules: {
       '@typescript-eslint/unbound-method': 'off'
+    }
+  },
+  // *Must* use any
+  {
+    files: ['src/system/Exit.ts'],
+    rules: {
+      '@typescript-eslint/no-unsafe-assignment': 'off',
+      '@typescript-eslint/no-unsafe-call': 'off',
+      '@typescript-eslint/no-unsafe-member-access': 'off'
     }
   }
 ];

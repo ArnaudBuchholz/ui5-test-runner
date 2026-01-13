@@ -1,6 +1,5 @@
+import { FileSystem, Http, Path, Process } from './system/index.js';
 import { logger } from './logger.js';
-import { Platform } from './Platform.js';
-import { Process } from './platform/Process.js';
 import { memoize } from './utils/memoize.js';
 
 const getNpmCliPath = memoize(async () => {
@@ -20,7 +19,7 @@ const getNpmCliPath = memoize(async () => {
     throw error;
   }
   logger.debug({ source: 'npm', message: `npm@${semver} ${path}` });
-  return Platform.join(path, 'bin/npm-cli.js');
+  return Path.join(path, 'bin/npm-cli.js');
 });
 
 const npm = async (...arguments_: string[]) => {
@@ -48,12 +47,9 @@ export const Npm = {
   /** fetch the latest version info for the given module */
   async getLatestVersion(moduleName: string): Promise<string> {
     try {
-      const response = await fetch(`https://registry.npmjs.org/${moduleName}/latest`);
-      if (response.status / 100 === 2) {
-        const { version } = (await response.json()) as { version: string };
-        return version;
-      }
-      throw new Error(`Response status code ${response.status}`);
+      const response = await Http.get(`https://registry.npmjs.org/${moduleName}/latest`);
+      const { version } = JSON.parse(response) as { version: string };
+      return version;
     } catch (error) {
       throw new Error(`Unable to fetch latest version of ${moduleName} from NPM registry`, {
         cause: error
@@ -65,7 +61,7 @@ export const Npm = {
     try {
       const { local, global } = await getRoots();
       const { version: installedVersion } = JSON.parse(
-        await Platform.readFile(Platform.join(isLocal ? local : global, moduleName, 'package.json'), 'utf8')
+        await FileSystem.readFile(Path.join(isLocal ? local : global, moduleName, 'package.json'), 'utf8')
       ) as { version: string };
       logger.info({ source: 'npm', message: `Installed version of ${moduleName} is ${installedVersion}` });
       const latestVersion = await Npm.getLatestVersion(moduleName);
