@@ -13,10 +13,9 @@ export default defineConfig({
         'src/**/*.spec.ts',
         'src/**/index.ts',
         'test/**',
-        'src/Platform.ts',
-        'src/Process.ts'
+        'src/system/**'
       ]
     },
-    setupFiles: [ 'src/Platform.mock.ts' ]
+    setupFiles: [ 'src/system/mock.ts' ]
   }
 });
