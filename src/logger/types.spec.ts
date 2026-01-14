@@ -1,7 +1,7 @@
 import { describe, it, expect, vi } from 'vitest';
+import { Host, Thread } from '../system/index.js';
 import type { InternalLogAttributes } from './types.js';
 import { LogLevel, toInternalLogAttributes } from './types.js';
-import { Platform } from '../Platform.js';
 
 vi.useFakeTimers();
 
@@ -18,9 +18,9 @@ describe('toInternalLogAttributes', () => {
     ).toStrictEqual<InternalLogAttributes>({
       timestamp: vi.getMockedSystemTime()?.getTime() ?? -1,
       level: LogLevel.info,
-      processId: Platform.pid,
-      threadId: Platform.threadId,
-      isMainThread: Platform.isMainThread,
+      processId: Host.pid,
+      threadId: Thread.threadId,
+      isMainThread: Thread.isMainThread,
       source: 'job',
       message: 'test'
     });

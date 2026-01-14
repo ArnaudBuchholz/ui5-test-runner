@@ -24,10 +24,10 @@ let ready = !Thread.isMainThread;
 let metricsMonitorInterval: ReturnType<typeof setInterval>;
 
 // Only the main thread can access terminal as TTY
-const terminalResized = () => {
+const terminalResized = (width: number) => {
   channel?.postMessage({
     command: 'terminal-resized',
-    width: Terminal.width
+    width
   } satisfies LogMessage);
 };
 

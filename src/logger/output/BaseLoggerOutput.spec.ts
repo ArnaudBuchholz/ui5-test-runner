@@ -1,10 +1,10 @@
 import { it, expect, beforeEach, vi, describe } from 'vitest';
+import { FileSystem, Terminal } from '../../system/index.js';
 import { BaseLoggerOutput } from './BaseLoggerOutput.js';
 import type { Configuration } from '../../configuration/Configuration.js';
 import type { InternalLogAttributes } from '../types';
 import { LogLevel } from '../types.js';
 import { ANSI_YELLOW, ANSI_WHITE, ANSI_RED, ANSI_MAGENTA } from '../../terminal/ansi.js';
-import { Platform } from '../../Platform.js';
 
 class TestLoggerOutput extends BaseLoggerOutput {
   override terminalResized(): void {}
@@ -13,9 +13,12 @@ class TestLoggerOutput extends BaseLoggerOutput {
 }
 
 vi.setSystemTime(new Date('2025-12-10T00:00:00.000Z'));
-const loggerOuput = new TestLoggerOutput({
-  reportDir: './tmp'
-} as Configuration);
+const loggerOuput = new TestLoggerOutput(
+  {
+    reportDir: './tmp'
+  } as Configuration,
+  Date.now()
+);
 const addTextToLoggerOutput = vi.spyOn(loggerOuput, 'addTextToLoggerOutput');
 const addToReport = vi.spyOn(loggerOuput, 'addToReport');
 
@@ -32,11 +35,11 @@ describe('usual traces', () => {
     const expectedString = `   ${ANSI_YELLOW}00:00${ANSI_WHITE} test\n`;
     expect(addTextToLoggerOutput).toHaveBeenCalledWith(
       expectedString,
-      Platform.stripVTControlCharacters(expectedString)
+      Terminal.stripVTControlCharacters(expectedString)
     );
-    expect(Platform.writeFileSync).toHaveBeenCalledWith(
+    expect(FileSystem.writeFileSync).toHaveBeenCalledWith(
       'tmp/output.txt',
-      Platform.stripVTControlCharacters(expectedString),
+      Terminal.stripVTControlCharacters(expectedString),
       { encoding: 'utf8', flag: 'a' }
     );
   });
@@ -51,7 +54,7 @@ describe('usual traces', () => {
     const expectedString = `${ANSI_YELLOW}/!\\${ANSI_YELLOW}00:00${ANSI_WHITE} test\n`;
     expect(addTextToLoggerOutput).toHaveBeenCalledWith(
       expectedString,
-      Platform.stripVTControlCharacters(expectedString)
+      Terminal.stripVTControlCharacters(expectedString)
     );
   });
 
@@ -65,7 +68,7 @@ describe('usual traces', () => {
     const expectedString = `${ANSI_RED}(X)${ANSI_YELLOW}00:00${ANSI_WHITE} test\n`;
     expect(addTextToLoggerOutput).toHaveBeenCalledWith(
       expectedString,
-      Platform.stripVTControlCharacters(expectedString)
+      Terminal.stripVTControlCharacters(expectedString)
     );
   });
 
@@ -79,7 +82,7 @@ describe('usual traces', () => {
     const expectedString = `${ANSI_MAGENTA}o*!${ANSI_YELLOW}00:00${ANSI_WHITE} test\n`;
     expect(addTextToLoggerOutput).toHaveBeenCalledWith(
       expectedString,
-      Platform.stripVTControlCharacters(expectedString)
+      Terminal.stripVTControlCharacters(expectedString)
     );
   });
 
@@ -93,11 +96,11 @@ describe('usual traces', () => {
     const expectedString = `   ${ANSI_YELLOW}00:00${ANSI_WHITE} test\n`;
     expect(addTextToLoggerOutput).toHaveBeenCalledWith(
       expectedString,
-      Platform.stripVTControlCharacters(expectedString)
+      Terminal.stripVTControlCharacters(expectedString)
     );
-    expect(Platform.writeFileSync).toHaveBeenCalledWith(
+    expect(FileSystem.writeFileSync).toHaveBeenCalledWith(
       'tmp/output.txt',
-      Platform.stripVTControlCharacters(expectedString),
+      Terminal.stripVTControlCharacters(expectedString),
       { encoding: 'utf8', flag: 'a' }
     );
   });
@@ -113,11 +116,11 @@ describe('usual traces', () => {
     const expectedString = `   ${ANSI_YELLOW}00:00${ANSI_WHITE} test {"hello":"world !"}\n`;
     expect(addTextToLoggerOutput).toHaveBeenCalledWith(
       expectedString,
-      Platform.stripVTControlCharacters(expectedString)
+      Terminal.stripVTControlCharacters(expectedString)
     );
-    expect(Platform.writeFileSync).toHaveBeenCalledWith(
+    expect(FileSystem.writeFileSync).toHaveBeenCalledWith(
       'tmp/output.txt',
-      Platform.stripVTControlCharacters(expectedString),
+      Terminal.stripVTControlCharacters(expectedString),
       { encoding: 'utf8', flag: 'a' }
     );
   });
@@ -133,11 +136,11 @@ describe('usual traces', () => {
     const expectedString = `   ${ANSI_YELLOW}00:00${ANSI_WHITE} test ${ANSI_RED}Error ko\n`;
     expect(addTextToLoggerOutput).toHaveBeenCalledWith(
       expectedString,
-      Platform.stripVTControlCharacters(expectedString)
+      Terminal.stripVTControlCharacters(expectedString)
     );
-    expect(Platform.writeFileSync).toHaveBeenCalledWith(
+    expect(FileSystem.writeFileSync).toHaveBeenCalledWith(
       'tmp/output.txt',
-      Platform.stripVTControlCharacters(expectedString),
+      Terminal.stripVTControlCharacters(expectedString),
       { encoding: 'utf8', flag: 'a' }
     );
   });

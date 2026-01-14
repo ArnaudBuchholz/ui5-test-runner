@@ -1,28 +1,32 @@
 import { it, expect, beforeEach, vi } from 'vitest';
+import { Terminal } from '../../system/index.js';
 import { StaticLoggerOutput } from './StaticLoggerOutput.js';
 import type { Configuration } from '../../configuration/Configuration.js';
-import { Platform } from '../../Platform.js';
 import type { InternalLogAttributes } from '../types.js';
 import { LogLevel } from '../types.js';
+import type { BaseLoggerOutput } from './BaseLoggerOutput.js';
 
 vi.useFakeTimers();
 vi.setSystemTime(new Date('2025-12-12T00:00:00.000Z'));
 beforeEach(() => vi.clearAllMocks());
 
-const loggerOuput = new StaticLoggerOutput({
-  reportDir: './tmp',
-  outputInterval: 250
-} as Configuration);
+const loggerOuput = new StaticLoggerOutput(
+  {
+    reportDir: './tmp',
+    outputInterval: 250
+  } as Configuration,
+  Date.now()
+);
 const addToReport = vi.spyOn(loggerOuput, 'addToReport');
 
 it('does not output if called on addTextToLoggerOutput', () => {
-  loggerOuput.addTextToLoggerOutput('abc', 'abc');
-  expect(Platform.writeOnTerminal).not.toHaveBeenCalled();
+  (loggerOuput as BaseLoggerOutput).addTextToLoggerOutput('abc', 'abc');
+  expect(Terminal.write).not.toHaveBeenCalled();
 });
 
 it('writes all output from addToReport', () => {
   loggerOuput.addToReport('hello');
-  expect(Platform.writeOnTerminal).toHaveBeenCalledWith('hello');
+  expect(Terminal.write).toHaveBeenCalledWith('hello');
 });
 
 it('dumps nothing when no progress', async () => {

@@ -1,7 +1,7 @@
 import { it, expect, vi } from 'vitest';
+import { FileSystem } from '../../system/index.js';
 import { file } from './file.js';
 import { checkValidator, noBooleans, noIntegers, noNumbers } from './checkValidator.test.js';
-import { Platform } from '../../Platform.js';
 import type { Configuration } from '../Configuration.js';
 import { OptionValidationError } from '../OptionValidationError.js';
 
@@ -14,23 +14,23 @@ const INVALID_STAT_PATH = VALID_ROOT + 'invalid-stat';
 const invalidStat = new Error('Invalid stat');
 const FOLDER_PATH = VALID_ROOT + 'folder';
 
-vi.spyOn(Platform, 'access').mockImplementation((path) => {
+vi.spyOn(FileSystem, 'access').mockImplementation((path) => {
   if (path === VALID_PATH || path === INVALID_STAT_PATH || path === FOLDER_PATH) {
     return Promise.resolve();
   }
   return Promise.reject(invalidAccess);
 });
 
-vi.spyOn(Platform, 'stat').mockImplementation((path) => {
+vi.spyOn(FileSystem, 'stat').mockImplementation((path) => {
   if (path === VALID_PATH) {
     return Promise.resolve({
       isFile: () => true
-    } as Awaited<ReturnType<typeof Platform.stat>>);
+    } as Awaited<ReturnType<typeof FileSystem.stat>>);
   }
   if (path === FOLDER_PATH) {
     return Promise.resolve({
       isFile: () => false
-    } as Awaited<ReturnType<typeof Platform.stat>>);
+    } as Awaited<ReturnType<typeof FileSystem.stat>>);
   }
   return Promise.reject(invalidStat);
 });

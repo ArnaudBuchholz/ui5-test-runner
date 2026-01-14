@@ -1,5 +1,5 @@
 import { it, expect, vi, beforeEach } from 'vitest';
-import { Platform } from '../Platform.js';
+import { Thread } from '../system/index.js';
 import type { LogMessage } from './types.js';
 import { LogLevel } from './types.js';
 import { LoggerOutputFactory } from './output/factory.js';
@@ -19,15 +19,17 @@ const addAttributesToLoggerOutput = vi
   .spyOn(BaseLoggerOutput.prototype, 'addAttributesToLoggerOutput')
   .mockReturnValue();
 const closeLoggerOutput = vi.spyOn(BaseLoggerOutput.prototype, 'closeLoggerOutput').mockReturnValue();
-vi.spyOn(LoggerOutputFactory, 'build').mockImplementation((configuration) => new TestLoggerOutput(configuration));
+vi.spyOn(LoggerOutputFactory, 'build').mockImplementation(
+  (configuration) => new TestLoggerOutput(configuration, Date.now())
+);
 
 beforeEach(() => {
   vi.clearAllMocks();
-  workerMain({ configuration: { cwd: './tmp', reportDir: './tmp' } as Configuration });
+  workerMain({ configuration: { cwd: './tmp', reportDir: './tmp' } as Configuration, startedAt: Date.now() });
 });
 
 it('broadcasts an initial { ready: true }', () => {
-  const channel = Platform.createBroadcastChannel('logger');
+  const channel = Thread.createBroadcastChannel('logger');
   expect(channel.postMessage).toHaveBeenCalledWith({ command: 'ready', source: 'output' } satisfies LogMessage);
 });
 
@@ -36,7 +38,7 @@ it('displays an initial message', () => {
 });
 
 it('forwards log attributes to the loggerOutput', () => {
-  const channel = Platform.createBroadcastChannel('logger');
+  const channel = Thread.createBroadcastChannel('logger');
   const logMessage: LogMessage = {
     command: 'log',
     timestamp: 123,
@@ -52,7 +54,7 @@ it('forwards log attributes to the loggerOutput', () => {
 });
 
 it('forwards terminal width to the loggerOutput', () => {
-  const channel = Platform.createBroadcastChannel('logger');
+  const channel = Thread.createBroadcastChannel('logger');
   const logMessage: LogMessage = {
     command: 'terminal-resized',
     width: 80
@@ -62,7 +64,7 @@ it('forwards terminal width to the loggerOutput', () => {
 });
 
 it('closes the broadcast channel and the loggerOutput when the terminate signal is received', () => {
-  const channel = Platform.createBroadcastChannel('logger');
+  const channel = Thread.createBroadcastChannel('logger');
   channel.postMessage({ command: 'terminate' });
   expect(channel.close).toHaveBeenCalled();
   expect(closeLoggerOutput).toHaveBeenCalled();

@@ -1,5 +1,5 @@
 import { it, expect, vi, beforeAll } from 'vitest';
-import { Platform } from '../Platform.js';
+import { FileSystem, Host, Thread, ZLib } from '../system/index.js';
 import { MAX_BUFFER_COUNT, workerMain } from './allCompressed.js';
 import type { LogMessage } from './types.js';
 import { LogLevel } from './types.js';
@@ -12,24 +12,24 @@ vi.hoisted(() => {
 });
 
 beforeAll(() => {
-  Object.assign(Platform, { isMainThread: false }); // This worker is not in the main thread
+  Object.assign(Thread, { isMainThread: false }); // This worker is not in the main thread
   workerMain({ configuration: { cwd: './tmp' } } as { configuration: Configuration });
 });
 
-const channel = Platform.createBroadcastChannel('logger');
+const channel = Thread.createBroadcastChannel('logger');
 
 it('opens a broadcast channel to communicate with the logger instances', () => {
-  expect(Platform.createBroadcastChannel).toBeCalledTimes(2);
+  expect(Thread.createBroadcastChannel).toBeCalledTimes(2);
   for (let n = 1; n <= 2; ++n) {
-    expect(Platform.createBroadcastChannel).toHaveBeenNthCalledWith(n, 'logger');
+    expect(Thread.createBroadcastChannel).toHaveBeenNthCalledWith(n, 'logger');
   }
 });
 
 it('creates a gzip file', () => {
-  expect(Platform.createWriteStream).toHaveBeenCalledWith('tmp/app-20251030-215600.log.gz');
-  const writeStream = Platform.createWriteStream('');
-  expect(Platform.createGzip).toHaveBeenCalledWith({ flush: Platform.Z_FULL_FLUSH });
-  const gzipStream = Platform.createGzip();
+  expect(FileSystem.createWriteStream).toHaveBeenCalledWith('tmp/app-20251030-215600.log.gz');
+  const writeStream = FileSystem.createWriteStream('');
+  expect(ZLib.createGzip).toHaveBeenCalledWith({ flush: ZLib.constants.Z_FULL_FLUSH });
+  const gzipStream = ZLib.createGzip();
   expect(gzipStream.pipe).toHaveBeenCalledWith(writeStream);
 });
 
@@ -39,14 +39,14 @@ it('broadcasts an initial { ready: true }', () => {
 
 it('flushes the traces after a timeout', () => {
   vi.advanceTimersToNextTimer(); // flush buffer
-  const gzipStream = Platform.createGzip();
+  const gzipStream = ZLib.createGzip();
   vi.mocked(gzipStream.write).mockClear();
   channel.postMessage({
     command: 'log',
     timestamp: Date.now(),
     level: LogLevel.info,
-    processId: process.pid,
-    threadId: Platform.threadId,
+    processId: Host.pid,
+    threadId: Thread.threadId,
     isMainThread: false,
     source: 'job',
     message: 'test'
@@ -57,14 +57,14 @@ it('flushes the traces after a timeout', () => {
 
 it('compress the traces before zipping (no data)', () => {
   vi.advanceTimersToNextTimer(); // flush buffer
-  const gzipStream = Platform.createGzip();
+  const gzipStream = ZLib.createGzip();
   vi.mocked(gzipStream.write).mockClear();
   channel.postMessage({
     command: 'log',
     timestamp: Date.now(),
     level: LogLevel.info,
     processId: process.pid,
-    threadId: Platform.threadId,
+    threadId: Thread.threadId,
     isMainThread: true, // for coverage
     source: 'job',
     message: 'test'
@@ -75,7 +75,7 @@ it('compress the traces before zipping (no data)', () => {
 
 it('flushes traces after a threshold count', () => {
   vi.advanceTimersToNextTimer(); // flush buffer
-  const gzipStream = Platform.createGzip();
+  const gzipStream = ZLib.createGzip();
   vi.mocked(gzipStream.write).mockClear();
   for (let index = 0; index < MAX_BUFFER_COUNT - 1; ++index) {
     channel.postMessage({
@@ -83,8 +83,8 @@ it('flushes traces after a threshold count', () => {
       timestamp: Date.now(),
       level: LogLevel.info,
       processId: process.pid,
-      threadId: Platform.threadId,
-      isMainThread: Platform.isMainThread,
+      threadId: Thread.threadId,
+      isMainThread: Thread.isMainThread,
       source: 'job',
       message: 'test'
     });
@@ -95,8 +95,8 @@ it('flushes traces after a threshold count', () => {
     timestamp: Date.now(),
     level: LogLevel.info,
     processId: process.pid,
-    threadId: Platform.threadId,
-    isMainThread: Platform.isMainThread,
+    threadId: Thread.threadId,
+    isMainThread: Thread.isMainThread,
     source: 'job',
     message: 'test'
   });
@@ -106,6 +106,6 @@ it('flushes traces after a threshold count', () => {
 it('closes everything when the terminate signal is received', () => {
   channel.postMessage({ command: 'terminate' });
   expect(channel.close).toHaveBeenCalled();
-  const gzipStream = Platform.createGzip();
+  const gzipStream = ZLib.createGzip();
   expect(gzipStream.end).toHaveBeenCalled();
 });
