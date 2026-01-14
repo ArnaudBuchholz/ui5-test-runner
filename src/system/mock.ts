@@ -18,7 +18,7 @@ const mockStaticMethodsOfExportedClasses = <T extends object>(actual: T): T => {
     }
   }
   return mocked;
-}
+};
 
 vi.mock(import('./Exit.js'), async (importActual) => mockStaticMethodsOfExportedClasses(await importActual()));
 

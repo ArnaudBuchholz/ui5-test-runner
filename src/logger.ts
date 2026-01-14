@@ -111,7 +111,7 @@ export const logger = {
     if (!configuration.ci) {
       Terminal.setRawMode((data) => {
         if (data.length === 1 && data[0] === 3) {
-          void Exit.sigInt();
+          Exit.sigInt();
         }
       });
       Terminal.onResize(terminalResized);
