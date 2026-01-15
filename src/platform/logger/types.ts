@@ -1,4 +1,5 @@
-import { Host, Thread } from '../index.js';
+import { Host } from '../Host.js';
+import { Thread } from '../Thread.js';
 
 export type LogErrorAttributes = {
   name: string;
