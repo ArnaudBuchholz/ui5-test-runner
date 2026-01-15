@@ -1,7 +1,7 @@
-import { Thread } from '../system/index.js';
+import { Thread } from '../Thread.js';
 import type { LogMessage } from './types.js';
 import '../logger.js';
-import type { Configuration } from '../configuration/Configuration.js';
+import type { Configuration } from '../../configuration/Configuration.js';
 import { LoggerOutputFactory } from './output/factory.js';
 
 const fromHexaCode = (value: string): { r: number; g: number; b: number } => ({

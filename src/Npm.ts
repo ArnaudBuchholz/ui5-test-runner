@@ -1,5 +1,4 @@
-import { FileSystem, Http, Path, Process } from './system/index.js';
-import { logger } from './logger.js';
+import { logger, FileSystem, Http, Path, Process } from './platform/index.js';
 import { memoize } from './utils/memoize.js';
 
 const getNpmCliPath = memoize(async () => {

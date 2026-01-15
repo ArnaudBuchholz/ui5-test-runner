@@ -1,11 +1,11 @@
 import { it, expect, vi, beforeEach } from 'vitest';
-import { Thread } from '../system/index.js';
+import { Thread } from '../index.js';
 import type { LogMessage } from './types.js';
 import { LogLevel } from './types.js';
 import { LoggerOutputFactory } from './output/factory.js';
 import { BaseLoggerOutput } from './output/BaseLoggerOutput.js';
 import { workerMain } from './output.js';
-import type { Configuration } from '../configuration/Configuration.js';
+import type { Configuration } from '../../configuration/Configuration.js';
 
 class TestLoggerOutput extends BaseLoggerOutput {
   override terminalResized(): void {}

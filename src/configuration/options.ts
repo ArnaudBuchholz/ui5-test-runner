@@ -1,4 +1,4 @@
-import { Host } from '../system/index.js';
+import { Host } from '../platform/index.js';
 
 export const options = [
   {

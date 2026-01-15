@@ -1,6 +1,6 @@
 import type { ChildProcess, SpawnOptions } from 'node:child_process';
 import { spawn } from 'node:child_process';
-import { logger } from '../logger.js';
+import { logger } from './logger.js';
 
 export interface IProcess {
   readonly stdout: string;

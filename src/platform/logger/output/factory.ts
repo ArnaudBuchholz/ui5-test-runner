@@ -1,4 +1,4 @@
-import type { Configuration } from '../../configuration/Configuration.js';
+import type { Configuration } from '../../../configuration/Configuration.js';
 import type { BaseLoggerOutput } from './BaseLoggerOutput.js';
 import { InteractiveLoggerOutput } from './InteractiveLoggerOutput.js';
 import { StaticLoggerOutput } from './StaticLoggerOutput.js';

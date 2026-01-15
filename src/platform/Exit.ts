@@ -112,7 +112,7 @@ export class Exit {
 
   static async shutddown() {
     Exit._enteringShutdown = true;
-    const { logger } = await import('../logger.js'); // Breaks dependency loop
+    const { logger } = await import('./logger.js'); // Breaks dependency loop
     for (const task of Exit._asyncTasks) {
       try {
         logger.debug({ source: 'exit', message: `Stopping ${task.name}...` });

@@ -1,7 +1,7 @@
 import { it, expect, vi, beforeEach } from 'vitest';
-import { assert } from './assert.js';
+import { assert } from './platform/assert.js';
 import { AssertionError } from 'node:assert/strict';
-import { logger } from './logger.js';
+import { logger } from './platform/index.js';
 
 vi.spyOn(logger, 'fatal');
 

@@ -1,4 +1,6 @@
 export * from './constants.js';
+export * from './environment.js';
+export * from './logger.js';
 export * from './Exit.js';
 export * from './FileSystem.js';
 export * from './Host.js';

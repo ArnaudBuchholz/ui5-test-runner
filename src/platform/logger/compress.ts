@@ -2,8 +2,8 @@ import type { InternalLogAttributes, LogSource } from './types.js';
 import { LogLevel } from './types.js';
 import { isDeepStrictEqual } from 'node:util';
 import assert from 'node:assert/strict';
-import { split } from '../utils/string.js';
-import { ASCII_RECORD_SEPARATOR } from '../terminal/ascii.js';
+import { split } from '../../utils/string.js';
+import { ASCII_RECORD_SEPARATOR } from '../../terminal/ascii.js';
 
 export const DIGITS = Array.from({ length: 127 - 32 })
   .fill(0)

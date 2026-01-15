@@ -1,4 +1,4 @@
-import { FileSystem } from '../system/index.js';
+import { FileSystem } from '../platform/index.js';
 import { Npm } from '../Npm.js';
 
 export const version = async () => {

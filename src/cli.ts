@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-import { Exit, Host } from './system/index.js';
+import { Exit, Host } from './platform/index.js';
 import { CommandLine } from './configuration/CommandLine.js';
 import { execute } from './job.js';
 

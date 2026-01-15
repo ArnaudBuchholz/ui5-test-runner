@@ -1,6 +1,6 @@
 import { it, expect } from 'vitest';
 import { ProgressBar } from './ProgressBar.js';
-import { LogLevel } from '../logger/types.js';
+import { LogLevel } from '../platform/logger/types.js';
 
 const tests: { label: string; logs: object[]; width?: number; expected: string }[] = [
   {

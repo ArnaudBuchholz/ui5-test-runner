@@ -1,4 +1,7 @@
-import { __sourcesRoot, FileSystem, Host, Path } from './system/index.js';
+import { __sourcesRoot } from './constants.js';
+import { FileSystem } from './FileSystem.js';
+import { Host } from './Host.js';
+import { Path } from './Path.js';
 import { logger } from './logger.js';
 
 export const logEnvironnement = async () => {

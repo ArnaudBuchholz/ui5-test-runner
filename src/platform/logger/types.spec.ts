@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest';
-import { Host, Thread } from '../system/index.js';
+import { Host, Thread } from '../index.js';
 import type { InternalLogAttributes } from './types.js';
 import { LogLevel, toInternalLogAttributes } from './types.js';
 

@@ -1,4 +1,4 @@
-import { assert } from './assert.js';
+import { assert } from '../platform/assert.js';
 
 interface IParallelizeContext {
   stop(reason: Error): void;

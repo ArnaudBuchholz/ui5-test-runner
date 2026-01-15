@@ -1,5 +1,5 @@
 import { it, expect, vi } from 'vitest';
-import { FileSystem } from '../../system/index.js';
+import { FileSystem } from '../../platform/index.js';
 import { folderRecreate } from './folderRecreate.js';
 import { checkValidator, noBooleans, noIntegers, noNumbers } from './checkValidator.test.js';
 import type { Configuration } from '../Configuration.js';

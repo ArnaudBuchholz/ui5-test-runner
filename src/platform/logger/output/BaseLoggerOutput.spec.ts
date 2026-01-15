@@ -1,10 +1,10 @@
 import { it, expect, beforeEach, vi, describe } from 'vitest';
-import { FileSystem, Terminal } from '../../system/index.js';
+import { FileSystem, Terminal } from '../../index.js';
 import { BaseLoggerOutput } from './BaseLoggerOutput.js';
-import type { Configuration } from '../../configuration/Configuration.js';
+import type { Configuration } from '../../../configuration/Configuration.js';
 import type { InternalLogAttributes } from '../types';
 import { LogLevel } from '../types.js';
-import { ANSI_YELLOW, ANSI_WHITE, ANSI_RED, ANSI_MAGENTA } from '../../terminal/ansi.js';
+import { ANSI_YELLOW, ANSI_WHITE, ANSI_RED, ANSI_MAGENTA } from '../../../terminal/ansi.js';
 
 class TestLoggerOutput extends BaseLoggerOutput {
   override terminalResized(): void {}

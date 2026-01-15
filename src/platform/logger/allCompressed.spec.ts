@@ -1,9 +1,9 @@
 import { it, expect, vi, beforeAll } from 'vitest';
-import { FileSystem, Host, Thread, ZLib } from '../system/index.js';
+import { FileSystem, Host, Thread, ZLib } from '../index.js';
 import { MAX_BUFFER_COUNT, workerMain } from './allCompressed.js';
 import type { LogMessage } from './types.js';
 import { LogLevel } from './types.js';
-import type { Configuration } from '../configuration/Configuration.js';
+import type { Configuration } from '../../configuration/Configuration.js';
 
 // Must be done before importing ./logger.ts
 vi.hoisted(() => {

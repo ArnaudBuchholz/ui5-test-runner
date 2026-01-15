@@ -1,8 +1,7 @@
-import { FileSystem, Path, Thread, ZLib } from '../system/index.js';
+import { FileSystem, Path, Thread, ZLib } from '../index.js';
 import type { InternalLogAttributes, LogAttributes, LogMessage } from './types.js';
 import { LogLevel, toInternalLogAttributes } from './types.js';
-import type { Configuration } from '../configuration/Configuration.js';
-import '../logger.js';
+import type { Configuration } from '../../configuration/Configuration.js';
 import { createCompressionContext, compress } from './compress.js';
 
 export const MAX_BUFFER_COUNT = 50;

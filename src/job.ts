@@ -1,12 +1,11 @@
-import { __sourcesRoot, Exit, FileSystem, Path } from './system/index.js';
+import { __sourcesRoot, logger, Exit, FileSystem, Path } from './platform/index.js';
 import type { AgentFeedback } from './agent/Feedback.js';
 import { BrowserFactory } from './browsers/factory.js';
 import type { Configuration } from './configuration/Configuration.js';
 import { Modes } from './modes/Modes.js';
 import { defaults } from './configuration/options.js';
-import { logEnvironnement } from './environment.js';
-import { logger } from './logger.js';
-import { parallelize } from './parallelize.js';
+import { logEnvironnement } from './platform/environment.js';
+import { parallelize } from './utils/parallelize.js';
 import { version } from './modes/version.js';
 import { help } from './modes/help.js';
 import { log } from './modes/log.js';

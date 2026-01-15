@@ -1,4 +1,4 @@
-import { logger } from '../logger.js';
+import { logger } from './logger.js';
 import { Exit } from './Exit.js';
 
 let lastRequestId = 0;

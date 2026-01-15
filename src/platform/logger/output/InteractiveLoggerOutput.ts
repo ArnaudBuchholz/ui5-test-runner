@@ -1,6 +1,6 @@
-import { Terminal } from '../../system/index.js';
+import { Terminal } from '../../index.js';
 import { BaseLoggerOutput } from './BaseLoggerOutput.js';
-import type { Configuration } from '../../configuration/Configuration.js';
+import type { Configuration } from '../../../configuration/Configuration.js';
 import {
   ANSI_BLUE,
   ANSI_CYAN,
@@ -12,7 +12,7 @@ import {
   ANSI_UP,
   ANSI_WHITE,
   ANSI_YELLOW
-} from '../../terminal/ansi.js';
+} from '../../../terminal/ansi.js';
 
 const TICKS_INTERVAL = 250;
 const TICKS_PICTURES = ['[|]', '[/]', '[-]', String.raw`[\]`];
@@ -75,7 +75,7 @@ export class InteractiveLoggerOutput extends BaseLoggerOutput {
       Terminal.write('   ' + rendered + '\n');
       this._linesToErase.push(3 + rendered.length);
     }
-    Terminal.write(TICKS_COLORS[this._tick % TICKS_COLORS.length]!);
+    Terminal.write(TICKS_COLORS[this._tick % TICKS_COLORS.length]);
     Terminal.write(TICKS_PICTURES[this._tick % TICKS_PICTURES.length]!);
     Terminal.write(ANSI_WHITE);
     const progressBar = this.progressMap[''];

@@ -1,5 +1,8 @@
-import { Exit, Host, Terminal, Thread } from './system/index.js';
-import type { Configuration } from './configuration/Configuration.js';
+import { Exit } from './Exit.js';
+import { Host } from './Host.js';
+import { Terminal } from './Terminal.js';
+import { Thread } from './Thread.js';
+import type { Configuration } from '../configuration/Configuration.js';
 import type {
   LogErrorAttributes,
   InternalLogAttributes,
@@ -9,7 +12,7 @@ import type {
 } from './logger/types.js';
 import { LogLevel, toInternalLogAttributes } from './logger/types.js';
 import assert from 'node:assert/strict';
-import { toPlainObject } from './utils/object.js';
+import { toPlainObject } from '../utils/object.js';
 
 const startedAt = Date.now();
 

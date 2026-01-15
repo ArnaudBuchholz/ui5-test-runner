@@ -1,7 +1,7 @@
 import { it, expect, beforeEach, vi } from 'vitest';
-import { Terminal } from '../../system/index.js';
+import { Terminal } from '../../index.js';
 import { StaticLoggerOutput } from './StaticLoggerOutput.js';
-import type { Configuration } from '../../configuration/Configuration.js';
+import type { Configuration } from '../../../configuration/Configuration.js';
 import type { InternalLogAttributes } from '../types.js';
 import { LogLevel } from '../types.js';
 import type { BaseLoggerOutput } from './BaseLoggerOutput.js';

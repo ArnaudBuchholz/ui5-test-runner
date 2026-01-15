@@ -1,6 +1,6 @@
-import { Exit, FileSystem, ZLib } from '../system/index.js';
+import { Exit, FileSystem, ZLib } from '../platform/index.js';
 import type { Configuration } from '../configuration/Configuration.js';
-import { uncompress, createCompressionContext } from '../logger/compress.js';
+import { uncompress, createCompressionContext } from '../platform/logger/compress.js';
 
 export const log = async (configuration: Configuration) => {
   const { log: logFileName } = configuration;

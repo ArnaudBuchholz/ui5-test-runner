@@ -1,8 +1,7 @@
-import { Exit } from '../system/index.js';
+import { logger, Exit } from '../platform/index.js';
 import type { IBrowser } from './IBrowser.js';
 import type { launch as launchFunction, Browser } from 'puppeteer';
 import { Npm } from '../Npm.js';
-import { logger } from '../logger.js';
 
 export const factory = async (): Promise<IBrowser> => {
   const puppeteer = await Npm.import('puppeteer');

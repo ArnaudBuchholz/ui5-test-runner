@@ -68,7 +68,7 @@ export default [
   },
   // *Must* use any
   {
-    files: ['src/system/Exit.ts'],
+    files: ['src/platform/Exit.ts'],
     rules: {
       '@typescript-eslint/no-unsafe-assignment': 'off',
       '@typescript-eslint/no-unsafe-call': 'off',

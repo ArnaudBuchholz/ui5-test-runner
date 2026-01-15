@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { Host, Terminal, Thread } from './system/index.js';
+import { Host, Terminal, Thread } from './index.js';
 import { AssertionError } from 'node:assert';
-import type { Configuration } from './configuration/Configuration.js';
+import type { Configuration } from '../configuration/Configuration.js';
 import { LogLevel } from './logger/types.js';
 import type { LogMessage } from './logger/types.js';
 

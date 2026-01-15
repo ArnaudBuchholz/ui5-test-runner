@@ -1,10 +1,10 @@
-import { FileSystem, Path, Terminal } from '../../system/index.js';
-import type { Configuration } from '../../configuration/Configuration.js';
+import { FileSystem, Path, Terminal } from '../../index.js';
+import type { Configuration } from '../../../configuration/Configuration.js';
 import type { InternalLogAttributes } from '../types.js';
 import { LogLevel } from '../types.js';
-import { ANSI_BLUE, ANSI_MAGENTA, ANSI_RED, ANSI_WHITE, ANSI_YELLOW } from '../../terminal/ansi.js';
-import { ProgressBar } from '../../terminal/ProgressBar.js';
-import { formatDuration } from '../../utils/string.js';
+import { ANSI_BLUE, ANSI_MAGENTA, ANSI_RED, ANSI_WHITE, ANSI_YELLOW } from '../../../terminal/ansi.js';
+import { ProgressBar } from '../../../utils/ProgressBar.js';
+import { formatDuration } from '../../../utils/string.js';
 
 const icons = {
   [LogLevel.debug]: ANSI_BLUE + '<o>',

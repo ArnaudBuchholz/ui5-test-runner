@@ -1,4 +1,4 @@
-import { FileSystem, Path } from '../../system/index.js';
+import { FileSystem, Path } from '../../platform/index.js';
 import { OptionValidationError } from '../OptionValidationError.js';
 import type { OptionValidator } from './OptionValidator.js';
 import type { Option } from '../Option.js';
