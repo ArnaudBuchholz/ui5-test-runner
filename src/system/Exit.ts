@@ -2,8 +2,6 @@ import { ServerResponse, ClientRequest } from 'node:http';
 import { ANSI_BLUE, ANSI_RED, ANSI_WHITE } from '../terminal/ansi.js';
 import { __developmentMode } from './constants.js';
 import { Thread } from './Thread.js';
-import { logger } from '../logger.js';
-import { assert } from '../assert.js';
 
 export interface IAsyncTask {
   name: string;
@@ -103,8 +101,9 @@ export class Exit {
     return {
       unregister() {
         const index = Exit._asyncTasks.findIndex((task) => task.id === id);
-        assert(index !== -1, 'unregister called but task not found');
-        Exit._asyncTasks.splice(index, 1);
+        if (index !== -1) {
+          Exit._asyncTasks.splice(index, 1);
+        }
       }
     };
   }
@@ -113,6 +112,7 @@ export class Exit {
 
   static async shutddown() {
     Exit._enteringShutdown = true;
+    const { logger } = await import('../logger.js'); // Breaks dependency loop
     for (const task of Exit._asyncTasks) {
       try {
         logger.debug({ source: 'exit', message: `Stopping ${task.name}...` });
