@@ -16,6 +16,6 @@ export default defineConfig({
         'src/system/**'
       ]
     },
-    setupFiles: [ 'src/system/mock.ts' ]
+    setupFiles: [ 'src/platform/mock.ts' ]
   }
 });
