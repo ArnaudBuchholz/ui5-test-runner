@@ -42,7 +42,7 @@ const start = () => {
   channel.onmessage = (event: { data: LogMessage }) => {
     const { data: message } = event;
     if (message.command === 'ready' && Thread.isMainThread) {
-      terminalResized();
+      terminalResized(Terminal.width);
       const index = waitingFor.indexOf(message.source);
       waitingFor.splice(index, 1); // Only two ready messages will be sent
       ready = waitingFor.length === 0;
