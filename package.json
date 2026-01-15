@@ -20,7 +20,7 @@
     "test:cli2": "npm run cli -- --url \"https://ui5.sap.com/test-resources/sap/m/demokit/cart/webapp/test/Test.qunit.html?testsuite=test-resources/sap/ui/demo/cart/testsuite.qunit&test=unit/unitTests\" --report-dir tmp",
     "test:cli3": "npm run cli -- --url \"https://ui5.sap.com/test-resources/sap/m/demokit/cart/webapp/test/Test.qunit.html?testsuite=test-resources%2Fsap%2Fui%2Fdemo%2Fcart%2Ftestsuite.qunit&test=integration%2FopaTestsComponent#/categories\" --report-dir tmp",
     "test:cli4": "npm run cli -- --url \"https://ui5.sap.com/test-resources/sap/m/demokit/cart/webapp/test/Test.qunit.html?testsuite=test-resources/sap/ui/demo/cart/testsuite.qunit&test=integration/opaTestsIFrame\" --report-dir tmp",
-    "lint": "eslint *.mjs **/*.mjs src/*.ts src/**/*.ts --fix --cache --cache-strategy content && tsc --noEmit",
+    "lint": "dpdm src/cli.ts --circular --tree false --warning false && eslint *.mjs **/*.mjs src/*.ts src/**/*.ts --fix --cache --cache-strategy content && tsc --noEmit",
     "build:options": "node build/options.mjs > ./src/configuration/options.ts && npm run lint",
     "test": "npm run lint && npm run test:unit && npm run test:e2e",
     "test:samples": "npm run test:samples:js && npm run test:samples:ts",
