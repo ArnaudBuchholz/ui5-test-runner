@@ -1,6 +1,6 @@
 |name|short|description|type|multiple|default|defaultLabel|flags
 |---|---|---|---|---|---|---|---|
-|cwd|c|Set working directory|folder||Host.cwd()|current working directory|💻🔗🧪
+|cwd|c|Set working directory|folder||process.cwd()|current working directory|💻🔗🧪
 |version||Shows version|boolean
 |help||Shows help|boolean
 |log||Read and dump log file (using jsonl format)|file||||🐞
