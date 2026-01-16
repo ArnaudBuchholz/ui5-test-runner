@@ -2,6 +2,7 @@ import { vi } from 'vitest';
 import type { WriteStream } from 'node:fs';
 import type { BroadcastChannel, Worker } from 'node:worker_threads';
 import type { Gzip } from 'node:zlib';
+import { join } from 'node:path';
 
 const mockStaticMethodsOfExportedClasses = <T extends object>(actual: T): T => {
   const mocked = { ...actual };
@@ -31,6 +32,13 @@ vi.mock(import('./FileSystem.js'), async (importActual) => {
 });
 
 vi.mock(import('./Http.js'), async (importActual) => mockStaticMethodsOfExportedClasses(await importActual()));
+
+vi.mock(import('./Path.js'), async (importActual) => {
+  const mocked = mockStaticMethodsOfExportedClasses(await importActual());
+  const { Path } = mocked;
+  vi.mocked(Path.join).mockImplementation((...arguments_: string[]) => join(...arguments_).replaceAll('\\', '/'));
+  return mocked;
+});
 
 vi.mock(import('./Process.js'), async (importActual) => mockStaticMethodsOfExportedClasses(await importActual()));
 
