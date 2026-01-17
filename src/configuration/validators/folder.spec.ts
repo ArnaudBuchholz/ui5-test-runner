@@ -14,14 +14,14 @@ const INVALID_STAT_PATH = VALID_ROOT + 'invalid-stat';
 const invalidStat = new Error('Invalid stat');
 const FILE_PATH = VALID_ROOT + 'file';
 
-vi.spyOn(FileSystem, 'access').mockImplementation((path) => {
+vi.mocked(FileSystem.access).mockImplementation((path) => {
   if (path === VALID_PATH || path === INVALID_STAT_PATH || path === FILE_PATH) {
     return Promise.resolve();
   }
   return Promise.reject(invalidAccess);
 });
 
-vi.spyOn(FileSystem, 'stat').mockImplementation((path) => {
+vi.mocked(FileSystem.stat).mockImplementation((path) => {
   if (path === VALID_PATH) {
     return Promise.resolve({
       isDirectory: () => true
