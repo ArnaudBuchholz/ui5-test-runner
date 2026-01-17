@@ -16,6 +16,21 @@ export default defineConfig({
         'src/system/**'
       ]
     },
-    setupFiles: [ 'src/platform/mock.ts' ]
+    projects: [{
+      extends: true,
+      test: {
+        name: { label: 'cli', color: 'green' },
+        environment: 'node',
+        setupFiles: [ 'src/platform/mock.ts' ]
+      }
+    // }, {
+    //   extends: true,
+    //   test: {
+    //     exclude: [ ...exclude, 'src/platform/**/*.spec.ts' ],
+    //     name: { label: 'agent', color: 'blue' },
+    //     environment: 'node',
+    //     setupFiles: [ 'src/platform/mock.ts' ],
+    //   }
+    }]
   }
 });
