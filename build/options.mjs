@@ -51,7 +51,9 @@ for (const option of options) {
   console.log('  },');
 }
 console.log(`] as const;
-  
+
+// TODO: isolate defaults in a separate file, remove default from options, put back platform APIs
+
 export const defaults = {
 ${defaults.join('\n')}
 } as const;`);
