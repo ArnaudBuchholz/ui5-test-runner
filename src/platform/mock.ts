@@ -31,6 +31,8 @@ vi.mock(import('./FileSystem.js'), async (importActual) => {
   return mocked;
 });
 
+vi.mock(import('./Host.js'), async (importActual) => mockStaticMethodsOfExportedClasses(await importActual()));
+
 vi.mock(import('./Http.js'), async (importActual) => mockStaticMethodsOfExportedClasses(await importActual()));
 
 vi.mock(import('./Path.js'), async (importActual) => {
