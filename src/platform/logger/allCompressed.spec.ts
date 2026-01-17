@@ -13,7 +13,7 @@ vi.hoisted(() => {
 
 beforeAll(() => {
   Object.assign(Thread, { isMainThread: false }); // This worker is not in the main thread
-  workerMain({ configuration: { cwd: './tmp' } } as { configuration: Configuration });
+  workerMain({ configuration: { reportDir: './tmp' } } as { configuration: Configuration });
 });
 
 const channel = Thread.createBroadcastChannel('logger');

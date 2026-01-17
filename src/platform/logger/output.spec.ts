@@ -13,12 +13,12 @@ class TestLoggerOutput extends BaseLoggerOutput {
   override closeLoggerOutput(): void {}
 }
 
-const terminalResized = vi.spyOn(BaseLoggerOutput.prototype, 'terminalResized');
-const addTextToLoggerOutput = vi.spyOn(BaseLoggerOutput.prototype, 'addTextToLoggerOutput').mockReturnValue();
+const terminalResized = vi.spyOn(TestLoggerOutput.prototype, 'terminalResized');
+const addTextToLoggerOutput = vi.spyOn(TestLoggerOutput.prototype, 'addTextToLoggerOutput').mockReturnValue();
 const addAttributesToLoggerOutput = vi
-  .spyOn(BaseLoggerOutput.prototype, 'addAttributesToLoggerOutput')
+  .spyOn(TestLoggerOutput.prototype, 'addAttributesToLoggerOutput')
   .mockReturnValue();
-const closeLoggerOutput = vi.spyOn(BaseLoggerOutput.prototype, 'closeLoggerOutput').mockReturnValue();
+const closeLoggerOutput = vi.spyOn(TestLoggerOutput.prototype, 'closeLoggerOutput').mockReturnValue();
 vi.spyOn(LoggerOutputFactory, 'build').mockImplementation(
   (configuration) => new TestLoggerOutput(configuration, Date.now())
 );
