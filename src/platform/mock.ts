@@ -10,7 +10,7 @@ const mockStaticMethodsOfExportedClasses = <T extends object>(actual: T): T => {
     const exportValue = mocked[exportName as keyof T];
     if (typeof exportValue === 'function') {
       const exportClass = exportValue as Record<string, unknown>;
-      for (const staticName in exportValue) {
+      for (const staticName of Object.getOwnPropertyNames(exportValue)) {
         const staticValue = exportClass[staticName];
         if (typeof staticValue === 'function') {
           exportClass[staticName] = vi.fn();
@@ -36,6 +36,8 @@ vi.mock(import('./Http.js'), async (importActual) => mockStaticMethodsOfExported
 vi.mock(import('./Path.js'), async (importActual) => {
   const mocked = mockStaticMethodsOfExportedClasses(await importActual());
   const { Path } = mocked;
+  // Normalize to unix-like file system
+  vi.mocked(Path.isAbsolute).mockImplementation((path) => path.startsWith('/'));
   vi.mocked(Path.join).mockImplementation((...arguments_: string[]) => join(...arguments_).replaceAll('\\', '/'));
   return mocked;
 });
