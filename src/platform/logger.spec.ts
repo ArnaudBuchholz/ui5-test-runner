@@ -19,7 +19,9 @@ beforeEach(() => {
 });
 
 describe('Main thread', () => {
-  beforeEach(() => Object.assign(Thread, { isMainThread: true }));
+  beforeEach(() => {
+    Object.assign(Thread, { isMainThread: true });
+  });
 
   const ready = (channel: ReturnType<typeof Thread.createBroadcastChannel>) => {
     channel.postMessage({ command: 'ready', source: 'allCompressed' } satisfies LogMessage);
@@ -27,7 +29,6 @@ describe('Main thread', () => {
   };
 
   it('waits for start before opening a broadcast channel to communicate with the logger thread', async () => {
-    Object.assign(Thread, { isMainThread: true });
     await import('./logger.js');
     expect(Thread.createBroadcastChannel).not.toHaveBeenCalled();
   });
@@ -49,7 +50,10 @@ describe('Main thread', () => {
     const { logger } = await import('./logger.js');
     logger.start({ cwd } as Configuration);
     expect(Thread.createWorker).toHaveBeenCalledWith('logger/allCompressed', { configuration: { cwd } });
-    expect(Thread.createWorker).toHaveBeenCalledWith('logger/output', { configuration: { cwd } });
+    expect(Thread.createWorker).toHaveBeenCalledWith('logger/output', {
+      configuration: { cwd },
+      startedAt: expectAnyNumber
+    });
     expect(Terminal.onResize).toHaveBeenCalled();
   });
 
@@ -118,7 +122,9 @@ describe('Main thread', () => {
 });
 
 describe('Worker thread', () => {
-  beforeEach(() => Object.assign(Thread, { isMainThread: false }));
+  beforeEach(() => {
+    Object.assign(Thread, { isMainThread: false });
+  });
 
   it('opens a broadcast channel to communicate with the logger thread', async () => {
     await import('./logger.js');
@@ -167,7 +173,9 @@ describe('Worker thread', () => {
 });
 
 describe('general', () => {
-  beforeEach(() => Object.assign(Thread, { isMainThread: false }));
+  beforeEach(() => {
+    Object.assign(Thread, { isMainThread: false });
+  });
 
   it('documents traces with contextual information', async () => {
     const { logger } = await import('./logger.js');
@@ -294,27 +302,31 @@ describe('general', () => {
 
   describe('Metrics automatic monitoring', () => {
     it('monitors thread metrics automatically', async () => {
+      const threadCpuUsage = {
+        system: 1,
+        user: 2
+      };
+      vi.mocked(Thread.threadCpuUsage).mockReturnValueOnce(threadCpuUsage);
+      const memoryUsage = {
+        arrayBuffers: 1,
+        external: 2,
+        heapTotal: 3,
+        heapUsed: 4,
+        rss: 5
+      };
+      vi.mocked(Host.memoryUsage).mockReturnValueOnce(memoryUsage);
       const { logger } = await import('./logger.js');
       vi.spyOn(logger, 'debug');
       vi.advanceTimersToNextTimer();
       expect(logger.debug).toHaveBeenCalledWith({
         source: 'metric',
         message: 'threadCpuUsage',
-        data: {
-          system: expectAnyNumber,
-          user: expectAnyNumber
-        }
+        data: threadCpuUsage
       });
       expect(logger.debug).toHaveBeenCalledWith({
         source: 'metric',
         message: 'memoryUsage',
-        data: {
-          arrayBuffers: expectAnyNumber,
-          external: expectAnyNumber,
-          heapTotal: expectAnyNumber,
-          heapUsed: expectAnyNumber,
-          rss: expectAnyNumber
-        }
+        data: memoryUsage
       });
     });
 
