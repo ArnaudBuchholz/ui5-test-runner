@@ -21,6 +21,18 @@ const mockStaticMethodsOfExportedClasses = <T extends object>(actual: T): T => {
   return mocked;
 };
 
+vi.mock(import('./logger.js'), () => ({
+  logger: {
+    start: vi.fn(),
+    debug: vi.fn(),
+    info: vi.fn(),
+    warn: vi.fn(),
+    error: vi.fn(),
+    fatal: vi.fn(),
+    stop: vi.fn()
+  }
+}));
+
 vi.mock(import('./Exit.js'), async (importActual) => mockStaticMethodsOfExportedClasses(await importActual()));
 
 vi.mock(import('./FileSystem.js'), async (importActual) => {
