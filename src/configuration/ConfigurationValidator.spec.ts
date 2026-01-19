@@ -99,11 +99,15 @@ describe('mode', () => {
   const config = (options: Partial<Configuration>) => Object.assign(Object.create(defaults), options) as Configuration;
 
   it('sets to remote when url is used', () => {
-    expect(ConfigurationValidator.computeMode(config({ url: ['http://localhost:8080 '] }))).toBe(Modes.remote);
+    expect(ConfigurationValidator.computeMode(config({ url: ['http://localhost:8080'] }))).toBe(Modes.remote);
   });
 
   it('sets to help when help is used', () => {
     expect(ConfigurationValidator.computeMode(config({ help: true }))).toBe(Modes.help);
+  });
+
+  it('sets to log when log is used', () => {
+    expect(ConfigurationValidator.computeMode(config({ log: '/usr/abz/file.log.gz' }))).toBe(Modes.log);
   });
 
   it('sets to version when version is used', () => {
