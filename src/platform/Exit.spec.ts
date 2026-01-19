@@ -1,6 +1,9 @@
-import { describe, it, expect, beforeAll, vi } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import type { Exit as ExitType, IAsyncTask, IRegisteredAsyncTask } from './Exit.js';
 const { Exit } = await vi.importActual<{ Exit: typeof ExitType }>('./Exit.js');
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any -- Undocumented API
+vi.spyOn(process as any, '_getActiveHandles').mockReturnValue([]);
 
 it('offers a wrapper for process.exitCode', () => {
   Exit.code = -1;
@@ -11,13 +14,13 @@ it('offers a method to shutdown', () => {
   expect(typeof Exit.shutdown).toStrictEqual('function');
 });
 
+const task = {
+  name: 'test',
+  stop: vi.fn()
+} satisfies IAsyncTask;
+
 describe('shutdown', () => {
   describe('asynchronous tasks', () => {
-    const task = {
-      name: 'test',
-      stop: vi.fn()
-    } satisfies IAsyncTask;
-
     let registered: IRegisteredAsyncTask;
 
     it('offers a method to register an asynchronous task', () => {
@@ -30,11 +33,9 @@ describe('shutdown', () => {
       await Exit.shutdown();
       expect(task.stop).toHaveBeenCalled();
     });
-  });
 
-  describe('asynchronous tasks (during shutdown)', () => {
-    beforeAll(() => {
-      Object.assign(Exit, { _enteringShutdown: false });
+    it('fails when registering a task during shutdown', () => {
+      expect(() => Exit.registerAsyncTask(task)).toThrowError('Exiting application');
     });
   });
 });

@@ -1,5 +1,6 @@
 import { ServerResponse, ClientRequest } from 'node:http';
 import { ANSI_BLUE, ANSI_RED, ANSI_WHITE } from '../terminal/ansi.js';
+import assert from 'node:assert/strict';
 import { __developmentMode } from './constants.js';
 import { Thread } from './Thread.js';
 
@@ -101,10 +102,8 @@ export class Exit {
     return {
       unregister() {
         const index = Exit._asyncTasks.findIndex((task) => task.id === id);
-
-        if (index !== -1) {
-          Exit._asyncTasks.splice(index, 1);
-        }
+        assert.ok(index !== -1, "unable to identify Exit's async task");
+        Exit._asyncTasks.splice(index, 1);
       }
     };
   }
