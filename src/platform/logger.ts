@@ -108,6 +108,7 @@ let stopping: Promise<void> | undefined;
 export const logger = {
   start(configuration: Configuration) {
     assert.ok(Thread.isMainThread, 'Call logger.start only in main thread');
+    assert.ok(!loggerWorker && !consoleWorker, 'Call logger.start only once');
     start();
     loggerWorker = Thread.createWorker('logger/allCompressed', { configuration: toPlainObject(configuration) });
     consoleWorker = Thread.createWorker('logger/output', { configuration: toPlainObject(configuration), startedAt });
@@ -144,18 +145,19 @@ export const logger = {
     }
     const { promise, resolve } = Promise.withResolvers<void>();
     stopping = promise;
-    assert.ok(loggerWorker && consoleWorker, 'Call logger.stop only after starting');
     clearInterval(metricsMonitorInterval);
-    while (waitingFor.length > 0) {
-      await new Promise((resolve) => setTimeout(resolve, 250));
+    if (loggerWorker && consoleWorker) {
+      while (waitingFor.length > 0) {
+        await new Promise((resolve) => setTimeout(resolve, 250));
+      }
+      const { promise: loggerPromise, resolve: loggerExited } = Promise.withResolvers();
+      const { promise: consolePromise, resolve: consoleExited } = Promise.withResolvers();
+      loggerWorker.on('exit', loggerExited);
+      consoleWorker.on('exit', consoleExited);
+      channel.postMessage({ command: 'terminate' } satisfies LogMessage);
+      await Promise.all([loggerPromise, consolePromise]);
+      channel.close();
     }
-    const { promise: loggerPromise, resolve: loggerExited } = Promise.withResolvers();
-    const { promise: consolePromise, resolve: consoleExited } = Promise.withResolvers();
-    loggerWorker.on('exit', loggerExited);
-    consoleWorker.on('exit', consoleExited);
-    channel.postMessage({ command: 'terminate' } satisfies LogMessage);
-    await Promise.all([loggerPromise, consolePromise]);
-    channel.close();
     Terminal.setRawMode(false);
     resolve();
   }
