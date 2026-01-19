@@ -4,6 +4,7 @@ import { AssertionError } from 'node:assert';
 import type { Configuration } from '../configuration/Configuration.js';
 import { LogLevel } from './logger/types.js';
 import type { LogMessage } from './logger/types.js';
+import type { logger as LoggerType } from './logger.js';
 
 const expectAnyString = expect.any(String) as string;
 const expectAnyNumber = expect.any(Number) as number;
@@ -29,12 +30,12 @@ describe('Main thread', () => {
   };
 
   it('waits for start before opening a broadcast channel to communicate with the logger thread', async () => {
-    await vi.importActual<typeof import('./logger.js')>('./logger.js');
+    await vi.importActual('./logger.js');
     expect(Thread.createBroadcastChannel).not.toHaveBeenCalled();
   });
 
   it('caches traces while waiting for the output threads to start', async () => {
-    const { logger } = await vi.importActual<typeof import('./logger.js')>('./logger.js');
+    const { logger } = await vi.importActual<{ logger: typeof LoggerType }>('./logger.js');
     const channel = Thread.createBroadcastChannel('logger');
     logger.debug({ source: 'job', message: 'test' });
     expect(channel.postMessage).not.toHaveBeenCalledWith(
@@ -47,7 +48,7 @@ describe('Main thread', () => {
 
   it('creates the logger workers when calling start', async () => {
     Object.assign(Thread, { isMainThread: true });
-    const { logger } = await vi.importActual<typeof import('./logger.js')>('./logger.js');
+    const { logger } = await vi.importActual<{ logger: typeof LoggerType }>('./logger.js');
     logger.start({ cwd } as Configuration);
     expect(Thread.createWorker).toHaveBeenCalledWith('logger/allCompressed', { configuration: { cwd } });
     expect(Thread.createWorker).toHaveBeenCalledWith('logger/output', {
@@ -58,7 +59,7 @@ describe('Main thread', () => {
   });
 
   it('sends traces when the logger thread starts', async () => {
-    const { logger } = await vi.importActual<typeof import('./logger.js')>('./logger.js');
+    const { logger } = await vi.importActual<{ logger: typeof LoggerType }>('./logger.js');
     logger.start({ cwd } as Configuration);
     const channel = Thread.createBroadcastChannel('logger');
     logger.debug({ source: 'job', message: 'test' });
@@ -73,7 +74,7 @@ describe('Main thread', () => {
 
   describe('close', () => {
     it('fails if open has not been called', async () => {
-      const { logger } = await vi.importActual<typeof import('./logger.js')>('./logger.js');
+      const { logger } = await vi.importActual<{ logger: typeof LoggerType }>('./logger.js');
       const channel = Thread.createBroadcastChannel('logger');
       await expect(() => logger.stop()).rejects.toThrowError(AssertionError);
       expect(channel.postMessage).not.toHaveBeenCalled();
@@ -85,7 +86,7 @@ describe('Main thread', () => {
     };
 
     it('closes the logger worker', async () => {
-      const { logger } = await vi.importActual<typeof import('./logger.js')>('./logger.js');
+      const { logger } = await vi.importActual<{ logger: typeof LoggerType }>('./logger.js');
       const channel = Thread.createBroadcastChannel('logger');
       logger.start({ cwd } as Configuration);
       ready(channel);
@@ -96,7 +97,7 @@ describe('Main thread', () => {
     });
 
     it('closing must wait for the sub workers to be started first', async () => {
-      const { logger } = await vi.importActual<typeof import('./logger.js')>('./logger.js');
+      const { logger } = await vi.importActual<{ logger: typeof LoggerType }>('./logger.js');
       const channel = Thread.createBroadcastChannel('logger');
       logger.start({ cwd } as Configuration);
       const closing = logger.stop();
@@ -109,7 +110,7 @@ describe('Main thread', () => {
     });
 
     it('supports multiple closing', async () => {
-      const { logger } = await vi.importActual<typeof import('./logger.js')>('./logger.js');
+      const { logger } = await vi.importActual<{ logger: typeof LoggerType }>('./logger.js');
       const channel = Thread.createBroadcastChannel('logger');
       logger.start({ cwd } as Configuration);
       ready(channel);
@@ -127,18 +128,18 @@ describe('Worker thread', () => {
   });
 
   it('opens a broadcast channel to communicate with the logger thread', async () => {
-    await vi.importActual<typeof import('./logger.js')>('./logger.js');
+    await vi.importActual<{ logger: typeof LoggerType }>('./logger.js');
     expect(Thread.createBroadcastChannel).toHaveBeenCalledWith('logger');
   });
 
   it('attaches a listener to the channel', async () => {
-    await vi.importActual<typeof import('./logger.js')>('./logger.js');
+    await vi.importActual<{ logger: typeof LoggerType }>('./logger.js');
     const channel = Thread.createBroadcastChannel('logger');
     expect(channel.onmessage).not.toBeUndefined();
   });
 
   it('sends traces immediately', async () => {
-    const { logger } = await vi.importActual<typeof import('./logger.js')>('./logger.js');
+    const { logger } = await vi.importActual<{ logger: typeof LoggerType }>('./logger.js');
     const channel = Thread.createBroadcastChannel('logger');
     logger.debug({ source: 'job', message: 'test' });
     expect(channel.postMessage).toHaveBeenCalledWith(
@@ -150,7 +151,7 @@ describe('Worker thread', () => {
   });
 
   it('closes the broadcast channel when the terminate signal is received', async () => {
-    await vi.importActual<typeof import('./logger.js')>('./logger.js');
+    await vi.importActual<{ logger: typeof LoggerType }>('./logger.js');
     const channel = Thread.createBroadcastChannel('logger');
     channel.postMessage({ command: 'terminate' } satisfies LogMessage);
     expect(channel.close).toHaveBeenCalled();
@@ -158,14 +159,14 @@ describe('Worker thread', () => {
 
   it('fails start if not on the main thread', async () => {
     Object.assign(Thread, { isMainThread: false });
-    const { logger } = await vi.importActual<typeof import('./logger.js')>('./logger.js');
+    const { logger } = await vi.importActual<{ logger: typeof LoggerType }>('./logger.js');
     expect(() => logger.start({ cwd } as Configuration)).toThrowError(AssertionError);
     expect(Thread.createWorker).not.toHaveBeenCalled();
     expect(Terminal.onResize).not.toHaveBeenCalled();
   });
 
   it('fails close if not on the main thread', async () => {
-    const { logger } = await vi.importActual<typeof import('./logger.js')>('./logger.js');
+    const { logger } = await vi.importActual<{ logger: typeof LoggerType }>('./logger.js');
     const channel = Thread.createBroadcastChannel('logger');
     await expect(() => logger.stop()).rejects.toThrowError(AssertionError);
     expect(channel.postMessage).not.toHaveBeenCalled();
@@ -178,7 +179,7 @@ describe('general', () => {
   });
 
   it('documents traces with contextual information', async () => {
-    const { logger } = await vi.importActual<typeof import('./logger.js')>('./logger.js');
+    const { logger } = await vi.importActual<{ logger: typeof LoggerType }>('./logger.js');
     const timestamp = Date.now(); // because of fake timers
     const channel = Thread.createBroadcastChannel('logger');
     logger.debug({ source: 'job', message: 'test' });
@@ -197,7 +198,7 @@ describe('general', () => {
 
   describe('error handling', () => {
     it('extracts error information', async () => {
-      const { logger } = await vi.importActual<typeof import('./logger.js')>('./logger.js');
+      const { logger } = await vi.importActual<{ logger: typeof LoggerType }>('./logger.js');
       const channel = Thread.createBroadcastChannel('logger');
       const error = new Error('error');
       logger.debug({ source: 'job', message: 'test', error });
@@ -215,7 +216,7 @@ describe('general', () => {
     });
 
     it('extracts cause', async () => {
-      const { logger } = await vi.importActual<typeof import('./logger.js')>('./logger.js');
+      const { logger } = await vi.importActual<{ logger: typeof LoggerType }>('./logger.js');
       const channel = Thread.createBroadcastChannel('logger');
       const error = new Error('error');
       error.cause = new Error('cause');
@@ -239,7 +240,7 @@ describe('general', () => {
     });
 
     it('supports AggregateError', async () => {
-      const { logger } = await vi.importActual<typeof import('./logger.js')>('./logger.js');
+      const { logger } = await vi.importActual<{ logger: typeof LoggerType }>('./logger.js');
       const channel = Thread.createBroadcastChannel('logger');
       const error = new AggregateError([new Error('error1'), new Error('error2')], 'aggregate error');
       logger.debug({ source: 'job', message: 'test', error });
@@ -269,7 +270,7 @@ describe('general', () => {
     });
 
     it('extrapolates error information', async () => {
-      const { logger } = await vi.importActual<typeof import('./logger.js')>('./logger.js');
+      const { logger } = await vi.importActual<{ logger: typeof LoggerType }>('./logger.js');
       const channel = Thread.createBroadcastChannel('logger');
       logger.debug({ source: 'job', message: 'test', error: 'string' });
       expect(channel.postMessage).toHaveBeenCalledWith(
@@ -289,7 +290,7 @@ describe('general', () => {
   const levels = ['debug', 'info', 'warn', 'error', 'fatal'] as const;
   for (const level of levels) {
     it(`offers ${level} method that translates to ${level} trace level`, async () => {
-      const { logger } = await vi.importActual<typeof import('./logger.js')>('./logger.js');
+      const { logger } = await vi.importActual<{ logger: typeof LoggerType }>('./logger.js');
       const channel = Thread.createBroadcastChannel('logger');
       logger[level]({ source: 'job', message: 'test' });
       expect(channel.postMessage).toHaveBeenCalledWith(
@@ -315,7 +316,7 @@ describe('general', () => {
         rss: 5
       };
       vi.mocked(Host.memoryUsage).mockReturnValueOnce(memoryUsage);
-      const { logger } = await vi.importActual<typeof import('./logger.js')>('./logger.js');
+      const { logger } = await vi.importActual<{ logger: typeof LoggerType }>('./logger.js');
       vi.spyOn(logger, 'debug');
       vi.advanceTimersToNextTimer();
       expect(logger.debug).toHaveBeenCalledWith({
@@ -331,7 +332,7 @@ describe('general', () => {
     });
 
     it('stops monitoring thread metrics the terminate signal is received', async () => {
-      const { logger } = await vi.importActual<typeof import('./logger.js')>('./logger.js');
+      const { logger } = await vi.importActual<{ logger: typeof LoggerType }>('./logger.js');
       vi.spyOn(logger, 'debug');
       const channel = Thread.createBroadcastChannel('logger');
       channel.postMessage({ command: 'terminate' } satisfies LogMessage);
