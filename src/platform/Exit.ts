@@ -101,6 +101,7 @@ export class Exit {
     return {
       unregister() {
         const index = Exit._asyncTasks.findIndex((task) => task.id === id);
+
         if (index !== -1) {
           Exit._asyncTasks.splice(index, 1);
         }
@@ -110,7 +111,7 @@ export class Exit {
 
   private static _enteringShutdown = false;
 
-  static async shutddown() {
+  static async shutdown() {
     Exit._enteringShutdown = true;
     const { logger } = await import('./logger.js'); // Breaks dependency loop
     for (const task of Exit._asyncTasks) {
@@ -136,7 +137,7 @@ export class Exit {
     if (__developmentMode) {
       console.log(`${ANSI_BLUE}[~]${ANSI_WHITE}${ANSI_RED}SIGINT${ANSI_WHITE} received`);
     }
-    void Exit.shutddown();
+    void Exit.shutdown();
   }
 }
 

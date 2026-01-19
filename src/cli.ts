@@ -16,5 +16,5 @@ main()
     Exit.code = -1;
   })
   .finally(async () => {
-    await Exit.shutddown();
+    await Exit.shutdown();
   });
