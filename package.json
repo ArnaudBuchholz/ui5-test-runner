@@ -14,7 +14,7 @@
     "node": ">=24.11.1"
   },
   "scripts": {
-    "ts-run": "node --no-warnings --experimental-strip-types --import ./js2ts.mjs",
+    "ts-run": "node --no-warnings --experimental-strip-types --import ./src/platform/js2ts.mjs",
     "cli": "npm run ts-run -- src/cli.ts",
     "test:cli1": "npm run cli -- --url https://ui5.sap.com/test-resources/sap/m/demokit/cart/webapp/test/testsuite.qunit.html --report-dir tmp",
     "test:cli2": "npm run cli -- --url \"https://ui5.sap.com/test-resources/sap/m/demokit/cart/webapp/test/Test.qunit.html?testsuite=test-resources/sap/ui/demo/cart/testsuite.qunit&test=unit/unitTests\" --report-dir tmp",
@@ -72,6 +72,7 @@
     "@ui5/cli": "^4.0.39",
     "@ui5/middleware-code-coverage": "^2.0.2",
     "@vitest/coverage-v8": "^4.0.17",
+    "baseline-browser-mapping": "^2.9.16",
     "dotenv": "^17.2.3",
     "dpdm": "^3.14.0",
     "eslint": "^9.39.2",
@@ -90,7 +91,7 @@
     "stylelint": "^17.0.0",
     "stylelint-config-standard": "^40.0.0",
     "typescript": "^5.9.3",
-    "typescript-eslint": "^8.53.0",
+    "typescript-eslint": "^8.53.1",
     "ui5-tooling-transpile": "^3.10.1",
     "vite": "^7.3.1",
     "vitest": "^4.0.17"
