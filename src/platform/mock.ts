@@ -3,7 +3,7 @@ import type { WriteStream } from 'node:fs';
 import type { BroadcastChannel, Worker } from 'node:worker_threads';
 import type { Gzip } from 'node:zlib';
 import { join } from 'node:path';
-import { ILogger } from './logger/types.js';
+import type { ILogger } from './logger/types.js';
 
 const mockStaticMethodsOfExportedClasses = <T extends object>(actual: T): T => {
   const mocked = { ...actual };
