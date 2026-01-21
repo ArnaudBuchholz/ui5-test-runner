@@ -1,6 +1,9 @@
 import type { ChildProcess, SpawnOptions } from 'node:child_process';
+import { Host } from './Host.js';
 import { spawn } from 'node:child_process';
 import { logger } from './logger.js';
+import { Exit } from './Exit.js';
+import type { IRegisteredAsyncTask } from './Exit.js';
 
 export interface IProcess {
   readonly stdout: string;
@@ -9,19 +12,19 @@ export interface IProcess {
   readonly closed: Promise<void>;
 }
 
+class ProcessStopper {
+  private _process: Process | undefined;
+
+  set process(value: Process) {
+    this._process = value;
+  }
+
+  async stop () {
+    return this._process?.kill();
+  }
+}
+
 export class Process implements IProcess {
-  private static _list: Process[] = [];
-  static get list(): readonly Process[] {
-    return Process._list;
-  }
-
-  // TODO: invert dependency by having a central mechanism to register pending processes and know when to stop
-  private static _stopped = false;
-  static async stop() {
-    Process._stopped = true;
-    await Promise.allSettled(Process._list.map((process) => process.closed));
-  }
-
   static readonly spawn: (command: string, arguments_: string[], options?: SpawnOptions) => IProcess = (
     command,
     arguments_,
@@ -30,18 +33,23 @@ export class Process implements IProcess {
     if (command === 'node') {
       command = process.argv[0] as string;
     }
+    let asyncTask: IRegisteredAsyncTask | undefined;
     try {
-      if (Process._stopped) {
-        throw new Error('stop called');
-      }
+      const stopper = new ProcessStopper();
+      asyncTask = Exit.registerAsyncTask({
+        name: `Process.spawn(${command},${arguments_.join(',')})`,
+        stop: () => stopper.stop()
+      });
       const childProcess = spawn(command, arguments_, options);
       logger.debug({
         source: 'process',
         processId: childProcess.pid,
-        message: 'spawn',
+        message: 'spawned',
         data: { command, arguments: arguments_, options }
       });
-      return new Process(childProcess);
+      const process = new Process(childProcess, asyncTask);
+      stopper.process = process;
+      return process;
     } catch (error) {
       logger.error({
         source: 'process',
@@ -49,6 +57,7 @@ export class Process implements IProcess {
         data: { command, arguments: arguments_, options },
         error
       });
+      asyncTask?.unregister();
       throw error;
     }
   };
@@ -74,10 +83,11 @@ export class Process implements IProcess {
   }
 
   private _childProcess: ChildProcess;
+  private _asyncTask: IRegisteredAsyncTask;
 
-  constructor(childProcess: ChildProcess) {
-    Process._list.push(this);
+  constructor(childProcess: ChildProcess, asyncTask: IRegisteredAsyncTask) {
     this._childProcess = childProcess;
+    this._asyncTask = asyncTask;
     const { promise, resolve } = Promise.withResolvers<void>();
     this._closed = promise;
     this._childProcess.stdout?.on('data', (buffer: Buffer) => {
@@ -98,9 +108,32 @@ export class Process implements IProcess {
         message: 'closed',
         data: { code: this._code }
       });
-      const index = Process._list.indexOf(this);
-      Process._list.splice(index, 1);
+      this._asyncTask.unregister();
       resolve();
+    });
+  }
+
+  async kill (): Promise<void> {
+    logger.debug({
+      source: 'process',
+      processId: this._childProcess.pid,
+      message: 'kill'
+    });
+    if (Host.platform() === 'win32') {
+      // No supervision required, supposed to be fast
+      const killProcess = spawn('taskkill', ['/F', '/T', '/PID', this._childProcess.pid!.toString()], {
+        windowsHide: true
+      })
+      const { promise, resolve } = Promise.withResolvers<void>();
+      killProcess.on('close', resolve);
+      await promise;
+    } else {
+      process.kill(-this._childProcess.pid!);
+    }
+    logger.debug({
+      source: 'process',
+      processId: this._childProcess.pid,
+      message: 'killed'
     });
   }
 }

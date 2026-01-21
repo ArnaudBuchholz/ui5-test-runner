@@ -113,12 +113,16 @@ export class Exit {
   static async shutdown() {
     Exit._enteringShutdown = true;
     const { logger } = await import('./logger.js'); // Breaks dependency loop
-    for (const task of Exit._asyncTasks) {
+    while (Exit._asyncTasks.length > 0) {
+      const task = Exit._asyncTasks[0]!; // length > 0
       try {
         logger.debug({ source: 'exit', message: `Stopping ${task.name}...` });
         // TODO: can we wait for task to be unregistered ?
         await task.stop();
         logger.debug({ source: 'exit', message: `${task.name} stopped.` });
+        if (task === Exit._asyncTasks[0]) {
+          Exit._asyncTasks.shift();
+        }
       } catch (error) {
         logger.debug({ source: 'exit', message: `Failed while stopping ${task.name}...`, error });
       }
