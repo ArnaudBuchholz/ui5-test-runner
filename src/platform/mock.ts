@@ -3,6 +3,7 @@ import type { WriteStream } from 'node:fs';
 import type { BroadcastChannel, Worker } from 'node:worker_threads';
 import type { Gzip } from 'node:zlib';
 import { join } from 'node:path';
+import { ILogger } from './logger/types.js';
 
 const mockStaticMethodsOfExportedClasses = <T extends object>(actual: T): T => {
   const mocked = { ...actual };
@@ -30,7 +31,7 @@ vi.mock(import('./logger.js'), () => ({
     error: vi.fn(),
     fatal: vi.fn(),
     stop: vi.fn()
-  }
+  } satisfies ILogger
 }));
 
 vi.mock(import('./Exit.js'), async (importActual) => mockStaticMethodsOfExportedClasses(await importActual()));
