@@ -8,7 +8,8 @@ import type {
   InternalLogAttributes,
   LogAttributes,
   LogMessage,
-  ReadySource
+  ReadySource,
+  ILogger
 } from './logger/types.js';
 import { LogLevel, toInternalLogAttributes } from './logger/types.js';
 import assert from 'node:assert/strict';
@@ -110,8 +111,13 @@ export const logger = {
     assert.ok(Thread.isMainThread, 'Call logger.start only in main thread');
     assert.ok(!loggerWorker && !consoleWorker, 'Call logger.start only once');
     start();
-    loggerWorker = Thread.createWorker('logger/allCompressed', { configuration: toPlainObject(configuration) });
-    consoleWorker = Thread.createWorker('logger/output', { configuration: toPlainObject(configuration), startedAt });
+    loggerWorker = Thread.createWorker('platform/logger/allCompressed', {
+      configuration: toPlainObject(configuration)
+    });
+    consoleWorker = Thread.createWorker('platform/logger/output', {
+      configuration: toPlainObject(configuration),
+      startedAt
+    });
     if (!configuration.ci) {
       Terminal.setRawMode((data) => {
         if (data.length === 1 && data[0] === 3) {
@@ -161,4 +167,4 @@ export const logger = {
     Terminal.setRawMode(false);
     resolve();
   }
-};
+} as const satisfies ILogger;
