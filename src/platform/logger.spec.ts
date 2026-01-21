@@ -50,8 +50,8 @@ describe('Main thread', () => {
     Object.assign(Thread, { isMainThread: true });
     const { logger } = await vi.importActual<{ logger: typeof LoggerType }>('./logger.js');
     logger.start({ cwd } as Configuration);
-    expect(Thread.createWorker).toHaveBeenCalledWith('logger/allCompressed', { configuration: { cwd } });
-    expect(Thread.createWorker).toHaveBeenCalledWith('logger/output', {
+    expect(Thread.createWorker).toHaveBeenCalledWith('platform/logger/allCompressed', { configuration: { cwd } });
+    expect(Thread.createWorker).toHaveBeenCalledWith('platform/logger/output', {
       configuration: { cwd },
       startedAt: expectAnyNumber
     });
@@ -73,10 +73,10 @@ describe('Main thread', () => {
   });
 
   describe('close', () => {
-    it('fails if open has not been called', async () => {
+    it('does not fail if open has not been called', async () => {
       const { logger } = await vi.importActual<{ logger: typeof LoggerType }>('./logger.js');
       const channel = Thread.createBroadcastChannel('logger');
-      await expect(() => logger.stop()).rejects.toThrowError(AssertionError);
+      await expect(logger.stop()).resolves.toBeUndefined();
       expect(channel.postMessage).not.toHaveBeenCalled();
     });
 
