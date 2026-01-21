@@ -20,7 +20,8 @@ class ProcessStopper {
   }
 
   async stop () {
-    return this._process?.kill();
+    await this._process?.kill();
+    return this._process?.closed;
   }
 }
 
