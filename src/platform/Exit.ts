@@ -3,6 +3,9 @@ import { ANSI_BLUE, ANSI_RED, ANSI_WHITE } from '../terminal/ansi.js';
 import { __developmentMode } from './constants.js';
 import { Thread } from './Thread.js';
 import { assert } from './assert.js';
+import type { ILogger } from './logger/types.js';
+
+let logger: ILogger | undefined;
 
 export interface IAsyncTask {
   name: string;
@@ -79,7 +82,7 @@ export class Exit {
       : [];
     for (const handle of activeHandles) {
       const { className, label } = describeHandle(handle);
-      console.log(`${ANSI_BLUE}[~]${ANSI_WHITE}${ANSI_RED}handle ${className}${ANSI_WHITE} ${label}`);
+      logger?.warn({ source: 'exit', message: `possible handle leak ${className} ${label}` });
       if (className === 'TLSSocket' || className === 'Socket') {
         handle.destroy();
       }
@@ -111,26 +114,26 @@ export class Exit {
   private static _enteringShutdown = false;
 
   static async shutdown() {
+    assert(Thread.isMainThread, 'Exit.shutdown can be called only on main thread');
     Exit._enteringShutdown = true;
-    const { logger } = await import('./logger.js'); // Breaks dependency loop
     while (Exit._asyncTasks.length > 0) {
       const task = Exit._asyncTasks[0]!; // length > 0
       try {
-        logger.debug({ source: 'exit', message: `Stopping ${task.name}...` });
+        logger?.debug({ source: 'exit', message: `Stopping ${task.name}...` });
         // TODO: can we wait for task to be unregistered ?
         await task.stop();
-        logger.debug({ source: 'exit', message: `${task.name} stopped.` });
+        logger?.debug({ source: 'exit', message: `${task.name} stopped.` });
         if (task === Exit._asyncTasks[0]) {
           Exit._asyncTasks.shift();
         }
       } catch (error) {
-        logger.debug({ source: 'exit', message: `Failed while stopping ${task.name}...`, error });
+        logger?.debug({ source: 'exit', message: `Failed while stopping ${task.name}...`, error });
       }
     }
-    logger.debug({ source: 'exit', message: `Stopping logger...` });
-    await logger.stop();
-    logger.debug({ source: 'exit', message: `logger stopped.` });
     Exit.checkHandles();
+    logger?.debug({ source: 'exit', message: `Stopping logger...` });
+    await logger?.stop();
+    logger?.debug({ source: 'exit', message: `logger stopped.` });
     if (__developmentMode) {
       console.log(`${ANSI_BLUE}[~]${ANSI_WHITE}done.`);
     }
@@ -144,6 +147,12 @@ export class Exit {
   }
 }
 
+const breakDependencyLoopToLogger = async () => {
+  const module = await import('./logger.js');
+  logger = module.logger;
+};
+
 if (Thread.isMainThread) {
   process.on('SIGINT', Exit.sigInt);
+  void breakDependencyLoopToLogger();
 }
