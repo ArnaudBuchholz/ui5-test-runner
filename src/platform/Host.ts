@@ -1,4 +1,4 @@
-import { machine, cpus } from 'node:os';
+import { machine, cpus, platform } from 'node:os';
 
 export class Host {
   static readonly cpus = cpus;
@@ -7,4 +7,5 @@ export class Host {
   static readonly memoryUsage = process.memoryUsage.bind(process);
   static readonly nodeVersion = process.version;
   static readonly pid = process.pid;
+  static readonly platform = platform;
 }
