@@ -1,5 +1,6 @@
 import { describe, it, expect, vi } from 'vitest';
 import type { Exit as ExitType, IAsyncTask, IRegisteredAsyncTask } from './Exit.js';
+import { AssertionError } from 'node:assert/strict';
 const { Exit } = await vi.importActual<{ Exit: typeof ExitType }>('./Exit.js');
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Undocumented API
@@ -32,6 +33,10 @@ describe('shutdown', () => {
     it('stops the task on shutdown', async () => {
       await Exit.shutdown();
       expect(task.stop).toHaveBeenCalled();
+    });
+
+    it('fails if trying to unregister twice', () => {
+      expect(() => registered.unregister()).toThrowError(AssertionError);
     });
 
     it('fails when registering a task during shutdown', () => {
