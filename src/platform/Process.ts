@@ -19,7 +19,7 @@ class ProcessStopper {
     this._process = value;
   }
 
-  async stop () {
+  async stop() {
     await this._process?.kill();
     return this._process?.closed;
   }
@@ -114,17 +114,18 @@ export class Process implements IProcess {
     });
   }
 
-  async kill (): Promise<void> {
+  async kill(): Promise<void> {
     logger.debug({
       source: 'process',
       processId: this._childProcess.pid,
       message: 'kill'
     });
     if (Host.platform() === 'win32') {
-      // No supervision required, supposed to be fast
+      // eslint-disable-next-line sonarjs/no-os-command-from-path -- secure
       const killProcess = spawn('taskkill', ['/F', '/T', '/PID', this._childProcess.pid!.toString()], {
         windowsHide: true
-      })
+      });
+      // No supervision required, supposed to be fast
       const { promise, resolve } = Promise.withResolvers<void>();
       killProcess.on('close', resolve);
       await promise;
