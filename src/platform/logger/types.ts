@@ -10,23 +10,9 @@ export type LogErrorAttributes = {
   errors?: LogErrorAttributes[];
 };
 
-const GenericLogSource = {
-  exit: 'exit',
-  http: 'http',
-  job: 'job',
-  logger: 'logger',
-  metric: 'metric',
-  npm: 'npm',
-  process: 'process',
-  puppeteer: 'puppeteer'
-} as const;
-type GenericLogSource = (typeof GenericLogSource)[keyof typeof GenericLogSource];
+type GenericLogSource = 'exit' | 'exit/handle' | 'http' | 'job' | 'logger' | 'metric' | 'npm' | 'process' | 'puppeteer';
 
-export const LogSource = {
-  ...GenericLogSource,
-  progress: 'progress'
-} as const;
-export type LogSource = (typeof LogSource)[keyof typeof LogSource];
+export type LogSource = GenericLogSource | 'progress';
 
 export type LogAttributes = {
   message: string;
