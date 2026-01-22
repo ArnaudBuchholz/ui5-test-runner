@@ -75,7 +75,7 @@ export class InteractiveLoggerOutput extends BaseLoggerOutput {
       Terminal.write('   ' + rendered + '\n');
       this._linesToErase.push(3 + rendered.length);
     }
-    Terminal.write(TICKS_COLORS[this._tick % TICKS_COLORS.length]);
+    Terminal.write(TICKS_COLORS[this._tick % TICKS_COLORS.length]!);
     Terminal.write(TICKS_PICTURES[this._tick % TICKS_PICTURES.length]!);
     Terminal.write(ANSI_WHITE);
     const progressBar = this.progressMap[''];
