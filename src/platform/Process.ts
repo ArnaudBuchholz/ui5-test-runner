@@ -2,7 +2,7 @@ import type { ChildProcess, SpawnOptions } from 'node:child_process';
 import { Host } from './Host.js';
 import { spawn } from 'node:child_process';
 import { logger } from './logger.js';
-import { Exit } from './Exit.js';
+import { Exit, ExitShutdownError } from './Exit.js';
 import type { IRegisteredAsyncTask } from './Exit.js';
 
 export interface IProcess {
@@ -52,7 +52,8 @@ export class Process implements IProcess {
       stopper.process = process;
       return process;
     } catch (error) {
-      logger.error({
+      const level = error instanceof ExitShutdownError ? 'warn' : 'error';
+      logger[level]({
         source: 'process',
         message: 'spawn failed',
         data: { command, arguments: arguments_, options },
