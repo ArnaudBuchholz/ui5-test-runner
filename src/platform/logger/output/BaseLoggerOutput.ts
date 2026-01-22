@@ -11,7 +11,7 @@ const icons = {
   [LogLevel.info]: '   ',
   [LogLevel.warn]: ANSI_YELLOW + '/!\\',
   [LogLevel.error]: ANSI_RED + '(X)',
-  [LogLevel.fatal]: ANSI_MAGENTA + 'o*!'
+  [LogLevel.fatal]: ANSI_RED + 'o*!'
 } as const;
 
 export abstract class BaseLoggerOutput {
@@ -33,7 +33,7 @@ export abstract class BaseLoggerOutput {
     if (source !== 'progress' && source !== 'metric' && level !== LogLevel.debug) {
       return [
         icons[level],
-        ANSI_YELLOW,
+        ANSI_MAGENTA,
         this.formatTimestamp(timestamp),
         ANSI_WHITE,
         ' ',
