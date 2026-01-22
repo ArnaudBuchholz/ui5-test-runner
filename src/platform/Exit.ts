@@ -20,6 +20,13 @@ interface InternalAsyncTask extends IAsyncTask {
   id: number;
 }
 
+export class ExitShutdownError extends Error {
+  constructor() {
+    super('Exiting application');
+    this.name = 'ExitShutdownError';
+  }
+}
+
 // eslint-disable-next-line @typescript-eslint/no-explicit-any, sonarjs/redundant-type-aliases -- No official documentation on handle type
 type Handle = any;
 
@@ -61,13 +68,10 @@ const handleDescriptors: { [key in string]: (handle: Handle) => string } = {
     return `pid: ${handle.pid}` + handle.spawnargs
       ? ` ${handle.spawnargs.map((value: string) => ('' + value).replaceAll(' ', '␣'))}`
       : ' unknown';
-  },
-  MessagePort: (handle: Handle) => {
-    console.log(handle);
-    debugger;
-    return 'unknown';
   }
 };
+
+const isStdStream = (handle: Handle) => ('fd' in handle) && handle.fd >= 0 && handle.fd < 3;
 
 const unknownHandleDescriptor = () => 'unknown';
 
@@ -80,16 +84,25 @@ export class Exit {
   private static _asyncTaskId = 0;
   private static _asyncTasks: InternalAsyncTask[] = [];
 
-  static checkHandles() {
+  private static _checkForHandlesLeak() {
     const undocumentedProcess = process as { _getActiveHandles?: () => Handle[] };
     const activeHandles: Handle[] = undocumentedProcess._getActiveHandles
       ? undocumentedProcess._getActiveHandles()
       : [];
+    let messagePortFound = false;
     for (const handle of activeHandles) {
       const { className, label } = describeHandle(handle);
-      logger?.warn({ source: 'exit', message: `possible handle leak ${className} ${label}` });
-      if (className === 'TLSSocket' || className === 'Socket') {
-        handle.destroy();
+      if (isStdStream(handle)) {
+        logger?.debug({ source: 'exit/handle', message: `${className} ${label}` });
+      } else if (className === 'MessagePort' && !messagePortFound) {
+        // One MessagePort is expected to remain because of the BroadcastChannel
+        messagePortFound = true;
+        logger?.debug({ source: 'exit/handle', message: `${className} ${label}` });
+      } else {
+        logger?.warn({ source: 'exit/handle', message: `possible leak ${className} ${label}` });
+        if (className === 'TLSSocket' || className === 'Socket') {
+          handle.destroy();
+        }
       }
     }
   }
@@ -102,7 +115,7 @@ export class Exit {
   static registerAsyncTask(task: IAsyncTask): IRegisteredAsyncTask {
     assert(Thread.isMainThread, 'Exit.registerAsyncTask can be called only on main thread');
     if (Exit._enteringShutdown) {
-      throw new Error('Exiting application');
+      throw new ExitShutdownError();
     }
     const id = ++Exit._asyncTaskId;
     this._asyncTasks.push({
@@ -137,7 +150,7 @@ export class Exit {
         logger?.debug({ source: 'exit', message: `Failed while stopping ${task.name}...`, error });
       }
     }
-    Exit.checkHandles();
+    Exit._checkForHandlesLeak();
     logger?.debug({ source: 'exit', message: `Stopping logger...` });
     await logger?.stop();
     logger?.debug({ source: 'exit', message: `logger stopped.` });
