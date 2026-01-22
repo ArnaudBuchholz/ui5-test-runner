@@ -61,6 +61,11 @@ const handleDescriptors: { [key in string]: (handle: Handle) => string } = {
     return `pid: ${handle.pid}` + handle.spawnargs
       ? ` ${handle.spawnargs.map((value: string) => ('' + value).replaceAll(' ', '␣'))}`
       : ' unknown';
+  },
+  MessagePort: (handle: Handle) => {
+    console.log(handle);
+    debugger;
+    return 'unknown';
   }
 };
 
@@ -90,10 +95,12 @@ export class Exit {
   }
 
   static set code(code: number) {
+    assert(Thread.isMainThread, 'Exit.code can be set only on main thread');
     process.exitCode = code;
   }
 
   static registerAsyncTask(task: IAsyncTask): IRegisteredAsyncTask {
+    assert(Thread.isMainThread, 'Exit.registerAsyncTask can be called only on main thread');
     if (Exit._enteringShutdown) {
       throw new Error('Exiting application');
     }
