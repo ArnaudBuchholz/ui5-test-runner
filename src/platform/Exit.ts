@@ -125,8 +125,12 @@ export class Exit {
     return {
       unregister() {
         const index = Exit._asyncTasks.findIndex((task) => task.id === id);
-        assert(index !== -1, 'unable to find Exit async task to unregister');
-        Exit._asyncTasks.splice(index, 1);
+        try {
+          assert(index !== -1, 'unable to find Exit async task to unregister');
+          Exit._asyncTasks.splice(index, 1);
+        } catch {
+          // ignore
+        }
       }
     };
   }
@@ -143,11 +147,12 @@ export class Exit {
         // TODO: can we wait for task to be unregistered ?
         await task.stop();
         logger?.debug({ source: 'exit', message: `${task.name} stopped.` });
+      } catch (error) {
+        logger?.debug({ source: 'exit', message: `Failed while stopping ${task.name}...`, error });
+      } finally {
         if (task === Exit._asyncTasks[0]) {
           Exit._asyncTasks.shift();
         }
-      } catch (error) {
-        logger?.debug({ source: 'exit', message: `Failed while stopping ${task.name}...`, error });
       }
     }
     Exit._checkForHandlesLeak();
