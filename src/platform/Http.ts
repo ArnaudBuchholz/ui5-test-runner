@@ -14,10 +14,14 @@ export const Http = {
     logger.debug({ source: 'http', message: `GET ${url}`, data: { requestId } });
     try {
       const response = await fetch(url);
+      const headers: Record<string, string | string[]> = {};
+      for (const [name, value] of response.headers) {
+        headers[name] = value;
+      }
       logger.debug({
         source: 'http',
         message: `${response.status} ${response.statusText}`,
-        data: { requestId, status: response.status, headers: response.headers }
+        data: { requestId, status: response.status, headers }
       });
       if (!response.ok) {
         throw new Error('HTTP request failed');
