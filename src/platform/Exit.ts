@@ -71,7 +71,7 @@ const handleDescriptors: { [key in string]: (handle: Handle) => string } = {
   }
 };
 
-const isStdStream = (handle: Handle) => ('fd' in handle) && handle.fd >= 0 && handle.fd < 3;
+const isStdStream = (handle: Handle) => 'fd' in handle && handle.fd >= 0 && handle.fd < 3;
 
 const unknownHandleDescriptor = () => 'unknown';
 
