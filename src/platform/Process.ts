@@ -121,22 +121,37 @@ export class Process implements IProcess {
       processId: this._childProcess.pid,
       message: 'kill'
     });
-    if (Host.platform() === 'win32') {
-      // eslint-disable-next-line sonarjs/no-os-command-from-path -- secure
-      const killProcess = spawn('taskkill', ['/F', '/T', '/PID', this._childProcess.pid!.toString()], {
-        windowsHide: true
+    try {
+      if (Host.platform() === 'win32') {
+        // eslint-disable-next-line sonarjs/no-os-command-from-path -- secure
+        const killProcess = spawn('taskkill', ['/F', '/T', '/PID', this._childProcess.pid!.toString()], {
+          windowsHide: true
+        });
+        // No supervision required, supposed to be fast
+        const { promise, resolve } = Promise.withResolvers<void>();
+        killProcess.on('close', resolve);
+        await promise;
+      } else {
+        try {
+          // First try to kill process tree
+          process.kill(-this._childProcess.pid!);
+        } catch {
+          // Otherwise, kill the process only
+          process.kill(this._childProcess.pid!);
+        }
+      }
+      logger.debug({
+        source: 'process',
+        processId: this._childProcess.pid,
+        message: 'killed'
       });
-      // No supervision required, supposed to be fast
-      const { promise, resolve } = Promise.withResolvers<void>();
-      killProcess.on('close', resolve);
-      await promise;
-    } else {
-      process.kill(-this._childProcess.pid!);
+    } catch (error) {
+      logger.debug({
+        source: 'process',
+        processId: this._childProcess.pid,
+        message: 'unable to kill',
+        error
+      });
     }
-    logger.debug({
-      source: 'process',
-      processId: this._childProcess.pid,
-      message: 'killed'
-    });
   }
 }
