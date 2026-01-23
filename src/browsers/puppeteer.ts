@@ -1,4 +1,4 @@
-import { logger, Exit } from '../platform/index.js';
+import { logger, Exit, Process } from '../platform/index.js';
 import type { IBrowser } from './IBrowser.js';
 import type { launch as launchFunction, Browser } from 'puppeteer';
 import { Npm } from '../Npm.js';
@@ -13,11 +13,27 @@ export const factory = async (): Promise<IBrowser> => {
   return {
     async setup(settings) {
       logger.debug({ source: 'puppeteer', message: 'setup', data: settings });
-      browser = await launch({
-        headless: false,
-        defaultViewport: null,
-        handleSIGINT: false
-      });
+      try {
+        browser = await launch({
+          headless: false,
+          defaultViewport: null,
+          handleSIGINT: false
+        });
+      } catch (error) {
+        if (error instanceof Error && error.message.startsWith('Could not find Chrome')) {
+          logger.info({ source: 'puppeteer', message: 'Installing chrome' });
+          await Process.spawn('npx', 'puppeteer browsers install chrome'.split(' '), {
+            shell: true
+          }).closed;
+          browser = await launch({
+            headless: false,
+            defaultViewport: null,
+            handleSIGINT: false
+          });
+        } else {
+          throw error;
+        }
+      }
       task = Exit.registerAsyncTask({
         name: 'puppeteer',
         async stop() {
