@@ -53,22 +53,20 @@ const socketHandleDescriptor = (handle: Handle) => {
 };
 
 const handleDescriptors: { [key in string]: (handle: Handle) => string } = {
-  TLSSocket: socketHandleDescriptor,
-  Socket: socketHandleDescriptor,
-  WriteStream: (handle: Handle) => {
-    const fd = ['stdin', 'stdout', 'stderr'][handle.fd] || `fd: ${handle.fd}`;
-    return `${fd} ${handle.columns}x${handle.rows} isTTY: ${handle.isTTY}`;
-  },
-  ReadStream: (handle: Handle) => {
-    const fd = ['stdin', 'stdout', 'stderr'][handle.fd] || `fd: ${handle.fd}`;
-    return `${fd} isTTY: ${handle.isTTY}`;
-  },
-  Server: (handle: Handle) => `connections: ${handle._connections} events: ${handle._eventsCount}`,
   ChildProcess: (handle: Handle) => {
-    return `pid: ${handle.pid}` + handle.spawnargs
-      ? ` ${handle.spawnargs.map((value: string) => ('' + value).replaceAll(' ', '␣'))}`
-      : ' unknown';
-  }
+    return (
+      `pid: ${handle.pid}` +
+      (handle.spawnargs ? ` ${handle.spawnargs.map((value: string) => ('' + value).replaceAll(' ', '␣'))}` : ' unknown')
+    );
+  },
+  ReadStream: (handle: Handle) => (handle.fd === 0 ? `stdin isTTY: ${handle.isTTY}` : `fd: ${handle.fd}`),
+  Server: (handle: Handle) => `connections: ${handle._connections} events: ${handle._eventsCount}`,
+  Socket: socketHandleDescriptor,
+  TLSSocket: socketHandleDescriptor,
+  WriteStream: (handle: Handle) =>
+    handle.fd < 3
+      ? `${[0, 'stdout', 'stderr'][handle.fd]} ${handle.columns}x${handle.rows} isTTY: ${handle.isTTY}`
+      : `fd: ${handle.fd}`
 };
 
 const isStdStream = (handle: Handle) => 'fd' in handle && handle.fd >= 0 && handle.fd < 3;
@@ -77,7 +75,7 @@ const unknownHandleDescriptor = () => 'unknown';
 
 const describeHandle = (handle: Handle) => {
   const className = handle && handle.constructor && handle.constructor.name;
-  return { className, label: className + ' ' + (handleDescriptors[className] ?? unknownHandleDescriptor)(handle) };
+  return { className, label: (handleDescriptors[className] ?? unknownHandleDescriptor)(handle) };
 };
 
 export class Exit {
