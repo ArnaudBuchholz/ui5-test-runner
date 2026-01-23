@@ -35,8 +35,8 @@ describe('shutdown', () => {
       expect(task.stop).toHaveBeenCalled();
     });
 
-    it('fails if trying to unregister twice', () => {
-      expect(() => registered.unregister()).toThrowError(AssertionError);
+    it('does not fail if trying to unregister twice (because it may happen)', () => {
+      expect(() => registered.unregister()).not.toThrowError();
     });
 
     it('fails when registering a task during shutdown', () => {
