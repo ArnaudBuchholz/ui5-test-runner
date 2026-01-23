@@ -31,7 +31,9 @@ export const log = async (configuration: Configuration) => {
       }
       if (__developmentMode) {
         const compressionRatio = Math.floor((10_000 * logStats.size) / outputSize) / 100;
-        console.log(`${ANSI_BLUE}[~]${ANSI_WHITE}From ${logStats.size} to ${outputSize} (${chunks.length} chunks), ratio: ${compressionRatio}%`);
+        console.log(
+          `${ANSI_BLUE}[~]${ANSI_WHITE}From ${logStats.size} to ${outputSize} (${chunks.length} chunks), ratio: ${compressionRatio}%`
+        );
       }
       resolve();
     })

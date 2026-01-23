@@ -1,6 +1,5 @@
 import { describe, it, expect, vi } from 'vitest';
 import type { Exit as ExitType, IAsyncTask, IRegisteredAsyncTask } from './Exit.js';
-import { AssertionError } from 'node:assert/strict';
 const { Exit } = await vi.importActual<{ Exit: typeof ExitType }>('./Exit.js');
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Undocumented API
