@@ -7,6 +7,7 @@ import { ServerResponse, ClientRequest } from 'node:http';
 // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Undocumented API
 vi.spyOn(process as any, '_getActiveHandles').mockReturnValue([]);
 vi.spyOn(console, 'log').mockImplementation(() => {});
+vi.spyOn(Exit, 'shutdown');
 
 it('offers a wrapper for process.exitCode', () => {
   Exit.code = -1;
@@ -45,6 +46,45 @@ describe('shutdown', () => {
 
     it('fails when registering a task during shutdown', () => {
       expect(() => Exit.registerAsyncTask(task)).toThrowError('Exiting application');
+    });
+
+    it('logs stop error (synchronous)', async () => {
+      Object.assign(Exit, { _enteringShutdown: false });
+      const error = new Error('Fail');
+      Exit.registerAsyncTask({
+        name: 'will fail on stop',
+        stop: () => {
+          throw error;
+        }
+      });
+      await Exit.shutdown();
+      expect(logger.debug).toHaveBeenCalledWith({
+        source: 'exit',
+        message: `Failed while stopping will fail on stop...`,
+        error
+      });
+    });
+
+    it('logs stop error (asynchronous)', async () => {
+      Object.assign(Exit, { _enteringShutdown: false });
+      const error = new Error('Fail');
+      Exit.registerAsyncTask({
+        name: 'will fail on stop',
+        stop: () => Promise.reject(error)
+      });
+      await Exit.shutdown();
+      expect(logger.debug).toHaveBeenCalledWith({
+        source: 'exit',
+        message: `Failed while stopping will fail on stop...`,
+        error
+      });
+    });
+  });
+
+  describe('sigInt handler', () => {
+    it('calls shutdown', () => {
+      Exit.sigInt();
+      expect(Exit.shutdown).toHaveBeenCalled();
     });
   });
 });
