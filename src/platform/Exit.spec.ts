@@ -2,6 +2,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import type { Exit as ExitType, IAsyncTask, IRegisteredAsyncTask } from './Exit.js';
 import { logger } from './logger.js';
 const { Exit } = await vi.importActual<{ Exit: typeof ExitType }>('./Exit.js');
+import { ServerResponse, ClientRequest } from 'node:http';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Undocumented API
 vi.spyOn(process as any, '_getActiveHandles').mockReturnValue([]);
@@ -51,8 +52,10 @@ describe('shutdown', () => {
 describe('handles', () => {
   const undocumentedProcess = process as { _getActiveHandles?: () => unknown[] };
   const getHandlesMock = vi.spyOn(undocumentedProcess, '_getActiveHandles');
+  const destroy = vi.fn();
 
   beforeEach(() => {
+    vi.clearAllMocks();
     Object.assign(Exit, { _enteringShutdown: false });
   });
 
@@ -61,9 +64,11 @@ describe('handles', () => {
       label: string;
       handles: unknown[];
       logType: 'warn' | 'debug';
+      destroyed?: true;
       message: string;
     }[] = [
       {
+        // ChildProcess
         label: 'ChildProcess',
         handles: [
           {
@@ -78,6 +83,7 @@ describe('handles', () => {
         message: 'possible leak ChildProcess pid: 123 a,b'
       },
       {
+        // ChildProcess (no spawnargs)
         label: 'ChildProcess (no spawnargs)',
         handles: [
           {
@@ -91,6 +97,38 @@ describe('handles', () => {
         message: 'possible leak ChildProcess pid: 123 unknown'
       },
       {
+        // One MessagePort
+        label: 'One MessagePort',
+        handles: [
+          {
+            constructor: {
+              name: 'MessagePort'
+            }
+          }
+        ],
+        logType: 'debug',
+        message: 'MessagePort unknown'
+      },
+      {
+        // Two MessagePort
+        label: 'Two MessagePort',
+        handles: [
+          {
+            constructor: {
+              name: 'MessagePort'
+            }
+          },
+          {
+            constructor: {
+              name: 'MessagePort'
+            }
+          }
+        ],
+        logType: 'warn',
+        message: 'possible leak MessagePort unknown'
+      },
+      {
+        // ReadStream (custom)
         label: 'ReadStream (custom)',
         handles: [
           {
@@ -104,6 +142,7 @@ describe('handles', () => {
         message: 'possible leak ReadStream fd: 123'
       },
       {
+        // ReadStream (stdin)
         label: 'ReadStream (stdin)',
         handles: [
           {
@@ -118,6 +157,7 @@ describe('handles', () => {
         message: 'ReadStream stdin isTTY: true'
       },
       {
+        // Server
         label: 'Server',
         handles: [
           {
@@ -132,6 +172,138 @@ describe('handles', () => {
         message: 'possible leak Server connections: 1 events: 2'
       },
       {
+        // Socket (Incoming Request)
+        label: 'Socket (Incoming Request)',
+        handles: [
+          {
+            constructor: {
+              name: 'Socket'
+            },
+            _httpMessage: Object.assign(Object.create(ServerResponse.prototype), {
+              req: {
+                method: 'GET',
+                url: 'http://localhost'
+              }
+            }) as unknown,
+            destroy
+          }
+        ],
+        logType: 'warn',
+        destroyed: true,
+        message: 'possible leak Socket IncomingRequest GET http://localhost'
+      },
+      {
+        // Socket (Client Request)
+        label: 'Socket (Client Request)',
+        handles: [
+          {
+            constructor: {
+              name: 'Socket'
+            },
+            _httpMessage: Object.assign(Object.create(ClientRequest.prototype), {
+              method: 'GET',
+              host: 'localhost',
+              protocol: 'http:',
+              path: '/test'
+            }) as unknown,
+            destroy
+          }
+        ],
+        logType: 'warn',
+        destroyed: true,
+        message: 'possible leak Socket ClientRequest GET http://localhost/test'
+      },
+      {
+        // Socket (raw addresses)
+        label: 'Socket (raw addresses)',
+        handles: [
+          {
+            constructor: {
+              name: 'Socket'
+            },
+            localAddress: '127.0.0.1',
+            localPort: 80,
+            remoteAddress: '127.0.0.2',
+            remotePort: 99,
+            destroy
+          }
+        ],
+        logType: 'warn',
+        destroyed: true,
+        message: 'possible leak Socket local 127.0.0.1:80 <-> remote 127.0.0.2:99'
+      },
+      {
+        // Socket (raw local only)
+        label: 'Socket (raw local only)',
+        handles: [
+          {
+            constructor: {
+              name: 'Socket'
+            },
+            localAddress: '127.0.0.1',
+            localPort: 80,
+            destroy
+          }
+        ],
+        logType: 'warn',
+        destroyed: true,
+        message: 'possible leak Socket local 127.0.0.1:80'
+      },
+      {
+        // Socket (handle)
+        label: 'Socket (handle)',
+        handles: [
+          {
+            constructor: {
+              name: 'Socket'
+            },
+            _handle: {
+              constructor: {
+                name: 'whatever'
+              }
+            },
+            destroy
+          }
+        ],
+        logType: 'warn',
+        destroyed: true,
+        message: 'possible leak Socket whatever'
+      },
+      {
+        // Socket (unknown handle)
+        label: 'Socket (unknown handle)',
+        handles: [
+          {
+            constructor: {
+              name: 'Socket'
+            },
+            _handle: {
+              constructor: {}
+            },
+            destroy
+          }
+        ],
+        logType: 'warn',
+        destroyed: true,
+        message: 'possible leak Socket handle unknown'
+      },
+      {
+        // Socket (unknown)
+        label: 'Socket (unknown)',
+        handles: [
+          {
+            constructor: {
+              name: 'Socket'
+            },
+            destroy
+          }
+        ],
+        logType: 'warn',
+        destroyed: true,
+        message: 'possible leak Socket unknown'
+      },
+      {
+        // WriteStream (custom)
         label: 'WriteStream (custom)',
         handles: [
           {
@@ -145,6 +317,7 @@ describe('handles', () => {
         message: 'possible leak WriteStream fd: 123'
       },
       {
+        // WriteStream (stderr)
         label: 'WriteStream (stderr)',
         handles: [
           {
@@ -161,6 +334,7 @@ describe('handles', () => {
         message: 'WriteStream stderr 40x25 isTTY: true'
       },
       {
+        // WriteStream (stdout)
         label: 'WriteStream (stdout)',
         handles: [
           {
@@ -186,6 +360,11 @@ describe('handles', () => {
           source: 'exit/handle',
           message: testCase.message
         });
+        if (testCase.destroyed) {
+          expect(destroy).toHaveBeenCalled();
+        } else {
+          expect(destroy).not.toHaveBeenCalled();
+        }
       });
     }
   });

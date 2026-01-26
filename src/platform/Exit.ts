@@ -43,11 +43,12 @@ const socketHandleDescriptor = (handle: Handle) => {
     const { localAddress, localPort, remoteAddress, remotePort } = handle;
     return remoteAddress === undefined
       ? `local ${localAddress}:${localPort}`
-      : `local ${localAddress}:${localPort} remote ${remoteAddress}:${remotePort}`;
-  } else if (handle._handle) {
+      : `local ${localAddress}:${localPort} <-> remote ${remoteAddress}:${remotePort}`;
+  }
+  if (handle._handle) {
     const underlyingHandle = handle._handle;
     const underlyingClassName = underlyingHandle && underlyingHandle.constructor && underlyingHandle.constructor.name;
-    return `<-> ${underlyingClassName || 'unknown'}`;
+    return `${underlyingClassName || 'handle unknown'}`;
   }
   return 'unknown';
 };
