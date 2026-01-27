@@ -85,9 +85,11 @@ export class Exit {
 
   private static _checkForHandlesLeak() {
     const undocumentedProcess = process as { _getActiveHandles?: () => Handle[] };
-    const activeHandles: Handle[] = undocumentedProcess._getActiveHandles
-      ? undocumentedProcess._getActiveHandles()
-      : [];
+    if (!undocumentedProcess._getActiveHandles) {
+      logger?.warn({ source: 'exit/handle', message: 'Missing process._getActiveHandles' });
+      return;
+    }
+    const activeHandles: Handle[] = undocumentedProcess._getActiveHandles();
     let messagePortFound = false;
     for (const handle of activeHandles) {
       const { className, label } = describeHandle(handle);

@@ -405,7 +405,20 @@ describe('handles', () => {
         } else {
           expect(destroy).not.toHaveBeenCalled();
         }
+        expect(logger.warn).not.toHaveBeenCalledWith({
+          source: 'exit/handle',
+          message: 'Missing process._getActiveHandles'
+        });
       });
     }
+  });
+
+  it('does not fail if the undocumented API is not available', async () => {
+    globalThis.process = {} as typeof process;
+    await Exit.shutdown();
+    expect(logger.warn).toHaveBeenCalledWith({
+      source: 'exit/handle',
+      message: 'Missing process._getActiveHandles'
+    });
   });
 });
