@@ -34,7 +34,14 @@ vi.mock(import('./logger.js'), () => ({
   } satisfies ILogger
 }));
 
-vi.mock(import('./Exit.js'), async (importActual) => mockStaticMethodsOfExportedClasses(await importActual()));
+vi.mock(import('./Exit.js'), async (importActual) => {
+  const mocked = mockStaticMethodsOfExportedClasses(await importActual());
+  const { Exit } = mocked;
+  const unregister = vi.fn();
+  // eslint-disable-next-line @typescript-eslint/unbound-method -- unregister is not bound to the returned object
+  vi.mocked(Exit.registerAsyncTask).mockImplementation(() => ({ unregister }));
+  return mocked;
+});
 
 vi.mock(import('./FileSystem.js'), async (importActual) => {
   const mocked = mockStaticMethodsOfExportedClasses(await importActual());
