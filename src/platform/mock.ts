@@ -4,6 +4,7 @@ import type { BroadcastChannel, Worker } from 'node:worker_threads';
 import type { Gzip } from 'node:zlib';
 import { join } from 'node:path';
 import type { ILogger } from './logger/types.js';
+import type { IAsyncTask } from './Exit.js';
 
 const mockStaticMethodsOfExportedClasses = <T extends object>(actual: T): T => {
   const mocked = { ...actual };
@@ -34,12 +35,17 @@ vi.mock(import('./logger.js'), () => ({
   } satisfies ILogger
 }));
 
+export let __lastRegisteredExitAsyncTask: IAsyncTask;
+
 vi.mock(import('./Exit.js'), async (importActual) => {
   const mocked = mockStaticMethodsOfExportedClasses(await importActual());
   const { Exit } = mocked;
   const unregister = vi.fn();
   // eslint-disable-next-line @typescript-eslint/unbound-method -- unregister is not bound to the returned object
-  vi.mocked(Exit.registerAsyncTask).mockImplementation(() => ({ unregister }));
+  vi.mocked(Exit.registerAsyncTask).mockImplementation((task) => {
+    __lastRegisteredExitAsyncTask = task;
+    return { unregister };
+  });
   return mocked;
 });
 

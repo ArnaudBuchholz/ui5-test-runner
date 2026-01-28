@@ -2,6 +2,7 @@ import { it, expect, vi, beforeEach, describe } from 'vitest';
 import type { Http as HttpType } from './Http.js';
 import { Exit } from './Exit.js';
 import { logger } from './logger.js';
+import { __lastRegisteredExitAsyncTask } from './mock.js';
 const { Http } = await vi.importActual<{ Http: typeof HttpType }>('./Http.js');
 
 const URL = 'http://localhost/test';
@@ -47,13 +48,12 @@ describe('asynchronous task', () => {
     });
   });
 
-  // it('uses an AbortController to stop the request', async () => {
-  //   Http.get(URL);
-
-  //   expect(fetch).toHaveBeenCalledWith(URL, {
-  //     signal: expect.any(AbortSignal) as typeof AbortSignal
-  //   });
-  // });
+  it('uses an AbortController to stop the request', async () => {
+    await Http.get(URL);
+    expect(abortController.abort).not.toHaveBeenCalled();
+    await __lastRegisteredExitAsyncTask.stop();
+    expect(abortController.abort).toHaveBeenCalled();
+  });
 });
 
 describe('logging', () => {
