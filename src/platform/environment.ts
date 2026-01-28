@@ -22,6 +22,10 @@ export const logEnvironnement = async () => {
     }
   }
   for (const [model, count] of Object.entries(cpus)) {
-    logger.info({ source: 'job', message: `${Host.machine()} / ${count}x ${model}` });
+    if (count === 1) {
+      logger.info({ source: 'job', message: `${Host.machine()} / ${model}` });
+    } else {
+      logger.info({ source: 'job', message: `${Host.machine()} / ${count}x ${model}` });
+    }
   }
 };
