@@ -13,7 +13,9 @@ export const Http = {
     });
     logger.debug({ source: 'http', message: `GET ${url}`, data: { requestId } });
     try {
-      const response = await fetch(url);
+      const response = await fetch(url, {
+        signal: controller.signal
+      });
       const headers: Record<string, string | string[]> = {};
       for (const [name, value] of response.headers) {
         headers[name] = value;
