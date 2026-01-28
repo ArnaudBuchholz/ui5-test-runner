@@ -5,6 +5,8 @@ import type { Configuration } from '../configuration/Configuration.js';
 import { LogLevel } from './logger/types.js';
 import type { LogMessage } from './logger/types.js';
 import type { logger as LoggerType } from './logger.js';
+import { __lastTerminalRawModeCallback } from './mock.js';
+import { Exit } from './Exit.js';
 
 const expectAnyString = expect.any(String) as string;
 const expectAnyNumber = expect.any(Number) as number;
@@ -118,6 +120,47 @@ describe('Main thread', () => {
       const secondClose = logger.stop();
       simulateWorkersExit();
       await expect(Promise.all([firstClose, secondClose])).resolves.toStrictEqual([undefined, undefined]);
+    });
+  });
+
+  describe('raw mode', () => {
+    it('uses raw mode (!ci)', async () => {
+      const { logger } = await vi.importActual<{ logger: typeof LoggerType }>('./logger.js');
+      logger.start({ cwd } as Configuration);
+      expect(Terminal.setRawMode).toHaveBeenCalled();
+    });
+
+    it('detects CTRL+C and triggers Exit.sigInt', async () => {
+      const { logger } = await vi.importActual<{ logger: typeof LoggerType }>('./logger.js');
+      logger.start({ cwd } as Configuration);
+      const buffer = Buffer.from([3]);
+      expect.assert(typeof __lastTerminalRawModeCallback === 'function');
+      __lastTerminalRawModeCallback(buffer);
+      expect(Exit.sigInt).toHaveBeenCalled();
+    });
+
+    it('ignores other input', async () => {
+      const { logger } = await vi.importActual<{ logger: typeof LoggerType }>('./logger.js');
+      logger.start({ cwd } as Configuration);
+      const buffer = Buffer.from([4]);
+      expect.assert(typeof __lastTerminalRawModeCallback === 'function');
+      __lastTerminalRawModeCallback(buffer);
+      expect(Exit.sigInt).not.toHaveBeenCalled();
+    });
+
+    it('ignores other input (2)', async () => {
+      const { logger } = await vi.importActual<{ logger: typeof LoggerType }>('./logger.js');
+      logger.start({ cwd } as Configuration);
+      const buffer = Buffer.from([3, 4]);
+      expect.assert(typeof __lastTerminalRawModeCallback === 'function');
+      __lastTerminalRawModeCallback(buffer);
+      expect(Exit.sigInt).not.toHaveBeenCalled();
+    });
+
+    it('does not use raw mode (ci)', async () => {
+      const { logger } = await vi.importActual<{ logger: typeof LoggerType }>('./logger.js');
+      logger.start({ cwd, ci: true } as Configuration);
+      expect(Terminal.setRawMode).not.toHaveBeenCalled();
     });
   });
 });
