@@ -2,15 +2,10 @@ import { it, expect, vi, beforeEach, describe } from 'vitest';
 import type { Http as HttpType } from './Http.js';
 import { Exit } from './Exit.js';
 import { logger } from './logger.js';
-import { __lastRegisteredExitAsyncTask } from './mock.js';
+import { __lastRegisteredExitAsyncTask, __unregisterExitAsyncTask } from './mock.js';
 const { Http } = await vi.importActual<{ Http: typeof HttpType }>('./Http.js');
 
 const URL = 'http://localhost/test';
-
-const { unregister } = Exit.registerAsyncTask({
-  name: 'test',
-  stop: vi.fn()
-});
 
 const abortController = {
   abort: vi.fn(),
@@ -38,7 +33,7 @@ describe('asynchronous task', () => {
       name: expect.stringMatching(/^http.get#\d+$/) as string,
       stop: expect.any(Function) as () => void
     });
-    expect(unregister).toHaveBeenCalledOnce();
+    expect(__unregisterExitAsyncTask).toHaveBeenCalledOnce();
   });
 
   it('passes an AbortController signal the request', async () => {
