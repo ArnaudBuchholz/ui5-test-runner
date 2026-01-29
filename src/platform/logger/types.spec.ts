@@ -25,4 +25,25 @@ describe('toInternalLogAttributes', () => {
       message: 'test'
     });
   });
+
+  it('enables the override of processId', () => {
+    expect(
+      toInternalLogAttributes(
+        {
+          processId: 123_456,
+          source: 'job',
+          message: 'test'
+        },
+        LogLevel.info
+      )
+    ).toStrictEqual<InternalLogAttributes>({
+      timestamp: vi.getMockedSystemTime()?.getTime() ?? -1,
+      level: LogLevel.info,
+      processId: 123_456,
+      threadId: 0,
+      isMainThread: false,
+      source: 'job',
+      message: 'test'
+    });
+  });
 });
