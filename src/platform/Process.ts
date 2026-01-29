@@ -94,19 +94,19 @@ export class Process implements IProcess {
     this._closed = promise;
     this._childProcess.stdout?.on('data', (buffer: Buffer) => {
       const message = buffer.toString();
-      logger.debug({ source: 'process', processId: this._childProcess.pid, message, data: { type: 'stdout' } });
+      logger.debug({ source: 'process', processId: this.pid, message, data: { type: 'stdout' } });
       this._stdout.push(message);
     });
     this._childProcess.stderr?.on('data', (buffer: Buffer) => {
       const message = buffer.toString();
-      logger.debug({ source: 'process', processId: this._childProcess.pid, message, data: { type: 'stderr' } });
+      logger.debug({ source: 'process', processId: this.pid, message, data: { type: 'stderr' } });
       this._stderr.push(message);
     });
     this._childProcess.on('close', (code) => {
       this._code = code ?? 0;
       logger.debug({
         source: 'process',
-        processId: this._childProcess.pid,
+        processId: this.pid,
         message: 'closed',
         data: { code: this._code }
       });
@@ -115,16 +115,20 @@ export class Process implements IProcess {
     });
   }
 
+  get pid(): number {
+    return this._childProcess.pid!;
+  }
+
   async kill(): Promise<void> {
     logger.debug({
       source: 'process',
-      processId: this._childProcess.pid,
+      processId: this.pid,
       message: 'kill'
     });
     try {
       if (Host.platform() === 'win32') {
         // eslint-disable-next-line sonarjs/no-os-command-from-path -- secure
-        const killProcess = spawn('taskkill', ['/F', '/T', '/PID', this._childProcess.pid!.toString()], {
+        const killProcess = spawn('taskkill', ['/F', '/T', '/PID', this.pid.toString()], {
           windowsHide: true
         });
         // No supervision required, supposed to be fast
@@ -134,21 +138,21 @@ export class Process implements IProcess {
       } else {
         try {
           // First try to kill process tree
-          process.kill(-this._childProcess.pid!);
+          process.kill(-this.pid);
         } catch {
           // Otherwise, kill the process only
-          process.kill(this._childProcess.pid!);
+          process.kill(this.pid);
         }
       }
       logger.debug({
         source: 'process',
-        processId: this._childProcess.pid,
+        processId: this.pid,
         message: 'killed'
       });
     } catch (error) {
       logger.debug({
         source: 'process',
-        processId: this._childProcess.pid,
+        processId: this.pid,
         message: 'unable to kill',
         error
       });
