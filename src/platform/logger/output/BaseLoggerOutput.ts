@@ -2,17 +2,16 @@ import { FileSystem, Path, Terminal } from '../../index.js';
 import type { Configuration } from '../../../configuration/Configuration.js';
 import type { InternalLogAttributes } from '../types.js';
 import { LogLevel } from '../types.js';
-import { ANSI_BLUE, ANSI_MAGENTA, ANSI_RED, ANSI_WHITE, ANSI_YELLOW } from '../../../terminal/ansi.js';
 import { ProgressBar } from '../../../utils/ProgressBar.js';
 import { formatDuration } from '../../../utils/string.js';
 import { assert } from '../../assert.js';
 
 const icons = {
-  [LogLevel.debug]: ANSI_BLUE + '<o>',
+  [LogLevel.debug]: Terminal.BLUE + '<o>',
   [LogLevel.info]: '   ',
-  [LogLevel.warn]: ANSI_YELLOW + '/!\\',
-  [LogLevel.error]: ANSI_RED + '(X)',
-  [LogLevel.fatal]: ANSI_RED + 'o*!'
+  [LogLevel.warn]: Terminal.YELLOW + '/!\\',
+  [LogLevel.error]: Terminal.RED + '(X)',
+  [LogLevel.fatal]: Terminal.RED + 'o*!'
 } as const;
 
 export abstract class BaseLoggerOutput {
@@ -34,13 +33,13 @@ export abstract class BaseLoggerOutput {
     if (source !== 'progress' && source !== 'metric' && level !== LogLevel.debug) {
       return [
         icons[level],
-        ANSI_MAGENTA,
+        Terminal.MAGENTA,
         this.formatTimestamp(timestamp),
-        ANSI_WHITE,
+        Terminal.WHITE,
         ' ',
         message,
         data ? ` ${JSON.stringify(data)}` : '',
-        error ? ` ${ANSI_RED}${(error as Error).name} ${(error as Error).message}` : '',
+        error ? ` ${Terminal.RED}${(error as Error).name} ${(error as Error).message}` : '',
         '\n'
       ].join('');
     }

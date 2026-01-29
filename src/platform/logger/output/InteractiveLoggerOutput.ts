@@ -1,22 +1,10 @@
 import { Terminal } from '../../index.js';
 import { BaseLoggerOutput } from './BaseLoggerOutput.js';
 import type { Configuration } from '../../../configuration/Configuration.js';
-import {
-  ANSI_BLUE,
-  ANSI_CYAN,
-  ANSI_ERASE_TO_END,
-  ANSI_HIDE_CURSOR,
-  ANSI_MAGENTA,
-  ANSI_SETCOLUMN,
-  ANSI_SHOW_CURSOR,
-  ANSI_UP,
-  ANSI_WHITE,
-  ANSI_YELLOW
-} from '../../../terminal/ansi.js';
 
 const TICKS_INTERVAL = 250;
 const TICKS_PICTURES = ['[|]', '[/]', '[-]', String.raw`[\]`];
-const TICKS_COLORS = [ANSI_BLUE, ANSI_CYAN, ANSI_MAGENTA, ANSI_CYAN, ANSI_YELLOW, ANSI_CYAN];
+const TICKS_COLORS = [Terminal.BLUE, Terminal.CYAN, Terminal.MAGENTA, Terminal.CYAN, Terminal.YELLOW, Terminal.CYAN];
 
 export class InteractiveLoggerOutput extends BaseLoggerOutput {
   private _noColor: boolean;
@@ -29,12 +17,12 @@ export class InteractiveLoggerOutput extends BaseLoggerOutput {
   constructor(configuration: Configuration, startedAt: number) {
     super(configuration, startedAt);
     this._noColor = !!process.env['NO_COLOR'];
-    Terminal.write(ANSI_HIDE_CURSOR);
+    Terminal.write(Terminal.HIDE_CURSOR);
     this._ticksInterval = setInterval(this.tick.bind(this), TICKS_INTERVAL);
   }
 
   private _clean() {
-    Terminal.write(ANSI_SETCOLUMN(0));
+    Terminal.write(Terminal.SETCOLUMN(0));
     if (this._linesToErase.length > 0) {
       let count = 0;
       for (const width of this._linesToErase) {
@@ -44,8 +32,8 @@ export class InteractiveLoggerOutput extends BaseLoggerOutput {
           ++count;
         }
       }
-      Terminal.write(ANSI_UP(count));
-      Terminal.write(ANSI_ERASE_TO_END);
+      Terminal.write(Terminal.UP(count));
+      Terminal.write(Terminal.ERASE_TO_END);
     }
     this._linesToErase = [];
   }
@@ -77,7 +65,7 @@ export class InteractiveLoggerOutput extends BaseLoggerOutput {
     }
     Terminal.write(TICKS_COLORS[this._tick % TICKS_COLORS.length]!);
     Terminal.write(TICKS_PICTURES[this._tick % TICKS_PICTURES.length]!);
-    Terminal.write(ANSI_WHITE);
+    Terminal.write(Terminal.WHITE);
     const progressBar = this.progressMap[''];
     const rendered = progressBar.render(this._terminalWidth - 4);
     Terminal.write(rendered + '\n');
@@ -93,6 +81,6 @@ export class InteractiveLoggerOutput extends BaseLoggerOutput {
     clearInterval(this._ticksInterval);
     this._progress();
     this._clean();
-    Terminal.write(ANSI_SHOW_CURSOR);
+    Terminal.write(Terminal.SHOW_CURSOR);
   }
 }

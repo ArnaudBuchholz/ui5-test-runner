@@ -1,7 +1,6 @@
-import { __developmentMode, Exit, FileSystem, ZLib } from '../platform/index.js';
+import { __developmentMode, Exit, FileSystem, Terminal, ZLib } from '../platform/index.js';
 import type { Configuration } from '../configuration/Configuration.js';
 import { uncompress, createCompressionContext } from '../platform/logger/compress.js';
-import { ANSI_BLUE, ANSI_WHITE } from '../terminal/ansi.js';
 
 export const log = async (configuration: Configuration) => {
   const { log: logFileName } = configuration;
@@ -32,7 +31,7 @@ export const log = async (configuration: Configuration) => {
       if (__developmentMode) {
         const compressionRatio = Math.floor((10_000 * logStats.size) / outputSize) / 100;
         console.log(
-          `${ANSI_BLUE}[~]${ANSI_WHITE}From ${logStats.size} to ${outputSize} (${chunks.length} chunks), ratio: ${compressionRatio}%`
+          `${Terminal.BLUE}[~]${Terminal.WHITE}From ${logStats.size} to ${outputSize} (${chunks.length} chunks), ratio: ${compressionRatio}%`
         );
       }
       resolve();

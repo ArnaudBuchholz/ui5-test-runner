@@ -47,3 +47,13 @@ describe('write', () => {
     expect(process.stdout.write).toHaveBeenCalledWith('abc');
   });
 });
+
+describe('escape sequences', () => {
+  it('supports SETCOLUMN(column)', () => {
+    expect(Terminal.SETCOLUMN(10)).toStrictEqual('\u001B[10G');
+  });
+
+  it('supports UP(number of lines)', () => {
+    expect(Terminal.UP(10)).toStrictEqual('\u001B[10A');
+  });
+});

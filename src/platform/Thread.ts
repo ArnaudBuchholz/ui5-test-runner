@@ -1,7 +1,7 @@
 import { extname } from 'node:path';
 import { Path } from './Path.js';
 import { BroadcastChannel, Worker, isMainThread, threadId } from 'node:worker_threads';
-import { ANSI_BLUE, ANSI_WHITE } from '../terminal/ansi.js';
+import { Terminal } from './Terminal.js';
 import { __developmentMode, __sourcesRoot } from './constants.js';
 
 export class Thread {
@@ -20,14 +20,14 @@ export class Thread {
         const { workerMain } = (await import(workerPath)) as { workerMain: (data: unknown) => void };
         workerMain(data);
         if (__developmentMode) {
-          console.log(`${ANSI_BLUE}[~]${ANSI_WHITE}Fiber ${name} online`);
+          console.log(`${Terminal.BLUE}[~]${Terminal.WHITE}Fiber ${name} online`);
         }
       })();
       return {
         on: (event, callback) => {
           if (event === 'exit') {
             if (__developmentMode) {
-              console.log(`${ANSI_BLUE}[~]${ANSI_WHITE}Fiber ${name} offline`);
+              console.log(`${Terminal.BLUE}[~]${Terminal.WHITE}Fiber ${name} offline`);
             }
             callback(0);
           }
@@ -45,8 +45,8 @@ export class Thread {
       }
     });
     if (__developmentMode) {
-      worker.on('online', () => console.log(`${ANSI_BLUE}[~]${ANSI_WHITE}Worker ${name} online`));
-      worker.on('exit', () => console.log(`${ANSI_BLUE}[~]${ANSI_WHITE}Worker ${name} offline`));
+      worker.on('online', () => console.log(`${Terminal.BLUE}[~]${Terminal.WHITE}Worker ${name} online`));
+      worker.on('exit', () => console.log(`${Terminal.BLUE}[~]${Terminal.WHITE}Worker ${name} offline`));
     }
     return worker;
   };

@@ -1,5 +1,5 @@
 import { ServerResponse, ClientRequest } from 'node:http';
-import { ANSI_BLUE, ANSI_RED, ANSI_WHITE } from '../terminal/ansi.js';
+import { Terminal } from './Terminal.js';
 import { __developmentMode } from './constants.js';
 import { Thread } from './Thread.js';
 import { assert } from './assert.js';
@@ -161,13 +161,13 @@ export class Exit {
     await logger?.stop();
     logger?.debug({ source: 'exit', message: `logger stopped.` });
     if (__developmentMode) {
-      console.log(`${ANSI_BLUE}[~]${ANSI_WHITE}done.`);
+      console.log(`${Terminal.BLUE}[~]${Terminal.WHITE}done.`);
     }
   }
 
   static sigInt(this: void) {
     if (__developmentMode) {
-      console.log(`${ANSI_BLUE}[~]${ANSI_WHITE}${ANSI_RED}SIGINT${ANSI_WHITE} received`);
+      console.log(`${Terminal.BLUE}[~]${Terminal.WHITE}${Terminal.RED}SIGINT${Terminal.WHITE} received`);
     }
     void Exit.shutdown();
   }

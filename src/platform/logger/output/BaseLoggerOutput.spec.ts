@@ -4,7 +4,6 @@ import { BaseLoggerOutput } from './BaseLoggerOutput.js';
 import type { Configuration } from '../../../configuration/Configuration.js';
 import type { InternalLogAttributes } from '../types';
 import { LogLevel } from '../types.js';
-import { ANSI_YELLOW, ANSI_WHITE, ANSI_RED, ANSI_MAGENTA } from '../../../terminal/ansi.js';
 
 class TestLoggerOutput extends BaseLoggerOutput {
   override terminalResized(): void {}
@@ -32,7 +31,7 @@ describe('usual traces', () => {
       level: LogLevel.info,
       message: 'test'
     } as InternalLogAttributes);
-    const expectedString = `   ${ANSI_MAGENTA}00:00${ANSI_WHITE} test\n`;
+    const expectedString = `   ${Terminal.MAGENTA}00:00${Terminal.WHITE} test\n`;
     expect(addTextToLoggerOutput).toHaveBeenCalledWith(
       expectedString,
       Terminal.stripVTControlCharacters(expectedString)
@@ -51,7 +50,7 @@ describe('usual traces', () => {
       level: LogLevel.warn,
       message: 'test'
     } as InternalLogAttributes);
-    const expectedString = `${ANSI_YELLOW}/!\\${ANSI_MAGENTA}00:00${ANSI_WHITE} test\n`;
+    const expectedString = `${Terminal.YELLOW}/!\\${Terminal.MAGENTA}00:00${Terminal.WHITE} test\n`;
     expect(addTextToLoggerOutput).toHaveBeenCalledWith(
       expectedString,
       Terminal.stripVTControlCharacters(expectedString)
@@ -65,7 +64,7 @@ describe('usual traces', () => {
       level: LogLevel.error,
       message: 'test'
     } as InternalLogAttributes);
-    const expectedString = `${ANSI_RED}(X)${ANSI_MAGENTA}00:00${ANSI_WHITE} test\n`;
+    const expectedString = `${Terminal.RED}(X)${Terminal.MAGENTA}00:00${Terminal.WHITE} test\n`;
     expect(addTextToLoggerOutput).toHaveBeenCalledWith(
       expectedString,
       Terminal.stripVTControlCharacters(expectedString)
@@ -79,7 +78,7 @@ describe('usual traces', () => {
       level: LogLevel.fatal,
       message: 'test'
     } as InternalLogAttributes);
-    const expectedString = `${ANSI_RED}o*!${ANSI_MAGENTA}00:00${ANSI_WHITE} test\n`;
+    const expectedString = `${Terminal.RED}o*!${Terminal.MAGENTA}00:00${Terminal.WHITE} test\n`;
     expect(addTextToLoggerOutput).toHaveBeenCalledWith(
       expectedString,
       Terminal.stripVTControlCharacters(expectedString)
@@ -93,7 +92,7 @@ describe('usual traces', () => {
       level: LogLevel.info,
       message: 'test'
     } as InternalLogAttributes);
-    const expectedString = `   ${ANSI_MAGENTA}00:00${ANSI_WHITE} test\n`;
+    const expectedString = `   ${Terminal.MAGENTA}00:00${Terminal.WHITE} test\n`;
     expect(addTextToLoggerOutput).toHaveBeenCalledWith(
       expectedString,
       Terminal.stripVTControlCharacters(expectedString)
@@ -113,7 +112,7 @@ describe('usual traces', () => {
       message: 'test',
       data: { hello: 'world !' }
     } as InternalLogAttributes);
-    const expectedString = `   ${ANSI_MAGENTA}00:00${ANSI_WHITE} test {"hello":"world !"}\n`;
+    const expectedString = `   ${Terminal.MAGENTA}00:00${Terminal.WHITE} test {"hello":"world !"}\n`;
     expect(addTextToLoggerOutput).toHaveBeenCalledWith(
       expectedString,
       Terminal.stripVTControlCharacters(expectedString)
@@ -133,7 +132,7 @@ describe('usual traces', () => {
       message: 'test',
       error: { name: 'Error', message: 'ko' }
     } as InternalLogAttributes);
-    const expectedString = `   ${ANSI_MAGENTA}00:00${ANSI_WHITE} test ${ANSI_RED}Error ko\n`;
+    const expectedString = `   ${Terminal.MAGENTA}00:00${Terminal.WHITE} test ${Terminal.RED}Error ko\n`;
     expect(addTextToLoggerOutput).toHaveBeenCalledWith(
       expectedString,
       Terminal.stripVTControlCharacters(expectedString)
