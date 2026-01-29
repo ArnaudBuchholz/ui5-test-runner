@@ -5,6 +5,7 @@ import { LogLevel } from '../types.js';
 import { ANSI_BLUE, ANSI_MAGENTA, ANSI_RED, ANSI_WHITE, ANSI_YELLOW } from '../../../terminal/ansi.js';
 import { ProgressBar } from '../../../utils/ProgressBar.js';
 import { formatDuration } from '../../../utils/string.js';
+import { assert } from '../../assert.js';
 
 const icons = {
   [LogLevel.debug]: ANSI_BLUE + '<o>',
@@ -76,12 +77,11 @@ export abstract class BaseLoggerOutput {
         delete this._progressMap[uid];
         const startedAt = this._startedAtMap[uid];
         delete this._startedAtMap[uid];
-        if (startedAt) {
-          const duration = Date.now() - startedAt;
-          this
-            .addToReport(`   ${this.formatTimestamp(attributes.timestamp)} << ${attributes.message} (${formatDuration(duration)}) [${uid}]
+        assert(startedAt !== undefined);
+        const duration = Date.now() - startedAt;
+        this
+          .addToReport(`   ${this.formatTimestamp(attributes.timestamp)} << ${attributes.message} (${formatDuration(duration)}) [${uid}]
 `);
-        }
       }
       if (!uid && progress.label !== this._lastStatus) {
         this._lastStatus = progress.label;
