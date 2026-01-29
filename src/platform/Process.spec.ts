@@ -2,7 +2,7 @@ import { it, expect, vi, beforeEach, describe } from 'vitest';
 import type { ChildProcess } from 'node:child_process';
 import { spawn } from 'node:child_process';
 import type { Process as ProcessType } from './Process.js';
-import { Exit } from './Exit.js';
+import { Exit, ExitShutdownError } from './Exit.js';
 import { __lastRegisteredExitAsyncTask, __unregisterExitAsyncTask } from './mock.js';
 import { Host } from './Host.js';
 import { logger } from './logger.js';
@@ -81,6 +81,97 @@ describe('spawn', () => {
     Process.spawn('node', []);
     expect(spawn).toHaveBeenCalledWith(process.argv[0], [], {});
   });
+
+  it('documents spawning', () => {
+    const childProcess = Process.spawn('node', []);
+    expect(logger.debug).toHaveBeenCalledWith({
+      source: 'process',
+      processId: childProcess.pid,
+      message: 'spawned',
+      data: { command: 'node', arguments: [], options: {} }
+    });
+  });
+
+  it('documents error while spawning', () => {
+    const spawnError = new Error('KO');
+    vi.mocked(spawn).mockImplementationOnce(() => {
+      throw spawnError;
+    });
+    try {
+      Process.spawn('node', []);
+      expect.unreachable();
+    } catch (error) {
+      expect(error).toStrictEqual(spawnError);
+    }
+    expect(logger.error).toHaveBeenCalledWith({
+      source: 'process',
+      message: 'spawn failed',
+      data: { command: 'node', arguments: [], options: {} },
+      error: spawnError
+    });
+  });
+
+  it('documents error while spawning (Exit.shutdown in progress)', () => {
+    const exitError = new ExitShutdownError();
+    vi.mocked(Exit.registerAsyncTask).mockImplementationOnce(() => {
+      throw exitError;
+    });
+    try {
+      Process.spawn('node', []);
+      expect.unreachable();
+    } catch (error) {
+      expect(error).toStrictEqual(exitError);
+    }
+    expect(logger.warn).toHaveBeenCalledWith({
+      source: 'process',
+      message: 'spawn failed',
+      data: { command: 'node', arguments: [], options: {} },
+      error: exitError
+    });
+  });
+
+  it('collects, documents and consolidates stdout', () => {
+    const childProcess = Process.spawn('node', []);
+    mockChildProcess?.emitStdout('data', 'a');
+    mockChildProcess?.emitStdout('data', 'b');
+    mockChildProcess?.emitStdout('data', 'c');
+    expect(logger.debug).toHaveBeenCalledWith({
+      source: 'process',
+      processId: childProcess.pid,
+      message: 'a',
+      data: { type: 'stdout' }
+    });
+    expect(childProcess.stdout).toStrictEqual('abc');
+  });
+
+  it('collects, documents and consolidates stderr', () => {
+    const childProcess = Process.spawn('node', []);
+    mockChildProcess?.emitStderr('data', 'a');
+    mockChildProcess?.emitStderr('data', 'b');
+    mockChildProcess?.emitStderr('data', 'c');
+    expect(logger.debug).toHaveBeenCalledWith({
+      source: 'process',
+      processId: childProcess.pid,
+      message: 'b',
+      data: { type: 'stderr' }
+    });
+    expect(childProcess.stderr).toStrictEqual('abc');
+  });
+
+  for (const code of [0, undefined, 1, -1]) {
+    it(`documents process termination (${code ?? 'none'})`, async () => {
+      const childProcess = Process.spawn('node', []);
+      mockChildProcess?.emit('close', code);
+      await childProcess.closed;
+      expect(logger.debug).toHaveBeenCalledWith({
+        source: 'process',
+        processId: childProcess.pid,
+        message: 'closed',
+        data: { code: code ?? 0 }
+      });
+      expect(childProcess.code).toStrictEqual(code ?? 0);
+    });
+  }
 });
 
 describe('asynchronous task', () => {

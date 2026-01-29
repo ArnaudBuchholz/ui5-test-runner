@@ -6,6 +6,7 @@ import { Exit, ExitShutdownError } from './Exit.js';
 import type { IRegisteredAsyncTask } from './Exit.js';
 
 export interface IProcess {
+  readonly pid: number;
   readonly stdout: string;
   readonly stderr: string;
   readonly code: number | undefined;
@@ -31,9 +32,7 @@ export class Process implements IProcess {
     arguments_,
     options = {}
   ) => {
-    if (command === 'node') {
-      command = process.argv[0] as string;
-    }
+    const finalCommand = command === 'node' ? (process.argv[0] as string) : command;
     let asyncTask: IRegisteredAsyncTask | undefined;
     try {
       const stopper = new ProcessStopper();
@@ -41,7 +40,7 @@ export class Process implements IProcess {
         name: `Process.spawn(${command},${arguments_.join(',')})`,
         stop: () => stopper.stop()
       });
-      const childProcess = spawn(command, arguments_, options);
+      const childProcess = spawn(finalCommand, arguments_, options);
       logger.debug({
         source: 'process',
         processId: childProcess.pid,
