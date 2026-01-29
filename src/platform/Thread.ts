@@ -1,13 +1,13 @@
-import { join, extname } from 'node:path';
+import { extname } from 'node:path';
+import { Path } from './Path.js';
 import { BroadcastChannel, Worker, isMainThread, threadId } from 'node:worker_threads';
 import { ANSI_BLUE, ANSI_WHITE } from '../terminal/ansi.js';
 import { __developmentMode, __sourcesRoot } from './constants.js';
 
 export class Thread {
   static readonly threadCpuUsage = process.threadCpuUsage.bind(process);
-  static readonly createBroadcastChannel: (name: 'logger') => BroadcastChannel = (name) => new BroadcastChannel(name);
+  static readonly createBroadcastChannel = (name: string) => new BroadcastChannel(name);
   /**
-   *
    * @param name relative to src/
    * @param data parameters of the worker
    * @returns Worker
@@ -34,7 +34,7 @@ export class Thread {
         }
       } as Worker;
     }
-    const bootstrapPath = join(__sourcesRoot, 'platform/workerBootstrap' + extension);
+    const bootstrapPath = Path.join(__sourcesRoot, 'platform/workerBootstrap' + extension);
     const js2tsUrl = new URL('js2ts.mjs', import.meta.url).toString();
     const execArgv = extension === '.ts' ? ['--no-warnings', '--import', js2tsUrl] : [];
     const worker = new Worker(bootstrapPath, {

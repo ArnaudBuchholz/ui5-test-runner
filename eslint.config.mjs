@@ -28,7 +28,7 @@ export default [
   },
   // Need to disable this rule because tests are built with an external function
   {
-    files: ['src/configuration/validators/**.ts'],
+    files: ['src/configuration/validators/**.ts', 'src/platform/Thread.test.ts'],
     rules: {
       'sonarjs/no-empty-test-file': 'off'
     }
