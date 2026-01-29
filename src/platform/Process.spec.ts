@@ -1,10 +1,11 @@
 import { it, expect, vi, beforeEach, describe } from 'vitest';
-import { ChildProcess, spawn } from 'node:child_process';
+import type { ChildProcess } from 'node:child_process';
+import { spawn } from 'node:child_process';
 import type { Process as ProcessType } from './Process.js';
 import { Exit } from './Exit.js';
 import { __lastRegisteredExitAsyncTask, __unregisterExitAsyncTask } from './mock.js';
 import { Host } from './Host.js';
-// import { logger } from './logger.js';
+import { logger } from './logger.js';
 const { Process } = await vi.importActual<{ Process: typeof ProcessType }>('./Process.js');
 
 type EventHandler = (...arguments_: unknown[]) => unknown;
@@ -22,7 +23,7 @@ const createMockChildProcess = () => {
   };
 
   return {
-    pid: 1000 + Date.now() % 1000,
+    pid: 1000 + (Date.now() % 1000),
     stdout: {
       on: vi.fn((event: string, handler: EventHandler) => {
         registerHandler(stdoutHandlers, event, handler);
@@ -133,6 +134,20 @@ describe('kill', () => {
       });
       await killed;
     });
+
+    it('logs failure to kill', async () => {
+      const error = new Error('KO');
+      vi.mocked(spawn).mockImplementationOnce(() => {
+        throw error;
+      });
+      await childProcess.kill();
+      expect(logger.debug).toHaveBeenCalledWith({
+        source: 'process',
+        processId: childProcess.pid,
+        message: 'unable to kill',
+        error
+      });
+    });
   });
 
   describe('linux-like', () => {
@@ -142,8 +157,33 @@ describe('kill', () => {
 
     it('first tries to kill the process tree', async () => {
       const killed = childProcess.kill();
-      expect(process.kill).toHaveBeenCalledWith(-childProcess.pid)
+      expect(process.kill).toHaveBeenCalledWith(-childProcess.pid);
+      expect(process.kill).not.toHaveBeenCalledWith(childProcess.pid);
       await killed;
+    });
+
+    it('kills the process only if the tree cannot be killed', async () => {
+      vi.mocked(process.kill).mockImplementationOnce(() => {
+        throw new Error('NOPE');
+      });
+      const killed = childProcess.kill();
+      expect(process.kill).toHaveBeenCalledWith(-childProcess.pid);
+      expect(process.kill).toHaveBeenCalledWith(childProcess.pid);
+      await killed;
+    });
+
+    it('logs failure to kill', async () => {
+      const error = new Error('KO');
+      vi.mocked(process.kill).mockImplementation(() => {
+        throw error;
+      });
+      await childProcess.kill();
+      expect(logger.debug).toHaveBeenCalledWith({
+        source: 'process',
+        processId: childProcess.pid,
+        message: 'unable to kill',
+        error
+      });
     });
   });
 });
