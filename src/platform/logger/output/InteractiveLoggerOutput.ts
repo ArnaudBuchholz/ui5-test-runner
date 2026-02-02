@@ -10,7 +10,7 @@ export class InteractiveLoggerOutput extends BaseLoggerOutput {
   private _noColor: boolean;
   private _ticksInterval: ReturnType<typeof setInterval>;
   private _tick = 0;
-  private _terminalWidth = 80;
+  private _terminalWidth = Terminal.width;
   private _linesToErase: number[] = [];
   private _texts: string[] = [];
 
@@ -32,8 +32,7 @@ export class InteractiveLoggerOutput extends BaseLoggerOutput {
           ++count;
         }
       }
-      Terminal.write(Terminal.UP(count));
-      Terminal.write(Terminal.ERASE_TO_END);
+      Terminal.write(Terminal.UP(count) + Terminal.ERASE_TO_END);
     }
     this._linesToErase = [];
   }
@@ -63,12 +62,17 @@ export class InteractiveLoggerOutput extends BaseLoggerOutput {
       Terminal.write('   ' + rendered + '\n');
       this._linesToErase.push(3 + rendered.length);
     }
-    Terminal.write(TICKS_COLORS[this._tick % TICKS_COLORS.length]!);
-    Terminal.write(TICKS_PICTURES[this._tick % TICKS_PICTURES.length]!);
-    Terminal.write(Terminal.WHITE);
     const progressBar = this.progressMap[''];
     const rendered = progressBar.render(this._terminalWidth - 4);
-    Terminal.write(rendered + '\n');
+    Terminal.write(
+      [
+        TICKS_COLORS[this._tick % TICKS_COLORS.length]!,
+        TICKS_PICTURES[this._tick % TICKS_PICTURES.length]!,
+        Terminal.WHITE,
+        rendered,
+        '\n'
+      ].join('')
+    );
     this._linesToErase.push(3 + rendered.length);
   }
 
