@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach, vi, beforeAll, afterAll } from 'vitest';
 import { InteractiveLoggerOutput } from './InteractiveLoggerOutput.js';
 import type { Configuration } from '../../../configuration/Configuration';
 import { Terminal } from '../../Terminal.js';
@@ -37,6 +37,10 @@ describe('output handling', () => {
     } as Configuration,
     Date.now()
   );
+
+  afterAll(() => {
+    loggerOutput.closeLoggerOutput();
+  });
 
   describe('before tick', () => {
     it('does not output text', () => {
@@ -131,5 +135,42 @@ describe('output handling', () => {
       expect(Terminal.write).toHaveBeenCalledWith('   [####------] 40% page with a short URL\n');
       expect(Terminal.write).toHaveBeenCalledWith(`${Terminal.BLUE}[-]${Terminal.WHITE}[#####-----] 50% main\n`);
     });
+  });
+});
+
+describe('output handling (NO_COLOR)', () => {
+  let loggerOutput: InteractiveLoggerOutput;
+
+  beforeAll(() => {
+    vi.stubEnv('NO_COLOR', '1');
+    loggerOutput = new InteractiveLoggerOutput(
+      {
+        reportDir: './tmp',
+        outputInterval: 250
+      } as Configuration,
+      Date.now()
+    );
+  });
+
+  it('renders only raw text', async () => {
+    loggerOutput.addTextToLoggerOutput('formatted', 'raw');
+    await vi.advanceTimersToNextTimerAsync(); // tick
+    expect(Terminal.write).toHaveBeenCalledWith('raw');
+  });
+
+  it('does not render colors on the main progress', async () => {
+    loggerOutput.addAttributesToLoggerOutput({
+      timestamp: Date.now(),
+      source: 'progress',
+      level: LogLevel.info,
+      message: 'main',
+      data: {
+        uid: '',
+        max: 100,
+        value: 50
+      }
+    } as InternalLogAttributes);
+    await vi.advanceTimersToNextTimerAsync(); // tick
+    expect(Terminal.write).toHaveBeenCalledWith(`[-][#####-----] 50% main\n`);
   });
 });

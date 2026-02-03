@@ -61,15 +61,19 @@ export class InteractiveLoggerOutput extends BaseLoggerOutput {
     }
     const progressBar = this.progressMap[''];
     const rendered = progressBar.render(this._terminalWidth - 4);
-    Terminal.write(
-      [
-        TICKS_COLORS[this._tick % TICKS_COLORS.length]!,
-        TICKS_PICTURES[this._tick % TICKS_PICTURES.length]!,
-        Terminal.WHITE,
-        rendered,
-        '\n'
-      ].join('')
-    );
+    if (this._noColor) {
+      Terminal.write([TICKS_PICTURES[this._tick % TICKS_PICTURES.length]!, rendered, '\n'].join(''));
+    } else {
+      Terminal.write(
+        [
+          TICKS_COLORS[this._tick % TICKS_COLORS.length]!,
+          TICKS_PICTURES[this._tick % TICKS_PICTURES.length]!,
+          Terminal.WHITE,
+          rendered,
+          '\n'
+        ].join('')
+      );
+    }
     this._linesToErase.push(3 + rendered.length);
   }
 
