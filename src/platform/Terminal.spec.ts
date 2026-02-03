@@ -7,6 +7,7 @@ vi.spyOn(process.stdout, 'write');
 vi.spyOn(process.stdin, 'on');
 process.stdin.setRawMode = vi.fn();
 process.stdin.pause = vi.fn();
+vi.spyOn(Terminal, 'write');
 
 beforeEach(() => vi.clearAllMocks());
 
@@ -48,12 +49,24 @@ describe('write', () => {
   });
 });
 
-describe('escape sequences', () => {
-  it('supports SETCOLUMN(column)', () => {
-    expect(Terminal.SETCOLUMN(10)).toStrictEqual('\u001B[10G');
+describe('special sequences', () => {
+  it('hideCursor', () => {
+    Terminal.hideCursor();
+    expect(Terminal.write).toHaveBeenCalledWith('\u001B[?25l');
   });
 
-  it('supports UP(number of lines)', () => {
-    expect(Terminal.UP(10)).toStrictEqual('\u001B[10A');
+  it('showCursor', () => {
+    Terminal.showCursor();
+    expect(Terminal.write).toHaveBeenCalledWith('\u001B[?25h');
+  });
+
+  it('eraseToEnd (0)', () => {
+    Terminal.eraseToEnd(0);
+    expect(Terminal.write).toHaveBeenCalledWith('\u001B[0G');
+  });
+
+  it('eraseToEnd (10)', () => {
+    Terminal.eraseToEnd(10);
+    expect(Terminal.write).toHaveBeenCalledWith('\u001B[0G\u001B[10A\u001B[0J');
   });
 });
