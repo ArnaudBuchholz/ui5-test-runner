@@ -17,29 +17,26 @@ export class InteractiveLoggerOutput extends BaseLoggerOutput {
   constructor(configuration: Configuration, startedAt: number) {
     super(configuration, startedAt);
     this._noColor = !!process.env['NO_COLOR'];
-    Terminal.write(Terminal.HIDE_CURSOR);
+    Terminal.hideCursor();
     this._ticksInterval = setInterval(this.tick.bind(this), TICKS_INTERVAL);
   }
 
   private _clean() {
-    Terminal.write(Terminal.SETCOLUMN(0));
-    if (this._linesToErase.length > 0) {
-      let count = 0;
-      for (const width of this._linesToErase) {
-        if (width > this._terminalWidth) {
-          count += Math.ceil(width / this._terminalWidth);
-        } else {
-          ++count;
-        }
+    let count = 0;
+    for (const width of this._linesToErase) {
+      if (width > this._terminalWidth) {
+        count += Math.ceil(width / this._terminalWidth);
+      } else {
+        ++count;
       }
-      Terminal.write(Terminal.UP(count) + Terminal.ERASE_TO_END);
     }
+    Terminal.eraseToEnd(count);
     this._linesToErase = [];
   }
 
   override terminalResized(width: number) {
-    this._clean();
     this._terminalWidth = width;
+    this._clean();
     this._progress();
   }
 
@@ -85,6 +82,6 @@ export class InteractiveLoggerOutput extends BaseLoggerOutput {
     clearInterval(this._ticksInterval);
     this._progress();
     this._clean();
-    Terminal.write(Terminal.SHOW_CURSOR);
+    Terminal.showCursor();
   }
 }
