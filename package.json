@@ -88,7 +88,7 @@
     "npm-check-updates": "^19.3.2",
     "puppeteer": "^24.36.1",
     "rimraf": "^6.1.2",
-    "stylelint": "^17.1.0",
+    "stylelint": "^17.1.1",
     "stylelint-config-standard": "^40.0.0",
     "typescript": "^5.9.3",
     "typescript-eslint": "^8.54.0",
