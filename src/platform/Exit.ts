@@ -151,21 +151,22 @@ export class Exit {
       } catch (error) {
         logger?.debug({ source: 'exit', message: `Failed while stopping ${task.name}...`, error });
       } finally {
-        if (task === Exit._asyncTasks[0]) {
-          Exit._asyncTasks.shift();
-        }
+        assert(task === Exit._asyncTasks[0], "Exit's IAsyncTask disappeared during stop");
+        Exit._asyncTasks.shift();
       }
     }
     Exit._checkForHandlesLeak();
     logger?.debug({ source: 'exit', message: `Stopping logger...` });
     await logger?.stop();
     logger?.debug({ source: 'exit', message: `logger stopped.` });
+    /* v8 ignore else -- @preserve */
     if (__developmentMode) {
       console.log(`${Terminal.BLUE}[~]${Terminal.WHITE}done.`);
     }
   }
 
   static sigInt(this: void) {
+    /* v8 ignore else -- @preserve */
     if (__developmentMode) {
       console.log(`${Terminal.BLUE}[~]${Terminal.WHITE}${Terminal.RED}SIGINT${Terminal.WHITE} received`);
     }
@@ -178,6 +179,7 @@ const breakDependencyLoopToLogger = async () => {
   logger = module.logger;
 };
 
+/* v8 ignore else -- @preserve */
 if (Thread.isMainThread) {
   process.on('SIGINT', Exit.sigInt);
   void breakDependencyLoopToLogger();

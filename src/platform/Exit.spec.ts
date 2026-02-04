@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import type { Exit as ExitType, IAsyncTask, IRegisteredAsyncTask } from './Exit.js';
+import type { Exit as ExitType, IAsyncTask } from './Exit.js';
 import { logger } from './logger.js';
 const { Exit } = await vi.importActual<{ Exit: typeof ExitType }>('./Exit.js');
 import { ServerResponse, ClientRequest } from 'node:http';
@@ -27,10 +27,12 @@ beforeEach(() => vi.clearAllMocks());
 
 describe('shutdown', () => {
   describe('asynchronous tasks', () => {
-    let registered: IRegisteredAsyncTask;
+    beforeEach(() => {
+      Object.assign(Exit, { _enteringShutdown: false });
+    });
 
     it('offers a method to register an asynchronous task', () => {
-      registered = Exit.registerAsyncTask(task);
+      const registered = Exit.registerAsyncTask(task);
       expect(registered).not.toBeUndefined();
       expect(typeof registered.unregister).toStrictEqual('function');
     });
@@ -40,16 +42,25 @@ describe('shutdown', () => {
       expect(task.stop).toHaveBeenCalled();
     });
 
-    it('does not fail if trying to unregister twice (because it may happen)', () => {
+    it('does not fail if trying to unregister twice (because it may happen)', async () => {
+      const registered = Exit.registerAsyncTask(task);
+      await Exit.shutdown();
       expect(() => registered.unregister()).not.toThrowError();
     });
 
-    it('fails when registering a task during shutdown', () => {
+    it('fails when registering a task during shutdown', async () => {
+      await Exit.shutdown();
       expect(() => Exit.registerAsyncTask(task)).toThrowError('Exiting application');
     });
 
+    it('offers a way for the task to unregister itself', async () => {
+      const registered = Exit.registerAsyncTask(task);
+      registered.unregister();
+      await Exit.shutdown();
+      expect(task.stop).not.toHaveBeenCalled();
+    });
+
     it('logs stop error (synchronous)', async () => {
-      Object.assign(Exit, { _enteringShutdown: false });
       const error = new Error('Fail');
       Exit.registerAsyncTask({
         name: 'will fail on stop',
