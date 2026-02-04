@@ -45,10 +45,8 @@ export class InteractiveLoggerOutput extends BaseLoggerOutput {
   }
 
   private _progress() {
-    this._clean();
-    for (const text of this._texts) {
-      Terminal.write(text);
-    }
+    const texts = [...this._texts];
+    const linesToErase = [];
     this._texts.length = 0;
     const keys = Object.keys(this.progressMap)
       .filter((key) => key !== '')
@@ -56,15 +54,15 @@ export class InteractiveLoggerOutput extends BaseLoggerOutput {
     for (const key of keys) {
       const progressBar = this.progressMap[key]!; // key is coming from Object.keys
       const rendered = progressBar.render(this._terminalWidth - 4);
-      Terminal.write('   ' + rendered + '\n');
-      this._linesToErase.push(3 + rendered.length);
+      texts.push('   ' + rendered + '\n');
+      linesToErase.push(3 + rendered.length);
     }
     const progressBar = this.progressMap[''];
     const rendered = progressBar.render(this._terminalWidth - 4);
     if (this._noColor) {
-      Terminal.write([TICKS_PICTURES[this._tick % TICKS_PICTURES.length]!, rendered, '\n'].join(''));
+      texts.push([TICKS_PICTURES[this._tick % TICKS_PICTURES.length]!, rendered, '\n'].join(''));
     } else {
-      Terminal.write(
+      texts.push(
         [
           TICKS_COLORS[this._tick % TICKS_COLORS.length]!,
           TICKS_PICTURES[this._tick % TICKS_PICTURES.length]!,
@@ -74,7 +72,14 @@ export class InteractiveLoggerOutput extends BaseLoggerOutput {
         ].join('')
       );
     }
-    this._linesToErase.push(3 + rendered.length);
+    linesToErase.push(3 + rendered.length);
+    this._clean();
+    for (const text of texts) {
+      Terminal.write(text);
+    }
+    for (const line of linesToErase) {
+      this._linesToErase.push(line);
+    }
   }
 
   tick(): void {
