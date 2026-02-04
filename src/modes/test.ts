@@ -1,30 +1,17 @@
-import { __sourcesRoot, logger, Exit, FileSystem, Path } from './platform/index.js';
-import type { AgentFeedback } from './agent/Feedback.js';
-import { BrowserFactory } from './browsers/factory.js';
-import type { Configuration } from './configuration/Configuration.js';
-import { Modes } from './modes/Modes.js';
-import { defaults } from './configuration/options.js';
-import { logEnvironnement } from './platform/environment.js';
-import { parallelize } from './utils/parallelize.js';
-import { version } from './modes/version.js';
-import { help } from './modes/help.js';
-import { log } from './modes/log.js';
+import { __sourcesRoot, logger, Exit, FileSystem, Path } from '../platform/index.js';
+import type { AgentFeedback } from '../agent/Feedback.js';
+import { BrowserFactory } from '../browsers/factory.js';
+import type { Configuration } from '../configuration/Configuration.js';
+import { defaults } from '../configuration/options.js';
+import { logEnvironnement } from '../platform/environment.js';
+import { parallelize } from '../utils/parallelize.js';
 
-// TODO: move below modes/
-export const execute = async (configuration: Configuration) => {
-  if (configuration.mode === Modes.version) {
-    await version();
-  } else if (configuration.mode === Modes.help) {
-    help();
-  } else if (configuration.mode === Modes.log) {
-    await log(configuration);
-  } else {
-    // TODO: new mode
-    logger.start(configuration);
-    logger.debug({ source: 'job', message: 'Configuration', data: { defaults, configuration } });
+export const test = async (configuration: Configuration) => {
+  logger.start(configuration);
+  logger.debug({ source: 'job', message: 'Configuration', data: { defaults, configuration } });
 
-    await logEnvironnement();
-    const agent = await FileSystem.readFile(Path.join(__sourcesRoot, './agent/agent.js'), 'utf8');
+  await logEnvironnement();
+  const agent = await FileSystem.readFile(Path.join(__sourcesRoot, 'agent/agent.js'), 'utf8');
     try {
       if (!configuration.url) {
         logger.fatal({ source: 'job', message: 'Expected URLs to be set' });
@@ -95,5 +82,4 @@ export const execute = async (configuration: Configuration) => {
     } catch (error) {
       logger.error({ source: 'job', message: 'An error occurred', error });
     }
-  }
 };
