@@ -27,6 +27,7 @@ export class StaticLoggerOutput extends BaseLoggerOutput {
     }
   }
 
+  /* v8 ignore next -- @preserve */
   override terminalResized(): void {}
   override addTextToLoggerOutput(): void {}
 
