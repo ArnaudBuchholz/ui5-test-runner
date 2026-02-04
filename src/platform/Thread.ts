@@ -19,13 +19,16 @@ export class Thread {
       void (async () => {
         const { workerMain } = (await import(workerPath)) as { workerMain: (data: unknown) => void };
         workerMain(data);
+        /* v8 ignore else -- @preserve */
         if (__developmentMode) {
           console.log(`${Terminal.BLUE}[~]${Terminal.WHITE}Fiber ${name} online`);
         }
       })();
       return {
         on: (event, callback) => {
+          /* v8 ignore else -- @preserve */
           if (event === 'exit') {
+            /* v8 ignore else -- @preserve */
             if (__developmentMode) {
               console.log(`${Terminal.BLUE}[~]${Terminal.WHITE}Fiber ${name} offline`);
             }
@@ -36,6 +39,7 @@ export class Thread {
     }
     const bootstrapPath = Path.join(__sourcesRoot, 'platform/workerBootstrap' + extension);
     const js2tsUrl = new URL('js2ts.mjs', import.meta.url).toString();
+    /* v8 ignore next -- @preserve */
     const execArgv = extension === '.ts' ? ['--no-warnings', '--import', js2tsUrl] : [];
     const worker = new Worker(bootstrapPath, {
       execArgv,
@@ -44,8 +48,11 @@ export class Thread {
         data
       }
     });
+    /* v8 ignore else -- @preserve */
     if (__developmentMode) {
+      /* v8 ignore next -- @preserve */
       worker.on('online', () => console.log(`${Terminal.BLUE}[~]${Terminal.WHITE}Worker ${name} online`));
+      /* v8 ignore next -- @preserve */
       worker.on('exit', () => console.log(`${Terminal.BLUE}[~]${Terminal.WHITE}Worker ${name} offline`));
     }
     return worker;
