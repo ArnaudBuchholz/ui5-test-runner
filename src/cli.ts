@@ -2,7 +2,7 @@
 
 import { Exit, Host } from './platform/index.js';
 import { CommandLine } from './configuration/CommandLine.js';
-import { execute } from './job.js';
+import { execute } from './modes/execute.js';
 
 const main = async () => {
   const indexOfCli = process.argv.findIndex((value) => value.endsWith('cli.ts') || value.endsWith('cli.js'));
