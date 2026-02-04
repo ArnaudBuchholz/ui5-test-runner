@@ -44,7 +44,6 @@ class Context {
     return result;
   }
 
-  /* v8 ignore next */
   private fail(message: string): never {
     throw new Error(message);
   }
@@ -74,9 +73,9 @@ class Context {
     };
   }
 
-  private _uncompressFromList<T>({ array, compressed }: { array: T[]; compressed: string }): T {
+  private _uncompressFromList<T>({ type, array, compressed }: { type: string; array: T[]; compressed: string }): T {
     const index = Context.uncompressNumber(compressed);
-    return array[index] ?? this.fail(`Invalid index ${index} (length: ${array.length})`);
+    return array[index] ?? this.fail(`Invalid ${type} index ${index} (length: ${array.length})`);
   }
 
   private _processes: ProcessContext[] = [];
@@ -118,6 +117,7 @@ class Context {
 
   uncompressProcess(compressed: string): ProcessContext {
     return this._uncompressFromList({
+      type: 'process',
       array: this._processes,
       compressed
     });
@@ -139,6 +139,7 @@ class Context {
 
   uncompressSource(compressed: string): string {
     return this._uncompressFromList({
+      type: 'source',
       array: this._sources,
       compressed
     });
@@ -183,7 +184,8 @@ const augmentContext = (context: Context, line: string) => {
   const firstChar = line.charAt(0);
   if (firstChar === CONTEXT_PROCESS_ID) {
     context.addProcess(line);
-  } else if (firstChar === CONTEXT_SOURCE_ID) {
+  } else {
+    assert.ok(firstChar === CONTEXT_SOURCE_ID, `unexpected context operator ${firstChar}`);
     context.addSource(line);
   }
 };
@@ -207,7 +209,7 @@ const uncompressLine = (context: Context, line: string): InternalLogAttributes |
   let error: unknown;
   const startOfJson = messageAndExtra.indexOf(JSON_VALUE_SEP);
   if (startOfJson === -1) {
-    message = messageAndExtra ?? '';
+    message = messageAndExtra;
   } else {
     message = messageAndExtra.slice(0, startOfJson);
     const json = messageAndExtra
