@@ -20,7 +20,12 @@ export const test = async (configuration: Configuration) => {
     logger.info({ source: 'progress', message: 'Executing pages', data: { uid: '', value: 0, max: 0 } });
     const urls = configuration.url;
     const browser = await BrowserFactory.build('puppeteer');
-    await browser.setup({});
+    try {
+      await browser.setup({});
+    } catch (error) {
+      logger.fatal({ source: 'job', message: 'Unable to setup browser', error });
+      throw error; // TODO: Use a normalized error with an associated exit code
+    }
     let stopRequested = false;
     const promise = parallelize(
       // eslint-disable-next-line sonarjs/cognitive-complexity -- Temporary
