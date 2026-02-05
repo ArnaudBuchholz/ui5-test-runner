@@ -129,9 +129,9 @@ export class Process implements IProcess {
         const killProcess = spawn('taskkill', ['/F', '/T', '/PID', this.pid.toString()], {
           windowsHide: true
         });
-        // No supervision required, supposed to be fast
+        // No asynctask required, supposed to be fast
         const { promise, resolve } = Promise.withResolvers<void>();
-        killProcess.on('close', resolve);
+        killProcess.on('close', () => setTimeout(resolve, 0)); // Or it will appear as a leak
         await promise;
       } else {
         try {
