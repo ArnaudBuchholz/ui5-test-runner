@@ -24,17 +24,17 @@ const mockStaticMethodsOfExportedClasses = <T extends object>(actual: T): T => {
   return mocked;
 };
 
-vi.mock(import('./logger.js'), () => ({
-  logger: {
-    start: vi.fn(),
-    debug: vi.fn(),
-    info: vi.fn(),
-    warn: vi.fn(),
-    error: vi.fn(),
-    fatal: vi.fn(),
-    stop: vi.fn()
-  } satisfies ILogger
-}));
+const logger = {
+  start: vi.fn(),
+  debug: vi.fn(),
+  info: vi.fn(),
+  warn: vi.fn(),
+  error: vi.fn(),
+  fatal: vi.fn(),
+  stop: vi.fn()
+} satisfies ILogger;
+
+vi.mock(import('./logger.js'), () => ({ logger }));
 
 export const __unregisterExitAsyncTask = vi.fn();
 export let __lastRegisteredExitAsyncTask: IAsyncTask;
