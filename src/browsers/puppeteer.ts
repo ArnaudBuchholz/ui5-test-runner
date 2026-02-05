@@ -15,7 +15,7 @@ export const factory = async (): Promise<IBrowser> => {
       logger.debug({ source: 'puppeteer', message: 'setup', data: settings });
       try {
         browser = await launch({
-          headless: false,
+          headless: true,
           defaultViewport: null,
           handleSIGINT: false
         });
@@ -34,6 +34,7 @@ export const factory = async (): Promise<IBrowser> => {
           throw error;
         }
       }
+      logger.debug({ source: 'puppeteer', message: 'setup completed' });
       task = Exit.registerAsyncTask({
         name: 'puppeteer',
         async stop() {
@@ -52,6 +53,7 @@ export const factory = async (): Promise<IBrowser> => {
         await page?.evaluateOnNewDocument(script);
       }
       await page?.goto(settings.url);
+      logger.debug({ source: 'puppeteer', message: 'newWindow completed', data: settings });
       return {
         async eval(script: string) {
           return await page?.evaluate(script);
@@ -66,6 +68,7 @@ export const factory = async (): Promise<IBrowser> => {
     },
 
     async shutdown() {
+      logger.debug({ source: 'puppeteer', message: 'shutdown' });
       // TODO close any remaining pages
       await browser?.close();
       task.unregister();
