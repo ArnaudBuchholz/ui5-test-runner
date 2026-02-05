@@ -1,4 +1,4 @@
-import { Exit } from './Exit.js';
+import { Exit, ExitShutdownError } from './Exit.js';
 import { Host } from './Host.js';
 import { Terminal } from './Terminal.js';
 import { Thread } from './Thread.js';
@@ -137,8 +137,12 @@ export const logger = {
   warn(attributes: LogAttributes) {
     log(LogLevel.warn, attributes);
   },
+  /** automatic switch to debug if error instanceof ExitShutdownError */
   error(attributes: LogAttributes) {
-    log(LogLevel.error, attributes);
+    log(
+      attributes.error && attributes.error instanceof ExitShutdownError ? LogLevel.debug : LogLevel.error,
+      attributes
+    );
   },
   fatal(attributes: LogAttributes) {
     log(LogLevel.fatal, attributes);

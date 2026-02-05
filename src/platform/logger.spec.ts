@@ -6,7 +6,7 @@ import { LogLevel } from './logger/types.js';
 import type { LogMessage } from './logger/types.js';
 import type { logger as LoggerType } from './logger.js';
 import { __lastTerminalRawModeCallback } from './mock.js';
-import { Exit } from './Exit.js';
+import { Exit, ExitShutdownError } from './Exit.js';
 
 const expectAnyString = expect.any(String) as string;
 const expectAnyNumber = expect.any(Number) as number;
@@ -277,6 +277,25 @@ describe('general', () => {
               message: 'cause',
               stack: expectAnyString
             }
+          }
+        })
+      );
+    });
+
+    it('converts error trace to a debug one when the error is ExitShutdownError', async () => {
+      const { logger } = await vi.importActual<{ logger: typeof LoggerType }>('./logger.js');
+      const channel = Thread.createBroadcastChannel('logger');
+      const error = new ExitShutdownError();
+      logger.error({ source: 'job', message: 'test', error });
+      expect(channel.postMessage).toHaveBeenCalledWith(
+        expect.objectContaining({
+          level: LogLevel.debug,
+          source: 'job',
+          message: 'test',
+          error: {
+            name: 'ExitShutdownError',
+            message: 'Exiting application',
+            stack: expectAnyString
           }
         })
       );

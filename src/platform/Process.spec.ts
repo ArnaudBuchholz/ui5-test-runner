@@ -122,7 +122,7 @@ describe('spawn', () => {
     } catch (error) {
       expect(error).toStrictEqual(exitError);
     }
-    expect(logger.warn).toHaveBeenCalledWith({
+    expect(logger.error).toHaveBeenCalledWith({
       source: 'process',
       message: 'spawn failed',
       data: { command: 'node', arguments: [], options: {} },
