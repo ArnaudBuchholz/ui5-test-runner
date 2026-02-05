@@ -1,8 +1,7 @@
 import { extname } from 'node:path';
 import { Path } from './Path.js';
 import { BroadcastChannel, Worker, isMainThread, threadId } from 'node:worker_threads';
-import { Terminal } from './Terminal.js';
-import { __developmentMode, __sourcesRoot } from './constants.js';
+import { __sourcesRoot } from './constants.js';
 
 export class Thread {
   static readonly threadCpuUsage = process.threadCpuUsage.bind(process);
@@ -19,19 +18,11 @@ export class Thread {
       void (async () => {
         const { workerMain } = (await import(workerPath)) as { workerMain: (data: unknown) => void };
         workerMain(data);
-        /* v8 ignore else -- @preserve */
-        if (__developmentMode) {
-          console.log(`${Terminal.BLUE}[~]${Terminal.WHITE}Fiber ${name} online`);
-        }
       })();
       return {
         on: (event, callback) => {
           /* v8 ignore else -- @preserve */
           if (event === 'exit') {
-            /* v8 ignore else -- @preserve */
-            if (__developmentMode) {
-              console.log(`${Terminal.BLUE}[~]${Terminal.WHITE}Fiber ${name} offline`);
-            }
             callback(0);
           }
         }
@@ -48,13 +39,6 @@ export class Thread {
         data
       }
     });
-    /* v8 ignore else -- @preserve */
-    if (__developmentMode) {
-      /* v8 ignore next -- @preserve */
-      worker.on('online', () => console.log(`${Terminal.BLUE}[~]${Terminal.WHITE}Worker ${name} online`));
-      /* v8 ignore next -- @preserve */
-      worker.on('exit', () => console.log(`${Terminal.BLUE}[~]${Terminal.WHITE}Worker ${name} offline`));
-    }
     return worker;
   };
   static readonly isMainThread = isMainThread;

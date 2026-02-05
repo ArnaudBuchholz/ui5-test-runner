@@ -1,6 +1,4 @@
 import { ServerResponse, ClientRequest } from 'node:http';
-import { Terminal } from './Terminal.js';
-import { __developmentMode } from './constants.js';
 import { Thread } from './Thread.js';
 import { assert } from './assert.js';
 import type { ILogger } from './logger/types.js';
@@ -159,17 +157,9 @@ export class Exit {
     logger?.debug({ source: 'exit', message: `Stopping logger...` });
     await logger?.stop();
     logger?.debug({ source: 'exit', message: `logger stopped.` });
-    /* v8 ignore else -- @preserve */
-    if (__developmentMode) {
-      console.log(`${Terminal.BLUE}[~]${Terminal.WHITE}done.`);
-    }
   }
 
   static sigInt(this: void) {
-    /* v8 ignore else -- @preserve */
-    if (__developmentMode) {
-      console.log(`${Terminal.BLUE}[~]${Terminal.WHITE}${Terminal.RED}SIGINT${Terminal.WHITE} received`);
-    }
     void Exit.shutdown();
   }
 }
