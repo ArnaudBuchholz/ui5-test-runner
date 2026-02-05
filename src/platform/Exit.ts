@@ -149,8 +149,9 @@ export class Exit {
       } catch (error) {
         logger?.debug({ source: 'exit', message: `Failed while stopping ${task.name}...`, error });
       } finally {
-        assert(task === Exit._asyncTasks[0], "Exit's IAsyncTask disappeared during stop");
-        Exit._asyncTasks.shift();
+        if (task === Exit._asyncTasks[0]) {
+          Exit._asyncTasks.shift();
+        }
       }
     }
     Exit._checkForHandlesLeak();

@@ -48,6 +48,20 @@ describe('shutdown', () => {
       expect(() => registered.unregister()).not.toThrowError();
     });
 
+    it('does not fail if the task disappears while exiting (it may happen)', async () => {
+      const { promise, resolve } = Promise.withResolvers<void>();
+      const task = {
+        name: 'test',
+        stop: vi.fn().mockReturnValue(promise)
+      };
+      const registered = Exit.registerAsyncTask(task);
+      const exited = Exit.shutdown();
+      expect(task.stop).toHaveBeenCalled();
+      registered.unregister();
+      resolve();
+      await expect(exited).resolves.toBeUndefined();
+    });
+
     it('fails when registering a task during shutdown', async () => {
       await Exit.shutdown();
       expect(() => Exit.registerAsyncTask(task)).toThrowError('Exiting application');
