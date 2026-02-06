@@ -21,7 +21,7 @@ export const factory = async (): Promise<IBrowser> => {
         });
       } catch (error) {
         if (error instanceof Error && error.message.startsWith('Could not find Chrome')) {
-          logger.info({ source: 'puppeteer', message: 'Installing chrome' });
+          logger.info({ source: 'progress', message: 'Installing chrome (puppeteer)', data: { uid: '', value: 0, max: 0 } });
           await Process.spawn('npx', 'puppeteer browsers install chrome'.split(' '), {
             shell: true
           }).closed;
