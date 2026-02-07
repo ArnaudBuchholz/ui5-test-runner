@@ -4,7 +4,7 @@ import { log } from './log.js';
 import type { ModeFunction } from './ModeFunction.js';
 import { Modes } from './Modes.js';
 import { version } from './version.js';
-import { test } from './test.js';
+import { test } from './test/index.js';
 
 const notImplemented = () => {
   throw new Error('Not implemented');

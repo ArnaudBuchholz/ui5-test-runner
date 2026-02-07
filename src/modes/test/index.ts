@@ -1,10 +1,20 @@
-import { __sourcesRoot, logger, Exit, FileSystem, Path } from '../platform/index.js';
-import type { AgentFeedback } from '../agent/Feedback.js';
-import { BrowserFactory } from '../browsers/factory.js';
-import type { Configuration } from '../configuration/Configuration.js';
-import { defaults } from '../configuration/options.js';
-import { logEnvironnement } from '../platform/environment.js';
-import { parallelize } from '../utils/parallelize.js';
+import { __sourcesRoot, logger, Exit, FileSystem, Path, logEnvironnement } from '../../platform/index.js';
+import type { AgentResponse } from '../../agent/Response.js';
+import { BrowserFactory } from '../../browsers/factory.js';
+import type { Configuration } from '../../configuration/Configuration.js';
+import { defaults } from '../../configuration/options.js';
+import { parallelize } from '../../utils/parallelize.js';
+
+/**
+ * TODO
+ * - log environment
+ * - handle coverage
+ * - allocate browser
+ * - read agent to inject
+ * - (legacy) build URL
+ * - parallelize
+ * - build reports
+ */
 
 export const test = async (configuration: Configuration) => {
   logger.start(configuration);
@@ -39,7 +49,7 @@ export const test = async (configuration: Configuration) => {
         while (inProgress && !stopRequested) {
           try {
             // Value must be serializable...
-            const feedback = (await page.eval("window['ui5-test-runner']")) as AgentFeedback;
+            const feedback = (await page.eval("window['ui5-test-runner']")) as AgentResponse;
             if (feedback.status === 'done') {
               inProgress = false;
               if (feedback.type === 'suite') {
