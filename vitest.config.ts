@@ -1,8 +1,10 @@
 import { defineConfig, configDefaults } from 'vitest/config';
 
+const exclude = [...configDefaults.exclude, 'src/**/*.js', 'src/**/*.test.ts', 'test/**', 'e2e/**'];
+
 export default defineConfig({
   test: {
-    exclude: [...configDefaults.exclude, 'src/**/*.js', 'src/**/*.test.ts', 'test/**', 'e2e/**'],
+    exclude,
     coverage: {
       exclude: [
         '**/*.js',
@@ -19,18 +21,18 @@ export default defineConfig({
     projects: [{
       extends: true,
       test: {
-        name: { label: 'cli', color: 'green' },
+        exclude: [ ...exclude, 'src/agent/**' ],
+        name: { label: 'node.js', color: 'green' },
         environment: 'node',
         setupFiles: [ 'src/platform/mock.ts' ]
       }
-    // }, {
-    //   extends: true,
-    //   test: {
-    //     exclude: [ ...exclude, 'src/platform/**/*.spec.ts' ],
-    //     name: { label: 'agent', color: 'blue' },
-    //     environment: 'node',
-    //     setupFiles: [ 'src/platform/mock.ts' ],
-    //   }
+    }, {
+      extends: true,
+      test: {
+        include: [ 'src/agent/**/*.spec.ts' ],
+        name: { label: 'browser', color: 'blue' },
+        environment: 'jsdom'
+      }
     }]
   }
 });
