@@ -1,15 +1,14 @@
 import { state } from './state.js';
+import { suite } from './suite.js';
+import { qunit } from './qunit.js';
 
 window.addEventListener('load', async () => {
   state.loaded = Date.now();
   if (typeof window.suite === 'function') {
-    state.type = 'suite';
-    await window.suite();
-    state.pages = jsUnitTestSuite.pages;
-    state.done = true;
+    suite();
   } else if (typeof QUnit === 'undefined') {
+    // Not sure what to do
   } else {
-    state.type = 'QUnit';
+    qunit();
   }
 });
-

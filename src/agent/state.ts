@@ -1,6 +1,28 @@
-export const state: Partial<{
-  loaded: ReturnType<typeof Date.now>;
-  done: true;
-  type: 'suite' | 'QUnit';
-  pages: string[]; // when type = suite
-}> = {};
+export type State = {
+  loaded?: ReturnType<typeof Date.now>;
+  done: boolean;
+} & (
+  | {
+      /** Unknown yet */
+      type: undefined;
+    }
+  | {
+      /** Suite of tests */
+      type: 'suite';
+      /** Test pages to run */
+      pages: string[];
+    }
+  | {
+      /** Tests */
+      type: 'QUnit';
+      /** Number of tests executed so far */
+      executed: number;
+      /** Total number of tests */
+      total: number;
+    }
+);
+
+export const state: State = {
+  done: false,
+  type: undefined
+};
