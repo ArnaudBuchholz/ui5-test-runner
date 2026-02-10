@@ -5,6 +5,9 @@
       "path": "./tsconfig.cli.json"
     },
     {
+      "path": "./tsconfig.agent.json"
+    },
+    {
       "path": "./tsconfig.vitest.json"
     }
   ]
