@@ -15,6 +15,8 @@ export type State = {
   | {
       /** Tests */
       type: 'QUnit';
+      /** Detect OPA tests */
+      isOpa: boolean;
       /** Number of tests executed so far */
       executed: number;
       /** Total number of tests */

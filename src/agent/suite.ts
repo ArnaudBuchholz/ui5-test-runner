@@ -4,11 +4,11 @@ import { state } from './state.js';
 class jsUnitTestSuite {
   private static _pages: string[] = [];
 
-  static get pages () {
+  static get pages() {
     return this._pages;
   }
 
-  static addTestPage (url: string) {
+  static addTestPage(url: string) {
     this._pages.push(url);
   }
 }

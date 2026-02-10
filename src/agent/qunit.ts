@@ -1,61 +1,31 @@
+import type { State } from './state.js';
 import { state } from './state.js';
 
-interface QUnitTest {
-  testId: string;
-  testName: string;
-  expected: null | number;
-  assertions: Array<{ result: boolean; message: string }>;
-  module: QUnitModule;
-  skip?: true;
-  todo?: boolean;
-}
+type QUnitState = Extract<State, { type: 'QUnit' }>;
 
-interface QUnitModule {
-  name: string;
-  tests: QUnitTest[];
-  childModules: QUnitModule[];
-  testsRun: number;
-  testsIgnored: number;
-  skip?: boolean;
-  ignored?: boolean;
-}
-
-
-
-const m = {} as Module;
-m.
-
-const updateQUnitProgress = () => {
-  let aggregatedTotal = 0;
-  let aggregatedExecuted = 0;
-  for (const module of QUnit.config.modules) {
-    const { passed, failed, skipped, todo, total } = module.suiteReport.getTestCounts();
-    aggregatedTotal += total - skipped - todo;
-    aggregatedExecuted += module.testsRun;
-    }
-    ui5TestRunner.total = aggregatedTotal;
-    ui5TestRunner.executed = aggregatedExecuted;
-};
+const updateState = (updates: Partial<QUnitState>) => Object.assign(state, updates);
 
 export const qunit = () => {
   state.type = 'QUnit';
+  let executed = 0;
 
-        ui5TestRunner.type = 'QUnit';
+  QUnit.begin((details) =>
+    updateState({
+      isOpa: !!window?.sap?.ui?.test?.Opa5,
+      executed,
+      total: details.totalTests
+    })
+  );
 
-        QUnit.begin(() => {
-          ui5TestRunner.opa = isOpa();
-        });
+  QUnit.testDone(() =>
+    updateState({
+      executed: ++executed
+    })
+  );
 
-        QUnit.testStart(() => {
-          updateQUnitProgress();
-        });
-
-        QUnit.testDone(() => {
-          updateQUnitProgress();
-        });
-
-        QUnit.done(() => {
-          updateQUnitProgress();
-          ui5TestRunner.status = 'done';
-        });
+  QUnit.done(() =>
+    updateState({
+      done: true
+    })
+  );
 };
