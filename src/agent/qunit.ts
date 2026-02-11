@@ -35,13 +35,16 @@ export const qunit = () => {
   state.type = 'QUnit';
   let executed = 0;
 
-  QUnit.begin((details) =>
+  QUnit.begin((details) => {
+    if (!report.summary.start) {
+      report.summary.start = Date.now();
+    }
     updateState({
       isOpa: !!window?.sap?.ui?.test?.Opa5,
       executed,
       total: details.totalTests
     })
-  );
+  });
 
   QUnit.testStart((details) => {
     report.tests.push({

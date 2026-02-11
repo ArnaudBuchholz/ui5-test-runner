@@ -1,7 +1,7 @@
 // Based on https://ctrf.io, see https://github.com/ctrf-io/ctrf/blob/main/spec/ctrf.md
 // JSON schema converted through https://transform.tools/json-schema-to-typescript
 
-type Status = 'passed' | 'failed' | 'skipped' | 'pending' | 'other';
+export type CommonTestStatus = 'passed' | 'failed' | 'skipped' | 'pending' | 'other';
 
 /** Common Test Report Format - an open standard JSON format for test results reports */
 export interface CommonTestReport {
@@ -68,7 +68,7 @@ export interface CommonTestReport {
       /** Name or title of the test case */
       name: string;
       /** Final outcome of the test case */
-      status: Status;
+      status: CommonTestStatus;
       /** Test execution time (milliseconds) */
       duration: number;
       /** Test start time (milliseconds since Unix epoch) */
@@ -102,7 +102,7 @@ export interface CommonTestReport {
         /** Attempt number (1 = first execution) */
         attempt: number;
         /** Outcome of this attempt */
-        status: Status;
+        status: CommonTestStatus;
         /** Attempt execution time (milliseconds) */
         duration?: number;
         /** Error or failure message for this attempt */
@@ -175,7 +175,7 @@ export interface CommonTestReport {
         /** Name of the step */
         name: string;
         /** Outcome of the step */
-        status: Status;
+        status: CommonTestStatus;
         /** Extension point for arbitrary metadata */
         extra?: {
           [k: string]: unknown;
