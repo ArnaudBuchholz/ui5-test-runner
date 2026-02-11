@@ -1,7 +1,7 @@
-import type { State } from './state.js';
+import type { AgentState } from '../types/AgentState.js';
 import { state } from './state.js';
 
-class jsUnitTestSuite {
+class JsUnitTestSuite {
   private static _pages: string[] = [];
 
   static get pages() {
@@ -13,14 +13,14 @@ class jsUnitTestSuite {
   }
 }
 
-Object.assign(window, { jsUnitTestSuite });
+Object.assign(window, { jsUnitTestSuite: JsUnitTestSuite });
 
-export const suite = async () => {
-  await window.suite?.();
-  const newState: State = {
+export const suite = () => {
+  window.suite?.();
+  const newState: AgentState = {
     done: true,
     type: 'suite',
-    pages: jsUnitTestSuite.pages
+    pages: JsUnitTestSuite.pages
   };
   Object.assign(state, newState);
 };

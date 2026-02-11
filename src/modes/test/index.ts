@@ -1,9 +1,10 @@
-import { __sourcesRoot, logger, Exit, FileSystem, Path, logEnvironnement } from '../../platform/index.js';
-import type { AgentResponse } from '../../agent/Response.js';
+import { logger, Exit, logEnvironnement } from '../../platform/index.js';
+import type { AgentState } from '../../types/AgentState.js';
 import { BrowserFactory } from '../../browsers/factory.js';
 import type { Configuration } from '../../configuration/Configuration.js';
 import { defaults } from '../../configuration/options.js';
 import { parallelize } from '../../utils/parallelize.js';
+import { getAgentSource } from './agent.js';
 
 /**
  * TODO
@@ -21,7 +22,7 @@ export const test = async (configuration: Configuration) => {
   logger.debug({ source: 'job', message: 'Configuration', data: { defaults, configuration } });
 
   await logEnvironnement();
-  const agent = await FileSystem.readFile(Path.join(__sourcesRoot, 'agent/agent.js'), 'utf8');
+  const agent = await getAgentSource();
   try {
     if (!configuration.url) {
       logger.fatal({ source: 'job', message: 'Expected URLs to be set' });
@@ -49,22 +50,22 @@ export const test = async (configuration: Configuration) => {
         while (inProgress && !stopRequested) {
           try {
             // Value must be serializable...
-            const feedback = (await page.eval("window['ui5-test-runner']")) as AgentResponse;
-            if (feedback.status === 'done') {
+            const agentState = (await page.eval("window['ui5-test-runner'].state")) as AgentState;
+            if (agentState.done) {
               inProgress = false;
-              if (feedback.type === 'suite') {
-                for (const page of feedback.pages) {
+              if (agentState.type === 'suite') {
+                for (const page of agentState.pages) {
                   const pageUrl = new URL(page, url).toString();
                   urls.push(pageUrl);
                 }
               }
-            } else if (feedback.type === 'QUnit' && feedback.total > 0) {
+            } else if (agentState.type === 'QUnit' && agentState.total > 0) {
               // TODO: generate a message *only if* the progress changed (otherwise it grows the log file)
               // TODO: hash the URL to generate the UID
               logger.info({
                 source: 'progress',
                 message: url,
-                data: { max: feedback.total, value: feedback.executed, uid: url }
+                data: { max: agentState.total, value: agentState.executed, uid: url }
               });
             }
           } catch (error) {

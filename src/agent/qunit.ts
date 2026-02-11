@@ -1,9 +1,11 @@
-import type { State } from './state.js';
+import type { AgentState } from '../types/AgentState.js';
 import { state } from './state.js';
 
-type QUnitState = Extract<State, { type: 'QUnit' }>;
+type QUnitState = Extract<AgentState, { type: 'QUnit' }>;
 
-const updateState = (updates: Partial<QUnitState>) => Object.assign(state, updates);
+const updateState = (updates: Partial<QUnitState>) => {
+  Object.assign(state, updates);
+};
 
 export const qunit = () => {
   state.type = 'QUnit';
