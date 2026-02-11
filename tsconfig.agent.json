@@ -1,12 +1,11 @@
 {
   "extends": ["./tsconfig.base.json"],
-  "include": ["src/agent"],
+  "include": ["src/agent/*.ts", "src/types/*.ts"],
   "exclude": ["src/agent/*.spec.ts"],
   "compilerOptions": {
     "moduleResolution": "Bundler",
     "target": "ESNext",
     "module": "esnext",
-    "lib": ["DOM"],
-    "types": ["src/agent/window.d.ts"]
+    "lib": ["DOM"]
   }
 }
