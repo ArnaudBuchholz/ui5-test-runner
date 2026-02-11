@@ -1,6 +1,7 @@
 import type { QUnit } from 'qunit';
 import type { UI5_TEST_RUNNER } from './contants.js';
 import type { State } from './state.js';
+import type { CommonTestReport } from '../types/CommonTestReportFormat.js';
 
 declare global {
   interface Window {
@@ -11,6 +12,7 @@ declare global {
     /** Managed by the agent */
     [UI5_TEST_RUNNER]: {
       state: State;
+      report?: CommonTestReport['results']
     };
   }
 }
