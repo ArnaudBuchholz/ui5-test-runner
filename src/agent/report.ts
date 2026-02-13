@@ -34,8 +34,9 @@ export class AgentTestResultsBuilder implements ITestResultsBuilder {
   }
 
   test(result: ITestResult): void {
-    ++this._results.summary.tests;
-    ++this._results.summary[result.status];
+    const { summary } = this._results;
+    ++summary.tests;
+    ++summary[result.status];
     const test: CommonTestReport['results']['tests'][number] = {
       duration: result.duration,
       name: result.label,
@@ -49,7 +50,11 @@ export class AgentTestResultsBuilder implements ITestResultsBuilder {
     this._results.tests.push(test);
   }
 
-  end(): void {}
+  end(): void {
+    const { summary } = this._results;
+    summary.stop = Date.now();
+    summary.duration = summary.stop - summary.start;
+  }
 }
 
 export const report: ITestResultsBuilder = new AgentTestResultsBuilder();

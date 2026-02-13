@@ -1,6 +1,7 @@
 import { it, expect, describe, beforeEach } from 'vitest';
 import { AgentTestResultsBuilder } from './report.js';
 import type { CommonTestReport, CommonTestStatus } from '../types/CommonTestReportFormat';
+import { setTimeout } from 'node:timers/promises';
 
 describe('begin', () => {
   it('reports on tool being used (no version)', () => {
@@ -22,8 +23,9 @@ describe('begin', () => {
 
   it('stores start', () => {
     const report = new AgentTestResultsBuilder();
+    const now = Date.now();
     report.begin('QUnit@1.2.3');
-    expect(report.results.summary.start).not.toStrictEqual(0);
+    expect(report.results.summary.start).toBeGreaterThanOrEqual(now);
   });
 });
 
@@ -87,4 +89,22 @@ describe('test', () => {
       ]);
     });
   }
+});
+
+describe('end', () => {
+  it('computes stop and duration', async () => {
+    const report = new AgentTestResultsBuilder();
+    report.begin('Qunit@1.2.3');
+    report.test({
+      duration: 1,
+      label: 'test',
+      status: 'passed',
+      suite: 'suite'
+    });
+    await setTimeout(100);
+    const now = Date.now();
+    report.end();
+    expect(report.results.summary.stop).toBeGreaterThanOrEqual(now);
+    expect(report.results.summary.duration).not.toStrictEqual(0);
+  });
 });
