@@ -1,11 +1,13 @@
 import { BrowserFactory } from '../../browsers/factory.js';
 import type { IBrowser } from '../../browsers/IBrowser.js';
-import { Configuration } from '../../configuration/Configuration.js';
+import type { Configuration } from '../../configuration/Configuration.js';
+import { assert } from '../../platform/assert.js';
 import { logger } from '../../platform/logger.js';
 
 let browser: IBrowser;
 
 export const setupBrowser = async (configuration: Configuration): Promise<IBrowser> => {
+  assert(configuration.browser === 'puppeteer');
   browser = await BrowserFactory.build('puppeteer');
   try {
     await browser.setup({});
@@ -14,6 +16,6 @@ export const setupBrowser = async (configuration: Configuration): Promise<IBrows
     throw error; // TODO: Use a normalized error with an associated exit code
   }
   return browser;
-}
+};
 
 export const getBrowser = (): IBrowser => browser;

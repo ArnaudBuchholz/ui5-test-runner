@@ -1,6 +1,4 @@
-import { logger, Exit, logEnvironnement } from '../../platform/index.js';
-import type { AgentState } from '../../types/AgentState.js';
-import { BrowserFactory } from '../../browsers/factory.js';
+import { logger, logEnvironnement } from '../../platform/index.js';
 import type { Configuration } from '../../configuration/Configuration.js';
 import { defaults } from '../../configuration/options.js';
 import { parallelize } from '../../utils/parallelize.js';
@@ -34,11 +32,7 @@ export const test = async (configuration: Configuration) => {
     const urls = configuration.url;
     const browser = await setupBrowser(configuration);
     logger.info({ source: 'progress', message: 'Executing pages', data: { uid: '', value: 0, max: 0 } });
-    await parallelize(
-      pageTask,
-      urls,
-      configuration.parallel
-    );
+    await parallelize(pageTask, urls, configuration.parallel);
     await browser.shutdown();
   } catch (error) {
     logger.error({ source: 'job', message: 'An error occurred', error });
