@@ -1,7 +1,8 @@
 import { assert } from '../platform/assert.js';
 
-interface IParallelizeContext {
+export interface IParallelizeContext {
   stop(reason: Error): void;
+  readonly stopRequested: boolean;
 }
 
 export const parallelize = async <INPUT, OUTPUT = INPUT>(
@@ -11,18 +12,18 @@ export const parallelize = async <INPUT, OUTPUT = INPUT>(
 ): Promise<Array<PromiseSettledResult<OUTPUT>>> => {
   const results: Array<PromiseSettledResult<OUTPUT>> = [];
   let index = 0;
-  let stopped = false;
   const context = {
     stop(reason: Error) {
-      stopped = true;
+      context.stopRequested = true;
       throw reason;
-    }
+    },
+    stopRequested: false
   };
   let active = 0;
   const { promise, resolve } = Promise.withResolvers<Array<PromiseSettledResult<OUTPUT>>>();
   const fiber = async (): Promise<void> => {
     ++active;
-    while (!stopped && index < queue.length) {
+    while (!context.stopRequested && index < queue.length) {
       const current = index++;
       if (active < parallel && index < queue.length) {
         void fiber();

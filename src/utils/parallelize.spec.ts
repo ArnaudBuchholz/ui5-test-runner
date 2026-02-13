@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { parallelize } from './parallelize.js';
+import { setTimeout } from 'node:timers/promises';
 
 const list = [...'abcdefghijklmnopqrstuvwxyz'];
 
@@ -37,9 +38,7 @@ it('processes all the values', async () => {
 it('supports variable execution times (a > b)', async () => {
   const result = await parallelize(
     async (value) => {
-      await (value === 'a'
-        ? new Promise((resolve) => setTimeout(resolve, 250))
-        : new Promise((resolve) => setTimeout(resolve, 100)));
+      await setTimeout(value === 'a' ? 250 : 100);
       return value;
     },
     ['a', 'b'],
@@ -60,9 +59,7 @@ it('supports variable execution times (a > b)', async () => {
 it('supports variable execution times (a < b)', async () => {
   const result = await parallelize(
     async (value) => {
-      await (value === 'a'
-        ? new Promise((resolve) => setTimeout(resolve, 100))
-        : new Promise((resolve) => setTimeout(resolve, 250)));
+      await setTimeout(value === 'a' ? 100 : 250);
       return value;
     },
     ['a', 'b'],
@@ -89,7 +86,7 @@ describe('runs as many concurrent tasks as necessary', () => {
         async (value) => {
           ++active;
           maxActive = Math.max(maxActive, active);
-          await new Promise((resolve) => setTimeout(resolve, 10));
+          await setTimeout(10);
           --active;
           return value;
         },
@@ -141,7 +138,7 @@ it('augments parallelism (if needed) when the list is growing', async () => {
     async (value) => {
       ++active;
       maxActive = Math.max(maxActive, active);
-      await new Promise((resolve) => setTimeout(resolve, 10));
+      await setTimeout(10);
       if (value === 'a') {
         partial.push('b', 'c');
       }
@@ -187,7 +184,7 @@ it('does not go beyond the number of items (slow start)', async () => {
       if (value === 'a') {
         partial.push(...list.slice(1));
       }
-      await new Promise((resolve) => setTimeout(resolve, 10));
+      await setTimeout(10);
       return value;
     },
     partial,
@@ -261,4 +258,26 @@ it('offers an helper to stop all processing', async () => {
       reason
     }
   ]);
+});
+
+it('offers an helper to know if stopping was requested', async () => {
+  const reason = new Error('STOP');
+  let stopBefore: boolean | undefined;
+  let stopAfter: boolean | undefined;
+  await parallelize(
+    async function (value) {
+      if (value === 'd') {
+        stopBefore = this.stopRequested;
+        this.stop(reason);
+      } else {
+        await setTimeout(10); // a, b & c will be triggered after stop
+        stopAfter = this.stopRequested;
+      }
+      return value;
+    },
+    list,
+    4
+  );
+  expect(stopBefore).toStrictEqual(false);
+  expect(stopAfter).toStrictEqual(true);
 });
