@@ -1,17 +1,13 @@
-import { __sourcesRoot } from './constants.js';
-import { FileSystem } from './FileSystem.js';
 import { Host } from './Host.js';
-import { Path } from './Path.js';
 import { logger } from './logger.js';
+import { version } from './version.js';
 
 export const logEnvironnement = async () => {
-  const { name, version } = JSON.parse(
-    await FileSystem.readFile(Path.join(__sourcesRoot, '../package.json'), 'utf8')
-  ) as { name: string; version: string };
+  const runnerVersion = await version();
   const now = new Date();
   logger.info({
     source: 'job',
-    message: `${name}@${version} / Node.js ${Host.nodeVersion} / ${now.toISOString()} (${now.getTimezoneOffset()})`
+    message: `${runnerVersion} / Node.js ${Host.nodeVersion} / ${now.toISOString()} (${now.getTimezoneOffset()})`
   });
   const cpus: { [key in string]?: number } = {};
   for (const { model } of Host.cpus()) {
