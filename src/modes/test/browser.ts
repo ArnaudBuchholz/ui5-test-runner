@@ -7,7 +7,7 @@ import { logger } from '../../platform/logger.js';
 let browser: IBrowser;
 
 export const setupBrowser = async (configuration: Configuration): Promise<IBrowser> => {
-  assert(configuration.browser === 'puppeteer');
+  assert(configuration.browser === '$/puppeteer.js'); // TODO: see how to make it compatible
   browser = await BrowserFactory.build('puppeteer');
   try {
     await browser.setup({});
