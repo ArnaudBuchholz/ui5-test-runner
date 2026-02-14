@@ -1,24 +1,9 @@
 import type { CommonTestReport } from '../types/CommonTestReportFormat.js';
+import { createEmptyTestResults } from '../types/CommonTestReportFormat.js';
 import type { ITestResult, ITestResultsBuilder } from '../types/ITestResultsBuilder.js';
 
 export class AgentTestResultsBuilder implements ITestResultsBuilder {
-  private _results: CommonTestReport['results'] = {
-    tool: {
-      name: 'unknown'
-    },
-    summary: {
-      failed: 0,
-      other: 0,
-      passed: 0,
-      pending: 0,
-      skipped: 0,
-      start: 0,
-      stop: 0,
-      tests: 0,
-      duration: 0
-    },
-    tests: []
-  };
+  private _results = createEmptyTestResults();
 
   get results() {
     return this._results;

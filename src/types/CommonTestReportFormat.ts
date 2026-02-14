@@ -369,3 +369,21 @@ export interface CommonTestReport {
     };
   };
 }
+
+export const createEmptyTestResults = (): CommonTestReport['results'] => ({
+  tool: {
+    name: 'unknown'
+  },
+  summary: {
+    failed: 0,
+    other: 0,
+    passed: 0,
+    pending: 0,
+    skipped: 0,
+    start: 0,
+    stop: 0,
+    tests: 0,
+    duration: 0
+  },
+  tests: []
+});
