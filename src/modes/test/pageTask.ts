@@ -5,6 +5,8 @@ import { getBrowser } from './browser.js';
 import type { AgentState } from '../../types/AgentState.js';
 import { Exit, ExitShutdownError } from '../../platform/Exit.js';
 import { setTimeout } from 'node:timers/promises';
+import { report } from './report.js';
+import { CommonTestReport } from '../../types/CommonTestReportFormat.js';
 
 export const pageTask = async function (this: IParallelizeContext, url: string, index: number, urls: string[]) {
   const agentSource = await getAgentSource();
@@ -50,6 +52,9 @@ export const pageTask = async function (this: IParallelizeContext, url: string, 
       logger.error({ source: 'job', message: 'An error occurred', error, data: { url } });
     }
   }
+  const agentReport = (await page.eval("window['ui5-test-runner'].report")) as CommonTestReport['results'];
+  // TODO log report
+  report.merge(agentReport);
   logger.info({
     source: 'progress',
     message: url,

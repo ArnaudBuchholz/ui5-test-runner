@@ -32,7 +32,13 @@ export const test = async (configuration: Configuration) => {
     const urls = configuration.url;
     const browser = await setupBrowser(configuration);
     logger.info({ source: 'progress', message: 'Executing pages', data: { uid: '', value: 0, max: 0 } });
-    await parallelize(pageTask, urls, configuration.parallel);
+    const pages = await parallelize(pageTask, urls, configuration.parallel);
+    if (pages.every(({ status }) => status === 'fulfilled')) {
+      // TODO: save report
+    } else {
+      // what should we do ?
+    }
+    // TODO: check that results[number].status === 'fulfilled'
     await browser.shutdown();
   } catch (error) {
     logger.error({ source: 'job', message: 'An error occurred', error });
