@@ -1,16 +1,9 @@
 import { it, expect, vi, describe, beforeEach } from 'vitest';
 import { logEnvironnement } from './environment.js';
 import { logger } from './logger.js';
-import { FileSystem } from './FileSystem.js';
 import { Host } from './Host.js';
 import type { CpuInfo } from 'node:os';
 
-vi.mocked(FileSystem.readFile).mockResolvedValue(
-  JSON.stringify({
-    name: 'ui5-test-runner',
-    version: '1.2.3'
-  })
-);
 vi.setSystemTime(Date.UTC(2026, 0, 29, 0, 9, 0, 0));
 vi.mocked(Host.machine).mockReturnValue('virtual');
 vi.mocked(Host.cpus).mockReturnValue([]);

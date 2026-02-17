@@ -108,6 +108,10 @@ vi.mock(import('./Thread.js'), async (importActual) => {
   return mocked;
 });
 
+vi.mock(import('./version.js'), () => ({
+  version: vi.fn().mockResolvedValue('ui5-test-runner@1.2.3')
+}));
+
 vi.mock(import('./ZLib.js'), async (importActual) => {
   const mocked = mockStaticMethodsOfExportedClasses(await importActual());
   const { ZLib } = mocked;

@@ -1,6 +1,7 @@
 import { it, expect, vi } from 'vitest';
 import { FileSystem } from './FileSystem.js';
-import { version } from './version.js';
+import type { version as versionType } from './version.js';
+const { version } = await vi.importActual<{ version: typeof versionType }>('./version.js');
 
 vi.mocked(FileSystem.readFile).mockResolvedValue(
   JSON.stringify({
