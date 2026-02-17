@@ -372,7 +372,7 @@ export interface CommonTestReport {
 
 export const createEmptyTestResults = (): CommonTestReport['results'] => ({
   tool: {
-    name: 'unknown'
+    name: ''
   },
   summary: {
     failed: 0,
