@@ -11,7 +11,7 @@ export class AgentTestResultsBuilder implements ITestResultsBuilder {
 
   begin(tool: string): void {
     const [name, version] = tool.split('@');
-    this._results.tool.name = name || 'unknown';
+    this._results.tool.name = name!; // cannot be undefined
     if (version !== undefined) {
       this._results.tool.version = version;
     }

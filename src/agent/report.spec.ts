@@ -88,6 +88,32 @@ describe('test', () => {
         }
       ]);
     });
+
+    it(`adds a ${status} test with suite hierarchy`, () => {
+      report.test({
+        duration: 1,
+        label: status,
+        status,
+        suite: ['first', 'second']
+      });
+      expect(report.results.summary).toMatchObject<Partial<CommonTestReport['results']['summary']>>({
+        failed: 0,
+        other: 0,
+        passed: 0,
+        pending: 0,
+        skipped: 0,
+        tests: 1,
+        [status]: 1
+      });
+      expect(report.results.tests).toStrictEqual<CommonTestReport['results']['tests']>([
+        {
+          duration: 1,
+          name: status,
+          status,
+          suite: ['first', 'second']
+        }
+      ]);
+    });
   }
 });
 
