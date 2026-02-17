@@ -6,7 +6,7 @@ import type { AgentState } from '../../types/AgentState.js';
 import { Exit, ExitShutdownError } from '../../platform/Exit.js';
 import { setTimeout } from 'node:timers/promises';
 import { report } from './report.js';
-import { CommonTestReport } from '../../types/CommonTestReportFormat.js';
+import type { CommonTestReport } from '../../types/CommonTestReportFormat.js';
 
 export const pageTask = async function (this: IParallelizeContext, url: string, index: number, urls: string[]) {
   const agentSource = await getAgentSource();

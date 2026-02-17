@@ -24,7 +24,7 @@ export class TestReportMerger {
     this._merged.results.summary.start = Date.now();
   }
 
-  merge(testResults: CommonTestReport['results']) {
+  merge(url: string, testResults: CommonTestReport['results']) {
     assert(this._merged !== undefined);
     const { name: toolName } = this._merged.results.tool;
     if (toolName === '') {
@@ -33,8 +33,12 @@ export class TestReportMerger {
       assert(toolName === testResults.tool.name); // TODO: what to do otherwise ?
     }
     const { results } = this._merged;
-    // eslint-disable-next-line unicorn/prefer-spread -- because not scalable
-    results.tests = results.tests.concat(testResults.tests);
+    for (const test of testResults.tests) {
+      results.tests.push({
+        ...test,
+        suite: [url, ...(test.suite ?? [])]
+      });
+    }
     const summaryFields = ['tests', 'passed', 'failed', 'skipped', 'pending', 'other'] as const;
     for (const summaryField of summaryFields) {
       results.summary[summaryField] += testResults.summary[summaryField];
