@@ -36,7 +36,14 @@ export const test = async (configuration: Configuration) => {
     await report.initialize();
     logger.info({ source: 'progress', message: 'Executing pages', data: { uid: '', value: 0, max: 0 } });
     const pages = await parallelize(pageTask, urls, configuration.parallel);
-    if (!pages.every(({ status }) => status === 'fulfilled')) {
+    let allPagesSucceeded = true;
+    for (const page of pages) {
+      if (page.status !== 'fulfilled') {
+        logger.error({ source: 'job', message: 'page failed', error: page.reason });
+      }
+      allPagesSucceeded = false;
+    }
+    if (!allPagesSucceeded) {
       logger.fatal({ source: 'job', message: 'At least one page did not process properly' });
       Exit.code = -1;
     }
