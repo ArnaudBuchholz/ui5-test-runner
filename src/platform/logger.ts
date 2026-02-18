@@ -39,6 +39,7 @@ const start = () => {
   channel = Thread.createBroadcastChannel('logger');
 
   metricsMonitorInterval = setInterval(() => {
+    // TODO: group in a single trace
     logger.debug({ source: 'metric', message: 'threadCpuUsage', data: Thread.threadCpuUsage() });
     logger.debug({ source: 'metric', message: 'memoryUsage', data: Host.memoryUsage() });
   }, 1000);
@@ -121,6 +122,7 @@ export const logger = {
     if (!configuration.ci) {
       Terminal.setRawMode((data) => {
         if (data.length === 1 && data[0] === 3) {
+          logger.warn({ source: 'job', message: 'User requested interruption' });
           Exit.sigInt();
         }
       });
