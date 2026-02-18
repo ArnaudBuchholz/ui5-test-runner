@@ -76,7 +76,7 @@ export interface CommonTestReport {
       /** Test end time (milliseconds since Unix epoch) */
       stop?: number;
       /** Suite hierarchy from top-level to immediate parent */
-      suite?: [string, ...string[]];
+      suite?: readonly [string, ...string[]];
       /** Error or failure message */
       message?: string;
       /** Stack trace or failure trace information */
