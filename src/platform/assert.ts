@@ -12,11 +12,7 @@ export const assert: (condition: boolean, message?: string) => asserts condition
     const error = new AssertionError({ message });
     if (__developmentMode) {
       let { stack } = error;
-      if (stack) {
-        stack = stack.split('\n').slice(1).join('\n')
-      } else {
-        stack = ''
-      }
+      stack = stack ? stack.split('\n').slice(1).join('\n') : '';
       logger?.fatal({ source: 'assert', message: (message ?? 'Assertion failed') + stack, error });
     } else {
       logger?.fatal({ source: 'assert', message: message ?? 'Assertion failed', error });
