@@ -135,19 +135,21 @@ export class Exit {
   }
 
   private static _enteringShutdown = false;
+  private static _logLevel: 'debug' | 'info' = 'debug';
 
   static async shutdown() {
     assert(Thread.isMainThread, 'Exit.shutdown can be called only on main thread');
     Exit._enteringShutdown = true;
+    const logLevel = Exit._logLevel;
     while (Exit._asyncTasks.length > 0) {
       const task = Exit._asyncTasks[0]!; // length > 0
       try {
-        logger?.debug({ source: 'exit', message: `Stopping ${task.name}...` });
+        logger?.[logLevel]({ source: 'exit', message: `Stopping ${task.name}...` });
         // TODO: can we wait for task to be unregistered ?
         await task.stop();
-        logger?.debug({ source: 'exit', message: `${task.name} stopped.` });
+        logger?.[logLevel]({ source: 'exit', message: `${task.name} stopped.` });
       } catch (error) {
-        logger?.debug({ source: 'exit', message: `Failed while stopping ${task.name}...`, error });
+        logger?.[logLevel]({ source: 'exit', message: `Failed while stopping ${task.name}...`, error });
       } finally {
         if (task === Exit._asyncTasks[0]) {
           Exit._asyncTasks.shift();
@@ -155,12 +157,12 @@ export class Exit {
       }
     }
     Exit._checkForHandlesLeak();
-    logger?.debug({ source: 'exit', message: `Stopping logger...` });
+    logger?.[logLevel]({ source: 'exit', message: `Stopping logger...` });
     await logger?.stop();
-    logger?.debug({ source: 'exit', message: `logger stopped.` });
   }
 
   static sigInt(this: void) {
+    Exit._logLevel = 'info';
     void Exit.shutdown();
   }
 }
