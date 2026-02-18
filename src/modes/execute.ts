@@ -5,6 +5,7 @@ import type { ModeFunction } from './ModeFunction.js';
 import { Modes } from './Modes.js';
 import { version } from './version.js';
 import { test } from './test/index.js';
+import { Exit } from '../platform/Exit.js';
 
 const notImplemented = () => {
   throw new Error('Not implemented');
@@ -23,4 +24,5 @@ const modeFunctions: { [key in Modes]: ModeFunction } = {
 export const execute = async (configuration: Configuration): Promise<void> => {
   const modeFunction = modeFunctions[configuration.mode];
   await modeFunction(configuration);
+  Exit.shutdown();
 };
