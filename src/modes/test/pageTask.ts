@@ -52,15 +52,18 @@ export const pageTask = async function (this: IParallelizeContext, url: string, 
       logger.error({ source: 'job', message: 'An error occurred', error, data: { url } });
     }
   }
-  const agentReport = (await page.eval("window['ui5-test-runner'].report")) as CommonTestReport['results'];
-  // TODO log report
-  report.merge(agentReport);
-  logger.info({
-    source: 'progress',
-    message: url,
-    data: { max: 1, value: 1, uid: url, remove: true }
-  });
-  asyncTask.unregister();
-  await page.close();
-  setTaskAsStopped();
+  try {
+    const agentReport = (await page.eval("window['ui5-test-runner'].report")) as CommonTestReport['results'];
+    // TODO log report
+    report.merge(url, agentReport);
+  } finally {
+    logger.info({
+      source: 'progress',
+      message: url,
+      data: { max: 1, value: 1, uid: url, remove: true }
+    });
+    asyncTask.unregister();
+    await page.close();
+    setTaskAsStopped();
+  }
 };
