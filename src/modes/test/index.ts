@@ -1,10 +1,11 @@
-import { logger, logEnvironnement } from '../../platform/index.js';
+import { logger, logEnvironnement, Exit, FileSystem, Path } from '../../platform/index.js';
 import type { Configuration } from '../../configuration/Configuration.js';
 import { defaults } from '../../configuration/options.js';
 import { parallelize } from '../../utils/parallelize.js';
 import { getAgentSource } from './agent.js';
 import { setupBrowser } from './browser.js';
 import { pageTask } from './pageTask.js';
+import { report } from './report.js';
 
 /**
  * TODO
@@ -24,23 +25,29 @@ export const test = async (configuration: Configuration) => {
 
   await logEnvironnement();
   await getAgentSource();
+  let browser: Awaited<ReturnType<typeof setupBrowser>> | undefined;
   try {
     if (!configuration.url) {
       logger.fatal({ source: 'job', message: 'Expected URLs to be set' });
       throw new Error('stop');
     }
     const urls = configuration.url;
-    const browser = await setupBrowser(configuration);
+    browser = await setupBrowser(configuration);
+    await report.initialize();
     logger.info({ source: 'progress', message: 'Executing pages', data: { uid: '', value: 0, max: 0 } });
     const pages = await parallelize(pageTask, urls, configuration.parallel);
-    if (pages.every(({ status }) => status === 'fulfilled')) {
-      // TODO: save report
-    } else {
-      // what should we do ?
+    if (!pages.every(({ status }) => status === 'fulfilled')) {
+      logger.fatal({ source: 'job', message: 'At least one page did not process properly' });
+      Exit.code = -1;
     }
-    // TODO: check that results[number].status === 'fulfilled'
-    await browser.shutdown();
+    FileSystem.writeFileSync(
+      Path.join(configuration.reportDir, 'report.json'),
+      JSON.stringify(report.merged, undefined, 2),
+      'utf8'
+    );
   } catch (error) {
     logger.error({ source: 'job', message: 'An error occurred', error });
+  } finally {
+    await browser?.shutdown();
   }
 };
