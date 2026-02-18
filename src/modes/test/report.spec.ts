@@ -31,12 +31,12 @@ it('returns an empty report', () => {
 });
 
 it('merges test results (1)', () => {
-  const test0: CommonTestReport['results']['tests'][number] = {
+  const test0 = {
     name: 'test0',
     status: 'passed',
     duration: 1
-  };
-  report.merge({
+  } as const;
+  report.merge('http://localhost:8080/test0', {
     tool: { name: 'test' },
     tests: [test0],
     summary: {
@@ -53,7 +53,12 @@ it('merges test results (1)', () => {
   expect(report.merged).toStrictEqual(
     comparableTestReport({
       tool: { name: 'test' },
-      tests: [test0],
+      tests: [
+        {
+          ...test0,
+          suite: ['http://localhost:8080/test0']
+        }
+      ],
       summary: {
         failed: 0,
         other: 0,
@@ -69,12 +74,12 @@ it('merges test results (1)', () => {
 });
 
 it('merges test results (2)', () => {
-  const test0: CommonTestReport['results']['tests'][number] = {
+  const test0 = {
     name: 'test0',
     status: 'passed',
     duration: 1
-  };
-  report.merge({
+  } as const;
+  report.merge('http://localhost:8080/test0', {
     tool: { name: 'test' },
     tests: [test0],
     summary: {
@@ -88,12 +93,13 @@ it('merges test results (2)', () => {
       tests: 1
     }
   });
-  const test1: CommonTestReport['results']['tests'][number] = {
+  const test1 = {
     name: 'test1',
     status: 'failed',
-    duration: 1
-  };
-  report.merge({
+    duration: 1,
+    suite: ['test1']
+  } as const;
+  report.merge('http://localhost:8080/test1', {
     tool: { name: 'test' },
     tests: [test1],
     summary: {
@@ -110,7 +116,16 @@ it('merges test results (2)', () => {
   expect(report.merged).toStrictEqual(
     comparableTestReport({
       tool: { name: 'test' },
-      tests: [test0, test1],
+      tests: [
+        {
+          ...test0,
+          suite: ['http://localhost:8080/test0']
+        },
+        {
+          ...test1,
+          suite: ['http://localhost:8080/test1', 'test1']
+        }
+      ],
       summary: {
         failed: 1,
         other: 0,
