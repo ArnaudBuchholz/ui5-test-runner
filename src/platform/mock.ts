@@ -24,17 +24,13 @@ const mockStaticMethodsOfExportedClasses = <T extends object>(actual: T): T => {
   return mocked;
 };
 
-const logger = {
-  start: vi.fn(),
-  debug: vi.fn(),
-  info: vi.fn(),
-  warn: vi.fn(),
-  error: vi.fn(),
-  fatal: vi.fn(),
-  stop: vi.fn()
-} satisfies ILogger;
-
-vi.mock(import('./logger.js'), () => ({ logger }));
+vi.mock(import('./constants.js'), async (importActual) => {
+  const mocked = await importActual();
+  return {
+    ...mocked,
+    __developmentMode: false
+  };
+});
 
 export const __unregisterExitAsyncTask = vi.fn();
 export let __lastRegisteredExitAsyncTask: IAsyncTask;
@@ -61,6 +57,18 @@ vi.mock(import('./FileSystem.js'), async (importActual) => {
 vi.mock(import('./Host.js'), async (importActual) => mockStaticMethodsOfExportedClasses(await importActual()));
 
 vi.mock(import('./Http.js'), async (importActual) => mockStaticMethodsOfExportedClasses(await importActual()));
+
+const logger = {
+  start: vi.fn(),
+  debug: vi.fn(),
+  info: vi.fn(),
+  warn: vi.fn(),
+  error: vi.fn(),
+  fatal: vi.fn(),
+  stop: vi.fn()
+} satisfies ILogger;
+
+vi.mock(import('./logger.js'), () => ({ logger }));
 
 vi.mock(import('./Path.js'), async (importActual) => {
   const mocked = mockStaticMethodsOfExportedClasses(await importActual());
