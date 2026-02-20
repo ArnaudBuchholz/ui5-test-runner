@@ -1,5 +1,3 @@
-import { assert } from '../platform/assert.js';
-
 export interface IParallelizeContext {
   stop(reason: Error): void;
   readonly stopRequested: boolean;
@@ -53,10 +51,8 @@ export const parallelize = async <INPUT, OUTPUT = INPUT>(
       if (active < parallel && index < queue.length) {
         void fiber();
       }
-      let input: INPUT;
+      const input = queue[current]!;
       try {
-        input = queue[current]!;
-        assert(input !== undefined);
         on?.({
           type: 'started',
           index: current,
