@@ -31,11 +31,11 @@ export const test = async (configuration: Configuration) => {
       logger.fatal({ source: 'job', message: 'Expected URLs to be set' });
       throw new Error('stop');
     }
-    const urls = configuration.url;
+    const urls = [...configuration.url];
     browser = await setupBrowser(configuration);
     await report.initialize();
     logger.info({ source: 'progress', message: 'Executing pages', data: { uid: '', value: 0, max: 0 } });
-    const pages = await parallelize(pageTask, urls, configuration.parallel);
+    const pages = await parallelize(pageTask, urls, { parallel: configuration.parallel });
     let allPagesSucceeded = true;
     for (const page of pages) {
       if (page.status !== 'fulfilled') {

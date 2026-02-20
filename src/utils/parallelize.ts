@@ -5,11 +5,36 @@ export interface IParallelizeContext {
   readonly stopRequested: boolean;
 }
 
+export type ParallelizeEvent<INPUT, OUTPUT> =
+  | {
+      type: 'started';
+      index: number;
+      input: INPUT;
+    }
+  | {
+      type: 'completed';
+      index: number;
+      input: INPUT;
+      output: OUTPUT;
+    }
+  | {
+      type: 'failed';
+      index: number;
+      input: INPUT;
+      error: unknown;
+    };
+
+type ParallelizeOptions<INPUT, OUTPUT> = {
+  parallel?: number;
+  on?: (event: ParallelizeEvent<INPUT, OUTPUT>) => void;
+};
+
 export const parallelize = async <INPUT, OUTPUT = INPUT>(
   processor: (this: IParallelizeContext, input: INPUT, index: number, values: INPUT[]) => Promise<OUTPUT> | OUTPUT,
   queue: INPUT[],
-  parallel: number
+  options?: ParallelizeOptions<INPUT, OUTPUT>
 ): Promise<Array<PromiseSettledResult<OUTPUT>>> => {
+  const { parallel = 1, on } = options ?? {};
   const results: Array<PromiseSettledResult<OUTPUT>> = [];
   let index = 0;
   const context = {
@@ -28,14 +53,33 @@ export const parallelize = async <INPUT, OUTPUT = INPUT>(
       if (active < parallel && index < queue.length) {
         void fiber();
       }
+      let input: INPUT;
       try {
-        const input = queue[current];
+        input = queue[current]!;
         assert(input !== undefined);
+        on?.({
+          type: 'started',
+          index: current,
+          input
+        });
+        const output = await processor.call(context, input, current, queue);
         results[current] = {
           status: 'fulfilled',
-          value: await processor.call(context, input, current, queue)
+          value: output
         };
+        on?.({
+          type: 'completed',
+          index: current,
+          input,
+          output
+        });
       } catch (error) {
+        on?.({
+          type: 'failed',
+          index: current,
+          input,
+          error
+        });
         results[current] = {
           status: 'rejected',
           reason: error

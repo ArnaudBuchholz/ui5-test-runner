@@ -1,4 +1,5 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
+import type { ParallelizeEvent } from './parallelize.js';
 import { parallelize } from './parallelize.js';
 import { setTimeout } from 'node:timers/promises';
 
@@ -11,21 +12,17 @@ it('handles an empty list', async () => {
         throw new Error('Should not have any item to process');
       },
       [],
-      4
+      { parallel: 4 }
     )
   ).resolves.toStrictEqual([]);
 });
 
 it('processes all the values', async () => {
-  const result = await parallelize(
-    (value, index, array) => {
-      expect(array).toStrictEqual(list);
-      expect(array[index]).toStrictEqual(value);
-      return value;
-    },
-    list,
-    1
-  );
+  const result = await parallelize((value, index, array) => {
+    expect(array).toStrictEqual(list);
+    expect(array[index]).toStrictEqual(value);
+    return value;
+  }, list);
   expect(result.length).toStrictEqual(list.length);
   expect(result).toStrictEqual(
     list.map((value) => ({
@@ -42,7 +39,7 @@ it('supports variable execution times (a > b)', async () => {
       return value;
     },
     ['a', 'b'],
-    2
+    { parallel: 2 }
   );
   expect(result).toStrictEqual([
     {
@@ -63,7 +60,7 @@ it('supports variable execution times (a < b)', async () => {
       return value;
     },
     ['a', 'b'],
-    2
+    { parallel: 2 }
   );
   expect(result).toStrictEqual([
     {
@@ -91,7 +88,7 @@ describe('runs as many concurrent tasks as necessary', () => {
           return value;
         },
         list,
-        parallel
+        { parallel }
       );
       expect(result.length).toStrictEqual(list.length);
       expect(result).toStrictEqual(
@@ -117,7 +114,7 @@ describe('supports growing list', () => {
           return value;
         },
         partial,
-        1
+        { parallel }
       );
       expect(result.length).toStrictEqual(list.length);
       expect(result).toStrictEqual(
@@ -146,7 +143,7 @@ it('augments parallelism (if needed) when the list is growing', async () => {
       return value;
     },
     partial,
-    2
+    { parallel: 2 }
   );
   expect(result.length).toStrictEqual(3);
   expect(maxActive).toStrictEqual(2);
@@ -167,7 +164,7 @@ it('augments parallelism (if needed) when the list is growing', async () => {
 });
 
 it('does not go beyond the number of items', async () => {
-  const result = await parallelize((value) => value, list, 200);
+  const result = await parallelize((value) => value, list, { parallel: 200 });
   expect(result.length).toStrictEqual(list.length);
   expect(result).toStrictEqual(
     list.map((value) => ({
@@ -188,7 +185,7 @@ it('does not go beyond the number of items (slow start)', async () => {
       return value;
     },
     partial,
-    200
+    { parallel: 200 }
   );
   expect(result.length).toStrictEqual(list.length);
   expect(result).toStrictEqual(
@@ -209,7 +206,7 @@ it('collects the errors', async () => {
       return value;
     },
     list,
-    4
+    { parallel: 4 }
   );
   expect(result.length).toStrictEqual(list.length);
   expect(result).toStrictEqual(
@@ -237,7 +234,7 @@ it('offers an helper to stop all processing', async () => {
       return value;
     },
     list,
-    4
+    { parallel: 4 }
   );
   expect(result.length).toStrictEqual(4);
   expect(result).toStrictEqual([
@@ -276,8 +273,89 @@ it('offers an helper to know if stopping was requested', async () => {
       return value;
     },
     list,
-    4
+    { parallel: 4 }
   );
   expect(stopBefore).toStrictEqual(false);
   expect(stopAfter).toStrictEqual(true);
+});
+
+it('generates an event when a task is started', async () => {
+  const on = vi.fn();
+  await parallelize((value) => value, list, { parallel: 4, on });
+  expect(on).toHaveBeenCalledWith<[ParallelizeEvent<string, string>]>({
+    type: 'started',
+    index: 0,
+    input: 'a'
+  });
+  expect(on).toHaveBeenCalledWith<[ParallelizeEvent<string, string>]>({
+    type: 'started',
+    index: 4,
+    input: 'e'
+  });
+  expect(on).toHaveBeenCalledWith<[ParallelizeEvent<string, string>]>({
+    type: 'started',
+    index: 25,
+    input: 'z'
+  });
+});
+
+it('generates an event when a task is completed', async () => {
+  const on = vi.fn();
+  await parallelize((value, index) => value + index, list, { parallel: 4, on });
+  expect(on).toHaveBeenCalledWith<[ParallelizeEvent<string, string>]>({
+    type: 'completed',
+    index: 0,
+    input: 'a',
+    output: 'a0'
+  });
+  expect(on).toHaveBeenCalledWith<[ParallelizeEvent<string, string>]>({
+    type: 'completed',
+    index: 4,
+    input: 'e',
+    output: 'e4'
+  });
+  expect(on).toHaveBeenCalledWith<[ParallelizeEvent<string, string>]>({
+    type: 'completed',
+    index: 25,
+    input: 'z',
+    output: 'z25'
+  });
+});
+
+it('generates an event when a task fails', async () => {
+  const reason = new Error('failed');
+  const on = vi.fn();
+  await parallelize(
+    (value, index) => {
+      if (index % 2 === 1) {
+        throw reason;
+      }
+      return value + index;
+    },
+    list,
+    { parallel: 4, on }
+  );
+  expect(on).toHaveBeenCalledWith<[ParallelizeEvent<string, string>]>({
+    type: 'failed',
+    index: 1,
+    input: 'b',
+    error: reason
+  });
+  expect(on).toHaveBeenCalledWith<[ParallelizeEvent<string, string>]>({
+    type: 'failed',
+    index: 3,
+    input: 'd',
+    error: reason
+  });
+  expect(on).toHaveBeenCalledWith<[ParallelizeEvent<string, string>]>({
+    type: 'started',
+    index: 4,
+    input: 'e'
+  });
+  expect(on).toHaveBeenCalledWith<[ParallelizeEvent<string, string>]>({
+    type: 'completed',
+    index: 4,
+    input: 'e',
+    output: 'e4'
+  });
 });
