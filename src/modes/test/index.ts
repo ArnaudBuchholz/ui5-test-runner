@@ -6,6 +6,7 @@ import { getAgentSource } from './agent.js';
 import { setupBrowser } from './browser.js';
 import { pageTask } from './pageTask.js';
 import { report } from './report.js';
+import { url } from 'node:inspector';
 
 /**
  * TODO
@@ -35,18 +36,24 @@ export const test = async (configuration: Configuration) => {
     browser = await setupBrowser(configuration);
     await report.initialize();
     logger.info({ source: 'progress', message: 'Executing pages', data: { uid: '', value: 0, max: 0 } });
-    const pages = await parallelize(pageTask, urls, { parallel: configuration.parallel });
-    let allPagesSucceeded = true;
-    for (const page of pages) {
-      if (page.status !== 'fulfilled') {
-        logger.error({ source: 'job', message: 'page failed', error: page.reason });
+    let completed = 0;
+    await parallelize(pageTask, urls, {
+      parallel: configuration.parallel,
+      on: (event) => {
+        if (event.type === 'failed') {
+          logger.error({ source: 'job', message: 'page failed', error: event.error, data: { url: event.input } });
+          Exit.code = -1;
+        }
+        if (event.type === 'completed') {
+          ++completed;
+        }
+        logger.info({
+          source: 'progress',
+          message: 'Executing pages',
+          data: { uid: '', value: completed, max: url.length }
+        });
       }
-      allPagesSucceeded = false;
-    }
-    if (!allPagesSucceeded) {
-      logger.fatal({ source: 'job', message: 'At least one page did not process properly' });
-      Exit.code = -1;
-    }
+    });
     FileSystem.writeFileSync(
       Path.join(configuration.reportDir, 'report.json'),
       JSON.stringify(report.merged, undefined, 2),
