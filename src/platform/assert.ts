@@ -10,6 +10,7 @@ export const assert: (condition: boolean, message?: string) => asserts condition
 ) => {
   if (!condition) {
     const error = new AssertionError({ message });
+    /* v8 ignore next -- @preserve */
     if (__developmentMode) {
       let { stack } = error;
       stack = stack ? stack.split('\n').slice(1).join('\n') : '';
