@@ -1,5 +1,5 @@
 import { it, expect } from 'vitest';
-import './qunit-hooks.js';
+import './qunit.js';
 
 let begin: Parameters<typeof QUnit.begin>[0];
 let testStart: Parameters<typeof QUnit.testStart>[0];
