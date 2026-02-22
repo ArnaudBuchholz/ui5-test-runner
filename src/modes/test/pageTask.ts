@@ -9,7 +9,21 @@ import { report } from './report.js';
 import type { CommonTestReport } from '../../types/CommonTestReportFormat.js';
 import type { IWindow } from '../../browsers/IBrowser.js';
 
+const UID_DIGITS = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+let lastUid = 0;
+
+const generateUid = (): string => {
+  let uid = '';
+  let value = lastUid++;
+  do {
+    uid = UID_DIGITS[value % UID_DIGITS.length] + uid;
+    value = Math.floor(value / UID_DIGITS.length);
+  } while (value > 0);
+  return uid.padStart(4, '0');
+};
+
 type PageContext = {
+  uid: string;
   page: IWindow;
   urls: string[];
   url: string;
@@ -19,7 +33,7 @@ type PageContext = {
 
 const queryAgentState = async (context: PageContext): Promise<boolean> => {
   const agentState = (await context.page.eval("window['ui5-test-runner'].state")) as AgentState;
-  logger.debug({ source: 'page', message: 'agent state', data: { url: context.url, state: agentState } });
+  logger.debug({ source: 'page', message: 'agent state', data: { uid: context.uid, state: agentState } });
   if (agentState.done) {
     if (agentState.type === 'suite') {
       for (const page of agentState.pages) {
@@ -37,7 +51,7 @@ const queryAgentState = async (context: PageContext): Promise<boolean> => {
       logger.info({
         source: 'progress',
         message: context.url,
-        data: { max: agentState.total, value: agentState.executed, uid: context.url }
+        data: { max: agentState.total, value: agentState.executed, uid: context.uid }
       });
     }
   }
@@ -45,10 +59,12 @@ const queryAgentState = async (context: PageContext): Promise<boolean> => {
 };
 
 export const pageTask = async function (this: IParallelizeContext, url: string, index: number, urls: string[]) {
+  const uid = generateUid();
+  logger.debug({ source: 'page', message: 'new page task', data: { uid, url } });
   logger.info({
     source: 'progress',
     message: url,
-    data: { max: 0, value: 1, uid: url }
+    data: { max: 0, value: 1, uid }
   });
   const { promise: taskStopped, resolve: setTaskAsStopped } = Promise.withResolvers<void>();
   const asyncTask = Exit.registerAsyncTask({
@@ -68,6 +84,7 @@ export const pageTask = async function (this: IParallelizeContext, url: string, 
     url
   });
   const context: PageContext = {
+    uid,
     urls,
     url,
     page,
@@ -81,18 +98,18 @@ export const pageTask = async function (this: IParallelizeContext, url: string, 
         break;
       }
     } catch (error) {
-      logger.error({ source: 'page', message: 'An error occurred', error, data: { url } });
+      logger.error({ source: 'page', message: 'An error occurred', error, data: { uid } });
     }
   }
   try {
     const testResults = (await page.eval("window['ui5-test-runner'].results")) as CommonTestReport['results'];
-    logger.debug({ source: 'page', message: 'test results', data: { url, results: testResults } });
+    logger.debug({ source: 'page', message: 'test results', data: { uid, results: testResults } });
     report.merge(url, testResults);
   } finally {
     logger.info({
       source: 'progress',
       message: url,
-      data: { max: 1, value: 1, uid: url, remove: true }
+      data: { max: 1, value: 1, uid, remove: true }
     });
     asyncTask.unregister();
     await page.close();
