@@ -26,6 +26,18 @@ export const qunit = () => {
     });
   });
 
+  QUnit.log((details) => {
+    if (details.result) {
+      return;
+    }
+    // const message = details.message ? `: ${details.message}` : '';
+    // report.error(`Assertion failed${message}`, {
+    //   expected: details.expected,
+    //   actual: details.actual,
+    //   source: details.source
+    // });
+  });
+
   QUnit.testDone((details: QUnitTestDoneDetails) => {
     let status: CommonTestStatus = 'passed';
     if (details.failed > 0) {
