@@ -54,6 +54,7 @@ export const test = async (configuration: Configuration) => {
         });
       }
     });
+    report.finalize();
     FileSystem.writeFileSync(
       Path.join(configuration.reportDir, 'report.json'),
       JSON.stringify(report.merged, undefined, 2),

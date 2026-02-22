@@ -49,7 +49,7 @@ export class TestReportMerger {
     assert(this._merged !== undefined);
     const { summary } = this._merged.results;
     summary.stop = Date.now();
-    summary.duration = summary.start - summary.stop;
+    summary.duration = summary.stop - summary.start;
   }
 }
 
