@@ -15,7 +15,7 @@ export const factory = async (): Promise<IBrowser> => {
       logger.debug({ source: 'puppeteer', message: 'setup', data: settings });
       try {
         browser = await launch({
-          headless: true,
+          headless: !settings.visible,
           defaultViewport: null,
           handleSIGINT: false
         });
