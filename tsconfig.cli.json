@@ -1,7 +1,7 @@
 {
   "extends": ["./tsconfig.base.json"],
   "include": ["src/"],
-  "exclude": ["src/**/*.spec.ts", "src/**/*.mock.ts", "src/agent/**"],
+  "exclude": ["src/**/*.spec.ts", "src/**/*.mock.ts", "src/agent/**", "src/ui/**"],
   "compilerOptions": {
     "moduleResolution": "Bundler",
     "target": "ESNext",

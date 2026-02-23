@@ -8,6 +8,9 @@
       "path": "./tsconfig.agent.json"
     },
     {
+      "path": "./tsconfig.uis.json"
+    },
+    {
       "path": "./tsconfig.vitest.json"
     }
   ]
