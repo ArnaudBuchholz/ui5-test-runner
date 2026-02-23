@@ -6,6 +6,6 @@
     "moduleResolution": "Bundler",
     "target": "ESNext",
     "module": "esnext",
-    "lib": ["DOM"]
+    "lib": ["DOM", "es2024"]
   }
 }
