@@ -1,15 +1,25 @@
 import type { AgentState } from '../types/AgentState.js';
 import { state } from './state.js';
 
-class JsUnitTestSuite {
-  private static _pages: string[] = [];
+let instance: JsUnitTestSuite | undefined;
+const { promise, resolve } = Promise.withResolvers();
 
-  static get pages() {
+class JsUnitTestSuite {
+  constructor() {
+    // eslint-disable-next-line unicorn/no-this-assignment, @typescript-eslint/no-this-alias -- Singleton pattern
+    instance ??= this;
+    return instance;
+  }
+
+  private _pages: string[] = [];
+
+  get pages() {
     return this._pages;
   }
 
-  static addTestPage(url: string) {
+  addTestPage(url: string) {
     this._pages.push(url);
+    resolve(0);
   }
 }
 
@@ -17,10 +27,12 @@ Object.assign(window, { jsUnitTestSuite: JsUnitTestSuite });
 
 export const suite = () => {
   window.suite?.();
-  const newState: AgentState = {
-    done: true,
-    type: 'suite',
-    pages: JsUnitTestSuite.pages
-  };
-  Object.assign(state, newState);
+  void promise.then(() => {
+    const newState: AgentState = {
+      done: true,
+      type: 'suite',
+      pages: instance?.pages ?? []
+    };
+    Object.assign(state, newState);
+  });
 };
