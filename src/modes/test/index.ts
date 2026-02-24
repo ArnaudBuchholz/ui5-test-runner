@@ -6,7 +6,6 @@ import { getAgentSource } from './agent.js';
 import { setupBrowser } from './browser.js';
 import { pageTask } from './pageTask.js';
 import { report } from './report.js';
-import { url } from 'node:inspector';
 
 /**
  * TODO
@@ -50,7 +49,7 @@ export const test = async (configuration: Configuration) => {
         logger.info({
           source: 'progress',
           message: 'Executing pages',
-          data: { uid: '', value: completed, max: url.length }
+          data: { uid: '', value: completed, max: urls.length }
         });
       }
     });
