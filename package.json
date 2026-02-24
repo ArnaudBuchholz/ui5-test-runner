@@ -74,6 +74,7 @@
     "@ui5/cli": "^4.0.44",
     "@ui5/middleware-code-coverage": "^2.0.3",
     "@ui5/webcomponents": "^2.19.2",
+    "@ui5/webcomponents-fiori": "^2.19.2",
     "@vitest/coverage-v8": "^4.0.18",
     "baseline-browser-mapping": "^2.10.0",
     "dotenv": "^17.3.1",
