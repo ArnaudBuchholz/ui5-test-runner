@@ -19,7 +19,7 @@ class JsUnitTestSuite {
 
   addTestPage(url: string) {
     this._pages.push(url);
-    resolve(0);
+    resolve();
   }
 }
 
