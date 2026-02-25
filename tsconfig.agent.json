@@ -5,6 +5,6 @@
     "moduleResolution": "Bundler",
     "target": "ESNext",
     "module": "esnext",
-    "lib": ["ES2022", "DOM", "DOM.Iterable"]
+    "lib": ["ES2024", "DOM", "DOM.Iterable"]
   }
 }

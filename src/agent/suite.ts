@@ -2,7 +2,7 @@ import type { AgentState } from '../types/AgentState.js';
 import { state } from './state.js';
 
 let instance: JsUnitTestSuite | undefined;
-const { promise, resolve } = Promise.withResolvers();
+const { promise, resolve } = Promise.withResolvers<void>();
 
 class JsUnitTestSuite {
   constructor() {
