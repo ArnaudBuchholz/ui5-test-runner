@@ -10,9 +10,9 @@ export type LogErrorAttributes = {
   errors?: LogErrorAttributes[];
 };
 
-type GenericLogSource = 'exit' | 'exit/handle' | 'http' | 'job' | 'logger' | 'metric' | 'npm' | 'process' | 'puppeteer';
+type GenericLogSource = 'exit' | 'exit/handle' | 'http' | 'job' | 'logger' | 'npm' | 'process' | 'puppeteer';
 
-export type LogSource = GenericLogSource | 'page' | 'progress';
+export type LogSource = GenericLogSource | 'page' | 'progress' | 'metric';
 
 export type LogAttributes = {
   message: string;
@@ -28,6 +28,14 @@ export type LogAttributes = {
       data: {
         uid: string;
         [key: string]: unknown;
+      };
+    }
+  | {
+      source: 'metric';
+      message: '';
+      data: {
+        cpu: object;
+        mem: object;
       };
     }
   | {

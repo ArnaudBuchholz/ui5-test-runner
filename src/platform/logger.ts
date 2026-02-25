@@ -39,9 +39,14 @@ const start = () => {
   channel = Thread.createBroadcastChannel('logger');
 
   metricsMonitorInterval = setInterval(() => {
-    // TODO: group in a single trace
-    logger.debug({ source: 'metric', message: 'threadCpuUsage', data: Thread.threadCpuUsage() });
-    logger.debug({ source: 'metric', message: 'memoryUsage', data: Host.memoryUsage() });
+    logger.debug({
+      source: 'metric',
+      message: '',
+      data: {
+        cpu: Thread.threadCpuUsage(),
+        mem: Host.memoryUsage()
+      }
+    });
   }, 1000);
 
   channel.onmessage = (event: { data: LogMessage }) => {

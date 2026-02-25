@@ -383,13 +383,11 @@ describe('general', () => {
       vi.advanceTimersToNextTimer();
       expect(logger.debug).toHaveBeenCalledWith({
         source: 'metric',
-        message: 'threadCpuUsage',
-        data: threadCpuUsage
-      });
-      expect(logger.debug).toHaveBeenCalledWith({
-        source: 'metric',
-        message: 'memoryUsage',
-        data: memoryUsage
+        message: '',
+        data: {
+          cpu: threadCpuUsage,
+          mem: memoryUsage
+        }
       });
     });
 
