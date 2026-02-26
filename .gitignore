@@ -54,3 +54,6 @@ test/report/report.html
 
 # tsx files
 undefined/*
+
+# obsidian
+docs/.obsidian/
