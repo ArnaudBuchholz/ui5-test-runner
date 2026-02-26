@@ -24,9 +24,10 @@ const generateUid = (): string => {
 
 type PageContext = {
   uid: string;
-  page: IWindow;
   urls: string[];
   url: string;
+  page: IWindow;
+  loopDelay: number;
   lastExecuted: number;
   lastTotal: number;
 };
@@ -43,16 +44,21 @@ const queryAgentState = async (context: PageContext): Promise<boolean> => {
     }
     return true;
   }
-  if (agentState.type === 'QUnit' && agentState.total > 0) {
-    const { executed, total } = agentState;
-    if (executed !== context.lastExecuted || total !== context.lastTotal) {
-      context.lastExecuted = executed;
-      context.lastTotal = total;
-      logger.info({
-        source: 'progress',
-        message: context.url,
-        data: { max: agentState.total, value: agentState.executed, uid: context.uid }
-      });
+  if (agentState.type === 'QUnit') {
+    if (agentState.isOpa) {
+      context.loopDelay = 1000; // No need to stress out, they are slower
+    }
+    if (agentState.total > 0) {
+      const { executed, total } = agentState;
+      if (executed !== context.lastExecuted || total !== context.lastTotal) {
+        context.lastExecuted = executed;
+        context.lastTotal = total;
+        logger.info({
+          source: 'progress',
+          message: context.url,
+          data: { max: agentState.total, value: agentState.executed, uid: context.uid }
+        });
+      }
     }
   }
   return false;
@@ -88,12 +94,13 @@ export const pageTask = async function (this: IParallelizeContext, url: string, 
     urls,
     url,
     page,
+    loopDelay: 250, // default
     lastExecuted: 0,
     lastTotal: 0
   };
   while (!this.stopRequested) {
     try {
-      await setTimeout(250);
+      await setTimeout(context.loopDelay);
       if (await queryAgentState(context)) {
         break;
       }
