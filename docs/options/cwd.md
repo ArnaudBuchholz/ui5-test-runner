@@ -1,4 +1,5 @@
 ---
+"#type": "[[option]]"
 short: c
 type: "[[folder]]"
 summary: set working directory

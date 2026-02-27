@@ -1,8 +1,8 @@
 ---
 "#type": "[[option]]"
-short: f
+short: l
 type: "[[boolean]]"
-summary: stop the whole execution after the first failing page
+summary: log inner server traces
 tags:
   - legacy
   - remote

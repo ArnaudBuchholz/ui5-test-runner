@@ -1,11 +1,10 @@
 ---
 "#type": "[[option]]"
-short: f
+short: k
 type: "[[boolean]]"
-summary: stop the whole execution after the first failing page
+summary: keep the server alive
 tags:
   - legacy
   - remote
   - capabilities
-  - batch
 ---
