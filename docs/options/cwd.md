@@ -1,11 +1,13 @@
 ---
 short: c
-type: folder
+type: "[[folder]]"
 summary: set working directory
 default: process.cwd()
 defaultLabel: current working directory
+tags:
+  - "#legacy"
+  - "#remote"
+  - "#capabilities"
 ---
-🏷 [[legacy]] [[remote]]
-
 This option gives the information about the current working directory. Many other options depend on it.
 

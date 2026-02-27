@@ -1,4 +1,4 @@
 ---
-type: boolean
+type: "[[boolean]]"
 summary: display help
 ---
