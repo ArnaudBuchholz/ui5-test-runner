@@ -89,5 +89,9 @@ if (!process.exitCode) {
   }
   console.log(`] as const;
 
-export const defaults = ${JSON.stringify(defaults, undefined, 2)} as const;`);
+export const defaults = {`);
+  for (const [key, value] of Object.entries(defaults)) {
+    console.log(`    ${key}: ${value},`);
+  }
+  console.log(`} as const;`);
 }
