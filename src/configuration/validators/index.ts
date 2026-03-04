@@ -2,6 +2,7 @@ import type { Option, OptionType } from '../Option.js';
 import type { OptionValidator } from './OptionValidator.js';
 import { OptionValidationError } from '../OptionValidationError.js';
 import { boolean } from './boolean.js';
+import { browser } from './browser.js';
 import { file } from './file.js';
 import { folderRecreate } from './folderRecreate.js';
 import { folder } from './folder.js';
@@ -18,6 +19,7 @@ const notImplemented = (option: Option) => {
 
 export const validators: { [key in OptionType]: OptionValidator<key> } = {
   boolean,
+  browser,
   file,
   'folder-recreate': folderRecreate,
   folder,
