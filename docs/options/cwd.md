@@ -3,7 +3,7 @@
 short: c
 type: "[[folder]]"
 summary: set working directory
-default: process.cwd()
+default: "process.cwd()"
 defaultLabel: current working directory
 tags:
   - "#legacy"
