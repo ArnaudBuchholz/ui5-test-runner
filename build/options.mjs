@@ -1,59 +1,93 @@
-import { readFile } from 'node:fs/promises';
+import { readdir, readFile } from 'node:fs/promises';
+import { join } from 'node:path';
 
-const optionsMarkdownContent = await readFile('src/configuration/options.md', 'utf8');
-const optionsMarkdownLines = optionsMarkdownContent.split('\n');
-const properties = optionsMarkdownLines[0].split('|').slice(1, -1);
-const options = optionsMarkdownLines.slice(2);
+const OPTIONS_FOLDER = 'docs/options';
 
+const types = [];
+const options = {};
+const defaults = {};
 const names = new Set();
 const shorts = new Set();
 
-const check = (name, short) => {
+for (const fileName of await readdir('src/configuration/validators')) {
+  const [, typeName] = fileName.match(/^(\w+)\.ts$/) ?? [];
+  if (typeName && !['OptionValidator', 'index'].includes(typeName)) {
+    types.push(typeName.replaceAll(/([A-Z])/g, (_, letter) => `-${letter.toLowerCase()}`));
+  }
+}
+
+const checkIfDuplicate = (name, short) => {
   if (names.has(name) || (short && shorts.has(short))) {
-    console.error('⚠️  duplicate name / short detected:', name, short);
+    return true;
   }
   names.add(name);
   if (short) {
     shorts.add(short);
   }
-  return name;
+  return false;
 };
 
-const defaults = [];
-
-console.log(`export const options = [`);
-for (const option of options) {
-  if (!option) {
-    continue;
-  }
-  console.log('  {');
-  const values = option
-    .replaceAll(String.raw`\|`, 'ǁ')
-    .split('|')
-    .slice(1)
-    .map((value) => value.replaceAll('ǁ', '|'));
-  const name = check(values[0], values[1]);
-  for (const [index, property] of properties.entries()) {
-    const value = values[index]?.trim();
-    if (!value) {
+for (const fileName of await readdir(OPTIONS_FOLDER)) {
+  if (fileName.endsWith('md')) {
+    const fileContent = await readFile(join(OPTIONS_FOLDER, fileName), 'utf8');
+    if (!fileContent.includes('"#type": "[[option]]"')) {
       continue;
     }
-    if (property === 'multiple') {
-      console.log(`    ${property}: true,`);
-    } else if (property === 'default') {
-      defaults.push(`  ${name}: ${value},`);
-      console.log(`    ${property}: ${value},`);
-    } else if (property !== 'flags') {
-      console.log(`    ${property}: '${value}',`);
+    const name = fileName.split('.md')[0];
+    const errors = [];
+    const [, properties] = fileContent.match(/---(:?(-|[^-])*)---/) ?? [];
+    const [, short] = properties.match(/short: (.*)/) ?? [];
+    if (checkIfDuplicate(name, short)) {
+      errors.push(`duplicate name / short detected: ${name} ${short ?? ''}`);
     }
+    // eslint-disable-next-line security/detect-unsafe-regex, sonarjs/slow-regex -- not for productive use
+    const [, type] = properties.match(/type: "\[\[(?:[^\\\]]+\|)?(.*)\]\]"/);
+    if (!types.includes(type)) {
+      errors.push(`Unknown type ${type}`);
+    }
+    const [, defaultValue] = properties.match(/default: "([^"]*)"/) ?? [];
+    const [, summary] = properties.match(/summary: (.*)/) ?? [];
+    const multiple = !!/multiple: yes/.test(properties);
+    if (defaultValue) {
+      defaults[name] = defaultValue;
+    }
+    if (errors.length > 0) {
+      console.error(`❌ ${fileName} :\n\t` + errors.join('\n\t'));
+      process.exitCode = 1;
+    }
+    options[name] = {
+      name,
+      short,
+      type,
+      multiple,
+      description: summary,
+      default: defaultValue
+    };
   }
-
-  console.log('  },');
 }
-console.log(`] as const;
 
-// TODO: isolate defaults in a separate file, remove default from options, put back platform APIs
+if (!process.exitCode) {
+  console.log(`export const options = [`);
+  for (const name of Object.keys(options).toSorted()) {
+    console.log(` {`);
+    const option = options[name];
+    for (const [key, value] of Object.entries(option)) {
+      if (value === undefined) {
+        continue;
+      }
+      if (key === 'default') {
+        console.log(`    ${key}: ${value},`);
+      } else if (key === 'multiple') {
+        if (value) {
+          console.log(`    multiple: true,`);
+        }
+      } else {
+        console.log(`    ${key}: '${value}',`);
+      }
+    }
+    console.log(` },`);
+  }
+  console.log(`] as const;
 
-export const defaults = {
-${defaults.join('\n')}
-} as const;`);
+export const defaults = ${JSON.stringify(defaults, undefined, 2)} as const;`);
+}
