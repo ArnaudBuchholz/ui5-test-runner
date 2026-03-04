@@ -1,8 +1,8 @@
 import type { Modes } from '../modes/Modes.js';
 import type { InferOptionType, Option } from './Option.js';
-import type { options } from './options.js';
+import type { options, defaults } from './options.js';
 
-type HasDefault<T> = T extends { default: unknown } ? true : false;
+type HasDefault<T extends { name: string }> = T['name'] extends keyof typeof defaults ? true : false;
 type ConfigType<T extends Option> = T['multiple'] extends true
   ? InferOptionType<T['type']>[]
   : InferOptionType<T['type']>;
