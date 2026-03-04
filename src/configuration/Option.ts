@@ -1,5 +1,6 @@
 export type OptionType =
   | 'boolean'
+  | 'browser'
   | 'file'
   | 'folder-recreate'
   | 'folder'
