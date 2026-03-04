@@ -9,3 +9,4 @@ tags:
   - capabilities
   - batch
 ---
+This option does not ripple across batch instances.

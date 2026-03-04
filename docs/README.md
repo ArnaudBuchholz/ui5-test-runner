@@ -20,7 +20,7 @@ A self-sufficient test runner for UI5 applications enabling parallel execution o
 * [Testing a "remote" application](testing.md)
 * [Coverage extraction](coverage.md)
 * [Serving and testing the application *(a.k.a. legacy mode)*](legacy.md)
-* [🆕5.5.0 Batch mode](batch.md)
+* [🆕5.5.0 Batch mode](modes/batch.md)
 * [Configuration file](configuration.md)
 * [⚠️ Warnings](warnings.md)
 * [Tips & tricks](tipsNtricks.md)
