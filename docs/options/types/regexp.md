@@ -1,0 +1,1 @@
+A regular expression used to match a value.

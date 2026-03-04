@@ -7,4 +7,6 @@ tags:
   - legacy
   - remote
   - capabilities
+see:
+  - "[[cwd]]"
 ---

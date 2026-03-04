@@ -25,7 +25,7 @@ A self-sufficient test runner for UI5 applications enabling parallel execution o
 * [⚠️ Warnings](warnings.md)
 * [Tips & tricks](tipsNtricks.md)
 * [How to demo](demo.md)
-* [Browser instantiation command](browser.md)
+* [Browser instantiation command](browsers/browser.md)
 
 |Automation Library|Browser(s)|Screenshots|Scripts|Traces|
 |-|-|-|-|-|
