@@ -43,7 +43,7 @@ it('reports test results', async () => {
       version: 'undefined'
     },
     summary: {
-      duration: 0,
+      duration: expect.any(Number) as number,
       failed: 0,
       other: 0,
       passed: 1,
