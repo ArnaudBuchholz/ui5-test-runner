@@ -136,18 +136,6 @@ describe('when the suite is empty', () => {
 - Use UI5 Web Components to keep the application style consistent; prefer them over plain HTML elements
 - Avoid complex or deeply nested component compositions; keep the interface simple
 
-### Imports via CDN
-
-- UI5 Web Components must be loaded from a **CDN** to keep the build output small
-- Use a **pinned version** to avoid breaking changes
-- Define the CDN base URL as a **single constant** so it can be changed globally in one place:
-
-```typescript
-export const UI5_CDN_BASE = 'https://cdn.jsdelivr.net/npm/@ui5/webcomponents@2.x.x/dist';
-```
-
-- This constant must live in a dedicated configuration file (e.g., `ui5cdn.ts`)
-
 ---
 
 ## Change Scope
