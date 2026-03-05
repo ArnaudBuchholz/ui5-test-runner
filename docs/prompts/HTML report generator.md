@@ -14,17 +14,18 @@ The project provides an up to date description of the format in `src/types/Commo
 
 ### Implementation structure
 
-The code of this report resides in `ui/report`, it must use :
+The code of this report resides in `src/ui/report`, it must use :
 
 * TypeScript
 * Vanilla JavaScript (no framework)
-* [UI5 Web Components](https://ui5.github.io/webcomponents/)
-* Vite for bundling / testing
+* [UI5 Web Components](https://ui5.github.io/webcomponents/), use only `@ui5/webcomponents`.
+* `vite` for bundling
+* `vitest` for testing
 
 Do not put everything in the `main.ts` file, split the implementation into manageable chunks which are unit tested.
 Only the logic should be tested.
 
-The build output should go in `dist/ui/report` in a single self-contained and minified JavaScript file.
+The build output should go in `dist/ui5-test-runner-html-report.js` in a single self-contained and minified JavaScript file (it must pack everything including css).
 
 ### Target browsers
 
@@ -66,6 +67,10 @@ Only modern browsers will be used, ignore Internet Explorer compatibility.
     * the `suite` property might be empty, associated test should be displayed / filtered with `no suite`
     * the `suite` property might not be an array, no hierarchical structure would then apply and the suite value would be considered a top level item
 
+### Manual testing
+
+The application should be locally runnable to do manual testing. Create an `html-report.html` entry point for vite.
+
 ## Expected features
 
 ### General UX
@@ -84,13 +89,15 @@ The UI should be split into 3 parts :
   * Number of passed, failed and skipped (ignore other statuses)
   * If any other status might be displayed, regroup them in a value called "other" (do not show this value otherwise)
   * For each test to display
-    * The suite hierarchy (see **Understanding suite** section)
+    * The suite hierarchy (see **Understanding suite** section) as clickable breadcrumbs (clicking one item should change the suite filter accordingly)
     * The test name
     * The status
     * Upon clicking the test, additional details might be displayed using a collapsible part that is expanded (but collapsed by default).
       * `duration`
       * `message` (if set) rendered as plain text
       * `trace` (if set) rendered as a call stack using monospace font
+
+The page title should be "UI5 Test Runner Report".
 
 ### Loading indicator
 
@@ -137,6 +144,8 @@ The list of test result can include sorting helpers to :
 * sort by name
 
 The sorting criteria must be persisted in the URL's hash so that reloading the page shows the same result.
+Only one sorting criteria can be applied at a time.
+User should be proposed to invert sorting direction.
 
 By default, no sort criteria is applied meaning the order should follow the `results.tests[]` array order.
 
@@ -144,7 +153,7 @@ By default, no sort criteria is applied meaning the order should follow the `res
 
 No paging is required.
 
-Yet, if there are more than 1000 tests to be displayed, a warning should be displayed to indicate that the user must use filtering criteria to narrow down the list of tests and only the first 1000 items are displayed.
+Yet, if there are more than 1000 tests to be displayed, a warning should be displayed to indicate that the user must use filtering criteria to narrow down the list of tests and only the first 1000 items are displayed (according to the sorting order).
 
 ### Statuses
 
@@ -180,7 +189,7 @@ It may happen that the same test URLs is introduced by different test suites, th
 That means that a test is uniquely identified by the value of `suite` and name.
 In the unlikely event that two tests under the same suite have the same name, it is OK if the UI can't distinguish them for filtering. But they must be both displayed.
 
-As suite URL can be very long, try to prettify them to display at least the page name (all URLs will likely have the same origin and base path).
+As suite URL can be very long, try to prettify them to display at least the page name (all URLs will likely have the same origin and base path). A tooltip should be associated to display the full value.
 
 A suite URL is not clickable.
 
@@ -202,6 +211,8 @@ When `window.ctrf` is set, the `Open` button **must not** be displayed.
 
 2. Otherwise, the application should offer an `Open` button which prompts the user to select which CTRF file to open.
 
+Until the user selected a file, an empty report should be displayed.
+
 The button remains visible after opening a report, letting the user switch between reports.
 
 Current sorting / filtering criteria should be kept (if matching the new report definition) or reset (when no matching value exist).
@@ -215,5 +226,6 @@ If the CTRF content is invalid, the report should do its best to render the cont
 ### Reloading the page
 
 When the user reloads the page, filters and sorting criteria should be kept: they are saved in the page hash using `pushState` to enable navigating back to previous searches (back restores the previous filter state if any).
+Proposed schema is : `#suite=&status=&q=&sort=&sort-order=`
 
 If no `window.ctrf` exists, the user has to re-open a report definition.
