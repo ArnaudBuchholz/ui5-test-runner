@@ -8,6 +8,8 @@ navigate the results.
 
 ## Technical overview
 
+Read and follow the documented [Coding Guidelines](./Coding%20Guidelines.md).
+
 ### CTRF Format
 
 The project provides an up to date description of the format in `src/types/CommonTestReportFormat.ts`.
