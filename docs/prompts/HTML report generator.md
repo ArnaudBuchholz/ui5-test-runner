@@ -103,25 +103,68 @@ The page title should be "UI5 Test Runner Report".
 
 ### Wireframes
 
-General page structure :
+#### Components
+
+* Simple syntaxes
+
+|Wireframe Syntax|UI5 equivalent|
+|---|---|
+|`((+ 1 passed))`|`<ui5-tag design="Positive">1 passed</ui5-tag>`|
+|`((- 1 failed))`|`<ui5-tag design="Negative">1 failed</ui5-tag>`|
+|`((1 skipped))`|`<ui5-tag design="Neutral">1 skipped</ui5-tag>`|
+|`"Label"`|`<ui5-label>Label</ui5-label>`|
+
+* Header panel
 
 ```
 ┌───────────────────────────────────────────────────────────────────────┐
-│ Summary                                                           [V] │ <- button to collapse this section
+│ [V] Summary                                              ((- failed)) │
 ├───────────────────────────────────────────────────────────────────────┤
 │                                                                       │  
-│ Date           Report ID     Tool              Duration    Status     │
-│ 1/1/2026 5:40  0123          ui5-test-runner   1m 0s       ❌ failed  │ <- Tool displays report.generatedBy
+```
+
+Translates to :
+
+```css
+.header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+}
+```
+
+```html
+
+```
+<ui5-panel no-animation="true" >
+  <div slot="header" class="header">
+    <ui5-title>Test Report </ui5-title>
+      <ui5-tag design="Negative">failed</ui5-tag>
+  </div>
+
+</ui5-panel>
+```
+
+#### General page structure
+
+```
+┌───────────────────────────────────────────────────────────────────────┐
+│ [V] Summary                                              ((- failed)) │
+├───────────────────────────────────────────────────────────────────────┤
 │                                                                       │
-│ Tests (Qunit@1.2.3)                                                   | <- QUnit@1.2.3 is report.results.tool.name + @ + report.results.tool.version
-│ 3 total (✅ 1 passed) (❌ 1 failed) (⏭ 1 skipped)                    │
+│ "Date"             "Report ID"     "Tool"                "Duration"   │
+│ 1/1/2026 5:40      0123            ui5-test-runner@6     1m 0s        │ <- Tool displays report.generatedBy
+│                                                                       │
+│ "Tests (Qunit@1.2.3)"                                                 | <- QUnit@1.2.3 is report.results.tool.name + @ + report.results.tool.version
+│ 3 total ((+ 1 passed)) ((- 1 failed)) ((1 skipped))                   │
 └───────────────────────────────────────────────────────────────────────┘
 ┌───────────────────────────────────────────────────────────────────────┐
-| Suite              Status             Search                          │
+| "Suite"            "Status"           "Search"                        │
 | [drop down  V]     [drop down  V]     [___________]                   │
 └───────────────────────────────────────────────────────────────────────┘
 ┌───────────────────────────────────────────────────────────────────────┐
-│ Tests (3)                  (✅ 1 passed) (❌ 1 failed) (⏭ 1 skipped) │
+│ Tests (3)                 ((+ 1 passed)) ((- 1 failed)) ((1 skipped)) │
 ├───────────────────────────────────────────────────────────────────────┤
 | Sort By : [Name] [Status] [Duration]                                  |
 ├───────────────────────────────────────────────────────────────────────┤
