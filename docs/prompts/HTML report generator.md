@@ -101,6 +101,51 @@ The UI should be split into 3 parts :
 
 The page title should be "UI5 Test Runner Report".
 
+### Wireframes
+
+General page structure :
+
+```
+┌───────────────────────────────────────────────────────────────────────┐
+│ Summary                                                           [V] │ <- button to collapse this section
+├───────────────────────────────────────────────────────────────────────┤
+│                                                                       │  
+│ Date           Report ID     Tool              Duration    Status     │
+│ 1/1/2026 5:40  0123          ui5-test-runner   1m 0s       ❌ failed  │ <- Tool displays report.generatedBy
+│                                                                       │
+│ Tests (Qunit@1.2.3)                                                   | <- QUnit@1.2.3 is report.results.tool.name + @ + report.results.tool.version
+│ 3 total (✅ 1 passed) (❌ 1 failed) (⏭ 1 skipped)                    │
+└───────────────────────────────────────────────────────────────────────┘
+┌───────────────────────────────────────────────────────────────────────┐
+| Suite              Status             Search                          │
+| [drop down  V]     [drop down  V]     [___________]                   │
+└───────────────────────────────────────────────────────────────────────┘
+┌───────────────────────────────────────────────────────────────────────┐
+│ Tests (3)                  (✅ 1 passed) (❌ 1 failed) (⏭ 1 skipped) │
+├───────────────────────────────────────────────────────────────────────┤
+| Sort By : [Name] [Status] [Duration]                                  |
+├───────────────────────────────────────────────────────────────────────┤
+(repeat for each test)
+
+  (when collapsed)
+├───────────────────────────────────────────────────────────────────────┤
+| [>] [suite breadcrumb] Test name                             (status) |
+├───────────────────────────────────────────────────────────────────────┤
+
+  (when expanded)
+├───────────────────────────────────────────────────────────────────────┤
+| [V] [suite breadcrumb] Test name                             (status) |
+├───────────────────────────────────────────────────────────────────────┤
+| Duration     100ms                                                    │
+| Message      Expected true to be false                                │
+| Stack        at test.js:42                                            │
+├───────────────────────────────────────────────────────────────────────┤
+
+(end of page)
+└───────────────────────────────────────────────────────────────────────┘
+
+```
+
 ### Loading indicator
 
 Since everything is "local" and should run fast, no loading indicator is expected.
