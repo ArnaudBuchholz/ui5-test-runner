@@ -33,6 +33,13 @@ export default defineConfig({
         name: { label: 'agent', color: 'blue' },
         environment: 'jsdom'
       }
+    }, {
+      extends: true,
+      test: {
+        include: [ 'src/ui/report/**/*.spec.ts' ],
+        name: { label: 'report', color: 'yellow' },
+        environment: 'jsdom'
+      }
     }]
   }
 });

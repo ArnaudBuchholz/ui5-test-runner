@@ -15,7 +15,7 @@
   },
   "scripts": {
     "ts-run": "node --no-warnings --experimental-strip-types --import ./src/platform/js2ts.mjs",
-    "cli": "npm run build:agent && npm run ts-run -- src/cli.ts",
+    "cli": "npm run build:agent && npm run build:ui:report && npm run ts-run -- src/cli.ts",
     "test:cli1": "npm run cli -- --url https://ui5.sap.com/test-resources/sap/m/demokit/cart/webapp/test/testsuite.qunit.html --report-dir tmp",
     "test:cli2": "npm run cli -- --url \"https://ui5.sap.com/test-resources/sap/m/demokit/cart/webapp/test/Test.qunit.html?testsuite=test-resources/sap/ui/demo/cart/testsuite.qunit&test=unit/unitTests\" --report-dir tmp",
     "test:cli3": "npm run cli -- --url \"https://ui5.sap.com/test-resources/sap/m/demokit/cart/webapp/test/Test.qunit.html?testsuite=test-resources%2Fsap%2Fui%2Fdemo%2Fcart%2Ftestsuite.qunit&test=integration%2FopaTestsComponent#/categories\" --report-dir tmp",
@@ -23,6 +23,8 @@
     "lint": "dpdm src/cli.ts --circular --tree false --warning false --skip-dynamic-imports circular && eslint \"**/*.mjs\" \"./src/**/*.ts\" --fix --cache --cache-strategy content && tsc --noEmit",
     "build:options": "node build/options.mjs > ./src/configuration/options.ts && npm run lint",
     "build:agent": "vite build",
+    "build:ui:report": "vite build -c src/ui/report/vite.config.mjs",
+    "start:ui:report": "vite -c src/ui/report/vite.config.mjs",
     "test": "npm run lint && npm run test:unit && npm run test:e2e",
     "test:samples": "npm run test:samples:js && npm run test:samples:ts",
     "test:samples:js": "npm run test:sample:js:legacy && npm run test:sample:js:coverage:legacy && npm run test:sample:js:legacy-remote && npm run test:sample:js:coverage:legacy-remote && npm run test:sample:js:remote && npm run test:sample:js:coverage:remote && npm run test:sample:js:basic-authent && npm run test:sample:js:legacy:split-opa && npm run test:sample:js:remote:split-opa",
@@ -100,6 +102,7 @@
     "typescript-eslint": "^8.56.1",
     "ui5-tooling-transpile": "^3.10.1",
     "vite": "^7.3.1",
+    "vite-plugin-css-injected-by-js": "^4.0.1",
     "vitest": "^4.0.18"
   }
 }
