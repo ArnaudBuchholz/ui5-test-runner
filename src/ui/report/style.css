@@ -1,0 +1,122 @@
+body {
+  margin: 0;
+  padding: 1rem;
+  font-family: var(--sapFontFamily, "72", "72full", Arial, Helvetica, sans-serif);
+  background-color: var(--sapBackgroundColor, #f7f7f7);
+}
+
+.header-panel-content {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1rem;
+  padding: 1rem 0;
+}
+
+.header-title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+}
+
+.filter-bar {
+  display: flex;
+  gap: 1rem;
+  padding: 1rem;
+  background: var(--sapGroup_ContentBackground, #ffffff);
+  border-bottom: 1px solid var(--sapGroup_TitleBorderColor, #d9d9d9);
+  margin-bottom: 1rem;
+  align-items: flex-end;
+  flex-wrap: wrap;
+}
+
+.filter-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  min-width: 200px;
+}
+
+.test-list-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.5rem 1rem;
+  background: var(--sapList_HeaderBackground, #f7f7f7);
+  border-bottom: 1px solid var(--sapList_BorderColor, #d9d9d9);
+}
+
+.sort-bar {
+  padding: 0.5rem 1rem;
+  background: var(--sapGroup_ContentBackground, #ffffff);
+  border-bottom: 1px solid var(--sapList_BorderColor, #d9d9d9);
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.test-item {
+  border-bottom: 1px solid var(--sapList_BorderColor, #d9d9d9);
+  background: var(--sapList_Background, #ffffff);
+}
+
+.test-item-header {
+  display: flex;
+  align-items: center;
+  padding: 0.5rem 1rem;
+  cursor: pointer;
+}
+
+.test-item-header:hover {
+  background: var(--sapList_Hover_Background, #f1f1f1);
+}
+
+.test-status {
+  margin-left: auto;
+}
+
+.test-details {
+  padding: 1rem 3rem;
+  background: var(--sapList_Background, #ffffff);
+  display: none;
+}
+
+.test-details.expanded {
+  display: block;
+}
+
+.suite-breadcrumb {
+  color: var(--sapContent_LabelColor, #6a6d70);
+  font-size: 0.875rem;
+  margin-right: 0.5rem;
+  cursor: pointer;
+}
+
+.suite-breadcrumb:hover {
+  text-decoration: underline;
+}
+
+.test-name {
+  font-weight: bold;
+}
+
+.stack-trace {
+  font-family: monospace;
+  white-space: pre-wrap;
+  background: var(--sapField_ReadOnly_Background, #f2f2f2);
+  padding: 0.5rem;
+  border-radius: 0.25rem;
+  font-size: 0.8rem;
+}
+
+.summary-counts {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 1rem;
+  flex-wrap: wrap;
+}
+
+ui5-panel {
+  width: 100%;
+  margin-bottom: 1rem;
+}
