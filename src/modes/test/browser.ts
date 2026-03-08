@@ -6,7 +6,7 @@ import { Exit, assert, logger } from '../../platform/index.js';
 let browser: IBrowser;
 
 export const setupBrowser = async (configuration: Configuration): Promise<IBrowser> => {
-  assert(configuration.browser === '$/puppeteer.js'); // TODO: see how to make it compatible
+  assert(configuration.browser === 'puppeteer');
   browser = await BrowserFactory.build('puppeteer');
   const { debugKeepBrowserOpen } = configuration;
   const settings: BrowserSettings = {

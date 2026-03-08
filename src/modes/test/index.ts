@@ -6,6 +6,7 @@ import { getAgentSource } from './agent.js';
 import { setupBrowser } from './browser.js';
 import { pageTask } from './pageTask.js';
 import { report } from './report.js';
+import { generateHtmlReport } from '../../reports/html.js';
 
 /**
  * TODO
@@ -59,6 +60,7 @@ export const test = async (configuration: Configuration) => {
       JSON.stringify(report.merged, undefined, 2),
       'utf8'
     );
+    await generateHtmlReport(configuration, report.merged);
   } catch (error) {
     logger.error({ source: 'job', message: 'An error occurred', error });
   } finally {
