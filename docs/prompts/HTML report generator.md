@@ -319,3 +319,14 @@ When the user reloads the page, filters and sorting criteria should be kept: the
 Proposed schema is : `#suite=&status=&q=&sort=&sort-order=`
 
 If no `window.ctrf` exists, the user has to re-open a report definition.
+
+## TODO
+
+* Improve suite selection to replace the drop down with a custom popup having a hierarchical structure
+* Adds a default sorting option (none)
+* Make sure the focus is kept in the edit when typing text to search for a test
+* Define the empty screen (when no ctrf exists)
+* makes the status optional (do not display 0 failed or 0 skipped)
+* create test reports to manually tests the situations
+* disable panel animation
+* fix breadcrumbs selection
