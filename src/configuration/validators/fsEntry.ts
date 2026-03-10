@@ -6,25 +6,19 @@ import type { Configuration } from '../Configuration.js';
 
 const fsCheckAccess = async (option: Option, path: string): Promise<string | undefined> => {
   try {
-    const mode = FileSystem.constants.R_OK | (option.type === 'folder-recreate' ? FileSystem.constants.W_OK : 0);
+    const mode = FileSystem.constants.R_OK | (option.typeModifiers?.has('overwrite') ? FileSystem.constants.W_OK : 0);
     await FileSystem.access(path, mode);
   } catch (error) {
-    if (option.type === 'folder-recreate') {
+    if (option.typeModifiers?.has('overwrite')) {
       const code = typeof error === 'object' && error && 'code' in error && error.code;
       if (code === 'EACCES') {
-        throw new OptionValidationError(option, 'Unable to access folder', error);
+        throw new OptionValidationError(option, 'Unable to access file system entry', error);
       }
       if (code === 'ENOENT') {
-        return path;
+        return path; // will be created
       }
-    } else if (
-      option.name === 'webapp' ||
-      option.name === 'testsuite' ||
-      (option.name === 'config' && path.endsWith('ui5-test-runner.json'))
-    ) {
-      return '';
     } else {
-      throw new OptionValidationError(option, `Unable to access ${option.type}`, error);
+      throw new OptionValidationError(option, `Unable to access file system entry`, error);
     }
   }
   return undefined;
@@ -33,10 +27,10 @@ const fsCheckAccess = async (option: Option, path: string): Promise<string | und
 const fsCheckStat = async (option: Option, path: string): Promise<void> => {
   try {
     const stat = await FileSystem.stat(path);
-    if (option.type !== 'file' && !stat.isDirectory()) {
+    if (option.typeModifiers?.has('folder') && !stat.isDirectory()) {
       throw new OptionValidationError(option, 'Not a folder');
     }
-    if (option.type === 'file' && !stat.isFile()) {
+    if (option.typeModifiers?.has('file') && !stat.isFile()) {
       throw new OptionValidationError(option, 'Not a file');
     }
   } catch (error) {
@@ -53,17 +47,25 @@ export const fsOption = async (option: Option, value: unknown, configuration: Co
     path = value;
   } else if (option.name === 'cwd') {
     path = Path.join(Host.cwd(), value);
-  } else if (option.name === 'testsuite') {
-    path = Path.join(configuration.webapp, value);
   } else {
     path = Path.join(configuration.cwd, value);
   }
-  const accessChecked = await fsCheckAccess(option, path);
-  if (accessChecked !== undefined) {
-    return accessChecked;
+  try {
+    const accessChecked = await fsCheckAccess(option, path);
+    if (accessChecked !== undefined) {
+      return accessChecked;
+    }
+    await fsCheckStat(option, path);
+  } catch (error) {
+    if (
+      option.typeModifiers?.has('safe-default') &&
+      !Object.prototype.hasOwnProperty.call(configuration, option.name)
+    ) {
+      return '';
+    }
+    throw error;
   }
-  await fsCheckStat(option, path);
   return path;
 };
 
-export const folderRecreate: OptionValidator<'folder-recreate'> = fsOption;
+export const fsEntry: OptionValidator<'fs-entry'> = fsOption;
