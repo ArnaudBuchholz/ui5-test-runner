@@ -1,17 +1,15 @@
 export type OptionType =
   | 'boolean'
   | 'browser'
-  | 'file'
-  | 'folder-recreate'
-  | 'folder'
+  | 'fs-entry'
   | 'integer'
   | 'percent'
   | 'regexp'
-  | 'reserveMapping'
   | 'string'
   | 'timeout'
-  | 'ui5Mapping'
   | 'url';
+
+export type OptionTypeModifiers = 'exists' | 'file' | 'folder' | 'overwrite' | 'safe-default';
 
 export type InferOptionType<T extends OptionType> = T extends 'boolean'
   ? boolean
@@ -28,6 +26,7 @@ export type Option<T extends OptionType = OptionType> = {
   short?: string;
   description: string;
   type: T;
+  typeModifiers?: Set<OptionTypeModifiers>;
   defaultLabel?: string;
 } & (
   | {

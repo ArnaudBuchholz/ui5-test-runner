@@ -2,25 +2,29 @@ export const options = [
   {
     name: 'cwd',
     short: 'c',
-    type: 'folder',
+    type: 'fs-entry',
+    typeModifiers: new Set(['folder', 'exists']),
     description: 'set working directory',
     default: process.cwd()
   },
   {
     name: 'webapp',
-    type: 'folder',
+    type: 'fs-entry',
+    typeModifiers: new Set(['folder', 'exists', 'safe-default']),
     description: 'base folder of the UI5 application',
     default: 'webapp'
   },
   {
     name: 'testsuite',
-    type: 'file',
+    type: 'fs-entry',
+    typeModifiers: new Set(['file', 'exists', 'safe-default']),
     description: 'path of the testsuite file',
-    default: 'test/testsuite.qunit.html'
+    default: 'webapp/test/testsuite.qunit.html'
   },
   {
     name: 'alternateNpmPath',
-    type: 'folder',
+    type: 'fs-entry',
+    typeModifiers: new Set(['folder', 'exists']),
     description: 'alternate NPM package path'
   },
   {
@@ -43,7 +47,8 @@ export const options = [
   },
   {
     name: 'config',
-    type: 'file',
+    type: 'fs-entry',
+    typeModifiers: new Set(['file', 'exists', 'safe-default']),
     description: 'read options from a configuration file',
     default: 'ui5-test-runner.json'
   },
@@ -89,7 +94,8 @@ export const options = [
   },
   {
     name: 'log',
-    type: 'file',
+    type: 'fs-entry',
+    typeModifiers: new Set(['file', 'exists']),
     description: 'read and dump log file using jsonl format'
   },
   {
@@ -142,7 +148,8 @@ export const options = [
   {
     name: 'reportDir',
     short: 'r',
-    type: 'folder-recreate',
+    type: 'fs-entry',
+    typeModifiers: new Set(['folder', 'overwrite']),
     description: 'directory to output test reports',
     default: 'report'
   },
@@ -180,7 +187,7 @@ export const defaults = {
   localhost: 'localhost',
   parallel: 2,
   reportDir: 'report',
-  testsuite: 'test/testsuite.qunit.html',
+  testsuite: 'webapp/test/testsuite.qunit.html',
   ui5: 'https://ui5.sap.com',
   webapp: 'webapp'
 } as const;
