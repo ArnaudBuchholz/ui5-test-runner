@@ -1,12 +1,15 @@
 ---
 "#type": "[[option]]"
-type: "[[file]]"
+type: "[[fs-entry]]"
+typeModifiers:
+  - "[[options/types/modifiers/file|file]]"
+  - "[[options/types/modifiers/exists|exists]]"
+  - "[[safe-default]]"
 summary: path of the testsuite file
-default: "'test/testsuite.qunit.html'"
-see:
-  - "[[webapp]]"
+default: "'webapp/test/testsuite.qunit.html'"
+dependsOn: "[[cwd]]"
 tags:
   - legacy
   - remote
 ---
-This value is relative to [[webapp]] (instead of [[cwd]]), URL parameters are supported
+BREAKING CHANGE : no more relative to [[webapp]], does **not** support URL parameters.

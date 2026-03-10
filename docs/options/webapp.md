@@ -1,10 +1,13 @@
 ---
 "#type": "[[option]]"
-type: "[[folder]]"
+type: "[[fs-entry]]"
+typeModifiers:
+  - "[[options/types/modifiers/folder|folder]]"
+  - "[[options/types/modifiers/exists|exists]]"
+  - "[[safe-default]]"
 summary: base folder of the UI5 application
 default: "'webapp'"
-see:
-  - "[[cwd]]"
+dependsOn: "[[cwd]]"
 tags:
   - legacy
   - remote
