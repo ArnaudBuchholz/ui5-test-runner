@@ -74,5 +74,13 @@ export default [
       '@typescript-eslint/no-unsafe-call': 'off',
       '@typescript-eslint/no-unsafe-member-access': 'off'
     }
+  },
+  // Build tools
+  {
+    files: ['build/*.mjs'],
+    rules: {
+      'security/detect-unsafe-regex': 'off',
+      'sonarjs/slow-regex': 'off'
+    }
   }
 ];

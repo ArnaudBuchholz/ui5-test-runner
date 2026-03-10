@@ -40,7 +40,6 @@ for (const fileName of await readdir(OPTIONS_FOLDER)) {
     if (checkIfDuplicate(name, short)) {
       errors.push(`duplicate name / short detected: ${name} ${short ?? ''}`);
     }
-    // eslint-disable-next-line security/detect-unsafe-regex, sonarjs/slow-regex -- not for productive use
     const [, type] = properties.match(/type: "\[\[(?:[^\\\]]+\|)?(.*)\]\]"/);
     if (!types.includes(type)) {
       errors.push(`Unknown type ${type}`);
@@ -51,6 +50,12 @@ for (const fileName of await readdir(OPTIONS_FOLDER)) {
     if (defaultValue) {
       defaults[name] = defaultValue;
     }
+    let typeModifiers;
+    const [, typeModifiersList] = properties.match(/typeModifiers:((?:\n {2}- "[^"]*")*)/) ?? [];
+    if (typeModifiersList) {
+      typeModifiers = [];
+      typeModifiersList.replaceAll(/"\[\[(?:[^\\\]]+\|)?(.*)\]\]"/g, (_, modifier) => typeModifiers.push(modifier));
+    }
     if (errors.length > 0) {
       console.error(`❌ ${fileName} :\n\t` + errors.join('\n\t'));
       process.exitCode = 1;
@@ -59,6 +64,7 @@ for (const fileName of await readdir(OPTIONS_FOLDER)) {
       name,
       short,
       type,
+      typeModifiers,
       multiple,
       description: summary,
       default: defaultValue
@@ -66,6 +72,7 @@ for (const fileName of await readdir(OPTIONS_FOLDER)) {
   }
 }
 
+// TODO: leverage dependsOn
 /* Order of options determines when they are validated,
    because of dependencies (like webapp depends on cwd) we must carefully craft the list
 */
@@ -91,6 +98,8 @@ if (!process.exitCode) {
         if (value) {
           console.log(`    multiple: true,`);
         }
+      } else if (key === 'typeModifiers') {
+        console.log(`    typeModifiers: new Set(${JSON.stringify(value).replaceAll('"', "'")}),`);
       } else {
         console.log(`    ${key}: '${value}',`);
       }
