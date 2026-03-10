@@ -1,4 +1,4 @@
-import { it, expect, vi } from 'vitest';
+import { it, expect, vi, describe } from 'vitest';
 import { FileSystem, Host } from '../../platform/index.js';
 import { folder } from './folder.js';
 import { checkValidator, noBooleans, noIntegers, noNumbers } from './checkValidator.test.js';
@@ -9,7 +9,8 @@ import { indexedOptions } from '../indexedOptions.js';
 const VALID_ROOT = '/usr/arnaud/git/' as const;
 const VALID_FOLDER_NAME = 'project' as const;
 const VALID_PATH = VALID_ROOT + VALID_FOLDER_NAME;
-const INVALID_ACCESS_PATH = VALID_ROOT + 'invalid-access';
+const INVALID_ACCESS_NAME = 'invalid-access';
+const INVALID_ACCESS_PATH = VALID_ROOT + INVALID_ACCESS_NAME;
 const invalidAccess = new Error('Invalid access');
 const INVALID_STAT_PATH = VALID_ROOT + 'invalid-stat';
 const invalidStat = new Error('Invalid stat');
@@ -79,9 +80,17 @@ it('sets the cause when returning the error (invalid-stat)', async () => {
   }
 });
 
-it('handles special case for cwd option', async () => {
-  const { cwd: option } = indexedOptions;
-  vi.mocked(Host.cwd).mockReturnValue(VALID_ROOT);
-  const result = await folder(option, VALID_FOLDER_NAME, {} as Configuration);
-  expect(result).toStrictEqual(VALID_PATH);
+describe('exceptions', () => {
+  it('handles: cwd is relative to Host.cwd()', async () => {
+    const { cwd: option } = indexedOptions;
+    vi.mocked(Host.cwd).mockReturnValue(VALID_ROOT);
+    const result = await folder(option, VALID_FOLDER_NAME, {} as Configuration);
+    expect(result).toStrictEqual(VALID_PATH);
+  });
+
+  it('handles: webapp may not exist', async () => {
+    const { webapp: option } = indexedOptions;
+    const result = await folder(option, INVALID_ACCESS_NAME, { cwd: VALID_ROOT } as Configuration);
+    expect(result).toStrictEqual('');
+  });
 });

@@ -17,6 +17,8 @@ const fsCheckAccess = async (option: Option, path: string): Promise<string | und
       if (code === 'ENOENT') {
         return path;
       }
+    } else if (option.name === 'webapp' || option.name === 'testsuite') {
+      return '';
     } else {
       throw new OptionValidationError(option, `Unable to access ${option.type}`, error);
     }
@@ -47,6 +49,8 @@ export const fsOption = async (option: Option, value: unknown, configuration: Co
     path = value;
   } else if (option.name === 'cwd') {
     path = Path.join(Host.cwd(), value);
+  } else if (option.name === 'testsuite') {
+    path = Path.join(configuration.webapp, value);
   } else {
     path = Path.join(configuration.cwd, value);
   }

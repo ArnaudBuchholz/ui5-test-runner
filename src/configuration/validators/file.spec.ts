@@ -1,14 +1,16 @@
-import { it, expect, vi } from 'vitest';
+import { it, expect, vi, describe } from 'vitest';
 import { FileSystem } from '../../platform/index.js';
 import { file } from './file.js';
 import { checkValidator, noBooleans, noIntegers, noNumbers } from './checkValidator.test.js';
 import type { Configuration } from '../Configuration.js';
 import { OptionValidationError } from '../OptionValidationError.js';
+import { indexedOptions } from '../indexedOptions.js';
 
 const VALID_ROOT = '/usr/arnaud/git/' as const;
 const VALID_FILE_NAME = 'project' as const;
 const VALID_PATH = VALID_ROOT + VALID_FILE_NAME;
-const INVALID_ACCESS_PATH = VALID_ROOT + 'invalid-access';
+const INVALID_ACCESS = 'invalid-access';
+const INVALID_ACCESS_PATH = VALID_ROOT + INVALID_ACCESS;
 const invalidAccess = new Error('Invalid access');
 const INVALID_STAT_PATH = VALID_ROOT + 'invalid-stat';
 const invalidStat = new Error('Invalid stat');
@@ -76,4 +78,18 @@ it('sets the cause when returning the error (invalid-stat)', async () => {
     expect.assert(error instanceof OptionValidationError);
     expect(error.cause).toStrictEqual(invalidStat);
   }
+});
+
+describe('exceptions', () => {
+  it('handles: testsuite is relative to webapp', async () => {
+    const { testsuite: option } = indexedOptions;
+    const result = await file(option, VALID_FILE_NAME, { webapp: VALID_ROOT } as Configuration);
+    expect(result).toStrictEqual(VALID_PATH);
+  });
+
+  it('handles: testsuite may not exist', async () => {
+    const { testsuite: option } = indexedOptions;
+    const result = await file(option, INVALID_ACCESS, { webapp: VALID_ROOT } as Configuration);
+    expect(result).toStrictEqual('');
+  });
 });
