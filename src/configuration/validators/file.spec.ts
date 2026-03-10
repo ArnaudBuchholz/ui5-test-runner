@@ -92,4 +92,21 @@ describe('exceptions', () => {
     const result = await file(option, INVALID_ACCESS, { webapp: VALID_ROOT } as Configuration);
     expect(result).toStrictEqual('');
   });
+
+  it('handles: config may not exist if default', async () => {
+    const { config: option } = indexedOptions;
+    const result = await file(option, 'ui5-test-runner.json', { cwd: VALID_ROOT } as Configuration);
+    expect(result).toStrictEqual('');
+  });
+
+  it('handles: config must fail otherwise', async () => {
+    const { config: option } = indexedOptions;
+    try {
+      await file(option, INVALID_ACCESS, { cwd: VALID_ROOT } as Configuration);
+      expect.unreachable();
+    } catch (error) {
+      expect.assert(error instanceof OptionValidationError);
+      expect(error.cause).toStrictEqual(invalidAccess);
+    }
+  });
 });

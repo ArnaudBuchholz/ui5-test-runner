@@ -71,7 +71,10 @@ export const ConfigurationValidator = {
     const merged = await this.merge(withDefaults);
     merged.mode = this.computeMode(merged);
     for (const option of options) {
-      if (Object.hasOwnProperty.call(merged, option.name)) {
+      if (
+        Object.hasOwnProperty.call(merged, option.name) ||
+        (merged[option.name] && ['folder', 'folder-recreate', 'file'].includes(option.type))
+      ) {
         Object.assign(merged, {
           [option.name]: await validateValue(option, merged)
         });

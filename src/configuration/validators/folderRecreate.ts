@@ -17,7 +17,11 @@ const fsCheckAccess = async (option: Option, path: string): Promise<string | und
       if (code === 'ENOENT') {
         return path;
       }
-    } else if (option.name === 'webapp' || option.name === 'testsuite') {
+    } else if (
+      option.name === 'webapp' ||
+      option.name === 'testsuite' ||
+      (option.name === 'config' && path.endsWith('ui5-test-runner.json'))
+    ) {
       return '';
     } else {
       throw new OptionValidationError(option, `Unable to access ${option.type}`, error);

@@ -26,7 +26,7 @@ describe('defaults', () => {
 
   it('does not expose it as own property', async () => {
     const configuration = await ConfigurationValidator.validate({});
-    expect(Object.hasOwnProperty.call(configuration, 'cwd')).toStrictEqual(false);
+    expect(Object.hasOwnProperty.call(configuration, 'parallel')).toStrictEqual(false);
   });
 
   it('allows override', async () => {

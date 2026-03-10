@@ -5,3 +5,4 @@ Exceptions :
 
 * [[testsuite]] is relative to [[webapp]]
 * [[testsuite]] *may* not exist
+* [[config]] *may* not exist if set to `'ui5-test-runner.json'`
