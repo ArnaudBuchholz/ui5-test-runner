@@ -1,9 +1,10 @@
 import { it, expect, vi } from 'vitest';
-import { FileSystem } from '../../platform/index.js';
+import { FileSystem, Host } from '../../platform/index.js';
 import { folder } from './folder.js';
 import { checkValidator, noBooleans, noIntegers, noNumbers } from './checkValidator.test.js';
 import type { Configuration } from '../Configuration.js';
 import { OptionValidationError } from '../OptionValidationError.js';
+import { indexedOptions } from '../indexedOptions.js';
 
 const VALID_ROOT = '/usr/arnaud/git/' as const;
 const VALID_FOLDER_NAME = 'project' as const;
@@ -76,4 +77,11 @@ it('sets the cause when returning the error (invalid-stat)', async () => {
     expect.assert(error instanceof OptionValidationError);
     expect(error.cause).toStrictEqual(invalidStat);
   }
+});
+
+it('handles special case for cwd option', async () => {
+  const { cwd: option } = indexedOptions;
+  vi.mocked(Host.cwd).mockReturnValue(VALID_ROOT);
+  const result = await folder(option, VALID_FOLDER_NAME, {} as Configuration);
+  expect(result).toStrictEqual(VALID_PATH);
 });

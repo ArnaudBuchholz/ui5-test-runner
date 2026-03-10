@@ -1,4 +1,4 @@
-import { FileSystem, Path } from '../../platform/index.js';
+import { FileSystem, Host, Path } from '../../platform/index.js';
 import { OptionValidationError } from '../OptionValidationError.js';
 import type { OptionValidator } from './OptionValidator.js';
 import type { Option } from '../Option.js';
@@ -42,7 +42,14 @@ export const fsOption = async (option: Option, value: unknown, configuration: Co
   if (typeof value !== 'string') {
     throw new OptionValidationError(option, 'Expected string');
   }
-  const path = Path.isAbsolute(value) ? value : Path.join(configuration.cwd, value);
+  let path: string;
+  if (Path.isAbsolute(value)) {
+    path = value;
+  } else if (option.name === 'cwd') {
+    path = Path.join(Host.cwd(), value);
+  } else {
+    path = Path.join(configuration.cwd, value);
+  }
   const accessChecked = await fsCheckAccess(option, path);
   if (accessChecked !== undefined) {
     return accessChecked;
