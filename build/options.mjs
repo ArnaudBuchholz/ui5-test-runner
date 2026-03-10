@@ -66,9 +66,19 @@ for (const fileName of await readdir(OPTIONS_FOLDER)) {
   }
 }
 
+/* Order of options determines when they are validated,
+   because of dependencies (like webapp depends on cwd) we must carefully craft the list
+*/
+const sortedOptionNames = ['cwd', 'webapp', 'testsuite'];
+for (const name of Object.keys(options)) {
+  if (!sortedOptionNames.includes(name)) {
+    sortedOptionNames.push(name);
+  }
+}
+
 if (!process.exitCode) {
   console.log(`export const options = [`);
-  for (const name of Object.keys(options).toSorted()) {
+  for (const name of sortedOptionNames) {
     console.log(` {`);
     const option = options[name];
     for (const [key, value] of Object.entries(option)) {

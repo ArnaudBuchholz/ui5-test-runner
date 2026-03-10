@@ -1,5 +1,24 @@
 export const options = [
   {
+    name: 'cwd',
+    short: 'c',
+    type: 'folder',
+    description: 'set working directory',
+    default: process.cwd()
+  },
+  {
+    name: 'webapp',
+    type: 'folder',
+    description: 'base folder of the UI5 application',
+    default: 'webapp'
+  },
+  {
+    name: 'testsuite',
+    type: 'file',
+    description: 'path of the testsuite file',
+    default: 'test/testsuite.qunit.html'
+  },
+  {
     name: 'alternateNpmPath',
     type: 'folder',
     description: 'alternate NPM package path'
@@ -27,13 +46,6 @@ export const options = [
     type: 'file',
     description: 'read options from a configuration file',
     default: 'ui5-test-runner.json'
-  },
-  {
-    name: 'cwd',
-    short: 'c',
-    type: 'folder',
-    description: 'set working directory',
-    default: process.cwd()
   },
   {
     name: 'debugKeepBrowserOpen',
@@ -141,12 +153,6 @@ export const options = [
     description: 'serve only'
   },
   {
-    name: 'testsuite',
-    type: 'file',
-    description: 'path of the testsuite file',
-    default: 'test/testsuite.qunit.html'
-  },
-  {
     name: 'ui5',
     type: 'url',
     description: 'UI5 url',
@@ -163,12 +169,6 @@ export const options = [
     name: 'version',
     type: 'boolean',
     description: 'display version'
-  },
-  {
-    name: 'webapp',
-    type: 'folder',
-    description: 'base folder of the UI5 application',
-    default: 'webapp'
   }
 ] as const;
 
