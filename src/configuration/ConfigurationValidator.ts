@@ -73,7 +73,7 @@ export const ConfigurationValidator = {
     for (const option of options) {
       if (
         Object.hasOwnProperty.call(merged, option.name) ||
-        (merged[option.name] && ['folder', 'folder-recreate', 'file'].includes(option.type))
+        (merged[option.name] && option.type === 'fs-entry')
       ) {
         Object.assign(merged, {
           [option.name]: await validateValue(option, merged)
