@@ -7,7 +7,7 @@ import { OptionValidationError } from '../OptionValidationError.js';
 import { indexedOptions } from '../indexedOptions.js';
 
 const VALID_ROOT = '/usr/arnaud/git/' as const;
-const VALID_FOLDER_NAME = 'project' as const;
+const VALID_FOLDER_NAME = 'folder' as const;
 const VALID_FOLDER_PATH = VALID_ROOT + VALID_FOLDER_NAME;
 const READ_ONLY_PATH = VALID_ROOT + 'read-only';
 const readOnlyAccessError: Error & { code?: string } = new Error('read-only');
@@ -20,10 +20,11 @@ const INVALID_ACCESS_PATH = VALID_ROOT + INVALID_ACCESS_NAME;
 const invalidAccess = new Error('Invalid access');
 const INVALID_STAT_PATH = VALID_ROOT + 'invalid-stat';
 const invalidStat = new Error('Invalid stat');
-const FILE_PATH = VALID_ROOT + 'file';
+const VALID_FILE_NAME = 'file' as const;
+const VALID_FILE_PATH = VALID_ROOT + VALID_FILE_NAME;
 
 vi.mocked(FileSystem.access).mockImplementation((path) => {
-  if (path === VALID_FOLDER_PATH || path === INVALID_STAT_PATH || path === FILE_PATH) {
+  if (path === VALID_FOLDER_PATH || path === INVALID_STAT_PATH || path === VALID_FILE_PATH) {
     return Promise.resolve();
   }
   if (path === READ_ONLY_PATH) {
@@ -42,7 +43,7 @@ vi.mocked(FileSystem.stat).mockImplementation((path) => {
       isFile: () => false
     } as Awaited<ReturnType<typeof FileSystem.stat>>);
   }
-  if (path === FILE_PATH) {
+  if (path === VALID_FILE_PATH) {
     return Promise.resolve({
       isDirectory: () => false,
       isFile: () => true
@@ -57,10 +58,9 @@ const FS_OPTION = {
   type: 'fs-entry'
 } as const;
 
-describe('folder', () => {
+describe('(no modifiers)', () => {
   const FOLDER = {
-    ...FS_OPTION,
-    typeModifiers: new Set(['folder', 'exists'] as const)
+    ...FS_OPTION
   } as const;
 
   checkValidator({
@@ -73,7 +73,7 @@ describe('folder', () => {
     invalid: [
       { value: INVALID_ACCESS_PATH },
       { value: INVALID_STAT_PATH },
-      { value: FILE_PATH },
+      { value: VALID_FILE_PATH },
       ...noBooleans,
       ...noIntegers,
       ...noNumbers
@@ -122,10 +122,10 @@ describe('folder', () => {
   });
 });
 
-describe('folder overwrite', () => {
+describe('overwrite', () => {
   const FOLDER_OVERWRITE = {
     ...FS_OPTION,
-    typeModifiers: new Set(['folder', 'overwrite'] as const)
+    typeModifiers: new Set(['overwrite'] as const)
   } as const;
 
   checkValidator({
@@ -140,7 +140,7 @@ describe('folder overwrite', () => {
       { value: READ_ONLY_PATH },
       { value: INVALID_STAT_PATH },
       { value: INVALID_ACCESS_PATH },
-      { value: FILE_PATH },
+      { value: VALID_FILE_PATH },
       ...noBooleans,
       ...noIntegers,
       ...noNumbers
@@ -174,5 +174,68 @@ describe('folder overwrite', () => {
       expect.assert(error instanceof OptionValidationError);
       expect(error.cause).toStrictEqual(invalidStat);
     }
+  });
+});
+
+describe('file', () => {
+  const FILE = {
+    ...FS_OPTION,
+    typeModifiers: new Set(['file'] as const)
+  } as const;
+
+  checkValidator({
+    validator: fsEntry,
+    option: FILE,
+    valid: [
+      { value: VALID_FILE_PATH, expected: VALID_FILE_PATH },
+      { value: VALID_FILE_NAME, expected: VALID_FILE_PATH, configuration: { cwd: VALID_ROOT } }
+    ],
+    invalid: [
+      { value: INVALID_ACCESS_PATH },
+      { value: INVALID_STAT_PATH },
+      { value: VALID_FOLDER_PATH },
+      ...noBooleans,
+      ...noIntegers,
+      ...noNumbers
+    ]
+  });
+
+  it('sets the cause when returning the error (invalid-access)', async () => {
+    try {
+      await fsEntry(FILE, INVALID_ACCESS_PATH, {} as Configuration);
+      expect.unreachable();
+    } catch (error) {
+      expect.assert(error instanceof OptionValidationError);
+      expect(error.cause).toStrictEqual(invalidAccess);
+    }
+  });
+
+  it('sets the cause when returning the error (invalid-stat)', async () => {
+    try {
+      await fsEntry(FILE, INVALID_STAT_PATH, {} as Configuration);
+      expect.unreachable();
+    } catch (error) {
+      expect.assert(error instanceof OptionValidationError);
+      expect(error.cause).toStrictEqual(invalidStat);
+    }
+  });
+
+  describe('exceptions', () => {
+    it('handles: config may not exist if default', async () => {
+      const { config: option } = indexedOptions;
+      const result = await fsEntry(option, 'ui5-test-runner.json', { cwd: VALID_ROOT } as Configuration);
+      expect(result).toStrictEqual('');
+    });
+
+    it('handles: config must fail otherwise', async () => {
+      const { config: option } = indexedOptions;
+      try {
+        await fsEntry(option, INVALID_ACCESS_NAME, { cwd: VALID_ROOT, config: INVALID_ACCESS_NAME } as Configuration);
+        expect.unreachable();
+      } catch (error) {
+        expect.assert(error instanceof OptionValidationError);
+        expect(error.cause).toStrictEqual(invalidAccess);
+      }
+    });
   });
 });
