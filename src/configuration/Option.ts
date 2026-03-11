@@ -9,7 +9,7 @@ export type OptionType =
   | 'timeout'
   | 'url';
 
-export type OptionTypeModifiers = 'exists' | 'file' | 'folder' | 'overwrite' | 'safe-default';
+export type OptionTypeModifiers = 'file' | 'overwrite' | 'safe-default';
 
 export type InferOptionType<T extends OptionType> = T extends 'boolean'
   ? boolean

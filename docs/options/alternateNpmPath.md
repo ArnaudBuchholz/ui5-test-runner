@@ -1,9 +1,6 @@
 ---
 "#type": "[[option]]"
 type: "[[fs-entry]]"
-typeModifiers:
-  - "[[options/types/modifiers/folder|folder]]"
-  - "[[options/types/modifiers/exists|exists]]"
 summary: alternate NPM package path
 dependsOn: "[[cwd]]"
 ---

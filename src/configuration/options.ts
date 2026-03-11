@@ -3,28 +3,25 @@ export const options = [
     name: 'cwd',
     short: 'c',
     type: 'fs-entry',
-    typeModifiers: new Set(['folder', 'exists']),
     description: 'set working directory',
     default: process.cwd()
   },
   {
     name: 'webapp',
     type: 'fs-entry',
-    typeModifiers: new Set(['folder', 'exists', 'safe-default']),
+    typeModifiers: new Set(['safe-default'] as const),
     description: 'base folder of the UI5 application',
     default: 'webapp'
   },
   {
     name: 'testsuite',
-    type: 'fs-entry',
-    typeModifiers: new Set(['file', 'exists', 'safe-default']),
+    type: 'string',
     description: 'path of the testsuite file',
-    default: 'webapp/test/testsuite.qunit.html'
+    default: 'test/testsuite.qunit.html'
   },
   {
     name: 'alternateNpmPath',
     type: 'fs-entry',
-    typeModifiers: new Set(['folder', 'exists']),
     description: 'alternate NPM package path'
   },
   {
@@ -48,7 +45,7 @@ export const options = [
   {
     name: 'config',
     type: 'fs-entry',
-    typeModifiers: new Set(['file', 'exists', 'safe-default']),
+    typeModifiers: new Set(['file', 'safe-default'] as const),
     description: 'read options from a configuration file',
     default: 'ui5-test-runner.json'
   },
@@ -95,7 +92,7 @@ export const options = [
   {
     name: 'log',
     type: 'fs-entry',
-    typeModifiers: new Set(['file', 'exists']),
+    typeModifiers: new Set(['file'] as const),
     description: 'read and dump log file using jsonl format'
   },
   {
@@ -149,7 +146,7 @@ export const options = [
     name: 'reportDir',
     short: 'r',
     type: 'fs-entry',
-    typeModifiers: new Set(['folder', 'overwrite']),
+    typeModifiers: new Set(['overwrite'] as const),
     description: 'directory to output test reports',
     default: 'report'
   },
@@ -187,7 +184,7 @@ export const defaults = {
   localhost: 'localhost',
   parallel: 2,
   reportDir: 'report',
-  testsuite: 'webapp/test/testsuite.qunit.html',
+  testsuite: 'test/testsuite.qunit.html',
   ui5: 'https://ui5.sap.com',
   webapp: 'webapp'
 } as const;

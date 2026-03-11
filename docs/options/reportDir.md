@@ -3,7 +3,6 @@
 short: r
 type: "[[fs-entry]]"
 typeModifiers:
-  - "[[options/types/modifiers/folder|folder]]"
   - "[[overwrite]]"
 summary: directory to output test reports
 default: "'report'"

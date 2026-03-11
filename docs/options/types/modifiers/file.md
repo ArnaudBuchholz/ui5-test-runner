@@ -2,4 +2,4 @@
 types:
   - "[[fs-entry]]"
 ---
-The file system entry (when it [[exists]]) must be a file.
+By default, an [[fs-entry]] option points to a folder. This modifier indicates that it should point to a file.

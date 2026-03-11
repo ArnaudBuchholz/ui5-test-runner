@@ -44,7 +44,8 @@ for (const fileName of await readdir(OPTIONS_FOLDER)) {
     if (!types.includes(type)) {
       errors.push(`Unknown type ${type}`);
     }
-    const [, defaultValue] = properties.match(/default: "([^"]*)"/) ?? [];
+    const [, escapedDefaultValue, rawDefaultValue] = properties.match(/default: (?:"([^"]*)"|(.*))/) ?? [];
+    const defaultValue = rawDefaultValue ?? escapedDefaultValue;
     const [, summary] = properties.match(/summary: (.*)/) ?? [];
     const multiple = !!/multiple: yes/.test(properties);
     if (defaultValue) {
@@ -99,7 +100,7 @@ if (!process.exitCode) {
           console.log(`    multiple: true,`);
         }
       } else if (key === 'typeModifiers') {
-        console.log(`    typeModifiers: new Set(${JSON.stringify(value).replaceAll('"', "'")}),`);
+        console.log(`    typeModifiers: new Set(${JSON.stringify(value).replaceAll('"', "'")} as const),`);
       } else {
         console.log(`    ${key}: '${value}',`);
       }
