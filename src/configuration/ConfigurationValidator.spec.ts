@@ -70,7 +70,7 @@ describe('validation', () => {
 
   it('calls the corresponding option validator', async () => {
     await ConfigurationValidator.validate({ cwd: '/test/user', pageTimeout: 10 });
-    expect(validators.folder).toHaveBeenCalledWith(indexedOptions.cwd, '/test/user', expect.any(Object));
+    expect(validators['fs-entry']).toHaveBeenCalledWith(indexedOptions.cwd, '/test/user', expect.any(Object));
     expect(validators.timeout).toHaveBeenCalledWith(indexedOptions.pageTimeout, 10, expect.any(Object));
   });
 
