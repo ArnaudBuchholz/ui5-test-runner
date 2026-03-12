@@ -7,6 +7,7 @@ import { setupBrowser } from './browser.js';
 import { pageTask } from './pageTask.js';
 import { report } from './report.js';
 import { generateHtmlReport } from '../../reports/html.js';
+import { Folder } from '../../utils/Folder.js';
 
 /**
  * TODO
@@ -21,6 +22,7 @@ import { generateHtmlReport } from '../../reports/html.js';
  */
 
 export const test = async (configuration: Configuration) => {
+  await Folder.create(configuration.reportDir);
   logger.start(configuration);
   logger.debug({ source: 'job', message: 'Configuration', data: { defaults, configuration } });
 
