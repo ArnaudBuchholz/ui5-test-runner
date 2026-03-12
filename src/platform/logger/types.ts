@@ -1,5 +1,3 @@
-import { Host } from '../Host.js';
-import { Thread } from '../Thread.js';
 import type { Configuration } from '../../configuration/Configuration.js';
 import type { ServerEventName, ServerEvent } from 'reserve';
 
@@ -11,9 +9,19 @@ export type LogErrorAttributes = {
   errors?: LogErrorAttributes[];
 };
 
-type GenericLogSource = 'exit' | 'exit/handle' | 'http' | 'job' | 'logger' | 'npm' | 'process' | 'puppeteer';
+type GenericLogSource =
+  | 'exit'
+  | 'exit/handle'
+  | 'thread'
+  | 'http'
+  | 'job'
+  | 'logger'
+  | 'npm'
+  | 'process'
+  | 'puppeteer'
+  | 'server';
 
-export type LogSource = GenericLogSource | 'page' | 'progress' | 'metric' | 'assert' | 'server';
+export type LogSource = GenericLogSource | 'page' | 'progress' | 'metric' | 'assert' | 'reserve';
 
 export type LogAttributes = {
   message: string;
@@ -53,9 +61,9 @@ export type LogAttributes = {
       error: Error;
     }
   | {
-      source: 'server';
+      source: 'reserve';
       message: ServerEventName;
-      data: ServerEvent;
+      data: Omit<ServerEvent, 'eventName' | 'error'>;
     }
 );
 
@@ -90,27 +98,6 @@ export type InternalLogAttributes = {
   /** indicates if this is the main thread */
   isMainThread: boolean;
 } & LogAttributes;
-
-export const toInternalLogAttributes = (attributes: LogAttributes, level: LogLevel): InternalLogAttributes => {
-  if (attributes.processId !== undefined) {
-    return {
-      timestamp: Date.now(),
-      level,
-      threadId: 0,
-      isMainThread: false,
-      ...attributes,
-      processId: attributes.processId
-    };
-  }
-  return {
-    timestamp: Date.now(),
-    level,
-    processId: Host.pid,
-    threadId: Thread.threadId,
-    isMainThread: Thread.isMainThread,
-    ...attributes
-  };
-};
 
 export type ReadySource = 'allCompressed' | 'output';
 

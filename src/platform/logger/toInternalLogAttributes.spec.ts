@@ -1,7 +1,8 @@
 import { describe, it, expect, vi } from 'vitest';
 import { Host, Thread } from '../index.js';
 import type { InternalLogAttributes } from './types.js';
-import { LogLevel, toInternalLogAttributes } from './types.js';
+import { LogLevel } from './types.js';
+import { toInternalLogAttributes } from './toInternalLogAttributes.js';
 
 vi.useFakeTimers();
 

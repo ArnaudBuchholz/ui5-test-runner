@@ -1,6 +1,7 @@
 import { FileSystem, Path, Thread, ZLib } from '../index.js';
 import type { InternalLogAttributes, LogAttributes, LogMessage } from './types.js';
-import { LogLevel, toInternalLogAttributes } from './types.js';
+import { LogLevel } from './types.js';
+import { toInternalLogAttributes } from './toInternalLogAttributes.js';
 import type { Configuration } from '../../configuration/Configuration.js';
 import { createCompressionContext, compress } from './compress.js';
 
