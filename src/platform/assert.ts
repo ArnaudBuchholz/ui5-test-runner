@@ -1,8 +1,6 @@
 import { AssertionError } from 'node:assert/strict';
-import type { ILogger } from './logger/types.js';
 import { __developmentMode } from './constants.js';
-
-let logger: ILogger | undefined;
+import { logger } from './logger/proxy.js';
 
 export const assert: (condition: boolean, message?: string) => asserts condition = (
   condition,
@@ -21,10 +19,3 @@ export const assert: (condition: boolean, message?: string) => asserts condition
     throw error;
   }
 };
-
-const breakDependencyLoopToLogger = async () => {
-  const module = await import('./logger.js');
-  logger = module.logger;
-};
-
-void breakDependencyLoopToLogger();

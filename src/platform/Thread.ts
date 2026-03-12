@@ -2,6 +2,7 @@ import { extname } from 'node:path';
 import { Path } from './Path.js';
 import { BroadcastChannel, Worker, isMainThread, threadId } from 'node:worker_threads';
 import { __sourcesRoot } from './constants.js';
+import { logger } from './logger/proxy.js';
 
 export class Thread {
   static readonly threadCpuUsage = process.threadCpuUsage.bind(process);
@@ -11,10 +12,11 @@ export class Thread {
    * @param data parameters of the worker
    * @returns Worker
    */
-  static readonly createWorker: (name: string, data?: unknown) => Worker = (name, data) => {
+  static readonly createWorker: (name: string, data?: object) => Worker = (name, data) => {
     const extension = extname(import.meta.url);
     const workerPath = '../' + name + extension; // Must be relative to workerBootstrap
     if (process.env['NO_WORKERS']) {
+      logger?.debug({ source: 'thread', message: `Creating fiber for ${name}`, data });
       void (async () => {
         const { workerMain } = (await import(workerPath)) as { workerMain: (data: unknown) => void };
         workerMain(data);
@@ -28,6 +30,7 @@ export class Thread {
         }
       } as Worker;
     }
+    logger?.debug({ source: 'thread', message: `Creating worker for ${name}`, data });
     const bootstrapPath = Path.join(__sourcesRoot, 'platform/workerBootstrap' + extension);
     const js2tsUrl = new URL('js2ts.mjs', import.meta.url).toString();
     /* v8 ignore next -- @preserve */
@@ -39,6 +42,8 @@ export class Thread {
         data
       }
     });
+    worker.on('online', () => logger?.debug({ source: 'thread', message: `Worker for ${name} online` }));
+    worker.on('exit', () => logger?.debug({ source: 'thread', message: `Worker for ${name} offline` }));
     return worker;
   };
   static readonly isMainThread = isMainThread;

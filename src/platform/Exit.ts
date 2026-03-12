@@ -1,9 +1,7 @@
 import { ServerResponse, ClientRequest } from 'node:http';
 import { Thread } from './Thread.js';
 import { assert } from './assert.js';
-import type { ILogger } from './logger/types.js';
-
-let logger: ILogger | undefined;
+import { logger } from './logger/proxy.js';
 
 export interface IAsyncTask {
   name: string;
@@ -167,13 +165,7 @@ export class Exit {
   }
 }
 
-const breakDependencyLoopToLogger = async () => {
-  const module = await import('./logger.js');
-  logger = module.logger;
-};
-
 /* v8 ignore else -- @preserve */
 if (Thread.isMainThread) {
   process.on('SIGINT', Exit.sigInt);
-  void breakDependencyLoopToLogger();
 }

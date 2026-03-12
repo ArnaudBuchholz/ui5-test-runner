@@ -11,7 +11,8 @@ import type {
   ReadySource,
   ILogger
 } from './logger/types.js';
-import { LogLevel, toInternalLogAttributes } from './logger/types.js';
+import { LogLevel } from './logger/types.js';
+import { toInternalLogAttributes } from './logger/toInternalLogAttributes.js';
 import assert from 'node:assert/strict';
 import { toPlainObject } from '../utils/object.js';
 
