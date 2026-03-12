@@ -8,6 +8,7 @@ import { pageTask } from './pageTask.js';
 import { report } from './report.js';
 import { generateHtmlReport } from '../../reports/html.js';
 import { Folder } from '../../utils/Folder.js';
+import { server } from './server.js';
 
 /**
  * TODO
@@ -28,8 +29,11 @@ export const test = async (configuration: Configuration) => {
 
   await logEnvironnement();
   await getAgentSource();
+
   let browser: Awaited<ReturnType<typeof setupBrowser>> | undefined;
   try {
+    // await server.start(configuration);
+
     if (!configuration.url) {
       logger.fatal({ source: 'job', message: 'Expected URLs to be set' });
       throw new Error('stop');
@@ -67,5 +71,6 @@ export const test = async (configuration: Configuration) => {
     logger.error({ source: 'job', message: 'An error occurred', error });
   } finally {
     await browser?.shutdown();
+    await server.stop();
   }
 };
