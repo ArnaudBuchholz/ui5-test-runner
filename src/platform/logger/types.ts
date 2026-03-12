@@ -1,6 +1,7 @@
 import { Host } from '../Host.js';
 import { Thread } from '../Thread.js';
 import type { Configuration } from '../../configuration/Configuration.js';
+import type { ServerEventName, ServerEvent } from 'reserve';
 
 export type LogErrorAttributes = {
   name: string;
@@ -12,7 +13,7 @@ export type LogErrorAttributes = {
 
 type GenericLogSource = 'exit' | 'exit/handle' | 'http' | 'job' | 'logger' | 'npm' | 'process' | 'puppeteer';
 
-export type LogSource = GenericLogSource | 'page' | 'progress' | 'metric';
+export type LogSource = GenericLogSource | 'page' | 'progress' | 'metric' | 'assert' | 'server';
 
 export type LogAttributes = {
   message: string;
@@ -50,6 +51,11 @@ export type LogAttributes = {
   | {
       source: 'assert';
       error: Error;
+    }
+  | {
+      source: 'server';
+      message: ServerEventName;
+      data: ServerEvent;
     }
 );
 
