@@ -1,44 +1,87 @@
-import { __developmentMode, Exit, FileSystem, Terminal, ZLib } from '../platform/index.js';
+import { __developmentMode, Exit, FileSystem, ZLib } from '../platform/index.js';
 import type { Configuration } from '../configuration/Configuration.js';
 import { uncompress, createCompressionContext } from '../platform/logger/compress.js';
 
 export const log = async (configuration: Configuration) => {
-  const { log: logFileName } = configuration;
-  if (!logFileName) {
-    console.error('Invalid log filename');
-    Exit.code = -1;
-    return;
-  }
-  const logStats = await FileSystem.stat(logFileName);
-  const gunzip = ZLib.createGunzip();
-  const input = FileSystem.createReadStream(logFileName);
-  const chunks: Buffer[] = [];
-  const { promise, resolve, reject } = Promise.withResolvers<void>();
-  input
-    .pipe(gunzip)
-    .on('data', (chunk: Buffer) => {
-      chunks.push(chunk);
-    })
-    .on('end', () => {
-      const result = Buffer.concat(chunks).toString();
-      const context = createCompressionContext();
-      let outputSize = 0;
-      for (const json of uncompress(context, result)) {
+  const logFileName = configuration.log!; // Validated by configuration
+
+  const context = createCompressionContext();
+
+  let gunzip: ReturnType<typeof ZLib.createGunzip>;
+  let readPos = 0;
+  let outputSize = 0;
+  let pending = '';
+
+  const data = (chunk: Buffer) => {
+    pending += chunk.toString();
+    const lines = pending.split('\n');
+    pending = lines.pop() || '';
+
+    for (const line of lines) {
+      if (line.length === 0) {
+        continue;
+      }
+      for (const json of uncompress(context, line)) {
         const stringified = JSON.stringify(json);
         outputSize += stringified.length + 1;
         console.log(stringified);
+        if (json.source === 'logger' && json.message === 'Logger terminating') {
+          stop();
+        }
       }
-      if (__developmentMode) {
-        const compressionRatio = Math.floor((10_000 * logStats.size) / outputSize) / 100;
-        console.log(
-          `${Terminal.BLUE}[~]${Terminal.WHITE}From ${logStats.size} to ${outputSize} (${chunks.length} chunks), ratio: ${compressionRatio}%`
-        );
-      }
-      resolve();
-    })
-    .on('error', (error) => {
-      Exit.code = -1;
-      reject(error);
-    });
-  await promise;
+    }
+  };
+
+  const error = (error_: unknown) => {
+    console.log('ERROR', error_);
+    const newGunzip = ZLib.createGunzip();
+    newGunzip.on('data', data);
+    newGunzip.on('error', error);
+    gunzip = newGunzip;
+  };
+
+  async function tailOnce() {
+    const stats = await FileSystem.stat(logFileName);
+    if (stats.size > readPos) {
+      const end = stats.size - 1;
+      const fileStream = FileSystem.createReadStream(logFileName, { start: readPos, end, highWaterMark: 64 * 1024 });
+      gunzip = ZLib.createGunzip();
+      gunzip.on('data', data);
+      gunzip.on('error', error);
+      fileStream.pipe(gunzip, { end: false });
+      await new Promise<void>((resolve, reject) => {
+        fileStream.on('end', () => {
+          readPos = end + 1;
+          resolve();
+        });
+        fileStream.on('error', (e) => {
+          reject(e);
+        });
+      });
+    }
+  }
+
+  const pollIntervalMs = 500;
+  const poller = setInterval(async () => {
+    try {
+      await tailOnce();
+    } catch (error_) {
+      console.error('tail error:', error_);
+    }
+  }, pollIntervalMs);
+
+  const { promise, resolve } = Promise.withResolvers<void>();
+
+  const stop = () => {
+    clearInterval(poller);
+    gunzip?.end();
+    resolve();
+  };
+
+  Exit.registerAsyncTask({
+    name: 'log',
+    stop: stop
+  });
+
+  return promise;
 };
