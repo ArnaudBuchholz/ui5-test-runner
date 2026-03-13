@@ -21,12 +21,13 @@ type ServerConfiguration = {
   port: number;
 };
 
-const channel = Thread.createBroadcastChannel('server');
+let channel: ReturnType<typeof Thread.createBroadcastChannel>;
 let serverWorker: ReturnType<typeof Thread.createWorker> | undefined;
 
 export const server = {
   async start(configuration: Configuration): Promise<number> {
     assert(serverWorker === undefined);
+    channel = Thread.createBroadcastChannel('server');
     Exit.registerAsyncTask({
       name: 'server',
       stop: () => server.stop()
@@ -70,6 +71,8 @@ export const server = {
 };
 
 export const workerMain = (serverConfiguration: ServerConfiguration) => {
+  channel = Thread.createBroadcastChannel('server');
+
   const server = serve({
     port: serverConfiguration.port,
     mappings: [
