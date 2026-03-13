@@ -32,7 +32,7 @@ export const test = async (configuration: Configuration) => {
 
   let browser: Awaited<ReturnType<typeof setupBrowser>> | undefined;
   try {
-    // await server.start(configuration);
+    await server.start(configuration);
 
     if (!configuration.url) {
       logger.fatal({ source: 'job', message: 'Expected URLs to be set' });
@@ -71,6 +71,6 @@ export const test = async (configuration: Configuration) => {
     logger.error({ source: 'job', message: 'An error occurred', error });
   } finally {
     await browser?.shutdown();
-    await server.stop();
+    // await server.stop();
   }
 };
