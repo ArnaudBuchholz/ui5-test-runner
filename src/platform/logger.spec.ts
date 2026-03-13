@@ -203,7 +203,7 @@ describe('Worker thread', () => {
   it('fails start if not on the main thread', async () => {
     Object.assign(Thread, { isMainThread: false });
     const { logger } = await vi.importActual<{ logger: typeof LoggerType }>('./logger.js');
-    expect(() => logger.start({ cwd } as Configuration)).toThrowError(AssertionError);
+    expect(() => logger.start({ cwd } as Configuration)).toThrow(AssertionError);
     expect(Thread.createWorker).not.toHaveBeenCalled();
     expect(Terminal.onResize).not.toHaveBeenCalled();
   });
@@ -211,7 +211,7 @@ describe('Worker thread', () => {
   it('fails close if not on the main thread', async () => {
     const { logger } = await vi.importActual<{ logger: typeof LoggerType }>('./logger.js');
     const channel = Thread.createBroadcastChannel('logger');
-    await expect(() => logger.stop()).rejects.toThrowError(AssertionError);
+    await expect(() => logger.stop()).rejects.toThrow(AssertionError);
     expect(channel.postMessage).not.toHaveBeenCalled();
   });
 });
