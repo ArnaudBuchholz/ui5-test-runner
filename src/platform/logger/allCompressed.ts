@@ -12,7 +12,7 @@ const compressionContext = createCompressionContext();
 export const workerMain = ({ configuration }: { configuration: Configuration }) => {
   const LOG_FILE_NAME = `app-${new Date().toISOString().slice(0, 19).replaceAll(/[-:]/g, '').replace('T', '-')}.log`;
   const fileStream = FileSystem.createWriteStream(Path.join(configuration.reportDir, LOG_FILE_NAME + '.gz'));
-  const gzipStream = ZLib.createGzip({ flush: ZLib.constants.Z_FULL_FLUSH });
+  const gzipStream = ZLib.createGzip({ level: ZLib.constants.Z_BEST_COMPRESSION });
   gzipStream.pipe(fileStream);
   const gzBuffer: string[] = [];
   let gzFlushTimeout: ReturnType<typeof setTimeout> | undefined;
@@ -21,6 +21,7 @@ export const workerMain = ({ configuration }: { configuration: Configuration }) 
     for (const chunk of gzBuffer) {
       gzipStream.write(chunk);
     }
+    gzipStream.flush(ZLib.constants.Z_SYNC_FLUSH);
     gzBuffer.length = 0;
     clearTimeout(gzFlushTimeout);
     gzFlushTimeout = undefined;
