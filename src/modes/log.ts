@@ -1,18 +1,32 @@
-import { __developmentMode, Exit, FileSystem, ZLib } from '../platform/index.js';
+import { __developmentMode, Exit, FileSystem, Terminal, ZLib } from '../platform/index.js';
+import type { IRegisteredAsyncTask } from '../platform/index.js';
 import type { Configuration } from '../configuration/Configuration.js';
 import { uncompress, createCompressionContext } from '../platform/logger/compress.js';
+
+const POLL_INTERVAL_MS = 500;
 
 export const log = async (configuration: Configuration) => {
   const logFileName = configuration.log!; // Validated by configuration
 
   const context = createCompressionContext();
-
   let gunzip: ReturnType<typeof ZLib.createGunzip>;
-  let readPos = 0;
+  let sourcePos = 0;
   let outputSize = 0;
+  let chunksCount = 0;
   let pending = '';
+  let readTimeoutId: ReturnType<typeof setTimeout> | undefined;
+
+  const report = () => {
+    if (__developmentMode) {
+      const compressionRatio = Math.floor((10_000 * sourcePos) / outputSize) / 100;
+      console.error(
+        `${Terminal.BLUE}[~]${Terminal.WHITE}From @${sourcePos} to ${outputSize} (${chunksCount} chunks), ratio: ${compressionRatio}%`
+      );
+    }
+  };
 
   const data = (chunk: Buffer) => {
+    ++chunksCount;
     pending += chunk.toString();
     const lines = pending.split('\n');
     pending = lines.pop() || '';
@@ -32,8 +46,10 @@ export const log = async (configuration: Configuration) => {
     }
   };
 
-  const error = (error_: unknown) => {
-    console.log('ERROR', error_);
+  const error = () => {
+    if (__developmentMode) {
+      console.error(`${Terminal.RED}(X)${Terminal.WHITE}GUNZIP error, recreating...`);
+    }
     const newGunzip = ZLib.createGunzip();
     newGunzip.on('data', data);
     newGunzip.on('error', error);
@@ -41,47 +57,48 @@ export const log = async (configuration: Configuration) => {
   };
 
   async function tailOnce() {
+    if (__developmentMode) {
+      console.error(`${Terminal.BLUE}[~]${Terminal.WHITE}Reading from @${sourcePos}`);
+    }
     const stats = await FileSystem.stat(logFileName);
-    if (stats.size > readPos) {
+    if (stats.size > sourcePos) {
       const end = stats.size - 1;
-      const fileStream = FileSystem.createReadStream(logFileName, { start: readPos, end, highWaterMark: 64 * 1024 });
+      const fileStream = FileSystem.createReadStream(logFileName, { start: sourcePos, end, highWaterMark: 64 * 1024 });
       gunzip = ZLib.createGunzip();
       gunzip.on('data', data);
       gunzip.on('error', error);
       fileStream.pipe(gunzip, { end: false });
-      await new Promise<void>((resolve, reject) => {
-        fileStream.on('end', () => {
-          readPos = end + 1;
-          resolve();
-        });
-        fileStream.on('error', (e) => {
-          reject(e);
-        });
+      fileStream.on('end', () => {
+        sourcePos = end + 1;
+        report();
+        readTimeoutId = setTimeout(() => void tailOnce(), POLL_INTERVAL_MS);
+      });
+      fileStream.on('error', (reason) => {
+        console.error(reason);
+        stop();
       });
     }
   }
 
-  const pollIntervalMs = 500;
-  const poller = setInterval(async () => {
-    try {
-      await tailOnce();
-    } catch (error_) {
-      console.error('tail error:', error_);
-    }
-  }, pollIntervalMs);
-
   const { promise, resolve } = Promise.withResolvers<void>();
 
+  let task: IRegisteredAsyncTask | undefined;
+
   const stop = () => {
-    clearInterval(poller);
+    if (readTimeoutId !== undefined) {
+      clearTimeout(readTimeoutId);
+    }
     gunzip?.end();
+    report();
+    task?.unregister();
     resolve();
   };
 
-  Exit.registerAsyncTask({
+  task = Exit.registerAsyncTask({
     name: 'log',
     stop: stop
   });
 
+  void tailOnce();
   return promise;
 };
