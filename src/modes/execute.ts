@@ -1,6 +1,6 @@
 import type { Configuration } from '../configuration/Configuration.js';
 import { help } from './help.js';
-import { log } from './log.js';
+import { log } from './log/index.js';
 import type { ModeFunction } from './ModeFunction.js';
 import { Modes } from './Modes.js';
 import { version } from './version.js';
