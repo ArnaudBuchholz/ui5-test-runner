@@ -141,7 +141,7 @@ it('does not duplicate information', () => {
 
 it('detects unexpected situation', () => {
   const compressed = compress(createCompressionContext(), examples[0]!);
-  expect(() => uncompress(createCompressionContext(), compressed.trim().split('\n').at(-1)!)).toThrowError(
+  expect(() => uncompress(createCompressionContext(), compressed.trim().split('\n').at(-1)!)).toThrow(
     'Invalid process index 0 (length: 0)'
   );
 });

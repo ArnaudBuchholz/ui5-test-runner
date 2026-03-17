@@ -86,7 +86,7 @@ describe('src/npm', () => {
     await expect(resolvePackage({
       ...job,
       npmInstall: false
-    }, 'not_existing')).rejects.toThrowError(UTRError.NPM_DEPENDENCY_NOT_FOUND('not_existing'))
+    }, 'not_existing')).rejects.toThrow(UTRError.NPM_DEPENDENCY_NOT_FOUND('not_existing'))
   })
 
   it('installs missing package globally', async () => {
@@ -118,7 +118,7 @@ describe('src/npm', () => {
       args: ['install', 'fail_to_install', '-g'],
       exec: childProcess => { throw new Error('KO failed') }
     })
-    await expect(resolvePackage(job, 'fail_to_install')).rejects.toThrowError(UTRError.NPM_FAILED('Error: KO failed'))
+    await expect(resolvePackage(job, 'fail_to_install')).rejects.toThrow(UTRError.NPM_FAILED('Error: KO failed'))
     expect(output.status).toHaveBeenCalledTimes(1) // Won't restore previous status
   })
 })

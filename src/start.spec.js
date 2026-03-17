@@ -110,19 +110,19 @@ describe('src/start', () => {
       })
       returnUrlAnswerAfter = 5000
       job.startCommandTimeout = 5000
-      await expect(start(job)).rejects.toThrowError(/Start command failed with exit code/)
+      await expect(start(job)).rejects.toThrow(/Start command failed with exit code/)
     })
 
     it('times out after expected limit and fails', async () => {
       returnUrlAnswerAfter = 5000
       job.startCommandTimeout = 500
-      await expect(start(job)).rejects.toThrowError(/Timeout while waiting for/)
+      await expect(start(job)).rejects.toThrow(/Timeout while waiting for/)
     })
 
     it('times out after expected limit and fails (wrong URL)', async () => {
       job.startCommandTimeout = 1000
       job.startWaitUrl = INVALID_URL
-      await expect(start(job)).rejects.toThrowError(/Timeout while waiting for/)
+      await expect(start(job)).rejects.toThrow(/Timeout while waiting for/)
     })
   })
 

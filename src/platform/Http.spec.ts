@@ -89,7 +89,7 @@ describe('logging', () => {
     it('document response error', async () => {
       const error = new Error('fetch() failed');
       vi.mocked(globalThis.fetch).mockRejectedValueOnce(error);
-      await expect(Http.get(URL)).rejects.toThrowError(error);
+      await expect(Http.get(URL)).rejects.toThrow(error);
       expect(logger.debug).toHaveBeenCalledWith({
         source: 'http',
         message: `error caught`,
@@ -107,7 +107,7 @@ describe('logging', () => {
         text: () => expect.unreachable()
       } as unknown as Response);
       const error = new Error('HTTP request failed');
-      await expect(Http.get(URL)).rejects.toThrowError(error);
+      await expect(Http.get(URL)).rejects.toThrow(error);
       expect(logger.debug).toHaveBeenCalledWith({
         source: 'http',
         message: `error caught`,
@@ -125,7 +125,7 @@ describe('logging', () => {
         headers: [['content-type', 'application/json']],
         text: () => Promise.reject(error)
       } as unknown as Response);
-      await expect(Http.get(URL)).rejects.toThrowError(error);
+      await expect(Http.get(URL)).rejects.toThrow(error);
       expect(logger.debug).toHaveBeenCalledWith({
         source: 'http',
         message: `error caught`,

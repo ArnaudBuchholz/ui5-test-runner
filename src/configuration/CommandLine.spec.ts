@@ -34,7 +34,7 @@ it('copies cwd', async () => {
 });
 
 it('fails on unknown long option', async () => {
-  await expect(CommandLine.buildConfigurationFrom(CWD, ['--unknown'])).rejects.toThrowError('Unknown option');
+  await expect(CommandLine.buildConfigurationFrom(CWD, ['--unknown'])).rejects.toThrow('Unknown option');
 });
 
 const testCases: {

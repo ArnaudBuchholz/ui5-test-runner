@@ -19,7 +19,7 @@ beforeAll(() => {
 const channel = Thread.createBroadcastChannel('logger');
 
 it('opens a broadcast channel to communicate with the logger instances', () => {
-  expect(Thread.createBroadcastChannel).toBeCalledTimes(2);
+  expect(Thread.createBroadcastChannel).toHaveBeenCalledTimes(2);
   for (let n = 1; n <= 2; ++n) {
     expect(Thread.createBroadcastChannel).toHaveBeenNthCalledWith(n, 'logger');
   }

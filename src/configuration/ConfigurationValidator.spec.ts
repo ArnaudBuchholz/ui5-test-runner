@@ -42,13 +42,13 @@ describe('defaults', () => {
 
 describe('validation', () => {
   it('rejects the configuration if it contains an unknown key', async () => {
-    await expect(ConfigurationValidator.validate({ unknown: 1 })).rejects.toThrowError(
+    await expect(ConfigurationValidator.validate({ unknown: 1 })).rejects.toThrow(
       OptionValidationError.createUnknown('unknown')
     );
   });
 
   it('rejects the configuration if it contains several unknown keys', async () => {
-    await expect(ConfigurationValidator.validate({ unknown: 1, unknown2: 2 })).rejects.toThrowError(
+    await expect(ConfigurationValidator.validate({ unknown: 1, unknown2: 2 })).rejects.toThrow(
       new AggregateError(
         [OptionValidationError.createUnknown('unknown'), OptionValidationError.createUnknown('unknown2')],
         'Unknown keys'
@@ -57,13 +57,13 @@ describe('validation', () => {
   });
 
   it('rejects short option name', async () => {
-    await expect(ConfigurationValidator.validate({ c: '/test/user' })).rejects.toThrowError(
+    await expect(ConfigurationValidator.validate({ c: '/test/user' })).rejects.toThrow(
       new OptionValidationError(indexedOptions.cwd, 'Do not use short name')
     );
   });
 
   it('rejects kebab-case option name', async () => {
-    await expect(ConfigurationValidator.validate({ 'page-timeout': 10 })).rejects.toThrowError(
+    await expect(ConfigurationValidator.validate({ 'page-timeout': 10 })).rejects.toThrow(
       new OptionValidationError(indexedOptions.pageTimeout, 'Do not use kebab-case')
     );
   });

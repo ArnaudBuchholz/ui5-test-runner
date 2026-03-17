@@ -220,7 +220,7 @@ describe('job', () => {
             mappings: [
               '^/otherlib/(.+)=custom(./otherfolder/otherlib/$1)'
             ]
-          })).toThrowError()
+          })).toThrow()
         })
       })
     })
@@ -411,14 +411,14 @@ describe('job', () => {
         expect(() => buildJob({
           cwd: project2,
           config: 'unknown.json'
-        })).toThrowError()
+        })).toThrow()
       })
 
       it('fails if specified and it does not exist (absolute)', () => {
         expect(() => buildJob({
           cwd: project2,
           config: join(__dirname, '../test/e2e/unknown.json')
-        })).toThrowError()
+        })).toThrow()
       })
     })
   })

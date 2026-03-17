@@ -23,7 +23,7 @@ describe('sync', () => {
     } catch (error) {
       caught = error as Error;
     }
-    expect(() => failure()).toThrowError(caught);
+    expect(() => failure()).toThrow(caught);
   });
 });
 
@@ -47,6 +47,6 @@ describe('async', () => {
     } catch (error) {
       caught = error as Error;
     }
-    await expect(failure()).rejects.toThrowError(caught);
+    await expect(failure()).rejects.toThrow(caught);
   });
 });

@@ -80,7 +80,7 @@ describe('src/end', () => {
       },
       close: false
     })
-    await expect(end(job)).rejects.toThrowError('Timeout while waiting for end script')
+    await expect(end(job)).rejects.toThrow('Timeout while waiting for end script')
     expect(childProcessInstance.killed)
   })
 

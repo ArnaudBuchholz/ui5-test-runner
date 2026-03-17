@@ -45,7 +45,7 @@ describe('shutdown', () => {
     it('does not fail if trying to unregister twice (because it may happen)', async () => {
       const registered = Exit.registerAsyncTask(task);
       await Exit.shutdown();
-      expect(() => registered.unregister()).not.toThrowError();
+      expect(() => registered.unregister()).not.toThrow();
     });
 
     it('does not fail if the task disappears while exiting (it may happen)', async () => {
@@ -64,7 +64,7 @@ describe('shutdown', () => {
 
     it('fails when registering a task during shutdown', async () => {
       await Exit.shutdown();
-      expect(() => Exit.registerAsyncTask(task)).toThrowError('Exiting application');
+      expect(() => Exit.registerAsyncTask(task)).toThrow('Exiting application');
     });
 
     it('offers a way for the task to unregister itself', async () => {
