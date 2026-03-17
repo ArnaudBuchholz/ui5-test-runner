@@ -20,7 +20,7 @@ export const LogReader = {
   async *read(logFileName: string): AsyncIterableIterator<LogReaderItem> {
     const context = createCompressionContext();
     let gunzip: ReturnType<typeof ZLib.createGunzip>;
-    const sourcePos = 0;
+    let sourcePos = 0;
     let outputSize = 0;
     let chunksCount = 0;
     let pending = '';
@@ -61,6 +61,7 @@ export const LogReader = {
               }
             }
           }
+          sourcePos = endPos;
         } catch (error) {
           // TODO: not sure how to handle it
           console.error(error);
