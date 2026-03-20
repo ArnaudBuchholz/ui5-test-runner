@@ -50,7 +50,7 @@ vi.mock(import('./FileSystem.js'), async (importActual) => {
   const mocked = mockStaticMethodsOfExportedClasses(await importActual());
   const { FileSystem } = mocked;
   const writeStream = {
-    write: vi.fn(),
+    write: vi.fn().mockImplementation((_: unknown, callback: () => void) => callback()),
     end: vi.fn()
   } as unknown as WriteStream;
   vi.mocked(FileSystem.createWriteStream).mockReturnValue(writeStream);

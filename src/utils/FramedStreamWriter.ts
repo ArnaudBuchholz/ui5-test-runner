@@ -2,7 +2,7 @@ import { FileSystem } from '../platform/index.js';
 
 export interface IFramedStreamWriter {
   write(buffer: Buffer): Promise<void>;
-  end(): void;
+  end(): Promise<void>;
 }
 
 export class FramedStreamWriter implements IFramedStreamWriter {
@@ -18,18 +18,21 @@ export class FramedStreamWriter implements IFramedStreamWriter {
 
   protected async _write(buffer: Buffer): Promise<void> {
     const { promise, resolve, reject } = Promise.withResolvers<void>();
-    this._stream.write(buffer, (error) => error ? reject(error) : resolve());
+    this._stream.write(buffer, (error) => (error ? reject(error) : resolve()));
     await promise;
   }
 
-  async write(buffer: Buffer): Promise<void> {
-    const size = Buffer.alloc(4);
-    size.writeUInt32BE(buffer.length, 0);
-    this._write(size);
-    this._write(buffer);
+  async write(buffer: Buffer) {
+    if (buffer.length > 0) {
+      const size = Buffer.alloc(4);
+      size.writeUInt32BE(buffer.length, 0);
+      await this._write(size);
+      await this._write(buffer);
+    }
   }
 
-  end(): void {
+  async end() {
+    await this._write(Buffer.from([0, 0, 0, 0]));
     this._stream.end();
   }
 }
