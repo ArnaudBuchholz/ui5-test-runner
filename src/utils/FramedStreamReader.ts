@@ -7,14 +7,14 @@ export interface IFramedStreamReader {
 }
 
 export class FramedStreamReader {
-  static create(fileName: string): IFramedStreamReader {
-    return new this(fileName);
+  static create(fileName: string, pollIntervalMs = 500): IFramedStreamReader {
+    return new this(fileName, pollIntervalMs);
   }
 
   protected _fileName: string;
   protected _pollIntervalMs: number;
 
-  protected constructor(fileName: string, pollIntervalMs = 500) {
+  protected constructor(fileName: string, pollIntervalMs: number) {
     this._fileName = fileName;
     this._pollIntervalMs = pollIntervalMs;
   }
