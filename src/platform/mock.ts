@@ -1,5 +1,5 @@
 import { vi } from 'vitest';
-import type { WriteStream } from 'node:fs';
+import type { ReadStream, WriteStream } from 'node:fs';
 import type { BroadcastChannel, Worker } from 'node:worker_threads';
 import type { Gzip } from 'node:zlib';
 import { join } from 'node:path';
@@ -54,6 +54,8 @@ vi.mock(import('./FileSystem.js'), async (importActual) => {
     end: vi.fn()
   } as unknown as WriteStream;
   vi.mocked(FileSystem.createWriteStream).mockReturnValue(writeStream);
+  const readStream = {} as ReadStream;
+  vi.mocked(FileSystem.createReadStream).mockReturnValue(readStream);
   return mocked;
 });
 
