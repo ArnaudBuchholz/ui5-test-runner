@@ -9,7 +9,9 @@ const URL = 'http://localhost/test';
 
 const abortController = {
   abort: vi.fn(),
-  signal: {} as AbortSignal
+  signal: {
+    addEventListener: vi.fn()
+  } as unknown as AbortSignal
 };
 globalThis.AbortController = vi.fn(function () {
   return abortController;
