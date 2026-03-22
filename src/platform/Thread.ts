@@ -42,7 +42,9 @@ export class Thread {
         data
       }
     });
+    /* v8 ignore next -- @preserve */
     worker.on('online', () => logger?.debug({ source: 'thread', message: `Worker for ${name} online` }));
+    /* v8 ignore next -- @preserve */
     worker.on('exit', () => logger?.debug({ source: 'thread', message: `Worker for ${name} offline` }));
     return worker;
   };
