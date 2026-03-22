@@ -19,10 +19,10 @@ export const log = async (configuration: Configuration) => {
     if (type === 'log') {
       console.log(JSON.stringify(attributes));
     } else if (__developmentMode) {
-      const { sourcePos, outputSize, chunksCount } = item;
-      const compressionRatio = Math.floor((10_000 * sourcePos) / outputSize) / 100;
+      const { inputSize, outputSize, chunksCount } = item;
+      const compressionRatio = Math.floor((10_000 * inputSize) / outputSize) / 100;
       console.error(
-        `${Terminal.BLUE}[~]${Terminal.WHITE}From @${sourcePos} to ${outputSize} (${chunksCount} chunks), ratio: ${compressionRatio}%`
+        `${Terminal.BLUE}[~]${Terminal.WHITE}From @${inputSize} to ${outputSize} (${chunksCount} chunks), ratio: ${compressionRatio}%`
       );
     }
   }
