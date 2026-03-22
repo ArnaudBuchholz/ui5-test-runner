@@ -1,38 +1,40 @@
-import { FileSystem, Path, Thread, ZLib } from '../index.js';
+import { Path, Thread, ZLib } from '../index.js';
 import type { InternalLogAttributes, LogAttributes, LogMessage } from './types.js';
 import { LogLevel } from './types.js';
 import { toInternalLogAttributes } from './toInternalLogAttributes.js';
 import type { Configuration } from '../../configuration/Configuration.js';
 import { createCompressionContext, compress } from './compress.js';
+import { FramedStreamWriter } from '../../utils/FramedStreamWriter.js';
 
 export const MAX_BUFFER_COUNT = 50;
 const FLUSH_INTERVAL_MS = 200;
 const compressionContext = createCompressionContext();
 
 export const workerMain = ({ configuration }: { configuration: Configuration }) => {
-  const LOG_FILE_NAME = `app-${new Date().toISOString().slice(0, 19).replaceAll(/[-:]/g, '').replace('T', '-')}.log`;
-  const fileStream = FileSystem.createWriteStream(Path.join(configuration.reportDir, LOG_FILE_NAME + '.gz'));
-  const gzipStream = ZLib.createGzip({ level: ZLib.constants.Z_BEST_COMPRESSION });
-  gzipStream.pipe(fileStream);
-  const gzBuffer: string[] = [];
-  let gzFlushTimeout: ReturnType<typeof setTimeout> | undefined;
+  const LOG_FILE_NAME = `app-${new Date().toISOString().slice(0, 19).replaceAll(/[-:]/g, '').replace('T', '-')}.log.gz`;
+  const stream = FramedStreamWriter.create(Path.join(configuration.reportDir, LOG_FILE_NAME));
+  const buffer: string[] = [];
+  let flushTimeout: ReturnType<typeof setTimeout> | undefined;
+  let writePromise = Promise.resolve();
 
-  const gzFlushBuffer = () => {
-    for (const chunk of gzBuffer) {
-      gzipStream.write(chunk);
+  const flushBuffer = () => {
+    if (buffer.length === 0) {
+      return;
     }
-    gzipStream.flush(ZLib.constants.Z_SYNC_FLUSH);
-    gzBuffer.length = 0;
-    clearTimeout(gzFlushTimeout);
-    gzFlushTimeout = undefined;
+    const chunk = buffer.join('\n');
+    buffer.length = 0;
+    clearTimeout(flushTimeout);
+    flushTimeout = undefined;
+    const compressed = ZLib.deflateRawSync(chunk, { level: ZLib.constants.Z_BEST_COMPRESSION });
+    writePromise = writePromise.then(() => stream.write(compressed));
   };
 
   const log = (attributes: InternalLogAttributes) => {
-    gzBuffer.push(compress(compressionContext, attributes));
-    if (gzBuffer.length >= MAX_BUFFER_COUNT) {
-      gzFlushBuffer();
-    } else if (!gzFlushTimeout) {
-      gzFlushTimeout = setTimeout(gzFlushBuffer, FLUSH_INTERVAL_MS);
+    buffer.push(compress(compressionContext, attributes));
+    if (buffer.length >= MAX_BUFFER_COUNT) {
+      flushBuffer();
+    } else if (!flushTimeout) {
+      flushTimeout = setTimeout(flushBuffer, FLUSH_INTERVAL_MS);
     }
   };
 
@@ -44,8 +46,8 @@ export const workerMain = ({ configuration }: { configuration: Configuration }) 
     if (message.command === 'terminate') {
       _log({ source: 'logger', message: 'Logger terminating' });
       channel.close();
-      gzFlushBuffer();
-      gzipStream.end();
+      flushBuffer();
+      void writePromise.then(() => stream.end());
     } else if (message.command === 'log') {
       log(message);
     }

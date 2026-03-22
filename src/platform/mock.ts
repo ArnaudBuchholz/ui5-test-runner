@@ -1,7 +1,6 @@
 import { vi } from 'vitest';
 import type { ReadStream, WriteStream } from 'node:fs';
 import type { BroadcastChannel, Worker } from 'node:worker_threads';
-import type { Gzip } from 'node:zlib';
 import { join } from 'node:path';
 import type { ILogger } from './logger/types.js';
 import type { IAsyncTask } from './Exit.js';
@@ -125,14 +124,4 @@ vi.mock(import('./version.js'), () => ({
   version: vi.fn().mockResolvedValue('ui5-test-runner@1.2.3')
 }));
 
-vi.mock(import('./ZLib.js'), async (importActual) => {
-  const mocked = mockStaticMethodsOfExportedClasses(await importActual());
-  const { ZLib } = mocked;
-  const gzipStream = {
-    pipe: vi.fn(),
-    write: vi.fn(),
-    end: vi.fn()
-  } as unknown as Gzip;
-  vi.mocked(ZLib.createGzip).mockReturnValue(gzipStream);
-  return mocked;
-});
+vi.mock(import('./ZLib.js'), async (importActual) => mockStaticMethodsOfExportedClasses(await importActual()));
