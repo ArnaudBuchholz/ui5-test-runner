@@ -114,6 +114,20 @@ it('flushes traces after a threshold count', async () => {
 });
 
 it('closes everything when the terminate signal is received', async () => {
+  vi.advanceTimersToNextTimer(); // flush buffer
+  // Will ensure buffer is empty when terminating
+  for (let index = 0; index < MAX_BUFFER_COUNT - 1; ++index) {
+    channel.postMessage({
+      command: 'log',
+      timestamp: Date.now(),
+      level: LogLevel.info,
+      processId: process.pid,
+      threadId: Thread.threadId,
+      isMainThread: Thread.isMainThread,
+      source: 'job',
+      message: 'test'
+    });
+  }
   channel.postMessage({ command: 'terminate' });
   await vi.runOnlyPendingTimersAsync();
   expect(channel.close).toHaveBeenCalled();
