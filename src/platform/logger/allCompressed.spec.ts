@@ -11,7 +11,7 @@ const stream = {
   end: vi.fn()
 };
 
-vi.spyOn(FramedStreamWriter, 'create').mockImplementation(() => stream);
+vi.spyOn(FramedStreamWriter, 'create').mockReturnValue(stream);
 
 // Must be done before importing ./logger.ts
 vi.hoisted(() => {
