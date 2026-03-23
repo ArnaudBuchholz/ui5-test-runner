@@ -40,3 +40,20 @@ it('ends the stream by writing a null header', async () => {
   expect(stream.write).toHaveBeenNthCalledWith(1, Buffer.from([0, 0, 0, 0]), expectCallback);
   expect(stream.end).toHaveBeenCalledOnce();
 });
+
+it('forwards errors (factory)', () => {
+  const error = new Error('KO');
+  vi.mocked(FileSystem.createWriteStream).mockImplementationOnce(() => {
+    throw error;
+  });
+  expect(() => TestFramedStreamWriter.create(FILENAME)).toThrow(error);
+});
+
+it('forwards errors (stream)', async () => {
+  const writer = TestFramedStreamWriter.create(FILENAME) as TestFramedStreamWriter;
+  const stream = writer.stream;
+  const error = new Error('KO');
+  // eslint-disable-next-line  @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-argument -- Unable to fit callback
+  vi.mocked(stream.write).mockImplementation(((_: any, callback: (error: any) => void) => callback(error)) as any);
+  await expect(writer.write(Buffer.from('abcd'))).rejects.toThrow(error);
+});
