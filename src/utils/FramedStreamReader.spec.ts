@@ -1,6 +1,6 @@
 import { it, expect, vi, beforeEach } from 'vitest';
 import { FramedStreamReader } from './FramedStreamReader.js';
-import { FileSystem } from '../platform/index.js';
+import { Exit, FileSystem } from '../platform/index.js';
 import { setTimeout } from 'node:timers/promises';
 import type { ReadStream } from 'node:fs';
 import { afterEach } from 'node:test';
@@ -132,4 +132,29 @@ it('handles a chunk split across multiple writes', async () => {
 
   expect(chunks.length).toStrictEqual(1);
   expect(chunks[0]!.toString()).toStrictEqual(data);
+});
+
+it('can be interrupted through Exit', async () => {
+  let stop: (() => void | Promise<void>) | undefined;
+  vi.mocked(Exit.registerAsyncTask).mockImplementation((task) => {
+    stop = task.stop;
+    return {
+      unregister: vi.fn()
+    };
+  });
+  const data1 = 'chunk1';
+  const data2 = 'chunk2';
+
+  writerPromise = writeToFile([{ delay: 0, buffer: [...chunk(data1), ...chunk(data2), ...nullChunk] }]);
+
+  const stream = FramedStreamReader.create(FILENAME);
+  const chunks: Buffer[] = [];
+  for await (const chunk of stream.read()) {
+    expect.assert(stop !== undefined);
+    await stop();
+    chunks.push(chunk);
+  }
+
+  expect(chunks.length).toStrictEqual(1);
+  expect(chunks[0]!.toString()).toStrictEqual(data1);
 });

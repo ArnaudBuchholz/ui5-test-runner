@@ -34,11 +34,10 @@ export class FramedStreamReader {
 
   private *_extractFrames(buffer: Buffer): Generator<FrameExtractorItem> {
     let workingBuffer = buffer;
-    while (workingBuffer.length >= 4) {
+    while (this._reading && workingBuffer.length >= 4) {
       const size = workingBuffer.readUInt32BE();
       if (size === 0) {
         yield { type: 'end' };
-        return;
       }
       if (workingBuffer.length < size + 4) {
         yield { type: 'incomplete', remaining: workingBuffer };
