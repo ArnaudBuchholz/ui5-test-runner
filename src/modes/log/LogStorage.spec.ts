@@ -8,9 +8,9 @@ import { MAX_LIMIT } from './ILogStorage.js';
 
 const log1 = toInternalLogAttributes({ source: 'job', message: '10' }, LogLevel.info);
 log1.timestamp = 10;
-const log2 = toInternalLogAttributes({ source: 'npm', message: '20' }, LogLevel.info);
+const log2 = toInternalLogAttributes({ source: 'npm', message: '20' }, LogLevel.warn);
 log2.timestamp = 20;
-const log3 = toInternalLogAttributes({ source: 'page', message: '30', data: { uid: 'page1' } }, LogLevel.info);
+const log3 = toInternalLogAttributes({ source: 'page', message: '30', data: { uid: 'page1' } }, LogLevel.error);
 log3.timestamp = 30;
 
 const fillLogs = (storage: ILogStorage, count: number) => {
@@ -71,6 +71,20 @@ describe('add logs', () => {
     const storage = LogStorage.create();
     fillLogs(storage, MAX_LIMIT);
     expectLogsAreSorted(storage.fetch());
+  });
+});
+
+describe('filter expression', () => {
+  it('filters on message', () => {
+    const filterExpression = LogStorage.buildFilterExpression('message === "10"');
+    expect(filterExpression(log1)).toStrictEqual(true);
+    expect(filterExpression(log2)).toStrictEqual(false);
+  });
+
+  it('filters on level', () => {
+    const filterExpression = LogStorage.buildFilterExpression('level === "info"');
+    expect(filterExpression(log1)).toStrictEqual(true);
+    expect(filterExpression(log2)).toStrictEqual(false);
   });
 });
 

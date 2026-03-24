@@ -1,7 +1,10 @@
+import { LogLevel } from '../../platform/logger/types.js';
 import type { InternalLogAttributes } from '../../platform/logger/types.js';
 import { MAX_LIMIT } from './ILogStorage.js';
 import type { ILogStorage, LogStorageQuery } from './ILogStorage.js';
 import { punyexpr } from 'punyexpr';
+
+const LOG_LEVELS = Object.fromEntries(Object.entries(LogLevel).map(([name, value]) => [value, name]));
 
 export class LogStorage implements ILogStorage {
   static create(): ILogStorage {
@@ -23,13 +26,30 @@ export class LogStorage implements ILogStorage {
     }
   }
 
+  static buildFilterExpression(filter: string): (log: InternalLogAttributes) => boolean {
+    if (!filter) {
+      return () => true;
+    }
+    const expression = punyexpr(filter);
+    return (log) => {
+      return !!expression(
+        new Proxy(log, {
+          get: (target, property: keyof InternalLogAttributes) => {
+            if (property === 'level') {
+              return LOG_LEVELS[log.level];
+            }
+            return log[property];
+          }
+        })
+      );
+    };
+  }
+
   fetch(query: LogStorageQuery = {}): InternalLogAttributes[] {
     const { from = 0, to = Number.MAX_SAFE_INTEGER, filter = '' } = query;
     let { skip = 0, limit = MAX_LIMIT } = query;
-    const filterExpr = filter ? punyexpr(filter) : () => true;
-    if (limit > MAX_LIMIT) {
-      limit = MAX_LIMIT;
-    }
+    const filterExpression = LogStorage.buildFilterExpression(filter);
+    limit = Math.max(limit, MAX_LIMIT);
     const records: InternalLogAttributes[] = [];
     for (let index = 0; index < this._logs.length; ++index) {
       const log = this._logs[index]!;
@@ -43,7 +63,7 @@ export class LogStorage implements ILogStorage {
         --skip;
         continue;
       }
-      if (!filterExpr(log)) {
+      if (!filterExpression(log)) {
         continue;
       }
       records.push(log);
