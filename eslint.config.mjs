@@ -59,11 +59,13 @@ export default [
       'unicorn/prefer-top-level-await': 'off'
     }
   },
-  // unbound methods in spec files are common due to mocking
   {
     files: ['**/*.spec.ts'],
     rules: {
-      '@typescript-eslint/unbound-method': 'off'
+      // unbound methods in spec files are common due to mocking
+      '@typescript-eslint/unbound-method': 'off',
+      // Math.random is enough in spec files
+      'sonarjs/pseudo-random': 'off'
     }
   },
   // *Must* use any
