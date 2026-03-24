@@ -7,6 +7,7 @@ const getAsInt = (parameters: URLSearchParams, key: string): number | undefined 
 };
 
 export const buildREserveConfiguration = (storage: ILogStorage): Configuration => ({
+  port: 0,
   mappings: [
     {
       method: 'GET',
