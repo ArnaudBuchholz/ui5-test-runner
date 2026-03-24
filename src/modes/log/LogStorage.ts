@@ -31,6 +31,9 @@ export class LogStorage implements ILogStorage {
       return () => true;
     }
     const expression = punyexpr(filter);
+    const undefinedObject = new Proxy({}, {
+      get: () => undefinedObject,
+    });
     return (log) => {
       return !!expression(
         new Proxy(log, {
@@ -38,7 +41,7 @@ export class LogStorage implements ILogStorage {
             if (property === 'level') {
               return LOG_LEVELS[log.level];
             }
-            return log[property];
+            return log[property] ?? undefinedObject;
           }
         })
       );

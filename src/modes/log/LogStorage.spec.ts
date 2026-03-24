@@ -86,6 +86,18 @@ describe('filter expression', () => {
     expect(filterExpression(log1)).toStrictEqual(true);
     expect(filterExpression(log2)).toStrictEqual(false);
   });
+
+  it('does not fail on non existing property (one level)', () => {
+    const filterExpression = LogStorage.buildFilterExpression('data');
+    expect(filterExpression(log3)).toStrictEqual(true);
+    expect(filterExpression(log1)).toStrictEqual(false);
+  });
+
+  it('does not fail on non existing property', () => {
+    const filterExpression = LogStorage.buildFilterExpression('data.uid === "page1"');
+    expect(filterExpression(log3)).toStrictEqual(true);
+    expect(filterExpression(log1)).toStrictEqual(false);
+  });
 });
 
 describe('query logs', () => {
