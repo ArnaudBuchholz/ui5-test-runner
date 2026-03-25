@@ -12,17 +12,19 @@ export class LogStorage implements ILogStorage {
   }
 
   private _logs: InternalLogAttributes[] = [];
-  private _lastTimestamp = 0;
+  private _logsAdded = false;
 
   protected constructor() {}
 
   add(log: InternalLogAttributes): void {
-    const { timestamp } = log;
     this._logs.push(log);
-    if (timestamp > this._lastTimestamp) {
-      this._lastTimestamp = timestamp;
-    } else {
+    this._logsAdded = true;
+  }
+
+  private _sortIfNeeded () {
+    if (this._logsAdded) {
       this._logs.sort((a, b) => a.timestamp - b.timestamp);
+      this._logsAdded = false;
     }
   }
 
@@ -52,6 +54,7 @@ export class LogStorage implements ILogStorage {
   }
 
   fetch(query: LogStorageQuery = {}): InternalLogAttributes[] {
+    this._sortIfNeeded();
     const { from = 0, to = Number.MAX_SAFE_INTEGER, filter = '' } = query;
     let { skip = 0, limit = MAX_LIMIT } = query;
     const filterExpression = LogStorage.buildFilterExpression(filter);
