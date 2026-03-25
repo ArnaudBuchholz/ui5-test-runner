@@ -2,6 +2,7 @@ import { ZLib } from '../../platform/index.js';
 import { createCompressionContext, uncompress } from '../../platform/logger/compress.js';
 import type { InternalLogAttributes } from '../../platform/logger/types.js';
 import { FramedStreamReader } from '../../utils/FramedStreamReader.js';
+import type { LogMetrics } from './LogMetrics.js';
 
 export const POLL_INTERVAL_MS = 500;
 
@@ -9,12 +10,9 @@ export type LogReaderItem =
   | ({
       type: 'log';
     } & InternalLogAttributes)
-  | {
-      type: 'status';
-      inputSize: number;
-      chunksCount: number;
-      outputSize: number;
-    };
+  | ({
+      type: 'metrics';
+    } & LogMetrics);
 
 export const LogReader = {
   async *read(logFileName: string): AsyncIterableIterator<LogReaderItem> {
@@ -36,7 +34,7 @@ export const LogReader = {
         };
       }
       yield {
-        type: 'status',
+        type: 'metrics',
         inputSize,
         chunksCount,
         outputSize

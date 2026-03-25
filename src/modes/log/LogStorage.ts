@@ -21,7 +21,7 @@ export class LogStorage implements ILogStorage {
     this._logsAdded = true;
   }
 
-  private _sortIfNeeded () {
+  private _sortIfNeeded() {
     if (this._logsAdded) {
       this._logs.sort((a, b) => a.timestamp - b.timestamp);
       this._logsAdded = false;
