@@ -126,9 +126,8 @@ describe('query logs', () => {
   });
 
   it('supports time range filtering', () => {
-    const records = storage.fetch({ from: 0, to: 99 });
-    expect(records).toHaveLength(3);
-    expect(records).toContain(log1);
+    const records = storage.fetch({ from: 20, to: 99 });
+    expect(records).toHaveLength(2);
     expect(records).toContain(log2);
     expect(records).toContain(log3);
   });
