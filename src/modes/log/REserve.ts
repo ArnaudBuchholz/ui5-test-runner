@@ -12,9 +12,9 @@ export const buildREserveConfiguration = (storage: ILogStorage, metrics: LogMetr
   mappings: [
     {
       custom: (request, response) => {
-        response.appendHeader('x-metrics-chunks-count', metrics.chunksCount.toString());
-        response.appendHeader('x-metrics-input-size', metrics.inputSize.toString());
-        response.appendHeader('x-metrics-output-size', metrics.outputSize.toString());
+        response.setHeader('x-metrics-chunks-count', metrics.chunksCount.toString());
+        response.setHeader('x-metrics-input-size', metrics.inputSize.toString());
+        response.setHeader('x-metrics-output-size', metrics.outputSize.toString());
       }
     },
     {
