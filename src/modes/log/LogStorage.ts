@@ -33,24 +33,17 @@ export class LogStorage implements ILogStorage {
       return () => true;
     }
     const expression = punyexpr(filter);
-    const undefinedObject = new Proxy(
-      {},
-      {
-        get: () => undefinedObject
+
+    return (log) => !!expression({
+      ...log,
+      level: LOG_LEVELS[log.level],
+      [punyexpr.propertyOf]: (value: any, property: string) => {
+        if (value === undefined) {
+          return undefined;
+        }
+        return value[property];
       }
-    );
-    return (log) => {
-      return !!expression(
-        new Proxy(log, {
-          get: (target, property: keyof InternalLogAttributes) => {
-            if (property === 'level') {
-              return LOG_LEVELS[log.level];
-            }
-            return log[property] ?? undefinedObject;
-          }
-        })
-      );
-    };
+    });
   }
 
   fetch(query: LogStorageQuery = {}): InternalLogAttributes[] {
