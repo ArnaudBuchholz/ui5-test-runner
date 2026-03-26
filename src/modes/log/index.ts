@@ -17,7 +17,7 @@ export const log = async (configuration: Configuration) => {
     chunksCount: 0
   } satisfies LogMetrics;
   const storage = LogStorage.create();
-  const { promise, resolve, reject } = Promise.withResolvers<void>();
+  const { promise, resolve } = Promise.withResolvers<void>();
   const server = serve(buildREserveConfiguration(storage, metrics));
   Exit.registerAsyncTask({
     name: 'log',
@@ -31,24 +31,19 @@ export const log = async (configuration: Configuration) => {
   const browserReady = browser.setup({
     visible: true
   });
-  server
-    .on('ready', ({ url, port }) => {
-      console.log(url);
-      void browserReady
-        .then(() =>
-          browser.newWindow({
-            url: `http://localhost:${port}/query`,
-            scripts: []
-          })
-        )
-        .then(() => {
-          console.log('Use CTRL+C to exit');
-        });
-    })
-    .on('error', (error) => {
-      stopped = true;
-      reject(error);
-    });
+  server.on('ready', ({ url, port }) => {
+    console.log(url);
+    void browserReady
+      .then(() =>
+        browser.newWindow({
+          url: `http://localhost:${port}/query`,
+          scripts: []
+        })
+      )
+      .then(() => {
+        console.log('Use CTRL+C to exit');
+      });
+  });
   for await (const item of LogReader.read(logFileName)) {
     if (stopped) {
       break;
