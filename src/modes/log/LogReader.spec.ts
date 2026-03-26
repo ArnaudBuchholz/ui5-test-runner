@@ -39,7 +39,7 @@ it('reads logs and emits status', async () => {
     { type: 'log', message: 'hello' },
     { type: 'log', message: 'world !' },
     {
-      type: 'status',
+      type: 'metrics',
       inputSize: 4 + chunk.length,
       chunksCount: 1,
       outputSize: JSON.stringify({ message: 'hello' }).length + 1 + JSON.stringify({ message: 'world !' }).length + 1
@@ -57,19 +57,19 @@ it('accumulates stats over chunks', async () => {
   vi.mocked(ZLib.inflateRawSync).mockReturnValue(Buffer.from('[{}]'));
   const statuses: LogReaderItem[] = [];
   for await (const item of LogReader.read(FILENAME)) {
-    if (item.type === 'status') {
+    if (item.type === 'metrics') {
       statuses.push(item);
     }
   }
   expect(statuses).toHaveLength(2);
   expect(statuses).toMatchObject([
     {
-      type: 'status',
+      type: 'metrics',
       chunksCount: 1,
       inputSize: 4 + chunk1.length
     },
     {
-      type: 'status',
+      type: 'metrics',
       chunksCount: 2,
       inputSize: 4 + chunk1.length + 4 + chunk2.length
     }
