@@ -34,16 +34,19 @@ export class LogStorage implements ILogStorage {
     }
     const expression = punyexpr(filter);
 
-    return (log) => !!expression({
-      ...log,
-      level: LOG_LEVELS[log.level],
-      [punyexpr.propertyOf]: (value: any, property: string) => {
-        if (value === undefined) {
-          return undefined;
+    return (log) =>
+      !!expression({
+        ...log,
+        level: LOG_LEVELS[log.level],
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any -- handle all possible situations
+        [punyexpr.propertyOf]: (value: any, property: string) => {
+          if (value === undefined) {
+            return;
+          }
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-member-access -- handle all possible situations
+          return value[property];
         }
-        return value[property];
-      }
-    });
+      });
   }
 
   fetch(query: LogStorageQuery = {}): InternalLogAttributes[] {

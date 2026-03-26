@@ -16,8 +16,9 @@ export const log = async (configuration: Configuration) => {
     outputSize: 0,
     chunksCount: 0
   } satisfies LogMetrics;
-  let server: ReturnType<typeof serve>;
+  const storage = LogStorage.create();
   const { promise, resolve } = Promise.withResolvers<void>();
+  const server = serve(buildREserveConfiguration(storage, metrics));
   Exit.registerAsyncTask({
     name: 'log',
     stop: async () => {
@@ -26,13 +27,11 @@ export const log = async (configuration: Configuration) => {
       resolve();
     }
   });
-  const storage = LogStorage.create();
   const browser = await BrowserFactory.build('puppeteer');
   const browserReady = browser.setup({
     visible: true
   });
   await browserReady;
-  server = serve(buildREserveConfiguration(storage, metrics));
   server.on('ready', ({ url, port }) => {
     console.log(url);
     void browserReady
