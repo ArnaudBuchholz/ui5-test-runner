@@ -32,6 +32,19 @@ const expectLogsAreSorted = (logs: InternalLogAttributes[]) => {
   }
 };
 
+describe('return number of logs', () => {
+  it('returns 0 for initial storage', () => {
+    const storage = LogStorage.create();
+    expect(storage.length).toStrictEqual(0);
+  });
+
+  it('returns the number of stored logs', () => {
+    const storage = LogStorage.create();
+    fillLogs(storage, 1234);
+    expect(storage.length).toStrictEqual(1234);
+  });
+});
+
 describe('add logs', () => {
   it('returns added logs', () => {
     const storage = LogStorage.create();

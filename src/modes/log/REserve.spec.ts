@@ -5,6 +5,7 @@ import type { LogMetrics } from './LogMetrics.js';
 import { buildREserveConfiguration } from './REserve.js';
 
 const storage = {
+  length: 147,
   add: vi.fn(),
   fetch: vi.fn()
 } satisfies ILogStorage;
@@ -26,15 +27,27 @@ beforeAll(async () => {
 
 beforeEach(() => vi.clearAllMocks());
 
-it('adds metrics to the answer as headers', async () => {
-  const response = await server.request('GET', '/query');
-  await response.waitForFinish();
-  expect(response.statusCode).toBe(200);
-  expect(response.headers).toMatchObject({
+describe('adds metrics to the response as headers', () => {
+  const metrics = {
     'x-metrics-chunks-count': '456',
     'x-metrics-input-size': '123',
-    'x-metrics-output-size': '789'
+    'x-metrics-output-size': '789',
+    'x-metrics-logs-count': '147'
+  } as const;
+
+  let response: Awaited<ReturnType<(typeof server)['request']>>;
+
+  beforeAll(async () => {
+    response = await server.request('GET', '/query');
+    await response.waitForFinish();
+    expect(response.statusCode).toBe(200);
   });
+
+  for (const [header, value] of Object.entries(metrics)) {
+    it(`adds ${header}`, () => {
+      expect(response.headers[header]).toStrictEqual(value);
+    });
+  }
 });
 
 describe('forwards parameters to the fetch api', () => {

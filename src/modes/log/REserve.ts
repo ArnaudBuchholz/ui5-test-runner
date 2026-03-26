@@ -15,6 +15,7 @@ export const buildREserveConfiguration = (storage: ILogStorage, metrics: LogMetr
         response.setHeader('x-metrics-chunks-count', metrics.chunksCount.toString());
         response.setHeader('x-metrics-input-size', metrics.inputSize.toString());
         response.setHeader('x-metrics-output-size', metrics.outputSize.toString());
+        response.setHeader('x-metrics-logs-count', storage.length.toString());
       }
     },
     {

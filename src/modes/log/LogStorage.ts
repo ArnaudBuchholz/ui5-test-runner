@@ -16,6 +16,10 @@ export class LogStorage implements ILogStorage {
 
   protected constructor() {}
 
+  get length() {
+    return this._logs.length;
+  }
+
   add(log: InternalLogAttributes): void {
     this._logs.push(log);
     this._logsAdded = true;
