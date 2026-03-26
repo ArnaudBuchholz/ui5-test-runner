@@ -117,12 +117,30 @@ describe('query logs', () => {
     expectLogsAreSorted(records);
   });
 
-  it('supports paging', () => {
-    const records = storage.fetch({ skip: 3 });
-    expect(records).toHaveLength(MAX_LIMIT);
-    expect(records).not.toContain(log1);
-    expect(records).not.toContain(log2);
-    expect(records).not.toContain(log3);
+  describe('supports paging', () => {
+    it('supports skip', () => {
+      const records = storage.fetch({ skip: 3 });
+      expect(records).toHaveLength(MAX_LIMIT);
+      expect(records).not.toContain(log1);
+      expect(records).not.toContain(log2);
+      expect(records).not.toContain(log3);
+    });
+
+    it('supports limit', () => {
+      const records = storage.fetch({ limit: 1 });
+      expect(records).toHaveLength(1);
+      expect(records).toContain(log1);
+    });
+
+    it('validates limit (max)', () => {
+      const records = storage.fetch({ limit: MAX_LIMIT + 1 });
+      expect(records).toHaveLength(MAX_LIMIT);
+    });
+
+    it('validates limit (min)', () => {
+      const records = storage.fetch({ limit: -1 });
+      expect(records).toHaveLength(0);
+    });
   });
 
   it('supports time range filtering', () => {

@@ -54,9 +54,9 @@ export class LogStorage implements ILogStorage {
     const { from = 0, to = Number.MAX_SAFE_INTEGER, filter = '' } = query;
     let { skip = 0, limit = MAX_LIMIT } = query;
     const filterExpression = LogStorage.buildFilterExpression(filter);
-    limit = Math.max(limit, MAX_LIMIT);
+    limit = Math.max(0, Math.min(limit, MAX_LIMIT));
     const records: InternalLogAttributes[] = [];
-    for (let index = 0; index < this._logs.length; ++index) {
+    for (let index = 0; limit > 0 && index < this._logs.length; ++index) {
       const log = this._logs[index]!;
       if (log.timestamp < from) {
         continue;
@@ -72,9 +72,7 @@ export class LogStorage implements ILogStorage {
         continue;
       }
       records.push(log);
-      if (--limit === 0) {
-        break;
-      }
+      --limit;
     }
     return records;
   }
