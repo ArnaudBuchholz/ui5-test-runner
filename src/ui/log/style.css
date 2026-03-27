@@ -1,0 +1,266 @@
+body {
+  margin: 0;
+  padding: 1rem;
+  font-family: var(--sapFontFamily, '72', '72full', Arial, Helvetica, sans-serif);
+  background-color: var(--sapBackgroundColor, #f7f7f7);
+}
+
+/* ── Toolbar ─────────────────────────────────────────────────────────────── */
+
+.toolbar {
+  background: var(--sapGroup_ContentBackground, #ffffff);
+  border: 1px solid var(--sapGroup_TitleBorderColor, #d9d9d9);
+  border-radius: 4px;
+  padding: 1rem;
+  margin-bottom: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.toolbar-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.toolbar-title {
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+
+.toolbar-section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.toolbar-label {
+  font-weight: 600;
+  color: var(--sapContent_LabelColor, #6a6d70);
+  font-size: 0.85rem;
+}
+
+.toolbar-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.toolbar-separator {
+  color: var(--sapContent_LabelColor, #6a6d70);
+  margin: 0 0.25rem;
+}
+
+.toolbar-last-refresh {
+  font-size: 0.85rem;
+  color: var(--sapContent_LabelColor, #6a6d70);
+  margin-left: 0.5rem;
+}
+
+.toolbar-results-count {
+  font-size: 0.85rem;
+  color: var(--sapContent_LabelColor, #6a6d70);
+  border-top: 1px solid var(--sapGroup_TitleBorderColor, #d9d9d9);
+  padding-top: 0.5rem;
+}
+
+.filter-expression-input {
+  flex: 1;
+  min-width: 300px;
+}
+
+.search-input {
+  flex: 1;
+  min-width: 300px;
+}
+
+.datetime-input {
+  font-family: inherit;
+  font-size: 0.9rem;
+  padding: 0.4rem 0.6rem;
+  border: 1px solid var(--sapField_BorderColor, #89919a);
+  border-radius: 4px;
+  background: var(--sapField_Background, #fff);
+  color: var(--sapTextColor, #32363a);
+}
+
+/* ── Log Table ───────────────────────────────────────────────────────────── */
+
+.log-table-wrapper {
+  overflow-x: auto;
+  max-height: 60vh;
+  overflow-y: auto;
+  border: 1px solid var(--sapList_BorderColor, #d9d9d9);
+}
+
+.log-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.85rem;
+  font-family: 'Courier New', Courier, monospace;
+}
+
+.log-header-row {
+  position: sticky;
+  top: 0;
+  background: var(--sapList_HeaderBackground, #f7f7f7);
+  z-index: 1;
+}
+
+.log-cell {
+  padding: 0.3rem 0.5rem;
+  border-bottom: 1px solid var(--sapList_BorderColor, #d9d9d9);
+  vertical-align: top;
+  white-space: nowrap;
+}
+
+th.log-cell {
+  font-weight: 600;
+  text-align: left;
+  color: var(--sapList_HeaderTextColor, #32363a);
+  border-right: 1px solid var(--sapList_BorderColor, #d9d9d9);
+}
+
+.log-cell--num {
+  width: 3rem;
+  text-align: right;
+  color: var(--sapContent_LabelColor, #6a6d70);
+}
+
+.log-cell--ts {
+  width: 14rem;
+}
+
+.log-cell--level {
+  width: 6rem;
+}
+
+.log-cell--source {
+  width: 8rem;
+}
+
+.log-cell--pid {
+  width: 6rem;
+}
+
+.log-cell--tid {
+  width: 6rem;
+}
+
+.log-cell--msg {
+  white-space: pre-wrap;
+  word-break: break-all;
+  max-width: 40rem;
+}
+
+.log-row:hover {
+  background: var(--sapList_Hover_Background, #eaf0f8);
+  cursor: pointer;
+}
+
+.log-row--selected {
+  background: var(--sapList_SelectionBackgroundColor, #d8e9f8) !important;
+}
+
+/* ── Log Details ────────────────────────────────────────────────────────── */
+
+.log-details {
+  padding: 0.75rem;
+  font-size: 0.9rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.log-details--empty {
+  color: var(--sapContent_LabelColor, #6a6d70);
+}
+
+.log-details__row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem 0.75rem;
+  align-items: baseline;
+}
+
+.log-details__row--data {
+  flex-direction: column;
+}
+
+.log-details__field {
+  font-weight: 600;
+  color: var(--sapContent_LabelColor, #6a6d70);
+}
+
+.log-details__field--gap {
+  margin-left: 1rem;
+}
+
+.log-details__value {
+  font-family: 'Courier New', Courier, monospace;
+  word-break: break-all;
+}
+
+.log-details__json {
+  background: var(--sapBackgroundColor, #f7f7f7);
+  border: 1px solid var(--sapGroup_TitleBorderColor, #d9d9d9);
+  border-radius: 4px;
+  padding: 0.5rem;
+  font-size: 0.8rem;
+  overflow: auto;
+  max-height: 300px;
+  margin: 0;
+}
+
+/* ── Metrics Bar ────────────────────────────────────────────────────────── */
+
+.metrics-bar {
+  padding: 0.75rem;
+  font-size: 0.85rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.metrics-bar--empty {
+  color: var(--sapContent_LabelColor, #6a6d70);
+}
+
+.metrics-bar__title {
+  font-weight: 600;
+}
+
+.metrics-bar__items {
+  display: flex;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+}
+
+.metrics-bar__item {
+  color: var(--sapTextColor, #32363a);
+}
+
+/* ── Context menu ───────────────────────────────────────────────────────── */
+
+.context-menu {
+  position: absolute;
+  background: var(--sapGroup_ContentBackground, #ffffff);
+  border: 1px solid var(--sapGroup_TitleBorderColor, #d9d9d9);
+  border-radius: 4px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  z-index: 1000;
+  min-width: 200px;
+  display: none;
+}
+
+.context-menu__item {
+  padding: 0.5rem 1rem;
+  cursor: pointer;
+  font-size: 0.85rem;
+}
+
+.context-menu__item:hover {
+  background: var(--sapList_Hover_Background, #eaf0f8);
+}
