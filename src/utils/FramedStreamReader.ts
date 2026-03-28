@@ -90,19 +90,20 @@ export class FramedStreamReader {
         this._reading = false;
       }
     });
+    const { promise: abortSignal, resolve: triggerAbort } = Promise.withResolvers<void>();
     if (signal) {
       signal.addEventListener('abort', () => {
+        triggerAbort();
         this._reading = false;
       });
     }
-
     while (this._reading) {
       const stats = await FileSystem.stat(this._fileName);
       if (stats.size > this._startPos) {
         yield* this._read(stats.size - 1);
       }
       if (this._reading) {
-        await setTimeout(this._pollIntervalMs);
+        await Promise.race([setTimeout(this._pollIntervalMs), abortSignal]);
       }
     }
   }

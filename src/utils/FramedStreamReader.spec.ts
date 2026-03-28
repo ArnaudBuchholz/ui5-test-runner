@@ -176,3 +176,21 @@ it('can be interrupted through AbortSignal', async () => {
   expect(chunks.length).toStrictEqual(1);
   expect(chunks[0]!.toString()).toStrictEqual(data1);
 });
+
+it('short-circuits the poll interval when the abort signal is received', async () => {
+  const controller = new AbortController();
+  const stream = FramedStreamReader.create(FILENAME, 60_000);
+
+  const readPromise = (async () => {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars, sonarjs/no-unused-vars
+    for await (const _ of stream.read(controller.signal)) {
+      // Just consuming
+    }
+  })();
+
+  await setTimeout(10); // Wait for the reader to reach the polling loop
+  const start = Date.now();
+  controller.abort();
+  await readPromise;
+  expect(Date.now() - start).toBeLessThan(1000);
+});
