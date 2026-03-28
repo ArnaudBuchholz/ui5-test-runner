@@ -1,9 +1,8 @@
-import { it, expect, vi, beforeEach } from 'vitest';
+import { it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { FramedStreamReader } from './FramedStreamReader.js';
 import { Exit, FileSystem } from '../platform/index.js';
 import { setTimeout } from 'node:timers/promises';
 import type { ReadStream } from 'node:fs';
-import { afterEach } from 'node:test';
 
 const FILENAME = '/usr/arnaud/test.bin';
 
@@ -12,6 +11,7 @@ let fileStat: { size: number };
 let isReadingStream: boolean;
 
 beforeEach(() => {
+  vi.clearAllMocks();
   fileContent = Buffer.alloc(0);
   fileStat = { size: 0 };
   isReadingStream = false;
@@ -153,6 +153,24 @@ it('can be interrupted through Exit', async () => {
     expect.assert(stop !== undefined);
     await stop();
     chunks.push(chunk);
+  }
+
+  expect(chunks.length).toStrictEqual(1);
+  expect(chunks[0]!.toString()).toStrictEqual(data1);
+});
+
+it('can be interrupted through AbortSignal', async () => {
+  const controller = new AbortController();
+  const data1 = 'chunk1';
+  const data2 = 'chunk2';
+
+  writerPromise = writeToFile([{ delay: 0, buffer: [...chunk(data1), ...chunk(data2), ...nullChunk] }]);
+
+  const stream = FramedStreamReader.create(FILENAME);
+  const chunks: Buffer[] = [];
+  for await (const chunk of stream.read(controller.signal)) {
+    chunks.push(chunk);
+    controller.abort();
   }
 
   expect(chunks.length).toStrictEqual(1);

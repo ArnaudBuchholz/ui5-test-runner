@@ -3,7 +3,7 @@ import { Exit, FileSystem, assert } from '../platform/index.js';
 import { setTimeout } from 'node:timers/promises';
 
 export interface IFramedStreamReader {
-  read(): AsyncIterableIterator<Buffer>;
+  read(signal?: AbortSignal): AsyncIterableIterator<Buffer>;
 }
 
 type FrameExtractorItem =
@@ -82,7 +82,7 @@ export class FramedStreamReader {
     }
   }
 
-  async *read(): AsyncIterableIterator<Buffer> {
+  async *read(signal?: AbortSignal): AsyncIterableIterator<Buffer> {
     assert(this._task === undefined, 'read is already in progress');
     this._task = Exit.registerAsyncTask({
       name: `FramedStreamReader(${this._fileName})`,
@@ -90,6 +90,11 @@ export class FramedStreamReader {
         this._reading = false;
       }
     });
+    if (signal) {
+      signal.addEventListener('abort', () => {
+        this._reading = false;
+      });
+    }
 
     while (this._reading) {
       const stats = await FileSystem.stat(this._fileName);
