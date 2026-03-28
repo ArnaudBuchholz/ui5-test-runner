@@ -15,13 +15,13 @@ export type LogReaderItem =
     } & LogMetrics);
 
 export const LogReader = {
-  async *read(logFileName: string): AsyncIterableIterator<LogReaderItem> {
+  async *read(logFileName: string, signal?: AbortSignal): AsyncIterableIterator<LogReaderItem> {
     const context = createCompressionContext();
     const stream = FramedStreamReader.create(logFileName, POLL_INTERVAL_MS);
     let inputSize = 0;
     let outputSize = 0;
     let chunksCount = 0;
-    for await (const chunk of stream.read()) {
+    for await (const chunk of stream.read(signal)) {
       inputSize += 4 + chunk.length;
       ++chunksCount;
       const lines = ZLib.inflateRawSync(chunk).toString();
