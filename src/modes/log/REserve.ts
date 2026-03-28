@@ -16,7 +16,11 @@ const getAsInt = (parameters: URLSearchParams, key: string): number | undefined 
   return value ? Number.parseInt(value) : undefined;
 };
 
-export const buildREserveConfiguration = (storage: ILogStorage, metrics: LogMetrics, abortController: AbortController): Configuration => ({
+export const buildREserveConfiguration = (
+  storage: ILogStorage,
+  metrics: LogMetrics,
+  abortController: AbortController
+): Configuration => ({
   port: 0,
   mappings: [
     {
