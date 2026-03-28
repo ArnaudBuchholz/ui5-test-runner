@@ -36,7 +36,7 @@ export const log = async (configuration: Configuration) => {
     void browserReady
       .then(() =>
         browser.newWindow({
-          url: `http://localhost:${port}/query`,
+          url: `http://localhost:${port}/`,
           scripts: []
         })
       )

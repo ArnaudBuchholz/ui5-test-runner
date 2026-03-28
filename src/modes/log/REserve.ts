@@ -1,6 +1,15 @@
+import { __developmentMode, __sourcesRoot, Path, FileSystem } from '../../platform/index.js';
+import { memoize } from '../../utils/memoize.js';
 import type { Configuration } from 'reserve';
 import type { ILogStorage } from './ILogStorage.js';
 import type { LogMetrics } from './LogMetrics.js';
+
+const getLogViewerSource = memoize(async () => {
+  const path = __developmentMode
+    ? Path.join(__sourcesRoot, '../dist', 'ui5-test-runner-log-viewer.js')
+    : Path.join(__sourcesRoot, 'ui5-test-runner-log-viewer.js');
+  return FileSystem.readFile(path, 'utf8');
+});
 
 const getAsInt = (parameters: URLSearchParams, key: string): number | undefined => {
   const value = parameters.get(key);
@@ -30,6 +39,41 @@ export const buildREserveConfiguration = (storage: ILogStorage, metrics: LogMetr
         const filter = searchParameters.get('filter') ?? undefined;
         return [storage.fetch({ from, to, skip, limit, filter })];
       }
+    },
+    {
+      method: 'GET',
+      match: '/log-viewer.js',
+      custom: async () => [
+        await getLogViewerSource(),
+        {
+          headers: {
+            'Content-Type': 'application/javascript'
+          }
+        }
+      ]
+    },
+    {
+      method: 'GET',
+      custom: () => [
+        `<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UI5 Test Runner Report</title>
+  </head>
+  <body>
+    <div id="app"></div>
+    <script type="module" src="/log-viewer.js"></script>
+  </body>
+</html>
+`,
+        {
+          headers: {
+            'Content-Type': 'text/html'
+          }
+        }
+      ]
     }
   ]
 });

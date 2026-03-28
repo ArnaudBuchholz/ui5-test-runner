@@ -254,4 +254,5 @@ function attachEvents(/*visibleEntries: ReturnType<typeof searchEntries>*/): voi
 }
 
 subscribe(render);
+// eslint-disable-next-line unicorn/prefer-top-level-await
 void refresh();
