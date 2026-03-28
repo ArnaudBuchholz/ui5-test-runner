@@ -16,7 +16,7 @@ const getAsInt = (parameters: URLSearchParams, key: string): number | undefined 
   return value ? Number.parseInt(value) : undefined;
 };
 
-export const buildREserveConfiguration = (storage: ILogStorage, metrics: LogMetrics): Configuration => ({
+export const buildREserveConfiguration = (storage: ILogStorage, metrics: LogMetrics, abortController: AbortController): Configuration => ({
   port: 0,
   mappings: [
     {
@@ -53,6 +53,13 @@ export const buildREserveConfiguration = (storage: ILogStorage, metrics: LogMetr
       ]
     },
     {
+      match: '/close',
+      custom: () => {
+        abortController.abort();
+        return 200;
+      }
+    },
+    {
       method: 'GET',
       custom: () => [
         `<!DOCTYPE html>
@@ -65,6 +72,11 @@ export const buildREserveConfiguration = (storage: ILogStorage, metrics: LogMetr
   <body>
     <div id="app"></div>
     <script type="module" src="/log-viewer.js"></script>
+    <script>
+const close = () => navigator.sendBeacon('/close');
+document.addEventListener('visibilitychange', () => (document.visibilityState === 'hidden') && close());
+window.addEventListener('pagehide', (event) => (!event.persisted) && close());
+    </script>
   </body>
 </html>
 `,

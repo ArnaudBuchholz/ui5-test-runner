@@ -18,14 +18,20 @@ export const log = async (configuration: Configuration) => {
   } satisfies LogMetrics;
   const storage = LogStorage.create();
   const { promise, resolve } = Promise.withResolvers<void>();
-  const server = serve(buildREserveConfiguration(storage, metrics));
+  const abortController = new AbortController();
+  const abortSignal = abortController.signal;
+  const server = serve(buildREserveConfiguration(storage, metrics, abortController));
+  const stop = async () => {
+    stopped = true;
+    await server?.close();
+    resolve();
+  };
+  abortSignal.addEventListener('abort', () => {
+    void stop();
+  });
   Exit.registerAsyncTask({
     name: 'log',
-    stop: async () => {
-      stopped = true;
-      await server?.close();
-      resolve();
-    }
+    stop: stop
   });
   const browser = await BrowserFactory.build('puppeteer');
   const browserReady = browser.setup({
@@ -44,6 +50,7 @@ export const log = async (configuration: Configuration) => {
         console.log('Use CTRL+C to exit');
       });
   });
+  // TODO: pass the abort signal here
   for await (const item of LogReader.read(logFileName)) {
     if (stopped) {
       break;
