@@ -5,6 +5,7 @@ import type { ILogStorage } from './ILogStorage.js';
 import type { LogMetrics } from './LogMetrics.js';
 
 const getLogViewerSource = memoize(async () => {
+  /* v8 ignore next -- @preserve */
   const path = __developmentMode
     ? Path.join(__sourcesRoot, '../dist', 'ui5-test-runner-log-viewer.js')
     : Path.join(__sourcesRoot, 'ui5-test-runner-log-viewer.js');
@@ -71,7 +72,7 @@ export const buildREserveConfiguration = (
   <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>UI5 Test Runner Report</title>
+    <title>UI5 Test Runner Log Viewer</title>
   </head>
   <body>
     <div id="app"></div>
