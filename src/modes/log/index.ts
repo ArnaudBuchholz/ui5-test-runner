@@ -51,7 +51,7 @@ export const log = async (configuration: Configuration) => {
       });
   });
   // TODO: pass the abort signal here
-  for await (const item of LogReader.read(logFileName)) {
+  for await (const item of LogReader.read(logFileName, abortSignal)) {
     if (stopped) {
       break;
     }
