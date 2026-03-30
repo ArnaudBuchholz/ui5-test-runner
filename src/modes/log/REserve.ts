@@ -25,17 +25,6 @@ export const buildREserveConfiguration = (
   port: 0,
   mappings: [
     {
-      custom: (request, response) => {
-        response.setHeader('x-metrics-chunks-count', metrics.chunksCount.toString());
-        response.setHeader('x-metrics-input-size', metrics.inputSize.toString());
-        response.setHeader('x-metrics-output-size', metrics.outputSize.toString());
-        response.setHeader('x-metrics-logs-count', metrics.logCount.toString());
-        response.setHeader('x-metrics-min-timestamp', metrics.minTimestamp.toString());
-        response.setHeader('x-metrics-max-timestamp', metrics.maxTimestamp.toString());
-        response.setHeader('x-metrics-reading', metrics.reading.toString());
-      }
-    },
-    {
       method: 'GET',
       match: '/query',
       custom: ({ url }) => {
@@ -45,7 +34,12 @@ export const buildREserveConfiguration = (
         const skip = getAsInt(searchParameters, 'skip');
         const limit = getAsInt(searchParameters, 'limit');
         const filter = searchParameters.get('filter') ?? undefined;
-        return [storage.fetch({ from, to, skip, limit, filter })];
+        return [
+          {
+            metrics,
+            logs: storage.fetch({ from, to, skip, limit, filter })
+          }
+        ];
       }
     },
     {

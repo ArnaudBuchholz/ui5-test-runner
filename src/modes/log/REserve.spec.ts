@@ -4,21 +4,22 @@ import { FileSystem } from '../../platform/index.js';
 import type { ILogStorage } from './ILogStorage.js';
 import type { LogMetrics } from './LogMetrics.js';
 import { buildREserveConfiguration } from './REserve.js';
+import type { InternalLogAttributes } from '../../platform/logger/types.js';
 
 const storage = {
   length: 147,
   add: vi.fn(),
-  fetch: vi.fn()
+  fetch: vi.fn().mockReturnValue([])
 } satisfies ILogStorage;
 
-const metrics = {
+const fakeMetrics = {
   inputSize: 123,
   chunksCount: 456,
   outputSize: 789,
   minTimestamp: 1000,
   maxTimestamp: 2000,
   logCount: 987,
-  reading: true,
+  reading: true
 } satisfies LogMetrics;
 
 let server: ReturnType<typeof mock>;
@@ -27,7 +28,7 @@ let abortController: AbortController;
 beforeAll(async () => {
   abortController = new AbortController();
   vi.spyOn(abortController, 'abort');
-  server = mock(buildREserveConfiguration(storage, metrics, abortController));
+  server = mock(buildREserveConfiguration(storage, fakeMetrics, abortController));
   const { promise, resolve, reject } = Promise.withResolvers<void>();
   server.on('ready', () => resolve()).on('error', (error) => reject(error));
   vi.mocked(FileSystem.readFile).mockResolvedValue('code');
@@ -35,32 +36,6 @@ beforeAll(async () => {
 });
 
 beforeEach(() => vi.clearAllMocks());
-
-describe('adds metrics to the response as headers', () => {
-  const metrics = {
-    'x-metrics-chunks-count': '456',
-    'x-metrics-input-size': '123',
-    'x-metrics-output-size': '789',
-    'x-metrics-logs-count': '987',
-    'x-metrics-min-timestamp': '1000',
-    'x-metrics-max-timestamp': '2000',
-    'x-metrics-reading': 'true',
-  } as const;
-
-  let response: Awaited<ReturnType<(typeof server)['request']>>;
-
-  beforeAll(async () => {
-    response = await server.request('GET', '/query');
-    await response.waitForFinish();
-    expect(response.statusCode).toBe(200);
-  });
-
-  for (const [header, value] of Object.entries(metrics)) {
-    it(`adds ${header}`, () => {
-      expect(response.headers[header]).toStrictEqual(value);
-    });
-  }
-});
 
 describe('forwards parameters to the fetch api', () => {
   const queries = {
@@ -84,6 +59,13 @@ describe('forwards parameters to the fetch api', () => {
       await response.waitForFinish();
       expect(response.statusCode).toBe(200);
       expect(storage.fetch).toHaveBeenCalledWith(query);
+      // eslint-disable-next-line @typescript-eslint/no-base-to-string -- because of REserve
+      const { metrics, logs } = JSON.parse(response.toString()) as {
+        metrics: LogMetrics;
+        logs: InternalLogAttributes[];
+      };
+      expect(metrics).toStrictEqual(fakeMetrics);
+      expect(Array.isArray(logs)).toStrictEqual(true);
     });
   }
 });
