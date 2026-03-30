@@ -14,7 +14,11 @@ const storage = {
 const metrics = {
   inputSize: 123,
   chunksCount: 456,
-  outputSize: 789
+  outputSize: 789,
+  minTimestamp: 1000,
+  maxTimestamp: 2000,
+  logCount: 987,
+  reading: true,
 } satisfies LogMetrics;
 
 let server: ReturnType<typeof mock>;
@@ -37,7 +41,10 @@ describe('adds metrics to the response as headers', () => {
     'x-metrics-chunks-count': '456',
     'x-metrics-input-size': '123',
     'x-metrics-output-size': '789',
-    'x-metrics-logs-count': '147'
+    'x-metrics-logs-count': '987',
+    'x-metrics-min-timestamp': '1000',
+    'x-metrics-max-timestamp': '2000',
+    'x-metrics-reading': 'true',
   } as const;
 
   let response: Awaited<ReturnType<(typeof server)['request']>>;

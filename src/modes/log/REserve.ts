@@ -29,7 +29,10 @@ export const buildREserveConfiguration = (
         response.setHeader('x-metrics-chunks-count', metrics.chunksCount.toString());
         response.setHeader('x-metrics-input-size', metrics.inputSize.toString());
         response.setHeader('x-metrics-output-size', metrics.outputSize.toString());
-        response.setHeader('x-metrics-logs-count', storage.length.toString());
+        response.setHeader('x-metrics-logs-count', metrics.logCount.toString());
+        response.setHeader('x-metrics-min-timestamp', metrics.minTimestamp.toString());
+        response.setHeader('x-metrics-max-timestamp', metrics.maxTimestamp.toString());
+        response.setHeader('x-metrics-reading', metrics.reading.toString());
       }
     },
     {

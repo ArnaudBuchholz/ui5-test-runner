@@ -6,16 +6,12 @@ import { LogStorage } from './LogStorage.js';
 import { buildREserveConfiguration } from './REserve.js';
 import { BrowserFactory } from '../../browsers/factory.js';
 import type { InternalLogAttributes } from '../../platform/logger/types.js';
-import type { LogMetrics } from './LogMetrics.js';
+import { getInitialLogMetrics } from './LogMetrics.js';
 
 export const log = async (configuration: Configuration) => {
   const logFileName = configuration.log!; // Validated by configuration
   let stopped = false;
-  const metrics = {
-    inputSize: 0,
-    outputSize: 0,
-    chunksCount: 0
-  } satisfies LogMetrics;
+  const metrics = getInitialLogMetrics();
   const storage = LogStorage.create();
   const { promise, resolve } = Promise.withResolvers<void>();
   const abortController = new AbortController();
