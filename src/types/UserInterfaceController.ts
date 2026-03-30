@@ -1,4 +1,4 @@
-import type { DotPaths, LeafValueTypes, Writable } from './typeUtils.js';
+import type { DotPaths, LeafValueTypes, Writable } from './typeUtilities.js';
 
 export type UIEvent<State, Actions> =
   | {
@@ -9,10 +9,9 @@ export type UIEvent<State, Actions> =
   | {
       type: 'action';
       action: Actions;
-    }
-  ;
+    };
 
 export type IUIController<State, Actions> = {
   connect(handler: (event: Partial<State>) => void): void;
-  input(event: UIEvent<State, Actions>): void;
+  interaction(event: UIEvent<State, Actions>): void;
 };
