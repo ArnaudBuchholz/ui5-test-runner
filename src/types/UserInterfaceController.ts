@@ -1,15 +1,16 @@
-import type { SinglePartial, Writable } from './typeUtilities.js';
+import type { Writable } from './typeUtilities.js';
 
-export type UIEvent<State, Actions> =
-  | {
-      type: 'change';
-    } & SinglePartial<Writable<State>>
-  | {
-      type: 'action';
-      action: Actions;
-    };
+export type UISelectableItem<KEY_TYPE extends string | number> = {
+  label: string;
+  key: KEY_TYPE;
+};
 
-export type IUIController<State, Actions> = {
-  connect(handler: (event: Partial<State>) => void): void;
+/** State changes are processed before executing action */
+export type UIEvent<State, Actions> = Partial<Writable<State>> & {
+  action?: Actions;
+};
+
+export type IUIController<Settings, State, Actions> = {
+  connect(handler: (event: Partial<State>) => void): { initialState: State; settings: Settings; };
   interaction(event: UIEvent<State, Actions>): void;
 };
