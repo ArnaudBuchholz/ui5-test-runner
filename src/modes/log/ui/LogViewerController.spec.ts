@@ -52,7 +52,7 @@ it('initializes the UI state', () => {
       relativeTimerange: 5 * ONE_MINUTE,
       absoluteTimerangeFrom: 0,
       absoluteTimerangeTo: 0,
-      autorefresh: 'off',
+      autorefresh: 0,
       filter: '',
       logs: [],
       metrics: getInitialLogMetrics()

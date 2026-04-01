@@ -4,6 +4,7 @@ import type { LogStorageQuery } from '../ILogStorage.js';
 import type { LogMetrics } from '../LogMetrics.js';
 import { getInitialLogMetrics } from '../LogMetrics.js';
 
+const FIVE_SECONDS = 5000 as const;
 const FIVE_MINUTES = 300_000 as const;
 
 const RELATIVE_TIMERANGE_SETTINGS = [
@@ -32,7 +33,7 @@ const RELATIVE_TIMERANGE_SETTINGS = [
 const AUTO_REFRESH_SETTINGS = [
   {
     label: '5 seconds',
-    key: 5000
+    key: FIVE_SECONDS
   },
   {
     label: '10 seconds',
@@ -58,13 +59,14 @@ export type State = {
   relativeTimerange: (typeof RELATIVE_TIMERANGE_SETTINGS)[number]['key'];
   absoluteTimerangeFrom: number; /* EPOCH */
   absoluteTimerangeTo: number; /* EPOCH */
-  autorefresh: 'off' | (typeof AUTO_REFRESH_SETTINGS)[number]['key'];
+  readonly autorefresh: boolean;
+  autorefreshInterval: typeof AUTO_REFRESH_SETTINGS[number]['key'];
   filter: string;
   readonly logs: InternalLogAttributes[];
   readonly metrics: LogMetrics;
 };
 
-export type Actions = 'refresh_now' | 'auto_refresh_on' | 'auto_refresh_off';
+export type Actions = 'refresh_now';
 
 export class LogViewerController implements IUIController<Settings, State, Actions> {
   static create(): LogViewerController {
@@ -73,10 +75,11 @@ export class LogViewerController implements IUIController<Settings, State, Actio
 
   protected _state: State = {
     timerangeType: 'relative',
-    relativeTimerange: 300_000,
+    relativeTimerange: FIVE_MINUTES,
     absoluteTimerangeFrom: 0,
     absoluteTimerangeTo: 0,
-    autorefresh: 'off',
+    autorefresh: false,
+    autorefreshInterval: FIVE_SECONDS,
     filter: '',
     logs: [],
     metrics: getInitialLogMetrics()
@@ -139,6 +142,9 @@ export class LogViewerController implements IUIController<Settings, State, Actio
   interaction(event: UIEvent<State, Actions>) {
     const { action, ...stateDiff } = event;
     Object.assign(this._state, stateDiff);
+    if ('autorefresh' in stateDiff || 'autorefreshInterval' in stateDiff) {
+      this._autorefresh();
+    }
     if (action !== undefined) {
       void this[action]();
     }
@@ -159,7 +165,30 @@ export class LogViewerController implements IUIController<Settings, State, Actio
     this._update(stateDiff);
   }
 
-  protected auto_refresh_on() {}
+  protected _autorefreshSettings: {
+    intervalId: ReturnType<typeof setInterval> | undefined;
+    interval: typeof AUTO_REFRESH_SETTINGS[number]['key'];
+  } = { intervalId: undefined, interval: FIVE_SECONDS };
 
-  protected auto_refresh_off() {}
+  protected _autorefresh() {
+    if (this._state.autorefresh) {
+      if (!this._autorefreshSettings.intervalId) {
+        
+      }
+      this._update({
+        autorefresh: true
+      });
+      this._autoRefreshInterval = setInterval(this.refresh_now.bind(this), this._state.autorefreshInterval);
+    }
+  }
+
+  protected auto_refresh_off() {
+    if (this._state.autorefresh) {
+      this._update({
+        autorefresh: false
+      });
+      clearInterval(this._autoRefreshInterval);
+      this._autoRefreshInterval = undefined;
+    }
+  }
 }
