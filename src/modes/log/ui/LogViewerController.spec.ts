@@ -130,16 +130,13 @@ describe('query parameters', () => {
     label: 'absolute timerange',
     interactions: [{
       type: 'change',
-      field: 'timerange.type',
-      value: 'absolute'
+      timerangeType: 'absolute'
     }, {
       type: 'change',
-      field: 'timerange.from',
-      value: NOW - FOUR_MINUTES
+      absoluteTimerangeFrom: NOW - FOUR_MINUTES
     }, {
       type: 'change',
-      field: 'timerange.to',
-      value: NOW
+      absoluteTimerangeTo: NOW
     }, {
       type: 'action',
       action: 'refresh_now'

@@ -1,11 +1,9 @@
-import type { DotPaths, LeafValueTypes, Writable } from './typeUtilities.js';
+import type { SinglePartial, Writable } from './typeUtilities.js';
 
 export type UIEvent<State, Actions> =
   | {
       type: 'change';
-      field: DotPaths<Writable<State>>;
-      value: LeafValueTypes<Writable<State>>;
-    }
+    } & SinglePartial<Writable<State>>
   | {
       type: 'action';
       action: Actions;

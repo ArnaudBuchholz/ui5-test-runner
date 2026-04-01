@@ -7,9 +7,10 @@ import { getInitialLogMetrics } from '../LogMetrics.js';
 const FIVE_MINUTES = 5 * 60 * 1000;
 
 export type State = {
-  timerange:
-    | { type: 'relative'; value: '5m' | '15m' | '30m' | '1h' | '3h' }
-    | { type: 'absolute'; from: number; /* EPOCH */ to: number /* EPOCH */ };
+  timerangeType: 'relative' | 'absolute';
+  relativeTimerange: '5m' | '15m' | '30m' | '1h' | '3h';
+  absoluteTimerangeFrom: number; /* EPOCH */
+  absoluteTimerangeTo: number; /* EPOCH */
   autorefresh: 'off' | '5s' | '10s' | '30s' | '60s';
   filter: string;
   readonly logs: InternalLogAttributes[];
@@ -24,10 +25,10 @@ export class LogViewerController implements IUIController<State, Actions> {
   }
 
   protected _state: State = {
-    timerange: {
-      type: 'relative',
-      value: '5m'
-    },
+    timerangeType: 'relative',
+    relativeTimerange: '5m',
+    absoluteTimerangeFrom: 0,
+    absoluteTimerangeTo: 0,
     autorefresh: 'off',
     filter: '',
     logs: [],
@@ -63,17 +64,15 @@ export class LogViewerController implements IUIController<State, Actions> {
 
   protected async _checkInitialQuery() {
     const { metrics, logs } = await this._executeQuery({});
+    const now = Date.now();
     const stateDiff: Partial<State> = {
+      absoluteTimerangeFrom: metrics.minTimestamp,
+      absoluteTimerangeTo: now,
       metrics,
       logs
     };
-    const now = Date.now();
     if (metrics.minTimestamp <= now - FIVE_MINUTES) {
-      stateDiff.timerange = {
-        type: 'absolute',
-        from: metrics.minTimestamp,
-        to: now
-      };
+      stateDiff.timerangeType = 'absolute';
     }
     this._update(stateDiff);
   }
