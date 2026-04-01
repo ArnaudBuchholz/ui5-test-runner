@@ -11,6 +11,7 @@ const NOW = Date.now();
 vi.setSystemTime(NOW);
 
 const ONE_MINUTE = 60 * 1000;
+const FIVE_MINUTES = 300_000 as const;
 const FOUR_MINUTES = 4 * ONE_MINUTE;
 const TEN_MINUTES = 10 * ONE_MINUTE;
 
@@ -37,25 +38,30 @@ const setup = () => {
     }
     timeoutId = setTimeout(() => resolve(), 10);
   });
-  controller.connect(update);
-  return { controller, update, promise };
+  const connect = controller.connect(update);
+  return { controller, update, connect, promise };
 };
 
 beforeEach(() => vi.clearAllMocks());
 
-it('initializes the UI state', async () => {
-  const { update, promise } = setup();
-  await promise;
-  expect(update).toHaveBeenNthCalledWith(1, {
-    timerange: {
-      type: 'relative',
-      value: '5m'
+it('initializes the UI state', () => {
+  const { connect } = setup();
+  expect(connect).toStrictEqual({
+    initialState: {
+      timerangeType: 'relative',
+      relativeTimerange: 5 * ONE_MINUTE,
+      absoluteTimerangeFrom: 0,
+      absoluteTimerangeTo: 0,
+      autorefresh: 'off',
+      filter: '',
+      logs: [],
+      metrics: getInitialLogMetrics()
     },
-    autorefresh: 'off',
-    filter: '',
-    logs: [],
-    metrics: getInitialLogMetrics()
-  } satisfies State);
+    settings: {
+      relativeTimerange: expect.any(Array) as object,
+      autorefresh: expect.any(Array) as object
+    }
+  });
 });
 
 describe('first query', () => {
@@ -86,7 +92,10 @@ describe('first query', () => {
     executeQuery.mockResolvedValueOnce({ metrics, logs });
     const { update, promise } = setup();
     await promise;
-    expect(update).toHaveBeenNthCalledWith(2, {
+    expect(update).toHaveBeenCalledOnce();
+    expect(update).toHaveBeenCalledWith({
+      absoluteTimerangeFrom: NOW - ONE_MINUTE,
+      absoluteTimerangeTo: NOW,
       logs,
       metrics
     } satisfies Partial<State>);
@@ -113,12 +122,11 @@ describe('first query', () => {
     executeQuery.mockResolvedValueOnce({ metrics, logs });
     const { update, promise } = setup();
     await promise;
-    expect(update).toHaveBeenNthCalledWith(2, {
-      timerange: {
-        type: 'absolute',
-        from: NOW - TEN_MINUTES,
-        to: NOW
-      },
+    expect(update).toHaveBeenCalledOnce();
+    expect(update).toHaveBeenCalledWith({
+      timerangeType: 'absolute',
+      absoluteTimerangeFrom: NOW - TEN_MINUTES,
+      absoluteTimerangeTo: NOW,
       logs,
       metrics
     } satisfies Partial<State>);
@@ -126,26 +134,51 @@ describe('first query', () => {
 });
 
 describe('query parameters', () => {
-  const scenarios: { label: string, interactions: UIEvent<State, Actions>[], query: LogStorageQuery }[] = [{
-    label: 'absolute timerange',
-    interactions: [{
-      type: 'change',
-      timerangeType: 'absolute'
-    }, {
-      type: 'change',
-      absoluteTimerangeFrom: NOW - FOUR_MINUTES
-    }, {
-      type: 'change',
-      absoluteTimerangeTo: NOW
-    }, {
-      type: 'action',
-      action: 'refresh_now'
-    }],
-    query: {
-      from: NOW - FOUR_MINUTES,
-      to: NOW
+  const scenarios: { label: string; interactions: UIEvent<State, Actions>[]; query: LogStorageQuery }[] = [
+    {
+      label: 'absolute timerange',
+      interactions: [
+        {
+          timerangeType: 'absolute',
+          absoluteTimerangeFrom: NOW - FOUR_MINUTES,
+          absoluteTimerangeTo: NOW,
+          action: 'refresh_now'
+        }
+      ],
+      query: {
+        from: NOW - FOUR_MINUTES,
+        to: NOW
+      }
     },
-  }] as const;
+    {
+      label: 'relative timerange',
+      interactions: [
+        {
+          timerangeType: 'relative',
+          relativeTimerange: FIVE_MINUTES,
+          action: 'refresh_now'
+        }
+      ],
+      query: {
+        from: NOW - FIVE_MINUTES
+      }
+    },
+    {
+      label: 'filter',
+      interactions: [
+        {
+          timerangeType: 'relative',
+          relativeTimerange: FIVE_MINUTES,
+          filter: 'source === "job"',
+          action: 'refresh_now'
+        }
+      ],
+      query: {
+        from: NOW - FIVE_MINUTES,
+        filter: 'source === "job"'
+      }
+    }
+  ] as const;
 
   for (const scenario of scenarios) {
     it(scenario.label, async () => {

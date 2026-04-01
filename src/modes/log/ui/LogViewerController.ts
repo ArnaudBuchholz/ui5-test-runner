@@ -4,14 +4,61 @@ import type { LogStorageQuery } from '../ILogStorage.js';
 import type { LogMetrics } from '../LogMetrics.js';
 import { getInitialLogMetrics } from '../LogMetrics.js';
 
-const FIVE_MINUTES = 5 * 60 * 1000;
+const FIVE_MINUTES = 300_000 as const;
+
+const RELATIVE_TIMERANGE_SETTINGS = [
+  {
+    label: '5 minutes',
+    key: FIVE_MINUTES
+  },
+  {
+    label: '15 minutes',
+    key: 900_000
+  },
+  {
+    label: '30 minutes',
+    key: 1_800_000
+  },
+  {
+    label: '1 hour',
+    key: 3_600_000
+  },
+  {
+    label: '3 hours',
+    key: 10_800_000
+  }
+] as const;
+
+const AUTO_REFRESH_SETTINGS = [
+  {
+    label: '5 seconds',
+    key: 5000
+  },
+  {
+    label: '10 seconds',
+    key: 10_000
+  },
+  {
+    label: '30 seconds',
+    key: 30_000
+  },
+  {
+    label: '60 seconds',
+    key: 60_000
+  }
+] as const;
+
+export type Settings = {
+  relativeTimerange: typeof RELATIVE_TIMERANGE_SETTINGS;
+  autorefresh: typeof AUTO_REFRESH_SETTINGS;
+};
 
 export type State = {
   timerangeType: 'relative' | 'absolute';
-  relativeTimerange: '5m' | '15m' | '30m' | '1h' | '3h';
+  relativeTimerange: (typeof RELATIVE_TIMERANGE_SETTINGS)[number]['key'];
   absoluteTimerangeFrom: number; /* EPOCH */
   absoluteTimerangeTo: number; /* EPOCH */
-  autorefresh: 'off' | '5s' | '10s' | '30s' | '60s';
+  autorefresh: 'off' | (typeof AUTO_REFRESH_SETTINGS)[number]['key'];
   filter: string;
   readonly logs: InternalLogAttributes[];
   readonly metrics: LogMetrics;
@@ -19,14 +66,14 @@ export type State = {
 
 export type Actions = 'refresh_now' | 'auto_refresh_on' | 'auto_refresh_off';
 
-export class LogViewerController implements IUIController<State, Actions> {
+export class LogViewerController implements IUIController<Settings, State, Actions> {
   static create(): LogViewerController {
     return new this();
   }
 
   protected _state: State = {
     timerangeType: 'relative',
-    relativeTimerange: '5m',
+    relativeTimerange: 300_000,
     absoluteTimerangeFrom: 0,
     absoluteTimerangeTo: 0,
     autorefresh: 'off',
@@ -77,13 +124,42 @@ export class LogViewerController implements IUIController<State, Actions> {
     this._update(stateDiff);
   }
 
-  connect(update: (event: Partial<State>) => void): void {
+  connect(update: (event: Partial<State>) => void) {
     this._updateCb = update;
-    this._updateCb(this._state);
     void this._checkInitialQuery();
+    return {
+      initialState: this._state,
+      settings: {
+        relativeTimerange: RELATIVE_TIMERANGE_SETTINGS,
+        autorefresh: AUTO_REFRESH_SETTINGS
+      }
+    };
   }
 
-  interaction(event: UIEvent<State, Actions>): void {
-    console.log(event);
+  interaction(event: UIEvent<State, Actions>) {
+    const { action, ...stateDiff } = event;
+    Object.assign(this._state, stateDiff);
+    if (action !== undefined) {
+      void this[action]();
+    }
   }
+
+  protected async refresh_now() {
+    const query: LogStorageQuery = {};
+    if (this._state.timerangeType === 'absolute') {
+      query.from = this._state.absoluteTimerangeFrom;
+      query.to = this._state.absoluteTimerangeTo;
+    } else {
+      query.from = Date.now() - this._state.relativeTimerange;
+    }
+    if (this._state.filter) {
+      query.filter = this._state.filter;
+    }
+    const stateDiff = await this._executeQuery(query);
+    this._update(stateDiff);
+  }
+
+  protected auto_refresh_on() {}
+
+  protected auto_refresh_off() {}
 }
