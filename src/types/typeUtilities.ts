@@ -11,6 +11,5 @@ export type WritableKeys<T> = {
 export type Writable<T> = Pick<T, WritableKeys<T>>;
 
 export type Writable_Tests = {
-  'picks only writable properties': Expect<Equal<Writable<{ a: boolean; readonly b: number }>, { a: boolean }>>,
+  'picks only writable properties': Expect<Equal<Writable<{ a: boolean; readonly b: number }>, { a: boolean }>>;
 };
-

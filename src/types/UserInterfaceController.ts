@@ -11,6 +11,6 @@ export type UIEvent<State, Actions> = Partial<Writable<State>> & {
 };
 
 export type IUIController<Settings, State, Actions> = {
-  connect(handler: (event: Partial<State>) => void): { initialState: State; settings: Settings; };
+  connect(handler: (event: Partial<State>) => void): { initialState: State; settings: Settings };
   interaction(event: UIEvent<State, Actions>): void;
 };
