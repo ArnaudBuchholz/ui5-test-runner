@@ -14,11 +14,3 @@ export type Writable_Tests = {
   'picks only writable properties': Expect<Equal<Writable<{ a: boolean; readonly b: number }>, { a: boolean }>>,
 };
 
-/** Returns a union of objects, each containing exactly one property from T */
-export type SinglePartial<T> = T extends any
-  ? { [K in keyof T]: Pick<T, K> }[keyof T]
-  : never;
-
-export type SinglePartial_Tests = {
-  'flat example': Expect<Equal<SinglePartial<{ a: boolean; b: number }>, { a: boolean } | { b: number }>>,
-};
