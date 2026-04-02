@@ -1,11 +1,11 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { LogViewerController } from './LogViewerController.js';
-import type { Actions, State } from './LogViewerController.js';
+import type { Actions, State } from './types.js';
 import type { LogMetrics } from '../LogMetrics.js';
 import { getInitialLogMetrics } from '../LogMetrics.js';
 import type { InternalLogAttributes } from '../../../platform/logger/types.js';
 import type { LogStorageQuery } from '../ILogStorage.js';
-import type { UIEvent } from '../../../types/UserInterfaceController.js';
+import type { UIEvent } from '../../../types/IUserInterfaceController.js';
 
 const NOW = Date.now();
 vi.setSystemTime(NOW);

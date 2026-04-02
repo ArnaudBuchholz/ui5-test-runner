@@ -1,74 +1,16 @@
 import type { InternalLogAttributes } from '../../../platform/logger/types.js';
-import { AbstractUIController } from '../../../types/UserInterfaceController.js';
+import type { IUserInterfaceController } from '../../../types/IUserInterfaceController.js';
+import { AbstractUserInterfaceController } from '../../../utils/AbstractUserInterfaceController.js';
 import type { LogStorageQuery } from '../ILogStorage.js';
 import type { LogMetrics } from '../LogMetrics.js';
 import { getInitialLogMetrics } from '../LogMetrics.js';
+import type { Settings, State, Actions } from './types.ts';
+import { FIVE_MINUTES, FIVE_SECONDS, RELATIVE_TIMERANGE_SETTINGS, AUTO_REFRESH_SETTINGS } from './constants.js';
 
-const FIVE_SECONDS = 5000 as const;
-const FIVE_MINUTES = 300_000 as const;
-
-const RELATIVE_TIMERANGE_SETTINGS = [
-  {
-    label: '5 minutes',
-    key: FIVE_MINUTES
-  },
-  {
-    label: '15 minutes',
-    key: 900_000
-  },
-  {
-    label: '30 minutes',
-    key: 1_800_000
-  },
-  {
-    label: '1 hour',
-    key: 3_600_000
-  },
-  {
-    label: '3 hours',
-    key: 10_800_000
-  }
-] as const;
-
-const AUTO_REFRESH_SETTINGS = [
-  {
-    label: '5 seconds',
-    key: FIVE_SECONDS
-  },
-  {
-    label: '10 seconds',
-    key: 10_000
-  },
-  {
-    label: '30 seconds',
-    key: 30_000
-  },
-  {
-    label: '60 seconds',
-    key: 60_000
-  }
-] as const;
-
-export type Settings = {
-  relativeTimerange: typeof RELATIVE_TIMERANGE_SETTINGS;
-  autorefresh: typeof AUTO_REFRESH_SETTINGS;
-};
-
-export type State = {
-  timerangeType: 'relative' | 'absolute';
-  relativeTimerange: (typeof RELATIVE_TIMERANGE_SETTINGS)[number]['key'];
-  absoluteTimerangeFrom: number; /* EPOCH */
-  absoluteTimerangeTo: number; /* EPOCH */
-  autorefresh: boolean;
-  autorefreshInterval: (typeof AUTO_REFRESH_SETTINGS)[number]['key'];
-  filter: string;
-  readonly logs: InternalLogAttributes[];
-  readonly metrics: LogMetrics;
-};
-
-export type Actions = 'refresh_now';
-
-export class LogViewerController extends AbstractUIController<Settings, State, Actions> {
+export class LogViewerController
+  extends AbstractUserInterfaceController<Settings, State, Actions>
+  implements IUserInterfaceController<Settings, State, Actions>
+{
   constructor() {
     super();
     this._state = {
