@@ -11,6 +11,16 @@ export type UIEvent<State, Actions> = Partial<Writable<State>> & {
 };
 
 export type IUIController<Settings, State, Actions> = {
-  connect(handler: (event: Partial<State>) => void): { initialState: State; settings: Settings };
+  /**
+   * Connect the UI to the controller.
+   * Everytime the control requires an update in the UI, the update callback is called with state values that changed
+   *
+   * @returns initial state and settings for static values (drop downs)
+   */
+  connect(update: (event: Partial<State>) => void): { initialState: State; settings: Settings };
+
+  /**
+   * Transmits user interaction to the controller by sending values that must change in the state and/or an action that was triggered
+   */
   interaction(event: UIEvent<State, Actions>): void;
 };
