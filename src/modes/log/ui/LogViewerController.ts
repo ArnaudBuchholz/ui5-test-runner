@@ -89,7 +89,7 @@ export class LogViewerController implements IUIController<Settings, State, Actio
 
   protected _updateCb: (event: Partial<State>) => void = () => {};
 
-  protected _assign(stateDiff: Partial<State>): Partial<State> {
+  protected _assign({ ...stateDiff }: Partial<State>): Partial<State> {
     for (const key of Object.keys(stateDiff) as (keyof State)[]) {
       if (stateDiff[key] === this._state[key]) {
         delete stateDiff[key];
