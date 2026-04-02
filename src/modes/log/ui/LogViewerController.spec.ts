@@ -1,10 +1,8 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { LogViewerController } from './LogViewerController.js';
 import type { Actions, State } from './types.js';
-import type { LogMetrics } from '../LogMetrics.js';
 import { getInitialLogMetrics } from '../LogMetrics.js';
 import type { InternalLogAttributes } from '../../../platform/logger/types.js';
-import type { LogStorageQuery } from '../ILogStorage.js';
 import type { UIEvent } from '../../../types/IUserInterfaceController.js';
 
 const NOW = Date.now();
@@ -16,17 +14,20 @@ const FIVE_MINUTES = 300_000;
 const FOUR_MINUTES = 4 * ONE_MINUTE;
 const TEN_MINUTES = 10 * ONE_MINUTE;
 
-// Bypass protected method visibility issue
-type SpiedLogViewerController = {
-  _executeQuery: (query: LogStorageQuery) => Promise<{ metrics: LogMetrics; logs: InternalLogAttributes[] }>;
-};
+const fetchSpy = vi.spyOn(globalThis, 'fetch');
+fetchSpy.mockResolvedValue({
+  ok: true,
+  json: () =>
+    Promise.resolve({
+      metrics: getInitialLogMetrics(),
+      logs: []
+    })
+} as Response);
 
-const executeQuery = vi.spyOn(LogViewerController.prototype as unknown as SpiedLogViewerController, '_executeQuery');
+const setIntervalSpy = vi.spyOn(globalThis, 'setInterval').mockImplementation(() => ({} as ReturnType<typeof setIntervalSpy>));
+const clearIntervalSpy = vi.spyOn(globalThis, 'clearInterval').mockImplementation(() => {});
 
-executeQuery.mockResolvedValue({
-  metrics: getInitialLogMetrics(),
-  logs: []
-});
+beforeEach(() => vi.clearAllMocks());
 
 // Based on the assumption that updates are immediate consequences of interaction
 const setup = () => {
@@ -42,8 +43,6 @@ const setup = () => {
   const connect = controller.connect(update);
   return { controller, update, connect, promise };
 };
-
-beforeEach(() => vi.clearAllMocks());
 
 it('initializes the UI state', () => {
   const { connect } = setup();
@@ -70,7 +69,7 @@ describe('first query', () => {
   it('triggers an initial request', async () => {
     const { promise } = setup();
     await promise;
-    expect(executeQuery).toHaveBeenCalledWith({});
+    expect(fetchSpy).toHaveBeenCalledWith('/query?');
   });
 
   it('does not change initial setup if still reading and traces are not too old', async () => {
@@ -91,7 +90,10 @@ describe('first query', () => {
         message: 'Hello World !'
       }
     ] as InternalLogAttributes[];
-    executeQuery.mockResolvedValueOnce({ metrics, logs });
+    fetchSpy.mockResolvedValueOnce({
+      ok: true,
+      json: () => Promise.resolve({ metrics, logs })
+    } as Response);
     const { update, promise } = setup();
     await promise;
     expect(update).toHaveBeenCalledOnce();
@@ -121,7 +123,10 @@ describe('first query', () => {
         message: 'Hello World !'
       }
     ] as InternalLogAttributes[];
-    executeQuery.mockResolvedValueOnce({ metrics, logs });
+    fetchSpy.mockResolvedValueOnce({
+      ok: true,
+      json: () => Promise.resolve({ metrics, logs })
+    } as Response);
     const { update, promise } = setup();
     await promise;
     expect(update).toHaveBeenCalledOnce();
@@ -136,7 +141,7 @@ describe('first query', () => {
 });
 
 describe('query parameters', () => {
-  const scenarios: { label: string; interactions: UIEvent<State, Actions>[]; query: LogStorageQuery }[] = [
+  const scenarios: { label: string; interactions: UIEvent<State, Actions>[]; query: string }[] = [
     {
       label: 'absolute timerange',
       interactions: [
@@ -147,10 +152,7 @@ describe('query parameters', () => {
           action: 'refresh_now'
         }
       ],
-      query: {
-        from: NOW - FOUR_MINUTES,
-        to: NOW
-      }
+      query: `from=${NOW - FOUR_MINUTES}&to=${NOW}`
     },
     {
       label: 'relative timerange',
@@ -161,9 +163,7 @@ describe('query parameters', () => {
           action: 'refresh_now'
         }
       ],
-      query: {
-        from: NOW - FIVE_MINUTES
-      }
+      query: `from=${NOW - FIVE_MINUTES}`
     },
     {
       label: 'filter',
@@ -175,10 +175,7 @@ describe('query parameters', () => {
           action: 'refresh_now'
         }
       ],
-      query: {
-        from: NOW - FIVE_MINUTES,
-        filter: 'source === "job"'
-      }
+      query: `from=${NOW - FIVE_MINUTES}&filter=source+%3D%3D%3D+%22job%22`
     }
   ] as const;
 
@@ -189,7 +186,27 @@ describe('query parameters', () => {
         controller.interaction(interaction);
       }
       await promise;
-      expect(executeQuery).toHaveBeenCalledWith(scenario.query);
+      expect(fetchSpy).toHaveBeenCalledWith('/query?' + scenario.query);
     });
   }
+});
+
+describe('autorefresh', () => {
+  it('starts when autorefresh = true', async () => {
+    const { controller, promise } = setup();
+    controller.interaction({ autorefresh: true });
+    await promise;
+    expect(setIntervalSpy).toHaveBeenCalledOnce();
+    expect(setIntervalSpy).toHaveBeenCalledWith(expect.any(Function) as () => {}, 5_000);
+  });
+
+  it('triggers refresh_now', async () => {
+    const { controller, promise } = setup();
+    controller.interaction({ autorefresh: true });
+    await promise;
+    const [callback] = setIntervalSpy.mock.calls[0]!; // Call validated before
+    vi.clearAllMocks();
+    callback();
+    expect(fetchSpy).toHaveBeenCalledWith(expect.stringMatching(/^\/query\?/));
+  });
 });
