@@ -10,7 +10,7 @@ import type { UIEvent } from '../../../types/UserInterfaceController.js';
 const NOW = Date.now();
 vi.setSystemTime(NOW);
 
-const ONE_SECOND = 1_000;
+const ONE_SECOND = 1000;
 const ONE_MINUTE = 60 * ONE_SECOND;
 const FIVE_MINUTES = 300_000;
 const FOUR_MINUTES = 4 * ONE_MINUTE;
@@ -30,7 +30,7 @@ executeQuery.mockResolvedValue({
 
 // Based on the assumption that updates are immediate consequences of interaction
 const setup = () => {
-  const controller = LogViewerController.create();
+  const controller = new LogViewerController();
   const { promise, resolve } = Promise.withResolvers<void>();
   let timeoutId: ReturnType<typeof setTimeout> | undefined;
   const update = vi.fn().mockImplementation(() => {
