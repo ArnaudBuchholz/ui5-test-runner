@@ -1,5 +1,5 @@
 import type { InternalLogAttributes } from '../../../platform/logger/types.js';
-import type { IUIController, UIEvent } from '../../../types/UserInterfaceController.js';
+import { AbstractUIController } from '../../../types/UserInterfaceController.js';
 import type { LogStorageQuery } from '../ILogStorage.js';
 import type { LogMetrics } from '../LogMetrics.js';
 import { getInitialLogMetrics } from '../LogMetrics.js';
@@ -68,41 +68,24 @@ export type State = {
 
 export type Actions = 'refresh_now';
 
-export class LogViewerController implements IUIController<Settings, State, Actions> {
-  static create(): LogViewerController {
-    return new this();
-  }
-
-  protected _state: State = {
-    timerangeType: 'relative',
-    relativeTimerange: FIVE_MINUTES,
-    absoluteTimerangeFrom: 0,
-    absoluteTimerangeTo: 0,
-    autorefresh: false,
-    autorefreshInterval: FIVE_SECONDS,
-    filter: '',
-    logs: [],
-    metrics: getInitialLogMetrics()
-  };
-
-  protected contructor() {}
-
-  protected _updateCb: (event: Partial<State>) => void = () => {};
-
-  protected _assign({ ...stateDiff }: Partial<State>): Partial<State> {
-    for (const key of Object.keys(stateDiff) as (keyof State)[]) {
-      if (stateDiff[key] === this._state[key]) {
-        delete stateDiff[key];
-      }
-    }
-    Object.assign(this._state, stateDiff);
-    return stateDiff;
-  }
-
-  protected _update(stateDiff: Partial<State>): Partial<State> {
-    stateDiff = this._assign(stateDiff);
-    this._updateCb(stateDiff);
-    return stateDiff;
+export class LogViewerController extends AbstractUIController<Settings, State, Actions> {
+  constructor() {
+    super();
+    this._state = {
+      timerangeType: 'relative',
+      relativeTimerange: FIVE_MINUTES,
+      absoluteTimerangeFrom: 0,
+      absoluteTimerangeTo: 0,
+      autorefresh: false,
+      autorefreshInterval: FIVE_SECONDS,
+      filter: '',
+      logs: [],
+      metrics: getInitialLogMetrics()
+    };
+    this._settings = {
+      relativeTimerange: RELATIVE_TIMERANGE_SETTINGS,
+      autorefresh: AUTO_REFRESH_SETTINGS
+    };
   }
 
   protected async _executeQuery(
@@ -138,21 +121,11 @@ export class LogViewerController implements IUIController<Settings, State, Actio
     this._update(stateDiff);
   }
 
-  connect(update: (event: Partial<State>) => void) {
-    this._updateCb = update;
+  protected override _onConnect(): void {
     void this._checkInitialQuery();
-    return {
-      initialState: this._state,
-      settings: {
-        relativeTimerange: RELATIVE_TIMERANGE_SETTINGS,
-        autorefresh: AUTO_REFRESH_SETTINGS
-      }
-    };
   }
 
-  interaction(event: UIEvent<State, Actions>) {
-    const { action, ...state } = event;
-    const stateDiff = this._assign(state);
+  protected override _onInteraction(stateDiff: Partial<State>, action?: Actions) {
     if ('autorefresh' in stateDiff || 'autorefreshInterval' in stateDiff) {
       this._autorefresh(stateDiff);
     }
