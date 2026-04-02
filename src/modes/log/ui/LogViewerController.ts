@@ -59,8 +59,8 @@ export type State = {
   relativeTimerange: (typeof RELATIVE_TIMERANGE_SETTINGS)[number]['key'];
   absoluteTimerangeFrom: number; /* EPOCH */
   absoluteTimerangeTo: number; /* EPOCH */
-  readonly autorefresh: boolean;
-  autorefreshInterval: typeof AUTO_REFRESH_SETTINGS[number]['key'];
+  autorefresh: boolean;
+  autorefreshInterval: (typeof AUTO_REFRESH_SETTINGS)[number]['key'];
   filter: string;
   readonly logs: InternalLogAttributes[];
   readonly metrics: LogMetrics;
@@ -89,9 +89,20 @@ export class LogViewerController implements IUIController<Settings, State, Actio
 
   protected _updateCb: (event: Partial<State>) => void = () => {};
 
-  protected _update(stateDiff: Partial<State>) {
+  protected _assign(stateDiff: Partial<State>): Partial<State> {
+    for (const key of Object.keys(stateDiff) as (keyof State)[]) {
+      if (stateDiff[key] === this._state[key]) {
+        delete stateDiff[key];
+      }
+    }
     Object.assign(this._state, stateDiff);
+    return stateDiff;
+  }
+
+  protected _update(stateDiff: Partial<State>): Partial<State> {
+    stateDiff = this._assign(stateDiff);
     this._updateCb(stateDiff);
+    return stateDiff;
   }
 
   protected async _executeQuery(
@@ -140,10 +151,10 @@ export class LogViewerController implements IUIController<Settings, State, Actio
   }
 
   interaction(event: UIEvent<State, Actions>) {
-    const { action, ...stateDiff } = event;
-    Object.assign(this._state, stateDiff);
+    const { action, ...state } = event;
+    const stateDiff = this._assign(state);
     if ('autorefresh' in stateDiff || 'autorefreshInterval' in stateDiff) {
-      this._autorefresh();
+      this._autorefresh(stateDiff);
     }
     if (action !== undefined) {
       void this[action]();
@@ -165,30 +176,24 @@ export class LogViewerController implements IUIController<Settings, State, Actio
     this._update(stateDiff);
   }
 
-  protected _autorefreshSettings: {
-    intervalId: ReturnType<typeof setInterval> | undefined;
-    interval: typeof AUTO_REFRESH_SETTINGS[number]['key'];
-  } = { intervalId: undefined, interval: FIVE_SECONDS };
+  protected _autorefreshIntervalId: ReturnType<typeof setInterval> | undefined;
 
-  protected _autorefresh() {
-    if (this._state.autorefresh) {
-      if (!this._autorefreshSettings.intervalId) {
-        
-      }
-      this._update({
-        autorefresh: true
-      });
-      this._autoRefreshInterval = setInterval(this.refresh_now.bind(this), this._state.autorefreshInterval);
-    }
-  }
-
-  protected auto_refresh_off() {
-    if (this._state.autorefresh) {
-      this._update({
-        autorefresh: false
-      });
-      clearInterval(this._autoRefreshInterval);
-      this._autoRefreshInterval = undefined;
+  protected _autorefresh({ autorefresh, autorefreshInterval }: Partial<State>) {
+    // eslint-disable-next-line unicorn/consistent-function-scoping -- False positive ?
+    const start = () => {
+      this._autorefreshIntervalId = setInterval(() => void this.refresh_now(), this._state.autorefreshInterval);
+    };
+    const stop = () => {
+      clearInterval(this._autorefreshIntervalId);
+      this._autorefreshIntervalId = undefined;
+    };
+    if (autorefresh === false) {
+      stop();
+    } else if (autorefresh === true) {
+      start();
+    } else if (autorefreshInterval !== undefined) {
+      stop();
+      start();
     }
   }
 }
