@@ -10,8 +10,9 @@ import type { UIEvent } from '../../../types/UserInterfaceController.js';
 const NOW = Date.now();
 vi.setSystemTime(NOW);
 
-const ONE_MINUTE = 60 * 1000;
-const FIVE_MINUTES = 300_000 as const;
+const ONE_SECOND = 1_000;
+const ONE_MINUTE = 60 * ONE_SECOND;
+const FIVE_MINUTES = 300_000;
 const FOUR_MINUTES = 4 * ONE_MINUTE;
 const TEN_MINUTES = 10 * ONE_MINUTE;
 
@@ -52,7 +53,8 @@ it('initializes the UI state', () => {
       relativeTimerange: 5 * ONE_MINUTE,
       absoluteTimerangeFrom: 0,
       absoluteTimerangeTo: 0,
-      autorefresh: 0,
+      autorefresh: false,
+      autorefreshInterval: 5 * ONE_SECOND,
       filter: '',
       logs: [],
       metrics: getInitialLogMetrics()
