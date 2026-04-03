@@ -15,6 +15,7 @@ export type State = {
   autorefresh: boolean;
   autorefreshInterval: (typeof AUTO_REFRESH_SETTINGS)[number]['key'];
   filter: string;
+  readonly errorMessage: string;
   readonly logs: InternalLogAttributes[];
   readonly metrics: LogMetrics;
 };

@@ -21,6 +21,7 @@ export class LogViewerController
       autorefresh: false,
       autorefreshInterval: FIVE_SECONDS,
       filter: '',
+      errorMessage: '',
       logs: [],
       metrics: getInitialLogMetrics()
     };
@@ -32,24 +33,30 @@ export class LogViewerController
 
   protected async _executeQuery(
     query: LogStorageQuery
-  ): Promise<{ metrics: LogMetrics; logs: InternalLogAttributes[] }> {
+  ): Promise<{ metrics: LogMetrics; logs: InternalLogAttributes[] } | undefined> {
     const parameters = new URLSearchParams();
-    for (const key in query) {
-      const property = key as keyof LogStorageQuery;
-      if (Object.prototype.hasOwnProperty.call(query, property) && query[property]) {
-        parameters.set(key, query[property].toString());
+    for (const key of Object.keys(query) as (keyof LogStorageQuery)[]) {
+      /* v8 ignore else -- @preserve */ // Because of the way it is internal used, we can't have an undefined prop
+      if (query[key]) {
+        parameters.set(key, query[key].toString());
       }
     }
     const response = await fetch('/query?' + parameters.toString());
     if (!response.ok) {
-      throw new Error(response.statusText);
+      const errorMessage = (await response.text()) || `${response.status} ${response.statusText}`;
+      this._update({ errorMessage });
+      return undefined;
     }
     const { metrics, logs } = (await response.json()) as { metrics: LogMetrics; logs: InternalLogAttributes[] };
     return { metrics, logs };
   }
 
   protected async _checkInitialQuery() {
-    const { metrics, logs } = await this._executeQuery({});
+    const queryResult = await this._executeQuery({});
+    if (!queryResult) {
+      return;
+    }
+    const { metrics, logs } = queryResult;
     const now = Date.now();
     const stateDiff: Partial<State> = {
       absoluteTimerangeFrom: metrics.minTimestamp,
@@ -88,27 +95,30 @@ export class LogViewerController
       query.filter = this._state.filter;
     }
     const stateDiff = await this._executeQuery(query);
-    this._update(stateDiff);
+    if (stateDiff) {
+      this._update(stateDiff);
+    }
   }
 
   protected _autorefreshIntervalId: ReturnType<typeof setInterval> | undefined;
 
-  protected _autorefresh({ autorefresh, autorefreshInterval }: Partial<State>) {
-    // eslint-disable-next-line unicorn/consistent-function-scoping -- False positive ?
-    const start = () => {
-      this._autorefreshIntervalId = setInterval(() => void this.refresh_now(), this._state.autorefreshInterval);
-    };
-    const stop = () => {
-      clearInterval(this._autorefreshIntervalId);
-      this._autorefreshIntervalId = undefined;
-    };
+  protected _startAutorefresh() {
+    this._autorefreshIntervalId = setInterval(() => void this.refresh_now(), this._state.autorefreshInterval);
+  }
+
+  protected _stopAutorefresh() {
+    clearInterval(this._autorefreshIntervalId);
+    this._autorefreshIntervalId = undefined;
+  }
+
+  protected _autorefresh({ autorefresh /* , autorefreshInterval */ }: Partial<State>) {
     if (autorefresh === false) {
-      stop();
+      this._stopAutorefresh();
     } else if (autorefresh === true) {
-      start();
-    } else if (autorefreshInterval !== undefined) {
-      stop();
-      start();
+      this._startAutorefresh();
+    } else /* if (autorefreshInterval !== undefined) */ {
+      this._stopAutorefresh();
+      this._startAutorefresh();
     }
   }
 }
