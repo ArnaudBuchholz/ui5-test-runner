@@ -23,8 +23,5 @@ jobs:
           registry-url: https://registry.npmjs.org/
       - name: Update npm
         run: npm install -g npm@latest
-      - run: npm install
       - name: Semantic release
-        run: npm run semantic-release
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: npx --y semantic-release@25
