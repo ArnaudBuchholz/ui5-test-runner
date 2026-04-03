@@ -20,7 +20,12 @@ export type IUserInterfaceController<Settings extends object, State extends obje
   connect(update: (event: Partial<State>) => void): { initialState: State; settings: Settings };
 
   /**
-   * Transmits user interaction to the controller by sending values that must change in the state and/or an action that was triggered
+   * Transmits user interaction to the controller by sending values that must change in the state and/or an action that was triggered.
+   *
+   * NOTE: The UI should optimistically assume the controller accepts the change. The UI MUST send only the changed fields
+   * in the UIEvent payload. The controller only calls the update(...) callback when it needs to correct or reject a change —
+   * i.e., to restore previous values or to surface validation errors. If the controller accepts the change, it does not need
+   * to call update(...) to confirm.
    */
   interaction(event: UIEvent<State, Actions>): void;
 };
