@@ -157,4 +157,14 @@ describe('src/start', () => {
     await started.stop()
     expect(process.kill).toHaveBeenCalledWith(-childProcessInstance.pid)
   })
+
+  it('forwards environment variables', async () => {
+    job.cwd = join(__dirname, '..')
+    job.startCommand = 'start'
+    job.env = {
+      TEST: 'test'
+    }
+    await start(job)
+    expect(childProcessInstance.options?.env?.TEST).toStrictEqual('test')
+  })
 })
