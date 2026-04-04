@@ -25,3 +25,5 @@ jobs:
         run: npm install -g npm@11
       - name: Semantic release
         run: npx --y semantic-release@25
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
