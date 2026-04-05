@@ -118,6 +118,28 @@ describe('query', () => {
           errorMessage: 'An error occurred'
         } satisfies Partial<State>);
       });
+
+      it('clears error message on successful query', async () => {
+        const { controller, promise, update } = setup();
+        await promise; // wait for initial request
+        fetchSpy.mockResolvedValueOnce({
+          ok: false,
+          status: 500,
+          statusText: 'Internal Server Error',
+          text: () => Promise.resolve('An error occurred')
+        } as Response);
+        const { promise: step1, resolve: resolve1 } = Promise.withResolvers<void>();
+        vi.mocked(update).mockImplementation(() => resolve1());
+        controller.interaction({ action: 'refresh_now' });
+        await step1;
+        const { promise: step2, resolve: resolve2 } = Promise.withResolvers<void>();
+        vi.mocked(update).mockImplementation(() => resolve2());
+        controller.interaction({ action: 'refresh_now' });
+        await step2;
+        expect(update).toHaveBeenCalledWith({
+          errorMessage: ''
+        } satisfies Partial<State>);
+      });
     });
   });
 

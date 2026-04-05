@@ -34,6 +34,7 @@ export class LogViewerController
   protected async _executeQuery(
     query: LogStorageQuery
   ): Promise<{ metrics: LogMetrics; logs: InternalLogAttributes[] } | undefined> {
+    this._update({ errorMessage: '' });
     const parameters = new URLSearchParams();
     for (const key of Object.keys(query) as (keyof LogStorageQuery)[]) {
       /* v8 ignore else -- @preserve */ // Because of the way it is internal used, we can't have an undefined prop
