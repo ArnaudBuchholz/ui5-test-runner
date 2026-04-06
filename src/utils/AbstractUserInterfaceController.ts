@@ -5,6 +5,10 @@ export abstract class AbstractUserInterfaceController<
   State extends object,
   Actions extends string
 > implements IUserInterfaceController<Settings, State, Actions> {
+  protected _debug(...arguments_: unknown[]) {
+    console.log('🎮', ...arguments_);
+  }
+
   protected _state = {} as State;
   protected _settings = {} as Settings;
   protected _updateCb: (event: Partial<State>) => void = () => {
@@ -23,6 +27,7 @@ export abstract class AbstractUserInterfaceController<
 
   protected _update(stateDiff: Partial<State>): Partial<State> {
     stateDiff = this._assign(stateDiff);
+    console.log('🎮⏩', stateDiff);
     if (Object.keys(stateDiff).length > 0) {
       this._updateCb({ ...stateDiff });
     }
@@ -34,6 +39,10 @@ export abstract class AbstractUserInterfaceController<
   connect(update: (event: Partial<State>) => void) {
     this._updateCb = update;
     this._onConnect();
+    console.log('🎮🔛', {
+      initialState: { ...this._state },
+      settings: this._settings
+    });
     return {
       initialState: { ...this._state },
       settings: this._settings
@@ -45,6 +54,7 @@ export abstract class AbstractUserInterfaceController<
   interaction(event: UIEvent<State, Actions>) {
     const { action, ...state } = event;
     const stateDiff = this._assign(state as Partial<State>);
+    console.log('🎮⏪', { event, action, stateDiff });
     if (Object.keys(stateDiff).length > 0 || action !== undefined) {
       this._onInteraction(stateDiff, action);
     }
