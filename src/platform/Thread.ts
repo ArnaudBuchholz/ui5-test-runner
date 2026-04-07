@@ -43,9 +43,13 @@ export class Thread {
       }
     });
     /* v8 ignore next -- @preserve */
-    worker.on('online', () => logger?.debug({ source: 'thread', message: `Worker for ${name} online` }));
+    worker.on('online', () =>
+      logger?.debug({ source: 'thread', message: `Worker for ${name} online`, data: { threadId: worker.threadId } })
+    );
     /* v8 ignore next -- @preserve */
-    worker.on('exit', () => logger?.debug({ source: 'thread', message: `Worker for ${name} offline` }));
+    worker.on('exit', () =>
+      logger?.debug({ source: 'thread', message: `Worker for ${name} offline`, data: { threadId: worker.threadId } })
+    );
     return worker;
   };
   static readonly isMainThread = isMainThread;
