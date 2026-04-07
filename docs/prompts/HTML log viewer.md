@@ -49,13 +49,20 @@ Concretely:
 - `body` and `#app`: `height: 100vh; overflow: hidden; display: flex; flex-direction: column`
 - The log table wrapper: `flex: 1; overflow-y: auto`
 
-### Header title
+### Popover opener
 
-The header has a dark background (`--sapShellColor`). Do **not** use `<ui5-title>` for the app name: its internal text is rendered inside shadow DOM and cannot be recoloured with an external CSS class. Use a plain `<h4>` element styled directly with `color: #fff`.
+Pass the clicked element directly as the `opener` — do **not** re-query the DOM by ID inside the click handler. Use `event.currentTarget`:
+
+```typescript
+button.addEventListener('click', (event) => {
+  popover.opener = event.currentTarget;
+  popover.open = true;
+});
+```
 
 ### UI5 Popover placement
 
-`<ui5-popover>` elements must **not** be placed inside flex or grid containers (e.g. the header bar). They must be rendered as siblings of the container they visually relate to — i.e. as direct children of `#app` — so that the popover overlay layer is not constrained by the parent's layout context.
+`<ui5-popover>` elements must **not** be injected into `#app` via `innerHTML` — placing them as flex siblings of the header or toolbar breaks the layout. Instead, declare them **once, statically, in the HTML shell** (e.g. directly inside `<body>`, before `#app`). Update their inner content via `popover.innerHTML = ...` when state changes. Never re-render or replace the popover element itself.
 
 ### UI5 component mapping
 
