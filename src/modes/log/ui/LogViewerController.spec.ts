@@ -47,24 +47,22 @@ const setup = () => {
 };
 
 it('initializes the UI state', () => {
-  const { connect } = setup();
-  expect(connect).toStrictEqual({
-    initialState: {
-      timerangeType: 'relative',
-      relativeTimerange: 5 * ONE_MINUTE,
-      absoluteTimerangeFrom: 0,
-      absoluteTimerangeTo: 0,
-      autorefresh: false,
-      autorefreshInterval: 5 * ONE_SECOND,
-      filter: '',
-      errorMessage: '',
-      logs: [],
-      metrics: getInitialLogMetrics()
-    },
-    settings: {
-      relativeTimerange: expect.any(Array) as object,
-      autorefresh: expect.any(Array) as object
-    }
+  const { controller } = setup();
+  expect(controller.state).toStrictEqual({
+    timerangeType: 'relative',
+    relativeTimerange: 5 * ONE_MINUTE,
+    absoluteTimerangeFrom: 0,
+    absoluteTimerangeTo: 0,
+    autorefresh: false,
+    autorefreshInterval: 5 * ONE_SECOND,
+    filter: '',
+    errorMessage: '',
+    logs: [],
+    metrics: getInitialLogMetrics()
+  });
+  expect(controller.settings).toStrictEqual({
+    relativeTimerange: expect.any(Array) as object,
+    autorefresh: expect.any(Array) as object
   });
 });
 

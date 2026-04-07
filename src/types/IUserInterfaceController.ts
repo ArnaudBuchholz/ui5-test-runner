@@ -12,12 +12,19 @@ export type UIEvent<State, Actions> = Partial<Writable<State>> & {
 
 export type IUserInterfaceController<Settings extends object, State extends object, Actions extends string> = {
   /**
-   * Connect the UI to the controller.
-   * Everytime the control requires an update in the UI, the update callback is called with state values that changed
+   * Contains the up-to-date state.
    *
-   * @returns initial state and settings for static values (drop downs)
+   * NOTE: Can be updated through calls to interaction
    */
-  connect(update: (event: Partial<State>) => void): { initialState: State; settings: Settings };
+  readonly state: Readonly<State>;
+
+  readonly settings: Readonly<Settings>;
+
+  /**
+   * Connect the UI to the controller.
+   * Everytime the control requires an update in the UI, the update callback is called with state values that changed.
+   */
+  connect(update: (event: Partial<State>) => void): void;
 
   /**
    * Transmits user interaction to the controller by sending values that must change in the state and/or an action that was triggered.

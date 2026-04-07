@@ -33,10 +33,6 @@ class TestUserInterfaceController extends AbstractUserInterfaceController<Settin
     };
   }
 
-  public get state() {
-    return this._state;
-  }
-
   protected override _onConnect(): void {
     connect();
   }
@@ -52,28 +48,25 @@ class TestUserInterfaceController extends AbstractUserInterfaceController<Settin
 
 let uiController: TestUserInterfaceController;
 const update = vi.fn();
-let connectResult: ReturnType<typeof TestUserInterfaceController.prototype.connect>;
 
 beforeEach(() => {
   vi.clearAllMocks();
   uiController = new TestUserInterfaceController();
-  connectResult = uiController.connect(update);
+  uiController.connect(update);
 });
 
 it('sends initial state and settings on connect', () => {
   expect(update).not.toHaveBeenCalled();
   expect(connect).toHaveBeenCalled();
-  expect(connectResult).toStrictEqual({
-    initialState: {
-      n: 0,
-      s: '',
-      b: false,
-      rn: 0,
-      rs: ''
-    },
-    settings: {
-      s0: ['a', 'b', 'c']
-    }
+  expect(uiController.state).toStrictEqual({
+    n: 0,
+    s: '',
+    b: false,
+    rn: 0,
+    rs: ''
+  });
+  expect(uiController.settings).toStrictEqual({
+    s0: ['a', 'b', 'c']
   });
 });
 
@@ -83,7 +76,7 @@ describe('User Interface interactions', () => {
     expect(interaction).toHaveBeenCalledWith({ n: 1 }, undefined);
   });
 
-  it('updates the internal state', () => {
+  it('updates the state', () => {
     uiController.interaction({ n: 1, s: 'Hello World !' });
     expect(uiController.state).toStrictEqual({
       n: 1,
@@ -116,7 +109,7 @@ describe('User Interface updates from the controller', () => {
     expect(result).toStrictEqual({ n: 1 });
   });
 
-  it('updates the internal state', () => {
+  it('updates the state', () => {
     uiController.internalUpdate({ n: 1, s: 'Hello World !' });
     expect(uiController.state).toStrictEqual({
       n: 1,
