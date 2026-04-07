@@ -82,7 +82,11 @@ export const workerMain = (serverConfiguration: ServerConfiguration) => {
     ]
   });
 
-  for (const eventName of ['created', 'incoming', 'redirecting', 'redirected', 'aborted', 'closed'] as const) {
+  server.on('created', (event) => {
+    // the properties of the event can't be transmitted through workers
+    logger.debug({ source: 'reserve', message: 'created', data: {} });
+  });
+  for (const eventName of ['incoming', 'redirecting', 'redirected', 'aborted', 'closed'] as const) {
     server.on(eventName, (event) => {
       const { eventName: message, ...data } = event;
       logger.debug({ source: 'reserve', message, data });
