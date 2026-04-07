@@ -31,6 +31,9 @@ The build output should go in `dist/ui5-test-runner-log-viewer.js` as a single s
 - Timestamps are displayed in local timezone.
 - The `data` field is hidden by default in the table and visible in a popup.
 - Log ordering remains ascending by timestamp (no sort toggle in UI).
+- `isMainThread` is not displayed anywhere in the UI.
+- No pagination: all logs returned by the query are rendered as-is.
+- The log details popup can be dismissed by a close button or by clicking outside it.
 
 ## Target browsers
 
@@ -93,6 +96,8 @@ Clicking on the status button should show a popup indicating state.metrics detai
 | [Relative v] [Last 15 minutes v] Auto Refresh : [10s  v] [Refresh now]                              |
 ```
 
+The auto-refresh dropdown lists the options from `settings.autorefresh` plus a leading **None** entry. Selecting **None** sets `autorefresh: false`; selecting any other entry sets `autorefresh: true` and `autorefreshInterval` to the chosen key.
+
 ### Time range (absolute)
 
 ```
@@ -101,11 +106,15 @@ Clicking on the status button should show a popup indicating state.metrics detai
 
 ### Level mapping
 
-* `debug` = 🔍
-* `info` = 💬
-* `warn` = ⚠️
-* `error` = ❌
-* `fatal` = 💣
+`level` in `InternalLogAttributes` is a numeric value (`0`–`4`). For display and filter expressions, map it to the following strings:
+
+* `0` / `"debug"` = 🔍
+* `1` / `"info"` = 💬
+* `2` / `"warn"` = ⚠️
+* `3` / `"error"` = ❌
+* `4` / `"fatal"` = 💣
+
+In filter expressions the `level` field is exposed as its string equivalent (e.g. `level === "info"`), not as a number.
 
 ### Log details
 
@@ -119,7 +128,13 @@ Clicking on the status button should show a popup indicating state.metrics detai
 | processId: 16616 [➕][➖]                                                                          |
 | threadId: 0 [➕][➖]                                                                               |
 | message: Creating folder: /Users/.../tmp                                                            |
-| data (JSON):                                                                                        |
+| error (JSON):                               <- shown only when the log has an error field           |
+| {                                                                                                   |
+|   "name": "Error",                                                                                  |
+|   "message": "something went wrong",                                                                |
+|   "stack": "Error: something went wrong\n    at ..."                                               |
+| }                                                                                                   |
+| data (JSON):                                <- shown only when the log has a data field             |
 | {                                                                                                   |
 |   "testName": "should open app", [➕][➖]                                                          |
 |   "durationMs": 241, [➕][➖]                                                                      |
@@ -130,6 +145,8 @@ Clicking on the status button should show a popup indicating state.metrics detai
 | }                                                                                                   |
 +-----------------------------------------------------------------------------------------------------+
 ```
+
+The `error` field (when present) is displayed as read-only formatted JSON — no [➕][➖] buttons, since its nested structure (name, message, stack, cause, errors) doesn't map cleanly to filter expressions.
 
 * Clicking [➕] combines the current filter with AND <field> === <value>
 
