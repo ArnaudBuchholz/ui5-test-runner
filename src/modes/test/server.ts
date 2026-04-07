@@ -53,6 +53,7 @@ export const server = {
   async stop() {
     try {
       assert(serverWorker !== undefined);
+      logger.debug({ source: 'server', message: 'Stopping server' });
       channel.postMessage({
         command: 'terminate'
       } satisfies Message);
@@ -63,7 +64,7 @@ export const server = {
           resolve();
         }
       };
-      return promise;
+      await promise;
     } finally {
       channel.close();
     }
@@ -71,6 +72,7 @@ export const server = {
 };
 
 export const workerMain = (serverConfiguration: ServerConfiguration) => {
+  logger.debug({ source: 'server', message: 'Starting server...' });
   channel = Thread.createBroadcastChannel('server');
 
   const server = serve({
@@ -82,7 +84,7 @@ export const workerMain = (serverConfiguration: ServerConfiguration) => {
     ]
   });
 
-  server.on('created', (event) => {
+  server.on('created', () => {
     // the properties of the event can't be transmitted through workers
     logger.debug({ source: 'reserve', message: 'created', data: {} });
   });
@@ -114,7 +116,9 @@ export const workerMain = (serverConfiguration: ServerConfiguration) => {
 
   channel.onmessage = ({ data: message }: { data: Message }) => {
     if (message.command === 'terminate') {
+      logger.debug({ source: 'server', message: 'Stopping server...' });
       void server.close().finally(() => {
+        logger.debug({ source: 'server', message: 'Server stopped.' });
         channel.postMessage({
           command: 'terminated'
         } satisfies Message);
