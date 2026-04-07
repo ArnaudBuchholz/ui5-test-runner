@@ -80,7 +80,7 @@ Every interactive control must use the specific UI5 Web Component listed below. 
 | Metrics popup | `<ui5-popover>` | `@ui5/webcomponents/dist/Popover.js` |
 | Log details close button | `<ui5-button design="Transparent">` | `@ui5/webcomponents/dist/Button.js` |
 
-`<ui5-date-time-picker>` emits a `change` event; read the selected value from `event.detail.value` (a formatted string) or `event.target.dateValue` (a `Date` object). Convert to epoch with `.getTime()`.
+`<ui5-datetime-picker>` emits a `change` event; read the selected value from `event.detail.value` (a formatted string) or `event.target.dateValue` (a `Date` object). Convert to epoch with `.getTime()`.
 
 ## Target browsers
 
