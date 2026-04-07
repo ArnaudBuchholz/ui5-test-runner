@@ -57,3 +57,6 @@ undefined/*
 
 # obsidian
 docs/.obsidian/
+
+# Claude code
+.claude/
