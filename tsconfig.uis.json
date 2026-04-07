@@ -1,6 +1,16 @@
 {
   "extends": ["./tsconfig.base.json"],
-  "include": ["src/ui/**/*.ts", "src/types/*.ts"],
+  "include": [
+    "src/ui/**/*.ts",
+    "src/ai/**/*.ts",
+    "src/types/*.ts",
+    "src/modes/log/ui/*.ts",
+    "src/modes/log/LogMetrics.ts",
+    "src/modes/log/ILogStorage.ts",
+    "src/platform/logger/types.ts",
+    "src/utils/AbstractUserInterfaceController.ts",
+    "src/utils/typeUtilities.ts"
+  ],
   "compilerOptions": {
     "target": "es2024",
     "module": "esnext",

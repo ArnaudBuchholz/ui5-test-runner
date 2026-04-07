@@ -43,7 +43,7 @@ export default defineConfig({
     }, {
       extends: true,
       test: {
-        include: [ 'src/ui/log/**/*.spec.ts' ],
+        include: [ 'src/ai/log/**/*.spec.ts' ],
         name: { label: 'log', color: 'cyan' },
         environment: 'jsdom'
       }

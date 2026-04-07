@@ -1,0 +1,134 @@
+body,
+#app {
+  height: 100vh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  font-family: var(--sapFontFamily, '72', Arial, sans-serif);
+  background: var(--sapBackgroundColor, #f7f7f7);
+}
+
+#header {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.5rem 1rem;
+  background: var(--sapShellBar_Background, #354a5e);
+  color: var(--sapShellBar_TextColor, #fff);
+}
+
+#header h1 {
+  flex: 1;
+  font-size: 1rem;
+  font-weight: bold;
+  margin: 0;
+  color: inherit;
+}
+
+#toolbar {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  padding: 0.5rem 1rem;
+  background: var(--sapGroup_ContentBackground, #fff);
+  border-bottom: 1px solid var(--sapGroup_TitleBorderColor, #d9d9d9);
+}
+
+#toolbar ui5-message-strip {
+  flex: 0 0 100%;
+  margin-top: 0.25rem;
+}
+
+#logTableWrapper {
+  flex: 1;
+  overflow-y: auto;
+}
+
+#logTable {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.875rem;
+}
+
+#logTable thead th {
+  position: sticky;
+  top: 0;
+  background: var(--sapList_HeaderBackground, #f7f7f7);
+  font-weight: bold;
+  text-align: left;
+  padding: 0.4rem 0.5rem;
+  border-bottom: 1px solid var(--sapList_BorderColor, #d9d9d9);
+  white-space: nowrap;
+}
+
+#logTable tbody tr {
+  cursor: pointer;
+  border-bottom: 1px solid var(--sapList_BorderColor, #d9d9d9);
+}
+
+#logTable tbody tr:hover {
+  background: var(--sapList_Hover_Background, #f1f1f1);
+}
+
+#logTable tbody td {
+  padding: 0.25rem 0.5rem;
+  vertical-align: top;
+  max-width: 400px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+#logTable tbody td.col-message {
+  max-width: 600px;
+}
+
+.log-details-row {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+  padding: 0.2rem 0;
+  min-width: 400px;
+}
+
+.log-details-label {
+  color: var(--sapContent_LabelColor, #6a6d70);
+  min-width: 6rem;
+  flex-shrink: 0;
+  font-size: 0.8rem;
+}
+
+.log-details-value {
+  flex: 1;
+  word-break: break-all;
+}
+
+.log-details-actions {
+  display: flex;
+  gap: 0.25rem;
+  flex-shrink: 0;
+}
+
+.log-details-error {
+  font-family: monospace;
+  white-space: pre-wrap;
+  background: var(--sapField_ReadOnly_Background, #f2f2f2);
+  padding: 0.5rem;
+  font-size: 0.75rem;
+  border-radius: 0.25rem;
+  max-height: 200px;
+  overflow-y: auto;
+  flex: 1;
+}
+
+.log-details-section-label {
+  color: var(--sapContent_LabelColor, #6a6d70);
+  font-size: 0.8rem;
+  font-weight: bold;
+  margin-top: 0.5rem;
+  margin-bottom: 0.25rem;
+}
