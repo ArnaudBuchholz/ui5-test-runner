@@ -53,6 +53,10 @@ Concretely:
 
 The header has a dark background (`--sapShellColor`). Do **not** use `<ui5-title>` for the app name: its internal text is rendered inside shadow DOM and cannot be recoloured with an external CSS class. Use a plain `<h4>` element styled directly with `color: #fff`.
 
+### UI5 Popover placement
+
+`<ui5-popover>` elements must **not** be placed inside flex or grid containers (e.g. the header bar). They must be rendered as siblings of the container they visually relate to — i.e. as direct children of `#app` — so that the popover overlay layer is not constrained by the parent's layout context.
+
 ### UI5 component mapping
 
 Every interactive control must use the specific UI5 Web Component listed below. Plain `<input>`, `<select>`, or `<button>` elements are not acceptable in place of their UI5 equivalents.
@@ -133,6 +137,8 @@ Clicking on the status button should show a popup indicating state.metrics detai
 ```
 
 The auto-refresh dropdown lists the options from `settings.autorefresh` plus a leading **None** entry. Selecting **None** sets `autorefresh: false`; selecting any other entry sets `autorefresh: true` and `autorefreshInterval` to the chosen key.
+
+The Auto Refresh label and dropdown are **only shown when `timerangeType === 'relative'`**. They must be absent from the toolbar when absolute time range is selected.
 
 ### Time range (absolute)
 
