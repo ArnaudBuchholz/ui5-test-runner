@@ -138,6 +138,19 @@ describe('when the suite is empty', () => {
 
 ---
 
+## Verification before delivery
+
+Before declaring any implementation complete, the following commands **must** be run and must pass with zero errors:
+
+```bash
+npm run lint       # ESLint + type check — zero errors required
+npm run test:unit  # All unit tests must pass
+```
+
+These are not optional quality steps — they are part of the definition of done. Code that has not been verified against these commands is not considered implemented.
+
+---
+
 ## Change Scope
 
 Each change must have a **single purpose**:

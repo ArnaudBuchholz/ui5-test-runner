@@ -35,6 +35,42 @@ The build output should go in `dist/ui5-test-runner-log-viewer.js` as a single s
 - No pagination: all logs returned by the query are rendered as-is.
 - The log details popup can be dismissed by a close button or by clicking outside it.
 
+## Rendering contract
+
+### Layout and scrolling
+
+The application uses a fixed-height viewport layout:
+
+- The **header** and **toolbar** are fixed at the top and never scroll.
+- The **log table** fills the remaining viewport height and scrolls vertically within that region.
+- The **page itself does not scroll** — `body` and `#app` must not overflow vertically.
+
+Concretely:
+- `body` and `#app`: `height: 100vh; overflow: hidden; display: flex; flex-direction: column`
+- The log table wrapper: `flex: 1; overflow-y: auto`
+
+### Header title
+
+The header has a dark background (`--sapShellColor`). Do **not** use `<ui5-title>` for the app name: its internal text is rendered inside shadow DOM and cannot be recoloured with an external CSS class. Use a plain `<h4>` element styled directly with `color: #fff`.
+
+### UI5 component mapping
+
+Every interactive control must use the specific UI5 Web Component listed below. Plain `<input>`, `<select>`, or `<button>` elements are not acceptable in place of their UI5 equivalents.
+
+| Purpose | Component | Import |
+|---------|-----------|--------|
+| Filter text field | `<ui5-input>` | `@ui5/webcomponents/dist/Input.js` |
+| Relative / absolute toggle | `<ui5-select>` + `<ui5-option>` | `@ui5/webcomponents/dist/Select.js` |
+| Relative time-range picker | `<ui5-select>` + `<ui5-option>` | `@ui5/webcomponents/dist/Select.js` |
+| Auto-refresh picker | `<ui5-select>` + `<ui5-option>` | `@ui5/webcomponents/dist/Select.js` |
+| Absolute date-time (From / To) | `<ui5-date-time-picker>` | `@ui5/webcomponents/dist/DateTimePicker.js` |
+| Refresh / action buttons | `<ui5-button>` | `@ui5/webcomponents/dist/Button.js` |
+| Error message | `<ui5-message-strip design="Negative">` | `@ui5/webcomponents/dist/MessageStrip.js` |
+| Metrics popup | `<ui5-popover>` | `@ui5/webcomponents/dist/Popover.js` |
+| Log details close button | `<ui5-button design="Transparent">` | `@ui5/webcomponents/dist/Button.js` |
+
+`<ui5-date-time-picker>` emits a `change` event; read the selected value from `event.detail.value` (a formatted string) or `event.target.dateValue` (a `Date` object). Convert to epoch with `.getTime()`.
+
 ## Target browsers
 
 Only modern browsers will be used, ignore Internet Explorer compatibility.
