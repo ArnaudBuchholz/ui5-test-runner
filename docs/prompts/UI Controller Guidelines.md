@@ -8,10 +8,10 @@ You will implement the view and bindings only. Do not reimplement business logic
 
 ## Provided artefacts
 
-* Controller object: controller implements IUserInterfaceController<Settings, State, Actions> (signature below).
-* DOM skeleton: list of element selectors and their intended role (see “Element bindings”).
+* Controller object: controller implements `IUserInterfaceController<Settings, State, Actions>` (signature below).
+* DOM skeleton: list of element selectors and their intended role (see **Element bindings**).
 * Minimal CSS and HTML already present; you may add classes/attributes but not change controller code.
-* A small test harness with event spies (optional): spy.called(name) etc.
+* A small test harness with event spies (optional): `spy.called(name)` etc.
 
 ## Controller API (use exact behavior)
 
@@ -19,10 +19,11 @@ See definition in `src/types/IUserInterfaceController.ts`
 
 Behavioral rules:
 
-* connect(...) returns { initialState, settings }. Use those to render initial UI.
-* The update(...) callback is called only if the controller needs to correct/reject/change UI (after applying normalization/validation). Treat update(...) as authoritative: apply any changes it sends.
-* When the UI calls controller.interaction(...), assume optimistic success; do not wait for a confirmation unless controller calls update(...).
-* Always send only changed fields in the UIEvent payload.
+* Must call `connect(...)` first.
+* Use `state` and `settings` to render UI.
+* The `update(...)` callback is called only if the controller needs to correct/reject/change UI (after applying normalization/validation). Treat `update(...)` as authoritative: apply any changes it sends.
+* When the UI calls `controller.interaction(...)`, assume optimistic success; do not wait for a confirmation unless controller calls `update(...)`.
+* Always send only changed fields in the `UIEvent` payload.
 * Do not call internal controller methods or mutate controller state directly.
 
 ## Element bindings (example mapping — change to match your app)
@@ -38,7 +39,7 @@ Behavioral rules:
 
 ##  Rendering rules
 
-* Render only what changed: when update(changed) is called, patch DOM fields that exist in changed.
+* Render only what changed: when `update(changed)` is called, patch DOM fields that exist in changed.
 * For list updates (state.items):
   * Replace list contents with controller-provided snapshot (prefer controller.connect().initialState.items or update payload). Do not re-fetch or re-filter in view.
   * Use stable keys (item.key) for element attributes.
@@ -55,7 +56,7 @@ Behavioral rules:
 
 ## Minimal integration tests the LLM must make pass
 
-* On load: call controller.connect(update) and render initialState and settings.
+* On load: call `controller.connect(update)` and render `state` and `settings`.
 * Typing in input#filter: after 250ms debounce, controller.interaction called exactly once with { filter: VALUE }.
 * Controller calls update({ filter: NORMALIZED_VALUE }): UI updates input#filter to NORMALIZED_VALUE.
 * Changing select#category immediately calls controller.interaction with { category: KEY } and no extra fields.

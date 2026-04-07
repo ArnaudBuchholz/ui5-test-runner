@@ -44,32 +44,24 @@ Only modern browsers will be used, ignore Internet Explorer compatibility.
 +-----------------------------------------------------------------------------------------------------+
 | UI5 Test Runner Log Viewer                                                         [Status: Live]   |
 +-----------------------------------------------------------------------------------------------------+
-| Time Range                                                                                          |
-| [Relative v] [Last 15 minutes v]   OR   [Absolute v] [From: yyyy-mm-dd hh:mm:ss] [To: ...]          |
+| Filter : [ level === "info" && source === "job"                                                  ]  |
 |                                                                                                     |
-| Refresh                                                                                             |
-| [Refresh Now]   [ ] Auto refresh   [Interval: 10s v]   Last refresh: 14:22:10                       |
+| [Relative v] [Last 15 minutes v] Auto Refresh : [None v] [Refresh now]                              |
 |                                                                                                     |
-| Filter expression: [ level === "info" && source === "job"                              ] [Apply]    |
 | Error: Invalid filter near token ")"                                                                |
-|                                                                                                     |
-| Quick helpers (from selected cell):                                                                 |
-| [Include this value] [Exclude this value] [Append with AND]                                         |
 +-----------------------------------------------------------------------------------------------------+
-| Results (max 1000 per refresh, ascending timestamp)                                      423 rows   |
-+---------------------+--------+----------+-----------+------------+----------------------------------+
-| timestamp (local)   | level  | source   | processId | threadId   | message                          |
-+---------------------+--------+----------+-----------+------------+----------------------------------+
-| 14:07:00.123        | info   | job      | 16616     | 0          | Creating folder: ...             |
-| 14:07:00.987        | warn   | qunit    | 16616     | 0          | Test took longer than ...        |
-| 14:07:01.111        | error  | browser  | 16616     | 3          | Failed to load resource ...      |
-| ...                 | ...    | ...      | ...       | ...        | ...                              |
-+---------------------+--------+----------+-----------+------------+----------------------------------+
+| timestamp (local)   |    | source   | processId | threadId   | message                              |
++---------------------+----+----------+-----------+------------+--------------------------------------+
+| 14:07:00.123        | 💬 | job      | 16616     | 0          | Creating folder: ...                 |
+| 14:07:00.987        | ⚠️ | qunit    | 16616     | 0          | Test took longer than ...            |
+| 14:07:01.111        | ❌ | browser  | 16616     | 3          | Failed to load resource ...          |
+| ...                 | ...| ...      | ...       | ...        | ...                                  |
++---------------------+----+----------+-----------+------------+--------------------------------------+
 ```
 
 ### Header detail
 
-if `state.metrics.reading === true` show :
+* if `state.metrics.reading === true` show :
 
 ```
 +-----------------------------------------------------------------------------------------------------+
@@ -77,7 +69,7 @@ if `state.metrics.reading === true` show :
 +-----------------------------------------------------------------------------------------------------+
 ```
 
-Otherwise, show :
+* Otherwise, show :
 
 ```
 +-----------------------------------------------------------------------------------------------------+
@@ -87,20 +79,61 @@ Otherwise, show :
 
 Clicking on the status button should show a popup indicating state.metrics details.
 
+### Time range (relative)
+
+* When auto refresh is not enabled
+
+```
+| [Relative v] [Last 15 minutes v] Auto Refresh : [None v] [Refresh now]                              |
+```
+
+* When auto refresh is enabled
+
+```
+| [Relative v] [Last 15 minutes v] Auto Refresh : [10s  v] [Refresh now]                              |
+```
+
+### Time range (absolute)
+
+```
+| [Absolute v] [From: yyyy-mm-dd hh:mm:ss] [To: yyyy-mm-dd hh:mm:ss] [Refresh now]                    |
+```
+
+### Level mapping
+
+* `debug` = 🔍
+* `info` = 💬
+* `warn` = ⚠️
+* `error` = ❌
+* `fatal` = 💣
+
 ### Log details
 
-When clicking a log, show the following popup :
+* When clicking a log, show the following popup :
 
 ```
 +-----------------------------------------------------------------------------------------------------+
 | timestamp: 2026-03-26 14:07:00.123 (local)                                                          |
-| level: info    source: job    processId: 16616    threadId: 0    isMainThread: true                 |
+| level: 💬 info [➕][➖]                                                                            |
+| source: job [➕][➖]                                                                               |
+| processId: 16616 [➕][➖]                                                                          |
+| threadId: 0 [➕][➖]                                                                               |
 | message: Creating folder: /Users/.../tmp                                                            |
 | data (JSON):                                                                                        |
 | {                                                                                                   |
-|   "testName": "should open app",                                                                    |
-|   "durationMs": 241,                                                                                |
-|   "meta": { "browser": "chromium", "retry": 0 }                                                     |
+|   "testName": "should open app", [➕][➖]                                                          |
+|   "durationMs": 241, [➕][➖]                                                                      |
+|   "meta": {                                                                                         |
+      "browser": "chromium", [➕][➖]                                                                |
+      "retry": 0 [➕][➖]                                                                            |
+    }                                                                                                 |
 | }                                                                                                   |
 +-----------------------------------------------------------------------------------------------------+
 ```
+
+* Clicking [➕] combines the current filter with AND <field> === <value>
+
+* Clicking [-] combines the current filter with AND <field> !== <value>
+
+* For fields under data, compose the field path using `.` as separators. For instance : `data.testName`
+
