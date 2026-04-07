@@ -63,7 +63,7 @@ Every interactive control must use the specific UI5 Web Component listed below. 
 | Relative / absolute toggle | `<ui5-select>` + `<ui5-option>` | `@ui5/webcomponents/dist/Select.js` |
 | Relative time-range picker | `<ui5-select>` + `<ui5-option>` | `@ui5/webcomponents/dist/Select.js` |
 | Auto-refresh picker | `<ui5-select>` + `<ui5-option>` | `@ui5/webcomponents/dist/Select.js` |
-| Absolute date-time (From / To) | `<ui5-date-time-picker>` | `@ui5/webcomponents/dist/DateTimePicker.js` |
+| Absolute date-time (From / To) | `<ui5-datetime-picker>` | `@ui5/webcomponents/dist/DateTimePicker.js` |
 | Refresh / action buttons | `<ui5-button>` | `@ui5/webcomponents/dist/Button.js` |
 | Error message | `<ui5-message-strip design="Negative">` | `@ui5/webcomponents/dist/MessageStrip.js` |
 | Metrics popup | `<ui5-popover>` | `@ui5/webcomponents/dist/Popover.js` |
