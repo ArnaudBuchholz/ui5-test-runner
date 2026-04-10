@@ -5,10 +5,6 @@ export abstract class AbstractUserInterfaceController<
   State extends object,
   Actions extends string
 > implements IUserInterfaceController<Settings, State, Actions> {
-  protected _debug(...arguments_: unknown[]) {
-    console.log('🎮', ...arguments_);
-  }
-
   protected _state = {} as State;
   get state() {
     return this._state;
