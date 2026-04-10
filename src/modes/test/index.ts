@@ -1,4 +1,4 @@
-import { logger, logEnvironnement, Exit, FileSystem, Path } from '../../platform/index.js';
+import { logger, logEnvironnement, Exit, FileSystem, Path, Http } from '../../platform/index.js';
 import type { Configuration } from '../../configuration/Configuration.js';
 import { defaults } from '../../configuration/options.js';
 import { parallelize } from '../../utils/parallelize.js';
@@ -32,7 +32,16 @@ export const test = async (configuration: Configuration) => {
 
   let browser: Awaited<ReturnType<typeof setupBrowser>> | undefined;
   try {
-    await server.start(configuration);
+    const port = await server.start(configuration);
+
+    // TODO: only when local is being used
+    const version = JSON.parse(await Http.get(`http://localhost:${port}/resources/sap-ui-version.json`)) as {
+      libraries: { name: string; version: string }[];
+    };
+    const { version: coreVersion } = version.libraries.find(({ name }: { name: string }) => name === 'sap.ui.core') ?? {
+      version: 'unknown'
+    };
+    logger.info({ source: 'job', message: `UI5 version used by the local server: ${coreVersion}` });
 
     if (!configuration.url) {
       logger.fatal({ source: 'job', message: 'Expected URLs to be set' });
@@ -71,6 +80,6 @@ export const test = async (configuration: Configuration) => {
     logger.error({ source: 'job', message: 'An error occurred', error });
   } finally {
     await browser?.shutdown();
-    // await server.stop();
+    await server.stop();
   }
 };

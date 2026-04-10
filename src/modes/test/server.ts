@@ -67,27 +67,31 @@ export const server = {
   }
 };
 
-const stopped = () => {
-  logger.debug({ source: 'server', message: 'Server stopped.' });
-  channel.postMessage({
-    command: 'terminated'
-  } satisfies Message);
-  channel.close();
-};
-
-export const workerMain = async (configuration: Configuration) => {
+export const workerMain = (configuration: Configuration) => {
   logger.debug({ source: 'server', message: 'Starting server...' });
   channel = Thread.createBroadcastChannel('server');
 
+  channel.onmessage = ({ data: message }: { data: Message }) => {
+    if (message.command === 'terminate') {
+      logger.debug({ source: 'server', message: 'Stopping server...' });
+      void server.close().finally(() => {
+        logger.debug({ source: 'server', message: 'Server stopped.' });
+        channel.postMessage({
+          command: 'terminated'
+        } satisfies Message);
+        channel.close();
+      });
+    }
+  };
+  
   let server: Server;
   try {
-    server = serve(await buildREserveConfiguration(configuration));
+    server = serve(buildREserveConfiguration(configuration));
   } catch (error) {
     logger.error({ source: 'server', message: 'An error occurred while configuring', error });
     channel.postMessage({
       command: 'error'
     } satisfies Message);
-    stopped();
     return;
   }
 
@@ -114,17 +118,10 @@ export const workerMain = async (configuration: Configuration) => {
     })
     .on('error', (event) => {
       // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment -- REserve uses any
-      const { eventName: message, error, ...data } = event;
+      const { eventName: message, reason: error, ...data } = event;
       logger.debug({ source: 'reserve', message, data, error });
       channel.postMessage({
         command: 'error'
       } satisfies Message);
     });
-
-  channel.onmessage = ({ data: message }: { data: Message }) => {
-    if (message.command === 'terminate') {
-      logger.debug({ source: 'server', message: 'Stopping server...' });
-      void server.close().finally(() => stopped);
-    }
-  };
 };
