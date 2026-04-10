@@ -1,4 +1,7 @@
 {
   "extends": ["./tsconfig.cli.json"],
-  "exclude": []
+  "exclude": [],
+  "compilerOptions": {
+    "rootDir": "src"
+  }
 }
