@@ -1,6 +1,9 @@
 import { assert, Exit, logger, Thread } from '../../platform/index.js';
 import type { Configuration } from '../../configuration/Configuration.js';
 import { serve } from 'reserve';
+import type { Server } from 'reserve';
+import { toPlainObject } from '../../utils/object.js';
+import { buildREserveConfiguration } from './REserve.js';
 
 type Message =
   | {
@@ -17,10 +20,6 @@ type Message =
       command: 'terminated';
     };
 
-type ServerConfiguration = {
-  port: number;
-};
-
 let channel: ReturnType<typeof Thread.createBroadcastChannel>;
 let serverWorker: ReturnType<typeof Thread.createWorker> | undefined;
 
@@ -33,10 +32,7 @@ export const server = {
       stop: () => server.stop()
     });
     logger.debug({ source: 'server', message: 'Starting server' });
-    const serverConfiguration: ServerConfiguration = {
-      port: configuration.port ?? 0
-    };
-    serverWorker = Thread.createWorker('modes/test/server', serverConfiguration);
+    serverWorker = Thread.createWorker('modes/test/server', toPlainObject(configuration));
     const { promise, resolve, reject } = Promise.withResolvers<number>();
     channel.onmessage = ({ data: message }: { data: Message }) => {
       if (message.command === 'ready') {
@@ -71,18 +67,29 @@ export const server = {
   }
 };
 
-export const workerMain = (serverConfiguration: ServerConfiguration) => {
+const stopped = () => {
+  logger.debug({ source: 'server', message: 'Server stopped.' });
+  channel.postMessage({
+    command: 'terminated'
+  } satisfies Message);
+  channel.close();
+};
+
+export const workerMain = async (configuration: Configuration) => {
   logger.debug({ source: 'server', message: 'Starting server...' });
   channel = Thread.createBroadcastChannel('server');
 
-  const server = serve({
-    port: serverConfiguration.port,
-    mappings: [
-      {
-        status: 200
-      }
-    ]
-  });
+  let server: Server;
+  try {
+    server = serve(await buildREserveConfiguration(configuration));
+  } catch (error) {
+    logger.error({ source: 'server', message: 'An error occurred while configuring', error });
+    channel.postMessage({
+      command: 'error'
+    } satisfies Message);
+    stopped();
+    return;
+  }
 
   server.on('created', () => {
     // the properties of the event can't be transmitted through workers
@@ -117,13 +124,7 @@ export const workerMain = (serverConfiguration: ServerConfiguration) => {
   channel.onmessage = ({ data: message }: { data: Message }) => {
     if (message.command === 'terminate') {
       logger.debug({ source: 'server', message: 'Stopping server...' });
-      void server.close().finally(() => {
-        logger.debug({ source: 'server', message: 'Server stopped.' });
-        channel.postMessage({
-          command: 'terminated'
-        } satisfies Message);
-        channel.close();
-      });
+      void server.close().finally(() => stopped);
     }
   };
 };
