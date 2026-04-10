@@ -1,5 +1,7 @@
 import { logger } from './logger.js';
 import { Exit } from './Exit.js';
+import type { IRegisteredAsyncTask } from './Exit.js';
+import { Thread } from './Thread.js';
 
 let lastRequestId = 0;
 
@@ -7,10 +9,13 @@ export const Http = {
   async get(url: string): Promise<string> {
     const requestId = ++lastRequestId;
     const controller = new AbortController();
-    const task = Exit.registerAsyncTask({
-      name: `http.get#${requestId}`,
-      stop: () => controller.abort()
-    });
+    let task: IRegisteredAsyncTask | undefined;
+    if (Thread.isMainThread) {
+      task = Exit.registerAsyncTask({
+        name: `http.get#${requestId}`,
+        stop: () => controller.abort()
+      });
+    }
     logger.debug({ source: 'http', message: `GET ${url}`, data: { requestId } });
     try {
       const response = await fetch(url, {
@@ -35,7 +40,7 @@ export const Http = {
       logger.debug({ source: 'http', message: 'error caught', data: { requestId }, error });
       throw error;
     } finally {
-      task.unregister();
+      task?.unregister();
     }
   }
 };
