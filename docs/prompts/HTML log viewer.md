@@ -157,11 +157,13 @@ The Auto Refresh label and dropdown are **only shown when `timerangeType === 're
 
 `level` in `InternalLogAttributes` is a numeric value (`0`–`4`). For display and filter expressions, map it to the following strings:
 
-* `0` / `"debug"` = 🔍
-* `1` / `"info"` = 💬
-* `2` / `"warn"` = ⚠️
-* `3` / `"error"` = ❌
-* `4` / `"fatal"` = 💣
+|level|string|icon|HTML entity to use|
+|---|---|---|---|
+|0|`"debug"`|🔍|&#128269;|
+|1|`"info"`|💬|&#128172;|
+|2|`"warn"`|⚠️|&#9888;&#65039;|
+|3|`"error"`|❌|&#10060;|
+|4|`"fatal"`|💣|&#128163;|
 
 In filter expressions the `level` field is exposed as its string equivalent (e.g. `level === "info"`), not as a number.
 
@@ -197,9 +199,9 @@ In filter expressions the `level` field is exposed as its string equivalent (e.g
 
 The `error` field (when present) is displayed as read-only formatted JSON — no [➕][➖] buttons, since its nested structure (name, message, stack, cause, errors) doesn't map cleanly to filter expressions.
 
-* Clicking [➕] combines the current filter with AND <field> === <value>
+* Clicking [➕] (use entity `&#10133;`) combines the current filter with AND <field> === <value>
 
-* Clicking [-] combines the current filter with AND <field> !== <value>
+* Clicking [➖] (use HTML entity `&#10134;`) combines the current filter with AND <field> !== <value>
 
 * For fields under data, compose the field path using `.` as separators. For instance : `data.testName`
 

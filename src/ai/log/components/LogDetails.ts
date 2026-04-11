@@ -4,8 +4,8 @@ import { levelIcon, levelName, formatTimestamp } from '../utils/format.js';
 function filterButtons(field: string, value: unknown): string {
   const jsonValue = JSON.stringify(value);
   return `<span class="log-details-actions">
-    <ui5-button class="filter-add-btn" design="Transparent" data-field="${field}" data-value='${jsonValue}' data-op="===">➕</ui5-button>
-    <ui5-button class="filter-remove-btn" design="Transparent" data-field="${field}" data-value='${jsonValue}' data-op="!==">➖</ui5-button>
+    <ui5-button class="filter-add-btn" design="Transparent" data-field="${field}" data-value='${jsonValue}' data-op="===">&#10133;</ui5-button>
+    <ui5-button class="filter-remove-btn" design="Transparent" data-field="${field}" data-value='${jsonValue}' data-op="!==">&#10134;</ui5-button>
   </span>`;
 }
 

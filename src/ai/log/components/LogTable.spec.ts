@@ -20,11 +20,11 @@ describe('renderLogTable', () => {
 
   it('renders correct level icon for each level', () => {
     const levels: [number, string][] = [
-      [0, '🔍'],
-      [1, '💬'],
-      [2, '⚠️'],
-      [3, '❌'],
-      [4, '💣']
+      [0, '&#128269;'],
+      [1, '&#128172;'],
+      [2, '&#9888;&#65039;'],
+      [3, '&#10060;'],
+      [4, '&#128163;']
     ];
     for (const [level, icon] of levels) {
       const html = renderLogTable([{ ...baseLog, level: level as InternalLogAttributes['level'] }]);

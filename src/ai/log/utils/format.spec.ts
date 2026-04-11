@@ -2,11 +2,11 @@ import { describe, it, expect } from 'vitest';
 import { levelIcon, levelName, formatTimestamp, epochToDateTimePickerValue, formatBytes } from './format.js';
 
 describe('levelIcon', () => {
-  it('returns 🔍 for debug (0)', () => expect(levelIcon(0)).toBe('🔍'));
-  it('returns 💬 for info (1)', () => expect(levelIcon(1)).toBe('💬'));
-  it('returns ⚠️ for warn (2)', () => expect(levelIcon(2)).toBe('⚠️'));
-  it('returns ❌ for error (3)', () => expect(levelIcon(3)).toBe('❌'));
-  it('returns 💣 for fatal (4)', () => expect(levelIcon(4)).toBe('💣'));
+  it('returns 🔍 for debug (0)', () => expect(levelIcon(0)).toBe('&#128269;'));
+  it('returns 💬 for info (1)', () => expect(levelIcon(1)).toBe('&#128172;'));
+  it('returns ⚠️ for warn (2)', () => expect(levelIcon(2)).toBe('&#9888;&#65039;'));
+  it('returns ❌ for error (3)', () => expect(levelIcon(3)).toBe('&#10060;'));
+  it('returns 💣 for fatal (4)', () => expect(levelIcon(4)).toBe('&#128163;'));
 });
 
 describe('levelName', () => {

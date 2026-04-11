@@ -1,11 +1,11 @@
 import type { LogLevel } from '../../../platform/logger/types.js';
 
 const LEVEL_ICONS: Record<LogLevel, string> = {
-  0: '🔍',
-  1: '💬',
-  2: '⚠️',
-  3: '❌',
-  4: '💣'
+  0: '&#128269;',
+  1: '&#128172;',
+  2: '&#9888;&#65039;',
+  3: '&#10060;',
+  4: '&#128163;'
 };
 
 const LEVEL_NAMES: Record<LogLevel, string> = {
