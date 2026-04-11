@@ -83,7 +83,7 @@ export const workerMain = (configuration: Configuration) => {
       });
     }
   };
-  
+
   let server: Server;
   try {
     server = serve(buildREserveConfiguration(configuration));
