@@ -22,7 +22,10 @@ const modeFunctions: { [key in Modes]: ModeFunction } = {
 };
 
 export const execute = async (configuration: Configuration): Promise<void> => {
-  const modeFunction = modeFunctions[configuration.mode];
-  await modeFunction(configuration);
-  await Exit.shutdown();
+  try {
+    const modeFunction = modeFunctions[configuration.mode];
+    await modeFunction(configuration);
+  } finally {
+    await Exit.shutdown();
+  }
 };
