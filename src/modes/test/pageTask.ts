@@ -83,32 +83,33 @@ export const pageTask = async function (this: IParallelizeContext, url: string, 
       }
     }
   });
-  const agentSource = await getAgentSource();
-  const browser = getBrowser();
-  const page = await browser.newWindow({
-    scripts: [agentSource],
-    url
-  });
-  const context: PageContext = {
-    uid,
-    urls,
-    url,
-    page,
-    loopDelay: 250, // default
-    lastExecuted: 0,
-    lastTotal: 0
-  };
-  while (!this.stopRequested) {
-    try {
-      await setTimeout(context.loopDelay);
-      if (await queryAgentState(context)) {
-        break;
-      }
-    } catch (error) {
-      logger.error({ source: 'page', message: 'An error occurred', error, data: { uid } });
-    }
-  }
+  let page: IWindow | undefined;
   try {
+    const agentSource = await getAgentSource();
+    const browser = getBrowser();
+    page = await browser.newWindow({
+      scripts: [agentSource],
+      url
+    });
+    const context: PageContext = {
+      uid,
+      urls,
+      url,
+      page,
+      loopDelay: 250, // default
+      lastExecuted: 0,
+      lastTotal: 0
+    };
+    while (!this.stopRequested) {
+      try {
+        await setTimeout(context.loopDelay);
+        if (await queryAgentState(context)) {
+          break;
+        }
+      } catch (error) {
+        logger.error({ source: 'page', message: 'An error occurred', error, data: { uid } });
+      }
+    }
     const testResults = (await page.eval("window['ui5-test-runner'].results")) as CommonTestReport['results'];
     logger.debug({ source: 'page', message: 'test results', data: { uid, results: testResults } });
     report.merge(url, testResults);
@@ -119,7 +120,7 @@ export const pageTask = async function (this: IParallelizeContext, url: string, 
       data: { max: 1, value: 1, uid, remove: true }
     });
     asyncTask.unregister();
-    await page.close();
+    await page?.close();
     setTaskAsStopped();
   }
 };
