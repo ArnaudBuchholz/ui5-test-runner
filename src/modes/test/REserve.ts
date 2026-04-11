@@ -1,3 +1,4 @@
+import { logger } from '../../platform/index.js';
 import type { Configuration as REserveConfiguration } from 'reserve';
 import type { Configuration } from '../../configuration/Configuration.js';
 
@@ -17,6 +18,20 @@ export const buildREserveConfiguration = (configuration: Configuration): REserve
         match,
         url: mappingUrl,
         'ignore-unverifiable-certificate': true
+      },
+      {
+        // Project mapping
+        match: /^\/(.*)/,
+        cwd: configuration.webapp,
+        file: '$1'
+        // static: !configuration.watch && !configuration.debugDevMode
+      },
+      {
+        custom: (request) =>
+          logger.debug({ source: 'server', message: 'Unhandled request', data: { url: request.url } })
+      },
+      {
+        status: 404
       }
     ]
   };
