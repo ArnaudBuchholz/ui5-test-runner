@@ -9,6 +9,7 @@ import { report } from './report.js';
 import { generateHtmlReport } from '../../reports/html.js';
 import { Folder } from '../../utils/Folder.js';
 import { server } from './server.js';
+import { formatDuration } from '../../utils/string.js';
 
 /**
  * TODO
@@ -44,10 +45,10 @@ export const test = async (configuration: Configuration) => {
     logger.info({ source: 'job', message: `UI5 version used by the local server: ${coreVersion}` });
 
     if (!configuration.url) {
-      logger.fatal({ source: 'job', message: 'Expected URLs to be set' });
-      throw new Error('stop');
+      configuration.url = [new URL(configuration.testsuite, `http://localhost:0`).toString()];
     }
-    const urls = [...configuration.url];
+
+    const urls = [...configuration.url.map((url) => url.replace(':0/', `:${port}/`))];
     browser = await setupBrowser(configuration);
     await report.initialize();
     logger.info({ source: 'progress', message: 'Executing pages', data: { uid: '', value: 0, max: 0 } });
@@ -76,6 +77,10 @@ export const test = async (configuration: Configuration) => {
       'utf8'
     );
     await generateHtmlReport(configuration, report.merged);
+    const { duration } = report.merged.results.summary;
+    if (duration) {
+      logger.info({ source: 'job', message: `Tests duration: ${formatDuration(duration)}` });
+    }
   } catch (error) {
     logger.error({ source: 'job', message: 'An error occurred', error });
   } finally {
