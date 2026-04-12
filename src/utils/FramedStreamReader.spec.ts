@@ -182,7 +182,6 @@ it('short-circuits the poll interval when the abort signal is received', async (
   const stream = FramedStreamReader.create(FILENAME, 60_000);
 
   const readPromise = (async () => {
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars, sonarjs/no-unused-vars
     for await (const _ of stream.read(controller.signal)) {
       // Just consuming
     }

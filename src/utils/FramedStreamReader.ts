@@ -70,7 +70,7 @@ export class FramedStreamReader {
       for (const result of this._extractFrames(this._buffer)) {
         if (result.type === 'end') {
           this._reading = false;
-          this._task?.unregister();
+          this._task?.[Symbol.dispose]();
           return;
         }
         if (result.type === 'frame') {
