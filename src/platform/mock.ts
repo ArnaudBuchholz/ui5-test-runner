@@ -40,7 +40,7 @@ vi.mock(import('./Exit.js'), async (importActual) => {
   // eslint-disable-next-line @typescript-eslint/unbound-method -- unregister is not bound to the returned object
   vi.mocked(Exit.registerAsyncTask).mockImplementation((task) => {
     __lastRegisteredExitAsyncTask = task;
-    return { unregister: __unregisterExitAsyncTask };
+    return { [Symbol.dispose]: __unregisterExitAsyncTask };
   });
   return mocked;
 });
