@@ -61,7 +61,14 @@ export default [
       ],
       'no-unused-vars': 'off',
       'comma-dangle': ['error', 'never'],
-      '@typescript-eslint/no-unused-vars': 'error',
+      '@typescript-eslint/no-unused-vars': [
+        'error',
+        {
+          argsIgnorePattern: '^_',
+          varsIgnorePattern: '^_',
+          destructuredArrayIgnorePattern: '^_'
+        }
+      ],
       '@typescript-eslint/no-empty-object-type': 'error',
       '@typescript-eslint/no-unsafe-function-type': 'error',
       '@typescript-eslint/no-wrapper-object-types': 'error',
@@ -113,7 +120,8 @@ export default [
         }
       ],
       'unicorn/prefer-add-event-listener': 'off',
-      'sonarjs/todo-tag': 'warn'
+      'sonarjs/todo-tag': 'warn',
+      'sonarjs/no-unused-vars': 'off' // covered by @typescript-eslint/no-unused-vars
     }
   },
   {
