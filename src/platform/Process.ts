@@ -57,7 +57,7 @@ export class Process implements IProcess {
         data: { command, arguments: arguments_, options },
         error
       });
-      asyncTask?.unregister();
+      asyncTask?.[Symbol.dispose]();
       throw error;
     }
   };
@@ -108,7 +108,7 @@ export class Process implements IProcess {
         message: 'closed',
         data: { code: this._code }
       });
-      this._asyncTask.unregister();
+      this._asyncTask[Symbol.dispose]();
       resolve();
     });
   }
