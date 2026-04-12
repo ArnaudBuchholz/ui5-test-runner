@@ -73,7 +73,7 @@ export const pageTask = async function (this: IParallelizeContext, url: string, 
     data: { max: 0, value: 1, uid }
   });
   const { promise: taskStopped, resolve: setTaskAsStopped } = Promise.withResolvers<void>();
-  const asyncTask = Exit.registerAsyncTask({
+  using _ = Exit.registerAsyncTask({
     name: url,
     stop: async () => {
       try {
@@ -119,8 +119,11 @@ export const pageTask = async function (this: IParallelizeContext, url: string, 
       message: url,
       data: { max: 1, value: 1, uid, remove: true }
     });
-    asyncTask.unregister();
-    await page?.close();
+    try {
+      await page?.close();
+    } catch (error) {
+      logger.error({ source: 'page', message: 'page.close failed', error, data: { uid } });
+    }
     setTaskAsStopped();
   }
 };
