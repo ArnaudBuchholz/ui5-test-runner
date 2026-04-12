@@ -7,7 +7,7 @@ export const Http = {
   async get(url: string): Promise<string> {
     const requestId = ++lastRequestId;
     const controller = new AbortController();
-    const task = Exit.registerAsyncTask({
+    using _ = Exit.registerAsyncTask({
       name: `http.get#${requestId}`,
       stop: () => controller.abort()
     });
@@ -34,8 +34,6 @@ export const Http = {
     } catch (error) {
       logger.debug({ source: 'http', message: 'error caught', data: { requestId }, error });
       throw error;
-    } finally {
-      task.unregister();
     }
   }
 };
