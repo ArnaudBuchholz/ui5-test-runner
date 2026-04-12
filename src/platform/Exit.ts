@@ -8,8 +8,9 @@ export interface IAsyncTask {
   stop: () => void | Promise<void>;
 }
 
+/** To be used with using syntax */
 export interface IRegisteredAsyncTask {
-  unregister(): void;
+  [Symbol.dispose](): void;
 }
 
 interface InternalAsyncTask extends IAsyncTask {
@@ -120,7 +121,7 @@ export class Exit {
       ...task
     });
     return {
-      unregister() {
+      [Symbol.dispose]() {
         const index = Exit._asyncTasks.findIndex((task) => task.id === id);
         try {
           assert(index !== -1, 'unable to find Exit async task to unregister');

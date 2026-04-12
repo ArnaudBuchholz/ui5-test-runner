@@ -34,7 +34,7 @@ describe('shutdown', () => {
     it('offers a method to register an asynchronous task', () => {
       const registered = Exit.registerAsyncTask(task);
       expect(registered).not.toBeUndefined();
-      expect(typeof registered.unregister).toStrictEqual('function');
+      expect(typeof registered[Symbol.dispose]).toStrictEqual('function');
     });
 
     it('stops the task on shutdown', async () => {
@@ -45,7 +45,7 @@ describe('shutdown', () => {
     it('does not fail if trying to unregister twice (because it may happen)', async () => {
       const registered = Exit.registerAsyncTask(task);
       await Exit.shutdown();
-      expect(() => registered.unregister()).not.toThrow();
+      expect(() => registered[Symbol.dispose]()).not.toThrow();
     });
 
     it('does not fail if the task disappears while exiting (it may happen)', async () => {
@@ -57,7 +57,7 @@ describe('shutdown', () => {
       const registered = Exit.registerAsyncTask(task);
       const exited = Exit.shutdown();
       expect(task.stop).toHaveBeenCalled();
-      registered.unregister();
+      registered[Symbol.dispose]();
       resolve();
       await expect(exited).resolves.toBeUndefined();
     });
@@ -68,8 +68,9 @@ describe('shutdown', () => {
     });
 
     it('offers a way for the task to unregister itself', async () => {
-      const registered = Exit.registerAsyncTask(task);
-      registered.unregister();
+      {
+        using _ = Exit.registerAsyncTask(task);
+      }
       await Exit.shutdown();
       expect(task.stop).not.toHaveBeenCalled();
     });
