@@ -7,6 +7,10 @@ export type AgentState = {
       type: undefined;
     }
   | {
+      /** Not able to determine type */
+      type: 'unknown';
+    }
+  | {
       /** Suite of tests */
       type: 'suite';
       /** Test pages to run */
