@@ -8,8 +8,8 @@ export interface IAsyncTask {
   stop: () => void | Promise<void>;
 }
 
-/** To be used with using syntax */
 export interface IRegisteredAsyncTask {
+  /** Unregister the task, can be used with using */
   [Symbol.dispose](): void;
 }
 
