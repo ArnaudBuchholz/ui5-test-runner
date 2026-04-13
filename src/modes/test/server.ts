@@ -22,6 +22,7 @@ type Message =
 
 let channel: ReturnType<typeof Thread.createBroadcastChannel>;
 let serverWorker: ReturnType<typeof Thread.createWorker> | undefined;
+let stopping = false;
 
 export const server = {
   async start(configuration: Configuration): Promise<number> {
@@ -47,6 +48,10 @@ export const server = {
   },
 
   async stop() {
+    if (stopping) {
+      return;
+    }
+    stopping = true;
     try {
       assert(serverWorker !== undefined);
       logger.debug({ source: 'server', message: 'Stopping server' });
