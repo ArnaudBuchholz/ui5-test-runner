@@ -141,7 +141,7 @@ export class Exit {
     Exit._enteringShutdown = true;
     const logLevel = Exit._logLevel;
     while (Exit._asyncTasks.length > 0) {
-      const task = Exit._asyncTasks[0]!; // length > 0
+      const task = Exit._asyncTasks.at(-1)!; // length > 0
       try {
         logger?.[logLevel]({ source: 'exit', message: `Stopping ${task.name}...` });
         // TODO: can we wait for task to be unregistered ?
@@ -150,8 +150,8 @@ export class Exit {
       } catch (error) {
         logger?.[logLevel]({ source: 'exit', message: `Failed while stopping ${task.name}...`, error });
       } finally {
-        if (task === Exit._asyncTasks[0]) {
-          Exit._asyncTasks.shift();
+        if (task === Exit._asyncTasks.at(-1)) {
+          Exit._asyncTasks.pop();
         }
       }
     }

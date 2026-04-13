@@ -92,7 +92,6 @@ describe('shutdown', () => {
     });
 
     it('logs stop error (asynchronous)', async () => {
-      Object.assign(Exit, { _enteringShutdown: false });
       const error = new Error('Fail');
       Exit.registerAsyncTask({
         name: 'will fail on stop',
@@ -104,6 +103,24 @@ describe('shutdown', () => {
         message: `Failed while stopping will fail on stop...`,
         error
       });
+    });
+
+    it('stops the task in LIFO order', async () => {
+      const order: string[] = [];
+      Exit.registerAsyncTask({
+        name: 'a',
+        stop: () => {
+          order.push('a');
+        }
+      });
+      Exit.registerAsyncTask({
+        name: 'b',
+        stop: () => {
+          order.push('b');
+        }
+      });
+      await Exit.shutdown();
+      expect(order).toStrictEqual(['b', 'a']);
     });
   });
 
