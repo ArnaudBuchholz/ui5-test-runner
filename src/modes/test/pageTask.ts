@@ -41,6 +41,9 @@ const queryAgentState = async (context: PageContext): Promise<boolean> => {
         const pageUrl = new URL(page, context.url).toString();
         context.urls.push(pageUrl);
       }
+    } else if (agentState.type === 'unknown') {
+      logger.fatal({ source: 'page', message: 'Unable to detect page type', data: { uid: context.uid, state: agentState } });
+      throw new Error('Unable to detect page type');
     }
     return true;
   }
@@ -110,6 +113,7 @@ export const pageTask = async function (this: IParallelizeContext, url: string, 
         }
       } catch (error) {
         logger.error({ source: 'page', message: 'An error occurred', error, data: { uid } });
+        break;
       }
     }
     const testResults = (await page.eval("window['ui5-test-runner'].results")) as CommonTestReport['results'];
