@@ -78,6 +78,8 @@ export const pageTask = async function (this: IParallelizeContext, url: string, 
     stop: async () => {
       try {
         this.stop(new ExitShutdownError()); // throws
+      } catch {
+        // ignore
       } finally {
         await taskStopped;
       }
