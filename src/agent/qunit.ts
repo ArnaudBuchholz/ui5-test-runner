@@ -16,6 +16,7 @@ const updateState = (updates: Partial<QUnitState>) => {
 export const qunit = () => {
   state.type = 'QUnit';
   let executed = 0;
+  let errors = 0;
 
   QUnit.begin((details) => {
     report.begin(`QUnit@${window.QUnit!.version}`);
@@ -41,6 +42,7 @@ export const qunit = () => {
   QUnit.testDone((details: QUnitTestDoneDetails) => {
     let status: CommonTestStatus = 'passed';
     if (details.failed > 0) {
+      ++errors;
       status = 'failed';
     } else if (details.skipped) {
       status = 'skipped';
@@ -56,7 +58,8 @@ export const qunit = () => {
       status
     });
     updateState({
-      executed: ++executed
+      executed: ++executed,
+      errors
     });
   });
 
