@@ -97,8 +97,8 @@ function attachEvents() {
 
   suiteFilterInput?.addEventListener('click', () => {
     if (suitePopover && suiteFilterInput) {
-      (suitePopover as unknown as Record<string, unknown>).opener = suiteFilterInput;
-      (suitePopover as unknown as Record<string, unknown>).open = true;
+      (suitePopover as unknown as Record<string, unknown>)['opener'] = suiteFilterInput;
+      (suitePopover as unknown as Record<string, unknown>)['open'] = true;
     }
   });
 
@@ -109,7 +109,7 @@ function attachEvents() {
       const value = selectedItem.dataset.value || '';
       setState({ filters: { ...getState().filters, suite: value } });
       if (suitePopover) {
-        (suitePopover as unknown as Record<string, unknown>).open = false;
+        (suitePopover as unknown as Record<string, unknown>)['open'] = false;
       }
     }
   });
@@ -120,7 +120,7 @@ function attachEvents() {
     const value = item.dataset.value || '';
     setState({ filters: { ...getState().filters, suite: value } });
     if (suitePopover) {
-      (suitePopover as unknown as Record<string, unknown>).open = false;
+      (suitePopover as unknown as Record<string, unknown>)['open'] = false;
     }
   });
 
@@ -147,14 +147,15 @@ function attachEvents() {
   const sortCriteria = document.querySelector('#sortCriteria');
   sortCriteria?.addEventListener('selection-change', (event: Event) => {
     const segmentedEvent = event as unknown as UI5SegmentedButtonEvent;
-    const criteria = segmentedEvent.detail.selectedItems[0].dataset.sort;
+    const criteria = segmentedEvent.detail.selectedItems[0]!.dataset.sort;
     setState({ sort: { ...getState().sort, criteria } });
   });
 
   const sortOrder = document.querySelector('#sortOrder');
   sortOrder?.addEventListener('click', () => {
     if (sortOrder) {
-      setState({ sort: { ...getState().sort, order: sortOrder.pressed ? 'desc' : 'asc' } });
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access
+      setState({ sort: { ...getState().sort, order: (sortOrder as any).pressed ? 'desc' : 'asc' } });
     }
   });
 
@@ -178,7 +179,7 @@ function attachEvents() {
               return;
             }
             if (validateCtrf(json)) {
-              setState({ report: json as CommonTestReport, invalidReport: false });
+              setState({ report: json, invalidReport: false });
             } else {
               setState({ report: json as CommonTestReport, invalidReport: true });
             }
@@ -195,7 +196,7 @@ function attachEvents() {
     header.addEventListener('click', () => {
       const item = header.parentElement;
       const details = item?.querySelector('.test-details');
-      const icon = header.querySelector('ui5-icon');
+      const icon = header.querySelector('ui5-icon') as Element & { name: string };
       if (details && icon) {
         const isExpanded = details.classList.contains('expanded');
         if (isExpanded) {
@@ -235,7 +236,7 @@ function render() {
 
   if (activeElement && (activeElement instanceof HTMLInputElement || activeElement.tagName === 'UI5-INPUT')) {
     const input = activeElement as HTMLInputElement | UI5Input;
-    const innerInput = 'shadowRoot' in input ? input.shadowRoot.querySelector('input') : input;
+    const innerInput = 'shadowRoot' in input ? input.shadowRoot?.querySelector('input') : input;
     if (innerInput) {
       selectionStart = innerInput.selectionStart;
       selectionEnd = innerInput.selectionEnd;
@@ -266,11 +267,10 @@ function render() {
 
   // Restore focus and selection
   if (activeId) {
-    const newElement = document.querySelector(`#${activeId}`);
+    const newElement = document.querySelector(`#${activeId}`) as UI5Input;
     if (newElement) {
       // Small delay to ensure Web Components are ready
       requestAnimationFrame(() => {
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-call
         newElement.focus();
         if (selectionStart !== null && selectionEnd !== null) {
           const innerInput = newElement.shadowRoot?.querySelector('input');

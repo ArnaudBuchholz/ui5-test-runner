@@ -1,4 +1,4 @@
-import type { CommonTestReport, CommonTestStatus } from '../../../src/types/CommonTestReportFormat.js';
+import type { CommonTestReport, CommonTestStatus } from '../../../types/CommonTestReportFormat.js';
 import type { SuiteNode } from '../types.js';
 
 interface RawTest {
@@ -14,11 +14,11 @@ export function validateCtrf(json: unknown): json is CommonTestReport {
   if (!json || typeof json !== 'object') {
     return false;
   }
-  const report = json as Record<string, unknown>;
+  const report = json as CommonTestReport;
   if (report.reportFormat !== 'CTRF') {
     return false;
   }
-  const results = report.results as Record<string, unknown> | undefined;
+  const results = report.results;
   if (!results?.summary || !Array.isArray(results.tests)) {
     return false;
   }
