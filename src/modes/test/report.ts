@@ -1,4 +1,5 @@
 import { assert } from '../../platform/assert.js';
+import { logger } from '../../platform/index.js';
 import { version } from '../../platform/version.js';
 import { createEmptyTestResults } from '../../types/CommonTestReportFormat.js';
 import type { CommonTestReport } from '../../types/CommonTestReportFormat.js';
@@ -37,8 +38,9 @@ export class TestReportMerger {
     const { name: toolName } = this._merged.results.tool;
     if (toolName === '') {
       this._merged.results.tool = testResults.tool;
-    } else {
-      assert(toolName === testResults.tool.name); // TODO: what to do otherwise ?
+    } else if (toolName !== testResults.tool.name) {
+      logger.warn({ source: 'job', message: `tool name not matching, expected ${toolName} but got ${testResults.tool.name}`});
+      // assert(toolName === testResults.tool.name); // TODO: what to do otherwise ?
     }
     const { results } = this._merged;
     const suites = [...(this._suites[url] ?? []), url];
