@@ -189,7 +189,7 @@ describe('progress handling', () => {
           max: 0 // No progress bar
         }
       } as InternalLogAttributes);
-      expect(loggerOuput.progressMap[''].label).toStrictEqual('Executing tests');
+      expect(loggerOuput.overallProgress.label).toStrictEqual('Executing tests');
       expect(addToReport).toHaveBeenCalledWith(`
    00:00|Executing tests
    -----+---------------
@@ -199,7 +199,7 @@ describe('progress handling', () => {
 
   describe('task status', () => {
     it('creates a new progress bar', () => {
-      expect(loggerOuput.progressMap['task1']).toBeUndefined();
+      expect(loggerOuput.pageProgressMap['task1']).toBeUndefined();
       loggerOuput.addAttributesToLoggerOutput({
         timestamp: Date.now(),
         source: 'progress',
@@ -211,8 +211,9 @@ describe('progress handling', () => {
           max: 1
         }
       } as InternalLogAttributes);
-      const progressBar = loggerOuput.progressMap['task1'];
-      expect.assert(progressBar !== undefined);
+      const pageProgress = loggerOuput.pageProgressMap['task1'];
+      expect.assert(pageProgress !== undefined);
+      const progressBar = pageProgress.bar;
       expect(progressBar.label).toStrictEqual('test');
       expect(addTextToLoggerOutput).not.toHaveBeenCalled();
     });
@@ -241,7 +242,7 @@ describe('progress handling', () => {
           remove: true
         }
       } as InternalLogAttributes);
-      expect(loggerOuput.progressMap['task1']).toBeUndefined();
+      expect(loggerOuput.pageProgressMap['task1']).toBeUndefined();
       expect(addTextToLoggerOutput).not.toHaveBeenCalled();
     });
   });

@@ -14,6 +14,12 @@ const icons = {
   [LogLevel.fatal]: Terminal.RED + 'o*!'
 } as const;
 
+type PageProgress = {
+  bar: ProgressBar;
+  type: 'unknown' | 'qunit' | 'opa';
+  errors: number;
+};
+
 export abstract class BaseLoggerOutput {
   protected readonly _configuration: Configuration;
   protected readonly _startedAt: number;
@@ -52,28 +58,46 @@ export abstract class BaseLoggerOutput {
     });
   }
 
-  private _lastStatus = '';
-  private _progressMap: { [uid in string]?: ProgressBar } & { '': ProgressBar } = { '': new ProgressBar() };
-  private _startedAtMap: { [uid in string]?: ReturnType<typeof Date.now> } = {};
+  private _pageProgressMap: { [uid in string]?: PageProgress } = {};
 
-  get progressMap() {
-    return this._progressMap;
+  get pageProgressMap() {
+    return this._pageProgressMap;
   }
+
+  private _overallProgress = new ProgressBar();
+  private _lastOverallStatus = '';
+
+  get overallProgress() {
+    return this._overallProgress;
+  }
+
+  private _startedAtMap: { [uid in string]?: ReturnType<typeof Date.now> } = {};
 
   protected renderAttributes(attributes: InternalLogAttributes): boolean {
     if (attributes.source === 'progress') {
       const uid = attributes.data.uid;
-      let progress = this._progressMap[uid];
-      if (!progress) {
-        progress = new ProgressBar();
-        this._progressMap[uid] = progress;
-        this._startedAtMap[uid] = Date.now();
-        this.addToReport(`   ${this.formatTimestamp(attributes.timestamp)} >> ${attributes.message} [${uid}]
-`);
+      let pageProgress: PageProgress | undefined;
+      let progressBar: ProgressBar;
+      if (uid === '') {
+        progressBar = this._overallProgress;
+      } else {
+        pageProgress = this._pageProgressMap[uid];
+        if (!pageProgress) {
+          pageProgress = {
+            bar: new ProgressBar(),
+            type: 'unknown',
+            errors: 0
+          };
+          this._pageProgressMap[uid] = pageProgress;
+          this._startedAtMap[uid] = Date.now();
+          this.addToReport(`   ${this.formatTimestamp(attributes.timestamp)} >> ${attributes.message} [${uid}]
+  `);
+        }
+        progressBar = pageProgress.bar;
       }
-      progress.update(attributes);
+      progressBar.update(attributes);
       if (attributes.data.remove) {
-        delete this._progressMap[uid];
+        delete this._pageProgressMap[uid];
         const startedAt = this._startedAtMap[uid];
         delete this._startedAtMap[uid];
         assert(startedAt !== undefined);
@@ -82,11 +106,11 @@ export abstract class BaseLoggerOutput {
           .addToReport(`   ${this.formatTimestamp(attributes.timestamp)} << ${attributes.message} (${formatDuration(duration)}) [${uid}]
 `);
       }
-      if (!uid && progress.label !== this._lastStatus) {
-        this._lastStatus = progress.label;
+      if (!uid && progressBar.label !== this._lastOverallStatus) {
+        this._lastOverallStatus = progressBar.label;
         this.addToReport(`
-   ${this.formatTimestamp(attributes.timestamp)}|${this._lastStatus}
-   -----+${''.padStart(this._lastStatus.length, '-')}
+   ${this.formatTimestamp(attributes.timestamp)}|${this._lastOverallStatus}
+   -----+${''.padStart(this._lastOverallStatus.length, '-')}
 `);
       }
       return false;
