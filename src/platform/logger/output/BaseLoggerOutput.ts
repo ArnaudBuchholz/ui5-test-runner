@@ -96,7 +96,7 @@ export abstract class BaseLoggerOutput {
         progressBar = pageProgress.bar;
       }
       progressBar.update(attributes);
-      if (attributes.data.remove) {
+      if ('remove' in attributes.data) {
         delete this._pageProgressMap[uid];
         const startedAt = this._startedAtMap[uid];
         delete this._startedAtMap[uid];
