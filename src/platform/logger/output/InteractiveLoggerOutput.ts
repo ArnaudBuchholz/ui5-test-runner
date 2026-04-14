@@ -48,17 +48,14 @@ export class InteractiveLoggerOutput extends BaseLoggerOutput {
     const texts = [...this._texts];
     const linesToErase = [];
     this._texts.length = 0;
-    const keys = Object.keys(this.progressMap)
-      .filter((key) => key !== '')
-      .toSorted((a: string, b: string) => a.localeCompare(b));
+    const keys = Object.keys(this.pageProgressMap).toSorted((a: string, b: string) => a.localeCompare(b));
     for (const key of keys) {
-      const progressBar = this.progressMap[key]!; // key is coming from Object.keys
-      const rendered = progressBar.render(this._terminalWidth - 4);
+      const pageProgress = this.pageProgressMap[key]!; // key is coming from Object.keys
+      const rendered = pageProgress.bar.render(this._terminalWidth - 4);
       texts.push('   ' + rendered + '\n');
       linesToErase.push(3 + rendered.length);
     }
-    const progressBar = this.progressMap[''];
-    const rendered = progressBar.render(this._terminalWidth - 4);
+    const rendered = this.overallProgress.render(this._terminalWidth - 4);
     if (this._noColor) {
       texts.push([TICKS_PICTURES[this._tick % TICKS_PICTURES.length]!, rendered, '\n'].join(''));
     } else {

@@ -11,9 +11,7 @@ export class StaticLoggerOutput extends BaseLoggerOutput {
   }
 
   progressReport(): void {
-    const keys = Object.keys(this.progressMap)
-      .filter((key) => key !== '')
-      .toSorted((a: string, b: string) => a.localeCompare(b));
+    const keys = Object.keys(this.pageProgressMap).toSorted((a: string, b: string) => a.localeCompare(b));
     if (keys.length > 0) {
       this.addToReport(`
    ${this.formatTimestamp(Date.now())}|Progress
@@ -21,8 +19,8 @@ export class StaticLoggerOutput extends BaseLoggerOutput {
 `);
     }
     for (const key of keys) {
-      const progressBar = this.progressMap[key]!; // key is coming from Object.keys
-      const rendered = progressBar.render(80);
+      const pageProgress = this.pageProgressMap[key]!; // key is coming from Object.keys
+      const rendered = pageProgress.bar.render(80);
       this.addToReport(rendered + '\n');
     }
   }
