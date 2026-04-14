@@ -75,7 +75,7 @@
     "@openui5/types": "^1.146.0",
     "@stylistic/eslint-plugin": "^5.10.0",
     "@stylistic/eslint-plugin-js": "^4.4.1",
-    "@types/node": "^24.10.2",
+    "@types/node": "^24.12.2",
     "@types/qunit": "^2.19.13",
     "@ui5/cli": "^4.0.51",
     "@ui5/middleware-code-coverage": "^2.0.3",
