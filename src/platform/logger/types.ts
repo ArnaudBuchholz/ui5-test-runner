@@ -48,12 +48,20 @@ export type LogAttributes = {
     }
   | {
       source: 'progress';
-      data: {
-        uid: string;
-        value: number;
-        max: number;
-        remove?: true;
-      };
+      data:
+        | {
+            uid: '';
+            value: number;
+            max: number;
+          }
+        | {
+            uid: string;
+            value: number;
+            max: number;
+            errors: number;
+            type: 'unknown' | 'qunit' | 'opa';
+            remove?: true;
+          };
     }
   | {
       source: 'assert';

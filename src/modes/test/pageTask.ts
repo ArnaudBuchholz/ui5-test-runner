@@ -29,7 +29,27 @@ type PageContext = {
   page: IWindow;
   loopDelay: number;
   lastExecuted: number;
+  lastErrors: number;
   lastTotal: number;
+};
+
+const reportQunitProgress = (context: PageContext, agentState: Extract<AgentState, { type: 'QUnit' }>) => {
+  if (agentState.isOpa) {
+    context.loopDelay = 1000; // No need to stress out, they are slower
+  }
+  if (agentState.total > 0) {
+    const { executed, total } = agentState;
+    if (executed !== context.lastExecuted || total !== context.lastTotal) {
+      context.lastExecuted = executed;
+      context.lastTotal = total;
+      const type = agentState.isOpa ? 'opa' : 'qunit';
+      logger.info({
+        source: 'progress',
+        message: context.url,
+        data: { max: agentState.total, value: agentState.executed, uid: context.uid, type, errors: agentState.errors }
+      });
+    }
+  }
 };
 
 const queryAgentState = async (context: PageContext): Promise<boolean> => {
@@ -52,21 +72,7 @@ const queryAgentState = async (context: PageContext): Promise<boolean> => {
     return true;
   }
   if (agentState.type === 'QUnit') {
-    if (agentState.isOpa) {
-      context.loopDelay = 1000; // No need to stress out, they are slower
-    }
-    if (agentState.total > 0) {
-      const { executed, total } = agentState;
-      if (executed !== context.lastExecuted || total !== context.lastTotal) {
-        context.lastExecuted = executed;
-        context.lastTotal = total;
-        logger.info({
-          source: 'progress',
-          message: context.url,
-          data: { max: agentState.total, value: agentState.executed, uid: context.uid }
-        });
-      }
-    }
+    reportQunitProgress(context, agentState);
   }
   return false;
 };
@@ -77,7 +83,7 @@ export const pageTask = async function (this: IParallelizeContext, url: string, 
   logger.info({
     source: 'progress',
     message: url,
-    data: { max: 0, value: 1, uid }
+    data: { max: 0, value: 1, uid, type: 'unknown', errors: 0 }
   });
   const { promise: taskStopped, resolve: setTaskAsStopped } = Promise.withResolvers<void>();
   using _ = Exit.registerAsyncTask({
@@ -107,6 +113,7 @@ export const pageTask = async function (this: IParallelizeContext, url: string, 
       page,
       loopDelay: 250, // default
       lastExecuted: 0,
+      lastErrors: 0,
       lastTotal: 0
     };
     while (!this.stopRequested) {
@@ -127,7 +134,7 @@ export const pageTask = async function (this: IParallelizeContext, url: string, 
     logger.info({
       source: 'progress',
       message: url,
-      data: { max: 1, value: 1, uid, remove: true }
+      data: { max: 1, value: 1, uid, type: 'unknown', errors: 0, remove: true }
     });
     try {
       await page?.close();
