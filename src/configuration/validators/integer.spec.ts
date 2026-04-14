@@ -12,7 +12,11 @@ checkValidator({
     { value: 1, expected: 1 },
     { value: 0, expected: 0 },
     { value: -1, expected: -1 },
-    { value: 1234, expected: 1234 }
+    { value: 1234, expected: 1234 },
+    { value: '1', expected: 1 },
+    { value: '0', expected: 0 },
+    { value: '-1', expected: -1 },
+    { value: '1234', expected: 1234 }
   ],
   invalid: [...noBooleans, ...noNumbers, { value: '' }, { value: 'Hello World !' }]
 });
