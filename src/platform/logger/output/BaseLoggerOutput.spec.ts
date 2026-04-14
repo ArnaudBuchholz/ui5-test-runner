@@ -158,10 +158,17 @@ describe('usual traces', () => {
   it('does not render metric traces', () => {
     loggerOuput.addAttributesToLoggerOutput({
       timestamp: Date.now(),
+      processId: 0,
+      threadId: 0,
+      isMainThread: true,
       source: 'metric',
       level: LogLevel.info,
-      message: 'test'
-    } as InternalLogAttributes);
+      message: '',
+      data: {
+        cpu: {},
+        mem: {}
+      }
+    });
     expect(addTextToLoggerOutput).not.toHaveBeenCalled();
   });
 
