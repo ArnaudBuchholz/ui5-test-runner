@@ -139,7 +139,7 @@ it('can be interrupted through Exit', async () => {
   vi.mocked(Exit.registerAsyncTask).mockImplementation((task) => {
     stop = task.stop;
     return {
-      unregister: vi.fn()
+      [Symbol.dispose]: vi.fn()
     };
   });
   const data1 = 'chunk1';
