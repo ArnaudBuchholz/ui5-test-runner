@@ -8,9 +8,9 @@ import type {
   InternalLogAttributes,
   LogAttributes,
   LogMessage,
-  ReadySource,
-  ILogger
+  ReadySource
 } from './logger/types.js';
+import type { ILogger } from './logger/ILogger.ts';
 import { LogLevel } from './logger/types.js';
 import { toInternalLogAttributes } from './logger/toInternalLogAttributes.js';
 import assert from 'node:assert/strict';

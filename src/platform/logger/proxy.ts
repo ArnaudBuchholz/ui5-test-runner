@@ -1,4 +1,4 @@
-import type { ILogger } from './types.js';
+import type { ILogger } from './ILogger.js';
 
 export let logger: ILogger | undefined;
 

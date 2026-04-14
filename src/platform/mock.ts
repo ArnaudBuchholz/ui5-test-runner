@@ -2,7 +2,7 @@ import { vi } from 'vitest';
 import type { ReadStream, WriteStream } from 'node:fs';
 import type { BroadcastChannel, Worker } from 'node:worker_threads';
 import { join } from 'node:path';
-import type { ILogger } from './logger/types.js';
+import type { ILogger } from './logger/ILogger.js';
 import type { IAsyncTask } from './Exit.js';
 import type { Terminal } from './Terminal.js';
 

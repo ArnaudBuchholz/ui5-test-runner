@@ -1,4 +1,3 @@
-import type { Configuration } from '../../configuration/Configuration.js';
 import type { ServerEventName, ServerEvent } from 'reserve';
 
 export type LogErrorAttributes = {
@@ -75,16 +74,6 @@ export const LogLevel = {
   fatal: 4
 } as const;
 export type LogLevel = (typeof LogLevel)[keyof typeof LogLevel];
-
-export interface ILogger {
-  start(configuration: Configuration): void;
-  debug(attributes: LogAttributes): void;
-  info(attributes: LogAttributes): void;
-  warn(attributes: LogAttributes): void;
-  error(attributes: LogAttributes): void;
-  fatal(attributes: LogAttributes): void;
-  stop(): Promise<void>;
-}
 
 export type InternalLogAttributes = {
   /** Time stamp (UNIX epoch) */
