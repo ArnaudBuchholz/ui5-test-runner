@@ -1,11 +1,11 @@
 import { state } from './state.js';
 import { suite } from './suite.js';
 import { qunit } from './qunit.js';
-import { AgentState } from '../types/AgentState.js';
+import type { AgentState } from '../types/AgentState.js';
 
-const DETECTION_TIMEOUT = 5_000;
+const DETECTION_TIMEOUT = 5000;
 const DELAY = 100;
-const MAX_DELAY = 1_000;
+const MAX_DELAY = 1000;
 
 window.addEventListener('load', () => {
   const loaded = Date.now();
@@ -26,6 +26,6 @@ window.addEventListener('load', () => {
       };
       Object.assign(state, newState);
     }
-  }
+  };
   detect();
 });
