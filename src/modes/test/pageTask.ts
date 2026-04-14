@@ -42,7 +42,11 @@ const queryAgentState = async (context: PageContext): Promise<boolean> => {
         context.urls.push(pageUrl);
       }
     } else if (agentState.type === 'unknown') {
-      logger.fatal({ source: 'page', message: 'Unable to detect page type', data: { uid: context.uid, state: agentState } });
+      logger.fatal({
+        source: 'page',
+        message: 'Unable to detect page type',
+        data: { uid: context.uid, state: agentState }
+      });
       throw new Error('Unable to detect page type');
     }
     return true;
