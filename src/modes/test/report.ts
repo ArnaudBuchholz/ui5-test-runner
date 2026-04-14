@@ -39,7 +39,10 @@ export class TestReportMerger {
     if (toolName === '') {
       this._merged.results.tool = testResults.tool;
     } else if (toolName !== testResults.tool.name) {
-      logger.warn({ source: 'job', message: `tool name not matching, expected ${toolName} but got ${testResults.tool.name}`});
+      logger.warn({
+        source: 'job',
+        message: `tool name not matching, expected ${toolName} but got ${testResults.tool.name}`
+      });
       // assert(toolName === testResults.tool.name); // TODO: what to do otherwise ?
     }
     const { results } = this._merged;
