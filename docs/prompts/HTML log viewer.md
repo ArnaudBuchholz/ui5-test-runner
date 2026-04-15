@@ -185,7 +185,9 @@ Considering the following logs to be displayed :
 └─────────────────────────┘
 ```
 
-The dialog always appear with no checkbox ticked by default (do not try to deduce from the current filter which values should be ticked). After the user selected values, combines the current filter with `&& (field === value1 || field === value2 ...)`.
+All filter dialogs (level, source, processId, threadId) always appear with no checkbox ticked by default — do not try to deduce from the current filter which values should be ticked. After the user selected values, combine the current filter with `&& (field === value1 || field === value2 ...)`.
+
+Only one popup is displayed at a time. Opening a new popup closes any previously open one. A popup is also closed when it loses focus (i.e. the user clicks outside of it).
 
 ### Time range (relative)
 
@@ -270,5 +272,7 @@ The `error` field (when present) is displayed as read-only formatted JSON — no
 
 * Clicking [-] (use HTML entity `&#10134;`) combines the current filter with AND <field> !== <value>
 
-* For fields under data, compose the field path using `.` as separators. For instance : `data.testName`
+* `[+][-]` buttons appear on both scalar values and nested objects — any value that can be meaningfully compared in a filter expression.
+
+* For fields under data, compose the field path using `.` as separators. For instance: `data.testName`. For array elements, include the index: `data.items[0]`.
 
