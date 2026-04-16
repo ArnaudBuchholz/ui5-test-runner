@@ -37,10 +37,7 @@ export class LogViewerController
     this._update({ errorMessage: '' });
     const parameters = new URLSearchParams();
     for (const key of Object.keys(query) as (keyof LogStorageQuery)[]) {
-      /* v8 ignore else -- @preserve */ // Because of the way it is internal used, we can't have an undefined prop
-      if (query[key]) {
-        parameters.set(key, query[key].toString());
-      }
+      parameters.set(key, query[key]!.toString()); // Because of the way it is internal used, we can't have an undefined prop
     }
     const response = await fetch('/query?' + parameters.toString());
     if (!response.ok) {
