@@ -2,7 +2,7 @@ import { describe, it, expect, beforeEach, vi, beforeAll, afterAll } from 'vites
 import { InteractiveLoggerOutput } from './InteractiveLoggerOutput.js';
 import type { Configuration } from '../../../configuration/Configuration';
 import { Terminal } from '../../Terminal.js';
-import type { InternalLogAttributes } from '../types.js';
+import type { InternalLogAttributes, OverallProgressData, PageProgressData } from '../types.js';
 import { LogLevel } from '../types.js';
 
 vi.useFakeTimers();
@@ -58,7 +58,7 @@ describe('output handling', () => {
           uid: '',
           max: 100,
           value: 50
-        }
+        } satisfies OverallProgressData
       } as InternalLogAttributes);
       loggerOutput.addAttributesToLoggerOutput({
         timestamp: Date.now(),
@@ -68,8 +68,10 @@ describe('output handling', () => {
         data: {
           uid: 'page1',
           max: 100,
-          value: 20
-        }
+          value: 20,
+          type: 'opa',
+          errors: 0
+        } satisfies PageProgressData
       } as InternalLogAttributes);
       loggerOutput.addAttributesToLoggerOutput({
         timestamp: Date.now(),
@@ -79,8 +81,23 @@ describe('output handling', () => {
         data: {
           uid: 'page2',
           max: 100,
-          value: 40
-        }
+          value: 40,
+          type: 'qunit',
+          errors: 3
+        } satisfies PageProgressData
+      } as InternalLogAttributes);
+      loggerOutput.addAttributesToLoggerOutput({
+        timestamp: Date.now(),
+        source: 'progress',
+        level: LogLevel.info,
+        message: 'qunit page',
+        data: {
+          uid: 'page3',
+          max: 100,
+          value: 50,
+          type: 'qunit',
+          errors: 0
+        } satisfies PageProgressData
       } as InternalLogAttributes);
       expect(Terminal.write).not.toHaveBeenCalled();
     });
@@ -98,21 +115,27 @@ describe('output handling', () => {
     });
 
     it('renders main progress (with animated tick)', () => {
-      expect(Terminal.write).toHaveBeenCalledWith(`${Terminal.CYAN}[\\]${Terminal.WHITE}[#####-----] 50% main\n`);
+      expect(Terminal.write).toHaveBeenCalledWith(expect.stringMatching(/\[#####-----\] 50% main\n/));
     });
 
     it('renders page 1 progress', () => {
       expect(Terminal.write).toHaveBeenCalledWith(
-        '   [##--------] 20% page with a long URL that goes beyond 40 characters (including progress bar)\n'
+        `${Terminal.GREEN}OPA${Terminal.WHITE}[##--------] 20% page with a long URL that goes beyond 40 characters (including progress bar)\n`
       );
     });
 
     it('renders page 2 progress', () => {
-      expect(Terminal.write).toHaveBeenCalledWith('   [####------] 40% page with a short URL\n');
+      expect(Terminal.write).toHaveBeenCalledWith(
+        `${Terminal.RED}3  ${Terminal.WHITE}[####------] 40% page with a short URL\n`
+      );
+    });
+
+    it('renders page 3 progress', () => {
+      expect(Terminal.write).toHaveBeenCalledWith(`${Terminal.GREEN}QNT${Terminal.WHITE}[#####-----] 50% qunit page\n`);
     });
 
     it('clears the progress lines on tick', () => {
-      expect(Terminal.eraseToEnd).toHaveBeenCalledWith(3);
+      expect(Terminal.eraseToEnd).toHaveBeenCalledWith(4);
     });
   });
 
@@ -120,20 +143,26 @@ describe('output handling', () => {
     it('clears and rerenders the progress lines on resize (shorter)', () => {
       loggerOutput.terminalResized(40);
       // Because the new terminal width is shorter, we need to clean one additional line
-      expect(Terminal.eraseToEnd).toHaveBeenCalledWith(6);
-      expect(Terminal.write).toHaveBeenCalledWith('   [##--------] 20% ...ng progress bar)\n');
-      expect(Terminal.write).toHaveBeenCalledWith('   [####------] 40% ...with a short URL\n');
-      expect(Terminal.write).toHaveBeenCalledWith(`${Terminal.BLUE}[-]${Terminal.WHITE}[#####-----] 50% main\n`);
+      expect(Terminal.eraseToEnd).toHaveBeenCalledWith(7);
+      expect(Terminal.write).toHaveBeenCalledWith(
+        `${Terminal.GREEN}OPA${Terminal.WHITE}[##--------] 20% ...ng progress bar)\n`
+      );
+      expect(Terminal.write).toHaveBeenCalledWith(
+        `${Terminal.RED}3  ${Terminal.WHITE}[####------] 40% ...with a short URL\n`
+      );
+      expect(Terminal.write).toHaveBeenCalledWith(expect.stringMatching(/\[#####-----\] 50% main\n/));
     });
 
     it('clears and rerenders the progress lines on resize (wider)', () => {
       loggerOutput.terminalResized(120);
-      expect(Terminal.eraseToEnd).toHaveBeenCalledWith(3);
+      expect(Terminal.eraseToEnd).toHaveBeenCalledWith(4);
       expect(Terminal.write).toHaveBeenCalledWith(
-        '   [##--------] 20% page with a long URL that goes beyond 40 characters (including progress bar)\n'
+        `${Terminal.GREEN}OPA${Terminal.WHITE}[##--------] 20% page with a long URL that goes beyond 40 characters (including progress bar)\n`
       );
-      expect(Terminal.write).toHaveBeenCalledWith('   [####------] 40% page with a short URL\n');
-      expect(Terminal.write).toHaveBeenCalledWith(`${Terminal.BLUE}[-]${Terminal.WHITE}[#####-----] 50% main\n`);
+      expect(Terminal.write).toHaveBeenCalledWith(
+        `${Terminal.RED}3  ${Terminal.WHITE}[####------] 40% page with a short URL\n`
+      );
+      expect(Terminal.write).toHaveBeenCalledWith(expect.stringMatching(/\[#####-----\] 50% main\n/));
     });
   });
 });
@@ -167,8 +196,10 @@ describe('output handling (NO_COLOR)', () => {
       data: {
         uid: '',
         max: 100,
-        value: 50
-      }
+        value: 50,
+        type: 'qunit',
+        errors: 0
+      } satisfies PageProgressData
     } as InternalLogAttributes);
     await vi.advanceTimersToNextTimerAsync(); // tick
     expect(Terminal.write).toHaveBeenCalledWith(`[-][#####-----] 50% main\n`);

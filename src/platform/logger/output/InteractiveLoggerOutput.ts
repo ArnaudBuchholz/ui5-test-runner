@@ -52,7 +52,15 @@ export class InteractiveLoggerOutput extends BaseLoggerOutput {
     for (const key of keys) {
       const pageProgress = this.pageProgressMap[key]!; // key is coming from Object.keys
       const rendered = pageProgress.bar.render(this._terminalWidth - 4);
-      texts.push('   ' + rendered + '\n');
+      let status = '   ';
+      if (pageProgress.errors) {
+        status = `${Terminal.RED}${Math.min(pageProgress.errors, 999).toString().padEnd(3, ' ')}${Terminal.WHITE}`;
+      } else if (pageProgress.type === 'opa') {
+        status = `${Terminal.GREEN}OPA${Terminal.WHITE}`;
+      } else if (pageProgress.type === 'qunit') {
+        status = `${Terminal.GREEN}QNT${Terminal.WHITE}`;
+      }
+      texts.push(status + rendered + '\n');
       linesToErase.push(3 + rendered.length);
     }
     const rendered = this.overallProgressBar.render(this._terminalWidth - 4);
