@@ -5,9 +5,14 @@ export class ProgressBar {
   static readonly WIDTH = 10;
 
   private _value = 0;
+  get value() {
+    return this._value;
+  }
   private _max = 0;
+  get max() {
+    return this._max;
+  }
   private _label = '';
-
   get label() {
     return this._label;
   }
