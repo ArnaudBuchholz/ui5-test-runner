@@ -55,7 +55,7 @@ export class InteractiveLoggerOutput extends BaseLoggerOutput {
       texts.push('   ' + rendered + '\n');
       linesToErase.push(3 + rendered.length);
     }
-    const rendered = this.overallProgress.render(this._terminalWidth - 4);
+    const rendered = this.overallProgressBar.render(this._terminalWidth - 4);
     if (this._noColor) {
       texts.push([TICKS_PICTURES[this._tick % TICKS_PICTURES.length]!, rendered, '\n'].join(''));
     } else {
