@@ -196,7 +196,7 @@ describe('progress handling', () => {
           max: 0 // No progress bar
         }
       } as InternalLogAttributes);
-      expect(loggerOuput.overallProgress.label).toStrictEqual('Executing tests');
+      expect(loggerOuput.overallProgressBar.label).toStrictEqual('Executing tests');
       expect(addToReport).toHaveBeenCalledWith(`
    00:00|Executing tests
    -----+---------------
@@ -251,6 +251,62 @@ describe('progress handling', () => {
       } as InternalLogAttributes);
       expect(loggerOuput.pageProgressMap['task1']).toBeUndefined();
       expect(addTextToLoggerOutput).not.toHaveBeenCalled();
+    });
+
+    it('copies task information', () => {
+      loggerOuput.addAttributesToLoggerOutput({
+        timestamp: Date.now(),
+        source: 'progress',
+        level: LogLevel.info,
+        message: 'test',
+        data: {
+          uid: 'task1',
+          value: 10,
+          max: 100,
+          type: 'qunit',
+          errors: 5
+        }
+      } as InternalLogAttributes);
+      expect(loggerOuput.pageProgressMap['task1']).toMatchObject({
+        type: 'qunit',
+        errors: 5
+      });
+    });
+  });
+
+  describe('overall progress', () => {
+    it('aggregates pages information', () => {
+      loggerOuput.addAttributesToLoggerOutput({
+        timestamp: Date.now(),
+        source: 'progress',
+        level: LogLevel.info,
+        message: 'test',
+        data: {
+          uid: 'task1',
+          value: 10,
+          max: 100,
+          type: 'qunit',
+          errors: 5
+        }
+      } as InternalLogAttributes);
+      loggerOuput.addAttributesToLoggerOutput({
+        timestamp: Date.now(),
+        source: 'progress',
+        level: LogLevel.info,
+        message: 'test',
+        data: {
+          uid: 'task2',
+          value: 20,
+          max: 200,
+          type: 'qunit',
+          errors: 1
+        }
+      } as InternalLogAttributes);
+      expect(loggerOuput.overallProgress).toMatchObject({
+        totalNumberOfExecutedTests: 30,
+        totalNumberOfErrors: 6,
+        totalNumberOfTests: 300
+      });
     });
   });
 });

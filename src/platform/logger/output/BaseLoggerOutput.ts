@@ -1,6 +1,6 @@
 import { FileSystem, Path, Terminal } from '../../index.js';
 import type { Configuration } from '../../../configuration/Configuration.js';
-import type { InternalLogAttributes } from '../types.js';
+import type { InternalLogAttributes, PageProgressData } from '../types.js';
 import { LogLevel } from '../types.js';
 import { ProgressBar } from '../../../utils/ProgressBar.js';
 import { formatDuration } from '../../../utils/string.js';
@@ -16,8 +16,12 @@ const icons = {
 
 type PageProgress = {
   bar: ProgressBar;
-  type: 'unknown' | 'qunit' | 'opa';
-  errors: number;
+} & Omit<PageProgressData, 'uid' | 'value' | 'max' | 'remove'>;
+
+type OverallProgress = {
+  totalNumberOfExecutedTests: number;
+  totalNumberOfErrors: number;
+  totalNumberOfTests: number;
 };
 
 export abstract class BaseLoggerOutput {
@@ -64,12 +68,45 @@ export abstract class BaseLoggerOutput {
     return this._pageProgressMap;
   }
 
-  private _overallProgress = new ProgressBar();
-  private _lastOverallStatus = '';
+  private _overallProgressBar: ProgressBar = new ProgressBar();
+
+  get overallProgressBar() {
+    return this._overallProgressBar;
+  }
+
+  private _overallprogressSnapshot: OverallProgress = {
+    totalNumberOfExecutedTests: 0,
+    totalNumberOfErrors: 0,
+    totalNumberOfTests: 0
+  };
+  private _overallprogress: OverallProgress = {
+    totalNumberOfExecutedTests: 0,
+    totalNumberOfErrors: 0,
+    totalNumberOfTests: 0
+  };
+
+  private _updateOverallProgressSnapshot(data: PageProgressData) {
+    this._overallprogressSnapshot.totalNumberOfExecutedTests += data.value;
+    this._overallprogressSnapshot.totalNumberOfErrors += data.errors;
+    this._overallprogressSnapshot.totalNumberOfTests += data.max;
+  }
+
+  private _updateOverallProgress() {
+    const overallProgress = { ...this._overallprogressSnapshot };
+    for (const pageProgress of Object.values(this._pageProgressMap)) {
+      if (pageProgress) {
+        overallProgress.totalNumberOfExecutedTests += pageProgress.bar.value;
+        overallProgress.totalNumberOfErrors += pageProgress.errors;
+        overallProgress.totalNumberOfTests += pageProgress.bar.max;
+      }
+    }
+  }
 
   get overallProgress() {
-    return this._overallProgress;
+    return this._overallprogress;
   }
+
+  private _lastOverallStatus = '';
 
   private _startedAtMap: { [uid in string]?: ReturnType<typeof Date.now> } = {};
 
@@ -79,7 +116,7 @@ export abstract class BaseLoggerOutput {
       let pageProgress: PageProgress | undefined;
       let progressBar: ProgressBar;
       if (uid === '') {
-        progressBar = this._overallProgress;
+        progressBar = this._overallProgressBar;
       } else {
         pageProgress = this._pageProgressMap[uid];
         if (!pageProgress) {
@@ -93,7 +130,11 @@ export abstract class BaseLoggerOutput {
           this.addToReport(`   ${this.formatTimestamp(attributes.timestamp)} >> ${attributes.message} [${uid}]
   `);
         }
+        const data = attributes.data as PageProgressData;
+        pageProgress.type = data.type;
+        pageProgress.errors = data.errors;
         progressBar = pageProgress.bar;
+        this._updateOverallProgress();
       }
       progressBar.update(attributes);
       if ('remove' in attributes.data) {
@@ -105,6 +146,8 @@ export abstract class BaseLoggerOutput {
         this
           .addToReport(`   ${this.formatTimestamp(attributes.timestamp)} << ${attributes.message} (${formatDuration(duration)}) [${uid}]
 `);
+        this._updateOverallProgressSnapshot(attributes.data);
+        this._updateOverallProgress();
       }
       if (!uid && progressBar.label !== this._lastOverallStatus) {
         this._lastOverallStatus = progressBar.label;
