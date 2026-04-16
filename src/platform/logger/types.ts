@@ -22,6 +22,26 @@ type GenericLogSource =
 
 export type LogSource = GenericLogSource | 'page' | 'progress' | 'metric' | 'assert' | 'reserve';
 
+export type OverallProgressData = {
+  uid: '';
+  /** Pages executed */
+  value: number;
+  /** Total number of pages */
+  max: number;
+};
+
+export type PageProgressData = {
+  uid: string;
+  /** Tests executed */
+  value: number;
+  /** Total number of tests */
+  max: number;
+  /** Errors */
+  errors: number;
+  type: 'unknown' | 'qunit' | 'opa';
+  remove?: true;
+};
+
 export type LogAttributes = {
   message: string;
   error?: unknown;
@@ -48,20 +68,7 @@ export type LogAttributes = {
     }
   | {
       source: 'progress';
-      data:
-        | {
-            uid: '';
-            value: number;
-            max: number;
-          }
-        | {
-            uid: string;
-            value: number;
-            max: number;
-            errors: number;
-            type: 'unknown' | 'qunit' | 'opa';
-            remove?: true;
-          };
+      data: OverallProgressData | PageProgressData;
     }
   | {
       source: 'assert';
@@ -70,7 +77,7 @@ export type LogAttributes = {
   | {
       source: 'reserve';
       message: ServerEventName;
-      data: Omit<ServerEvent, 'eventName' | 'error'>;
+      data: Omit<ServerEvent, 'eventName' | 'reason'>;
     }
 );
 
