@@ -79,11 +79,6 @@ export abstract class BaseLoggerOutput {
     totalNumberOfErrors: 0,
     totalNumberOfTests: 0
   };
-  private _overallprogress: OverallProgress = {
-    totalNumberOfExecutedTests: 0,
-    totalNumberOfErrors: 0,
-    totalNumberOfTests: 0
-  };
 
   private _updateOverallProgressSnapshot(data: PageProgressData) {
     this._overallprogressSnapshot.totalNumberOfExecutedTests += data.value;
@@ -91,15 +86,20 @@ export abstract class BaseLoggerOutput {
     this._overallprogressSnapshot.totalNumberOfTests += data.max;
   }
 
+  private _overallprogress: OverallProgress = {
+    totalNumberOfExecutedTests: 0,
+    totalNumberOfErrors: 0,
+    totalNumberOfTests: 0
+  };
+
   private _updateOverallProgress() {
     const overallProgress = { ...this._overallprogressSnapshot };
-    for (const pageProgress of Object.values(this._pageProgressMap)) {
-      if (pageProgress) {
-        overallProgress.totalNumberOfExecutedTests += pageProgress.bar.value;
-        overallProgress.totalNumberOfErrors += pageProgress.errors;
-        overallProgress.totalNumberOfTests += pageProgress.bar.max;
-      }
+    for (const pageProgress of Object.values(this._pageProgressMap) as PageProgress[]) {
+      overallProgress.totalNumberOfExecutedTests += pageProgress.bar.value;
+      overallProgress.totalNumberOfErrors += pageProgress.errors;
+      overallProgress.totalNumberOfTests += pageProgress.bar.max;
     }
+    this._overallprogress = overallProgress;
   }
 
   get overallProgress() {
@@ -134,7 +134,6 @@ export abstract class BaseLoggerOutput {
         pageProgress.type = data.type;
         pageProgress.errors = data.errors;
         progressBar = pageProgress.bar;
-        this._updateOverallProgress();
       }
       progressBar.update(attributes);
       if ('remove' in attributes.data) {
@@ -147,8 +146,8 @@ export abstract class BaseLoggerOutput {
           .addToReport(`   ${this.formatTimestamp(attributes.timestamp)} << ${attributes.message} (${formatDuration(duration)}) [${uid}]
 `);
         this._updateOverallProgressSnapshot(attributes.data);
-        this._updateOverallProgress();
       }
+      this._updateOverallProgress();
       if (!uid && progressBar.label !== this._lastOverallStatus) {
         this._lastOverallStatus = progressBar.label;
         this.addToReport(`

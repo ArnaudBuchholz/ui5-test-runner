@@ -275,12 +275,20 @@ describe('progress handling', () => {
   });
 
   describe('overall progress', () => {
+    let progressLoggerOutput: TestLoggerOutput;
+
+    beforeEach(() => {
+      progressLoggerOutput = new TestLoggerOutput(
+        {
+          reportDir: './tmp'
+        } as Configuration,
+        Date.now()
+      );
+    });
+
     it('aggregates pages information', () => {
-      loggerOuput.addAttributesToLoggerOutput({
-        timestamp: Date.now(),
+      progressLoggerOutput.addAttributesToLoggerOutput({
         source: 'progress',
-        level: LogLevel.info,
-        message: 'test',
         data: {
           uid: 'task1',
           value: 10,
@@ -289,11 +297,8 @@ describe('progress handling', () => {
           errors: 5
         }
       } as InternalLogAttributes);
-      loggerOuput.addAttributesToLoggerOutput({
-        timestamp: Date.now(),
+      progressLoggerOutput.addAttributesToLoggerOutput({
         source: 'progress',
-        level: LogLevel.info,
-        message: 'test',
         data: {
           uid: 'task2',
           value: 20,
@@ -302,10 +307,97 @@ describe('progress handling', () => {
           errors: 1
         }
       } as InternalLogAttributes);
-      expect(loggerOuput.overallProgress).toMatchObject({
+      expect(progressLoggerOutput.overallProgress).toMatchObject({
         totalNumberOfExecutedTests: 30,
         totalNumberOfErrors: 6,
         totalNumberOfTests: 300
+      });
+    });
+
+    it("supports page's numbers variation", () => {
+      progressLoggerOutput.addAttributesToLoggerOutput({
+        source: 'progress',
+        data: {
+          uid: 'task1',
+          value: 10,
+          max: 100,
+          type: 'qunit',
+          errors: 5
+        }
+      } as InternalLogAttributes);
+      progressLoggerOutput.addAttributesToLoggerOutput({
+        source: 'progress',
+        data: {
+          uid: 'task1',
+          value: 100,
+          max: 150,
+          type: 'qunit',
+          errors: 9
+        }
+      } as InternalLogAttributes);
+      progressLoggerOutput.addAttributesToLoggerOutput({
+        source: 'progress',
+        data: {
+          uid: 'task2',
+          value: 20,
+          max: 200,
+          type: 'qunit',
+          errors: 1
+        }
+      } as InternalLogAttributes);
+      expect(progressLoggerOutput.overallProgress).toMatchObject({
+        totalNumberOfExecutedTests: 120,
+        totalNumberOfErrors: 10,
+        totalNumberOfTests: 350
+      });
+    });
+
+    it('remembers terminated pages', () => {
+      progressLoggerOutput.addAttributesToLoggerOutput({
+        source: 'progress',
+        data: {
+          uid: 'task1',
+          value: 10,
+          max: 100,
+          type: 'qunit',
+          errors: 5
+        }
+      } as InternalLogAttributes);
+      progressLoggerOutput.addAttributesToLoggerOutput({
+        source: 'progress',
+        data: {
+          uid: 'task1',
+          value: 100,
+          max: 100,
+          type: 'qunit',
+          errors: 9,
+          remove: true
+        }
+      } as InternalLogAttributes);
+      progressLoggerOutput.addAttributesToLoggerOutput({
+        source: 'progress',
+        data: {
+          uid: 'task2',
+          value: 20,
+          max: 200,
+          type: 'qunit',
+          errors: 1
+        }
+      } as InternalLogAttributes);
+      progressLoggerOutput.addAttributesToLoggerOutput({
+        source: 'progress',
+        data: {
+          uid: 'task1', // on purpose (but may become a problem on retries)
+          value: 10,
+          max: 100,
+          type: 'qunit',
+          errors: 5
+        }
+      } as InternalLogAttributes);
+      expect(progressLoggerOutput.overallProgress).toMatchObject({
+        totalNumberOfExecutedTests: 130,
+        totalNumberOfErrors: 15,
+        totalNumberOfTests: 400
       });
     });
   });
