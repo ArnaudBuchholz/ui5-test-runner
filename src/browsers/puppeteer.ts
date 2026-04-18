@@ -18,13 +18,15 @@ export const factory = async (): Promise<IBrowser> => {
   });
 
   const launchAndInstallIfNeeded = async (settings: BrowserSettings): Promise<BrowserCapabilities> => {
+    const launchOptions: Parameters<typeof launch>[0] = {
+      headless: !settings.visible,
+      defaultViewport: null,
+      handleSIGINT: false,
+      signal,
+      args: ['--start-maximized']
+    };
     try {
-      browser = await launch({
-        headless: !settings.visible,
-        defaultViewport: null,
-        handleSIGINT: false,
-        signal
-      });
+      browser = await launch(launchOptions);
     } catch (error) {
       if (error instanceof Error && error.message.startsWith('Could not find Chrome')) {
         logger.info({
@@ -36,12 +38,7 @@ export const factory = async (): Promise<IBrowser> => {
           shell: true,
           signal
         }).closed;
-        browser = await launch({
-          headless: false,
-          defaultViewport: null,
-          handleSIGINT: false,
-          signal
-        });
+        browser = await launch(launchOptions);
       } else {
         throw error;
       }
@@ -66,7 +63,9 @@ export const factory = async (): Promise<IBrowser> => {
 
     async newWindow(settings) {
       logger.debug({ source: 'puppeteer', message: 'newWindow', data: settings });
-      const page = await browser?.newPage();
+      const page = await browser?.newPage({
+        type: 'window'
+      });
       for (const script of settings.scripts) {
         await page?.evaluateOnNewDocument(script);
       }
