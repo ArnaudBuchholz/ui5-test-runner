@@ -1,5 +1,6 @@
 import type { IParallelizeContext } from '../../utils/parallelize.js';
-import { logger } from '../../platform/logger.js';
+import { assert, logger } from '../../platform/index.js';
+import type { PageProgressData } from '../../platform/logger/types.js';
 import { getAgentSource } from './agent.js';
 import { getBrowser } from './browser.js';
 import type { AgentState } from '../../types/AgentState.js';
@@ -28,8 +29,9 @@ type PageContext = {
   url: string;
   page: IWindow;
   loopDelay: number;
+  type: PageProgressData['type'];
   lastExecuted: number;
-  lastErrors: number;
+  errors: number;
   lastTotal: number;
 };
 
@@ -38,15 +40,17 @@ const reportQunitProgress = (context: PageContext, agentState: Extract<AgentStat
     context.loopDelay = 1000; // No need to stress out, they are slower
   }
   if (agentState.total > 0) {
-    const { executed, total } = agentState;
+    const { executed, total, errors } = agentState;
     if (executed !== context.lastExecuted || total !== context.lastTotal) {
+      const type = agentState.isOpa ? 'opa' : 'qunit';
       context.lastExecuted = executed;
       context.lastTotal = total;
-      const type = agentState.isOpa ? 'opa' : 'qunit';
+      context.errors = errors;
+      context.type = type;
       logger.info({
         source: 'progress',
         message: context.url,
-        data: { max: agentState.total, value: agentState.executed, uid: context.uid, type, errors: agentState.errors }
+        data: { max: agentState.total, value: agentState.executed, uid: context.uid, type, errors }
       });
     }
   }
@@ -68,6 +72,9 @@ const queryAgentState = async (context: PageContext): Promise<boolean> => {
         data: { uid: context.uid, state: agentState }
       });
       throw new Error('Unable to detect page type');
+    } else {
+      assert(agentState.type === 'QUnit');
+      reportQunitProgress(context, agentState);
     }
     return true;
   }
@@ -99,6 +106,7 @@ export const pageTask = async function (this: IParallelizeContext, url: string, 
     }
   });
   let page: IWindow | undefined;
+  let context: PageContext | undefined;
   try {
     const agentSource = await getAgentSource();
     const browser = getBrowser();
@@ -106,14 +114,15 @@ export const pageTask = async function (this: IParallelizeContext, url: string, 
       scripts: [agentSource],
       url
     });
-    const context: PageContext = {
+    context = {
       uid,
       urls,
       url,
       page,
       loopDelay: 250, // default
+      type: 'unknown',
       lastExecuted: 0,
-      lastErrors: 0,
+      errors: 0,
       lastTotal: 0
     };
     while (!this.stopRequested) {
@@ -131,11 +140,20 @@ export const pageTask = async function (this: IParallelizeContext, url: string, 
     logger.debug({ source: 'page', message: 'test results', data: { uid, results: testResults } });
     report.merge(url, testResults);
   } finally {
-    logger.info({
-      source: 'progress',
-      message: url,
-      data: { max: 1, value: 1, uid, type: 'unknown', errors: 0, remove: true }
-    });
+    if (context !== undefined) {
+      logger.info({
+        source: 'progress',
+        message: url,
+        data: {
+          max: context.lastTotal,
+          value: context.lastExecuted,
+          uid,
+          type: context.type,
+          errors: context.errors,
+          remove: true
+        }
+      });
+    }
     try {
       await page?.close();
     } catch (error) {
