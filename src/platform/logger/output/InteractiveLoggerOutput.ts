@@ -63,9 +63,26 @@ export class InteractiveLoggerOutput extends BaseLoggerOutput {
       texts.push(status + rendered + '\n');
       linesToErase.push(3 + rendered.length);
     }
-    const rendered = this.overallProgressBar.render(this._terminalWidth - 4);
+    let testStatus = '';
+    if (this.overallProgress.totalNumberOfTests !== 0) {
+      const {
+        totalNumberOfExecutedTests: executed,
+        totalNumberOfErrors: errors,
+        totalNumberOfTests: total
+      } = this.overallProgress;
+      const success = executed - errors;
+      const errorStatus = errors > 0 ? `${Terminal.WHITE}+${Terminal.RED}${errors}` : '';
+      testStatus = ` (Tests: ${Terminal.GREEN}${success}${errorStatus}${Terminal.WHITE}/${total})`;
+    }
+    const rendered = this.overallProgressBar.render(this._terminalWidth - 4 - testStatus.length);
     if (this._noColor) {
-      texts.push([TICKS_PICTURES[this._tick % TICKS_PICTURES.length]!, rendered, '\n'].join(''));
+      texts.push(
+        [
+          TICKS_PICTURES[this._tick % TICKS_PICTURES.length]!,
+          Terminal.stripVTControlCharacters(rendered + testStatus),
+          '\n'
+        ].join('')
+      );
     } else {
       texts.push(
         [
@@ -73,15 +90,14 @@ export class InteractiveLoggerOutput extends BaseLoggerOutput {
           TICKS_PICTURES[this._tick % TICKS_PICTURES.length]!,
           Terminal.WHITE,
           rendered,
+          testStatus,
           '\n'
         ].join('')
       );
     }
     linesToErase.push(3 + rendered.length);
     this._clean();
-    for (const text of texts) {
-      Terminal.write(text);
-    }
+    Terminal.write(texts.join(''));
     for (const line of linesToErase) {
       this._linesToErase.push(line);
     }
