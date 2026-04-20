@@ -81,9 +81,11 @@ export abstract class BaseLoggerOutput {
   };
 
   private _updateOverallProgressSnapshot(data: PageProgressData) {
-    this._overallprogressSnapshot.totalNumberOfExecutedTests += data.value;
-    this._overallprogressSnapshot.totalNumberOfErrors += data.errors;
-    this._overallprogressSnapshot.totalNumberOfTests += data.max;
+    if (data.type !== 'unknown') {
+      this._overallprogressSnapshot.totalNumberOfExecutedTests += data.value;
+      this._overallprogressSnapshot.totalNumberOfErrors += data.errors;
+      this._overallprogressSnapshot.totalNumberOfTests += data.max;
+    }
   }
 
   private _overallprogress: OverallProgress = {
@@ -95,9 +97,11 @@ export abstract class BaseLoggerOutput {
   private _updateOverallProgress() {
     const overallProgress = { ...this._overallprogressSnapshot };
     for (const pageProgress of Object.values(this._pageProgressMap) as PageProgress[]) {
-      overallProgress.totalNumberOfExecutedTests += pageProgress.bar.value;
-      overallProgress.totalNumberOfErrors += pageProgress.errors;
-      overallProgress.totalNumberOfTests += pageProgress.bar.max;
+      if (pageProgress.type !== 'unknown') {
+        overallProgress.totalNumberOfExecutedTests += pageProgress.bar.value;
+        overallProgress.totalNumberOfErrors += pageProgress.errors;
+        overallProgress.totalNumberOfTests += pageProgress.bar.max;
+      }
     }
     this._overallprogress = overallProgress;
   }
