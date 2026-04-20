@@ -24,7 +24,7 @@ export const qunit = () => {
       isOpa: !!window?.sap?.ui?.test?.Opa5,
       executed,
       total: details.totalTests,
-      errors,
+      errors
     });
   });
 
