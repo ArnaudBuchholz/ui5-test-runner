@@ -23,7 +23,8 @@ export const qunit = () => {
     updateState({
       isOpa: !!window?.sap?.ui?.test?.Opa5,
       executed,
-      total: details.totalTests
+      total: details.totalTests,
+      errors,
     });
   });
 
