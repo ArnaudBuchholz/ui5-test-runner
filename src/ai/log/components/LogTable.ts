@@ -5,11 +5,11 @@ const MAX_MESSAGE_LENGTH = 200;
 
 export function renderLogTable(logs: InternalLogAttributes[]): string {
   const thead = `<thead><tr>
-  <th>Timestamp (local)</th>
-  <th>Level</th>
-  <th>Source</th>
-  <th>PID</th>
-  <th>TID</th>
+  <th data-col="timestamp" class="col-clickable">Timestamp (local)</th>
+  <th data-col="level" class="col-clickable">Level</th>
+  <th data-col="source" class="col-clickable">Source</th>
+  <th data-col="processId" class="col-clickable">PID</th>
+  <th data-col="threadId" class="col-clickable">TID</th>
   <th class="col-message">Message</th>
 </tr></thead>`;
 

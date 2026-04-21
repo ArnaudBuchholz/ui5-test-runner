@@ -70,6 +70,27 @@ describe('renderLogDetails', () => {
     expect(html).toContain('data-field="data.testName"');
   });
 
+  it('recurses into nested objects using dot notation', () => {
+    const log: InternalLogAttributes = {
+      ...baseLog,
+      data: { meta: { browser: 'chromium', retry: 0 } }
+    };
+    const html = renderLogDetails(log);
+    expect(html).toContain('data.meta.browser');
+    expect(html).toContain('data.meta.retry');
+    expect(html).toContain('data-field="data.meta.browser"');
+  });
+
+  it('renders array elements with index notation', () => {
+    const log: InternalLogAttributes = {
+      ...baseLog,
+      data: { items: ['a', 'b'] }
+    };
+    const html = renderLogDetails(log);
+    expect(html).toContain('data.items[0]');
+    expect(html).toContain('data.items[1]');
+  });
+
   it('does not render isMainThread', () => {
     const html = renderLogDetails({ ...baseLog, isMainThread: true });
     expect(html).not.toContain('isMainThread');

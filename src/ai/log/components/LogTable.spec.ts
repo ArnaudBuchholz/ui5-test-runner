@@ -57,4 +57,18 @@ describe('renderLogTable', () => {
     expect(html).toContain('Source');
     expect(html).toContain('Message');
   });
+
+  it('renders clickable header cells with data-col attributes', () => {
+    const html = renderLogTable([]);
+    expect(html).toContain('data-col="timestamp"');
+    expect(html).toContain('data-col="level"');
+    expect(html).toContain('data-col="source"');
+    expect(html).toContain('data-col="processId"');
+    expect(html).toContain('data-col="threadId"');
+  });
+
+  it('adds col-clickable class to filterable header cells', () => {
+    const html = renderLogTable([]);
+    expect(html).toContain('class="col-clickable"');
+  });
 });

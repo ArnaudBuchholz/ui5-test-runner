@@ -65,6 +65,16 @@ body,
   white-space: nowrap;
 }
 
+#logTable thead th.col-clickable {
+  cursor: pointer;
+  user-select: none;
+}
+
+#logTable thead th.col-clickable:hover {
+  background: var(--sapList_Hover_Background, #f1f1f1);
+  text-decoration: underline;
+}
+
 #logTable tbody tr {
   cursor: pointer;
   border-bottom: 1px solid var(--sapList_BorderColor, #d9d9d9);
@@ -131,4 +141,10 @@ body,
   font-weight: bold;
   margin-top: 0.5rem;
   margin-bottom: 0.25rem;
+}
+
+.column-filter-row {
+  display: flex;
+  align-items: center;
+  padding: 0.2rem 0;
 }

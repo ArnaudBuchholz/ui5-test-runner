@@ -5,6 +5,7 @@ import '@ui5/webcomponents/dist/DateTimePicker.js';
 import '@ui5/webcomponents/dist/Button.js';
 import '@ui5/webcomponents/dist/MessageStrip.js';
 import '@ui5/webcomponents/dist/Popover.js';
+import '@ui5/webcomponents/dist/CheckBox.js';
 
 import './style.css';
 
@@ -26,23 +27,6 @@ function asUI5(element: Element): UI5Element {
   return element as unknown as UI5Element;
 }
 
-function ensurePopovers(): void {
-  if (!document.querySelector('#metricsPopover')) {
-    document.body.insertAdjacentHTML(
-      'beforeend',
-      `<ui5-popover id="metricsPopover" header-text="Metrics" placement="Bottom">
-        <div id="metricsPopoverContent" style="padding:0.5rem;"></div>
-      </ui5-popover>
-      <ui5-popover id="logDetailsPopover" header-text="Log Details" placement="Bottom" style="max-width:600px;">
-        <div id="logDetailsPopoverContent" style="padding:0.5rem;"></div>
-        <div slot="footer" style="display:flex;justify-content:flex-end;padding:0.5rem;">
-          <ui5-button id="logDetailsClose" design="Transparent">Close</ui5-button>
-        </div>
-      </ui5-popover>`
-    );
-  }
-}
-
 function renderMetricsContent(): string {
   const m = controller.state.metrics;
   return `<div class="log-details-row"><span class="log-details-label">Status</span>
@@ -59,6 +43,52 @@ function renderMetricsContent(): string {
       <span>${formatTimestamp(m.minTimestamp)}</span></div>
     <div class="log-details-row"><span class="log-details-label">To</span>
       <span>${formatTimestamp(m.maxTimestamp)}</span></div>`;
+}
+
+function renderLevelFilterContent(): string {
+  const levels = ['debug', 'info', 'warn', 'error', 'fatal'];
+  return levels
+    .map(
+      (l) => `<div class="column-filter-row"><ui5-checkbox data-filter-value="${l}" text="${l}"></ui5-checkbox></div>`
+    )
+    .join('');
+}
+
+function renderValueFilterContent(field: string, logs: State['logs']): string {
+  // eslint-disable-next-line sonarjs/no-alphabetical-sort -- Good enough
+  const values = [...new Set(logs.map((log) => (log as unknown as Record<string, unknown>)[field]))].toSorted();
+  return values
+    .map(
+      (v) =>
+        `<div class="column-filter-row"><ui5-checkbox data-filter-value='${JSON.stringify(v)}' text="${String(v)}"></ui5-checkbox></div>`
+    )
+    .join('');
+}
+
+function applyColumnFilter(field: string): void {
+  const content = document.querySelector('#columnFilterPopoverContent');
+  if (!content) return;
+  const checked = [...content.querySelectorAll('ui5-checkbox')].filter(
+    (callback) => (asUI5(callback)['checked'] as boolean) === true
+  );
+  if (checked.length === 0) return;
+  const values = checked.map((callback) => {
+    const raw = (callback as HTMLElement).dataset['filterValue'] ?? 'null';
+    try {
+      return JSON.parse(raw) as unknown;
+    } catch {
+      return raw;
+    }
+  });
+  const parts = values.map((v) => buildFilterExpression(field, v, '===', ''));
+  const clause = values.length > 1 ? `(${parts.join(' || ')})` : parts[0]!;
+  const newFilter = controller.state.filter ? `${controller.state.filter} && ${clause}` : clause;
+  controller.interaction({ filter: newFilter });
+  const filterInput = document.querySelector('#filterInput');
+  if (filterInput) {
+    (filterInput as unknown as HTMLInputElement).value = newFilter;
+  }
+  asUI5(document.querySelector('#columnFilterPopover')!)['open'] = false;
 }
 
 function attachFilterButtonEvents(container: Element): void {
@@ -135,6 +165,45 @@ function attachToolbarEvents(): void {
   refreshButton?.addEventListener('click', () => controller.interaction({ action: 'refresh_now' }));
 }
 
+function attachColumnHeaderEvents(thead: Element): void {
+  thead.addEventListener('click', (event) => {
+    const th = (event.target as Element).closest('th[data-col]');
+    if (!th) return;
+    const col = (th as HTMLElement).dataset['col'];
+    if (!col) return;
+
+    const logs = controller.state.logs;
+    const popover = document.querySelector('#columnFilterPopover');
+    const content = document.querySelector('#columnFilterPopoverContent');
+    if (!popover || !content) return;
+
+    if (col === 'timestamp') {
+      if (logs.length === 0) return;
+      const timestamps = logs.map((l) => l.timestamp);
+      const minTs = Math.min(...timestamps);
+      const maxTs = Math.max(...timestamps);
+      controller.interaction({
+        timerangeType: 'absolute',
+        absoluteTimerangeFrom: minTs,
+        absoluteTimerangeTo: maxTs
+      });
+      return;
+    }
+
+    content.innerHTML = col === 'level' ? renderLevelFilterContent() : renderValueFilterContent(col, logs);
+
+    const applyButton = document.querySelector('#columnFilterApply');
+    const newApplyButton = applyButton?.cloneNode(true) as Element | undefined;
+    if (applyButton && newApplyButton) {
+      applyButton.replaceWith(newApplyButton);
+      newApplyButton.addEventListener('click', () => applyColumnFilter(col === 'level' ? 'level' : col));
+    }
+
+    asUI5(popover)['opener'] = th;
+    asUI5(popover)['open'] = true;
+  });
+}
+
 function attachEvents(): void {
   attachToolbarEvents();
 
@@ -148,6 +217,11 @@ function attachEvents(): void {
       asUI5(popover)['open'] = true;
     }
   });
+
+  const thead = document.querySelector('#logTable thead');
+  if (thead) {
+    attachColumnHeaderEvents(thead);
+  }
 
   const tbody = document.querySelector('#logTable tbody');
   if (tbody) {
@@ -186,7 +260,7 @@ function updateMetrics(): void {
   const statusButton = document.querySelector('#statusBtn');
   if (!statusButton) return;
   const isLive = controller.state.metrics.reading;
-  statusButton.textContent = isLive ? 'Live' : 'Replay';
+  statusButton.textContent = isLive ? 'Status: Live' : 'Status: Replay';
   statusButton.setAttribute('design', isLive ? 'Positive' : 'Neutral');
 }
 
@@ -212,6 +286,10 @@ function updateLogs(): void {
   const table = document.querySelector('#logTable');
   if (!table) return;
   table.innerHTML = renderLogTable(controller.state.logs);
+  const thead = table.querySelector('thead');
+  if (thead) {
+    attachColumnHeaderEvents(thead);
+  }
   const tbody = table.querySelector('tbody');
   if (tbody) {
     attachTbodyClickEvent(tbody);
@@ -266,8 +344,31 @@ function update(changed: Partial<State>): void {
   }
 }
 
+function injectPopovers(): void {
+  const app = document.querySelector('#app');
+  if (!app) return;
+  app.insertAdjacentHTML(
+    'beforebegin',
+    `<ui5-popover id="metricsPopover" header-text="Metrics" placement="Bottom">
+      <div id="metricsPopoverContent" style="padding: 0.5rem;"></div>
+    </ui5-popover>
+    <ui5-popover id="logDetailsPopover" header-text="Log Details" placement="Bottom" style="max-width: 600px;">
+      <div id="logDetailsPopoverContent" style="padding: 0.5rem;"></div>
+      <div slot="footer" style="display: flex; justify-content: flex-end; padding: 0.5rem;">
+        <ui5-button id="logDetailsClose" design="Transparent">Close</ui5-button>
+      </div>
+    </ui5-popover>
+    <ui5-popover id="columnFilterPopover" placement="Bottom">
+      <div id="columnFilterPopoverContent" style="padding: 0.5rem; min-width: 180px;"></div>
+      <div slot="footer" style="display: flex; justify-content: flex-end; padding: 0.5rem;">
+        <ui5-button id="columnFilterApply">Filter</ui5-button>
+      </div>
+    </ui5-popover>`
+  );
+}
+
 document.addEventListener('DOMContentLoaded', () => {
-  ensurePopovers();
+  injectPopovers();
   controller.connect(update);
   renderApp();
 });

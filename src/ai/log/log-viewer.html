@@ -7,19 +7,6 @@
 </head>
 <body>
   <div id="app"></div>
-
-  <!-- Static popovers: OUTSIDE #app so they survive app.innerHTML re-renders -->
-  <ui5-popover id="metricsPopover" header-text="Metrics" placement="Bottom">
-    <div id="metricsPopoverContent" style="padding: 0.5rem;"></div>
-  </ui5-popover>
-
-  <ui5-popover id="logDetailsPopover" header-text="Log Details" placement="Bottom" style="max-width: 600px;">
-    <div id="logDetailsPopoverContent" style="padding: 0.5rem;"></div>
-    <div slot="footer" style="display: flex; justify-content: flex-end; padding: 0.5rem;">
-      <ui5-button id="logDetailsClose" design="Transparent">Close</ui5-button>
-    </div>
-  </ui5-popover>
-
   <script type="module" src="./main.ts"></script>
 </body>
 </html>

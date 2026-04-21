@@ -6,14 +6,14 @@ describe('renderHeader', () => {
   it('shows Live and Positive design when reading is true', () => {
     const metrics = { ...getInitialLogMetrics(), reading: true };
     const html = renderHeader(metrics);
-    expect(html).toContain('Live');
+    expect(html).toContain('Status: Live');
     expect(html).toContain('design="Positive"');
   });
 
   it('shows Replay and Neutral design when reading is false', () => {
     const metrics = { ...getInitialLogMetrics(), reading: false };
     const html = renderHeader(metrics);
-    expect(html).toContain('Replay');
+    expect(html).toContain('Status: Replay');
     expect(html).toContain('design="Neutral"');
   });
 
