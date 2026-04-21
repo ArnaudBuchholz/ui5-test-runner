@@ -51,18 +51,27 @@ Concretely:
 
 ### Popover opener
 
-Pass the clicked element directly as the `opener` — do **not** re-query the DOM by ID inside the click handler. Use `event.currentTarget`:
+Pass the clicked element directly as the `opener`. For listeners attached directly to a button, use `event.currentTarget`. For delegated listeners (e.g. a single listener on `<thead>` handling clicks on any `<th>`), `event.currentTarget` points to the delegate container, not the clicked cell — in that case resolve the actual target first (e.g. via `closest`) and pass that element as the opener:
 
 ```typescript
+// Direct listener — use event.currentTarget
 button.addEventListener('click', (event) => {
   popover.opener = event.currentTarget;
+  popover.open = true;
+});
+
+// Delegated listener — resolve the actual target first
+container.addEventListener('click', (event) => {
+  const cell = (event.target as Element).closest('th[data-col]');
+  if (!cell) return;
+  popover.opener = cell;
   popover.open = true;
 });
 ```
 
 ### UI5 Popover placement
 
-`<ui5-popover>` elements must **not** be injected into `#app` via `innerHTML` — placing them as flex siblings of the header or toolbar breaks the layout. Instead, declare them **once, statically, in the HTML shell** (e.g. directly inside `<body>`, before `#app`). Update their inner content via `popover.innerHTML = ...` when state changes. Never re-render or replace the popover element itself.
+`<ui5-popover>` elements must **not** be injected into `#app` via `innerHTML` — placing them as flex siblings of the header or toolbar breaks the layout. They must be inserted **once, before `#app`**, and never re-rendered or replaced. The preferred approach is to inject them programmatically from `main.ts` on `DOMContentLoaded` using `app.insertAdjacentHTML('beforebegin', ...)`, keeping the HTML shell minimal and the viewer self-contained. Update their inner content via `popover.innerHTML = ...` when state changes.
 
 ### UI5 component mapping
 
@@ -89,6 +98,8 @@ Only modern browsers will be used, ignore Internet Explorer compatibility.
 ## Wireframes
 
 (made with https://wiretext.app/)
+
+Wireframes are **rough layout guides** — they convey component placement and relative proportions, not exact spacing, labelling, or wording. Prefer the descriptive text in each section over the wireframe when they conflict. In particular: exact button labels, presence or absence of inline labels (e.g. "Filter :"), and element sizing should be taken from the prose, not inferred from ASCII art.
 
 ### Overview
 
@@ -187,6 +198,8 @@ Considering the following logs to be displayed :
 
 All filter dialogs (level, source, processId, threadId) always appear with no checkbox ticked by default — do not try to deduce from the current filter which values should be ticked. After the user selected values, combine the current filter with `&& (field === value1 || field === value2 ...)`.
 
+When storing field values in `data-*` attributes (e.g. on checkboxes), use `JSON.stringify` — not `String()` — so that numeric values are preserved as numbers. When reading them back to build a filter expression, deserialize with `JSON.parse` and pass the typed value to the shared filter-expression builder, which handles quoting (strings get `"..."`, numbers do not).
+
 Only one popup is displayed at a time. Opening a new popup closes any previously open one. A popup is also closed when it loses focus (i.e. the user clicks outside of it).
 
 ### Time range (relative)
@@ -233,7 +246,7 @@ The from and to fields are datetime pickers.
 |3|`"error"`|❌|&#10060;|
 |4|`"fatal"`|💣|&#128163;|
 
-In filter expressions the `level` field is exposed as its string equivalent (e.g. `level === "info"`), not as a number.
+In filter expressions the `level` field is exposed as its string equivalent (e.g. `level === "info"`), not as a number. The fields `processId` and `threadId` are numeric and must appear as unquoted numbers in filter expressions (e.g. `processId === 16616`), not as strings.
 
 ### Log details
 
