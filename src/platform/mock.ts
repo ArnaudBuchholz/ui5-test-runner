@@ -89,12 +89,15 @@ type TerminalRawMode = Parameters<typeof Terminal.setRawMode>[0];
 export let __lastTerminalRawModeCallback: TerminalRawMode = false;
 
 vi.mock(import('./Terminal.js'), async (importActual) => {
-  const mocked = mockStaticMethodsOfExportedClasses(await importActual());
+  const actual = await importActual();
+  const originalstripVTControlCharacters = actual.Terminal.stripVTControlCharacters;
+  const mocked = mockStaticMethodsOfExportedClasses(actual);
   const { Terminal } = mocked;
   // eslint-disable-next-line @typescript-eslint/unbound-method -- useless control
   vi.mocked(Terminal.setRawMode).mockImplementation((callback: TerminalRawMode) => {
     __lastTerminalRawModeCallback = callback;
   });
+  vi.mocked(Terminal.stripVTControlCharacters).mockImplementation(originalstripVTControlCharacters);
   return mocked;
 });
 
