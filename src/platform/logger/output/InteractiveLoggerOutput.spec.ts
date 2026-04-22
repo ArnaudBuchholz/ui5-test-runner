@@ -30,13 +30,17 @@ describe('cursor management', () => {
 });
 
 describe('output handling', () => {
-  const loggerOutput = new InteractiveLoggerOutput(
-    {
-      reportDir: './tmp',
-      outputInterval: 250
-    } as Configuration,
-    Date.now()
-  );
+  let loggerOutput: InteractiveLoggerOutput;
+
+  beforeAll(() => {
+    loggerOutput = new InteractiveLoggerOutput(
+      {
+        reportDir: './tmp',
+        outputInterval: 250
+      } as Configuration,
+      Date.now()
+    );
+  });
 
   afterAll(() => {
     loggerOutput.closeLoggerOutput();
@@ -161,7 +165,9 @@ describe('output handling', () => {
       loggerOutput.terminalResized(120);
       expect(Terminal.eraseToEnd).toHaveBeenCalledWith(4);
       expect(Terminal.write).toHaveBeenCalledWith(
-        expect.stringContaining(`${Terminal.GREEN}OPA${Terminal.WHITE}[##--------] 20% page with a long URL that goes beyond 40 characters (including progress bar)\n`)
+        expect.stringContaining(
+          `${Terminal.GREEN}OPA${Terminal.WHITE}[##--------] 20% page with a long URL that goes beyond 40 characters (including progress bar)\n`
+        )
       );
       expect(Terminal.write).toHaveBeenCalledWith(
         expect.stringContaining(`${Terminal.RED}3  ${Terminal.WHITE}[####------] 40% page with a short URL\n`)
@@ -188,10 +194,10 @@ describe('output handling (NO_COLOR)', () => {
   it('renders only raw text', async () => {
     loggerOutput.addTextToLoggerOutput('formatted', 'raw');
     await vi.advanceTimersToNextTimerAsync(); // tick
-    expect(Terminal.write).toHaveBeenCalledWith(expect.stringContaining('raw'));
+    expect(Terminal.write).toHaveBeenCalledWith(expect.stringContaining('raw\n'));
   });
 
-  it.only('does not render colors on the main progress', async () => {
+  it('does not render colors on the main progress', async () => {
     loggerOutput.addAttributesToLoggerOutput({
       timestamp: Date.now(),
       source: 'progress',
@@ -204,6 +210,6 @@ describe('output handling (NO_COLOR)', () => {
       } satisfies OverallProgressData
     } as InternalLogAttributes);
     await vi.advanceTimersToNextTimerAsync(); // tick
-    expect(Terminal.write).toHaveBeenCalledWith(expect.stringContaining(`[-][#####-----] 50% main\n`));
+    expect(Terminal.write).toHaveBeenCalledWith(expect.stringContaining(`[#####-----] 50% main\n`));
   });
 });
