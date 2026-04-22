@@ -66,7 +66,7 @@ export function renderLogDetails(log: InternalLogAttributes): string {
 
   if (log.data !== undefined) {
     html += `<div class="log-details-row"><span class="log-details-section-label">data (JSON):</span></div>`;
-    html += renderDataFields(log.data as Record<string, unknown>);
+    html += renderDataFields(log.data);
   }
 
   return html;
