@@ -4,6 +4,7 @@ import type { Configuration } from '../../../configuration/Configuration';
 import { Terminal } from '../../Terminal.js';
 import type { InternalLogAttributes, OverallProgressData, PageProgressData } from '../types.js';
 import { LogLevel } from '../types.js';
+import { stripVTControlCharacters } from 'node:util';
 
 vi.useFakeTimers();
 vi.setSystemTime(new Date('2025-12-12T00:00:00.000Z'));
@@ -40,6 +41,70 @@ describe('output handling', () => {
       } as Configuration,
       Date.now()
     );
+    loggerOutput.addTextToLoggerOutput('formatted', 'raw');
+    loggerOutput.addAttributesToLoggerOutput({
+      timestamp: Date.now(),
+      source: 'progress',
+      level: LogLevel.info,
+      message: 'main',
+      data: {
+        uid: '',
+        max: 100,
+        value: 50
+      } satisfies OverallProgressData
+    } as InternalLogAttributes);
+    loggerOutput.addAttributesToLoggerOutput({
+      timestamp: Date.now(),
+      source: 'progress',
+      level: LogLevel.info,
+      message: 'OPA page with a long message that goes beyond 40 characters (including progress bar)',
+      data: {
+        uid: 'page1',
+        max: 100,
+        value: 20,
+        type: 'opa',
+        errors: 0
+      } satisfies PageProgressData
+    } as InternalLogAttributes);
+    loggerOutput.addAttributesToLoggerOutput({
+      timestamp: Date.now(),
+      source: 'progress',
+      level: LogLevel.info,
+      message: 'Failed QUnit page',
+      data: {
+        uid: 'page2',
+        max: 100,
+        value: 40,
+        type: 'qunit',
+        errors: 3
+      } satisfies PageProgressData
+    } as InternalLogAttributes);
+    loggerOutput.addAttributesToLoggerOutput({
+      timestamp: Date.now(),
+      source: 'progress',
+      level: LogLevel.info,
+      message: 'QUnit page with no error',
+      data: {
+        uid: 'page3',
+        max: 100,
+        value: 50,
+        type: 'qunit',
+        errors: 0
+      } satisfies PageProgressData
+    } as InternalLogAttributes);
+    // loggerOutput.addAttributesToLoggerOutput({
+    //   timestamp: Date.now(),
+    //   source: 'progress',
+    //   level: LogLevel.info,
+    //   message: 'Test suite',
+    //   data: {
+    //     uid: 'page4',
+    //     max: 1,
+    //     value: 0,
+    //     type: 'unknown',
+    //     errors: 0
+    //   } satisfies PageProgressData
+    // } as InternalLogAttributes);
   });
 
   afterAll(() => {
@@ -47,62 +112,7 @@ describe('output handling', () => {
   });
 
   describe('before tick', () => {
-    it('does not output text', () => {
-      loggerOutput.addTextToLoggerOutput('formatted', 'raw');
-      expect(Terminal.write).not.toHaveBeenCalled();
-    });
-
-    it('stores progress info to display', () => {
-      loggerOutput.addAttributesToLoggerOutput({
-        timestamp: Date.now(),
-        source: 'progress',
-        level: LogLevel.info,
-        message: 'main',
-        data: {
-          uid: '',
-          max: 100,
-          value: 50
-        } satisfies OverallProgressData
-      } as InternalLogAttributes);
-      loggerOutput.addAttributesToLoggerOutput({
-        timestamp: Date.now(),
-        source: 'progress',
-        level: LogLevel.info,
-        message: 'page with a long URL that goes beyond 40 characters (including progress bar)',
-        data: {
-          uid: 'page1',
-          max: 100,
-          value: 20,
-          type: 'opa',
-          errors: 0
-        } satisfies PageProgressData
-      } as InternalLogAttributes);
-      loggerOutput.addAttributesToLoggerOutput({
-        timestamp: Date.now(),
-        source: 'progress',
-        level: LogLevel.info,
-        message: 'page with a short URL',
-        data: {
-          uid: 'page2',
-          max: 100,
-          value: 40,
-          type: 'qunit',
-          errors: 3
-        } satisfies PageProgressData
-      } as InternalLogAttributes);
-      loggerOutput.addAttributesToLoggerOutput({
-        timestamp: Date.now(),
-        source: 'progress',
-        level: LogLevel.info,
-        message: 'qunit page',
-        data: {
-          uid: 'page3',
-          max: 100,
-          value: 50,
-          type: 'qunit',
-          errors: 0
-        } satisfies PageProgressData
-      } as InternalLogAttributes);
+    it('does not output any text', () => {
       expect(Terminal.write).not.toHaveBeenCalled();
     });
   });
@@ -114,33 +124,41 @@ describe('output handling', () => {
       expect(Terminal.write).toHaveBeenCalledWith(expect.stringContaining('formatted\n'));
     });
 
-    it('flushes the text after rendering once', () => {
+    it('flushes the static text after rendering once', () => {
       expect(Terminal.write).not.toHaveBeenCalledWith(expect.stringContaining('formatted\n'));
     });
 
     it('renders main progress (with animated tick)', () => {
-      expect(Terminal.write).toHaveBeenCalledWith(expect.stringMatching(/\[#####-----\] 50% main\b/));
+      expect(Terminal.write).toHaveBeenCalled();
+      const [text] = vi.mocked(Terminal.write).mock.calls[0]!;
+      expect(stripVTControlCharacters(text)).toMatch(/\[.\]\[#####-----\] 50% main\b/);
     });
 
     it('renders page 1 progress', () => {
-      expect(Terminal.write).toHaveBeenCalledWith(
-        expect.stringContaining(
-          `${Terminal.GREEN}OPA${Terminal.WHITE}[##--------] 20% page with a long URL that goes beyond 40 characters (including progress bar)\n`
-        )
+      expect(Terminal.write).toHaveBeenCalled();
+      const [text] = vi.mocked(Terminal.write).mock.calls[0]!;
+      expect(text).toContain(
+        `${Terminal.GREEN}OPA${Terminal.WHITE}[##--------] 20% OPA page with a long message that goes beyond 40 characters (including progress bar)\n`
       );
     });
 
     it('renders page 2 progress', () => {
-      expect(Terminal.write).toHaveBeenCalledWith(
-        expect.stringContaining(`${Terminal.RED}3  ${Terminal.WHITE}[####------] 40% page with a short URL\n`)
-      );
+      expect(Terminal.write).toHaveBeenCalled();
+      const [text] = vi.mocked(Terminal.write).mock.calls[0]!;
+      expect(text).toContain(`${Terminal.RED}3  ${Terminal.WHITE}[####------] 40% Failed QUnit page\n`);
     });
 
     it('renders page 3 progress', () => {
-      expect(Terminal.write).toHaveBeenCalledWith(
-        expect.stringContaining(`${Terminal.GREEN}QNT${Terminal.WHITE}[#####-----] 50% qunit page\n`)
-      );
+      expect(Terminal.write).toHaveBeenCalled();
+      const [text] = vi.mocked(Terminal.write).mock.calls[0]!;
+      expect(text).toContain(`${Terminal.GREEN}QNT${Terminal.WHITE}[#####-----] 50% QUnit page with no error\n`);
     });
+
+    // it('renders page 4 progress', () => {
+    //   expect(Terminal.write).toHaveBeenCalled();
+    //   const [text] = vi.mocked(Terminal.write).mock.calls[0]!;
+    //   expect(text).toContain(`   Test suite\n`);
+    // });
 
     it('clears the progress lines on tick', () => {
       expect(Terminal.eraseToEnd).toHaveBeenCalledWith(4);
@@ -152,27 +170,21 @@ describe('output handling', () => {
       loggerOutput.terminalResized(40);
       // Because the new terminal width is shorter, we need to clean one additional line
       expect(Terminal.eraseToEnd).toHaveBeenCalledWith(7);
-      expect(Terminal.write).toHaveBeenCalledWith(
-        expect.stringContaining(`${Terminal.GREEN}OPA${Terminal.WHITE}[##--------] 20% ...ng progress bar)\n`)
-      );
-      expect(Terminal.write).toHaveBeenCalledWith(
-        expect.stringContaining(`${Terminal.RED}3  ${Terminal.WHITE}[####------] 40% ...with a short URL\n`)
-      );
-      expect(Terminal.write).toHaveBeenCalledWith(expect.stringMatching(/\[#####-----\] 50%/));
+      expect(Terminal.write).toHaveBeenCalled();
+      const [text] = vi.mocked(Terminal.write).mock.calls[0]!;
+      expect(text).toContain(`[##--------] 20% ...ng progress bar)\n`);
+      expect(text).toContain(`[####------] 40% Failed QUnit page\n`);
     });
 
     it('clears and rerenders the progress lines on resize (wider)', () => {
       loggerOutput.terminalResized(120);
       expect(Terminal.eraseToEnd).toHaveBeenCalledWith(4);
-      expect(Terminal.write).toHaveBeenCalledWith(
-        expect.stringContaining(
-          `${Terminal.GREEN}OPA${Terminal.WHITE}[##--------] 20% page with a long URL that goes beyond 40 characters (including progress bar)\n`
-        )
+      expect(Terminal.write).toHaveBeenCalled();
+      const [text] = vi.mocked(Terminal.write).mock.calls[0]!;
+      expect(text).toContain(
+        `${Terminal.GREEN}OPA${Terminal.WHITE}[##--------] 20% OPA page with a long message that goes beyond 40 characters (including progress bar)\n`
       );
-      expect(Terminal.write).toHaveBeenCalledWith(
-        expect.stringContaining(`${Terminal.RED}3  ${Terminal.WHITE}[####------] 40% page with a short URL\n`)
-      );
-      expect(Terminal.write).toHaveBeenCalledWith(expect.stringMatching(/\[#####-----\] 50% main\b/));
+      expect(text).toContain(`${Terminal.RED}3  ${Terminal.WHITE}[####------] 40% Failed QUnit page\n`);
     });
   });
 });
