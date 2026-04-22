@@ -400,5 +400,42 @@ describe('progress handling', () => {
         totalNumberOfTests: 400
       });
     });
+
+    it('ignores unknown type pages', () => {
+      progressLoggerOutput.addAttributesToLoggerOutput({
+        source: 'progress',
+        data: {
+          uid: 'task1',
+          value: 100,
+          max: 100,
+          type: 'unknown',
+          errors: 9
+        }
+      } as InternalLogAttributes);
+      expect(progressLoggerOutput.overallProgress).toMatchObject({
+        totalNumberOfExecutedTests: 0,
+        totalNumberOfErrors: 0,
+        totalNumberOfTests: 0
+      });
+    });
+
+    it('ignores unknown type pages (terminated)', () => {
+      progressLoggerOutput.addAttributesToLoggerOutput({
+        source: 'progress',
+        data: {
+          uid: 'task1',
+          value: 100,
+          max: 100,
+          type: 'unknown',
+          errors: 9,
+          remove: true
+        }
+      } as InternalLogAttributes);
+      expect(progressLoggerOutput.overallProgress).toMatchObject({
+        totalNumberOfExecutedTests: 0,
+        totalNumberOfErrors: 0,
+        totalNumberOfTests: 0
+      });
+    });
   });
 });
