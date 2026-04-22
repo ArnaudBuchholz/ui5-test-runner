@@ -18,6 +18,9 @@ type Actions = 'a1' | 'a2';
 const connect = vi.fn();
 const interaction = vi.fn();
 
+// Silence console logs
+vi.spyOn(console, 'log').mockImplementation(() => {});
+
 class TestUserInterfaceController extends AbstractUserInterfaceController<Settings, State, Actions> {
   constructor() {
     super();

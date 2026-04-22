@@ -14,6 +14,9 @@ const FIVE_MINUTES = 300_000;
 const FOUR_MINUTES = 4 * ONE_MINUTE;
 const TEN_MINUTES = 10 * ONE_MINUTE;
 
+// Silence console logs
+vi.spyOn(console, 'log').mockImplementation(() => {});
+
 const fetchSpy = vi.spyOn(globalThis, 'fetch');
 fetchSpy.mockResolvedValue({
   ok: true,
