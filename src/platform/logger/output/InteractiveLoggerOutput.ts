@@ -41,7 +41,7 @@ export class InteractiveLoggerOutput extends BaseLoggerOutput {
   }
 
   override addTextToLoggerOutput(formatted: string, raw: string): void {
-    this._texts.push(this._noColor ? raw : formatted, '\n');
+    this._texts.push(this._noColor ? raw : formatted);
   }
 
   private _progress() {

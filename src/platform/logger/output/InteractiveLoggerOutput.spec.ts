@@ -41,7 +41,7 @@ describe('output handling', () => {
       } as Configuration,
       Date.now()
     );
-    loggerOutput.addTextToLoggerOutput('formatted', 'raw');
+    loggerOutput.addTextToLoggerOutput('formatted\n', 'raw\n');
     loggerOutput.addAttributesToLoggerOutput({
       timestamp: Date.now(),
       source: 'progress',
@@ -204,7 +204,7 @@ describe('output handling (NO_COLOR)', () => {
   });
 
   it('renders only raw text', async () => {
-    loggerOutput.addTextToLoggerOutput('formatted', 'raw');
+    loggerOutput.addTextToLoggerOutput('formatted\n', 'raw\n');
     await vi.advanceTimersToNextTimerAsync(); // tick
     expect(Terminal.write).toHaveBeenCalledWith(expect.stringContaining('raw\n'));
   });
