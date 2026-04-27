@@ -3,14 +3,12 @@ import { AbstractUserInterfaceController } from '../../utils/AbstractUserInterfa
 import { FILTER_ON_STATUS, SORT_BY } from './constants.js';
 import type { Settings, State, Actions } from './types.js';
 
-export class ReportController
-  extends AbstractUserInterfaceController<Settings, State, Actions>
-{
+export class ReportController extends AbstractUserInterfaceController<Settings, State, Actions> {
   constructor() {
     super();
     this._settings = {
       filterOnStatus: FILTER_ON_STATUS,
-      sortBy: SORT_BY,
+      sortBy: SORT_BY
     };
     this._state = {
       report: {
@@ -25,8 +23,8 @@ export class ReportController
       sortAscending: true,
       mode: 'open',
       suites: [],
-      tests: [],
-    }
+      tests: []
+    };
   }
 
   protected override _onInteraction(stateDiff: Partial<State>, action?: Actions) {
@@ -35,6 +33,5 @@ export class ReportController
     }
   }
 
-  protected async export() {
-  }
+  protected async export() {}
 }

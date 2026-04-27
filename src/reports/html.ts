@@ -1,4 +1,4 @@
-import { __developmentMode, __sourcesRoot, FileSystem, Path, ZLib } from '../platform/index.js';
+import { __developmentMode, __sourcesRoot, FileSystem, Path /*, ZLib*/ } from '../platform/index.js';
 import type { Configuration } from '../configuration/Configuration.js';
 import type { CommonTestReport } from '../types/CommonTestReportFormat.js';
 

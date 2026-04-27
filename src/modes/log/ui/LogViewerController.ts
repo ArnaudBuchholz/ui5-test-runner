@@ -6,9 +6,7 @@ import { getInitialLogMetrics } from '../LogMetrics.js';
 import type { Settings, State, Actions } from './types.ts';
 import { FIVE_MINUTES, FIVE_SECONDS, RELATIVE_TIMERANGE_SETTINGS, AUTO_REFRESH_SETTINGS } from './constants.js';
 
-export class LogViewerController
-  extends AbstractUserInterfaceController<Settings, State, Actions>
-{
+export class LogViewerController extends AbstractUserInterfaceController<Settings, State, Actions> {
   constructor() {
     super();
     this._state = {

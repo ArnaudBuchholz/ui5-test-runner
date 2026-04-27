@@ -1,4 +1,4 @@
-import { it, expect, vi } from 'vitest';
+import { it, expect /*, vi*/ } from 'vitest';
 import { ReportController } from './ReportController.js';
 import type { State } from './types.js';
 import { createEmptyTestResults, SPEC_VERSION } from '../../types/CommonTestReportFormat.js';
@@ -18,7 +18,7 @@ it('has an empty initial state', () => {
     sortAscending: true,
     mode: 'open',
     suites: [],
-    tests: [],
+    tests: []
   });
 });
 
@@ -32,7 +32,7 @@ it('has an empty initial state', () => {
 //       specVersion: SPEC_VERSION,
 //       results: {
 //         summary: {
-          
+
 //         }
 //       }
 //     }
