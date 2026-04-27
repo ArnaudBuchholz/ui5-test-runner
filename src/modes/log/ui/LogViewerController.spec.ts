@@ -45,8 +45,8 @@ const setup = () => {
     }
     timeoutId = setTimeout(() => resolve(), 10);
   });
-  const connect = controller.connect(update);
-  return { controller, update, connect, promise };
+  controller.connect(update);
+  return { controller, update, promise };
 };
 
 it('initializes the UI state', () => {
