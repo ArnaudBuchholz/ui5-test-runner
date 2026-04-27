@@ -1,5 +1,9 @@
 export const SORT_BY = [
     {
+        label: 'Execution order',
+        key: '',
+    },
+    {
         label: 'Name',
         key: 'name'
     },
