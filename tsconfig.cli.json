@@ -1,7 +1,7 @@
 {
   "extends": ["./tsconfig.base.json"],
   "include": ["src/"],
-  "exclude": ["src/**/*.spec.ts", "src/**/*.mock.ts", "src/agent/**", "src/ui/**", "src/ai/**"],
+  "exclude": ["src/**/*.spec.ts", "src/**/*.mock.ts", "src/agent/**", "src/ui/**", "src/**/ui/**", "src/ai/**"],
   "compilerOptions": {
     "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.cli.tsbuildinfo",
     "rootDir": "src",

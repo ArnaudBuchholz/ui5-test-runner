@@ -3,6 +3,7 @@
   "include": [
     "src/css.d.ts",
     "src/ui/**/*.ts",
+    "src/**/ui/**/*.ts",
     "src/ai/**/*.ts",
     "src/types/*.ts",
     "src/modes/log/ui/*.ts",
