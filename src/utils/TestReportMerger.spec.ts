@@ -1,7 +1,7 @@
 import { it, expect, beforeEach } from 'vitest';
-import { TestReportMerger } from './report.js';
-import type { CommonTestReport } from '../../types/CommonTestReportFormat.js';
-import { createEmptyTestResults } from '../../types/CommonTestReportFormat.js';
+import { TestReportMerger } from './TestReportMerger.js';
+import type { CommonTestReport } from '../types/CommonTestReportFormat.js';
+import { createEmptyTestResults } from '../types/CommonTestReportFormat.js';
 
 const comparableTestReport = (testResults: Partial<CommonTestReport['results']> = {}) => {
   const emptyTestReport: CommonTestReport = {

@@ -1,0 +1,68 @@
+import { assert } from '../platform/assert.js';
+import { logger } from '../platform/index.js';
+import { version } from '../platform/version.js';
+import { createEmptyTestResults } from '../types/CommonTestReportFormat.js';
+import type { CommonTestReport } from '../types/CommonTestReportFormat.js';
+import { randomUUID } from 'node:crypto';
+
+export class TestReportMerger {
+  private _merged: CommonTestReport | undefined;
+  private _suites: { [url in string]?: readonly string[] } = {};
+
+  get merged(): CommonTestReport {
+    assert(this._merged !== undefined);
+    return this._merged;
+  }
+
+  async initialize(): Promise<void> {
+    this._merged = {
+      reportFormat: 'CTRF',
+      specVersion: 'pre-1.0',
+      reportId: randomUUID(),
+      timestamp: new Date().toISOString(),
+      generatedBy: await version(),
+      results: createEmptyTestResults()
+    };
+    this._merged.results.summary.start = Date.now();
+  }
+
+  addSuite(suiteUrl: string, pageUrls: string[]) {
+    const parentUrls = this._suites[suiteUrl] ?? [];
+    for (const pageUrl of pageUrls) {
+      this._suites[pageUrl] = [...parentUrls, suiteUrl];
+    }
+  }
+
+  merge(url: string, testResults: CommonTestReport['results']) {
+    assert(this._merged !== undefined);
+    const { name: toolName } = this._merged.results.tool;
+    if (toolName === '') {
+      this._merged.results.tool = testResults.tool;
+    } else if (toolName !== testResults.tool.name) {
+      logger.warn({
+        source: 'job',
+        message: `tool name not matching, expected ${toolName} but got ${testResults.tool.name}`
+      });
+      // assert(toolName === testResults.tool.name); // TODO: what to do otherwise ?
+    }
+    const { results } = this._merged;
+    const suites = [...(this._suites[url] ?? []), url];
+    for (const test of testResults.tests) {
+      results.tests.push({
+        ...test,
+        suite: [...suites, ...(test.suite ?? [])] as [string, ...string[]]
+      });
+    }
+    const summaryFields = ['tests', 'passed', 'failed', 'skipped', 'pending', 'other'] as const;
+    for (const summaryField of summaryFields) {
+      results.summary[summaryField] += testResults.summary[summaryField];
+    }
+  }
+
+  finalize() {
+    assert(this._merged !== undefined);
+    const { summary } = this._merged.results;
+    summary.stop = Date.now();
+    summary.duration = summary.stop - summary.start;
+  }
+}
