@@ -2,13 +2,14 @@
 // JSON schema converted through https://transform.tools/json-schema-to-typescript
 
 export type CommonTestStatus = 'passed' | 'failed' | 'skipped' | 'pending' | 'other';
+export const SPEC_VERSION = 'pre-1.0' as const;
 
 /** Common Test Report Format - an open standard JSON format for test results reports */
 export interface CommonTestReport {
   /** Document format identifier. Must be 'CTRF' */
   reportFormat: 'CTRF';
   /** CTRF specification version in SemVer format (MAJOR.MINOR.PATCH) */
-  specVersion: 'pre-1.0';
+  specVersion: typeof SPEC_VERSION;
   /** Unique identifier for this report instance (UUID) */
   reportId?: string;
   /** Report generation time (RFC 3339 / ISO 8601) */
