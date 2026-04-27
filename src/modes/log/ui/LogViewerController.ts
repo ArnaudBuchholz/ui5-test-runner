@@ -1,5 +1,4 @@
 import type { InternalLogAttributes } from '../../../platform/logger/types.js';
-import type { IUserInterfaceController } from '../../../types/IUserInterfaceController.js';
 import { AbstractUserInterfaceController } from '../../../utils/AbstractUserInterfaceController.js';
 import type { LogStorageQuery } from '../ILogStorage.js';
 import type { LogMetrics } from '../LogMetrics.js';
@@ -9,7 +8,6 @@ import { FIVE_MINUTES, FIVE_SECONDS, RELATIVE_TIMERANGE_SETTINGS, AUTO_REFRESH_S
 
 export class LogViewerController
   extends AbstractUserInterfaceController<Settings, State, Actions>
-  implements IUserInterfaceController<Settings, State, Actions>
 {
   constructor() {
     super();
