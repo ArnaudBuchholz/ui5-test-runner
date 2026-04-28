@@ -1,7 +1,7 @@
 import { FileSystem } from './FileSystem.js';
 import { __sourcesRoot } from './constants.js';
 import { Path } from './Path.js';
-import { memoize } from '../utils/memoize.js';
+import { memoize } from '../utils/shared/memoize.js';
 
 export const version = memoize(async (): Promise<string> => {
   const { name, version } = JSON.parse(

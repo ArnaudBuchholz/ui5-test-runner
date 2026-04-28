@@ -1,5 +1,5 @@
 import type { InternalLogAttributes } from '../../../platform/logger/types.js';
-import { AbstractUserInterfaceController } from '../../../utils/AbstractUserInterfaceController.js';
+import { AbstractUserInterfaceController } from '../../../utils/ui/AbstractUserInterfaceController.js';
 import type { LogStorageQuery } from '../ILogStorage.js';
 import type { LogMetrics } from '../LogMetrics.js';
 import { getInitialLogMetrics } from '../LogMetrics.js';

@@ -24,6 +24,12 @@
     "allowUnreachableCode": false,
     "erasableSyntaxOnly": true,
     "skipLibCheck": true,
-    "resolveJsonModule": true
+    "resolveJsonModule": true,
+    "rootDir": "src",
+    "moduleResolution": "Bundler",
+    "target": "ESNext",
+    "module": "esnext",
+    "useDefineForClassFields": true,
+    "noEmit": true
   }
 }

@@ -14,7 +14,7 @@ import type { ILogger } from './logger/ILogger.ts';
 import { LogLevel } from './logger/types.js';
 import { toInternalLogAttributes } from './logger/toInternalLogAttributes.js';
 import assert from 'node:assert/strict';
-import { toPlainObject } from '../utils/object.js';
+import { toPlainObject } from '../utils/shared/object.js';
 
 const startedAt = Date.now();
 

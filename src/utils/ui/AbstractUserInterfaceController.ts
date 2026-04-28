@@ -1,4 +1,4 @@
-import type { IUserInterfaceController, UIEvent } from '../types/IUserInterfaceController.js';
+import type { IUserInterfaceController, UIEvent } from '../../types/IUserInterfaceController.js';
 
 export abstract class AbstractUserInterfaceController<
   Settings extends object,

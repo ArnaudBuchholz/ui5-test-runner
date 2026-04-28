@@ -4,7 +4,7 @@ import { MAX_BUFFER_COUNT, workerMain } from './allCompressed.js';
 import type { LogMessage } from './types.js';
 import { LogLevel } from './types.js';
 import type { Configuration } from '../../configuration/Configuration.js';
-import { FramedStreamWriter } from '../../utils/FramedStreamWriter.js';
+import { FramedStreamWriter } from '../../utils/node/FramedStreamWriter.js';
 
 const stream = {
   write: vi.fn(),

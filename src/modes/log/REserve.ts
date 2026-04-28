@@ -1,5 +1,5 @@
 import { __developmentMode, __sourcesRoot, Path, FileSystem } from '../../platform/index.js';
-import { memoize } from '../../utils/memoize.js';
+import { memoize } from '../../utils/shared/memoize.js';
 import type { Configuration } from 'reserve';
 import type { ILogStorage } from './ILogStorage.js';
 import type { LogMetrics } from './LogMetrics.js';

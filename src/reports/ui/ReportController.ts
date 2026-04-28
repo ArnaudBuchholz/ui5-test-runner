@@ -1,5 +1,5 @@
 import { createEmptyTestResults, SPEC_VERSION } from '../../types/CommonTestReportFormat.js';
-import { AbstractUserInterfaceController } from '../../utils/AbstractUserInterfaceController.js';
+import { AbstractUserInterfaceController } from '../../utils/ui/AbstractUserInterfaceController.js';
 import { FILTER_ON_STATUS, SORT_BY } from './constants.js';
 import type { Settings, State, Actions } from './types.js';
 

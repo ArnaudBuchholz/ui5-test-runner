@@ -11,6 +11,9 @@
       "path": "./tsconfig.uis.json"
     },
     {
+      "path": "./tsconfig.utils-shared.json"
+    },
+    {
       "path": "./tsconfig.vitest.json"
     }
   ]

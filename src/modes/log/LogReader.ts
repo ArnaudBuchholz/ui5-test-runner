@@ -1,7 +1,7 @@
 import { ZLib } from '../../platform/index.js';
 import { createCompressionContext, uncompress } from '../../platform/logger/compress.js';
 import type { InternalLogAttributes } from '../../platform/logger/types.js';
-import { FramedStreamReader } from '../../utils/FramedStreamReader.js';
+import { FramedStreamReader } from '../../utils/node/FramedStreamReader.js';
 import type { LogMetrics } from './LogMetrics.js';
 import { getInitialLogMetrics } from './LogMetrics.js';
 

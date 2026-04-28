@@ -1,8 +1,8 @@
-import { assert } from '../platform/assert.js';
-import { logger } from '../platform/index.js';
-import { version } from '../platform/version.js';
-import { createEmptyTestResults } from '../types/CommonTestReportFormat.js';
-import type { CommonTestReport } from '../types/CommonTestReportFormat.js';
+import { assert } from '../../platform/assert.js';
+import { logger } from '../../platform/index.js';
+import { version } from '../../platform/version.js';
+import { createEmptyTestResults } from '../../types/CommonTestReportFormat.js';
+import type { CommonTestReport } from '../../types/CommonTestReportFormat.js';
 import { randomUUID } from 'node:crypto';
 
 export class TestReportMerger {

@@ -2,7 +2,7 @@ import type { InternalLogAttributes, LogSource } from './types.js';
 import { LogLevel } from './types.js';
 import { isDeepStrictEqual } from 'node:util';
 import assert from 'node:assert/strict';
-import { split } from '../../utils/string.js';
+import { split } from '../../utils/shared/string.js';
 
 const ASCII_RECORD_SEPARATOR = '\u001E';
 

@@ -1,4 +1,4 @@
-import type { IParallelizeContext } from '../../utils/parallelize.js';
+import type { IParallelizeContext } from '../../utils/shared/parallelize.js';
 import { assert, logger } from '../../platform/index.js';
 import type { PageProgressData } from '../../platform/logger/types.js';
 import { getAgentSource } from './agent.js';

@@ -1,5 +1,5 @@
 import { logger, FileSystem, Http, Path, Process } from './platform/index.js';
-import { memoize } from './utils/memoize.js';
+import { memoize } from './utils/shared/memoize.js';
 
 const getNpmCliPath = memoize(async () => {
   const npmChildProcess = Process.spawn('npm', [], {

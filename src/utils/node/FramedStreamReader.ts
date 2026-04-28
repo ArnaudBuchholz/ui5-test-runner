@@ -1,5 +1,5 @@
-import type { IRegisteredAsyncTask } from '../platform/index.js';
-import { Exit, FileSystem, assert } from '../platform/index.js';
+import type { IRegisteredAsyncTask } from '../../platform/index.js';
+import { Exit, FileSystem, assert } from '../../platform/index.js';
 import { setTimeout } from 'node:timers/promises';
 
 export interface IFramedStreamReader {

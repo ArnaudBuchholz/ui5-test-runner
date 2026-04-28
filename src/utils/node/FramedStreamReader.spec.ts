@@ -1,6 +1,6 @@
 import { it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { FramedStreamReader } from './FramedStreamReader.js';
-import { Exit, FileSystem } from '../platform/index.js';
+import { Exit, FileSystem } from '../../platform/index.js';
 import { setTimeout } from 'node:timers/promises';
 import type { ReadStream } from 'node:fs';
 

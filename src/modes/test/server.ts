@@ -2,7 +2,7 @@ import { assert, Exit, logger, Thread } from '../../platform/index.js';
 import type { Configuration } from '../../configuration/Configuration.js';
 import { serve } from 'reserve';
 import type { Server } from 'reserve';
-import { toPlainObject } from '../../utils/object.js';
+import { toPlainObject } from '../../utils/shared/object.js';
 import { buildREserveConfiguration } from './REserve.js';
 
 type Message =

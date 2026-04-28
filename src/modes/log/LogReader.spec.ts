@@ -1,7 +1,7 @@
 import { it, expect, vi, beforeEach } from 'vitest';
 import type { LogReaderItem } from './LogReader.js';
 import { LogReader, POLL_INTERVAL_MS } from './LogReader.js';
-import { FramedStreamReader } from '../../utils/FramedStreamReader.js';
+import { FramedStreamReader } from '../../utils/node/FramedStreamReader.js';
 import { ZLib } from '../../platform/index.js';
 import { createCompressionContext, uncompress } from '../../platform/logger/compress.js';
 

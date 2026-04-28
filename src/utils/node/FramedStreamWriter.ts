@@ -1,4 +1,4 @@
-import { FileSystem } from '../platform/index.js';
+import { FileSystem } from '../../platform/index.js';
 
 export interface IFramedStreamWriter {
   write(buffer: Buffer): Promise<void>;

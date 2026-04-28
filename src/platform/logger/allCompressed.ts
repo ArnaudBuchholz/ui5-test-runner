@@ -4,7 +4,7 @@ import { LogLevel } from './types.js';
 import { toInternalLogAttributes } from './toInternalLogAttributes.js';
 import type { Configuration } from '../../configuration/Configuration.js';
 import { createCompressionContext, compress } from './compress.js';
-import { FramedStreamWriter } from '../../utils/FramedStreamWriter.js';
+import { FramedStreamWriter } from '../../utils/node/FramedStreamWriter.js';
 
 export const MAX_BUFFER_COUNT = 50;
 const FLUSH_INTERVAL_MS = 200;

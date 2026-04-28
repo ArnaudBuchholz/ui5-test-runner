@@ -1,4 +1,4 @@
-import { FileSystem, logger } from '../platform/index.js';
+import { FileSystem, logger } from '../../platform/index.js';
 
 const recursive = { recursive: true };
 

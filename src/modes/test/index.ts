@@ -1,15 +1,15 @@
 import { logger, logEnvironnement, Exit, FileSystem, Path, Http } from '../../platform/index.js';
 import type { Configuration } from '../../configuration/Configuration.js';
 import { defaults } from '../../configuration/options.js';
-import { parallelize } from '../../utils/parallelize.js';
+import { parallelize } from '../../utils/shared/parallelize.js';
 import { getAgentSource } from './agent.js';
 import { setupBrowser } from './browser.js';
 import { pageTask } from './pageTask.js';
 import { report } from './report.js';
 import { generateHtmlReport } from '../../reports/html.js';
-import { Folder } from '../../utils/Folder.js';
+import { Folder } from '../../utils/node/Folder.js';
 import { server } from './server.js';
-import { formatDuration } from '../../utils/string.js';
+import { formatDuration } from '../../utils/shared/string.js';
 
 /**
  * TODO

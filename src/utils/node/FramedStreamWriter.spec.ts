@@ -1,6 +1,6 @@
 import { it, expect, vi, beforeEach } from 'vitest';
 import { FramedStreamWriter } from './FramedStreamWriter.js';
-import { FileSystem } from '../platform/index.js';
+import { FileSystem } from '../../platform/index.js';
 
 const FILENAME = '/usr/arnaud/test.bin';
 const expectCallback = expect.any(Function) as () => void;

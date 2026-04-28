@@ -1,5 +1,4 @@
-import { assert } from '../platform/assert.js';
-import type { InternalLogAttributes } from '../platform/logger/types.js';
+import type { InternalLogAttributes } from '../../platform/logger/types.js';
 
 export class ProgressBar {
   static readonly WIDTH = 10;
@@ -17,8 +16,7 @@ export class ProgressBar {
     return this._label;
   }
 
-  update(attributes: InternalLogAttributes) {
-    assert(attributes.source === 'progress');
+  update(attributes: Extract<InternalLogAttributes, { source: 'progress' }>) {
     this._value = attributes.data.value;
     this._max = attributes.data.max;
     this._label = attributes.message;

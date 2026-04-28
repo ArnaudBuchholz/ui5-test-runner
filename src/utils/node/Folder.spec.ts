@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, vi, beforeAll } from 'vitest';
-import { FileSystem, logger } from '../platform/index.js';
+import { FileSystem, logger } from '../../platform/index.js';
 import { Folder } from './Folder.js';
 
 beforeEach(() => vi.clearAllMocks());

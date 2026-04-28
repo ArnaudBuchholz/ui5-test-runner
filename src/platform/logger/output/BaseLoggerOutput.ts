@@ -2,8 +2,8 @@ import { FileSystem, Path, Terminal } from '../../index.js';
 import type { Configuration } from '../../../configuration/Configuration.js';
 import type { InternalLogAttributes, PageProgressData } from '../types.js';
 import { LogLevel } from '../types.js';
-import { ProgressBar } from '../../../utils/ProgressBar.js';
-import { formatDuration } from '../../../utils/string.js';
+import { ProgressBar } from '../../../utils/shared/ProgressBar.js';
+import { formatDuration } from '../../../utils/shared/string.js';
 import { assert } from '../../assert.js';
 
 const icons = {
