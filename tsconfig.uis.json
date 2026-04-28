@@ -10,8 +10,7 @@
     "src/modes/log/LogMetrics.ts",
     "src/modes/log/ILogStorage.ts",
     "src/platform/logger/types.ts",
-    "src/utils/AbstractUserInterfaceController.ts",
-    "src/utils/typeUtilities.ts"
+    "src/utils/**/*.ts"
   ],
   "compilerOptions": {
     "target": "es2024",
