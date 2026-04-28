@@ -12,6 +12,9 @@
     "src/platform/logger/types.ts",
     "src/utils/**/*.ts"
   ],
+  "exclude": [
+    "src/utils/**/*.spec.ts"
+  ],
   "compilerOptions": {
     "target": "es2024",
     "module": "esnext",
