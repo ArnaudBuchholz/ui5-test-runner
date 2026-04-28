@@ -2,6 +2,7 @@ import { it, expect, beforeEach } from 'vitest';
 import { TestReportMerger } from './TestReportMerger.js';
 import type { CommonTestReport } from '../types/CommonTestReportFormat.js';
 import { createEmptyTestResults } from '../types/CommonTestReportFormat.js';
+import { logger } from '../platform/logger.js';
 
 const comparableTestReport = (testResults: Partial<CommonTestReport['results']> = {}) => {
   const emptyTestReport: CommonTestReport = {
@@ -50,6 +51,7 @@ it('merges test results (1)', () => {
       tests: 1
     }
   });
+  report.finalize();
   expect(report.merged).toStrictEqual(
     comparableTestReport({
       tool: { name: 'test' },
@@ -113,6 +115,7 @@ it('merges test results (2)', () => {
       tests: 1
     }
   });
+  report.finalize();
   expect(report.merged).toStrictEqual(
     comparableTestReport({
       tool: { name: 'test' },
@@ -138,6 +141,52 @@ it('merges test results (2)', () => {
       }
     })
   );
+});
+
+it('signals discrepency in the test tools', () => {
+  const test0 = {
+    name: 'test0',
+    status: 'passed',
+    duration: 1
+  } as const;
+  report.merge('http://localhost:8080/test0', {
+    tool: { name: 'test0' },
+    tests: [test0],
+    summary: {
+      failed: 0,
+      other: 0,
+      passed: 1,
+      pending: 0,
+      skipped: 0,
+      start: 123,
+      stop: 456,
+      tests: 1
+    }
+  });
+  const test1 = {
+    name: 'test1',
+    status: 'failed',
+    duration: 1,
+    suite: ['test1']
+  } as const;
+  report.merge('http://localhost:8080/test1', {
+    tool: { name: 'test1' },
+    tests: [test1],
+    summary: {
+      failed: 1,
+      other: 0,
+      passed: 0,
+      pending: 0,
+      skipped: 0,
+      start: 123,
+      stop: 456,
+      tests: 1
+    }
+  });
+  expect(logger.warn).toHaveBeenCalledWith({
+    source: 'job',
+    message: `tool name not matching, expected test0 but got test1`
+  });
 });
 
 it('supports suite construction', () => {
@@ -182,6 +231,7 @@ it('supports suite construction', () => {
       tests: 1
     }
   });
+  report.finalize();
   expect(report.merged).toStrictEqual(
     comparableTestReport({
       tool: { name: 'test' },
