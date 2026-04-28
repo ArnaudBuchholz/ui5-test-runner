@@ -14,6 +14,8 @@ export type Writable_Tests = {
   'picks only writable properties': Expect<Equal<Writable<{ a: boolean; readonly b: number }>, { a: boolean }>>;
 };
 
-export type DeepPartial<T> = T extends object ? {
-  [P in keyof T]?: DeepPartial<T[P]>;
-} : T;
+export type DeepPartial<T> = T extends object
+  ? {
+      [P in keyof T]?: DeepPartial<T[P]>;
+    }
+  : T;
