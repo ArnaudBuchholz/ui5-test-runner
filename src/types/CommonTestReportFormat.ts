@@ -388,3 +388,14 @@ export const createEmptyTestResults = (): CommonTestReport['results'] => ({
   },
   tests: []
 });
+
+export const createTestResults = (tests: CommonTestReport['results']['tests'], toolName = 'test') => {
+  const testResults = createEmptyTestResults();
+  testResults.tool.name = toolName;
+  for (const test of tests) {
+    testResults.tests.push(test);
+    testResults.summary.tests += 1;
+    testResults.summary[test.status] += 1;
+  }
+  return testResults;
+};
