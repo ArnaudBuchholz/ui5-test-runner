@@ -26,7 +26,13 @@ describe('createEmptyTestResults', () => {
 
 describe('createTestResults', () => {
   it('returns a test results object with the provided tool information', () => {
-    expect(createTestResults([], 'tool')).toStrictEqual<CommonTestReport['results']>({
+    expect(
+      createTestResults({
+        tool: {
+          name: 'tool'
+        }
+      })
+    ).toStrictEqual<CommonTestReport['results']>({
       tool: {
         name: 'tool'
       },
@@ -47,19 +53,32 @@ describe('createTestResults', () => {
 
   it('returns a test results object with the summary', () => {
     expect(
-      createTestResults([
-        {
-          name: 'test0',
-          status: 'passed',
-          duration: 1
+      createTestResults({
+        tests: [
+          {
+            name: 'test0',
+            status: 'passed',
+            duration: 1
+          }
+        ],
+        summary: {
+          failed: 999,
+          other: 999,
+          passed: 999,
+          pending: 999,
+          skipped: 999,
+          start: 123,
+          stop: 456,
+          tests: 999
         }
-      ])
+      })
     ).toStrictEqual<CommonTestReport['results']>({
       tool: {
-        name: 'test'
+        name: ''
       },
       tests: [
         {
+          suite: ['suite'],
           name: 'test0',
           status: 'passed',
           duration: 1
@@ -71,8 +90,8 @@ describe('createTestResults', () => {
         passed: 1,
         pending: 0,
         skipped: 0,
-        start: 0,
-        stop: 0,
+        start: 123,
+        stop: 456,
         duration: 0,
         tests: 1
       }
@@ -81,40 +100,49 @@ describe('createTestResults', () => {
 
   it('returns a test results object consolidating the different tests', () => {
     expect(
-      createTestResults([
-        {
-          name: 'test0',
-          status: 'passed',
-          duration: 1
-        },
-        {
-          name: 'test1',
-          status: 'failed',
-          duration: 1
-        },
-        {
-          name: 'test3',
-          status: 'passed',
-          duration: 1
-        }
-      ])
+      createTestResults({
+        tests: [
+          {
+            suite: ['suite', 'test0'],
+            name: 'test0',
+            status: 'passed',
+            duration: 1
+          },
+          {
+            suite: ['suite', 'test1'],
+
+            name: 'test1',
+            status: 'failed',
+            duration: 1
+          },
+          {
+            suite: ['suite', 'test2'],
+            name: 'test2',
+            status: 'passed',
+            duration: 1
+          }
+        ]
+      })
     ).toStrictEqual<CommonTestReport['results']>({
       tool: {
-        name: 'test'
+        name: ''
       },
       tests: [
         {
+          suite: ['suite', 'test0'],
           name: 'test0',
           status: 'passed',
           duration: 1
         },
         {
+          suite: ['suite', 'test1'],
           name: 'test1',
           status: 'failed',
           duration: 1
         },
         {
-          name: 'test3',
+          suite: ['suite', 'test2'],
+          name: 'test2',
           status: 'passed',
           duration: 1
         }

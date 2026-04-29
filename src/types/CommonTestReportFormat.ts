@@ -1,6 +1,8 @@
 // Based on https://ctrf.io, see https://github.com/ctrf-io/ctrf/blob/main/spec/ctrf.md
 // JSON schema converted through https://transform.tools/json-schema-to-typescript
 
+import type { DeepPartial } from './typeUtilities.js';
+
 export type CommonTestStatus = 'passed' | 'failed' | 'skipped' | 'pending' | 'other';
 export const SPEC_VERSION = 'pre-1.0' as const;
 
@@ -389,13 +391,35 @@ export const createEmptyTestResults = (): CommonTestReport['results'] => ({
   tests: []
 });
 
-export const createTestResults = (tests: CommonTestReport['results']['tests'], toolName = 'test') => {
+export const createTestResults = (results: DeepPartial<CommonTestReport['results']>) => {
   const testResults = createEmptyTestResults();
-  testResults.tool.name = toolName;
-  for (const test of tests) {
-    testResults.tests.push(test);
-    testResults.summary.tests += 1;
-    testResults.summary[test.status] += 1;
+  if (results.tool?.name) {
+    Object.assign(testResults.tool, results.tool);
+  }
+  if (results.summary) {
+    Object.assign(testResults.summary, results.summary);
+  }
+  if (results.tests) {
+    Object.assign(testResults.summary, {
+      failed: 0,
+      other: 0,
+      passed: 0,
+      pending: 0,
+      skipped: 0,
+      tests: 0
+    });
+    for (const test of results.tests) {
+      const resolvedTest = {
+        suite: ['suite'],
+        name: 'test',
+        status: 'passed',
+        duration: 0,
+        ...test
+      } as CommonTestReport['results']['tests'][number];
+      testResults.tests.push(resolvedTest);
+      testResults.summary.tests += 1;
+      testResults.summary[resolvedTest.status] += 1;
+    }
   }
   return testResults;
 };
