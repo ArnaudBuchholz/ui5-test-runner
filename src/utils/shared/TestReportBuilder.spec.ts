@@ -32,9 +32,9 @@ it('returns an empty report', () => {
   expect(reportBuilder.report).toStrictEqual(comparableTestReport());
 });
 
-it('merges test results (1)', () => {
+it('merges a test result with no suite', () => {
   const test0 = {
-    suite: ['suite0'],
+    suite: undefined,
     name: 'test0',
     status: 'passed',
     duration: 1
@@ -57,7 +57,7 @@ it('merges test results (1)', () => {
       tests: [
         {
           ...test0,
-          suite: ['http://localhost:8080/test0', 'suite0']
+          suite: ['http://localhost:8080/test0']
         }
       ],
       summary: {
@@ -74,7 +74,7 @@ it('merges test results (1)', () => {
   );
 });
 
-it('merges test results (2)', () => {
+it('merges 2 test results', () => {
   const test0 = {
     suite: ['suite0'],
     name: 'test0',
@@ -93,10 +93,10 @@ it('merges test results (2)', () => {
     })
   );
   const test1 = {
+    suite: ['suite1', 'test1'],
     name: 'test1',
     status: 'failed',
-    duration: 1,
-    suite: ['suite1', 'test1']
+    duration: 1
   } as const;
   reportBuilder.merge(
     'http://localhost:8080/test1',
@@ -198,7 +198,7 @@ it('supports suite construction', () => {
   );
 });
 
-it('takes care of the summary duration', async () => {
+it('takes care of the summary duration', () => {
   const now = Date.now();
   vi.setSystemTime(now);
   const reportBuilder = new TestReportBuilder(REPORT_ID, GENERATED_BY);
