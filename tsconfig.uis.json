@@ -6,7 +6,7 @@
     "src/**/ui/**/*.ts",
     "src/ai/**/*.ts",
     "src/types/*.ts",
-    "src/modes/log/ui/*.ts",
+    "src/utils/shared/*.ts",
     "src/modes/log/LogMetrics.ts",
     "src/modes/log/ILogStorage.ts",
     "src/platform/logger/types.ts"
