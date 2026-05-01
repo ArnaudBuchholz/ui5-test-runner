@@ -10,13 +10,17 @@ export class ReportController extends AbstractUserInterfaceController<Settings, 
       filterOnStatus: FILTER_ON_STATUS,
       sortBy: SORT_BY
     };
+    this._reset();
+  }
+
+  private _reset() {
     this._state = {
       report: {
         reportFormat: 'CTRF',
         specVersion: SPEC_VERSION,
         results: createEmptyTestResults()
       },
-      suiteId: '',
+      filterOnSuiteId: '',
       filterOnStatus: '',
       search: '',
       sortBy: '',
@@ -28,6 +32,13 @@ export class ReportController extends AbstractUserInterfaceController<Settings, 
   }
 
   protected override _onInteraction(stateDiff: Partial<State>, action?: Actions) {
+    if (stateDiff.report) {
+      this._reset();
+      this._update({
+        report: stateDiff.report,
+        mode: 'display'
+      })
+    }
     if (action !== undefined) {
       void this[action]();
     }
