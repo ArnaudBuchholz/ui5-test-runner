@@ -5,7 +5,7 @@ import { parallelize } from '../../utils/shared/parallelize.js';
 import { getAgentSource } from './agent.js';
 import { setupBrowser } from './browser.js';
 import { pageTask } from './pageTask.js';
-import { report } from './report.js';
+import { reportBuilder } from './report.js';
 import { generateHtmlReport } from '../../reports/html.js';
 import { Folder } from '../../utils/node/Folder.js';
 import { server } from './server.js';
@@ -50,7 +50,6 @@ export const test = async (configuration: Configuration) => {
 
     const urls = [...configuration.url.map((url) => url.replace(':0/', `:${port}/`))];
     browser = await setupBrowser(configuration);
-    await report.initialize();
     logger.info({ source: 'progress', message: 'Executing pages', data: { uid: '', value: 0, max: 0 } });
     let completed = 0;
     await parallelize(pageTask, urls, {
@@ -70,14 +69,14 @@ export const test = async (configuration: Configuration) => {
         });
       }
     });
-    report.finalize();
+    reportBuilder.finalize();
     FileSystem.writeFileSync(
       Path.join(configuration.reportDir, 'report.json'),
-      JSON.stringify(report.merged, undefined, 2),
+      JSON.stringify(reportBuilder.report, undefined, 2),
       'utf8'
     );
-    await generateHtmlReport(configuration, report.merged);
-    const { duration } = report.merged.results.summary;
+    await generateHtmlReport(configuration, reportBuilder.report);
+    const { duration } = reportBuilder.report.results.summary;
     if (duration) {
       logger.info({ source: 'job', message: `Tests duration: ${formatDuration(duration)}` });
     }

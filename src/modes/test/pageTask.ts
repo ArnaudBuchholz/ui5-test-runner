@@ -6,7 +6,7 @@ import { getBrowser } from './browser.js';
 import type { AgentState } from '../../types/AgentState.js';
 import { Exit, ExitShutdownError } from '../../platform/Exit.js';
 import { setTimeout } from 'node:timers/promises';
-import { report } from './report.js';
+import { reportBuilder } from './report.js';
 import type { CommonTestReport } from '../../types/CommonTestReportFormat.js';
 import type { IWindow } from '../../browsers/IBrowser.js';
 
@@ -138,7 +138,7 @@ export const pageTask = async function (this: IParallelizeContext, url: string, 
     }
     const testResults = (await page.eval("window['ui5-test-runner'].results")) as CommonTestReport['results'];
     logger.debug({ source: 'page', message: 'test results', data: { uid, results: testResults } });
-    report.merge(url, testResults);
+    reportBuilder.merge(url, testResults);
   } finally {
     if (context !== undefined) {
       logger.info({

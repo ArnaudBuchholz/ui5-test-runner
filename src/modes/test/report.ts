@@ -1,3 +1,4 @@
-import { TestReportMerger } from '../../utils/node/TestReportMerger.js';
+import { TestReportBuilder } from '../../utils/shared/TestReportBuilder.js';
+import { version } from '../../platform/version.js';
 
-export const report = new TestReportMerger();
+export const reportBuilder = new TestReportBuilder(crypto.randomUUID(), await version());
