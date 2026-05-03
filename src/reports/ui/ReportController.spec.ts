@@ -28,13 +28,18 @@ it('has an empty initial state', () => {
 
 it.skip('shows the report when set', () => {
   const reportBuilder = new TestReportBuilder(REPORT_ID, REPORT_GENERATED_BY);
-  reportBuilder.merge('http://localhost', createTestResults({
-    tests: [{
-      suite: ['test'],
-      name: 'test',
-      status: 'passed'
-    }]
-  }));
+  reportBuilder.merge(
+    'http://localhost',
+    createTestResults({
+      tests: [
+        {
+          suite: ['test'],
+          name: 'test',
+          status: 'passed'
+        }
+      ]
+    })
+  );
   reportBuilder.finalize();
   const { report } = reportBuilder;
   const controller = new ReportController();
@@ -49,4 +54,4 @@ it.skip('shows the report when set', () => {
     suites: [],
     tests: report.results.tests
   });
-})
+});
