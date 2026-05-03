@@ -9,6 +9,7 @@ export type LogErrorAttributes = {
 };
 
 type GenericLogSource =
+  | 'browser'
   | 'exit'
   | 'exit/handle'
   | 'thread'

@@ -38,6 +38,7 @@ export const log = async (configuration: Configuration) => {
     void browserReady
       .then(() =>
         browser.newWindow({
+          uid: 'log',
           url: `http://localhost:${port}/`,
           scripts: []
         })

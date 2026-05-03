@@ -77,6 +77,22 @@ export const factory = async (): Promise<IBrowser> => {
         await page?.evaluateOnNewDocument(script);
       }
       await page?.goto(settings.url);
+      page
+        ?.on('console', (message) =>
+          logger.debug({
+            source: 'browser',
+            message: message.text(),
+            data: { uid: settings.uid, type: message.type() }
+          })
+        )
+        ?.on('response', (response) => {
+          const request = response.request();
+          logger.debug({
+            source: 'browser',
+            message: request.url(),
+            data: { uid: settings.uid, method: request.method(), status: response.status() }
+          });
+        });
       logger.debug({ source: 'puppeteer', message: 'newWindow completed', data: settings });
       return {
         async eval(script: string) {

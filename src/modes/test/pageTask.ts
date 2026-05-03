@@ -111,6 +111,7 @@ export const pageTask = async function (this: IParallelizeContext, url: string, 
     const agentSource = await getAgentSource();
     const browser = getBrowser();
     page = await browser.newWindow({
+      uid,
       scripts: [agentSource],
       url
     });

@@ -24,6 +24,8 @@ type OverallProgress = {
   totalNumberOfTests: number;
 };
 
+const DO_NOT_RENDER_SOURCE: string[] = ['browser', 'metric', 'progress'] as const;
+
 export abstract class BaseLoggerOutput {
   protected readonly _configuration: Configuration;
   protected readonly _startedAt: number;
@@ -39,8 +41,7 @@ export abstract class BaseLoggerOutput {
 
   protected render(attributes: InternalLogAttributes): string | void {
     const { level, timestamp, source, message, data, error } = attributes;
-    // TODO: adjust for LogLevel.debug based on configuration (--debug-verbose)
-    if (source !== 'progress' && source !== 'metric' && level !== LogLevel.debug) {
+    if (!DO_NOT_RENDER_SOURCE.includes(source) && level !== LogLevel.debug) {
       return [
         icons[level],
         Terminal.MAGENTA,
