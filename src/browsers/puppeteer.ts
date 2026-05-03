@@ -1,6 +1,6 @@
 import { logger, Exit, Process } from '../platform/index.js';
 import type { BrowserCapabilities, BrowserSettings, IBrowser } from './IBrowser.js';
-import type { launch as launchFunction, Browser } from 'puppeteer';
+import type { launch as launchFunction, Browser, Page } from 'puppeteer';
 import { Npm } from '../Npm.js';
 
 export const factory = async (): Promise<IBrowser> => {
@@ -16,7 +16,7 @@ export const factory = async (): Promise<IBrowser> => {
       await browser?.close();
     }
   });
-  let pages = 0;
+  let openedPages = 0;
 
   const launchAndInstallIfNeeded = async (settings: BrowserSettings): Promise<BrowserCapabilities> => {
     const launchOptions: Parameters<typeof launch>[0] = {
@@ -24,9 +24,7 @@ export const factory = async (): Promise<IBrowser> => {
       defaultViewport: null,
       handleSIGINT: false,
       signal,
-      args: [
-        '--start-maximized',
-      ]
+      args: ['--start-maximized']
     };
     try {
       browser = await launch(launchOptions);
@@ -66,10 +64,15 @@ export const factory = async (): Promise<IBrowser> => {
 
     async newWindow(settings) {
       logger.debug({ source: 'puppeteer', message: 'newWindow', data: settings });
-      const page = pages === 0 ? (await browser!.pages(true))[0] : await browser?.newPage({
-        type: 'window'
-      });
-      ++pages;
+      let page: Page | undefined;
+      if (++openedPages === 1) {
+        const pages = await browser?.pages(true);
+        page = pages?.[0];
+      } else {
+        page = await browser?.newPage({
+          type: 'window'
+        });
+      }
       for (const script of settings.scripts) {
         await page?.evaluateOnNewDocument(script);
       }
