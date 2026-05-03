@@ -11,6 +11,9 @@
     "src/modes/log/ILogStorage.ts",
     "src/platform/logger/types.ts"
   ],
+  "exclude": [
+    "src/**/*.spec.ts"
+  ],
   "compilerOptions": {
     "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.uis.tsbuildinfo",
     "target": "es2024",
