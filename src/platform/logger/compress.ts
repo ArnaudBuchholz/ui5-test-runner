@@ -1,5 +1,20 @@
 import type { InternalLogAttributes, LogSource } from './types.js';
 import { LogLevel } from './types.js';
+
+/** Helps determine when new log attributes are added to InternalLogAttributes */
+export const _ALL_LOG_ATTRIBUTES_ARE_HANDLED: Record<keyof Required<InternalLogAttributes>, true> = {
+  timestamp: true,
+  level: true,
+  processId: true,
+  threadId: true,
+  isMainThread: true,
+  source: true,
+  pageId: true,
+  message: true,
+  error: true,
+  data: true
+};
+
 import { isDeepStrictEqual } from 'node:util';
 import assert from 'node:assert/strict';
 import { split } from '../../utils/shared/string.js';
@@ -159,16 +174,18 @@ const LEVELS = Object.values(LEVEL_MAPPING).join('');
 
 export const compress = (context: unknown, attributes: InternalLogAttributes): string => {
   assert.ok(context instanceof Context);
-  const { level, timestamp, processId, threadId, isMainThread, source, message, data, error } = attributes;
+  const { level, timestamp, processId, threadId, isMainThread, source, message, data, error, pageId } = attributes;
   const cLevel = LEVEL_MAPPING[level];
   const cTimestamp = Context.compressNumber(timestamp, MAX_TIMESTAMP_DIGITS);
   const cProcess = context.compressProcess({ processId, threadId, isMainThread });
   const cSource = context.compressSource(source);
+  const sPageId = Context.compressNumber(pageId === undefined ? 0 : pageId + 1, MAX_INDEX_DIGITS);
   const compressed: string[] = [
     cLevel,
     cTimestamp,
     cProcess.compressed,
     cSource.compressed,
+    sPageId,
     message.replaceAll(/\r?\n/g, '\r')
   ];
   if (data || error) {
@@ -197,10 +214,11 @@ const uncompressLine = (context: Context, line: string): InternalLogAttributes |
     augmentContext(context, line);
     return;
   }
-  const [, cTimestamp, cProcess, cSource, messageAndExtra] = split(
+  const [, cTimestamp, cProcess, cSource, cPageId, messageAndExtra] = split(
     line,
     1,
     MAX_TIMESTAMP_DIGITS,
+    MAX_INDEX_DIGITS,
     MAX_INDEX_DIGITS,
     MAX_INDEX_DIGITS
   );
@@ -225,6 +243,10 @@ const uncompressLine = (context: Context, line: string): InternalLogAttributes |
     source: context.uncompressSource(cSource) as LogSource,
     message: message.replaceAll('\r', '\n')
   } as InternalLogAttributes;
+  const pageId = Context.uncompressNumber(cPageId);
+  if (pageId > 0) {
+    attributes.pageId = pageId - 1;
+  }
   if (data) {
     attributes.data = data;
   }

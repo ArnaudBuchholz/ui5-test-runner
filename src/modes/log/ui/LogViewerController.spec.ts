@@ -285,7 +285,7 @@ describe('query', () => {
       await promise;
       const [callback] = setIntervalSpy.mock.calls[0]!; // Call validated before
       vi.clearAllMocks();
-      (callback as () => void)();
+      callback();
       expect(fetchSpy).toHaveBeenCalledWith(expect.stringMatching(/^\/query\?/));
     });
 
