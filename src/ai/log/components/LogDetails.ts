@@ -58,6 +58,9 @@ export function renderLogDetails(log: InternalLogAttributes): string {
   html += detailRow('source', escapeHtml(log.source), filterButtons('source', log.source));
   html += detailRow('processId', String(log.processId), filterButtons('processId', log.processId));
   html += detailRow('threadId', String(log.threadId), filterButtons('threadId', log.threadId));
+  if (log.pageId !== undefined) {
+    html += detailRow('pageId', String(log.pageId), filterButtons('pageId', log.pageId));
+  }
   html += detailRow('message', escapeHtml(log.message));
 
   if (log.error !== undefined) {

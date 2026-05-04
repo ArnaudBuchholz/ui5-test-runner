@@ -50,7 +50,7 @@ export const test = async (configuration: Configuration) => {
 
     const urls = [...configuration.url.map((url) => url.replace(':0/', `:${port}/`))];
     browser = await setupBrowser(configuration);
-    logger.info({ source: 'progress', message: 'Executing pages', data: { uid: '', value: 0, max: 0 } });
+    logger.info({ source: 'progress', message: 'Executing pages', pageId: undefined, data: { value: 0, max: 0 } });
     let completed = 0;
     await parallelize(pageTask, urls, {
       parallel: configuration.parallel,
@@ -65,7 +65,8 @@ export const test = async (configuration: Configuration) => {
         logger.info({
           source: 'progress',
           message: 'Executing pages',
-          data: { uid: '', value: completed, max: urls.length }
+          pageId: undefined,
+          data: { value: completed, max: urls.length }
         });
       }
     });

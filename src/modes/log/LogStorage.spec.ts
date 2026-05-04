@@ -10,7 +10,10 @@ const log1 = toInternalLogAttributes({ source: 'job', message: '10' }, LogLevel.
 log1.timestamp = 10;
 const log2 = toInternalLogAttributes({ source: 'npm', message: '20' }, LogLevel.warn);
 log2.timestamp = 20;
-const log3 = toInternalLogAttributes({ source: 'page', message: '30', data: { uid: 'page1' } }, LogLevel.error);
+const log3 = toInternalLogAttributes(
+  { source: 'page', message: '30', pageId: 1, data: { foo: 'bar' } },
+  LogLevel.error
+);
 log3.timestamp = 30;
 
 const fillLogs = (storage: ILogStorage, count: number) => {
@@ -107,7 +110,7 @@ describe('filter expression', () => {
   });
 
   it('does not fail on non existing property', () => {
-    const filterExpression = LogStorage.buildFilterExpression('data.uid === "page1"');
+    const filterExpression = LogStorage.buildFilterExpression('data.foo === "bar"');
     expect(filterExpression(log3)).toStrictEqual(true);
     expect(filterExpression(log1)).toStrictEqual(false);
   });

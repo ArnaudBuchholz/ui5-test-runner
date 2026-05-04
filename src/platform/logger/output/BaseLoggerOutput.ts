@@ -63,7 +63,13 @@ export abstract class BaseLoggerOutput {
     });
   }
 
-  private _pageProgressMap: { [uid in string]?: PageProgress } = {};
+  private _pageProgressMap: { [pageId in number]?: PageProgress } = {};
+
+  protected get pageIds() {
+    return Object.keys(this._pageProgressMap)
+      .map(Number)
+      .toSorted((a: number, b: number) => a - b);
+  }
 
   get pageProgressMap() {
     return this._pageProgressMap;
@@ -113,47 +119,47 @@ export abstract class BaseLoggerOutput {
 
   private _lastOverallStatus = '';
 
-  private _startedAtMap: { [uid in string]?: ReturnType<typeof Date.now> } = {};
+  private _startedAtMap: { [pageId in number]?: ReturnType<typeof Date.now> } = {};
 
   protected renderAttributes(attributes: InternalLogAttributes): boolean {
     if (attributes.source === 'progress') {
-      const uid = attributes.data.uid;
+      const { pageId } = attributes;
       let pageProgress: PageProgress | undefined;
       let progressBar: ProgressBar;
-      if (uid === '') {
+      if (pageId === undefined) {
         progressBar = this._overallProgressBar;
       } else {
-        pageProgress = this._pageProgressMap[uid];
+        pageProgress = this._pageProgressMap[pageId];
         if (!pageProgress) {
           pageProgress = {
             bar: new ProgressBar(),
             type: 'unknown',
             errors: 0
           };
-          this._pageProgressMap[uid] = pageProgress;
-          this._startedAtMap[uid] = Date.now();
-          this.addToReport(`   ${this.formatTimestamp(attributes.timestamp)} >> ${attributes.message} [${uid}]
+          this._pageProgressMap[pageId] = pageProgress;
+          this._startedAtMap[pageId] = Date.now();
+          this.addToReport(`   ${this.formatTimestamp(attributes.timestamp)} >> ${attributes.message} [${pageId}]
   `);
         }
-        const data = attributes.data as PageProgressData;
+        const data = attributes.data;
         pageProgress.type = data.type;
         pageProgress.errors = data.errors;
         progressBar = pageProgress.bar;
       }
       progressBar.update(attributes);
-      if ('remove' in attributes.data) {
-        delete this._pageProgressMap[uid];
-        const startedAt = this._startedAtMap[uid];
-        delete this._startedAtMap[uid];
+      if (pageId && 'remove' in attributes.data) {
+        delete this._pageProgressMap[pageId];
+        const startedAt = this._startedAtMap[pageId];
+        delete this._startedAtMap[pageId];
         assert(startedAt !== undefined);
         const duration = Date.now() - startedAt;
         this
-          .addToReport(`   ${this.formatTimestamp(attributes.timestamp)} << ${attributes.message} (${formatDuration(duration)}) [${uid}]
+          .addToReport(`   ${this.formatTimestamp(attributes.timestamp)} << ${attributes.message} (${formatDuration(duration)}) [${pageId}]
 `);
         this._updateOverallProgressSnapshot(attributes.data);
       }
       this._updateOverallProgress();
-      if (!uid && progressBar.label !== this._lastOverallStatus) {
+      if (pageId === undefined && progressBar.label !== this._lastOverallStatus) {
         this._lastOverallStatus = progressBar.label;
         this.addToReport(`
    ${this.formatTimestamp(attributes.timestamp)}|${this._lastOverallStatus}

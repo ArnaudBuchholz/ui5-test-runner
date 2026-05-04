@@ -17,7 +17,7 @@ export type BrowserCapabilities = {
 };
 
 export type WindowSettings = {
-  uid: string;
+  pageId: number;
   scripts: string[];
   url: string;
 };

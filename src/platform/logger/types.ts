@@ -24,7 +24,6 @@ type GenericLogSource =
 export type LogSource = GenericLogSource | 'page' | 'progress' | 'metric' | 'assert' | 'reserve';
 
 export type OverallProgressData = {
-  uid: '';
   /** Pages executed */
   value: number;
   /** Total number of pages */
@@ -32,7 +31,6 @@ export type OverallProgressData = {
 };
 
 export type PageProgressData = {
-  uid: string;
   /** Tests executed */
   value: number;
   /** Total number of tests */
@@ -48,16 +46,14 @@ export type LogAttributes = {
   error?: unknown;
   data?: object;
   processId?: number;
+  pageId?: number;
 } & (
   | {
       source: GenericLogSource;
     }
   | {
       source: 'page';
-      data: {
-        uid: string;
-        [key: string]: unknown;
-      };
+      pageId: number;
     }
   | {
       source: 'metric';
@@ -69,7 +65,13 @@ export type LogAttributes = {
     }
   | {
       source: 'progress';
-      data: OverallProgressData | PageProgressData;
+      pageId: undefined;
+      data: OverallProgressData;
+    }
+  | {
+      source: 'progress';
+      pageId: number;
+      data: PageProgressData;
     }
   | {
       source: 'assert';

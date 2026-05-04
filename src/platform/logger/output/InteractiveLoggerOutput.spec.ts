@@ -48,7 +48,6 @@ describe('output handling (complete scenario with errors)', () => {
       level: LogLevel.info,
       message: 'main',
       data: {
-        uid: '',
         max: 100,
         value: 50
       } satisfies OverallProgressData
@@ -58,8 +57,8 @@ describe('output handling (complete scenario with errors)', () => {
       source: 'progress',
       level: LogLevel.info,
       message: 'OPA page with a long message that goes beyond 40 characters (including progress bar)',
+      pageId: 1,
       data: {
-        uid: 'page1',
         max: 100,
         value: 20,
         type: 'opa',
@@ -71,8 +70,8 @@ describe('output handling (complete scenario with errors)', () => {
       source: 'progress',
       level: LogLevel.info,
       message: 'Failed QUnit page',
+      pageId: 2,
       data: {
-        uid: 'page2',
         max: 100,
         value: 40,
         type: 'qunit',
@@ -84,8 +83,8 @@ describe('output handling (complete scenario with errors)', () => {
       source: 'progress',
       level: LogLevel.info,
       message: 'QUnit page with no error',
+      pageId: 3,
       data: {
-        uid: 'page3',
         max: 100,
         value: 50,
         type: 'qunit',
@@ -97,8 +96,8 @@ describe('output handling (complete scenario with errors)', () => {
       source: 'progress',
       level: LogLevel.info,
       message: 'Test suite',
+      pageId: 4,
       data: {
-        uid: 'page4',
         max: 0,
         value: 1,
         type: 'unknown',
@@ -206,7 +205,6 @@ describe('output handling (scenario without errors)', () => {
       level: LogLevel.info,
       message: 'main',
       data: {
-        uid: '',
         max: 100,
         value: 50
       } satisfies OverallProgressData
@@ -216,8 +214,8 @@ describe('output handling (scenario without errors)', () => {
       source: 'progress',
       level: LogLevel.info,
       message: 'OPA page',
+      pageId: 1,
       data: {
-        uid: 'page1',
         max: 100,
         value: 20,
         type: 'opa',
@@ -268,7 +266,6 @@ describe('output handling (NO_COLOR)', () => {
       level: LogLevel.info,
       message: 'main',
       data: {
-        uid: '',
         max: 100,
         value: 50
       } satisfies OverallProgressData

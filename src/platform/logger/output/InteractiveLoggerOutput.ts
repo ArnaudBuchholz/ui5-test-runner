@@ -48,9 +48,8 @@ export class InteractiveLoggerOutput extends BaseLoggerOutput {
     const texts = [...this._texts];
     const linesToErase = [];
     this._texts.length = 0;
-    const keys = Object.keys(this.pageProgressMap).toSorted((a: string, b: string) => a.localeCompare(b));
-    for (const key of keys) {
-      const pageProgress = this.pageProgressMap[key]!; // key is coming from Object.keys
+    for (const pageId of this.pageIds) {
+      const pageProgress = this.pageProgressMap[pageId]!; // key is coming from Object.keys
       const rendered = pageProgress.bar.render(this._terminalWidth - 4);
       let status = '   ';
       if (pageProgress.errors) {
