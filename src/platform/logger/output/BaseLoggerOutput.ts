@@ -139,7 +139,7 @@ export abstract class BaseLoggerOutput {
           this._pageProgressMap[pageId] = pageProgress;
           this._startedAtMap[pageId] = Date.now();
           this.addToReport(`   ${this.formatTimestamp(attributes.timestamp)} >> ${attributes.message} [${pageId}]
-  `);
+`);
         }
         const data = attributes.data;
         pageProgress.type = data.type;
