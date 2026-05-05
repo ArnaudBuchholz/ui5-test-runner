@@ -1,20 +1,5 @@
 import type { InternalLogAttributes, LogSource } from './types.js';
 import { LogLevel } from './types.js';
-
-/** Helps determine when new log attributes are added to InternalLogAttributes */
-export const _ALL_LOG_ATTRIBUTES_ARE_HANDLED: Record<keyof Required<InternalLogAttributes>, true> = {
-  timestamp: true,
-  level: true,
-  processId: true,
-  threadId: true,
-  isMainThread: true,
-  source: true,
-  pageId: true,
-  message: true,
-  error: true,
-  data: true
-};
-
 import { isDeepStrictEqual } from 'node:util';
 import assert from 'node:assert/strict';
 import { split } from '../../utils/shared/string.js';
@@ -29,7 +14,6 @@ const JSON_VALUE_SEP = ASCII_RECORD_SEPARATOR;
 const MAX_INDEX_DIGITS = 2; // 95**2=9025 values
 const CONTEXT_PROCESS_ID = 'p';
 const CONTEXT_SOURCE_ID = 's';
-// const CONTEXT_TIMESTAMP_ID = 't'; // TODO save ticks every seconds (when traces are generated), consider relative offset as traces might be in any order
 export const MAX_TIMESTAMP_DIGITS = 7;
 export const MAX_DWORD_DIGITS = 5;
 
@@ -76,7 +60,7 @@ class Context {
     if (index !== -1) {
       const compressed = Context.compressNumber(index, MAX_INDEX_DIGITS);
       return {
-        context: '',
+        context: '', // empty string: already registered, no context line needed
         compressed
       };
     }
@@ -172,29 +156,134 @@ const LEVEL_MAPPING: { [key in LogLevel]: string } = {
 } as const;
 const LEVELS = Object.values(LEVEL_MAPPING).join('');
 
+interface DataSlot {
+  readonly width: number; // > 0: fixed char count; 0: variable-width (takes the rest of the line)
+  compress(context: Context, attributes: InternalLogAttributes): { contextLine?: string; compressed: string };
+  uncompress(context: Context, compressed: string): Partial<InternalLogAttributes>;
+}
+
+const levelSlot: DataSlot = {
+  width: 1,
+  compress(_, { level }) {
+    return { compressed: LEVEL_MAPPING[level] };
+  },
+  uncompress(_, compressed) {
+    return { level: LEVELS.indexOf(compressed) as LogLevel };
+  }
+};
+
+const timestampSlot: DataSlot = {
+  width: MAX_TIMESTAMP_DIGITS,
+  compress(_, { timestamp }) {
+    return { compressed: Context.compressNumber(timestamp, MAX_TIMESTAMP_DIGITS) };
+  },
+  uncompress(_, compressed) {
+    return { timestamp: Context.uncompressNumber(compressed) };
+  }
+};
+
+const processSlot: DataSlot = {
+  width: MAX_INDEX_DIGITS,
+  compress(context, { processId, threadId, isMainThread }) {
+    const { context: contextLine, compressed } = context.compressProcess({ processId, threadId, isMainThread });
+    return { contextLine: contextLine || undefined, compressed };
+  },
+  uncompress(context, compressed) {
+    return context.uncompressProcess(compressed);
+  }
+};
+
+const sourceSlot: DataSlot = {
+  width: MAX_INDEX_DIGITS,
+  compress(context, { source }) {
+    const { context: contextLine, compressed } = context.compressSource(source);
+    return { contextLine: contextLine || undefined, compressed };
+  },
+  uncompress(context, compressed) {
+    return { source: context.uncompressSource(compressed) as LogSource };
+  }
+};
+
+const pageIdSlot: DataSlot = {
+  width: MAX_INDEX_DIGITS,
+  compress(_, { pageId }) {
+    return { compressed: Context.compressNumber(pageId === undefined ? 0 : pageId + 1, MAX_INDEX_DIGITS) };
+  },
+  uncompress(_, compressed) {
+    const value = Context.uncompressNumber(compressed);
+    return value > 0 ? { pageId: value - 1 } : {};
+  }
+};
+
+const messageAndExtraSlot: DataSlot = {
+  width: 0,
+  compress(_, { message, data, error }) {
+    const parts = [message.replaceAll(/\r?\n/g, '\r')];
+    if (data || error) {
+      parts.push(
+        JSON_VALUE_SEP,
+        JSON.stringify([data ?? 0, error ?? 0]).replaceAll(/"(\w+)":/g, (_, name) => `${name}${JSON_VALUE_SEP}`)
+      );
+    }
+    return { compressed: parts.join('') };
+  },
+  uncompress(_, compressed) {
+    const startOfJson = compressed.indexOf(JSON_VALUE_SEP);
+    if (startOfJson === -1) {
+      return { message: compressed.replaceAll('\r', '\n') };
+    }
+    const message = compressed.slice(0, startOfJson).replaceAll('\r', '\n');
+    const json = compressed
+      .slice(startOfJson + 1)
+      // eslint-disable-next-line security/detect-non-literal-regexp -- Use constant rather than repeat the char code
+      .replaceAll(new RegExp(String.raw`(\w+)${JSON_VALUE_SEP}`, 'g'), (_, name) => `"${name}":`);
+    const [data, error] = JSON.parse(json) as [data: object | 0, error: object | 0];
+    return {
+      message,
+      ...(data ? { data } : {}),
+      ...(error ? { error } : {})
+    };
+  }
+};
+
+const DATA_LINE_SLOTS: DataSlot[] = [
+  levelSlot,
+  timestampSlot,
+  processSlot,
+  sourceSlot,
+  pageIdSlot,
+  messageAndExtraSlot
+];
+const FIXED_SLOTS = DATA_LINE_SLOTS.filter((s) => s.width > 0);
+const FIXED_SLOT_WIDTHS = FIXED_SLOTS.map((s) => s.width);
+const VARIABLE_SLOTS = DATA_LINE_SLOTS.filter((s) => s.width === 0);
+assert.ok(VARIABLE_SLOTS.length === 1, 'DATA_LINE_SLOTS must contain exactly one variable-width slot');
+const VARIABLE_SLOT = VARIABLE_SLOTS[0]!;
+
+/** Each entry documents how the field is compressed; the Record type ensures no field is missed when InternalLogAttributes changes */
+export const _ALL_LOG_ATTRIBUTES_ARE_HANDLED: Record<keyof Required<InternalLogAttributes>, DataSlot> = {
+  level: levelSlot,
+  timestamp: timestampSlot,
+  processId: processSlot,
+  threadId: processSlot,
+  isMainThread: processSlot,
+  source: sourceSlot,
+  pageId: pageIdSlot,
+  message: messageAndExtraSlot,
+  data: messageAndExtraSlot,
+  error: messageAndExtraSlot
+};
+
 export const compress = (context: unknown, attributes: InternalLogAttributes): string => {
   assert.ok(context instanceof Context);
-  const { level, timestamp, processId, threadId, isMainThread, source, message, data, error, pageId } = attributes;
-  const cLevel = LEVEL_MAPPING[level];
-  const cTimestamp = Context.compressNumber(timestamp, MAX_TIMESTAMP_DIGITS);
-  const cProcess = context.compressProcess({ processId, threadId, isMainThread });
-  const cSource = context.compressSource(source);
-  const sPageId = Context.compressNumber(pageId === undefined ? 0 : pageId + 1, MAX_INDEX_DIGITS);
-  const compressed: string[] = [
-    cLevel,
-    cTimestamp,
-    cProcess.compressed,
-    cSource.compressed,
-    sPageId,
-    message.replaceAll(/\r?\n/g, '\r')
-  ];
-  if (data || error) {
-    compressed.push(
-      JSON_VALUE_SEP,
-      JSON.stringify([data ?? 0, error ?? 0]).replaceAll(/"(\w+)":/g, (_, name) => `${name}${JSON_VALUE_SEP}`)
-    );
+  const contextLines: string[] = [];
+  const parts: string[] = [];
+  for (const slot of DATA_LINE_SLOTS) {
+    const { contextLine, compressed } = slot.compress(context, attributes);
+    if (contextLine) contextLines.push(contextLine);
+    parts.push(compressed);
   }
-  return [cProcess.context, cSource.context, compressed.join('')].filter((line) => !!line).join('\n') + '\n';
+  return [...contextLines, parts.join('')].join('\n') + '\n';
 };
 
 const augmentContext = (context: Context, line: string) => {
@@ -209,51 +298,17 @@ const augmentContext = (context: Context, line: string) => {
 
 const uncompressLine = (context: Context, line: string): InternalLogAttributes | undefined => {
   const firstChar = line.charAt(0);
-  const level = LEVELS.indexOf(firstChar);
-  if (level === -1) {
+  if (!LEVELS.includes(firstChar)) {
     augmentContext(context, line);
     return;
   }
-  const [, cTimestamp, cProcess, cSource, cPageId, messageAndExtra] = split(
-    line,
-    1,
-    MAX_TIMESTAMP_DIGITS,
-    MAX_INDEX_DIGITS,
-    MAX_INDEX_DIGITS,
-    MAX_INDEX_DIGITS
-  );
-  let message: string;
-  let data: unknown;
-  let error: unknown;
-  const startOfJson = messageAndExtra.indexOf(JSON_VALUE_SEP);
-  if (startOfJson === -1) {
-    message = messageAndExtra;
-  } else {
-    message = messageAndExtra.slice(0, startOfJson);
-    const json = messageAndExtra
-      .slice(startOfJson + 1)
-      // eslint-disable-next-line security/detect-non-literal-regexp -- Use constant rather than repeat the char code
-      .replaceAll(new RegExp(String.raw`(\w+)${JSON_VALUE_SEP}`, 'g'), (_, name) => `"${name}":`);
-    [data, error] = JSON.parse(json) as [data: object | 0, error: object | 0];
+  const parts = split(line, ...FIXED_SLOT_WIDTHS);
+  const attributes: Partial<InternalLogAttributes> = {};
+  for (const [index, fixedSlot] of FIXED_SLOTS.entries()) {
+    Object.assign(attributes, fixedSlot.uncompress(context, parts[index]!));
   }
-  const attributes = {
-    level: level as LogLevel,
-    timestamp: Context.uncompressNumber(cTimestamp),
-    ...context.uncompressProcess(cProcess),
-    source: context.uncompressSource(cSource) as LogSource,
-    message: message.replaceAll('\r', '\n')
-  } as InternalLogAttributes;
-  const pageId = Context.uncompressNumber(cPageId);
-  if (pageId > 0) {
-    attributes.pageId = pageId - 1;
-  }
-  if (data) {
-    attributes.data = data;
-  }
-  if (error) {
-    attributes.error = error;
-  }
-  return attributes;
+  Object.assign(attributes, VARIABLE_SLOT.uncompress(context, parts[FIXED_SLOTS.length]!));
+  return attributes as InternalLogAttributes;
 };
 
 export const uncompress = (context: unknown, compressed: string): InternalLogAttributes[] => {
