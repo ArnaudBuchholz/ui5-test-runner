@@ -11,7 +11,7 @@ const FLUSH_INTERVAL_MS = 200;
 const compressionContext = createCompressionContext();
 
 export const workerMain = ({ configuration }: { configuration: Configuration }) => {
-  const LOG_FILE_NAME = `app-${new Date().toISOString().slice(0, 19).replaceAll(/[-:]/g, '').replace('T', '-')}.log.gz`;
+  const LOG_FILE_NAME = `traces-${new Date().toISOString().slice(0, 19).replaceAll(/[-:]/g, '').replace('T', '-')}.logz`;
   const stream = FramedStreamWriter.create(Path.join(configuration.reportDir, LOG_FILE_NAME));
   const buffer: string[] = [];
   let flushTimeout: ReturnType<typeof setTimeout> | undefined;

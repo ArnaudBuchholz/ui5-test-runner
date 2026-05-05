@@ -36,7 +36,7 @@ it('opens a broadcast channel to communicate with the logger instances', () => {
 });
 
 it('creates a framed stream', () => {
-  expect(FramedStreamWriter.create).toHaveBeenCalledWith('tmp/app-20251030-215600.log.gz');
+  expect(FramedStreamWriter.create).toHaveBeenCalledWith('tmp/traces-20251030-215600.logz');
 });
 
 it('broadcasts an initial { ready: true }', () => {
