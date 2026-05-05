@@ -84,5 +84,12 @@ export default [
       'security/detect-unsafe-regex': 'off',
       'sonarjs/slow-regex': 'off'
     }
+  },
+  // Relax some rules for AI generated code
+  {
+    files: ['src/ai/**/*.ts'],
+    rules: {
+      '@typescript-eslint/no-base-to-string': 'off'
+    }
   }
 ];

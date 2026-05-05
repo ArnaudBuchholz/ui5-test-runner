@@ -76,7 +76,7 @@ function applyColumnFilter(field: string): void {
   if (checked.length === 0) return;
   const values = checked.map((callback) => {
     const raw = (callback as HTMLElement).dataset['filterValue'] ?? 'null';
-    if (raw === '__undefined__') return undefined;
+    if (raw === '__undefined__') return;
     try {
       return JSON.parse(raw) as unknown;
     } catch {
