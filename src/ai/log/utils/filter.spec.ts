@@ -11,6 +11,10 @@ describe('buildFilterExpression', () => {
       expect(buildFilterExpression('processId', 16_616, '===', '')).toBe('processId === 16616');
     });
 
+    it('returns the expression alone for undefined (optional field)', () => {
+      expect(buildFilterExpression('pageId', undefined, '===', '')).toBe('pageId === undefined');
+    });
+
     it('returns the expression alone for a boolean value', () => {
       expect(buildFilterExpression('autorefresh', true, '===', '')).toBe('autorefresh === true');
     });

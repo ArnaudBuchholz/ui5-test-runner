@@ -36,6 +36,17 @@ describe('renderLogDetails', () => {
     expect(html).toContain('data-field="threadId"');
   });
 
+  it('renders pageId row with filter buttons when pageId is present', () => {
+    const html = renderLogDetails({ ...baseLog, pageId: 3 });
+    expect(html).toContain('data-field="pageId"');
+    expect(html).toContain('3');
+  });
+
+  it('does not render pageId row when pageId is absent', () => {
+    const html = renderLogDetails(baseLog);
+    expect(html).not.toContain('data-field="pageId"');
+  });
+
   it('does not render error section when log has no error', () => {
     const html = renderLogDetails(baseLog);
     expect(html).not.toContain('error (JSON)');

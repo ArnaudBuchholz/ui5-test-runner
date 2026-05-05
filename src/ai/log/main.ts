@@ -58,10 +58,12 @@ function renderValueFilterContent(field: string, logs: State['logs']): string {
   // eslint-disable-next-line sonarjs/no-alphabetical-sort -- Good enough
   const values = [...new Set(logs.map((log) => (log as unknown as Record<string, unknown>)[field]))].toSorted();
   return values
-    .map(
-      (v) =>
-        `<div class="column-filter-row"><ui5-checkbox data-filter-value='${JSON.stringify(v)}' text="${String(v)}"></ui5-checkbox></div>`
-    )
+    .map((v) => {
+      const isUndefined = v === undefined;
+      const storedValue = isUndefined ? '__undefined__' : JSON.stringify(v);
+      const displayText = isUndefined ? 'none' : String(v);
+      return `<div class="column-filter-row"><ui5-checkbox data-filter-value='${storedValue}' text="${displayText}"></ui5-checkbox></div>`;
+    })
     .join('');
 }
 
@@ -74,6 +76,7 @@ function applyColumnFilter(field: string): void {
   if (checked.length === 0) return;
   const values = checked.map((callback) => {
     const raw = (callback as HTMLElement).dataset['filterValue'] ?? 'null';
+    if (raw === '__undefined__') return undefined;
     try {
       return JSON.parse(raw) as unknown;
     } catch {
