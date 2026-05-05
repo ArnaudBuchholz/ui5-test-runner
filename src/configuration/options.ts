@@ -110,7 +110,8 @@ export const options = [
     name: 'outputInterval',
     short: 'oi',
     type: 'timeout',
-    description: 'interval for reporting progress on non interactive output (CI/CD)'
+    description: 'interval for reporting progress on non interactive output (CI/CD)',
+    default: 30_000
   },
   {
     name: 'pageFilter',
@@ -182,6 +183,7 @@ export const defaults = {
   config: 'ui5-test-runner.json',
   cwd: process.cwd(),
   localhost: 'localhost',
+  outputInterval: 30_000,
   parallel: 2,
   reportDir: 'report',
   testsuite: 'test/testsuite.qunit.html',
