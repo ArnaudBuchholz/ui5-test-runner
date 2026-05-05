@@ -10,11 +10,12 @@ export function renderLogTable(logs: InternalLogAttributes[]): string {
   <th data-col="source" class="col-clickable">Source</th>
   <th data-col="processId" class="col-clickable">PID</th>
   <th data-col="threadId" class="col-clickable">TID</th>
+  <th data-col="pageId" class="col-clickable">Page ID</th>
   <th class="col-message">Message</th>
 </tr></thead>`;
 
   if (logs.length === 0) {
-    return `${thead}<tbody><tr><td colspan="6" style="text-align:center;padding:1rem;color:var(--sapContent_LabelColor);">No log entries</td></tr></tbody>`;
+    return `${thead}<tbody><tr><td colspan="7" style="text-align:center;padding:1rem;color:var(--sapContent_LabelColor);">No log entries</td></tr></tbody>`;
   }
 
   const rows = logs
@@ -27,6 +28,7 @@ export function renderLogTable(logs: InternalLogAttributes[]): string {
   <td>${log.source}</td>
   <td>${log.processId}</td>
   <td>${log.threadId}</td>
+  <td>${log.pageId ?? ''}</td>
   <td class="col-message">${escapeHtml(message)}</td>
 </tr>`;
     })

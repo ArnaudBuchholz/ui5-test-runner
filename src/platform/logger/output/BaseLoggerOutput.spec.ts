@@ -191,8 +191,8 @@ describe('progress handling', () => {
         source: 'progress',
         level: LogLevel.info,
         message: 'Executing tests',
+        pageId: undefined,
         data: {
-          uid: '', // 'global' progress
           max: 0 // No progress bar
         }
       } as InternalLogAttributes);
@@ -206,19 +206,19 @@ describe('progress handling', () => {
 
   describe('task status', () => {
     it('creates a new progress bar', () => {
-      expect(loggerOuput.pageProgressMap['task1']).toBeUndefined();
+      expect(loggerOuput.pageProgressMap[1]).toBeUndefined();
       loggerOuput.addAttributesToLoggerOutput({
         timestamp: Date.now(),
         source: 'progress',
         level: LogLevel.info,
         message: 'test',
+        pageId: 1,
         data: {
-          uid: 'task1',
           value: 0,
           max: 1
         }
       } as InternalLogAttributes);
-      const pageProgress = loggerOuput.pageProgressMap['task1'];
+      const pageProgress = loggerOuput.pageProgressMap[1];
       expect.assert(pageProgress !== undefined);
       const progressBar = pageProgress.bar;
       expect(progressBar.label).toStrictEqual('test');
@@ -231,8 +231,8 @@ describe('progress handling', () => {
         source: 'progress',
         level: LogLevel.info,
         message: 'test',
+        pageId: 1,
         data: {
-          uid: 'task1',
           value: 0,
           max: 1
         }
@@ -242,14 +242,14 @@ describe('progress handling', () => {
         source: 'progress',
         level: LogLevel.info,
         message: 'test',
+        pageId: 1,
         data: {
-          uid: 'task1',
           value: 0,
           max: 1,
           remove: true
         }
       } as InternalLogAttributes);
-      expect(loggerOuput.pageProgressMap['task1']).toBeUndefined();
+      expect(loggerOuput.pageProgressMap[1]).toBeUndefined();
       expect(addTextToLoggerOutput).not.toHaveBeenCalled();
     });
 
@@ -259,15 +259,15 @@ describe('progress handling', () => {
         source: 'progress',
         level: LogLevel.info,
         message: 'test',
+        pageId: 1,
         data: {
-          uid: 'task1',
           value: 10,
           max: 100,
           type: 'qunit',
           errors: 5
         }
       } as InternalLogAttributes);
-      expect(loggerOuput.pageProgressMap['task1']).toMatchObject({
+      expect(loggerOuput.pageProgressMap[1]).toMatchObject({
         type: 'qunit',
         errors: 5
       });
@@ -289,8 +289,8 @@ describe('progress handling', () => {
     it('aggregates pages information', () => {
       progressLoggerOutput.addAttributesToLoggerOutput({
         source: 'progress',
+        pageId: 1,
         data: {
-          uid: 'task1',
           value: 10,
           max: 100,
           type: 'qunit',
@@ -299,8 +299,8 @@ describe('progress handling', () => {
       } as InternalLogAttributes);
       progressLoggerOutput.addAttributesToLoggerOutput({
         source: 'progress',
+        pageId: 2,
         data: {
-          uid: 'task2',
           value: 20,
           max: 200,
           type: 'qunit',
@@ -317,8 +317,8 @@ describe('progress handling', () => {
     it("supports page's numbers variation", () => {
       progressLoggerOutput.addAttributesToLoggerOutput({
         source: 'progress',
+        pageId: 1,
         data: {
-          uid: 'task1',
           value: 10,
           max: 100,
           type: 'qunit',
@@ -327,8 +327,8 @@ describe('progress handling', () => {
       } as InternalLogAttributes);
       progressLoggerOutput.addAttributesToLoggerOutput({
         source: 'progress',
+        pageId: 1,
         data: {
-          uid: 'task1',
           value: 100,
           max: 150,
           type: 'qunit',
@@ -337,8 +337,8 @@ describe('progress handling', () => {
       } as InternalLogAttributes);
       progressLoggerOutput.addAttributesToLoggerOutput({
         source: 'progress',
+        pageId: 2,
         data: {
-          uid: 'task2',
           value: 20,
           max: 200,
           type: 'qunit',
@@ -355,8 +355,8 @@ describe('progress handling', () => {
     it('remembers terminated pages', () => {
       progressLoggerOutput.addAttributesToLoggerOutput({
         source: 'progress',
+        pageId: 1,
         data: {
-          uid: 'task1',
           value: 10,
           max: 100,
           type: 'qunit',
@@ -365,8 +365,8 @@ describe('progress handling', () => {
       } as InternalLogAttributes);
       progressLoggerOutput.addAttributesToLoggerOutput({
         source: 'progress',
+        pageId: 1,
         data: {
-          uid: 'task1',
           value: 100,
           max: 100,
           type: 'qunit',
@@ -376,8 +376,8 @@ describe('progress handling', () => {
       } as InternalLogAttributes);
       progressLoggerOutput.addAttributesToLoggerOutput({
         source: 'progress',
+        pageId: 2,
         data: {
-          uid: 'task2',
           value: 20,
           max: 200,
           type: 'qunit',
@@ -386,8 +386,8 @@ describe('progress handling', () => {
       } as InternalLogAttributes);
       progressLoggerOutput.addAttributesToLoggerOutput({
         source: 'progress',
+        pageId: 1,
         data: {
-          uid: 'task1', // on purpose (but may become a problem on retries)
           value: 10,
           max: 100,
           type: 'qunit',
@@ -404,8 +404,8 @@ describe('progress handling', () => {
     it('ignores unknown type pages', () => {
       progressLoggerOutput.addAttributesToLoggerOutput({
         source: 'progress',
+        pageId: 1,
         data: {
-          uid: 'task1',
           value: 100,
           max: 100,
           type: 'unknown',
@@ -422,8 +422,8 @@ describe('progress handling', () => {
     it('ignores unknown type pages (terminated)', () => {
       progressLoggerOutput.addAttributesToLoggerOutput({
         source: 'progress',
+        pageId: 1,
         data: {
-          uid: 'task1',
           value: 100,
           max: 100,
           type: 'unknown',

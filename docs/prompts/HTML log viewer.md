@@ -116,14 +116,14 @@ Wireframes are **rough layout guides** — they convey component placement and r
 │                                                                                                                │
 │ Error : Invalid filter near token ")"                                                                          │
 │                                                                                                                │
-┌─────────────────┬─────────────────┬─────────────────┬─────────────────┬─────────────────┬──────────────────────┐
-│ timestamp       │ level           │ source          │ process id      │ thread id       │ message              │
-│─────────────────┼─────────────────┼─────────────────┼─────────────────┼─────────────────┼──────────────────────│
-│14:07:00.123     │                 │job              │16616            │ 0               │Creating folder: ...  │
-│                 │                 │                 │                 │                 │                      │
-│                 │                 │                 │                 │                 │                      │
-│                 │                 │                 │                 │                 │                      │
-└─────────────────┴─────────────────┴─────────────────┴─────────────────┴─────────────────┴──────────────────────┘
+┌─────────────────┬─────────────────┬─────────────────┬─────────────────┬─────────────────┬─────────────────┬──────────────────────┐
+│ timestamp       │ level           │ source          │ process id      │ thread id       │ page id         │ message              │
+│─────────────────┼─────────────────┼─────────────────┼─────────────────┼─────────────────┼─────────────────┼──────────────────────│
+│14:07:00.123     │                 │job              │16616            │ 0               │                 │Creating folder: ...  │
+│                 │                 │                 │                 │                 │                 │                      │
+│                 │                 │                 │                 │                 │                 │                      │
+│                 │                 │                 │                 │                 │                 │                      │
+└─────────────────┴─────────────────┴─────────────────┴─────────────────┴─────────────────┴─────────────────┴──────────────────────┘
 ```
 
 The level column should show icons as described in **Level mapping**
@@ -154,13 +154,13 @@ Clicking one list header should allow the user to filter on the selected column 
 
 Considering the following logs to be displayed :
 
-| timestamp        | level           | source          | process id      | thread id       | message              |
-|------------------|-----------------|-----------------|-----------------|-----------------|----------------------|
-| 2026-04-15 11:15 | debug           | job             | 123             | 456             |                      |
-| 2026-04-15 11:16 | info            | job             | 123             | 456             |                      |
-| 2026-04-15 11:17 | debug           | http            | 123             | 456             |                      |
-| 2026-04-15 11:18 | warn            | job             | 780             | 0.              |                      |
-| 2026-04-15 11:19 | debug           | job             | 123             | 456             |                      |
+| timestamp        | level           | source          | process id      | thread id       | page id         | message              |
+|------------------|-----------------|-----------------|-----------------|-----------------|-----------------|----------------------|
+| 2026-04-15 11:15 | debug           | job             | 123             | 456             |                 |                      |
+| 2026-04-15 11:16 | info            | job             | 123             | 456             |                 |                      |
+| 2026-04-15 11:17 | debug           | http            | 123             | 456             |                 |                      |
+| 2026-04-15 11:18 | warn            | job             | 780             | 0.              |                 |                      |
+| 2026-04-15 11:19 | debug           | job             | 123             | 456             |                 |                      |
 
 * Clicking the timestamp header switches the timerange to absolute and uses the range corresponding to the logs being displayed (i.e. from 2026-04-15 11:15 to  2026-04-15 11:19)
 
@@ -183,7 +183,7 @@ Considering the following logs to be displayed :
 └─────────────────────────┘
 ```
 
-* clicking the source, processId or threadId column should show a popup that enables the user to pick values he wants to filter one (based only on the logs being displayed), for instance for source :
+* clicking the source, processId, threadId or pageId column should show a popup that enables the user to pick values he wants to filter one (based only on the logs being displayed), for instance for source :
 
 ```
 ┌─────────────────────────┐
@@ -199,6 +199,11 @@ Considering the following logs to be displayed :
 All filter dialogs (level, source, processId, threadId) always appear with no checkbox ticked by default — do not try to deduce from the current filter which values should be ticked. After the user selected values, combine the current filter with `&& (field === value1 || field === value2 ...)`.
 
 When storing field values in `data-*` attributes (e.g. on checkboxes), use `JSON.stringify` — not `String()` — so that numeric values are preserved as numbers. When reading them back to build a filter expression, deserialize with `JSON.parse` and pass the typed value to the shared filter-expression builder, which handles quoting (strings get `"..."`, numbers do not).
+
+When a field value is `undefined` (e.g. `pageId` on logs without a page context), `JSON.stringify` cannot represent it. Instead:
+- Display the checkbox label as **none**.
+- Store the sentinel string `__undefined__` in the `data-filter-value` attribute.
+- When reading the attribute back, detect the sentinel and pass the actual `undefined` value to the filter-expression builder, which produces `field === undefined` (the keyword, not a quoted string).
 
 Only one popup is displayed at a time. Opening a new popup closes any previously open one. A popup is also closed when it loses focus (i.e. the user clicks outside of it).
 
@@ -246,7 +251,7 @@ The from and to fields are datetime pickers.
 |3|`"error"`|❌|&#10060;|
 |4|`"fatal"`|💣|&#128163;|
 
-In filter expressions the `level` field is exposed as its string equivalent (e.g. `level === "info"`), not as a number. The fields `processId` and `threadId` are numeric and must appear as unquoted numbers in filter expressions (e.g. `processId === 16616`), not as strings.
+In filter expressions the `level` field is exposed as its string equivalent (e.g. `level === "info"`), not as a number. The fields `processId`, `threadId` and `pageId` are numeric and must appear as unquoted numbers in filter expressions (e.g. `processId === 16616`), not as strings.
 
 ### Log details
 
@@ -259,6 +264,7 @@ In filter expressions the `level` field is exposed as its string equivalent (e.g
 │ source: job [+][-]                                                                        │
 │ processId: 16616 [+][-]                                                                   │
 │ threadId: 0 [+][-]                                                                        │
+│ pageId: 3 [+][-]                               <- shown only when the log has a pageId   │
 │ message: Creating folder: /Users/.../tmp                                                  │
 │ error (JSON):                               <- shown only when the log has an error field │
 │ {                                                                                         │

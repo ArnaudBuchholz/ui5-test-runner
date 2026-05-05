@@ -40,8 +40,8 @@ it('dumps progress report using an interval', async () => {
     source: 'progress',
     level: LogLevel.info,
     message: 'test1',
+    pageId: 1,
     data: {
-      uid: 'task1',
       value: 1,
       max: 10
     }
@@ -51,8 +51,8 @@ it('dumps progress report using an interval', async () => {
     source: 'progress',
     level: LogLevel.info,
     message: 'test2',
+    pageId: 2,
     data: {
-      uid: 'task2',
       value: 9,
       max: 10
     }

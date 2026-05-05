@@ -30,10 +30,10 @@ export const factory = async (): Promise<IBrowser> => {
       browser = await launch(launchOptions);
     } catch (error) {
       if (error instanceof Error && error.message.startsWith('Could not find Chrome')) {
+        // TODO: is there a way to monitor the progress ?
         logger.info({
-          source: 'progress',
-          message: 'Installing chrome (puppeteer)',
-          data: { uid: '', value: 0, max: 0 }
+          source: 'job',
+          message: 'Installing chrome (puppeteer)'
         });
         await Process.spawn('npx', 'puppeteer browsers install chrome'.split(' '), {
           shell: true,
@@ -77,12 +77,14 @@ export const factory = async (): Promise<IBrowser> => {
         await page?.evaluateOnNewDocument(script);
       }
       await page?.goto(settings.url);
+      const { pageId } = settings;
       page
         ?.on('console', (message) =>
           logger.debug({
             source: 'browser',
             message: message.text(),
-            data: { uid: settings.uid, type: message.type() }
+            pageId,
+            data: { type: message.type() }
           })
         )
         ?.on('response', (response) => {
@@ -90,7 +92,8 @@ export const factory = async (): Promise<IBrowser> => {
           logger.debug({
             source: 'browser',
             message: request.url(),
-            data: { uid: settings.uid, method: request.method(), status: response.status() }
+            pageId,
+            data: { method: request.method(), status: response.status() }
           });
         });
       logger.debug({ source: 'puppeteer', message: 'newWindow completed', data: settings });

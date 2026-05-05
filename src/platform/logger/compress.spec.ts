@@ -74,6 +74,28 @@ const examples = [
     processId: 123,
     threadId: 789,
     isMainThread: false,
+    source: 'page',
+    message: 'with error and data',
+    pageId: 0,
+    data: { hello: 'World !', object: { property: 123, test: 'abc:' } }
+  },
+  {
+    timestamp: Date.now(),
+    level: LogLevel.info,
+    processId: 123,
+    threadId: 789,
+    isMainThread: false,
+    source: 'page',
+    message: 'with error and data',
+    pageId: 8888,
+    data: { hello: 'World !', object: { property: 123, test: 'abc:' } }
+  },
+  {
+    timestamp: Date.now(),
+    level: LogLevel.error,
+    processId: 123,
+    threadId: 789,
+    isMainThread: false,
     source: 'job',
     message: 'with error and data',
     data: { hello: 'World !', object: { property: 123, test: 'abc:' } },

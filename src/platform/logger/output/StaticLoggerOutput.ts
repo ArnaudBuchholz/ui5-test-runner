@@ -11,15 +11,15 @@ export class StaticLoggerOutput extends BaseLoggerOutput {
   }
 
   progressReport(): void {
-    const keys = Object.keys(this.pageProgressMap).toSorted((a: string, b: string) => a.localeCompare(b));
-    if (keys.length > 0) {
+    const pageIds = this.pageIds;
+    if (pageIds.length > 0) {
       this.addToReport(`
    ${this.formatTimestamp(Date.now())}|Progress
    -----+--------
 `);
     }
-    for (const key of keys) {
-      const pageProgress = this.pageProgressMap[key]!; // key is coming from Object.keys
+    for (const pageId of pageIds) {
+      const pageProgress = this.pageProgressMap[pageId]!; // key is coming from Object.keys
       const rendered = pageProgress.bar.render(80);
       this.addToReport(rendered + '\n');
     }

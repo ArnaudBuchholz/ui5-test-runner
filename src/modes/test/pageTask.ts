@@ -10,21 +10,10 @@ import { reportBuilder } from './report.js';
 import type { CommonTestReport } from '../../types/CommonTestReportFormat.js';
 import type { IWindow } from '../../browsers/IBrowser.js';
 
-const UID_DIGITS = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ';
-let lastUid = 0;
-
-const generateUid = (): string => {
-  let uid = '';
-  let value = lastUid++;
-  do {
-    uid = UID_DIGITS[value % UID_DIGITS.length] + uid;
-    value = Math.floor(value / UID_DIGITS.length);
-  } while (value > 0);
-  return uid.padStart(4, '0');
-};
+let lastPageId = 0;
 
 type PageContext = {
-  uid: string;
+  pageId: number;
   urls: string[];
   url: string;
   page: IWindow;
@@ -50,7 +39,8 @@ const reportQunitProgress = (context: PageContext, agentState: Extract<AgentStat
       logger.info({
         source: 'progress',
         message: context.url,
-        data: { max: agentState.total, value: agentState.executed, uid: context.uid, type, errors }
+        pageId: context.pageId,
+        data: { max: agentState.total, value: agentState.executed, type, errors }
       });
     }
   }
@@ -58,7 +48,7 @@ const reportQunitProgress = (context: PageContext, agentState: Extract<AgentStat
 
 const queryAgentState = async (context: PageContext): Promise<boolean> => {
   const agentState = (await context.page.eval("window['ui5-test-runner'].state")) as AgentState;
-  logger.debug({ source: 'page', message: 'agent state', data: { uid: context.uid, state: agentState } });
+  logger.debug({ source: 'page', message: 'agent state', data: { state: agentState }, pageId: context.pageId });
   if (agentState.done) {
     if (agentState.type === 'suite') {
       for (const page of agentState.pages) {
@@ -69,7 +59,8 @@ const queryAgentState = async (context: PageContext): Promise<boolean> => {
       logger.fatal({
         source: 'page',
         message: 'Unable to detect page type',
-        data: { uid: context.uid, state: agentState }
+        pageId: context.pageId,
+        data: { state: agentState }
       });
       throw new Error('Unable to detect page type');
     } else {
@@ -85,12 +76,13 @@ const queryAgentState = async (context: PageContext): Promise<boolean> => {
 };
 
 export const pageTask = async function (this: IParallelizeContext, url: string, index: number, urls: string[]) {
-  const uid = generateUid();
-  logger.debug({ source: 'page', message: 'new page task', data: { uid, url } });
+  const pageId = ++lastPageId;
+  logger.debug({ source: 'page', message: 'new page task', pageId, data: { url } });
   logger.info({
     source: 'progress',
     message: url,
-    data: { max: 0, value: 1, uid, type: 'unknown', errors: 0 }
+    pageId,
+    data: { max: 0, value: 1, type: 'unknown', errors: 0 }
   });
   const { promise: taskStopped, resolve: setTaskAsStopped } = Promise.withResolvers<void>();
   using _ = Exit.registerAsyncTask({
@@ -111,12 +103,12 @@ export const pageTask = async function (this: IParallelizeContext, url: string, 
     const agentSource = await getAgentSource();
     const browser = getBrowser();
     page = await browser.newWindow({
-      uid,
+      pageId,
       scripts: [agentSource],
       url
     });
     context = {
-      uid,
+      pageId,
       urls,
       url,
       page,
@@ -133,22 +125,22 @@ export const pageTask = async function (this: IParallelizeContext, url: string, 
           break;
         }
       } catch (error) {
-        logger.error({ source: 'page', message: 'An error occurred', error, data: { uid } });
+        logger.error({ source: 'page', message: 'An error occurred', error, pageId, data: {} });
         break;
       }
     }
     const testResults = (await page.eval("window['ui5-test-runner'].results")) as CommonTestReport['results'];
-    logger.debug({ source: 'page', message: 'test results', data: { uid, results: testResults } });
+    logger.debug({ source: 'page', message: 'test results', pageId, data: { results: testResults } });
     reportBuilder.merge(url, testResults);
   } finally {
     if (context !== undefined) {
       logger.info({
         source: 'progress',
         message: url,
+        pageId,
         data: {
           max: context.lastTotal,
           value: context.lastExecuted,
-          uid,
           type: context.type,
           errors: context.errors,
           remove: true
@@ -158,7 +150,7 @@ export const pageTask = async function (this: IParallelizeContext, url: string, 
     try {
       await page?.close();
     } catch (error) {
-      logger.error({ source: 'page', message: 'page.close failed', error, data: { uid } });
+      logger.error({ source: 'page', message: 'page.close failed', error, pageId, data: {} });
     }
     setTaskAsStopped();
   }

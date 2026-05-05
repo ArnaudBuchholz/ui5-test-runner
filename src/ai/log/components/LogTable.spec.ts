@@ -65,6 +65,7 @@ describe('renderLogTable', () => {
     expect(html).toContain('data-col="source"');
     expect(html).toContain('data-col="processId"');
     expect(html).toContain('data-col="threadId"');
+    expect(html).toContain('data-col="pageId"');
   });
 
   it('adds col-clickable class to filterable header cells', () => {
