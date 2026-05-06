@@ -31,9 +31,15 @@ export const factory = async (): Promise<IBrowser> => {
     } catch (error) {
       if (error instanceof Error && error.message.startsWith('Could not find Chrome')) {
         // TODO: is there a way to monitor the progress ?
+        // YES: using https://pptr.dev/browsers-api/browsers.installoptions
         logger.info({
-          source: 'job',
-          message: 'Installing chrome (puppeteer)'
+          source: 'progress',
+          message: 'Installing chrome (puppeteer)',
+          pageId: undefined,
+          data: {
+            value: 1,
+            max: 0
+          }
         });
         await Process.spawn('npx', 'puppeteer browsers install chrome'.split(' '), {
           shell: true,
