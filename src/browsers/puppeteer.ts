@@ -109,7 +109,16 @@ export const factory = async (): Promise<IBrowser> => {
             source: 'browser/network',
             message: request.url(),
             pageId,
-            data: { method: request.method(), status: response.status() }
+            data: {
+              request: {
+                method: request.method(),
+                headers: request.headers()
+              },
+              response: {
+                status: response.status(),
+                headers: response.headers()
+              }
+            }
           });
         });
       logger.debug({ source: 'puppeteer', message: 'newWindow completed', data: settings });
