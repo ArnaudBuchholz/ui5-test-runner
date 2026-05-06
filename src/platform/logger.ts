@@ -9,7 +9,7 @@ import { LogLevel } from './logger/types.js';
 import { toInternalLogAttributes } from './logger/toInternalLogAttributes.js';
 import assert from 'node:assert/strict';
 import { toPlainObject } from '../utils/shared/object.js';
-import type { IError } from '../types/IError.js';
+import { toIError } from '../utils/shared/toIError.js';
 
 const startedAt = Date.now();
 
@@ -68,28 +68,10 @@ const start = () => {
   };
 };
 
-const convertErrorToAttributes = (error: unknown): IError => {
-  if (!(error instanceof Error)) {
-    return convertErrorToAttributes(new Error(JSON.stringify(error)));
-  }
-  const attributes: IError = {
-    name: error.name,
-    message: error.message,
-    stack: error.stack
-  };
-  if (error.cause) {
-    attributes.cause = convertErrorToAttributes(error.cause);
-  }
-  if (error instanceof AggregateError) {
-    attributes.errors = error.errors.map((item) => convertErrorToAttributes(item));
-  }
-  return attributes;
-};
-
 const log = (level: LogLevel, attributes: LogAttributes) => {
   const allAttributes = toInternalLogAttributes(attributes, level);
   if (attributes.error) {
-    allAttributes.error = convertErrorToAttributes(attributes.error);
+    allAttributes.error = toIError(attributes.error);
   }
   if (ready && !stopping) {
     channel.postMessage({
