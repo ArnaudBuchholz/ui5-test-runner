@@ -2,7 +2,7 @@ import { vi } from 'vitest';
 import type { ReadStream, WriteStream } from 'node:fs';
 import type { BroadcastChannel, Worker } from 'node:worker_threads';
 import { join } from 'node:path';
-import type { ILogger } from './logger/ILogger.js';
+import type { ILoggerService } from './logger/ILogger.js';
 import type { IAsyncTask } from './Exit.js';
 import type { Terminal } from './Terminal.js';
 
@@ -70,7 +70,7 @@ const logger = {
   error: vi.fn(),
   fatal: vi.fn(),
   stop: vi.fn()
-} satisfies ILogger;
+} satisfies ILoggerService;
 
 vi.mock(import('./logger.js'), () => ({ logger }));
 

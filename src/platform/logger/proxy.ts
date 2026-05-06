@@ -1,6 +1,6 @@
-import type { ILogger } from './ILogger.js';
+import type { ILoggerService } from './ILogger.js';
 
-export let logger: ILogger | undefined;
+export let logger: ILoggerService | undefined;
 
 const breakDependencyLoopToLogger = async () => {
   const module = await import('../logger.js');
