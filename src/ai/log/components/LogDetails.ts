@@ -1,4 +1,4 @@
-import type { InternalLogAttributes, LogErrorAttributes } from '../../../platform/logger/types.js';
+import type { InternalLogAttributes } from '../../../platform/logger/types.js';
 import { levelIcon, levelName, formatTimestamp } from '../utils/format.js';
 
 function filterButtons(field: string, value: unknown): string {
@@ -40,7 +40,7 @@ function renderDataFields(data: object, prefix = 'data'): string {
     .join('');
 }
 
-function renderError(error: LogErrorAttributes): string {
+function renderError(error: object): string {
   return `<div class="log-details-row"><span class="log-details-section-label">error (JSON):</span></div>
 <div class="log-details-row"><pre class="log-details-error">${escapeHtml(JSON.stringify(error, null, 2))}</pre></div>`;
 }
@@ -63,8 +63,8 @@ export function renderLogDetails(log: InternalLogAttributes): string {
   }
   html += detailRow('message', escapeHtml(log.message));
 
-  if (log.error !== undefined) {
-    html += renderError(log.error as LogErrorAttributes);
+  if (log.error) {
+    html += renderError(log.error);
   }
 
   if (log.data !== undefined) {

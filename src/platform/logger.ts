@@ -3,18 +3,13 @@ import { Host } from './Host.js';
 import { Terminal } from './Terminal.js';
 import { Thread } from './Thread.js';
 import type { Configuration } from '../configuration/Configuration.js';
-import type {
-  LogErrorAttributes,
-  InternalLogAttributes,
-  LogAttributes,
-  LogMessage,
-  ReadySource
-} from './logger/types.js';
+import type { InternalLogAttributes, LogAttributes, LogMessage, ReadySource } from './logger/types.js';
 import type { ILoggerService } from './logger/ILogger.ts';
 import { LogLevel } from './logger/types.js';
 import { toInternalLogAttributes } from './logger/toInternalLogAttributes.js';
 import assert from 'node:assert/strict';
 import { toPlainObject } from '../utils/shared/object.js';
+import type { IError } from '../types/IError.js';
 
 const startedAt = Date.now();
 
@@ -73,11 +68,11 @@ const start = () => {
   };
 };
 
-const convertErrorToAttributes = (error: unknown): LogErrorAttributes => {
+const convertErrorToAttributes = (error: unknown): IError => {
   if (!(error instanceof Error)) {
     return convertErrorToAttributes(new Error(JSON.stringify(error)));
   }
-  const attributes: LogErrorAttributes = {
+  const attributes: IError = {
     name: error.name,
     message: error.message,
     stack: error.stack

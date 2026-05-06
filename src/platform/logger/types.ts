@@ -1,13 +1,5 @@
 import type { ServerEventName, ServerEvent } from 'reserve';
 
-export type LogErrorAttributes = {
-  name: string;
-  message: string;
-  stack?: string;
-  cause?: LogErrorAttributes;
-  errors?: LogErrorAttributes[];
-};
-
 type GenericLogSource =
   | 'browser'
   | 'exit'
