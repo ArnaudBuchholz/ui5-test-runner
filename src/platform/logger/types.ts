@@ -21,7 +21,9 @@ type GenericLogSource =
   | 'puppeteer'
   | 'server';
 
-export type LogSource = GenericLogSource | 'page' | 'progress' | 'metric' | 'assert' | 'reserve';
+type PageLogSource = 'page' | 'browser/console' | 'browser/network';
+
+export type LogSource = GenericLogSource | PageLogSource | 'progress' | 'metric' | 'assert' | 'reserve';
 
 export type OverallProgressData = {
   /** Pages executed */
@@ -52,7 +54,7 @@ export type LogAttributes = {
       source: GenericLogSource;
     }
   | {
-      source: 'page';
+      source: PageLogSource;
       pageId: number;
     }
   | {

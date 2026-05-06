@@ -24,7 +24,13 @@ type OverallProgress = {
   totalNumberOfTests: number;
 };
 
-const DO_NOT_RENDER_SOURCE: string[] = ['browser', 'metric', 'progress'] as const;
+const DO_NOT_RENDER_SOURCE: InternalLogAttributes['source'][] = [
+  'browser',
+  'browser/console',
+  'browser/network',
+  'metric',
+  'progress'
+] as const;
 
 export abstract class BaseLoggerOutput {
   protected readonly _configuration: Configuration;

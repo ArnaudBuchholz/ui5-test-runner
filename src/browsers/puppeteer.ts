@@ -1,7 +1,8 @@
 import { logger, Exit, Process } from '../platform/index.js';
 import type { BrowserCapabilities, BrowserSettings, IBrowser } from './IBrowser.js';
-import type { launch as launchFunction, Browser, Page } from 'puppeteer';
+import type { launch as launchFunction, Browser, Page, ConsoleMessageType } from 'puppeteer';
 import { Npm } from '../Npm.js';
+import type { ILogger } from '../platform/logger/ILogger.js';
 
 export const factory = async (): Promise<IBrowser> => {
   const puppeteer = await Npm.import('puppeteer');
@@ -85,18 +86,27 @@ export const factory = async (): Promise<IBrowser> => {
       await page?.goto(settings.url);
       const { pageId } = settings;
       page
-        ?.on('console', (message) =>
-          logger.debug({
-            source: 'browser',
+        ?.on('console', (message) => {
+          const LOG_TYPES: { [key in ConsoleMessageType]?: keyof ILogger } = {
+            error: 'error',
+            warn: 'warn',
+            debug: 'debug'
+          } as const;
+          const logType = LOG_TYPES[message.type()] ?? 'info';
+          logger[logType]({
+            source: 'browser/console',
             message: message.text(),
             pageId,
             data: { type: message.type() }
-          })
-        )
+          });
+        })
         ?.on('response', (response) => {
           const request = response.request();
-          logger.debug({
-            source: 'browser',
+          const statusType = Math.floor(response.status() / 100);
+          const LOG_TYPES = [null, null, null, null, 'warn', 'error'] as const;
+          const logType = LOG_TYPES[statusType] ?? 'info';
+          logger[logType]({
+            source: 'browser/network',
             message: request.url(),
             pageId,
             data: { method: request.method(), status: response.status() }
