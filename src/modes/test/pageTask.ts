@@ -71,6 +71,11 @@ const queryAgentState = async (context: PageContext): Promise<boolean> => {
   }
   if (agentState.type === 'QUnit') {
     reportQunitProgress(context, agentState);
+    // TODO: document the problem in the test report
+    // TODO: add an option to ignore the uncaught errors
+    if (agentState.uncaughtErrors?.length) {
+      return true;
+    }
   }
   return false;
 };
@@ -132,6 +137,7 @@ export const pageTask = async function (this: IParallelizeContext, url: string, 
     const testResults = (await page.eval("window['ui5-test-runner'].results")) as CommonTestReport['results'];
     logger.debug({ source: 'page', message: 'test results', pageId, data: { results: testResults } });
     reportBuilder.merge(url, testResults);
+    // TODO: add a catch block and document the problem in the test report
   } finally {
     if (context !== undefined) {
       logger.info({
@@ -146,6 +152,7 @@ export const pageTask = async function (this: IParallelizeContext, url: string, 
           remove: true
         }
       });
+      // TODO: document end of page with type and duration (to ease search)
     }
     try {
       await page?.close();
