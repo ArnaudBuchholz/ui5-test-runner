@@ -3,7 +3,7 @@ import type { IError } from './IError.js';
 export type AgentState = {
   loaded?: ReturnType<typeof Date.now>;
   done: boolean;
-  uncaughtErrors?: IError[];
+  uncaughtErrors?: (IError & { event: string })[];
 } & (
   | {
       /** Unknown yet */
