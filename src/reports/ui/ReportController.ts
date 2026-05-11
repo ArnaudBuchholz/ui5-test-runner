@@ -36,7 +36,9 @@ export class ReportController extends AbstractUserInterfaceController<Settings, 
       this._reset();
       this._update({
         report: stateDiff.report,
-        mode: 'display'
+        mode: 'display',
+        suites: [],
+        tests: stateDiff.report.results.tests
       });
     }
     if (action !== undefined) {

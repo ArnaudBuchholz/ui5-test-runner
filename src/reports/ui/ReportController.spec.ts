@@ -26,7 +26,7 @@ it('has an empty initial state', () => {
   });
 });
 
-it.skip('shows the report when set', () => {
+it('shows the report when set', () => {
   const reportBuilder = new TestReportBuilder(REPORT_ID, REPORT_GENERATED_BY);
   reportBuilder.merge(
     'http://localhost',
@@ -51,7 +51,7 @@ it.skip('shows the report when set', () => {
   expect(update).toHaveBeenCalledWith({
     report,
     mode: 'display',
-    suites: [],
+    suites: ['test'],
     tests: report.results.tests
   });
 });

@@ -4,8 +4,7 @@ import type { SORT_BY, FILTER_ON_STATUS } from './constants.js';
 export type Suite = {
   id: string;
   label: string;
-  url: string;
-  suites: Suite[];
+  suites?: Suite[];
 };
 
 export type Settings = {
