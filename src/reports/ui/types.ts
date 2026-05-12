@@ -2,9 +2,12 @@ import type { CommonTestReport } from '../../types/CommonTestReportFormat.js';
 import type { SORT_BY, FILTER_ON_STATUS } from './constants.js';
 
 export type Suite = {
-  id: string;
+  /** globally unique ID to ensure we can easily identify children */
+  uid: string;
+  /** label for the user, might be the test module name or the page URL (shortened) */
   label: string;
-  suites?: Suite[];
+  /** children suites */
+  suites: Suite[];
 };
 
 export type Settings = {
@@ -14,12 +17,15 @@ export type Settings = {
 
 export type State = {
   report: CommonTestReport;
-  filterOnSuiteId: string;
+  /** should match one suite.uid */
+  filterOnSuiteUid: string;
   filterOnStatus: (typeof FILTER_ON_STATUS)[number]['key'];
+  /** free text search */
   search: string;
   sortBy: (typeof SORT_BY)[number]['key'];
   sortAscending: boolean;
-  readonly mode: /** asks user to pick a file to open */
+  readonly mode:
+    /** asks user to pick a file to open */
     | 'open'
     /** displays report */
     | 'display';
