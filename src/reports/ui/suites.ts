@@ -1,11 +1,13 @@
 import type { CommonTestReport } from '../../types/CommonTestReportFormat.js';
 import type { Suite } from './types.js';
 
-export const SUITE_SEPARATOR = '||';
+export const SUITE_SEPARATOR = '\r';
+export const NO_SUITE = '';
+export const NO_SUITE_LABEL = 'No suite';
 
-export const findSuite = (suites: Suite[], suiteId: string): Suite | undefined => {
+export const findSuite = (suites: Suite[], suiteUid: string): Suite | undefined => {
   for (const suite of suites) {
-    if (suite.id === suiteId) {
+    if (suite.uid === suiteUid) {
       return suite;
     }
   }
@@ -13,37 +15,45 @@ export const findSuite = (suites: Suite[], suiteId: string): Suite | undefined =
 };
 
 export const buildSuites = (tests: CommonTestReport['results']['tests']): Suite[] => {
-  const results: Suite[] = [];
+  const root: Suite = {
+    uid: '',
+    label: '',
+    suites: [],
+  };
   for (const test of tests) {
-    const { suite } = test;
-    if (!suite) {
-      let noSuite = findSuite(results, '');
+    const { suite: suiteArray } = test;
+    if (!suiteArray || suiteArray.length === 0) {
+      let noSuite = findSuite(root.suites, NO_SUITE);
       if (!noSuite) {
         noSuite = {
-            id: '',
-            label: 'No suite'
+            uid: NO_SUITE,
+            label: NO_SUITE_LABEL,
+            suites: []
         };
-        results.push(noSuite);
+        root.suites.push(noSuite);
       }
       continue;
     }
-    let suites = results;
-    for (let index = 0; index < suite.length; ++index) {
-      const existingSuite = findSuite(suites, suite[index]!);
-      
-      if (existingSuite && index + 1 < suite.length) {
-        existingSuite.suites ??= [];
-        suites = existingSuite.suites;
+    let parent = root;
+    let suiteUid = '';
+    for (let index = 0; index < suiteArray.length; ++index) {
+      const suiteId = suiteArray[index]!;
+      if (!suiteUid) {
+        suiteUid = suiteId;
       } else {
-        const newSuite = {
-          id: '',
-          label: 'TO BE DETERMINED'
-        }
-        suites.push(newSuite);
-
+        suiteUid += SUITE_SEPARATOR + suiteId;
       }
+      let suite = findSuite(parent.suites, suiteUid);
+      if (!suite) {
+        suite = {
+          uid: suiteUid,
+          label: suiteId.match(/^https?:/) ? 'TO BE DETERMINED' : suiteId,
+          suites: []
+        };
+        parent.suites.push(suite);
+      }
+      parent = suite;
     }
-
   }
-  return results;
+  return root.suites;
 };
