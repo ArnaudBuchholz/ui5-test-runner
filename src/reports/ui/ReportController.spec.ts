@@ -3,9 +3,13 @@ import { ReportController } from './ReportController.js';
 import type { State } from './types.js';
 import { createEmptyTestResults, createTestResults, SPEC_VERSION } from '../../types/CommonTestReportFormat.js';
 import { TestReportBuilder } from '../../utils/shared/TestReportBuilder.js';
+import { SUITE_SEPARATOR } from './suites.js';
 
 const REPORT_ID = 'report-id' as const;
 const REPORT_GENERATED_BY = 'test' as const;
+
+// Silence console logs
+vi.spyOn(console, 'log').mockImplementation(() => {});
 
 it('has an empty initial state', () => {
   const controller = new ReportController();
@@ -49,9 +53,19 @@ it('shows the report when set', () => {
     report
   });
   expect(update).toHaveBeenCalledWith({
-    report,
     mode: 'display',
-    suites: ['test'],
+    report,
+    suites: [
+      {
+        uid: 'http://localhost',
+        label: 'http://localhost',
+        suites: [{
+          uid: `http://localhost${SUITE_SEPARATOR}test`,
+          label: 'test',
+          suites: []
+        }]
+      }
+    ],
     tests: report.results.tests
   });
 });

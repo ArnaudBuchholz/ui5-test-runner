@@ -1,6 +1,7 @@
 import { createEmptyTestResults, SPEC_VERSION } from '../../types/CommonTestReportFormat.js';
 import { AbstractUserInterfaceController } from '../../utils/ui/AbstractUserInterfaceController.js';
 import { FILTER_ON_STATUS, SORT_BY } from './constants.js';
+import { buildSuites } from './suites.js';
 import type { Settings, State, Actions } from './types.js';
 
 export class ReportController extends AbstractUserInterfaceController<Settings, State, Actions> {
@@ -34,11 +35,12 @@ export class ReportController extends AbstractUserInterfaceController<Settings, 
   protected override _onInteraction(stateDiff: Partial<State>, action?: Actions) {
     if (stateDiff.report) {
       this._reset();
+      const tests = stateDiff.report.results.tests;
       this._update({
         report: stateDiff.report,
         mode: 'display',
-        suites: [],
-        tests: stateDiff.report.results.tests
+        suites: buildSuites(tests),
+        tests,
       });
     }
     if (action !== undefined) {
