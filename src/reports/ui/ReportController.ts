@@ -20,7 +20,7 @@ export class ReportController extends AbstractUserInterfaceController<Settings, 
         specVersion: SPEC_VERSION,
         results: createEmptyTestResults()
       },
-      filterOnSuiteId: '',
+      filterOnSuiteUid: '',
       filterOnStatus: '',
       search: '',
       sortBy: '',
