@@ -40,13 +40,21 @@ export class ReportController extends AbstractUserInterfaceController<Settings, 
         report: stateDiff.report,
         mode: 'display',
         suites: buildSuites(tests),
-        tests,
+        tests
       });
     }
     if (action !== undefined) {
-      void this[action]();
+      this[action]();
     }
   }
 
-  protected async export() {}
+  protected export() {
+    const link = document.createElement('a');
+    const blob = new Blob([JSON.stringify(this._state.report)], {
+      type: 'application/json'
+    });
+    link.setAttribute('href', URL.createObjectURL(blob));
+    link.setAttribute('download', 'report.json');
+    link.click();
+  }
 }
