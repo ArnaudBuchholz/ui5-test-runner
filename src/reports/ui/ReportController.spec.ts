@@ -15,7 +15,7 @@ it('has an empty initial state', () => {
       specVersion: SPEC_VERSION,
       results: createEmptyTestResults()
     },
-    filterOnSuiteId: '',
+    filterOnSuiteUid: '',
     filterOnStatus: '',
     search: '',
     sortBy: '',
