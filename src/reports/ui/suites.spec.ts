@@ -95,6 +95,10 @@ it.each([
   {
     url: 'http://localhost:8000/resources/sap/ui/test/starter/Test.qunit.html',
     label: 'Test.qunit.html'
+  },
+  {
+    url: 'http://localhost:8000',
+    label: 'http://localhost:8000'
   }
 ])('$url -> $label', ({ url, label }) => {
   expect(extractUrlLabel(url)).toStrictEqual(label);

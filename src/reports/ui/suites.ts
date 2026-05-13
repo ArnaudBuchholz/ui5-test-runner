@@ -19,7 +19,7 @@ export const extractUrlLabel = (url: string): string => {
   const test = parsed.searchParams.get('test');
   const testsuite = parsed.searchParams.get('testsuite');
   const file = parsed.pathname.split('/').findLast(Boolean);
-  return test || testsuite || file || parsed.pathname;
+  return test || testsuite || file || url;
 };
 
 const isValidSuite = (
