@@ -2,7 +2,8 @@ import { describe, it, expect, vi, beforeAll, beforeEach } from 'vitest';
 import type { Mock } from 'vitest';
 import { ReportController } from './ReportController.js';
 import type { State } from './types.js';
-import { CommonTestReport, createEmptyTestResults, createTestResults, SPEC_VERSION } from '../../types/CommonTestReportFormat.js';
+import type { CommonTestReport } from '../../types/CommonTestReportFormat.js';
+import { createEmptyTestResults, createTestResults, SPEC_VERSION } from '../../types/CommonTestReportFormat.js';
 import { TestReportBuilder } from '../../utils/shared/TestReportBuilder.js';
 import { SUITE_SEPARATOR } from './suites.js';
 
@@ -77,7 +78,7 @@ it('exports the report by downloading it', () => {
   const controller = new ReportController();
   const mock = {
     setAttribute: vi.fn(),
-    click: vi.fn(),
+    click: vi.fn()
   };
   const spy = vi.spyOn(document, 'createElement').mockReturnValue(mock as unknown as HTMLElement);
   controller.interaction({ action: 'export' });
@@ -107,7 +108,7 @@ describe('filtering', () => {
           { suite: ['qunit 1'], name: 'qunit 1.3', status: 'failed', duration: 4 },
           { suite: ['qunit 1'], name: 'qunit 1.4', status: 'skipped', duration: 3 },
           { suite: ['qunit 2'], name: 'qunit 2.1', status: 'passed', duration: 2 },
-          { suite: ['qunit 2'], name: 'qunit 2.2', status: 'passed', duration: 1 },
+          { suite: ['qunit 2'], name: 'qunit 2.2', status: 'passed', duration: 1 }
         ]
       })
     );
@@ -120,7 +121,7 @@ describe('filtering', () => {
           { suite: ['opa 1'], name: 'opa 1.3', status: 'failed', duration: 10 },
           { suite: ['opa 1'], name: 'opa 1.4', status: 'skipped', duration: 9 },
           { suite: ['opa 2'], name: 'opa 2.1', status: 'passed', duration: 8 },
-          { suite: ['opa 2'], name: 'opa 2.2', status: 'passed', duration: 7 },
+          { suite: ['opa 2'], name: 'opa 2.2', status: 'passed', duration: 7 }
         ]
       })
     );
@@ -150,27 +151,57 @@ describe('filtering', () => {
     });
   });
 
-  const expectSuite = expect.any(Array) as string[];
+  const addSuites = (tests: object[]): object[] =>
+    tests.map((object) => ({
+      suite: expect.any(Array) as string[],
+      ...object
+    }));
 
   describe('filterOnSuiteUid', () => {
+    it('shows all tests from suite', () => {
+      controller.interaction({ filterOnSuiteUid: SUITE_URL });
+      expect(controller.state.tests).toMatchObject(
+        addSuites([
+          { name: 'qunit 1.1', status: 'passed', duration: 6 },
+          { name: 'qunit 1.2', status: 'passed', duration: 5 },
+          { name: 'qunit 1.3', status: 'failed', duration: 4 },
+          { name: 'qunit 1.4', status: 'skipped', duration: 3 },
+          { name: 'qunit 2.1', status: 'passed', duration: 2 },
+          { name: 'qunit 2.2', status: 'passed', duration: 1 },
+          { name: 'opa 1.1', status: 'passed', duration: 12 },
+          { name: 'opa 1.2', status: 'passed', duration: 11 },
+          { name: 'opa 1.3', status: 'failed', duration: 10 },
+          { name: 'opa 1.4', status: 'skipped', duration: 9 },
+          { name: 'opa 2.1', status: 'passed', duration: 8 },
+          { name: 'opa 2.2', status: 'passed', duration: 7 }
+        ])
+      );
+    });
+
     it('shows only qunit tests', () => {
       controller.interaction({ filterOnSuiteUid: `${SUITE_URL}${SUITE_SEPARATOR}${QUNIT_URL}` });
-      expect(controller.state.tests).toMatchObject([
-          { suite: expectSuite, name: 'qunit 1.1', status: 'passed', duration: 6 },
-          { suite: expectSuite, name: 'qunit 1.2', status: 'passed', duration: 5 },
-          { suite: expectSuite, name: 'qunit 1.3', status: 'failed', duration: 4 },
-          { suite: expectSuite, name: 'qunit 1.4', status: 'skipped', duration: 3 },
-          { suite: expectSuite, name: 'qunit 2.1', status: 'passed', duration: 2 },
-          { suite: expectSuite, name: 'qunit 2.2', status: 'passed', duration: 1 },        
-      ]);
+      expect(controller.state.tests).toMatchObject(
+        addSuites([
+          { name: 'qunit 1.1', status: 'passed', duration: 6 },
+          { name: 'qunit 1.2', status: 'passed', duration: 5 },
+          { name: 'qunit 1.3', status: 'failed', duration: 4 },
+          { name: 'qunit 1.4', status: 'skipped', duration: 3 },
+          { name: 'qunit 2.1', status: 'passed', duration: 2 },
+          { name: 'qunit 2.2', status: 'passed', duration: 1 }
+        ])
+      );
     });
 
     it('shows only qunit tests from qunit 2', () => {
-      controller.interaction({ filterOnSuiteUid: `${SUITE_URL}${SUITE_SEPARATOR}${QUNIT_URL}${SUITE_SEPARATOR}qunit 2` });
-      expect(controller.state.tests).toMatchObject([
-          { suite: expectSuite, name: 'qunit 2.1', status: 'passed', duration: 2 },
-          { suite: expectSuite, name: 'qunit 2.2', status: 'passed', duration: 1 },        
-      ]);
+      controller.interaction({
+        filterOnSuiteUid: `${SUITE_URL}${SUITE_SEPARATOR}${QUNIT_URL}${SUITE_SEPARATOR}qunit 2`
+      });
+      expect(controller.state.tests).toMatchObject(
+        addSuites([
+          { name: 'qunit 2.1', status: 'passed', duration: 2 },
+          { name: 'qunit 2.2', status: 'passed', duration: 1 }
+        ])
+      );
     });
   });
 });
