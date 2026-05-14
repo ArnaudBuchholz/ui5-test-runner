@@ -241,4 +241,34 @@ describe('filtering', () => {
       );
     });
   });
+
+  describe('search', () => {
+    it('filters test by name', () => {
+      controller.interaction({ search: '.2' });
+      expect(controller.state.tests).toMatchObject(
+        addSuites([
+          { name: 'qunit 1.2', status: 'passed', duration: 5 },
+          { name: 'qunit 2.2', status: 'passed', duration: 1 },
+          { name: 'opa 1.2', status: 'passed', duration: 11 },
+          { name: 'opa 2.2', status: 'passed', duration: 7 }
+        ])
+      );
+    });
+  });
+
+  describe('filterOnSuiteUi + filterOnStatus + search', () => {
+    it('shows only qunit tests', () => {
+      controller.interaction({
+        filterOnSuiteUid: `${SUITE_URL}${SUITE_SEPARATOR}${QUNIT_URL}`,
+        filterOnStatus: 'passed',
+        search: '.2'
+      });
+      expect(controller.state.tests).toMatchObject(
+        addSuites([
+          { name: 'qunit 1.2', status: 'passed', duration: 5 },
+          { name: 'qunit 2.2', status: 'passed', duration: 1 }
+        ])
+      );
+    });
+  });
 });

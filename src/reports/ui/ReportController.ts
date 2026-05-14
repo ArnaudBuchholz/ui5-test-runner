@@ -34,7 +34,7 @@ export class ReportController extends AbstractUserInterfaceController<Settings, 
 
   private _filter() {
     let tests = this._state.report.results.tests;
-    const { filterOnSuiteUid, filterOnStatus } = this._state;
+    const { filterOnSuiteUid, filterOnStatus, search } = this._state;
     if (filterOnSuiteUid) {
       tests = tests.filter((test) => test.suite?.join(SUITE_SEPARATOR)?.startsWith(filterOnSuiteUid));
     }
@@ -43,6 +43,9 @@ export class ReportController extends AbstractUserInterfaceController<Settings, 
         filterOnStatus === 'other'
           ? tests.filter((test) => !['passed', 'failed'].includes(test.status))
           : tests.filter((test) => test.status === filterOnStatus);
+    }
+    if (search) {
+      tests = tests.filter((test) => test.name.includes(search));
     }
     return tests;
   }
