@@ -8,10 +8,6 @@ export const SORT_BY = [
     key: 'name'
   },
   {
-    label: 'Status',
-    key: 'status'
-  },
-  {
     label: 'Duration',
     key: 'duration'
   }

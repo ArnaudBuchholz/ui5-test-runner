@@ -88,7 +88,7 @@ it('exports the report by downloading it', () => {
   expect(mock.click).toHaveBeenCalledOnce();
 });
 
-describe('filtering', () => {
+describe('filtering and sorting', () => {
   const SUITE_URL = 'http://localhost/suite.html';
   const QUNIT_URL = 'http://localhost/qunit.html';
   const OPA_URL = 'http://localhost/opa.html';
@@ -102,11 +102,11 @@ describe('filtering', () => {
       'http://localhost/qunit.html',
       createTestResults({
         tests: [
-          { suite: ['qunit 1'], name: 'qunit 1.1', status: 'passed', duration: 6 },
+          { suite: ['qunit 1'], name: 'qunit 1.1', status: 'passed', duration: 60 },
           { suite: ['qunit 1'], name: 'qunit 1.2', status: 'passed', duration: 5 },
-          { suite: ['qunit 1'], name: 'qunit 1.3', status: 'failed', duration: 4 },
+          { suite: ['qunit 1'], name: 'qunit 1.3', status: 'failed', duration: 40 },
           { suite: ['qunit 1'], name: 'qunit 1.4', status: 'skipped', duration: 3 },
-          { suite: ['qunit 2'], name: 'qunit 2.1', status: 'passed', duration: 2 },
+          { suite: ['qunit 2'], name: 'qunit 2.1', status: 'passed', duration: 20 },
           { suite: ['qunit 2'], name: 'qunit 2.2', status: 'passed', duration: 1 }
         ]
       })
@@ -115,11 +115,11 @@ describe('filtering', () => {
       'http://localhost/opa.html',
       createTestResults({
         tests: [
-          { suite: ['opa 1'], name: 'opa 1.1', status: 'passed', duration: 12 },
+          { suite: ['opa 1'], name: 'opa 1.1', status: 'passed', duration: 120 },
           { suite: ['opa 1'], name: 'opa 1.2', status: 'passed', duration: 11 },
-          { suite: ['opa 1'], name: 'opa 1.3', status: 'failed', duration: 10 },
+          { suite: ['opa 1'], name: 'opa 1.3', status: 'failed', duration: 100 },
           { suite: ['opa 1'], name: 'opa 1.4', status: 'skipped', duration: 9 },
-          { suite: ['opa 2'], name: 'opa 2.1', status: 'passed', duration: 8 },
+          { suite: ['opa 2'], name: 'opa 2.1', status: 'passed', duration: 80 },
           { suite: ['opa 2'], name: 'opa 2.2', status: 'passed', duration: 7 }
         ]
       })
@@ -161,17 +161,17 @@ describe('filtering', () => {
       controller.interaction({ filterOnSuiteUid: SUITE_URL });
       expect(controller.state.tests).toMatchObject(
         addSuites([
-          { name: 'qunit 1.1', status: 'passed', duration: 6 },
+          { name: 'qunit 1.1', status: 'passed', duration: 60 },
           { name: 'qunit 1.2', status: 'passed', duration: 5 },
-          { name: 'qunit 1.3', status: 'failed', duration: 4 },
+          { name: 'qunit 1.3', status: 'failed', duration: 40 },
           { name: 'qunit 1.4', status: 'skipped', duration: 3 },
-          { name: 'qunit 2.1', status: 'passed', duration: 2 },
+          { name: 'qunit 2.1', status: 'passed', duration: 20 },
           { name: 'qunit 2.2', status: 'passed', duration: 1 },
-          { name: 'opa 1.1', status: 'passed', duration: 12 },
+          { name: 'opa 1.1', status: 'passed', duration: 120 },
           { name: 'opa 1.2', status: 'passed', duration: 11 },
-          { name: 'opa 1.3', status: 'failed', duration: 10 },
+          { name: 'opa 1.3', status: 'failed', duration: 100 },
           { name: 'opa 1.4', status: 'skipped', duration: 9 },
-          { name: 'opa 2.1', status: 'passed', duration: 8 },
+          { name: 'opa 2.1', status: 'passed', duration: 80 },
           { name: 'opa 2.2', status: 'passed', duration: 7 }
         ])
       );
@@ -181,11 +181,11 @@ describe('filtering', () => {
       controller.interaction({ filterOnSuiteUid: `${SUITE_URL}${SUITE_SEPARATOR}${QUNIT_URL}` });
       expect(controller.state.tests).toMatchObject(
         addSuites([
-          { name: 'qunit 1.1', status: 'passed', duration: 6 },
+          { name: 'qunit 1.1', status: 'passed', duration: 60 },
           { name: 'qunit 1.2', status: 'passed', duration: 5 },
-          { name: 'qunit 1.3', status: 'failed', duration: 4 },
+          { name: 'qunit 1.3', status: 'failed', duration: 40 },
           { name: 'qunit 1.4', status: 'skipped', duration: 3 },
-          { name: 'qunit 2.1', status: 'passed', duration: 2 },
+          { name: 'qunit 2.1', status: 'passed', duration: 20 },
           { name: 'qunit 2.2', status: 'passed', duration: 1 }
         ])
       );
@@ -197,7 +197,7 @@ describe('filtering', () => {
       });
       expect(controller.state.tests).toMatchObject(
         addSuites([
-          { name: 'qunit 2.1', status: 'passed', duration: 2 },
+          { name: 'qunit 2.1', status: 'passed', duration: 20 },
           { name: 'qunit 2.2', status: 'passed', duration: 1 }
         ])
       );
@@ -209,13 +209,13 @@ describe('filtering', () => {
       controller.interaction({ filterOnStatus: 'passed' });
       expect(controller.state.tests).toMatchObject(
         addSuites([
-          { name: 'qunit 1.1', status: 'passed', duration: 6 },
+          { name: 'qunit 1.1', status: 'passed', duration: 60 },
           { name: 'qunit 1.2', status: 'passed', duration: 5 },
-          { name: 'qunit 2.1', status: 'passed', duration: 2 },
+          { name: 'qunit 2.1', status: 'passed', duration: 20 },
           { name: 'qunit 2.2', status: 'passed', duration: 1 },
-          { name: 'opa 1.1', status: 'passed', duration: 12 },
+          { name: 'opa 1.1', status: 'passed', duration: 120 },
           { name: 'opa 1.2', status: 'passed', duration: 11 },
-          { name: 'opa 2.1', status: 'passed', duration: 8 },
+          { name: 'opa 2.1', status: 'passed', duration: 80 },
           { name: 'opa 2.2', status: 'passed', duration: 7 }
         ])
       );
@@ -225,8 +225,8 @@ describe('filtering', () => {
       controller.interaction({ filterOnStatus: 'failed' });
       expect(controller.state.tests).toMatchObject(
         addSuites([
-          { name: 'qunit 1.3', status: 'failed', duration: 4 },
-          { name: 'opa 1.3', status: 'failed', duration: 10 }
+          { name: 'qunit 1.3', status: 'failed', duration: 40 },
+          { name: 'opa 1.3', status: 'failed', duration: 100 }
         ])
       );
     });
@@ -266,6 +266,128 @@ describe('filtering', () => {
       expect(controller.state.tests).toMatchObject(
         addSuites([
           { name: 'qunit 1.2', status: 'passed', duration: 5 },
+          { name: 'qunit 2.2', status: 'passed', duration: 1 }
+        ])
+      );
+    });
+  });
+
+  describe('sorting', () => {
+    it('returns all records by default (sortAscending)', () => {
+      controller.interaction({ sortBy: '', sortAscending: true });
+      expect(controller.state.tests).toMatchObject(
+        addSuites([
+          { name: 'qunit 1.1', status: 'passed', duration: 60 },
+          { name: 'qunit 1.2', status: 'passed', duration: 5 },
+          { name: 'qunit 1.3', status: 'failed', duration: 40 },
+          { name: 'qunit 1.4', status: 'skipped', duration: 3 },
+          { name: 'qunit 2.1', status: 'passed', duration: 20 },
+          { name: 'qunit 2.2', status: 'passed', duration: 1 },
+          { name: 'opa 1.1', status: 'passed', duration: 120 },
+          { name: 'opa 1.2', status: 'passed', duration: 11 },
+          { name: 'opa 1.3', status: 'failed', duration: 100 },
+          { name: 'opa 1.4', status: 'skipped', duration: 9 },
+          { name: 'opa 2.1', status: 'passed', duration: 80 },
+          { name: 'opa 2.2', status: 'passed', duration: 7 }
+        ])
+      );
+    });
+
+    it('returns all records by default (!sortAscending)', () => {
+      controller.interaction({ sortBy: '', sortAscending: false });
+      expect(controller.state.tests).toMatchObject(
+        addSuites([
+          { name: 'qunit 1.1', status: 'passed', duration: 60 },
+          { name: 'qunit 1.2', status: 'passed', duration: 5 },
+          { name: 'qunit 1.3', status: 'failed', duration: 40 },
+          { name: 'qunit 1.4', status: 'skipped', duration: 3 },
+          { name: 'qunit 2.1', status: 'passed', duration: 20 },
+          { name: 'qunit 2.2', status: 'passed', duration: 1 },
+          { name: 'opa 1.1', status: 'passed', duration: 120 },
+          { name: 'opa 1.2', status: 'passed', duration: 11 },
+          { name: 'opa 1.3', status: 'failed', duration: 100 },
+          { name: 'opa 1.4', status: 'skipped', duration: 9 },
+          { name: 'opa 2.1', status: 'passed', duration: 80 },
+          { name: 'opa 2.2', status: 'passed', duration: 7 }
+        ])
+      );
+    });
+
+    it('sorts by name (sortAscending)', () => {
+      controller.interaction({ sortBy: 'name', sortAscending: true });
+      expect(controller.state.tests).toMatchObject(
+        addSuites([
+          { name: 'opa 1.1', status: 'passed', duration: 120 },
+          { name: 'opa 1.2', status: 'passed', duration: 11 },
+          { name: 'opa 1.3', status: 'failed', duration: 100 },
+          { name: 'opa 1.4', status: 'skipped', duration: 9 },
+          { name: 'opa 2.1', status: 'passed', duration: 80 },
+          { name: 'opa 2.2', status: 'passed', duration: 7 },
+          { name: 'qunit 1.1', status: 'passed', duration: 60 },
+          { name: 'qunit 1.2', status: 'passed', duration: 5 },
+          { name: 'qunit 1.3', status: 'failed', duration: 40 },
+          { name: 'qunit 1.4', status: 'skipped', duration: 3 },
+          { name: 'qunit 2.1', status: 'passed', duration: 20 },
+          { name: 'qunit 2.2', status: 'passed', duration: 1 }
+        ])
+      );
+    });
+
+    it('sorts by name (!sortAscending)', () => {
+      controller.interaction({ sortBy: 'name', sortAscending: false });
+      expect(controller.state.tests).toMatchObject(
+        addSuites([
+          { name: 'qunit 2.2', status: 'passed', duration: 1 },
+          { name: 'qunit 2.1', status: 'passed', duration: 20 },
+          { name: 'qunit 1.4', status: 'skipped', duration: 3 },
+          { name: 'qunit 1.3', status: 'failed', duration: 40 },
+          { name: 'qunit 1.2', status: 'passed', duration: 5 },
+          { name: 'qunit 1.1', status: 'passed', duration: 60 },
+          { name: 'opa 2.2', status: 'passed', duration: 7 },
+          { name: 'opa 2.1', status: 'passed', duration: 80 },
+          { name: 'opa 1.4', status: 'skipped', duration: 9 },
+          { name: 'opa 1.3', status: 'failed', duration: 100 },
+          { name: 'opa 1.2', status: 'passed', duration: 11 },
+          { name: 'opa 1.1', status: 'passed', duration: 120 }
+        ])
+      );
+    });
+
+    it('sorts by duration (sortAscending)', () => {
+      controller.interaction({ sortBy: 'duration', sortAscending: true });
+      expect(controller.state.tests).toMatchObject(
+        addSuites([
+          { name: 'qunit 2.2', status: 'passed', duration: 1 },
+          { name: 'qunit 1.4', status: 'skipped', duration: 3 },
+          { name: 'qunit 1.2', status: 'passed', duration: 5 },
+          { name: 'opa 2.2', status: 'passed', duration: 7 },
+          { name: 'opa 1.4', status: 'skipped', duration: 9 },
+          { name: 'opa 1.2', status: 'passed', duration: 11 },
+          { name: 'qunit 2.1', status: 'passed', duration: 20 },
+          { name: 'qunit 1.3', status: 'failed', duration: 40 },
+          { name: 'qunit 1.1', status: 'passed', duration: 60 },
+          { name: 'opa 2.1', status: 'passed', duration: 80 },
+          { name: 'opa 1.3', status: 'failed', duration: 100 },
+          { name: 'opa 1.1', status: 'passed', duration: 120 }
+        ])
+      );
+    });
+
+    it('sorts by duration (!sortAscending)', () => {
+      controller.interaction({ sortBy: 'duration', sortAscending: false });
+      expect(controller.state.tests).toMatchObject(
+        addSuites([
+          { name: 'opa 1.1', status: 'passed', duration: 120 },
+          { name: 'opa 1.3', status: 'failed', duration: 100 },
+          { name: 'opa 2.1', status: 'passed', duration: 80 },
+          { name: 'qunit 1.1', status: 'passed', duration: 60 },
+          { name: 'qunit 1.3', status: 'failed', duration: 40 },
+          { name: 'qunit 2.1', status: 'passed', duration: 20 },
+          { name: 'opa 1.2', status: 'passed', duration: 11 },
+          { name: 'opa 1.4', status: 'skipped', duration: 9 },
+          { name: 'opa 2.2', status: 'passed', duration: 7 },
+          { name: 'qunit 1.2', status: 'passed', duration: 5 },
+          { name: 'qunit 1.4', status: 'skipped', duration: 3 },
           { name: 'qunit 2.2', status: 'passed', duration: 1 }
         ])
       );

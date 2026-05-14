@@ -1,4 +1,5 @@
 import { createEmptyTestResults, SPEC_VERSION } from '../../types/CommonTestReportFormat.js';
+import type { CommonTestReport } from '../../types/CommonTestReportFormat.js';
 import { AbstractUserInterfaceController } from '../../utils/ui/AbstractUserInterfaceController.js';
 import { FILTER_ON_STATUS, SORT_BY } from './constants.js';
 import { buildSuites, SUITE_SEPARATOR } from './suites.js';
@@ -32,8 +33,17 @@ export class ReportController extends AbstractUserInterfaceController<Settings, 
     };
   }
 
-  private _filter() {
-    let tests = this._state.report.results.tests;
+  private _needFilterOrSort(stateDiff: Partial<State>) {
+    return (
+      stateDiff.filterOnSuiteUid !== undefined ||
+      stateDiff.filterOnStatus !== undefined ||
+      stateDiff.search !== undefined ||
+      stateDiff.sortBy !== undefined ||
+      stateDiff.sortAscending !== undefined
+    );
+  }
+
+  private _filter(tests: CommonTestReport['results']['tests']) {
     const { filterOnSuiteUid, filterOnStatus, search } = this._state;
     if (filterOnSuiteUid) {
       tests = tests.filter((test) => test.suite?.join(SUITE_SEPARATOR)?.startsWith(filterOnSuiteUid));
@@ -50,6 +60,26 @@ export class ReportController extends AbstractUserInterfaceController<Settings, 
     return tests;
   }
 
+  private _sort(tests: CommonTestReport['results']['tests']) {
+    const { sortBy, sortAscending } = this._state;
+    if (!sortBy) {
+      return tests;
+    }
+    const results = tests.toSorted((test1, test2) => {
+      if (sortBy === 'name') {
+        return test1.name.localeCompare(test2.name);
+      }
+      if (sortBy === 'duration') {
+        return test1.duration - test2.duration;
+      }
+      return 0;
+    });
+    if (!sortAscending) {
+      results.reverse();
+    }
+    return results;
+  }
+
   protected override _onInteraction(stateDiff: Partial<State>, action?: Actions) {
     let update: Partial<State> = {};
     let triggerUpdate = false;
@@ -63,12 +93,9 @@ export class ReportController extends AbstractUserInterfaceController<Settings, 
       triggerUpdate = true;
     }
     let tests = this._state.report.results.tests;
-    if (
-      stateDiff.filterOnSuiteUid !== undefined ||
-      stateDiff.filterOnStatus !== undefined ||
-      stateDiff.search !== undefined
-    ) {
-      tests = this._filter();
+    if (this._needFilterOrSort(stateDiff)) {
+      tests = this._filter(tests);
+      tests = this._sort(tests);
       triggerUpdate = true;
     }
     if (triggerUpdate) {
