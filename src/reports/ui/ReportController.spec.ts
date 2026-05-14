@@ -56,7 +56,6 @@ it('shows the report when set', () => {
   });
   expect(update).toHaveBeenCalledWith({
     mode: 'display',
-    report,
     suites: [
       {
         uid: 'http://localhost',
@@ -200,6 +199,44 @@ describe('filtering', () => {
         addSuites([
           { name: 'qunit 2.1', status: 'passed', duration: 2 },
           { name: 'qunit 2.2', status: 'passed', duration: 1 }
+        ])
+      );
+    });
+  });
+
+  describe('filterOnStatus', () => {
+    it('shows all passed tests', () => {
+      controller.interaction({ filterOnStatus: 'passed' });
+      expect(controller.state.tests).toMatchObject(
+        addSuites([
+          { name: 'qunit 1.1', status: 'passed', duration: 6 },
+          { name: 'qunit 1.2', status: 'passed', duration: 5 },
+          { name: 'qunit 2.1', status: 'passed', duration: 2 },
+          { name: 'qunit 2.2', status: 'passed', duration: 1 },
+          { name: 'opa 1.1', status: 'passed', duration: 12 },
+          { name: 'opa 1.2', status: 'passed', duration: 11 },
+          { name: 'opa 2.1', status: 'passed', duration: 8 },
+          { name: 'opa 2.2', status: 'passed', duration: 7 }
+        ])
+      );
+    });
+
+    it('shows all failed tests', () => {
+      controller.interaction({ filterOnStatus: 'failed' });
+      expect(controller.state.tests).toMatchObject(
+        addSuites([
+          { name: 'qunit 1.3', status: 'failed', duration: 4 },
+          { name: 'opa 1.3', status: 'failed', duration: 10 }
+        ])
+      );
+    });
+
+    it('shows all other tests', () => {
+      controller.interaction({ filterOnStatus: 'other' });
+      expect(controller.state.tests).toMatchObject(
+        addSuites([
+          { name: 'qunit 1.4', status: 'skipped', duration: 3 },
+          { name: 'opa 1.4', status: 'skipped', duration: 9 }
         ])
       );
     });
