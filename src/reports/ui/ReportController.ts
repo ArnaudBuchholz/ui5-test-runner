@@ -1,6 +1,8 @@
 import { createEmptyTestResults, SPEC_VERSION } from '../../types/CommonTestReportFormat.js';
+import type { CommonTestReport } from '../../types/CommonTestReportFormat.js';
 import { AbstractUserInterfaceController } from '../../utils/ui/AbstractUserInterfaceController.js';
 import { FILTER_ON_STATUS, SORT_BY } from './constants.js';
+import { buildSuites, SUITE_SEPARATOR } from './suites.js';
 import type { Settings, State, Actions } from './types.js';
 
 export class ReportController extends AbstractUserInterfaceController<Settings, State, Actions> {
@@ -20,7 +22,7 @@ export class ReportController extends AbstractUserInterfaceController<Settings, 
         specVersion: SPEC_VERSION,
         results: createEmptyTestResults()
       },
-      filterOnSuiteId: '',
+      filterOnSuiteUid: '',
       filterOnStatus: '',
       search: '',
       sortBy: '',
@@ -31,18 +33,91 @@ export class ReportController extends AbstractUserInterfaceController<Settings, 
     };
   }
 
+  private _needFilterOrSort(stateDiff: Partial<State>) {
+    return (
+      stateDiff.filterOnSuiteUid !== undefined ||
+      stateDiff.filterOnStatus !== undefined ||
+      stateDiff.search !== undefined ||
+      stateDiff.sortBy !== undefined ||
+      stateDiff.sortAscending !== undefined
+    );
+  }
+
+  private _filter(tests: CommonTestReport['results']['tests']) {
+    const { filterOnSuiteUid, filterOnStatus, search } = this._state;
+    if (filterOnSuiteUid) {
+      tests = tests.filter((test) => test.suite?.join(SUITE_SEPARATOR)?.startsWith(filterOnSuiteUid));
+    }
+    if (filterOnStatus) {
+      tests =
+        filterOnStatus === 'other'
+          ? tests.filter((test) => !['passed', 'failed'].includes(test.status))
+          : tests.filter((test) => test.status === filterOnStatus);
+    }
+    if (search) {
+      tests = tests.filter((test) => test.name.includes(search));
+    }
+    return tests;
+  }
+
+  private _sort(tests: CommonTestReport['results']['tests']) {
+    const { sortBy, sortAscending } = this._state;
+    if (!sortBy) {
+      return tests;
+    }
+    const results = tests.toSorted((test1, test2) => {
+      if (sortBy === 'name') {
+        return test1.name.localeCompare(test2.name);
+      }
+      if (sortBy === 'duration') {
+        return test1.duration - test2.duration;
+      }
+      return 0;
+    });
+    if (!sortAscending) {
+      results.reverse();
+    }
+    return results;
+  }
+
   protected override _onInteraction(stateDiff: Partial<State>, action?: Actions) {
+    let update: Partial<State> = {};
+    let triggerUpdate = false;
     if (stateDiff.report) {
       this._reset();
-      this._update({
-        report: stateDiff.report,
+      this._state.report = stateDiff.report;
+      update = {
+        ...this._state,
         mode: 'display'
+      };
+      triggerUpdate = true;
+    }
+    let tests = this._state.report.results.tests;
+    if (this._needFilterOrSort(stateDiff)) {
+      tests = this._filter(tests);
+      tests = this._sort(tests);
+      triggerUpdate = true;
+    }
+    if (triggerUpdate) {
+      const suites = buildSuites(tests);
+      this._update({
+        ...update,
+        tests,
+        suites
       });
     }
     if (action !== undefined) {
-      void this[action]();
+      this[action]();
     }
   }
 
-  protected async export() {}
+  protected export() {
+    const link = document.createElement('a');
+    const blob = new Blob([JSON.stringify(this._state.report)], {
+      type: 'application/json'
+    });
+    link.setAttribute('href', URL.createObjectURL(blob));
+    link.setAttribute('download', 'report.json');
+    link.click();
+  }
 }
