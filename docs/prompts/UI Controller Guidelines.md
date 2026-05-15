@@ -1,10 +1,107 @@
 # UI Controller Guidelines
 
-Goal: implement only the view + bindings to an existing controller. The controller contains state, validation, and business logic; the LLM must wire DOM → controller and controller → DOM only.
-
-## Short instruction
+## Overview
 
 You will implement the view and bindings only. Do not reimplement business logic, validation, or state mutation. Use the provided controller API exactly as documented. Assume the controller is fully tested and correct.
+
+## Implementation structure
+
+The code of this report resides in `{{output_path}}`, it must use:
+
+* TypeScript
+* Vanilla JavaScript (no framework)
+* [UI5 Web Components](https://ui5.github.io/webcomponents/), use only `@ui5/webcomponents`.
+* `vite` for bundling
+* `vitest` for testing
+
+Follow the `CODING_GUIDELINES.md`:
+
+* Do not put everything in the `main.ts` file, split the implementation into manageable chunks which are unit tested
+* Only the logic should be tested
+
+The build output should go in `{{dist_name}}` in a single self-contained and minified JavaScript file (it must pack everything including css).
+
+The application should be locally runnable to do manual testing. Create an `test.html` entry point for vite inside the implementation folder.
+
+## Target browsers
+
+Only modern browsers will be used, ignore Internet Explorer compatibility.
+
+## UI5 guidelines
+
+### Component mapping
+
+Every interactive control must use the specific UI5 Web Component listed below. Plain `<input>`, `<select>`, or `<button>` elements are not acceptable in place of their UI5 equivalents.
+
+| Purpose | Component | Import |
+|---------|-----------|--------|
+| Label | `<ui5-label>` | `@ui5/webcomponents/dist/Label.js` |
+| Filter text field | `<ui5-input>` | `@ui5/webcomponents/dist/Input.js` |
+| Drop downs | `<ui5-select>` + `<ui5-option>` | `@ui5/webcomponents/dist/Select.js` |
+| Date-time picker | `<ui5-datetime-picker>` | `@ui5/webcomponents/dist/DateTimePicker.js` |
+| Refresh / action buttons | `<ui5-button>` | `@ui5/webcomponents/dist/Button.js` |
+| Error message | `<ui5-message-strip design="Negative">` | `@ui5/webcomponents/dist/MessageStrip.js` |
+| Popup | `<ui5-popover>` | `@ui5/webcomponents/dist/Popover.js` |
+| Popup close button | `<ui5-button design="Transparent">` | `@ui5/webcomponents/dist/Button.js` |
+| Panel | `<ui5-panel>` | `@ui5/webcomponents/dist/Panel.js` |
+| Breadcrumbs | `<ui5-breadcrumbs>` + `<ui5-breadcrumbs-item>` | `@ui5/webcomponents/dist/Breadcrumbs.js` + `@ui5/webcomponents/dist/BreadcrumbsItem.js` |
+
+`<ui5-datetime-picker>` emits a `change` event; read the selected value from `event.detail.value` (a formatted string) or `event.target.dateValue` (a `Date` object). Convert to epoch with `.getTime()`.
+
+### Popovers
+
+#### Placement
+
+`<ui5-popover>` elements must **not** be injected into `#app` via `innerHTML` — placing them as flex siblings of the header or toolbar breaks the layout. They must be inserted **once, before `#app`**, and never re-rendered or replaced. The preferred approach is to inject them programmatically from `main.ts` on `DOMContentLoaded` using `app.insertAdjacentHTML('beforebegin', ...)`, keeping the HTML shell minimal and the viewer self-contained. Update their inner content via `popover.innerHTML = ...` when state changes.
+
+#### Opener
+
+Pass the clicked element directly as the `opener`. For listeners attached directly to a button, use `event.currentTarget`. For delegated listeners (e.g. a single listener on `<thead>` handling clicks on any `<th>`), `event.currentTarget` points to the delegate container, not the clicked cell — in that case resolve the actual target first (e.g. via `closest`) and pass that element as the opener:
+
+```typescript
+// Direct listener — use event.currentTarget
+button.addEventListener('click', (event) => {
+  popover.opener = event.currentTarget;
+  popover.open = true;
+});
+
+// Delegated listener — resolve the actual target first
+container.addEventListener('click', (event) => {
+  const cell = (event.target as Element).closest('th[data-col]');
+  if (!cell) return;
+  popover.opener = cell;
+  popover.open = true;
+});
+```
+
+### Panels
+
+```
+┌───────────────────────────────────────────────────────────────────────┐
+│ [V] Summary                                              ((- failed)) │
+├───────────────────────────────────────────────────────────────────────┤
+│                                                                       │  
+```
+
+Translates to:
+
+```css
+.header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+}
+```
+
+```html
+<ui5-panel no-animation="true">
+  <div slot="header" class="header">
+    <ui5-title>Test Report</ui5-title>
+    <ui5-tag design="Negative">failed</ui5-tag>
+  </div>
+</ui5-panel>
+```
 
 ## Provided artefacts
 
@@ -26,16 +123,12 @@ Behavioral rules:
 * Always send only changed fields in the `UIEvent` payload.
 * Do not call internal controller methods or mutate controller state directly.
 
-## Element bindings (example mapping — change to match your app)
+## UX behaviors
 
-* input#filter → controller.filter (string)
-* On input: debounce 250ms, call controller.interaction({ filter: NEW_VALUE })
-* On Enter: immediately send controller.interaction({ filter: NEW_VALUE, action: 'submit' })
-* select#category → selection list supplied in settings.categories; on change: controller.interaction({ category: SELECTED_KEY })
-* ul#items → render items from state.items (array). Each item element must include data-key attribute = item.key.
-* button.apply → on click: controller.interaction({ action: 'apply' })
+* On text input change: debounce 250ms before calling `controller.interaction`
+* In a text field, when pressing Enter: trigger `controller.interaction` immediately
+* If the text field directly relates to a button (for instance: a field changing the filtering results and a filter button), pressing Enter should then also trigger the associated action.
 * root container listens to controller update(...) to refresh only fields present in the changed object.
-(If the app differs, replace mapping entries accordingly)
 
 ##  Rendering rules
 
