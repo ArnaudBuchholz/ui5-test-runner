@@ -1,5 +1,5 @@
 import { createEmptyTestResults, SPEC_VERSION } from '../../types/CommonTestReportFormat.js';
-import type { CommonTestReport } from '../../types/CommonTestReportFormat.js';
+import type { CTRFTest } from '../../types/CommonTestReportFormat.js';
 import { AbstractUserInterfaceController } from '../../utils/ui/AbstractUserInterfaceController.js';
 import { FILTER_ON_STATUS, SORT_BY } from './constants.js';
 import { buildSuites, SUITE_SEPARATOR } from './suites.js';
@@ -43,7 +43,7 @@ export class ReportController extends AbstractUserInterfaceController<Settings, 
     );
   }
 
-  private _filter(tests: CommonTestReport['results']['tests']) {
+  private _filter(tests: CTRFTest[]) {
     const { filterOnSuiteUid, filterOnStatus, search } = this._state;
     if (filterOnSuiteUid) {
       tests = tests.filter((test) => test.suite?.join(SUITE_SEPARATOR)?.startsWith(filterOnSuiteUid));
@@ -60,7 +60,7 @@ export class ReportController extends AbstractUserInterfaceController<Settings, 
     return tests;
   }
 
-  private _sort(tests: CommonTestReport['results']['tests']) {
+  private _sort(tests: CTRFTest[]) {
     const { sortBy, sortAscending } = this._state;
     if (!sortBy) {
       return tests;

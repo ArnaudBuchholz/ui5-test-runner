@@ -1,10 +1,10 @@
 import { describe, it, expect } from 'vitest';
 import { buildSuites, extractUrlLabel, NO_SUITE, NO_SUITE_LABEL, SUITE_SEPARATOR } from './suites.js';
 import type { Suite } from './types.js';
-import type { CommonTestReport } from '../../types/CommonTestReportFormat.js';
+import type { CTRFTest } from '../../types/CommonTestReportFormat.js';
 import { createTestResults } from '../../types/CommonTestReportFormat.js';
 
-const toTests = (suites: string[][]): CommonTestReport['results']['tests'] =>
+const toTests = (suites: string[][]): CTRFTest[] =>
   createTestResults({
     tests: suites.map((suite) => ({
       suite,

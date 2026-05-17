@@ -1,4 +1,4 @@
-import type { CommonTestReport } from '../../types/CommonTestReportFormat.js';
+import type { CTRFTest } from '../../types/CommonTestReportFormat.js';
 import type { Suite } from './types.js';
 
 export const SUITE_SEPARATOR = '\r';
@@ -41,7 +41,7 @@ const isValidSuite = (
   return true;
 };
 
-export const buildSuites = (tests: CommonTestReport['results']['tests']): Suite[] => {
+export const buildSuites = (tests: CTRFTest[]): Suite[] => {
   const root: Suite = {
     uid: '',
     label: '',

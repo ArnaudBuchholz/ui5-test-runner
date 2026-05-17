@@ -1,4 +1,4 @@
-import type { CommonTestReport } from '../../types/CommonTestReportFormat.js';
+import type { CommonTestReport, CTRFTest } from '../../types/CommonTestReportFormat.js';
 import type { SORT_BY, FILTER_ON_STATUS } from './constants.js';
 
 export type Suite = {
@@ -29,7 +29,7 @@ export type State = {
     /** displays report */
     | 'display';
   readonly suites: Suite[];
-  readonly tests: CommonTestReport['results']['tests'];
+  readonly tests: CTRFTest[];
 };
 
 export type Actions = 'export';

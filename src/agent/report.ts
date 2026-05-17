@@ -1,4 +1,4 @@
-import type { CommonTestReport } from '../types/CommonTestReportFormat.js';
+import type { CTRFTest } from '../types/CommonTestReportFormat.js';
 import { createEmptyTestResults } from '../types/CommonTestReportFormat.js';
 import type { ITestResult, ITestResultsBuilder } from '../types/ITestResultsBuilder.js';
 
@@ -22,7 +22,7 @@ export class AgentTestResultsBuilder implements ITestResultsBuilder {
     const { summary } = this._results;
     ++summary.tests;
     ++summary[result.status];
-    const test: CommonTestReport['results']['tests'][number] = {
+    const test: CTRFTest = {
       duration: result.duration,
       name: result.label,
       status: result.status

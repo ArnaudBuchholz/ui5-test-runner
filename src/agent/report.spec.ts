@@ -1,6 +1,6 @@
 import { it, expect, describe, beforeEach } from 'vitest';
 import { AgentTestResultsBuilder } from './report.js';
-import type { CommonTestReport, CommonTestStatus } from '../types/CommonTestReportFormat';
+import type { CommonTestReport, CommonTestStatus, CTRFTest } from '../types/CommonTestReportFormat';
 import { setTimeout } from 'node:timers/promises';
 
 describe('begin', () => {
@@ -55,7 +55,7 @@ describe('test', () => {
         tests: 1,
         [status]: 1
       });
-      expect(report.results.tests).toStrictEqual<CommonTestReport['results']['tests']>([
+      expect(report.results.tests).toStrictEqual<CTRFTest[]>([
         {
           duration: 1,
           name: status,
@@ -80,7 +80,7 @@ describe('test', () => {
         tests: 1,
         [status]: 1
       });
-      expect(report.results.tests).toStrictEqual<CommonTestReport['results']['tests']>([
+      expect(report.results.tests).toStrictEqual<CTRFTest[]>([
         {
           duration: 1,
           name: status,
@@ -105,7 +105,7 @@ describe('test', () => {
         tests: 1,
         [status]: 1
       });
-      expect(report.results.tests).toStrictEqual<CommonTestReport['results']['tests']>([
+      expect(report.results.tests).toStrictEqual<CTRFTest[]>([
         {
           duration: 1,
           name: status,

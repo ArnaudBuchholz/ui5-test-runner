@@ -373,6 +373,8 @@ export interface CommonTestReport {
   };
 }
 
+export type CTRFTest = CommonTestReport['results']['tests'][number];
+
 export const createEmptyTestResults = (): CommonTestReport['results'] => ({
   tool: {
     name: ''
@@ -415,7 +417,7 @@ export const createTestResults = (results: DeepPartial<CommonTestReport['results
         status: 'passed',
         duration: 0,
         ...test
-      } as CommonTestReport['results']['tests'][number];
+      } as CTRFTest;
       testResults.tests.push(resolvedTest);
       testResults.summary.tests += 1;
       testResults.summary[resolvedTest.status] += 1;
