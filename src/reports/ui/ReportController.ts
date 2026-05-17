@@ -2,8 +2,8 @@ import { createEmptyTestResults, SPEC_VERSION } from '../../types/CommonTestRepo
 import type { CTRFTest } from '../../types/CommonTestReportFormat.js';
 import { AbstractUserInterfaceController } from '../../utils/ui/AbstractUserInterfaceController.js';
 import { FILTER_ON_STATUS, SORT_BY } from './constants.js';
-import { buildSuites, SUITE_SEPARATOR } from './suites.js';
-import type { Settings, State, Actions } from './types.js';
+import { buildSuites, findSuite, SUITE_SEPARATOR } from './suites.js';
+import type { Settings, State, Actions, TestAndBreadcrumbs, Suite } from './types.js';
 
 export class ReportController extends AbstractUserInterfaceController<Settings, State, Actions> {
   constructor() {
@@ -80,17 +80,48 @@ export class ReportController extends AbstractUserInterfaceController<Settings, 
     return results;
   }
 
+  private _injectBreadcrumbs(tests: CTRFTest[], suites: Suite[]): TestAndBreadcrumbs[] {
+    return tests.map((test) => {
+      const breadcrumbs: Suite[] = [];
+      let parent = {
+        uid: '',
+        label: '',
+        suites
+      } satisfies Suite;
+      const suitePath: string[] = [];
+      for (const suiteId of test.suite ?? []) {
+        suitePath.push(suiteId);
+        const suiteUid = suitePath.join(SUITE_SEPARATOR);
+        const suite = findSuite(parent.suites, suiteUid);
+        if (!suite) {
+          break;
+        }
+        breadcrumbs.push(suite);
+        parent = suite;
+      }
+      return {
+        ...test,
+        breadcrumbs
+      };
+    });
+  }
+
   protected override _onInteraction(stateDiff: Partial<State>, action?: Actions) {
     let update: Partial<State> = {};
     let triggerUpdate = false;
+    let suites: Suite[];
     if (stateDiff.report) {
       this._reset();
       this._state.report = stateDiff.report;
+      suites = buildSuites(this._state.report.results.tests);
       update = {
         ...this._state,
+        suites,
         mode: 'display'
       };
       triggerUpdate = true;
+    } else {
+      suites = this._state.suites;
     }
     let tests = this._state.report.results.tests;
     if (this._needFilterOrSort(stateDiff)) {
@@ -99,11 +130,9 @@ export class ReportController extends AbstractUserInterfaceController<Settings, 
       triggerUpdate = true;
     }
     if (triggerUpdate) {
-      const suites = buildSuites(tests);
       this._update({
         ...update,
-        tests,
-        suites
+        tests: this._injectBreadcrumbs(tests, suites)
       });
     }
     if (action !== undefined) {

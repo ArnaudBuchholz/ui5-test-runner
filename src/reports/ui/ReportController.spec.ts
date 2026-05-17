@@ -69,7 +69,32 @@ it('shows the report when set', () => {
         ]
       }
     ],
-    tests: report.results.tests
+    tests: [
+      {
+        suite: ['http://localhost', 'test'],
+        breadcrumbs: [
+          {
+            uid: 'http://localhost',
+            label: 'http://localhost',
+            suites: [
+              {
+                uid: `http://localhost${SUITE_SEPARATOR}test`,
+                label: 'test',
+                suites: []
+              }
+            ]
+          },
+          {
+            uid: `http://localhost${SUITE_SEPARATOR}test`,
+            label: 'test',
+            suites: []
+          }
+        ],
+        name: 'test',
+        status: 'passed',
+        duration: 0
+      }
+    ]
   });
 });
 

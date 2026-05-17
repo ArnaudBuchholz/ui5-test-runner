@@ -15,6 +15,8 @@ export type Settings = {
   filterOnStatus: typeof FILTER_ON_STATUS;
 };
 
+export type TestAndBreadcrumbs = CTRFTest & { breadcrumbs: Suite[] };
+
 export type State = {
   report: CommonTestReport;
   /** should match one suite.uid */
@@ -29,7 +31,7 @@ export type State = {
     /** displays report */
     | 'display';
   readonly suites: Suite[];
-  readonly tests: CTRFTest[];
+  readonly tests: TestAndBreadcrumbs[];
 };
 
 export type Actions = 'export';
