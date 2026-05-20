@@ -13,7 +13,7 @@ State, Settings and Actions are defined in [Types](../../src/modes/log/ui/types.
 
 ## Implementation structure
 
-The code for this viewer resides in `src/ai/log`. It must use:
+The code for this viewer resides in `src/ui/log`. It must use:
 
 * TypeScript
 * Vanilla JavaScript (no framework)

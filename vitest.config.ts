@@ -21,7 +21,7 @@ export default defineConfig({
     projects: [{
       extends: true,
       test: {
-        exclude: [ ...exclude, 'src/agent/**', 'src/ui/**', 'src/**/ui/**', 'src/ai/**' ],
+        exclude: [ ...exclude, 'src/agent/**', 'src/ui/**', 'src/**/ui/**' ],
         name: { label: 'shell', color: 'green' },
         environment: 'node',
         setupFiles: [ 'src/platform/mock.ts' ]
@@ -36,7 +36,7 @@ export default defineConfig({
     }, {
       extends: true,
       test: {
-        include: [ 'src/ui/**/*.spec.ts', 'src/**/ui/**/*.spec.ts', 'src/ai/**/*.spec.ts' ],
+        include: [ 'src/ui/**/*.spec.ts', 'src/**/ui/**/*.spec.ts' ],
         name: { label: 'UIs', color: 'yellow' },
         environment: 'jsdom'
       }

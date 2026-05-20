@@ -17,7 +17,7 @@ Applies to all implemented modules. Not to tooling config files (`vite.config.ts
 ```
 src/
   agent/          # Browser-side code injected into test pages (QUnit/OPA)
-  ai/             # AI generated UIs
+  ui/             # Browser UIs
   browsers/       # Browser abstraction
   configuration/  # CLI argument parsing, options, validators
   modes/          # Execution modes (test, batch, help, version…)
@@ -27,7 +27,7 @@ src/
   utils/          # Utilities split by environment: node/, shared/, ui/
 ```
 
-`agent/` and `ai/` run in a browser context — Node.js-specific rules do not apply there.
+`agent/` and `ui/` run in a browser context — Node.js-specific rules do not apply there.
 
 ---
 
@@ -115,9 +115,9 @@ Do not introduce new module-level singletons.
 The different UIs follow a strict MVC split:
 
 - **Controller** (for instance: `src/reports/ui/ReportController.ts`): holds all state and business logic, exposes `IUserInterfaceController<Settings, State, Actions>`.
-- **View** (for instance: `src/ai/report/`): wires DOM → controller and controller → DOM. No business logic. Calls `controller.connect(update)` on load; uses `controller.interaction({ changedField })` for user events; applies `update(changed)` patches only for fields present in the changed object.
+- **View** (for instance: `src/ui/report/`): wires DOM → controller and controller → DOM. No business logic. Calls `controller.connect(update)` on load; uses `controller.interaction({ changedField })` for user events; applies `update(changed)` patches only for fields present in the changed object.
 
-Each AI UI bundle is built with Vite using `vite-plugin-css-injected-by-js` (CSS packed into the JS output), output format `iife`, minified with terser.
+Each UI bundle is built with Vite using `vite-plugin-css-injected-by-js` (CSS packed into the JS output), output format `iife`, minified with terser.
 
 ---
 
@@ -240,7 +240,7 @@ npx vitest run src/path/to/Foo.spec.ts
 # Build outputs
 npm run build:agent       # Bundles src/agent/ (browser-side code injected into test pages)
 npm run build:ui:report   # Bundles src/ui/report/ → dist/ui5-test-runner-html-report.js
-npm run build:ui:log      # Bundles src/ai/log/ → dist/ui5-test-runner-log-viewer.js
+npm run build:ui:log      # Bundles src/ui/log/ → dist/ui5-test-runner-log-viewer.js
 
 # Dev servers for manual testing of UI bundles
 npm run start:ui:report   # Vite dev server for the HTML report viewer

@@ -10,7 +10,7 @@ To make this report more accessible, this JSON report must be converted to a nic
 Follow the [UI Controller Guidelines](./UI%20Controller%20Guidelines.md) with:
 - **controller_source** = `src/reports/ui/ReportController.ts`
 - **types_source** = `src/reports/ui/types.ts`
-- **output_path** = `src/ai/report`
+- **output_path** = `src/ui/report`
 - **dist_name** = `dist/ui5-test-runner-html-report.js`
 
 The `test.html` entry point does not embed sample data — the initial UI is driven by `controller.state.mode` (starts in `'open'` mode, prompting the user to pick a file).

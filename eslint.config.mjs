@@ -85,9 +85,9 @@ export default [
       'sonarjs/slow-regex': 'off'
     }
   },
-  // Relax some rules for AI generated code
+  // Relax some rules for UI code
   {
-    files: ['src/ai/**/*.ts'],
+    files: ['src/ui/**/*.ts'],
     rules: {
       '@typescript-eslint/no-base-to-string': 'off'
     }

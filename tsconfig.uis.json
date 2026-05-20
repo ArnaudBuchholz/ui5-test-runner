@@ -4,7 +4,6 @@
     "src/css.d.ts",
     "src/ui/**/*.ts",
     "src/**/ui/**/*.ts",
-    "src/ai/**/*.ts",
     "src/types/*.ts",
     "src/utils/shared/*.ts",
     "src/modes/log/LogMetrics.ts",

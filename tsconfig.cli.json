@@ -1,7 +1,7 @@
 {
   "extends": ["./tsconfig.base.json"],
   "include": ["src/"],
-  "exclude": ["src/**/*.spec.ts", "src/**/*.mock.ts", "src/agent/**", "src/ui/**", "src/**/ui/**", "src/ai/**", "src/utils/ui"],
+  "exclude": ["src/**/*.spec.ts", "src/**/*.mock.ts", "src/agent/**", "src/ui/**", "src/**/ui/**", "src/utils/ui"],
   "compilerOptions": {
     "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.cli.tsbuildinfo",
     "types": ["node"],
