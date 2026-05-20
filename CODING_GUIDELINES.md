@@ -1,5 +1,11 @@
 # Coding Guidelines
 
+## Project overview
+
+`ui5-test-runner` is a standalone Node.js CLI that drives browsers to execute UI5 (Fiori/SAPUI5/OpenUI5) test pages and produces CTRF JSON reports. It is published on npm as `ui5-test-runner`.
+
+---
+
 ## Scope
 
 Applies to all implemented modules. Not to tooling config files (`vite.config.ts`, `vitest.config.ts`, `eslint.config.ts`).
@@ -22,6 +28,12 @@ src/
 ```
 
 `agent/` and `ai/` run in a browser context — Node.js-specific rules do not apply there.
+
+---
+
+## Execution pipeline
+
+`src/cli.ts` → `CommandLine` parses args → `ConfigurationValidator` validates and resolves the mode → `modes/execute.ts` dispatches to a mode function → mode uses browsers, platform, reports.
 
 ---
 
@@ -95,6 +107,17 @@ Prefer factory functions returning a typed interface for DI. Max **3 parameters*
 | Memoization | `memoize` from `src/utils/shared/` for expensive, side-effect-free computations | |
 
 Do not introduce new module-level singletons.
+
+---
+
+## UI Controller pattern
+
+The different UIs follow a strict MVC split:
+
+- **Controller** (for instance: `src/reports/ui/ReportController.ts`): holds all state and business logic, exposes `IUserInterfaceController<Settings, State, Actions>`.
+- **View** (for instance: `src/ai/report/`): wires DOM → controller and controller → DOM. No business logic. Calls `controller.connect(update)` on load; uses `controller.interaction({ changedField })` for user events; applies `update(changed)` patches only for fields present in the changed object.
+
+Each AI UI bundle is built with Vite using `vite-plugin-css-injected-by-js` (CSS packed into the JS output), output format `iife`, minified with terser.
 
 ---
 
@@ -204,14 +227,33 @@ Prefer DI via factory functions over module-level mocking. Use `vi.mock()` at mo
 
 ---
 
-## Build and linting
+## Commands
 
 ```bash
-npm run lint        # ESLint + Prettier + tsc + dependency-loop check
-npm run test:unit   # Vitest with coverage
+npm run lint              # ESLint + Prettier + tsc --noEmit + circular import check
+npm run test:unit         # Vitest with coverage
+npm run test:unit:watch   # Vitest watch mode
+
+# Run a single test file
+npx vitest run src/path/to/Foo.spec.ts
+
+# Build outputs
+npm run build:agent       # Bundles src/agent/ (browser-side code injected into test pages)
+npm run build:ui:report   # Bundles src/ui/report/ → dist/ui5-test-runner-html-report.js
+npm run build:ui:log      # Bundles src/ai/log/ → dist/ui5-test-runner-log-viewer.js
+
+# Dev servers for manual testing of UI bundles
+npm run start:ui:report   # Vite dev server for the HTML report viewer
+npm run start:ui:log      # Vite dev server for the log viewer
+
+# Regenerate src/configuration/options.ts from docs/options/ (never edit options.ts by hand)
+npm run build:options
+
+# Run the CLI directly (TypeScript, no pre-build needed)
+npm run ts-run -- src/cli.ts [args]
 ```
 
-Both must pass with zero errors before every commit. Circular imports are forbidden. `src/platform/logger/proxy.ts` breaks one unavoidable internal loop — do not replicate. When adding source files, verify they are included in the correct `tsconfig` project.
+`npm run lint` must pass with zero errors before every commit. Circular imports are forbidden. `src/platform/logger/proxy.ts` breaks one unavoidable internal loop — do not replicate. When adding source files, verify they are included in the correct `tsconfig` project.
 
 ---
 
