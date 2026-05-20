@@ -14,6 +14,11 @@ export default defineConfig({
       fileName: () => 'ui5-test-runner-log-viewer.js'
     },
     rollupOptions: {
+      transform: {
+        define: {
+          'import.meta': '{}'
+        }
+      },
       output: {
         extend: true
       }
