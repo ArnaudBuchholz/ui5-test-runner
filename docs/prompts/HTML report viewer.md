@@ -110,6 +110,7 @@ The page title should be "UI5 Test Runner Report".
 |`((+ 1 passed))`|`<ui5-tag design="Positive">1 passed</ui5-tag>`|
 |`((- 1 failed))`|`<ui5-tag design="Negative">1 failed</ui5-tag>`|
 |`((1 skipped))`|`<ui5-tag design="Neutral">1 skipped</ui5-tag>`|
+|`((1 other))`|`<ui5-tag design="None">1 other</ui5-tag>`|
 
 #### General page structure
 
@@ -119,7 +120,7 @@ The page title should be "UI5 Test Runner Report".
 ├───────────────────────────────────────────────────────────────────────┤
 │                                                                       │
 │ "Date"             "Report ID"     "Tool"                "Duration"   │
-│ 1/1/2026 5:40      0123            ui5-test-runner@6     1m 0s        │ <- Tool displays report.generatedBy; Date uses browser local format; Report ID displays full value of reportId
+│ 1/1/2026 5:40      0123            ui5-test-runner@6     1m 0s        │ <- Tool displays report.generatedBy; Date displays report.timestamp formatted with browser locale (N/A if absent); Report ID displays full value of reportId
 │                                                                       │
 │ "Tests (Qunit@1.2.3)"                                                 | <- QUnit@1.2.3 is report.results.tool.name + @ + report.results.tool.version; if version is absent, omit the @version part
 │ 3 total ((+ 1 passed)) ((- 1 failed)) ((1 skipped))                   │
@@ -165,6 +166,8 @@ The filter bar contains three controls bound to controller state:
 | Search text field | `state.search` | — |
 
 The Status dropdown is populated from `settings.filterOnStatus`, which the controller defines. Changes call `controller.interaction({ filterOnStatus: key })`, `controller.interaction({ filterOnSuiteUid: uid })`, and `controller.interaction({ search: value })` respectively (search is debounced 250 ms per the UI Controller Guidelines).
+
+The dropdown has no dedicated "Skipped" option — skipped tests are reachable through the "Other" filter entry (which matches any status that is not `passed` or `failed`). Do not add a skipped option.
 
 ### Sort buttons
 
@@ -217,7 +220,7 @@ Proposed schema is : `#suite=&status=&q=&sort=&sort-order=`
 
 On load, if the hash contains filter/sort values, the view parses them and sends a **single** `controller.interaction({ filterOnSuiteUid, filterOnStatus, search, sortBy, sortAscending })` call before the first render.
 
-## TODO
+## TODO (out of scope — do not implement)
 
 * Make sure the focus is kept in the edit when typing text to search for a test
 * Define the empty screen (when no ctrf exists)
