@@ -2,7 +2,7 @@ import { defineConfig } from 'vite';
 import cssInjectedByJsPlugin from 'vite-plugin-css-injected-by-js';
 
 export default defineConfig({
-  root: 'src/ui/report',
+  root: 'src/ai/report',
   plugins: [cssInjectedByJsPlugin()],
   build: {
     outDir: '../../../dist',
@@ -22,6 +22,6 @@ export default defineConfig({
     cssCodeSplit: false
   },
   server: {
-    open: '/html-report.html'
+    open: '/test.html'
   }
 });

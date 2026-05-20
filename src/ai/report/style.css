@@ -1,0 +1,221 @@
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+body,
+#app {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  font-family: var(--sapFontFamily, '72', Arial, sans-serif);
+  background: var(--sapBackgroundColor, #f7f7f7);
+}
+
+/* ---- Summary panel ---- */
+
+.panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  gap: 0.5rem;
+}
+
+.panel-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.summary-body {
+  padding: 0.75rem 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.summary-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0.25rem 1rem;
+}
+
+.summary-tags {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  margin-top: 0.25rem;
+}
+
+/* ---- Filter bar ---- */
+
+.filter-bar {
+  display: flex;
+  align-items: flex-end;
+  gap: 1rem;
+  flex-wrap: wrap;
+  padding: 0.75rem 1rem;
+  background: var(--sapGroup_ContentBackground, #fff);
+  border-bottom: 1px solid var(--sapGroup_TitleBorderColor, #d9d9d9);
+}
+
+.filter-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.filter-field--grow {
+  flex: 1;
+  min-width: 200px;
+}
+
+.filter-field--grow ui5-input {
+  width: 100%;
+}
+
+/* ---- Test list ---- */
+
+#testList {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.test-list-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.5rem 1rem;
+  background: var(--sapList_HeaderBackground, #f7f7f7);
+  border-bottom: 1px solid var(--sapList_BorderColor, #d9d9d9);
+  font-weight: bold;
+}
+
+.test-list-tags {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.sort-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  background: var(--sapGroup_ContentBackground, #fff);
+  border-bottom: 1px solid var(--sapList_BorderColor, #d9d9d9);
+}
+
+#testRows {
+  overflow-y: auto;
+}
+
+/* ---- Test row ---- */
+
+.test-row {
+  border-bottom: 1px solid var(--sapList_BorderColor, #d9d9d9);
+}
+
+.test-row-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.4rem 1rem;
+  cursor: pointer;
+  background: var(--sapList_Background, #fff);
+}
+
+.test-row-header:hover {
+  background: var(--sapList_Hover_Background, #f1f1f1);
+}
+
+.test-row-meta {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  min-width: 0;
+}
+
+.test-name {
+  font-size: 0.875rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.test-row-status {
+  flex-shrink: 0;
+}
+
+.test-row-details {
+  padding: 0.5rem 1rem 0.5rem 3rem;
+  background: var(--sapGroup_ContentBackground, #fff);
+  border-top: 1px solid var(--sapList_BorderColor, #d9d9d9);
+}
+
+.test-detail-row {
+  display: flex;
+  gap: 1rem;
+  padding: 0.2rem 0;
+  font-size: 0.875rem;
+}
+
+.test-detail-label {
+  color: var(--sapContent_LabelColor, #6a6d70);
+  min-width: 5rem;
+  flex-shrink: 0;
+}
+
+.test-trace {
+  font-family: monospace;
+  white-space: pre-wrap;
+  background: var(--sapField_ReadOnly_Background, #f2f2f2);
+  padding: 0.5rem;
+  font-size: 0.75rem;
+  border-radius: 0.25rem;
+  margin: 0;
+  max-height: 200px;
+  overflow-y: auto;
+  flex: 1;
+}
+
+/* ---- Open mode ---- */
+
+.open-mode {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  flex: 1;
+  gap: 1rem;
+}
+
+/* ---- Suite popover ---- */
+
+.suite-item {
+  padding: 0.35rem 0.75rem;
+  cursor: pointer;
+  font-size: 0.875rem;
+  border-radius: 0.25rem;
+}
+
+.suite-item:hover {
+  background: var(--sapList_Hover_Background, #f1f1f1);
+}
+
+.suite-item--active {
+  background: var(--sapList_SelectionBackgroundColor, #e8f0fe);
+  font-weight: bold;
+}
+
+/* ---- Warning strip ---- */
+
+.test-list-warning {
+  padding: 0.5rem 1rem;
+}
