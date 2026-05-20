@@ -1,15 +1,4 @@
-import '@ui5/webcomponents/dist/Title.js';
-import '@ui5/webcomponents/dist/Label.js';
-import '@ui5/webcomponents/dist/Panel.js';
-import '@ui5/webcomponents/dist/Tag.js';
-import '@ui5/webcomponents/dist/Select.js';
-import '@ui5/webcomponents/dist/Option.js';
-import '@ui5/webcomponents/dist/Input.js';
-import '@ui5/webcomponents/dist/Button.js';
-import '@ui5/webcomponents/dist/MessageStrip.js';
-import '@ui5/webcomponents/dist/Popover.js';
-import '@ui5/webcomponents/dist/Breadcrumbs.js';
-import '@ui5/webcomponents/dist/BreadcrumbsItem.js';
+import '../lib/index.js';
 
 import './style.css';
 
@@ -18,7 +7,7 @@ import type { State } from '../../reports/ui/types.js';
 import { renderSummary } from './components/Summary.js';
 import { renderFilterBar, renderSuitePopoverContent } from './components/FilterBar.js';
 import { renderTestList, renderTestListBody } from './components/TestList.js';
-import { debounce } from './utils/debounce.js';
+import { debounce } from '../lib/utils/debounce.js';
 import { readHash, writeHash } from './utils/hash.js';
 import type { CommonTestReport } from '../../types/CommonTestReportFormat.js';
 

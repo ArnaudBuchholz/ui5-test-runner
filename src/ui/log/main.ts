@@ -1,11 +1,4 @@
-import '@ui5/webcomponents/dist/Input.js';
-import '@ui5/webcomponents/dist/Select.js';
-import '@ui5/webcomponents/dist/Option.js';
-import '@ui5/webcomponents/dist/DateTimePicker.js';
-import '@ui5/webcomponents/dist/Button.js';
-import '@ui5/webcomponents/dist/MessageStrip.js';
-import '@ui5/webcomponents/dist/Popover.js';
-import '@ui5/webcomponents/dist/CheckBox.js';
+import '../lib/index.js';
 
 import './style.css';
 
@@ -15,7 +8,7 @@ import { renderHeader } from './components/Header.js';
 import { renderToolbar } from './components/Toolbar.js';
 import { renderLogTable } from './components/LogTable.js';
 import { renderLogDetails } from './components/LogDetails.js';
-import { debounce } from './utils/debounce.js';
+import { debounce } from '../lib/utils/debounce.js';
 import { buildFilterExpression } from './utils/filter.js';
 import { formatTimestamp, formatBytes } from './utils/format.js';
 

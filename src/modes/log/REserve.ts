@@ -4,6 +4,14 @@ import type { Configuration } from 'reserve';
 import type { ILogStorage } from './ILogStorage.js';
 import type { LogMetrics } from './LogMetrics.js';
 
+const getLibSource = memoize(async () => {
+  /* v8 ignore next -- @preserve */
+  const path = __developmentMode
+    ? Path.join(__sourcesRoot, '../dist', 'ui5-test-runner-lib.js')
+    : Path.join(__sourcesRoot, 'ui5-test-runner-lib.js');
+  return FileSystem.readFile(path, 'utf8');
+});
+
 const getLogViewerSource = memoize(async () => {
   /* v8 ignore next -- @preserve */
   const path = __developmentMode
@@ -44,6 +52,18 @@ export const buildREserveConfiguration = (
     },
     {
       method: 'GET',
+      match: '/lib.js',
+      custom: async () => [
+        await getLibSource(),
+        {
+          headers: {
+            'Content-Type': 'application/javascript'
+          }
+        }
+      ]
+    },
+    {
+      method: 'GET',
       match: '/log-viewer.js',
       custom: async () => [
         await getLogViewerSource(),
@@ -73,6 +93,7 @@ export const buildREserveConfiguration = (
   </head>
   <body>
     <div id="app"></div>
+    <script type="module" src="/lib.js"></script>
     <script type="module" src="/log-viewer.js"></script>
     <script>
 const close = () => navigator.sendBeacon('/close');

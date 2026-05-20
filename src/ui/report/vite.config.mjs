@@ -1,9 +1,21 @@
 import { defineConfig } from 'vite';
 import cssInjectedByJsPlugin from 'vite-plugin-css-injected-by-js';
 
+const dropLibPlugin = {
+  name: 'drop-lib',
+  enforce: 'pre',
+  apply: 'build',
+  resolveId(id) {
+    if (id.startsWith('@ui5/')) return { id: '\0lib-empty', moduleSideEffects: false };
+  },
+  load(id) {
+    if (id === '\0lib-empty') return '';
+  }
+};
+
 export default defineConfig({
   root: 'src/ui/report',
-  plugins: [cssInjectedByJsPlugin()],
+  plugins: [dropLibPlugin, cssInjectedByJsPlugin()],
   build: {
     outDir: '../../../dist',
     emptyOutDir: false,

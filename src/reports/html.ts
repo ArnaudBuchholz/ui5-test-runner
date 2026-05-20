@@ -3,6 +3,10 @@ import type { Configuration } from '../configuration/Configuration.js';
 import type { CommonTestReport } from '../types/CommonTestReportFormat.js';
 
 export const generateHtmlReport = async (configuration: Configuration, report: CommonTestReport) => {
+  const libPath = __developmentMode
+    ? Path.join(__sourcesRoot, '../dist', 'ui5-test-runner-lib.js')
+    : Path.join(__sourcesRoot, 'ui5-test-runner-lib.js');
+  const libJs = await FileSystem.readFile(libPath, 'utf8');
   const path = __developmentMode
     ? Path.join(__sourcesRoot, '../dist', 'ui5-test-runner-html-report.js')
     : Path.join(__sourcesRoot, 'ui5-test-runner-html-report.js');
@@ -42,6 +46,7 @@ export const generateHtmlReport = async (configuration: Configuration, report: C
       }
     </script>
     <script type="module">window.ctrf = ${reportJson} /* await decompress('{base64}') */</script>
+    <script type="module">${libJs}</script>
     <script type="module">${htmlReportJs}</script>
   </body>
 </html>
