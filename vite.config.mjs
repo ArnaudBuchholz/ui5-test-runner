@@ -6,9 +6,9 @@ export default defineConfig({
       entry: 'src/agent/index.ts',
       name: 'ui5TestRunnerAgent',
       formats: ['iife'],
-      fileName: () => 'ui5-test-runner-agent.js'
+      fileName: () => 'agent.js'
     },
-    outDir: 'dist',
+    outDir: 'dist/ui',
     esmUnused: true,
     minify: 'terser',
     sourcemap: false

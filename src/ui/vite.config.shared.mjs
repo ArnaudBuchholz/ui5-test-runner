@@ -26,7 +26,7 @@ export function createAppConfig({ root, name, fileName, serverOpen }) {
     root,
     plugins: [dropLibPlugin, cssInjectedByJsPlugin()],
     build: {
-      outDir: '../../../dist',
+      outDir: '../../../dist/ui',
       emptyOutDir: false,
       lib: {
         entry: 'main.ts',

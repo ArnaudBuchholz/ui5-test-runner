@@ -7,16 +7,16 @@ import type { LogMetrics } from './LogMetrics.js';
 const getLibSource = memoize(async () => {
   /* v8 ignore next -- @preserve */
   const path = __developmentMode
-    ? Path.join(__sourcesRoot, '../dist', 'ui5-test-runner-lib.js')
-    : Path.join(__sourcesRoot, 'ui5-test-runner-lib.js');
+    ? Path.join(__sourcesRoot, '../dist/ui', 'lib.js')
+    : Path.join(__sourcesRoot, 'ui/lib.js');
   return FileSystem.readFile(path, 'utf8');
 });
 
 const getLogViewerSource = memoize(async () => {
   /* v8 ignore next -- @preserve */
   const path = __developmentMode
-    ? Path.join(__sourcesRoot, '../dist', 'ui5-test-runner-log-viewer.js')
-    : Path.join(__sourcesRoot, 'ui5-test-runner-log-viewer.js');
+    ? Path.join(__sourcesRoot, '../dist/ui', 'log-viewer.js')
+    : Path.join(__sourcesRoot, 'ui/log-viewer.js');
   return FileSystem.readFile(path, 'utf8');
 });
 

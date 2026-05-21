@@ -6,13 +6,13 @@ export default defineConfig({
   root: 'src/ui/lib',
   plugins: [cssInjectedByJsPlugin()],
   build: {
-    outDir: '../../../dist',
+    outDir: '../../../dist/ui',
     emptyOutDir: false,
     lib: {
       entry: 'index.ts',
       name: 'ui5TestRunnerLib',
       formats: ['iife'],
-      fileName: () => 'ui5-test-runner-lib.js'
+      fileName: () => 'lib.js'
     },
     rollupOptions: importMetaTransform,
     minify: 'terser'

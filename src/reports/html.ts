@@ -4,12 +4,12 @@ import type { CommonTestReport } from '../types/CommonTestReportFormat.js';
 
 export const generateHtmlReport = async (configuration: Configuration, report: CommonTestReport) => {
   const libPath = __developmentMode
-    ? Path.join(__sourcesRoot, '../dist', 'ui5-test-runner-lib.js')
-    : Path.join(__sourcesRoot, 'ui5-test-runner-lib.js');
+    ? Path.join(__sourcesRoot, '../dist/ui', 'lib.js')
+    : Path.join(__sourcesRoot, 'ui/lib.js');
   const libJs = await FileSystem.readFile(libPath, 'utf8');
   const path = __developmentMode
-    ? Path.join(__sourcesRoot, '../dist', 'ui5-test-runner-html-report.js')
-    : Path.join(__sourcesRoot, 'ui5-test-runner-html-report.js');
+    ? Path.join(__sourcesRoot, '../dist/ui', 'html-report.js')
+    : Path.join(__sourcesRoot, 'ui/html-report.js');
   const htmlReportJs = await FileSystem.readFile(path, 'utf8');
   const reportJson = JSON.stringify(report);
   // const buffer = ZLib.gzipSync(JSON.stringify(reportJson);
