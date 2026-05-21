@@ -44,7 +44,7 @@ export function createAppConfig({ root, name, fileName, serverOpen }) {
       cssCodeSplit: false
     },
     server: {
-      open: serverOpen
+      open: '/test.html'
     }
   });
 }
