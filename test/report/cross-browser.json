@@ -18,28 +18,28 @@
         "name": "homepage renders",
         "status": "passed",
         "duration": 1234,
-        "suite": "Smoke Tests",
+        "suite": ["Smoke Tests"],
         "browser": "chromium"
       },
       {
         "name": "login flow",
         "status": "passed",
         "duration": 2345,
-        "suite": "Smoke Tests",
+        "suite": ["Smoke Tests"],
         "browser": "chromium"
       },
       {
         "name": "checkout flow",
         "status": "passed",
         "duration": 4567,
-        "suite": "Smoke Tests",
+        "suite": ["Smoke Tests"],
         "browser": "chromium"
       },
       {
         "name": "responsive layout on mobile",
         "status": "passed",
         "duration": 890,
-        "suite": "Smoke Tests",
+        "suite": ["Smoke Tests"],
         "browser": "chromium",
         "device": "iPhone 14"
       },
@@ -47,7 +47,7 @@
         "name": "video playback",
         "status": "failed",
         "duration": 3456,
-        "suite": "Smoke Tests",
+        "suite": ["Smoke Tests"],
         "browser": "chromium",
         "message": "HTMLVideoElement.play() was interrupted by a new load request"
       },
@@ -55,28 +55,28 @@
         "name": "homepage renders",
         "status": "passed",
         "duration": 1456,
-        "suite": "Smoke Tests",
+        "suite": ["Smoke Tests"],
         "browser": "firefox"
       },
       {
         "name": "login flow",
         "status": "passed",
         "duration": 2567,
-        "suite": "Smoke Tests",
+        "suite": ["Smoke Tests"],
         "browser": "firefox"
       },
       {
         "name": "checkout flow",
         "status": "passed",
         "duration": 4890,
-        "suite": "Smoke Tests",
+        "suite": ["Smoke Tests"],
         "browser": "firefox"
       },
       {
         "name": "responsive layout on mobile",
         "status": "passed",
         "duration": 1023,
-        "suite": "Smoke Tests",
+        "suite": ["Smoke Tests"],
         "browser": "firefox",
         "device": "Pixel 7"
       },
@@ -84,7 +84,7 @@
         "name": "video playback",
         "status": "failed",
         "duration": 3789,
-        "suite": "Smoke Tests",
+        "suite": ["Smoke Tests"],
         "browser": "firefox",
         "message": "Autoplay policy blocked media playback without user gesture"
       },
@@ -92,21 +92,21 @@
         "name": "homepage renders",
         "status": "passed",
         "duration": 1678,
-        "suite": "Smoke Tests",
+        "suite": ["Smoke Tests"],
         "browser": "webkit"
       },
       {
         "name": "login flow",
         "status": "passed",
         "duration": 2890,
-        "suite": "Smoke Tests",
+        "suite": ["Smoke Tests"],
         "browser": "webkit"
       },
       {
         "name": "checkout flow",
         "status": "failed",
         "duration": 5234,
-        "suite": "Smoke Tests",
+        "suite": ["Smoke Tests"],
         "browser": "webkit",
         "message": "SameSite=None cookie blocked by Safari ITP; session could not be established"
       },
@@ -114,7 +114,7 @@
         "name": "responsive layout on mobile",
         "status": "passed",
         "duration": 1234,
-        "suite": "Smoke Tests",
+        "suite": ["Smoke Tests"],
         "browser": "webkit",
         "device": "iPhone 14"
       },
@@ -122,7 +122,7 @@
         "name": "video playback",
         "status": "failed",
         "duration": 4123,
-        "suite": "Smoke Tests",
+        "suite": ["Smoke Tests"],
         "browser": "webkit",
         "message": "play() can only be initiated by a user gesture"
       },
@@ -130,28 +130,28 @@
         "name": "homepage renders",
         "status": "passed",
         "duration": 1345,
-        "suite": "Smoke Tests",
+        "suite": ["Smoke Tests"],
         "browser": "msedge"
       },
       {
         "name": "login flow",
         "status": "passed",
         "duration": 2456,
-        "suite": "Smoke Tests",
+        "suite": ["Smoke Tests"],
         "browser": "msedge"
       },
       {
         "name": "checkout flow",
         "status": "passed",
         "duration": 4678,
-        "suite": "Smoke Tests",
+        "suite": ["Smoke Tests"],
         "browser": "msedge"
       },
       {
         "name": "responsive layout on mobile",
         "status": "passed",
         "duration": 978,
-        "suite": "Smoke Tests",
+        "suite": ["Smoke Tests"],
         "browser": "msedge",
         "device": "Galaxy S23"
       },
@@ -159,7 +159,7 @@
         "name": "video playback",
         "status": "failed",
         "duration": 3234,
-        "suite": "Smoke Tests",
+        "suite": ["Smoke Tests"],
         "browser": "msedge",
         "message": "Codec H.265 not supported; video failed to decode"
       }

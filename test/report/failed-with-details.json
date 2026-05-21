@@ -18,21 +18,21 @@
         "name": "displays user dashboard on login",
         "status": "passed",
         "duration": 2341,
-        "suite": "Dashboard",
+        "suite": ["Dashboard"],
         "filepath": "cypress/e2e/dashboard.cy.js"
       },
       {
         "name": "shows correct user name in header",
         "status": "passed",
         "duration": 1234,
-        "suite": "Dashboard",
+        "suite": ["Dashboard"],
         "filepath": "cypress/e2e/dashboard.cy.js"
       },
       {
         "name": "redirects to login when session expires",
         "status": "failed",
         "duration": 5432,
-        "suite": "Dashboard",
+        "suite": ["Dashboard"],
         "filepath": "cypress/e2e/dashboard.cy.js",
         "message": "AssertionError: expected '/dashboard' to equal '/login'\n\nThe application navigated to '/dashboard' but the test expected a redirect to '/login' after the session token expired.",
         "trace": "AssertionError: expected '/dashboard' to equal '/login'\n    at Context.<anonymous> (cypress/e2e/dashboard.cy.js:34:30)\n    at callFn (cypress/support/runner.js:288:21)\n    at Test.Runnable.run (cypress/support/runner.js:272:7)\n    at next (cypress/support/runner.js:444:14)",
@@ -42,7 +42,7 @@
         "name": "loads analytics charts",
         "status": "failed",
         "duration": 8923,
-        "suite": "Dashboard",
+        "suite": ["Dashboard"],
         "filepath": "cypress/e2e/dashboard.cy.js",
         "message": "Timed out retrying after 8000ms: Expected to find element '#analytics-chart' but never found it.",
         "trace": "Error: Timed out retrying after 8000ms\n    at Object.isVisible (cypress/support/commands.js:45:9)\n    at Context.<anonymous> (cypress/e2e/dashboard.cy.js:67:12)\n    at callFn (cypress/support/runner.js:288:21)",
@@ -57,7 +57,7 @@
         "name": "exports report as PDF",
         "status": "failed",
         "duration": 12345,
-        "suite": "Dashboard",
+        "suite": ["Dashboard"],
         "filepath": "cypress/e2e/dashboard.cy.js",
         "message": "TypeError: Cannot read properties of undefined (reading 'blob')\n\nThe PDF download handler returned undefined instead of a Blob. The export endpoint may not be returning the expected content-type.",
         "trace": "TypeError: Cannot read properties of undefined (reading 'blob')\n    at downloadPDF (src/utils/export.js:45:23)\n    at HTMLButtonElement.<anonymous> (src/pages/Dashboard.jsx:112:5)\n    at Context.<anonymous> (cypress/e2e/dashboard.cy.js:89:5)",
@@ -73,7 +73,7 @@
         "name": "displays empty state for new user",
         "status": "passed",
         "duration": 1876,
-        "suite": "Dashboard",
+        "suite": ["Dashboard"],
         "filepath": "cypress/e2e/dashboard.cy.js"
       },
       {
