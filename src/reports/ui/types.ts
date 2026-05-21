@@ -15,7 +15,9 @@ export type Settings = {
   filterOnStatus: typeof FILTER_ON_STATUS;
 };
 
-export type TestAndBreadcrumbs = CTRFTest & { breadcrumbs: Suite[] };
+export const BREADCRUMBS = Symbol('breadcrumbs');
+
+export type TestAndBreadcrumbs = CTRFTest & { [BREADCRUMBS]: Suite[] };
 
 export type State = {
   report: CommonTestReport;

@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeAll, beforeEach } from 'vitest';
 import type { Mock } from 'vitest';
 import { ReportController } from './ReportController.js';
+import { BREADCRUMBS } from './types.js';
 import type { State } from './types.js';
 import type { CommonTestReport } from '../../types/CommonTestReportFormat.js';
 import { createEmptyTestResults, createTestResults, SPEC_VERSION } from '../../types/CommonTestReportFormat.js';
@@ -72,7 +73,7 @@ it('shows the report when set', () => {
     tests: [
       {
         suite: ['http://localhost', 'test'],
-        breadcrumbs: [
+        [BREADCRUMBS]: [
           {
             uid: 'http://localhost',
             label: 'http://localhost',

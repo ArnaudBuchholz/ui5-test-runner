@@ -1,3 +1,4 @@
+import { BREADCRUMBS } from '../../../reports/ui/types.js';
 import type { State, Settings, TestAndBreadcrumbs } from '../../../reports/ui/types.js';
 import { formatDuration } from '../utils/format.js';
 
@@ -13,13 +14,11 @@ function statusTag(status: string): string {
 }
 
 function renderBreadcrumbs(test: TestAndBreadcrumbs): string {
-  if (test.breadcrumbs.length === 0) return '';
-  const items = test.breadcrumbs
-    .map(
-      (suite) =>
-        `<ui5-breadcrumbs-item data-suite-uid="${encodeURIComponent(suite.uid)}">${escapeHtml(suite.label)}</ui5-breadcrumbs-item>`
-    )
-    .join('');
+  if (test[BREADCRUMBS].length === 0) return '';
+  const items = test[BREADCRUMBS].map(
+    (suite) =>
+      `<ui5-breadcrumbs-item data-suite-uid="${encodeURIComponent(suite.uid)}">${escapeHtml(suite.label)}</ui5-breadcrumbs-item>`
+  ).join('');
   return `<ui5-breadcrumbs>${items}</ui5-breadcrumbs>`;
 }
 

@@ -3,6 +3,7 @@ import type { CTRFTest } from '../../types/CommonTestReportFormat.js';
 import { AbstractUserInterfaceController } from '../../utils/ui/AbstractUserInterfaceController.js';
 import { FILTER_ON_STATUS, SORT_BY } from './constants.js';
 import { buildSuites, findSuite, SUITE_SEPARATOR } from './suites.js';
+import { BREADCRUMBS } from './types.js';
 import type { Settings, State, Actions, TestAndBreadcrumbs, Suite } from './types.js';
 
 export class ReportController extends AbstractUserInterfaceController<Settings, State, Actions> {
@@ -80,8 +81,8 @@ export class ReportController extends AbstractUserInterfaceController<Settings, 
     return results;
   }
 
-  private _injectBreadcrumbs(tests: CTRFTest[], suites: Suite[]): TestAndBreadcrumbs[] {
-    return tests.map((test) => {
+  private _injectBreadcrumbs(tests: CTRFTest[], suites: Suite[]) {
+    for (const test of tests) {
       const breadcrumbs: Suite[] = [];
       let parent = {
         uid: '',
@@ -99,11 +100,10 @@ export class ReportController extends AbstractUserInterfaceController<Settings, 
         breadcrumbs.push(suite);
         parent = suite;
       }
-      return {
-        ...test,
-        breadcrumbs
-      };
-    });
+      Object.assign(test, {
+        [BREADCRUMBS]: breadcrumbs
+      });
+    }
   }
 
   protected override _onInteraction(stateDiff: Partial<State>, action?: Actions) {
@@ -114,14 +114,13 @@ export class ReportController extends AbstractUserInterfaceController<Settings, 
       this._reset();
       this._state.report = stateDiff.report;
       suites = buildSuites(this._state.report.results.tests);
+      this._injectBreadcrumbs(this._state.report.results.tests, suites);
       update = {
         ...this._state,
         suites,
         mode: 'display'
       };
       triggerUpdate = true;
-    } else {
-      suites = this._state.suites;
     }
     let tests = this._state.report.results.tests;
     if (this._needFilterOrSort(stateDiff)) {
@@ -132,7 +131,7 @@ export class ReportController extends AbstractUserInterfaceController<Settings, 
     if (triggerUpdate) {
       this._update({
         ...update,
-        tests: this._injectBreadcrumbs(tests, suites)
+        tests: tests as TestAndBreadcrumbs[]
       });
     }
     if (action !== undefined) {

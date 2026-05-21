@@ -2,8 +2,13 @@ import type { CTRFTest } from '../../types/CommonTestReportFormat.js';
 import type { Suite } from './types.js';
 
 export const SUITE_SEPARATOR = '\r';
-export const NO_SUITE = '';
+export const NO_SUITE_ID = '';
 export const NO_SUITE_LABEL = 'No suite';
+export const NO_SUITE = {
+  uid: NO_SUITE_ID,
+  label: NO_SUITE_LABEL,
+  suites: []
+} as const satisfies Suite;
 
 export const findSuite = (suites: Suite[], suiteUid: string): Suite | undefined => {
   for (const suite of suites) {
@@ -27,14 +32,8 @@ const isValidSuite = (
   suites: Suite[]
 ): suiteArray is readonly [string, ...string[]] => {
   if (!suiteArray || suiteArray.length === 0) {
-    let noSuite = findSuite(suites, NO_SUITE);
-    if (!noSuite) {
-      noSuite = {
-        uid: NO_SUITE,
-        label: NO_SUITE_LABEL,
-        suites: []
-      };
-      suites.push(noSuite);
+    if (!findSuite(suites, NO_SUITE_ID)) {
+      suites.push(NO_SUITE);
     }
     return false;
   }

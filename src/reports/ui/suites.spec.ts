@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { buildSuites, extractUrlLabel, NO_SUITE, NO_SUITE_LABEL, SUITE_SEPARATOR } from './suites.js';
+import { buildSuites, extractUrlLabel, NO_SUITE, SUITE_SEPARATOR } from './suites.js';
 import type { Suite } from './types.js';
 import type { CTRFTest } from '../../types/CommonTestReportFormat.js';
 import { createTestResults } from '../../types/CommonTestReportFormat.js';
@@ -24,23 +24,11 @@ it('allocates a default suite (undefined)', () => {
         ]
       }).tests
     )
-  ).toStrictEqual<Suite[]>([
-    {
-      uid: NO_SUITE,
-      label: NO_SUITE_LABEL,
-      suites: []
-    }
-  ]);
+  ).toStrictEqual([NO_SUITE]);
 });
 
 it('allocates a default suite (empty)', () => {
-  expect(buildSuites(toTests([[]]))).toStrictEqual<Suite[]>([
-    {
-      uid: NO_SUITE,
-      label: NO_SUITE_LABEL,
-      suites: []
-    }
-  ]);
+  expect(buildSuites(toTests([[]]))).toStrictEqual([NO_SUITE]);
 });
 
 it('returns the suite', () => {
