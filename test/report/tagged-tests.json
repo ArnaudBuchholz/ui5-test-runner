@@ -1,0 +1,149 @@
+{
+  "results": {
+    "tool": {
+      "name": "Vitest"
+    },
+    "summary": {
+      "tests": 12,
+      "passed": 9,
+      "failed": 2,
+      "pending": 1,
+      "skipped": 0,
+      "other": 0,
+      "start": 1779354500000,
+      "stop": 1779354510000
+    },
+    "tests": [
+      {
+        "name": "POST /users returns 201 with valid payload",
+        "status": "passed",
+        "duration": 134,
+        "suite": ["API", "Users"],
+        "type": "api",
+        "filepath": "src/api/users.test.ts",
+        "tags": ["api", "users", "smoke"],
+        "annotations": [
+          { "type": "issue", "description": "https://github.com/example/repo/issues/42" },
+          { "type": "owner", "description": "team-backend" }
+        ]
+      },
+      {
+        "name": "POST /users returns 400 when email is missing",
+        "status": "passed",
+        "duration": 98,
+        "suite": ["API", "Users"],
+        "type": "api",
+        "filepath": "src/api/users.test.ts",
+        "tags": ["api", "users", "validation"]
+      },
+      {
+        "name": "POST /users returns 409 on duplicate email",
+        "status": "passed",
+        "duration": 112,
+        "suite": ["API", "Users"],
+        "type": "api",
+        "filepath": "src/api/users.test.ts",
+        "tags": ["api", "users", "validation"]
+      },
+      {
+        "name": "GET /users/:id returns 200 for existing user",
+        "status": "passed",
+        "duration": 89,
+        "suite": ["API", "Users"],
+        "type": "api",
+        "filepath": "src/api/users.test.ts",
+        "tags": ["api", "users", "smoke"]
+      },
+      {
+        "name": "GET /users/:id returns 404 for unknown id",
+        "status": "failed",
+        "duration": 102,
+        "suite": ["API", "Users"],
+        "type": "api",
+        "filepath": "src/api/users.test.ts",
+        "tags": ["api", "users"],
+        "message": "Expected status 404 but received 500 — unhandled ObjectId cast error",
+        "trace": "AssertionError: expected 500 to equal 404\n    at users.test.ts:78:14",
+        "annotations": [
+          { "type": "issue", "description": "https://github.com/example/repo/issues/101" }
+        ]
+      },
+      {
+        "name": "DELETE /users/:id returns 204",
+        "status": "passed",
+        "duration": 145,
+        "suite": ["API", "Users"],
+        "type": "api",
+        "filepath": "src/api/users.test.ts",
+        "tags": ["api", "users", "destructive"]
+      },
+      {
+        "name": "renders <UserCard> with all props",
+        "status": "passed",
+        "duration": 34,
+        "suite": ["Components", "UserCard"],
+        "type": "component",
+        "filepath": "src/components/UserCard.test.tsx",
+        "tags": ["ui", "component", "smoke"]
+      },
+      {
+        "name": "renders <UserCard> without optional avatar",
+        "status": "passed",
+        "duration": 28,
+        "suite": ["Components", "UserCard"],
+        "type": "component",
+        "filepath": "src/components/UserCard.test.tsx",
+        "tags": ["ui", "component"]
+      },
+      {
+        "name": "renders <UserCard> in loading state",
+        "status": "failed",
+        "duration": 41,
+        "suite": ["Components", "UserCard"],
+        "type": "component",
+        "filepath": "src/components/UserCard.test.tsx",
+        "tags": ["ui", "component"],
+        "message": "Expected skeleton loader to be visible but found rendered content",
+        "trace": "AssertionError: expected element to have class 'skeleton' but has 'user-card'\n    at UserCard.test.tsx:55:9",
+        "annotations": [
+          { "type": "known-issue", "description": "Loading state prop not yet implemented" }
+        ]
+      },
+      {
+        "name": "renders <UserCard> in error state",
+        "status": "passed",
+        "duration": 37,
+        "suite": ["Components", "UserCard"],
+        "type": "component",
+        "filepath": "src/components/UserCard.test.tsx",
+        "tags": ["ui", "component"]
+      },
+      {
+        "name": "full user registration journey",
+        "status": "passed",
+        "duration": 3456,
+        "suite": ["E2E", "Journeys"],
+        "type": "e2e",
+        "filepath": "e2e/journeys/registration.spec.ts",
+        "tags": ["e2e", "smoke", "regression"],
+        "annotations": [
+          { "type": "jira", "description": "PROJ-1234" },
+          { "type": "owner", "description": "team-frontend" }
+        ]
+      },
+      {
+        "name": "admin bulk import users from CSV",
+        "status": "pending",
+        "duration": 0,
+        "suite": ["E2E", "Journeys"],
+        "type": "e2e",
+        "filepath": "e2e/journeys/admin.spec.ts",
+        "tags": ["e2e", "admin", "wip"],
+        "annotations": [
+          { "type": "jira", "description": "PROJ-1567" },
+          { "type": "owner", "description": "team-backend" }
+        ]
+      }
+    ]
+  }
+}

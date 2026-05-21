@@ -1,0 +1,101 @@
+{
+  "results": {
+    "tool": {
+      "name": "Cypress"
+    },
+    "summary": {
+      "tests": 8,
+      "passed": 3,
+      "failed": 5,
+      "pending": 0,
+      "skipped": 0,
+      "other": 0,
+      "start": 1779354400000,
+      "stop": 1779354450000
+    },
+    "tests": [
+      {
+        "name": "displays user dashboard on login",
+        "status": "passed",
+        "duration": 2341,
+        "suite": "Dashboard",
+        "filepath": "cypress/e2e/dashboard.cy.js"
+      },
+      {
+        "name": "shows correct user name in header",
+        "status": "passed",
+        "duration": 1234,
+        "suite": "Dashboard",
+        "filepath": "cypress/e2e/dashboard.cy.js"
+      },
+      {
+        "name": "redirects to login when session expires",
+        "status": "failed",
+        "duration": 5432,
+        "suite": "Dashboard",
+        "filepath": "cypress/e2e/dashboard.cy.js",
+        "message": "AssertionError: expected '/dashboard' to equal '/login'\n\nThe application navigated to '/dashboard' but the test expected a redirect to '/login' after the session token expired.",
+        "trace": "AssertionError: expected '/dashboard' to equal '/login'\n    at Context.<anonymous> (cypress/e2e/dashboard.cy.js:34:30)\n    at callFn (cypress/support/runner.js:288:21)\n    at Test.Runnable.run (cypress/support/runner.js:272:7)\n    at next (cypress/support/runner.js:444:14)",
+        "screenshot": "screenshots/redirects-to-login-when-session-expires.png"
+      },
+      {
+        "name": "loads analytics charts",
+        "status": "failed",
+        "duration": 8923,
+        "suite": "Dashboard",
+        "filepath": "cypress/e2e/dashboard.cy.js",
+        "message": "Timed out retrying after 8000ms: Expected to find element '#analytics-chart' but never found it.",
+        "trace": "Error: Timed out retrying after 8000ms\n    at Object.isVisible (cypress/support/commands.js:45:9)\n    at Context.<anonymous> (cypress/e2e/dashboard.cy.js:67:12)\n    at callFn (cypress/support/runner.js:288:21)",
+        "screenshot": "screenshots/loads-analytics-charts.png",
+        "steps": [
+          { "name": "visit /dashboard", "status": "passed", "duration": 1200 },
+          { "name": "wait for API /api/analytics", "status": "passed", "duration": 3400 },
+          { "name": "assert #analytics-chart is visible", "status": "failed", "duration": 8000 }
+        ]
+      },
+      {
+        "name": "exports report as PDF",
+        "status": "failed",
+        "duration": 12345,
+        "suite": "Dashboard",
+        "filepath": "cypress/e2e/dashboard.cy.js",
+        "message": "TypeError: Cannot read properties of undefined (reading 'blob')\n\nThe PDF download handler returned undefined instead of a Blob. The export endpoint may not be returning the expected content-type.",
+        "trace": "TypeError: Cannot read properties of undefined (reading 'blob')\n    at downloadPDF (src/utils/export.js:45:23)\n    at HTMLButtonElement.<anonymous> (src/pages/Dashboard.jsx:112:5)\n    at Context.<anonymous> (cypress/e2e/dashboard.cy.js:89:5)",
+        "steps": [
+          { "name": "visit /dashboard", "status": "passed", "duration": 1100 },
+          { "name": "click Export button", "status": "passed", "duration": 450 },
+          { "name": "select PDF format", "status": "passed", "duration": 320 },
+          { "name": "click Download", "status": "passed", "duration": 280 },
+          { "name": "assert file download started", "status": "failed", "duration": 10000 }
+        ]
+      },
+      {
+        "name": "displays empty state for new user",
+        "status": "passed",
+        "duration": 1876,
+        "suite": "Dashboard",
+        "filepath": "cypress/e2e/dashboard.cy.js"
+      },
+      {
+        "name": "pagination navigates to next page",
+        "status": "failed",
+        "duration": 3456,
+        "suite": ["Dashboard", "Table"],
+        "filepath": "cypress/e2e/dashboard.cy.js",
+        "message": "AssertionError: expected first row text to equal 'Item #11' but found 'Item #1'\n\nClicking 'Next page' did not advance the table to the second page of results.",
+        "trace": "AssertionError: expected 'Item #1' to equal 'Item #11'\n    at Context.<anonymous> (cypress/e2e/dashboard.cy.js:123:42)\n    at callFn (cypress/support/runner.js:288:21)",
+        "screenshot": "screenshots/pagination-navigates-to-next-page.png"
+      },
+      {
+        "name": "search filters table results",
+        "status": "failed",
+        "duration": 2987,
+        "suite": ["Dashboard", "Table"],
+        "filepath": "cypress/e2e/dashboard.cy.js",
+        "message": "AssertionError: expected 0 items but table shows 100 items\n\nSearching for the string 'xyz123_no_match' did not filter the table; all 100 records are still visible.",
+        "trace": "AssertionError: expected 100 to equal 0\n    at Context.<anonymous> (cypress/e2e/dashboard.cy.js:156:38)\n    at callFn (cypress/support/runner.js:288:21)",
+        "screenshot": "screenshots/search-filters-table-results.png"
+      }
+    ]
+  }
+}

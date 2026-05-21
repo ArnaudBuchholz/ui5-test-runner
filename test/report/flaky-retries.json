@@ -1,0 +1,102 @@
+{
+  "results": {
+    "tool": {
+      "name": "Playwright"
+    },
+    "summary": {
+      "tests": 10,
+      "passed": 7,
+      "failed": 3,
+      "pending": 0,
+      "skipped": 0,
+      "other": 0,
+      "start": 1779354200000,
+      "stop": 1779354260000
+    },
+    "tests": [
+      {
+        "name": "login flow completes",
+        "status": "passed",
+        "duration": 1234,
+        "suite": ["E2E", "Auth"],
+        "retries": 2,
+        "flaky": true
+      },
+      {
+        "name": "adds item to cart",
+        "status": "passed",
+        "duration": 890,
+        "suite": ["E2E", "Shopping"],
+        "retries": 0,
+        "flaky": false
+      },
+      {
+        "name": "checkout completes",
+        "status": "passed",
+        "duration": 2345,
+        "suite": ["E2E", "Shopping"],
+        "retries": 1,
+        "flaky": true
+      },
+      {
+        "name": "payment processes",
+        "status": "failed",
+        "duration": 3456,
+        "suite": ["E2E", "Shopping"],
+        "retries": 3,
+        "flaky": false,
+        "message": "Network timeout after 3 retries: POST /api/payments returned no response within 10000ms"
+      },
+      {
+        "name": "order confirmation shown",
+        "status": "passed",
+        "duration": 1567,
+        "suite": ["E2E", "Shopping"],
+        "retries": 0,
+        "flaky": false
+      },
+      {
+        "name": "profile picture updates",
+        "status": "passed",
+        "duration": 2123,
+        "suite": ["E2E", "Profile"],
+        "retries": 2,
+        "flaky": true
+      },
+      {
+        "name": "password change works",
+        "status": "passed",
+        "duration": 1890,
+        "suite": ["E2E", "Profile"],
+        "retries": 0,
+        "flaky": false
+      },
+      {
+        "name": "notification settings saved",
+        "status": "failed",
+        "duration": 2789,
+        "suite": ["E2E", "Settings"],
+        "retries": 3,
+        "flaky": false,
+        "message": "Element #save-btn not found after 3 retries"
+      },
+      {
+        "name": "dark mode toggles",
+        "status": "passed",
+        "duration": 1234,
+        "suite": ["E2E", "Settings"],
+        "retries": 1,
+        "flaky": true
+      },
+      {
+        "name": "data export downloads",
+        "status": "failed",
+        "duration": 4567,
+        "suite": ["E2E", "Settings"],
+        "retries": 3,
+        "flaky": false,
+        "message": "Download did not start within 10000ms timeout after 3 retries"
+      }
+    ]
+  }
+}

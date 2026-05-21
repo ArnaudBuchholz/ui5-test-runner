@@ -1,0 +1,171 @@
+{
+  "results": {
+    "tool": {
+      "name": "Jest"
+    },
+    "summary": {
+      "tests": 24,
+      "passed": 18,
+      "failed": 4,
+      "pending": 1,
+      "skipped": 1,
+      "other": 0,
+      "start": 1779354100000,
+      "stop": 1779354115000
+    },
+    "tests": [
+      {
+        "name": "rejects empty username",
+        "status": "passed",
+        "duration": 23,
+        "suite": ["App", "Auth", "Login", "Username validation"]
+      },
+      {
+        "name": "rejects username below min length",
+        "status": "passed",
+        "duration": 18,
+        "suite": ["App", "Auth", "Login", "Username validation"]
+      },
+      {
+        "name": "rejects username above max length",
+        "status": "passed",
+        "duration": 21,
+        "suite": ["App", "Auth", "Login", "Username validation"]
+      },
+      {
+        "name": "accepts valid username",
+        "status": "passed",
+        "duration": 19,
+        "suite": ["App", "Auth", "Login", "Username validation"]
+      },
+      {
+        "name": "rejects empty password",
+        "status": "passed",
+        "duration": 17,
+        "suite": ["App", "Auth", "Login", "Password validation"]
+      },
+      {
+        "name": "rejects password below min length",
+        "status": "failed",
+        "duration": 22,
+        "suite": ["App", "Auth", "Login", "Password validation"],
+        "message": "Expected error 'TOO_SHORT' but received 'INVALID'",
+        "trace": "AssertionError: expected 'INVALID' to equal 'TOO_SHORT'\n    at Context.<anonymous> (auth.test.js:88:12)"
+      },
+      {
+        "name": "requires at least one uppercase letter",
+        "status": "passed",
+        "duration": 20,
+        "suite": ["App", "Auth", "Login", "Password validation"]
+      },
+      {
+        "name": "requires at least one digit",
+        "status": "passed",
+        "duration": 18,
+        "suite": ["App", "Auth", "Login", "Password validation"]
+      },
+      {
+        "name": "registers new user with valid data",
+        "status": "passed",
+        "duration": 345,
+        "suite": ["App", "Auth", "Registration"]
+      },
+      {
+        "name": "rejects duplicate email",
+        "status": "passed",
+        "duration": 289,
+        "suite": ["App", "Auth", "Registration"]
+      },
+      {
+        "name": "sends confirmation email",
+        "status": "failed",
+        "duration": 412,
+        "suite": ["App", "Auth", "Registration"],
+        "message": "Timeout: email not received within 5000ms",
+        "trace": "Error: Timeout of 5000ms exceeded\n    at Context.<anonymous> (auth.test.js:145:5)"
+      },
+      {
+        "name": "sends reset link to known email",
+        "status": "passed",
+        "duration": 312,
+        "suite": ["App", "Auth", "Password Reset"]
+      },
+      {
+        "name": "ignores request for unknown email",
+        "status": "passed",
+        "duration": 278,
+        "suite": ["App", "Auth", "Password Reset"]
+      },
+      {
+        "name": "new password must differ from old",
+        "status": "pending",
+        "duration": 0,
+        "suite": ["App", "Auth", "Password Reset"]
+      },
+      {
+        "name": "displays current user data",
+        "status": "passed",
+        "duration": 189,
+        "suite": ["App", "Profile", "Personal Info"]
+      },
+      {
+        "name": "saves updated name",
+        "status": "passed",
+        "duration": 234,
+        "suite": ["App", "Profile", "Personal Info"]
+      },
+      {
+        "name": "saves updated email",
+        "status": "passed",
+        "duration": 256,
+        "suite": ["App", "Profile", "Personal Info"]
+      },
+      {
+        "name": "validates phone number format",
+        "status": "failed",
+        "duration": 198,
+        "suite": ["App", "Profile", "Personal Info"],
+        "message": "Expected validation error for '+1 (555) 000-0000' but input was accepted",
+        "trace": "AssertionError: expected false to equal true\n    at Context.<anonymous> (profile.test.js:67:18)"
+      },
+      {
+        "name": "uploads JPEG avatar",
+        "status": "passed",
+        "duration": 567,
+        "suite": ["App", "Profile", "Avatar"]
+      },
+      {
+        "name": "uploads PNG avatar",
+        "status": "passed",
+        "duration": 534,
+        "suite": ["App", "Profile", "Avatar"]
+      },
+      {
+        "name": "rejects oversized file",
+        "status": "passed",
+        "duration": 123,
+        "suite": ["App", "Profile", "Avatar"]
+      },
+      {
+        "name": "rejects non-image file",
+        "status": "passed",
+        "duration": 112,
+        "suite": ["App", "Profile", "Avatar"]
+      },
+      {
+        "name": "crops image to square",
+        "status": "skipped",
+        "duration": 0,
+        "suite": ["App", "Profile", "Avatar"]
+      },
+      {
+        "name": "generates thumbnail on upload",
+        "status": "failed",
+        "duration": 345,
+        "suite": ["App", "Profile", "Avatar"],
+        "message": "TypeError: Cannot read property 'width' of undefined",
+        "trace": "TypeError: Cannot read properties of undefined (reading 'width')\n    at generateThumbnail (src/avatar.js:34:21)\n    at Context.<anonymous> (profile.test.js:112:5)"
+      }
+    ]
+  }
+}

@@ -1,0 +1,84 @@
+{
+  "results": {
+    "tool": {
+      "name": "QUnit"
+    },
+    "summary": {
+      "tests": 10,
+      "passed": 3,
+      "failed": 2,
+      "pending": 2,
+      "skipped": 2,
+      "other": 1,
+      "start": 1779354000000,
+      "stop": 1779354005000
+    },
+    "tests": [
+      {
+        "name": "adds two positive numbers",
+        "status": "passed",
+        "duration": 12,
+        "suite": ["Math", "Addition"]
+      },
+      {
+        "name": "adds negative numbers",
+        "status": "passed",
+        "duration": 9,
+        "suite": ["Math", "Addition"]
+      },
+      {
+        "name": "handles float precision",
+        "status": "passed",
+        "duration": 11,
+        "suite": ["Math", "Addition"]
+      },
+      {
+        "name": "divides by zero",
+        "status": "failed",
+        "duration": 8,
+        "suite": ["Math", "Division"],
+        "message": "Expected Infinity but received NaN",
+        "trace": "AssertionError: Expected Infinity but received NaN\n    at Object.<anonymous> (math.test.js:42:5)\n    at runTest (runner.js:122:3)"
+      },
+      {
+        "name": "divides negative numbers",
+        "status": "failed",
+        "duration": 7,
+        "suite": ["Math", "Division"],
+        "message": "Expected -2 but received 2",
+        "trace": "AssertionError: Expected -2 but received 2\n    at Object.<anonymous> (math.test.js:58:5)\n    at runTest (runner.js:122:3)"
+      },
+      {
+        "name": "multiplies large numbers",
+        "status": "pending",
+        "duration": 0,
+        "suite": ["Math", "Multiplication"]
+      },
+      {
+        "name": "multiplies by zero",
+        "status": "pending",
+        "duration": 0,
+        "suite": ["Math", "Multiplication"]
+      },
+      {
+        "name": "computes square root of negative",
+        "status": "skipped",
+        "duration": 0,
+        "suite": ["Math", "Advanced"]
+      },
+      {
+        "name": "computes factorial of large number",
+        "status": "skipped",
+        "duration": 0,
+        "suite": ["Math", "Advanced"]
+      },
+      {
+        "name": "handles NaN input",
+        "status": "other",
+        "duration": 3,
+        "suite": ["Math", "Edge Cases"],
+        "rawStatus": "todo"
+      }
+    ]
+  }
+}
