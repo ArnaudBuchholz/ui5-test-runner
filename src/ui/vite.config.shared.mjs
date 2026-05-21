@@ -9,7 +9,7 @@ export const importMetaTransform = {
   }
 };
 
-export const dropLibPlugin = {
+export const dropLibraryPlugin = {
   name: 'drop-lib',
   enforce: 'pre',
   apply: 'build',
@@ -24,7 +24,7 @@ export const dropLibPlugin = {
 export function createAppConfig({ root, name, fileName, serverOpen }) {
   return defineConfig({
     root,
-    plugins: [dropLibPlugin, cssInjectedByJsPlugin()],
+    plugins: [dropLibraryPlugin, cssInjectedByJsPlugin()],
     build: {
       outDir: '../../../dist/ui',
       emptyOutDir: false,

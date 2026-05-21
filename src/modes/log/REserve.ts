@@ -4,7 +4,7 @@ import type { Configuration } from 'reserve';
 import type { ILogStorage } from './ILogStorage.js';
 import type { LogMetrics } from './LogMetrics.js';
 
-const getLibSource = memoize(async () => {
+const getLibrarySource = memoize(async () => {
   /* v8 ignore next -- @preserve */
   const path = __developmentMode
     ? Path.join(__sourcesRoot, '../dist/ui', 'lib.js')
@@ -54,7 +54,7 @@ export const buildREserveConfiguration = (
       method: 'GET',
       match: '/lib.js',
       custom: async () => [
-        await getLibSource(),
+        await getLibrarySource(),
         {
           headers: {
             'Content-Type': 'application/javascript'
