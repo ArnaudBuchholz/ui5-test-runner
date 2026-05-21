@@ -21,7 +21,7 @@ export const dropLibraryPlugin = {
   }
 };
 
-export function createAppConfig({ root, name, fileName, serverOpen }) {
+export function createAppConfig({ root, name, fileName }) {
   return defineConfig({
     root,
     plugins: [dropLibraryPlugin, cssInjectedByJsPlugin()],
