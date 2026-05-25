@@ -4,7 +4,7 @@ import { state } from './state.js';
 let instance: JsUnitTestSuite | undefined;
 const { promise, resolve } = Promise.withResolvers<void>();
 
-class JsUnitTestSuite {
+export class JsUnitTestSuite {
   constructor() {
     // eslint-disable-next-line unicorn/no-this-assignment, @typescript-eslint/no-this-alias -- Singleton pattern
     instance ??= this;
