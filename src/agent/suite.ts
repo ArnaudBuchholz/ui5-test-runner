@@ -1,6 +1,8 @@
 import type { AgentState } from '../types/AgentState.js';
 import { state } from './state.js';
 
+// Implement polling interval to support all use cases
+
 let instance: JsUnitTestSuite | undefined;
 const { promise, resolve } = Promise.withResolvers<void>();
 
@@ -25,14 +27,13 @@ export class JsUnitTestSuite {
 
 Object.assign(window, { jsUnitTestSuite: JsUnitTestSuite });
 
-export const suite = () => {
+export const suite = async () => {
   window.suite?.();
-  void promise.then(() => {
-    const newState: AgentState = {
-      done: true,
-      type: 'suite',
-      pages: instance?.pages ?? []
-    };
-    Object.assign(state, newState);
-  });
+  await promise;
+  const newState: AgentState = {
+    done: true,
+    type: 'suite',
+    pages: instance?.pages ?? []
+  };
+  Object.assign(state, newState);
 };
