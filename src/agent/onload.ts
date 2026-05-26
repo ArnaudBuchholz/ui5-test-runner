@@ -3,7 +3,7 @@ import { suite } from './suite.js';
 import { qunit } from './qunit.js';
 import type { AgentState } from '../types/AgentState.js';
 
-const DETECTION_TIMEOUT = 5000;
+export const DETECTION_TIMEOUT = 5000;
 const DELAY = 100;
 const MAX_DELAY = 1000;
 

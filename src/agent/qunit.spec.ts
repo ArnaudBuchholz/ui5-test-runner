@@ -1,42 +1,25 @@
 import { it, expect, beforeEach } from 'vitest';
 import { qunit } from './qunit.js';
 import { results } from './report.js';
+import { installQUnit } from './qunit.test.js';
 
-let begin: Parameters<typeof QUnit.begin>[0];
-let log: Parameters<typeof QUnit.log>[0];
-let testDone: Parameters<typeof QUnit.testDone>[0];
-let done: Parameters<typeof QUnit.done>[0];
-
-window.QUnit = {
-  begin(callback) {
-    begin = callback;
-  },
-  log(callback) {
-    log = callback;
-  },
-  testDone(callback) {
-    testDone = callback;
-  },
-  done(callback) {
-    done = callback;
-  }
-} as QUnit;
+const hooks = installQUnit();
 
 beforeEach(() => {
   qunit();
 });
 
 it('install hooks', () => {
-  expect(begin).not.toBeUndefined();
-  expect(log).not.toBeUndefined();
-  expect(testDone).not.toBeUndefined();
-  expect(done).not.toBeUndefined();
+  expect(hooks.begin).not.toBeUndefined();
+  expect(hooks.log).not.toBeUndefined();
+  expect(hooks.testDone).not.toBeUndefined();
+  expect(hooks.done).not.toBeUndefined();
 });
 
 it('reports test results', async () => {
-  await begin({ totalTests: 1, modules: [] });
-  await testDone({ module: 'suite1', name: 'test1', runtime: 10, failed: 0, passed: 1, total: 1 });
-  await done({ total: 1, failed: 0, passed: 1, runtime: 10 });
+  await hooks.begin?.({ totalTests: 1, modules: [] });
+  await hooks.testDone?.({ module: 'suite1', name: 'test1', runtime: 10, failed: 0, passed: 1, total: 1 });
+  await hooks.done?.({ total: 1, failed: 0, passed: 1, runtime: 10 });
   expect(results).toStrictEqual({
     tool: {
       name: 'QUnit',
