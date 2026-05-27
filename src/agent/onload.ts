@@ -13,7 +13,7 @@ window.addEventListener('load', () => {
   let delay = DELAY;
   const detect = () => {
     if (typeof window.suite === 'function') {
-      void suite();
+      suite();
     } else if (window.QUnit !== undefined) {
       qunit();
     } else if (Date.now() - loaded < DETECTION_TIMEOUT) {

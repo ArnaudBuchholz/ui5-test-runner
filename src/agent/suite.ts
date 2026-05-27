@@ -1,39 +1,32 @@
 import type { AgentState } from '../types/AgentState.js';
 import { state } from './state.js';
 
-// Implement polling interval to support all use cases
-
-let instance: JsUnitTestSuite | undefined;
-const { promise, resolve } = Promise.withResolvers<void>();
-
 export class JsUnitTestSuite {
+  // eslint-disable-next-line sonarjs/public-static-readonly -- to enable testing
+  static pages: string[] | undefined;
+
   constructor() {
-    // eslint-disable-next-line unicorn/no-this-assignment, @typescript-eslint/no-this-alias -- Singleton pattern
-    instance ??= this;
-    return instance;
-  }
-
-  private _pages: string[] = [];
-
-  get pages() {
-    return this._pages;
+    JsUnitTestSuite.pages = [];
   }
 
   addTestPage(url: string) {
-    this._pages.push(url);
-    resolve();
+    JsUnitTestSuite.pages!.push(url);
   }
 }
 
 Object.assign(window, { jsUnitTestSuite: JsUnitTestSuite });
 
-export const suite = async () => {
+export const suite = () => {
   window.suite?.();
-  await promise;
-  const newState: AgentState = {
-    done: true,
-    type: 'suite',
-    pages: instance?.pages ?? []
-  };
+  const newState: AgentState = JsUnitTestSuite.pages
+    ? {
+        done: true,
+        type: 'suite',
+        pages: JsUnitTestSuite.pages
+      }
+    : {
+        done: true,
+        type: 'unknown'
+      };
   Object.assign(state, newState);
 };

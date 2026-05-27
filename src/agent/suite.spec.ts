@@ -1,48 +1,50 @@
 import { it, expect, beforeEach, vi } from 'vitest';
 import { state } from './state.js';
-import { suite } from './suite.js';
-import { setTimeout } from 'node:timers/promises';
+import { suite, JsUnitTestSuite } from './suite.js';
 
 beforeEach(() => {
   delete window.suite;
+  JsUnitTestSuite.pages = undefined;
   Object.assign(state, {
     done: false,
-    type: undefined
+    type: undefined,
+    pages: undefined
   });
 });
 
-it('fails on empty suite', async () => {
+it('fails on suite that does not create a JsUnitTestSuite instance', () => {
+  window.suite = vi.fn();
+  suite();
+  expect.assert(state.type === 'unknown');
+});
+
+it('supports empty suite', () => {
   window.suite = vi.fn(() => {
     const JsUnitTestSuite = window.jsUnitTestSuite;
     const testSuite = new JsUnitTestSuite();
     expect(testSuite).toBeInstanceOf(JsUnitTestSuite);
   });
-  await suite();
-  expect.assert(state.type === 'unknown');
+  suite();
+  expect.assert(state.type === 'suite');
+  expect(state.pages).toStrictEqual([]);
 });
 
-it('supports a synchronous suite', async () => {
+it('supports multiple pages', () => {
   window.suite = vi.fn(() => {
     const JsUnitTestSuite = window.jsUnitTestSuite;
     const testSuite = new JsUnitTestSuite();
     testSuite.addTestPage('test1.html');
     testSuite.addTestPage('test2.html');
   });
-  await suite();
+  suite();
   expect.assert(state.type === 'suite');
   expect(state.pages).toStrictEqual(['test1.html', 'test2.html']);
 });
 
-it('supports an asynchronous suite', async () => {
-  window.suite = vi.fn(async () => {
-    const JsUnitTestSuite = window.jsUnitTestSuite;
-    const testSuite = new JsUnitTestSuite();
-    await setTimeout(250);
-    testSuite.addTestPage('test1.html');
-    await setTimeout(500);
-    testSuite.addTestPage('test2.html');
+it('does not absorb errors (intercepted globally)', () => {
+  const error = new Error('KO');
+  window.suite = vi.fn(() => {
+    throw error;
   });
-  await suite();
-  expect.assert(state.type === 'suite');
-  expect(state.pages).toStrictEqual(['test1.html', 'test2.html']);
+  expect(() => suite()).toThrow(error);
 });
