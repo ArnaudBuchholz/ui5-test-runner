@@ -1,7 +1,8 @@
 import { IN_IFRAME } from './contants.js';
 
 // TODO: how to make sure it is added to each IFrame ?
-if (IN_IFRAME) {
+
+export const setCoverageHandler = (window: Window) => {
   const top = window.top!; // not null in IFrame
   Object.defineProperty(window, '__coverage__', {
     get() {
@@ -12,4 +13,9 @@ if (IN_IFRAME) {
       return true;
     }
   });
+};
+
+/* v8 ignore next -- @preserve */
+if (IN_IFRAME) {
+  setCoverageHandler(window);
 }

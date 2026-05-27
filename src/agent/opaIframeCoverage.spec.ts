@@ -1,14 +1,28 @@
-import { it, expect, beforeEach, vi } from 'vitest';
-import { UI5_TEST_RUNNER } from './contants.js';
+import { it, expect, beforeAll, beforeEach } from 'vitest';
+import { setCoverageHandler } from './opaIframeCoverage.js';
 
-const defineProperty = vi.spyOn(Object, 'defineProperty');
+const coverageInfo = {
+  uid: Date.now()
+} as const;
 
-beforeEach(() => vi.resetModules());
+const indexFrame = {
+  top: window
+} as unknown as Window;
 
-it.skip('does nothing on the main window', async () => {
-  await import('./opaIframeCoverage.js');
-  expect(defineProperty).toHaveBeenCalledTimes(1);
-  expect(defineProperty).toHaveBeenCalledWith(globalThis, `${UI5_TEST_RUNNER}/opa-iframe-coverage`, {
-    value: true
-  });
+beforeAll(() => {
+  setCoverageHandler(indexFrame);
+});
+
+beforeEach(() => {
+  delete window.__coverage__;
+});
+
+it('creates a property reflecting on the main window (read)', () => {
+  window.__coverage__ = coverageInfo;
+  expect(indexFrame.__coverage__).toStrictEqual(coverageInfo);
+});
+
+it('creates a property reflecting on the main window (write)', () => {
+  indexFrame.__coverage__ = coverageInfo;
+  expect(window.__coverage__).toStrictEqual(coverageInfo);
 });
