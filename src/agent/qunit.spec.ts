@@ -1,8 +1,9 @@
 import { it, expect, beforeAll, beforeEach, vi } from 'vitest';
 import { qunit } from './qunit.js';
-import type { AgentTestResultsBuilder } from './report.js';
 import { report } from './report.js';
 import { state } from './state.js';
+
+const id = expect.any(String) as string;
 
 beforeAll(() => {
   // Keeping the jsdom context, we need to tweak QUnit to prevent autostart
@@ -14,7 +15,7 @@ beforeAll(() => {
 });
 
 beforeEach(async () => {
-  (report as AgentTestResultsBuilder).reset();
+  report.reset();
   Object.assign(state, { done: false, type: undefined });
   delete window.QUnit;
   // works because of vitest.config.ts' config of qunit inline
@@ -28,7 +29,7 @@ const execQunit = async () => {
   QUnit.start();
   window.dispatchEvent(new Event('load'));
   await vi.waitFor(() => expect(state.done).toBe(true));
-  return (report as AgentTestResultsBuilder).results;
+  return report.results;
 };
 
 it('reports test results from actual QUnit execution', async () => {
@@ -43,6 +44,7 @@ it('reports test results from actual QUnit execution', async () => {
   expect(results.summary.passed).toBe(1);
   expect(results.tests).toMatchObject([
     {
+      id,
       name: 'test1',
       status: 'passed',
       suite: ['suite1']
@@ -66,6 +68,7 @@ it('contains failure report', async () => {
   expect(results.summary.failed).toBe(1);
   expect(results.tests).toMatchObject([
     {
+      id,
       name: 'test1',
       status: 'failed',
       suite: ['suite1']

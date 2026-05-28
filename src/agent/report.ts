@@ -1,8 +1,7 @@
 import type { CTRFTest } from '../types/CommonTestReportFormat.js';
 import { createEmptyTestResults } from '../types/CommonTestReportFormat.js';
-import type { ITestResult, ITestResultsBuilder } from '../types/ITestResultsBuilder.js';
 
-export class AgentTestResultsBuilder implements ITestResultsBuilder {
+export class AgentTestResultsBuilder {
   private _results = createEmptyTestResults();
 
   get results() {
@@ -22,20 +21,10 @@ export class AgentTestResultsBuilder implements ITestResultsBuilder {
     this._results.summary.start = Date.now();
   }
 
-  test(result: ITestResult): void {
+  test(test: CTRFTest): void {
     const { summary } = this._results;
     ++summary.tests;
-    ++summary[result.status];
-    const test: CTRFTest = {
-      duration: result.duration,
-      name: result.label,
-      status: result.status
-    };
-    if (typeof result.suite === 'string') {
-      test.suite = [result.suite];
-    } else if (Array.isArray(result.suite)) {
-      test.suite = result.suite;
-    }
+    ++summary[test.status];
     this._results.tests.push(test);
   }
 
@@ -46,5 +35,5 @@ export class AgentTestResultsBuilder implements ITestResultsBuilder {
   }
 }
 
-export const report: ITestResultsBuilder = new AgentTestResultsBuilder();
-export const results = (report as AgentTestResultsBuilder).results;
+export const report = new AgentTestResultsBuilder();
+export const results = report.results;

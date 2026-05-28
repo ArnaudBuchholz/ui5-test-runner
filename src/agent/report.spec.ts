@@ -42,9 +42,9 @@ describe('test', () => {
     it(`adds a ${status} test with suite`, () => {
       report.test({
         duration: 1,
-        label: status,
+        name: status,
         status,
-        suite: 'suite'
+        suite: ['suite']
       });
       expect(report.results.summary).toMatchObject<Partial<CommonTestReport['results']['summary']>>({
         failed: 0,
@@ -68,7 +68,7 @@ describe('test', () => {
     it(`adds a ${status} test with no suite`, () => {
       report.test({
         duration: 1,
-        label: status,
+        name: status,
         status
       });
       expect(report.results.summary).toMatchObject<Partial<CommonTestReport['results']['summary']>>({
@@ -92,7 +92,7 @@ describe('test', () => {
     it(`adds a ${status} test with suite hierarchy`, () => {
       report.test({
         duration: 1,
-        label: status,
+        name: status,
         status,
         suite: ['first', 'second']
       });
@@ -123,9 +123,9 @@ describe('end', () => {
     report.begin('Qunit@1.2.3');
     report.test({
       duration: 1,
-      label: 'test',
+      name: 'test',
       status: 'passed',
-      suite: 'suite'
+      suite: ['suite']
     });
     await setTimeout(100);
     const now = Date.now();

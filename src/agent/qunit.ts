@@ -1,10 +1,17 @@
 import type { AgentState } from '../types/AgentState.js';
 import { state } from './state.js';
 import { report } from './report.js';
-import type { CommonTestStatus } from '../types/CommonTestReportFormat.js';
+import type { CommonTestStatus, CTRFTest } from '../types/CommonTestReportFormat.js';
 
 type QUnitState = Extract<AgentState, { type: 'QUnit' }>;
+
+type QUnitLogDetails = Parameters<Parameters<typeof QUnit.log>[0]>[0] & {
+  testId?: string;
+};
+
 type QUnitTestDoneDetails = Parameters<Parameters<typeof QUnit.testDone>[0]>[0] & {
+  testId?: string;
+  assertions?: { result: boolean; message: string }[];
   skipped?: true;
   todo?: true;
 };
@@ -28,7 +35,7 @@ export const qunit = () => {
     });
   });
 
-  QUnit.log((details) => {
+  QUnit.log((details: QUnitLogDetails) => {
     if (details.result) {
       return;
     }
@@ -42,6 +49,13 @@ export const qunit = () => {
 
   QUnit.testDone((details: QUnitTestDoneDetails) => {
     let status: CommonTestStatus = 'passed';
+    const test: CTRFTest = {
+      id: details.testId,
+      suite: [details.module],
+      name: details.name,
+      duration: details.runtime,
+      status: 'other'
+    }
     if (details.failed > 0) {
       ++errors;
       status = 'failed';
@@ -49,15 +63,9 @@ export const qunit = () => {
       status = 'skipped';
     } else if (details.todo) {
       status = 'pending';
-    } else if (!details.passed) {
-      status = 'other';
     }
-    report.test({
-      suite: details.module,
-      label: details.name,
-      duration: details.runtime,
-      status
-    });
+    test.status = status;
+    report.test(test);
     updateState({
       executed: ++executed,
       errors
