@@ -31,7 +31,12 @@ export default defineConfig({
       test: {
         include: [ 'src/agent/**/*.spec.ts' ],
         name: { label: 'agent', color: 'blue' },
-        environment: 'jsdom'
+        environment: 'jsdom',
+        server: {
+          deps: {
+            inline: ['qunit'] // run through Vite, not Node's require cache
+          }
+        }        
       }
     }, {
       extends: true,

@@ -5,7 +5,7 @@ import { report } from './report.js';
 import { state } from './state.js';
 
 beforeAll(() => {
-  /* Keeping the jsdom context, we need to tweak QUnit to prevent autostart */
+  // Keeping the jsdom context, we need to tweak QUnit to prevent autostart
   Object.defineProperty(window.document, 'readyState', {
     get() {
       return 'unknown';
@@ -17,6 +17,7 @@ beforeEach(async () => {
   (report as AgentTestResultsBuilder).reset();
   Object.assign(state, { done: false, type: undefined });
   delete window.QUnit;
+  // works because of vitest.config.ts' config of qunit inline
   vi.resetModules();
   const QUnit = await import('qunit');
   window.QUnit = QUnit;
