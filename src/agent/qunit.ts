@@ -5,8 +5,11 @@ import type { CommonTestStatus, CTRFTest } from '../types/CommonTestReportFormat
 
 type QUnitState = Extract<AgentState, { type: 'QUnit' }>;
 
+const NO_TEST_ID = 'unknown';
+
 type QUnitLogDetails = Parameters<Parameters<typeof QUnit.log>[0]>[0] & {
   testId?: string;
+  result?: boolean;
 };
 
 type QUnitTestDoneDetails = Parameters<Parameters<typeof QUnit.testDone>[0]>[0] & {
@@ -24,6 +27,7 @@ export const qunit = () => {
   state.type = 'QUnit';
   let executed = 0;
   let errors = 0;
+  const logs: { [key in string]: QUnitLogDetails[] } = {};
 
   QUnit.begin((details) => {
     report.begin(`QUnit@${window.QUnit!.version}`);
@@ -36,15 +40,8 @@ export const qunit = () => {
   });
 
   QUnit.log((details: QUnitLogDetails) => {
-    if (details.result) {
-      return;
-    }
-    // const message = details.message ? `: ${details.message}` : '';
-    // report.error(`Assertion failed${message}`, {
-    //   expected: details.expected,
-    //   actual: details.actual,
-    //   source: details.source
-    // });
+    logs[details.testId ?? NO_TEST_ID] ??= [];
+    logs[details.testId ?? NO_TEST_ID]!.push(details);
   });
 
   QUnit.testDone((details: QUnitTestDoneDetails) => {
@@ -55,10 +52,15 @@ export const qunit = () => {
       name: details.name,
       duration: details.runtime,
       status: 'other'
-    }
+    };
     if (details.failed > 0) {
       ++errors;
       status = 'failed';
+      const errorLogs = logs[details.testId ?? NO_TEST_ID]?.filter(({ result }) => !result);
+      if (errorLogs && errorLogs.length > 0) {
+        test.message = errorLogs[0]!.message;
+        test.trace = errorLogs[0]!.source;
+      }
     } else if (details.skipped) {
       status = 'skipped';
     } else if (details.todo) {
@@ -70,6 +72,7 @@ export const qunit = () => {
       executed: ++executed,
       errors
     });
+    delete logs[details.testId ?? NO_TEST_ID];
   });
 
   QUnit.done(() => {
