@@ -9,6 +9,10 @@ export class AgentTestResultsBuilder implements ITestResultsBuilder {
     return this._results;
   }
 
+  reset(): void {
+    this._results = createEmptyTestResults();
+  }
+
   begin(tool: string): void {
     const [name, version] = tool.split('@');
     this._results.tool.name = name!; // cannot be undefined

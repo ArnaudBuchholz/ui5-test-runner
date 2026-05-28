@@ -1,50 +1,73 @@
-import { it, expect, beforeEach } from 'vitest';
+import { it, expect, beforeAll, beforeEach, vi } from 'vitest';
 import { qunit } from './qunit.js';
-import { results } from './report.js';
-import { installQUnit } from './qunit.test.js';
+import type { AgentTestResultsBuilder } from './report.js';
+import { report } from './report.js';
+import { state } from './state.js';
 
-const hooks = installQUnit();
+beforeAll(() => {
+  /* Keeping the jsdom context, we need to tweak QUnit to prevent autostart */
+  Object.defineProperty(window.document, 'readyState', {
+    get() {
+      return 'unknown';
+    }
+  });
+});
 
-beforeEach(() => {
+beforeEach(async () => {
+  (report as AgentTestResultsBuilder).reset();
+  Object.assign(state, { done: false, type: undefined });
+  delete window.QUnit;
+  vi.resetModules();
+  const QUnit = await import('qunit');
+  window.QUnit = QUnit;
   qunit();
 });
 
-it('install hooks', () => {
-  expect(hooks.begin).not.toBeUndefined();
-  expect(hooks.log).not.toBeUndefined();
-  expect(hooks.testDone).not.toBeUndefined();
-  expect(hooks.done).not.toBeUndefined();
-});
+const execQunit = async () => {
+  QUnit.start();
+  window.dispatchEvent(new Event('load'));
+  await vi.waitFor(() => expect(state.done).toBe(true));
+  return (report as AgentTestResultsBuilder).results;
+};
 
-it('reports test results', async () => {
-  await hooks.begin?.({ totalTests: 1, modules: [] });
-  await hooks.testDone?.({ module: 'suite1', name: 'test1', runtime: 10, failed: 0, passed: 1, total: 1 });
-  await hooks.done?.({ total: 1, failed: 0, passed: 1, runtime: 10 });
-  expect(results).toStrictEqual({
-    tool: {
-      name: 'QUnit',
-      version: 'undefined'
-    },
-    summary: {
-      duration: expect.any(Number) as number,
-      failed: 0,
-      other: 0,
-      passed: 1,
-      pending: 0,
-      skipped: 0,
-      start: expect.any(Number) as number,
-      stop: expect.any(Number) as number,
-      tests: 1
-    },
-    tests: [
-      {
-        duration: 10,
-        name: 'test1',
-        status: 'passed',
-        suite: ['suite1']
-      }
-    ]
+it('reports test results from actual QUnit execution', async () => {
+  QUnit.module('suite1');
+  QUnit.test('test1', (assert) => {
+    assert.ok(true);
   });
+
+  const results = await execQunit();
+
+  expect(results.summary.tests).toBe(1);
+  expect(results.summary.passed).toBe(1);
+  expect(results.tests).toMatchObject([
+    {
+      name: 'test1',
+      status: 'passed',
+      suite: ['suite1']
+    }
+  ]);
+  expect(results.tool.name).toBe('QUnit');
+  expect(results.tool.version).toBeDefined();
   expect(results.summary.start).toBeGreaterThan(0);
   expect(results.summary.stop).toBeGreaterThan(0);
+});
+
+it('contains failure report', async () => {
+  QUnit.module('suite1');
+  QUnit.test('test1', (assert) => {
+    assert.ok(false);
+  });
+
+  const results = await execQunit();
+
+  expect(results.summary.tests).toBe(1);
+  expect(results.summary.failed).toBe(1);
+  expect(results.tests).toMatchObject([
+    {
+      name: 'test1',
+      status: 'failed',
+      suite: ['suite1']
+    }
+  ]);
 });
