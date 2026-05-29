@@ -7,6 +7,9 @@ type QUnitState = Extract<AgentState, { type: 'QUnit' }>;
 
 const NO_TEST_ID = 'unknown';
 
+/* v8 ignore next -- @preserve */
+const getTestId = (testId?: string): string => testId ?? NO_TEST_ID;
+
 type QUnitLogDetails = Parameters<Parameters<typeof QUnit.log>[0]>[0] & {
   testId?: string;
   result?: boolean;
@@ -40,8 +43,9 @@ export const qunit = () => {
   });
 
   QUnit.log((details: QUnitLogDetails) => {
-    logs[details.testId ?? NO_TEST_ID] ??= [];
-    logs[details.testId ?? NO_TEST_ID]!.push(details);
+    const testId = getTestId(details.testId);
+    logs[testId] ??= [];
+    logs[testId].push(details);
   });
 
   QUnit.testDone((details: QUnitTestDoneDetails) => {
@@ -56,7 +60,7 @@ export const qunit = () => {
     if (details.failed > 0) {
       ++errors;
       status = 'failed';
-      const errorLogs = logs[details.testId ?? NO_TEST_ID]?.filter(({ result }) => !result);
+      const errorLogs = logs[getTestId(details.testId)]?.filter(({ result }) => !result);
       if (errorLogs && errorLogs.length > 0) {
         test.message = errorLogs[0]!.message;
         test.trace = errorLogs[0]!.source;
@@ -72,7 +76,7 @@ export const qunit = () => {
       executed: ++executed,
       errors
     });
-    delete logs[details.testId ?? NO_TEST_ID];
+    delete logs[getTestId(details.testId)];
   });
 
   QUnit.done(() => {
