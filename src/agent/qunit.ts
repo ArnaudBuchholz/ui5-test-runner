@@ -62,7 +62,7 @@ export const qunit = () => {
       status = 'failed';
       const errorLogs = logs[getTestId(details.testId)]?.filter(({ result }) => !result);
       if (errorLogs && errorLogs.length > 0) {
-        test.message = errorLogs[0]!.message;
+        test.message = errorLogs[0]!.message ?? 'failed';
         test.trace = errorLogs[0]!.source;
       }
     } else if (details.skipped) {

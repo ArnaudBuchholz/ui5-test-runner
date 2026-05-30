@@ -81,6 +81,52 @@ it('documents a test failure', async () => {
   ]);
 });
 
+it('generates a default error message', async () => {
+  QUnit.module('suite1');
+  QUnit.test('test1', (assert) => {
+    assert.strictEqual(1, 2);
+  });
+
+  const results = await execQunit();
+
+  expect(results.summary.tests).toBe(1);
+  expect(results.summary.failed).toBe(1);
+  expect(results.tests).toMatchObject([
+    {
+      id,
+      name: 'test1',
+      status: 'failed',
+      suite: ['suite1'],
+      message: 'failed',
+      trace
+    }
+  ]);
+});
+
+it('documents only the first failed assertion of a test', async () => {
+  QUnit.module('suite1');
+  QUnit.test('test1', (assert) => {
+    assert.ok(true);
+    assert.strictEqual(1, 2, 'failed 1');
+    assert.strictEqual(2, 3, 'failed 2');
+  });
+
+  const results = await execQunit();
+
+  expect(results.summary.tests).toBe(1);
+  expect(results.summary.failed).toBe(1);
+  expect(results.tests).toMatchObject([
+    {
+      id,
+      name: 'test1',
+      status: 'failed',
+      suite: ['suite1'],
+      message: 'failed 1',
+      trace
+    }
+  ]);
+});
+
 it('documents skipped tests', async () => {
   QUnit.module('suite1');
   QUnit.skip('test1', (assert) => {
