@@ -85,7 +85,6 @@ export const factory = async (): Promise<IBrowser> => {
       for (const script of settings.scripts) {
         await page?.evaluateOnNewDocument(script);
       }
-      await page?.goto(settings.url);
       const { pageId } = settings;
       page
         ?.on('console', (message) => {
@@ -131,6 +130,7 @@ export const factory = async (): Promise<IBrowser> => {
             }
           });
         });
+      await page?.goto(settings.url);
       logger.debug({ source: 'puppeteer', message: 'newWindow completed', data: settings });
       return {
         async eval(script: string) {
