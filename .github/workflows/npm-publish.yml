@@ -1,4 +1,4 @@
-name: Publish
+name: NPM Publish
 
 on:
   workflow_dispatch:
@@ -11,20 +11,48 @@ permissions:
   id-token: write
 
 jobs:
-  publish-npm:
+  build:
     runs-on: ubuntu-latest
+    permissions: { contents: read }
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: 22
-          registry-url: https://registry.npmjs.org/
-      - name: Update npm
-        run: npm install -g npm@latest
-      - run: npm install
-      - name: Semantic release
-        run: npm run semantic-release
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    - uses: actions/checkout@v6
+    - uses: actions/setup-node@v6
+      with:
+        node-version-file: .nvmrc
+        cache: 'npm'
+    - run: npm ci
+    - run: npm run build
+    - uses: actions/upload-artifact@v7
+      with:
+        name: dist
+        path: ./dist
+        retention-days: 1
+
+  publish:
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      actions: read
+      contents: write
+      id-token: write
+      issues: write
+      pull-requests: write
+    steps:
+    - uses: actions/checkout@v6
+    - uses: actions/setup-node@v6
+      with:
+        node-version-file: .nvmrc
+        cache: 'npm'
+    - run: |
+          SEM_REL_VERSION=$(node -e "process.stdout.write(require('./package.json').devDependencies['semantic-release'])")
+          npm install --prefix ./sr semantic-release@$SEM_REL_VERSION --no-save
+    - uses: actions/download-artifact@v7
+      with:
+        name: dist
+        path: ./dist
+    - run: npx --prefix ./sr --no semantic-release
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        npm_config_package_lock: false
+        npm_config_ignore_scripts: true
+        npm_config_workspaces_update: false
