@@ -6,7 +6,7 @@ import type { CommonTestReport } from '../types/CommonTestReportFormat.js';
 declare global {
   interface Window {
     __coverage__?: unknown;
-    suite?: () => void;
+    suite?: () => void | Promise<void>;
     sap?: { ui?: { test?: { Opa5?: object } } };
     QUnit?: QUnit;
     /** Managed by the agent */
