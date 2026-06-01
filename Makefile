@@ -18,7 +18,9 @@ log-viewer: dist/ui/log-viewer.js
 dist/ui/log-viewer.js: src/ui/log/* src/ui/vite.config.shared.mjs
 	npm run build:ui:log
 
-options: build/options.mjs docs/options/**
+options: src/configuration/options.ts
+
+src/configuration/options.ts: build/options.mjs docs/options/**
 	npm run build:options
 
 precli: agent lib html-report log-viewer options
