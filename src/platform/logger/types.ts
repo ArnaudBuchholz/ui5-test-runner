@@ -13,7 +13,7 @@ type GenericLogSource =
   | 'puppeteer'
   | 'server';
 
-type PageLogSource = 'page' | 'browser/console' | 'browser/network';
+type PageLogSource = 'page' | 'browser/agent' | 'browser/console' | 'browser/network';
 
 export type LogSource = GenericLogSource | PageLogSource | 'progress' | 'metric' | 'assert' | 'reserve';
 

@@ -3,6 +3,8 @@ import type { BrowserCapabilities, BrowserSettings, IBrowser } from './IBrowser.
 import type { launch as launchFunction, Browser, Page, ConsoleMessageType } from 'puppeteer';
 import { Npm } from '../Npm.js';
 import type { ILogger } from '../platform/logger/ILogger.js';
+import { agentLogPrefix } from '../types/AgentState.js';
+import type { LogSource } from '../platform/logger/types.js';
 
 export const factory = async (): Promise<IBrowser> => {
   const puppeteer = await Npm.import('puppeteer');
@@ -93,9 +95,17 @@ export const factory = async (): Promise<IBrowser> => {
             debug: 'debug'
           } as const;
           const logType = LOG_TYPES[message.type()] ?? 'info';
+          let source: LogSource;
+          let messageText = message.text();
+          if (messageText.startsWith(agentLogPrefix)) {
+            source = 'browser/agent';
+            messageText = messageText.slice(agentLogPrefix.length);
+          } else {
+            source = 'browser/console';
+          }
           logger[logType]({
-            source: 'browser/console',
-            message: message.text(),
+            source,
+            message: messageText,
             pageId,
             data: { type: message.type() }
           });

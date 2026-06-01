@@ -1,5 +1,7 @@
 import type { IError } from './IError.js';
 
+export const agentLogPrefix = '[ui5-test-runner]';
+
 export type AgentState = {
   loaded?: ReturnType<typeof Date.now>;
   done: boolean;
