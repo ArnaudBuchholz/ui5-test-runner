@@ -2,9 +2,13 @@
   "name": "ui5-test-runner",
   "version": "6.0.0",
   "description": "Standalone test runner for UI5",
-  "main": "index.js",
+  "main": "dist/cli.js",
+  "type": "module",
+  "files": [
+    "dist/"
+  ],
   "bin": {
-    "ui5-test-runner": "./index.js"
+    "ui5-test-runner": "./dist/cli.js"
   },
   "publishConfig": {
     "access": "public",
@@ -38,12 +42,13 @@
     "test:unit": "vitest run --coverage",
     "test:unit:watch": "vitest",
     "test:unit:debug": "node --inspect node_modules/jest/bin/jest.js --runInBand --no-coverage",
-    "pretest:e2e0": "npm install -g puppeteer selenium-webdriver playwright webdriverio jsdom",
-    "test:e2e0": "node . --batch \"test/e2e/[\\w_]*\\.json\" --report-dir e2e --start \"node test/e2e/serve.js\" --start-wait-url http://localhost:8081 --start-wait-method HEAD --start-timeout 30s",
+    "pretest:e2e0": "npm install -g puppeteer selenium-webdriver playwright webdriverio",
+    "test:e2e0": "npm run cli -- --batch \"test/e2e/[\\w_]*\\.json\" --report-dir e2e --start \"node test/e2e/serve.js\" --start-wait-url http://localhost:8081 --start-wait-method HEAD --start-timeout 30s",
     "test:e2e": "echo No E2E tests until the runner is ready",
     "test:report": "node ./src/defaults/report.js ./test/report && reserve --config ./test/report/reserve.json",
     "test:text-report": "node ./src/defaults/text-report.js ./test/report",
     "build:doc": "node build/doc",
+    "build": "make precli && npx tsc --project tsconfig.cli.json",
     "clean": "npm uninstall -g ui5-test-runner puppeteer nyc selenium-webdriver playwright webdriverio jsdom",
     "update": "ncu -i --format group",
     "semantic-release": "semantic-release"

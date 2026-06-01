@@ -5,7 +5,7 @@ import { CommandLine } from './configuration/CommandLine.js';
 import { execute } from './modes/execute.js';
 
 const main = async () => {
-  const indexOfCli = process.argv.findIndex((value) => value.endsWith('cli.ts') || value.endsWith('cli.js'));
+  const indexOfCli = process.argv.findIndex((value) => /[\\/]cli(\.[tj]s)?$/.exec(value));
   const configuration = await CommandLine.buildConfigurationFrom(Host.cwd(), process.argv.slice(indexOfCli + 1));
   await execute(configuration);
 };

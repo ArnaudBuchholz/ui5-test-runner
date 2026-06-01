@@ -1,10 +1,11 @@
 {
   "extends": ["./tsconfig.base.json"],
   "include": ["src/"],
-  "exclude": ["src/**/*.spec.ts", "src/**/*.mock.ts", "src/agent/**", "src/ui/**", "src/**/ui/**", "src/utils/ui"],
+  "exclude": ["src/**/*.spec.ts", "src/**/*.mock.ts", "src/**/*.test.ts", "src/agent/**", "src/ui/**", "src/**/ui/**", "src/utils/ui"],
   "compilerOptions": {
     "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.cli.tsbuildinfo",
     "types": ["node"],
-    "noEmit": false
+    "noEmit": false,
+    "declaration": false
   }
 }
