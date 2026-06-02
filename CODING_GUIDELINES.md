@@ -225,6 +225,25 @@ Not required at top level. Nest when tests share setup or are logically grouped.
 
 Prefer DI via factory functions over module-level mocking. Use `vi.mock()` at module level when DI isn't applicable.
 
+`src/platform/mock.ts` mocks all platform exports — both class-style exports and plain-object exports — as `vi.fn()`. Never add extra `vi.spyOn()` calls in spec files for platform modules; they are already mockable.
+
+Use `vi.mocked(platformMethod).mockResolvedValue(...)` to set up return values. For assertions, use the method directly — `expect(platformMethod).toHaveBeenCalledWith(...)` — not wrapped in `vi.mocked()`.
+
+### Named constants for repeated values
+
+Extract any complex or repeated value into a named constant rather than inlining it multiple times:
+
+```typescript
+// ❌ Repeated cast scattered across tests
+Npm.import({} as unknown as Configuration, 'node:path')
+Npm.import({} as unknown as Configuration, 'other-module')
+
+// ✅ Named once at the top of the file (UPPER_SNAKE_CASE for constants)
+const NO_CONFIGURATION = {} as unknown as Configuration;
+Npm.import(NO_CONFIGURATION, 'node:path')
+Npm.import(NO_CONFIGURATION, 'other-module')
+```
+
 ---
 
 ## Commands
