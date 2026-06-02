@@ -1,3 +1,4 @@
+import type { Configuration } from './configuration/Configuration.js';
 import { logger, FileSystem, Http, Path, Process } from './platform/index.js';
 import { memoize } from './utils/shared/memoize.js';
 
@@ -73,7 +74,7 @@ export const Npm = {
   },
 
   /** Locate the module (or install it globally) then import it */
-  async import(moduleName: string): Promise<unknown> {
+  async import(configuration: Configuration, moduleName: string): Promise<unknown> {
     logger.debug({ source: 'npm', message: `Npm.import(${moduleName})` });
     try {
       const module = (await import(moduleName)) as unknown;

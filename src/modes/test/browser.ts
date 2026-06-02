@@ -7,7 +7,7 @@ let browser: IBrowser;
 
 export const setupBrowser = async (configuration: Configuration): Promise<IBrowser> => {
   assert(configuration.browser === 'puppeteer');
-  browser = await BrowserFactory.build('puppeteer');
+  browser = await BrowserFactory.build(configuration, 'puppeteer');
   const { debugKeepBrowserOpen } = configuration;
   const settings: BrowserSettings = {
     visible: debugKeepBrowserOpen // Or there is no value to keep it

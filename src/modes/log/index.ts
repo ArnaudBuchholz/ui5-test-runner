@@ -29,7 +29,7 @@ export const log = async (configuration: Configuration) => {
     name: 'log',
     stop: stop
   });
-  const browser = await BrowserFactory.build('puppeteer');
+  const browser = await BrowserFactory.build(configuration, 'puppeteer');
   const browserReady = browser.setup({
     visible: true
   });

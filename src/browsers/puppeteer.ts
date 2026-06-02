@@ -5,9 +5,10 @@ import { Npm } from '../Npm.js';
 import type { ILogger } from '../platform/logger/ILogger.js';
 import { agentLogPrefix } from '../types/AgentState.js';
 import type { LogSource } from '../platform/logger/types.js';
+import type { Configuration } from '../configuration/Configuration.js';
 
-export const factory = async (): Promise<IBrowser> => {
-  const puppeteer = await Npm.import('puppeteer');
+export const factory = async (configuration: Configuration): Promise<IBrowser> => {
+  const puppeteer = await Npm.import(configuration, 'puppeteer');
   const { launch } = puppeteer as { launch: typeof launchFunction };
   let browser: Browser | undefined;
   const abortController = new AbortController();
