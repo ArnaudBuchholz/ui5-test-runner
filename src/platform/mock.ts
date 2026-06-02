@@ -18,6 +18,13 @@ const mockStaticMethodsOfExportedClasses = <T extends object>(actual: T): T => {
           exportClass[staticName] = vi.fn();
         }
       }
+    } else if (typeof exportValue === 'object' && exportValue !== null) {
+      const exportObject = exportValue as Record<string, unknown>;
+      for (const methodName of Object.keys(exportObject)) {
+        if (typeof exportObject[methodName] === 'function') {
+          exportObject[methodName] = vi.fn();
+        }
+      }
     }
   }
   return mocked;
