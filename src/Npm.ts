@@ -1,5 +1,5 @@
 import type { Configuration } from './configuration/Configuration.js';
-import { logger, FileSystem, Http, Path, Process } from './platform/index.js';
+import { logger, FileSystem, Http, Module, Path, Process, Url } from './platform/index.js';
 import { memoize } from './utils/shared/memoize.js';
 
 export const getNpmCliPath = async () => {
@@ -45,6 +45,35 @@ const getRoots = memoize(async () => {
   };
 });
 
+type InstallPlan = {
+  installArguments: string[];
+  reimportPath: string | undefined;
+};
+
+const buildInstallPlan = (strategy: string, moduleName: string, globalRoot: string, prefix: string): InstallPlan => {
+  if (strategy === 'global') {
+    return { installArguments: ['install', '-g', moduleName], reimportPath: globalRoot };
+  }
+  if (strategy === 'prefix') {
+    return {
+      installArguments: ['install', '--prefix', prefix, '--no-save', moduleName],
+      reimportPath: Path.join(prefix, 'node_modules')
+    };
+  }
+  return { installArguments: ['install', '--no-save', moduleName], reimportPath: undefined };
+};
+
+const require = Module.createRequire(import.meta.url);
+
+const tryImportFromPath = async (moduleName: string, nodeModulesPath: string): Promise<unknown> => {
+  try {
+    const resolved = require.resolve(moduleName, { paths: [nodeModulesPath] });
+    return (await import(Url.pathToFileURL(resolved).href)) as unknown;
+  } catch {
+    return undefined;
+  }
+};
+
 export const Npm = {
   /** fetch the latest version info for the given module */
   async getLatestVersion(moduleName: string): Promise<string> {
@@ -75,17 +104,76 @@ export const Npm = {
     }
   },
 
-  /** Locate the module (or install it globally) then import it */
+  /** Locate the module (or install it) then import it */
   async import(configuration: Configuration, moduleName: string): Promise<unknown> {
     logger.debug({ source: 'npm', message: `Npm.import(${moduleName})` });
+
     try {
       const module = (await import(moduleName)) as unknown;
       logger.debug({ source: 'npm', message: `Module ${moduleName} found locally` });
       void this.checkIfLatestVersion(moduleName, true);
       return module;
-    } catch {
+    } catch (error) {
+      const code = (error as NodeJS.ErrnoException).code;
+      if (code !== 'ERR_MODULE_NOT_FOUND' && code !== 'MODULE_NOT_FOUND') {
+        throw error;
+      }
       logger.warn({ source: 'npm', message: `Module ${moduleName} not found locally` });
     }
-    throw new Error('Not implemented');
+
+    const { global: globalRoot } = await getRoots();
+    const fromGlobal = await tryImportFromPath(moduleName, globalRoot);
+    if (fromGlobal !== undefined) {
+      logger.debug({ source: 'npm', message: `Module ${moduleName} found globally` });
+      void this.checkIfLatestVersion(moduleName, false);
+      return fromGlobal;
+    }
+
+    if (configuration.alternateNpmPath) {
+      const fromAlternate = await tryImportFromPath(moduleName, configuration.alternateNpmPath);
+      if (fromAlternate !== undefined) {
+        logger.debug({ source: 'npm', message: `Module ${moduleName} found in alternateNpmPath` });
+        return fromAlternate;
+      }
+    }
+
+    if (configuration.npmInstallPrefix) {
+      const fromPrefix = await tryImportFromPath(moduleName, Path.join(configuration.npmInstallPrefix, 'node_modules'));
+      if (fromPrefix !== undefined) {
+        logger.debug({ source: 'npm', message: `Module ${moduleName} found in npmInstallPrefix` });
+        return fromPrefix;
+      }
+    }
+
+    if (configuration.noNpmInstall) {
+      const message = `Module ${moduleName} not found and noNpmInstall is set`;
+      logger.fatal({ source: 'npm', message });
+      throw new Error(message);
+    }
+
+    const strategy = configuration.npmInstall;
+    logger.info({ source: 'npm', message: `Installing ${moduleName} (strategy: ${strategy})` });
+
+    const { installArguments, reimportPath } = buildInstallPlan(
+      strategy,
+      moduleName,
+      globalRoot,
+      configuration.npmInstallPrefix ?? ''
+    );
+
+    const installProcess = await npm(...installArguments);
+    await installProcess.closed;
+
+    if (reimportPath !== undefined) {
+      const result = await tryImportFromPath(moduleName, reimportPath);
+      if (result === undefined) {
+        const message = `Module ${moduleName} could not be loaded after install`;
+        logger.fatal({ source: 'npm', message });
+        throw new Error(message);
+      }
+      return result;
+    }
+
+    return (await import(moduleName)) as object;
   }
 };
