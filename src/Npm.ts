@@ -2,7 +2,7 @@ import type { Configuration } from './configuration/Configuration.js';
 import { logger, FileSystem, Http, Path, Process } from './platform/index.js';
 import { memoize } from './utils/shared/memoize.js';
 
-const getNpmCliPath = memoize(async () => {
+export const getNpmCliPath = async () => {
   const npmChildProcess = Process.spawn('npm', [], {
     shell: true
   });
@@ -20,10 +20,12 @@ const getNpmCliPath = memoize(async () => {
   }
   logger.debug({ source: 'npm', message: `npm@${semver} ${path}` });
   return Path.join(path, 'bin/npm-cli.js');
-});
+};
+
+const memoizedNpmCliPath = memoize(getNpmCliPath);
 
 const npm = async (...arguments_: string[]) => {
-  const npmCliPath = await getNpmCliPath();
+  const npmCliPath = await memoizedNpmCliPath();
   return Process.spawn('node', [npmCliPath, ...arguments_], {
     detached: true // TODO: better ?
   });
