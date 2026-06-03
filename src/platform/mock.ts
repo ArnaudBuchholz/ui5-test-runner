@@ -67,6 +67,8 @@ vi.mock(import('./Host.js'), async (importActual) => mockStaticMethodsOfExports(
 
 vi.mock(import('./Http.js'), async (importActual) => mockStaticMethodsOfExports(await importActual()));
 
+vi.mock(import('./Module.js'), async (importActual) => mockStaticMethodsOfExports(await importActual()));
+
 const logger = {
   start: vi.fn(),
   debug: vi.fn(),
@@ -133,3 +135,5 @@ vi.mock(import('./version.js'), () => ({
 }));
 
 vi.mock(import('./ZLib.js'), async (importActual) => mockStaticMethodsOfExports(await importActual()));
+
+vi.mock(import('./Url.js'), async (importActual) => mockStaticMethodsOfExports(await importActual()));
