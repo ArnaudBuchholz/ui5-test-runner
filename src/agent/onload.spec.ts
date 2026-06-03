@@ -5,6 +5,10 @@ import type { JsUnitTestSuite } from './suite.js';
 import { installQUnit } from './qunit.test.js';
 import { setTimeout } from 'node:timers/promises';
 
+// Mute console outputs
+vi.spyOn(console, 'debug').mockImplementation(() => {});
+vi.spyOn(console, 'error').mockImplementation(() => {});
+
 declare global {
   interface Window {
     jsUnitTestSuite: new () => JsUnitTestSuite;

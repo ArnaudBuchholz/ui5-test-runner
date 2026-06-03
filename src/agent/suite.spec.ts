@@ -3,6 +3,10 @@ import { state } from './state.js';
 import { suite, JsUnitTestSuite } from './suite.js';
 import { setTimeout } from 'node:timers/promises';
 
+// Mute console outputs
+vi.spyOn(console, 'debug').mockImplementation(() => {});
+vi.spyOn(console, 'error').mockImplementation(() => {});
+
 beforeEach(() => {
   delete window.suite;
   JsUnitTestSuite.pages = undefined;
