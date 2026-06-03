@@ -4,7 +4,7 @@ import { FileSystem } from './platform/FileSystem.js';
 import { Process } from './platform/Process.js';
 import { logger } from './platform/logger.js';
 import type { Configuration } from './configuration/Configuration.js';
-import { Npm } from './Npm.js';
+import { getNpmCliPath, Npm } from './Npm.js';
 
 const NO_CONFIGURATION = {} as unknown as Configuration;
 
@@ -22,6 +22,25 @@ vi.mocked(Process.spawn).mockImplementation((command, arguments_) => {
 
 beforeEach(() => {
   vi.clearAllMocks();
+});
+
+describe('getNpmCliPath', () => {
+  it('returns the npm-cli.js path on success', async () => {
+    vi.mocked(Process.spawn).mockImplementationOnce(() => makeProcess('npm@10.2.0 /usr/local/lib/node_modules/npm'));
+    await expect(getNpmCliPath()).resolves.toBe('/usr/local/lib/node_modules/npm/bin/npm-cli.js');
+  });
+
+  it('throws and logs fatal when npm output does not match the expected format', async () => {
+    vi.mocked(Process.spawn).mockImplementationOnce(() => makeProcess('unexpected output'));
+    await expect(getNpmCliPath()).rejects.toThrow('Unable to initialize NPM');
+    expect(logger.fatal).toHaveBeenCalledWith(expect.objectContaining({ message: 'Unable to match NPM output' }));
+  });
+
+  it('throws and logs fatal when the parsed path is empty', async () => {
+    vi.mocked(Process.spawn).mockImplementationOnce(() => makeProcess('npm@10.2.0 '));
+    await expect(getNpmCliPath()).rejects.toThrow('Unable to initialize NPM');
+    expect(logger.fatal).toHaveBeenCalledWith(expect.objectContaining({ message: 'Failed to parse NPM output' }));
+  });
 });
 
 describe('getLatestVersion', () => {
