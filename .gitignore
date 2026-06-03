@@ -60,4 +60,7 @@ undefined/*
 docs/.obsidian/
 
 # Claude code
-.claude/
+.claude/*
+!.claude/skills/
+!.claude/skills/**
+
