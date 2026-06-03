@@ -6,25 +6,23 @@ import type { ILoggerService } from './logger/ILogger.js';
 import type { IAsyncTask } from './Exit.js';
 import type { Terminal } from './Terminal.js';
 
-const mockStaticMethodsOfExportedClasses = <T extends object>(actual: T): T => {
+const mockMethods = (object: Record<string, unknown>, members: string[]) => {
+  for (const member of members) {
+    if (typeof object[member] === 'function') {
+      object[member] = vi.fn();
+    }
+  }
+};
+
+const mockStaticMethodsOfExports = <T extends object>(actual: T): T => {
   const mocked = { ...actual };
   for (const exportName in mocked) {
     const exportValue = mocked[exportName as keyof T];
     if (typeof exportValue === 'function') {
-      const exportClass = exportValue as Record<string, unknown>;
-      for (const staticName of Object.getOwnPropertyNames(exportValue)) {
-        const staticValue = exportClass[staticName];
-        if (typeof staticValue === 'function') {
-          exportClass[staticName] = vi.fn();
-        }
-      }
+      mockMethods(exportValue as Record<string, unknown>, Object.getOwnPropertyNames(exportValue));
+      // eslint-disable-next-line sonarjs/different-types-comparison -- exportValue could be null
     } else if (typeof exportValue === 'object' && exportValue !== null) {
-      const exportObject = exportValue as Record<string, unknown>;
-      for (const methodName of Object.keys(exportObject)) {
-        if (typeof exportObject[methodName] === 'function') {
-          exportObject[methodName] = vi.fn();
-        }
-      }
+      mockMethods(exportValue as Record<string, unknown>, Object.keys(exportValue));
     }
   }
   return mocked;
@@ -42,7 +40,7 @@ export const __unregisterExitAsyncTask = vi.fn();
 export let __lastRegisteredExitAsyncTask: IAsyncTask;
 
 vi.mock(import('./Exit.js'), async (importActual) => {
-  const mocked = mockStaticMethodsOfExportedClasses(await importActual());
+  const mocked = mockStaticMethodsOfExports(await importActual());
   const { Exit } = mocked;
   // eslint-disable-next-line @typescript-eslint/unbound-method -- unregister is not bound to the returned object
   vi.mocked(Exit.registerAsyncTask).mockImplementation((task) => {
@@ -53,7 +51,7 @@ vi.mock(import('./Exit.js'), async (importActual) => {
 });
 
 vi.mock(import('./FileSystem.js'), async (importActual) => {
-  const mocked = mockStaticMethodsOfExportedClasses(await importActual());
+  const mocked = mockStaticMethodsOfExports(await importActual());
   const { FileSystem } = mocked;
   const writeStream = {
     write: vi.fn().mockImplementation((_: unknown, callback: () => void) => callback()),
@@ -65,9 +63,9 @@ vi.mock(import('./FileSystem.js'), async (importActual) => {
   return mocked;
 });
 
-vi.mock(import('./Host.js'), async (importActual) => mockStaticMethodsOfExportedClasses(await importActual()));
+vi.mock(import('./Host.js'), async (importActual) => mockStaticMethodsOfExports(await importActual()));
 
-vi.mock(import('./Http.js'), async (importActual) => mockStaticMethodsOfExportedClasses(await importActual()));
+vi.mock(import('./Http.js'), async (importActual) => mockStaticMethodsOfExports(await importActual()));
 
 const logger = {
   start: vi.fn(),
@@ -82,7 +80,7 @@ const logger = {
 vi.mock(import('./logger.js'), () => ({ logger }));
 
 vi.mock(import('./Path.js'), async (importActual) => {
-  const mocked = mockStaticMethodsOfExportedClasses(await importActual());
+  const mocked = mockStaticMethodsOfExports(await importActual());
   const { Path } = mocked;
   // Normalize to unix-like file system
   vi.mocked(Path.isAbsolute).mockImplementation((path) => path.startsWith('/'));
@@ -90,7 +88,7 @@ vi.mock(import('./Path.js'), async (importActual) => {
   return mocked;
 });
 
-vi.mock(import('./Process.js'), async (importActual) => mockStaticMethodsOfExportedClasses(await importActual()));
+vi.mock(import('./Process.js'), async (importActual) => mockStaticMethodsOfExports(await importActual()));
 
 type TerminalRawMode = Parameters<typeof Terminal.setRawMode>[0];
 export let __lastTerminalRawModeCallback: TerminalRawMode = false;
@@ -98,7 +96,7 @@ export let __lastTerminalRawModeCallback: TerminalRawMode = false;
 vi.mock(import('./Terminal.js'), async (importActual) => {
   const actual = await importActual();
   const originalstripVTControlCharacters = actual.Terminal.stripVTControlCharacters;
-  const mocked = mockStaticMethodsOfExportedClasses(actual);
+  const mocked = mockStaticMethodsOfExports(actual);
   const { Terminal } = mocked;
   // eslint-disable-next-line @typescript-eslint/unbound-method -- useless control
   vi.mocked(Terminal.setRawMode).mockImplementation((callback: TerminalRawMode) => {
@@ -109,7 +107,7 @@ vi.mock(import('./Terminal.js'), async (importActual) => {
 });
 
 vi.mock(import('./Thread.js'), async (importActual) => {
-  const mocked = mockStaticMethodsOfExportedClasses(await importActual());
+  const mocked = mockStaticMethodsOfExports(await importActual());
   const { Thread } = mocked;
   const channel = {
     postMessage: vi.fn().mockImplementation((data: unknown) => {
@@ -134,4 +132,4 @@ vi.mock(import('./version.js'), () => ({
   version: vi.fn().mockResolvedValue('ui5-test-runner@1.2.3')
 }));
 
-vi.mock(import('./ZLib.js'), async (importActual) => mockStaticMethodsOfExportedClasses(await importActual()));
+vi.mock(import('./ZLib.js'), async (importActual) => mockStaticMethodsOfExports(await importActual()));
