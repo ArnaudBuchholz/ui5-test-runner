@@ -63,12 +63,15 @@ const buildInstallPlan = (strategy: string, moduleName: string, globalRoot: stri
   return { installArguments: ['install', '--no-save', moduleName], reimportPath: undefined };
 };
 
-const require = Module.createRequire(import.meta.url);
+export const Import = {
+  dynamic: (specifier: string): Promise<unknown> => import(specifier)
+};
 
 const tryImportFromPath = async (moduleName: string, nodeModulesPath: string): Promise<unknown> => {
   try {
+    const require = Module.createRequire(import.meta.url);
     const resolved = require.resolve(moduleName, { paths: [nodeModulesPath] });
-    return (await import(Url.pathToFileURL(resolved).href)) as unknown;
+    return await Import.dynamic(Url.pathToFileURL(resolved).href);
   } catch {
     return undefined;
   }
@@ -109,7 +112,7 @@ export const Npm = {
     logger.debug({ source: 'npm', message: `Npm.import(${moduleName})` });
 
     try {
-      const module = (await import(moduleName)) as unknown;
+      const module = await Import.dynamic(moduleName);
       logger.debug({ source: 'npm', message: `Module ${moduleName} found locally` });
       void this.checkIfLatestVersion(moduleName, true);
       return module;
@@ -174,6 +177,6 @@ export const Npm = {
       return result;
     }
 
-    return (await import(moduleName)) as object;
+    return await Import.dynamic(moduleName);
   }
 };

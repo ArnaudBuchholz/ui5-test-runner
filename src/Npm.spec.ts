@@ -1,10 +1,12 @@
 import { it, expect, vi, beforeEach, describe } from 'vitest';
 import { Http } from './platform/Http.js';
 import { FileSystem } from './platform/FileSystem.js';
+import { Module } from './platform/Module.js';
+import { Url } from './platform/Url.js';
 import { Process } from './platform/Process.js';
 import { logger } from './platform/logger.js';
 import type { Configuration } from './configuration/Configuration.js';
-import { getNpmCliPath, Npm } from './Npm.js';
+import { getNpmCliPath, Import, Npm } from './Npm.js';
 
 const NO_CONFIGURATION = {} as unknown as Configuration;
 const NO_INSTALL_CONFIGURATION = { noNpmInstall: true } as unknown as Configuration;
@@ -106,6 +108,18 @@ describe('checkIfLatestVersion', () => {
 });
 
 describe('import', () => {
+  const makeRequire = (resolvedPath: string) =>
+    Object.assign(vi.fn(), {
+      resolve: vi.fn().mockReturnValue(resolvedPath)
+    }) as unknown as ReturnType<typeof Module.createRequire>;
+
+  const makeRequireThrow = () =>
+    Object.assign(vi.fn(), {
+      resolve: vi.fn().mockImplementation(() => {
+        throw new Error('Module not found');
+      })
+    }) as unknown as ReturnType<typeof Module.createRequire>;
+
   it('returns the module when found locally', async () => {
     vi.mocked(FileSystem.readFile).mockResolvedValue(JSON.stringify({ version: '1.0.0' }));
     vi.mocked(Http.get).mockResolvedValue(JSON.stringify({ version: '1.0.0' }));
@@ -114,12 +128,9 @@ describe('import', () => {
   });
 
   it('re-throws immediately when local import fails with a non-not-found error', async () => {
-    // node:fs exists but deliberately passing a bad specifier that Node rejects with ERR_INVALID_ARG_TYPE
-    // We cannot easily trigger this via vi.doMock, so we verify the guard indirectly:
-    // a module that IS found locally (node:path) never reaches the warn path
-    vi.mocked(FileSystem.readFile).mockResolvedValue(JSON.stringify({ version: '1.0.0' }));
-    vi.mocked(Http.get).mockResolvedValue(JSON.stringify({ version: '1.0.0' }));
-    await Npm.import(NO_CONFIGURATION, 'node:path');
+    const error = Object.assign(new Error('Parse error'), { code: 'ERR_INVALID_PACKAGE_CONFIG' });
+    vi.spyOn(Import, 'dynamic').mockRejectedValueOnce(error);
+    await expect(Npm.import(NO_CONFIGURATION, 'some-module')).rejects.toThrow('Parse error');
     expect(logger.warn).not.toHaveBeenCalled();
   });
 
@@ -138,6 +149,54 @@ describe('import', () => {
       'node',
       expect.arrayContaining(['install']) as string[],
       expect.anything()
+    );
+  });
+
+  it('returns the module and checks latest version when found globally', async () => {
+    const FAKE_MODULE = { default: 'global-module' };
+    vi.spyOn(Import, 'dynamic')
+      .mockRejectedValueOnce(Object.assign(new Error('ERR_MODULE_NOT_FOUND'), { code: 'ERR_MODULE_NOT_FOUND' }))
+      .mockResolvedValueOnce(FAKE_MODULE);
+    vi.mocked(Module.createRequire).mockReturnValue(makeRequire('/global/root/some-module/index.js'));
+    vi.mocked(Url.pathToFileURL).mockReturnValue({ href: 'file:///global/root/some-module/index.js' } as URL);
+    const result = await Npm.import(NO_CONFIGURATION, 'some-module');
+    expect(result).toBe(FAKE_MODULE);
+    expect(logger.debug).toHaveBeenCalledWith(
+      expect.objectContaining({ message: expect.stringContaining('found globally') as string })
+    );
+  });
+
+  it('returns the module when found in alternateNpmPath', async () => {
+    const FAKE_MODULE = { default: 'alternate-module' };
+    vi.spyOn(Import, 'dynamic')
+      .mockRejectedValueOnce(Object.assign(new Error('ERR_MODULE_NOT_FOUND'), { code: 'ERR_MODULE_NOT_FOUND' }))
+      .mockResolvedValueOnce(FAKE_MODULE);
+    vi.mocked(Module.createRequire)
+      .mockReturnValueOnce(makeRequireThrow())
+      .mockReturnValueOnce(makeRequire('/alternate/path/some-module/index.js'));
+    vi.mocked(Url.pathToFileURL).mockReturnValue({ href: 'file:///alternate/path/some-module/index.js' } as URL);
+    const result = await Npm.import(ALTERNATE_NPM_PATH_CONFIGURATION, 'some-module');
+    expect(result).toBe(FAKE_MODULE);
+    expect(logger.debug).toHaveBeenCalledWith(
+      expect.objectContaining({ message: expect.stringContaining('found in alternateNpmPath') as string })
+    );
+  });
+
+  it('returns the module when found in npmInstallPrefix', async () => {
+    const FAKE_MODULE = { default: 'prefix-module' };
+    vi.spyOn(Import, 'dynamic')
+      .mockRejectedValueOnce(Object.assign(new Error('ERR_MODULE_NOT_FOUND'), { code: 'ERR_MODULE_NOT_FOUND' }))
+      .mockResolvedValueOnce(FAKE_MODULE);
+    vi.mocked(Module.createRequire)
+      .mockReturnValueOnce(makeRequireThrow())
+      .mockReturnValueOnce(makeRequire('/prefix/path/node_modules/some-module/index.js'));
+    vi.mocked(Url.pathToFileURL).mockReturnValue({
+      href: 'file:///prefix/path/node_modules/some-module/index.js'
+    } as URL);
+    const result = await Npm.import(NPM_INSTALL_PREFIX_CONFIGURATION, 'some-module');
+    expect(result).toBe(FAKE_MODULE);
+    expect(logger.debug).toHaveBeenCalledWith(
+      expect.objectContaining({ message: expect.stringContaining('found in npmInstallPrefix') as string })
     );
   });
 
@@ -191,6 +250,25 @@ describe('import', () => {
       ]) as string[],
       expect.anything()
     );
+  });
+
+  it('returns the module when found via reimportPath after global install', async () => {
+    const FAKE_MODULE = { default: 'installed-module' };
+    vi.spyOn(Import, 'dynamic')
+      .mockRejectedValueOnce(Object.assign(new Error('ERR_MODULE_NOT_FOUND'), { code: 'ERR_MODULE_NOT_FOUND' }))
+      .mockResolvedValueOnce(FAKE_MODULE);
+    vi.mocked(Module.createRequire)
+      .mockReturnValueOnce(makeRequireThrow())
+      .mockReturnValueOnce(makeRequire('/global/root/some-module/index.js'));
+    vi.mocked(Url.pathToFileURL).mockReturnValue({ href: 'file:///global/root/some-module/index.js' } as URL);
+    vi.mocked(Process.spawn).mockImplementation((command, arguments_) => {
+      if (command === 'npm') {
+        return makeProcess('npm@10.0.0 /usr/local/lib/node_modules/npm');
+      }
+      return makeProcess((arguments_ ?? []).includes('--global') ? '/global/root' : '/local/root');
+    });
+    const result = await Npm.import(GLOBAL_INSTALL_CONFIGURATION, 'some-module');
+    expect(result).toBe(FAKE_MODULE);
   });
 
   it('does not install when module is found in alternateNpmPath', async () => {
