@@ -4,9 +4,9 @@ type: "[[fs-entry]]"
 summary: alternate NPM package path
 dependsOn: "[[cwd]]"
 ---
-When searching for packages, the runner will first fetch from the NPM command the local and global path.
+When searching for packages, the runner checks paths in the following order:
 
-Priority is :
 1. local
-2. alternate (if specified)
-3. global
+2. global
+3. alternate (this option, if specified)
+4. `npmInstallPrefix` (if specified)

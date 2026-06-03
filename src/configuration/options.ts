@@ -107,6 +107,17 @@ export const options = [
     description: 'prevent any NPM install'
   },
   {
+    name: 'npmInstall',
+    type: 'string',
+    description: 'npm install strategy for missing packages',
+    default: 'global'
+  },
+  {
+    name: 'npmInstallPrefix',
+    type: 'fs-entry',
+    description: 'path used as --prefix when npmInstall is set to prefix'
+  },
+  {
     name: 'outputInterval',
     short: 'oi',
     type: 'timeout',
@@ -183,6 +194,7 @@ export const defaults = {
   config: 'ui5-test-runner.json',
   cwd: process.cwd(),
   localhost: 'localhost',
+  npmInstall: 'global',
   outputInterval: 30_000,
   parallel: 2,
   reportDir: 'report',
