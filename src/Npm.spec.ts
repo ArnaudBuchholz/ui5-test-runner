@@ -6,18 +6,29 @@ import { Url } from './platform/Url.js';
 import { Process } from './platform/Process.js';
 import { logger } from './platform/logger.js';
 import type { Configuration } from './configuration/Configuration.js';
-import { getNpmCliPath, Import, Npm } from './Npm.js';
+import { getNpmCliPath, Npm } from './Npm.js';
 
-const NO_CONFIGURATION = {} as unknown as Configuration;
-const NO_INSTALL_CONFIGURATION = { noNpmInstall: true } as unknown as Configuration;
-const LOCAL_INSTALL_CONFIGURATION = { npmInstall: 'local' } as unknown as Configuration;
-const GLOBAL_INSTALL_CONFIGURATION = { npmInstall: 'global' } as unknown as Configuration;
+class TestNpm extends Npm {
+  static readonly dynamicImportSpy = vi.fn<(specifier: string) => Promise<unknown>>();
+
+  protected static override dynamicImport(specifier: string): Promise<unknown> {
+    return TestNpm.dynamicImportSpy(specifier);
+  }
+}
+
+const CWD = '/test/cwd';
+
+const NO_CONFIGURATION = { cwd: CWD } as unknown as Configuration;
+const NO_INSTALL_CONFIGURATION = { cwd: CWD, noNpmInstall: true } as unknown as Configuration;
+const LOCAL_INSTALL_CONFIGURATION = { cwd: CWD, npmInstall: 'local' } as unknown as Configuration;
+const GLOBAL_INSTALL_CONFIGURATION = { cwd: CWD, npmInstall: 'global' } as unknown as Configuration;
 const PREFIX_INSTALL_CONFIGURATION = {
+  cwd: CWD,
   npmInstall: 'prefix',
   npmInstallPrefix: '/custom/prefix'
 } as unknown as Configuration;
-const ALTERNATE_NPM_PATH_CONFIGURATION = { alternateNpmPath: '/alternate/path' } as unknown as Configuration;
-const NPM_INSTALL_PREFIX_CONFIGURATION = { npmInstallPrefix: '/prefix/path' } as unknown as Configuration;
+const ALTERNATE_NPM_PATH_CONFIGURATION = { cwd: CWD, alternateNpmPath: '/alternate/path' } as unknown as Configuration;
+const NPM_INSTALL_PREFIX_CONFIGURATION = { cwd: CWD, npmInstallPrefix: '/prefix/path' } as unknown as Configuration;
 
 const makeProcess = (stdout: string) =>
   ({ stdout, closed: Promise.resolve() }) as unknown as InstanceType<typeof Process>;
@@ -33,6 +44,9 @@ vi.mocked(Process.spawn).mockImplementation((command, arguments_) => {
 
 beforeEach(() => {
   vi.clearAllMocks();
+  TestNpm.dynamicImportSpy.mockRejectedValue(
+    Object.assign(new Error('ERR_MODULE_NOT_FOUND'), { code: 'ERR_MODULE_NOT_FOUND' })
+  );
 });
 
 describe('getNpmCliPath', () => {
@@ -121,28 +135,30 @@ describe('import', () => {
     }) as unknown as ReturnType<typeof Module.createRequire>;
 
   it('returns the module when found locally', async () => {
+    const FAKE_MODULE = { default: 'local-module' };
     vi.mocked(FileSystem.readFile).mockResolvedValue(JSON.stringify({ version: '1.0.0' }));
     vi.mocked(Http.get).mockResolvedValue(JSON.stringify({ version: '1.0.0' }));
-    const module = await Npm.import(NO_CONFIGURATION, 'node:path');
-    expect(module).toBeDefined();
+    TestNpm.dynamicImportSpy.mockResolvedValueOnce(FAKE_MODULE);
+    const module = await TestNpm.import(NO_CONFIGURATION, 'some-module');
+    expect(module).toBe(FAKE_MODULE);
   });
 
   it('re-throws immediately when local import fails with a non-not-found error', async () => {
     const error = Object.assign(new Error('Parse error'), { code: 'ERR_INVALID_PACKAGE_CONFIG' });
-    vi.spyOn(Import, 'dynamic').mockRejectedValueOnce(error);
-    await expect(Npm.import(NO_CONFIGURATION, 'some-module')).rejects.toThrow('Parse error');
+    TestNpm.dynamicImportSpy.mockRejectedValueOnce(error);
+    await expect(TestNpm.import(NO_CONFIGURATION, 'some-module')).rejects.toThrow('Parse error');
     expect(logger.warn).not.toHaveBeenCalled();
   });
 
   it('warns when the module is not found locally', async () => {
-    await expect(Npm.import(NO_INSTALL_CONFIGURATION, 'non-existent-module-xyz-abc')).rejects.toThrow();
+    await expect(TestNpm.import(NO_INSTALL_CONFIGURATION, 'non-existent-module-xyz-abc')).rejects.toThrow();
     expect(logger.warn).toHaveBeenCalledWith(
       expect.objectContaining({ message: expect.stringContaining('not found locally') as string })
     );
   });
 
   it('throws when noNpmInstall is set and module is missing everywhere', async () => {
-    await expect(Npm.import(NO_INSTALL_CONFIGURATION, 'non-existent-module-xyz-abc')).rejects.toThrow(
+    await expect(TestNpm.import(NO_INSTALL_CONFIGURATION, 'non-existent-module-xyz-abc')).rejects.toThrow(
       'noNpmInstall is set'
     );
     expect(Process.spawn).not.toHaveBeenCalledWith(
@@ -154,12 +170,15 @@ describe('import', () => {
 
   it('returns the module and checks latest version when found globally', async () => {
     const FAKE_MODULE = { default: 'global-module' };
-    vi.spyOn(Import, 'dynamic')
+    // local fails, then global tryImportFromPath resolves
+    TestNpm.dynamicImportSpy
       .mockRejectedValueOnce(Object.assign(new Error('ERR_MODULE_NOT_FOUND'), { code: 'ERR_MODULE_NOT_FOUND' }))
       .mockResolvedValueOnce(FAKE_MODULE);
     vi.mocked(Module.createRequire).mockReturnValue(makeRequire('/global/root/some-module/index.js'));
-    vi.mocked(Url.pathToFileURL).mockReturnValue({ href: 'file:///global/root/some-module/index.js' } as URL);
-    const result = await Npm.import(NO_CONFIGURATION, 'some-module');
+    vi.mocked(Url.pathToFileURL)
+      .mockReturnValueOnce({ href: `file://${CWD}/package.json` } as URL)
+      .mockReturnValueOnce({ href: 'file:///global/root/some-module/index.js' } as URL);
+    const result = await TestNpm.import(NO_CONFIGURATION, 'some-module');
     expect(result).toBe(FAKE_MODULE);
     expect(logger.debug).toHaveBeenCalledWith(
       expect.objectContaining({ message: expect.stringContaining('found globally') as string })
@@ -168,14 +187,18 @@ describe('import', () => {
 
   it('returns the module when found in alternateNpmPath', async () => {
     const FAKE_MODULE = { default: 'alternate-module' };
-    vi.spyOn(Import, 'dynamic')
+    // local fails, then global tryImportFromPath resolve throws, then alternate tryImportFromPath resolves
+    TestNpm.dynamicImportSpy
       .mockRejectedValueOnce(Object.assign(new Error('ERR_MODULE_NOT_FOUND'), { code: 'ERR_MODULE_NOT_FOUND' }))
       .mockResolvedValueOnce(FAKE_MODULE);
     vi.mocked(Module.createRequire)
       .mockReturnValueOnce(makeRequireThrow())
       .mockReturnValueOnce(makeRequire('/alternate/path/some-module/index.js'));
-    vi.mocked(Url.pathToFileURL).mockReturnValue({ href: 'file:///alternate/path/some-module/index.js' } as URL);
-    const result = await Npm.import(ALTERNATE_NPM_PATH_CONFIGURATION, 'some-module');
+    vi.mocked(Url.pathToFileURL)
+      .mockReturnValueOnce({ href: `file://${CWD}/package.json` } as URL)
+      .mockReturnValueOnce({ href: `file://${CWD}/package.json` } as URL)
+      .mockReturnValueOnce({ href: 'file:///alternate/path/some-module/index.js' } as URL);
+    const result = await TestNpm.import(ALTERNATE_NPM_PATH_CONFIGURATION, 'some-module');
     expect(result).toBe(FAKE_MODULE);
     expect(logger.debug).toHaveBeenCalledWith(
       expect.objectContaining({ message: expect.stringContaining('found in alternateNpmPath') as string })
@@ -184,16 +207,18 @@ describe('import', () => {
 
   it('returns the module when found in npmInstallPrefix', async () => {
     const FAKE_MODULE = { default: 'prefix-module' };
-    vi.spyOn(Import, 'dynamic')
+    // local fails, then global tryImportFromPath resolve throws, then prefix tryImportFromPath resolves
+    TestNpm.dynamicImportSpy
       .mockRejectedValueOnce(Object.assign(new Error('ERR_MODULE_NOT_FOUND'), { code: 'ERR_MODULE_NOT_FOUND' }))
       .mockResolvedValueOnce(FAKE_MODULE);
     vi.mocked(Module.createRequire)
       .mockReturnValueOnce(makeRequireThrow())
       .mockReturnValueOnce(makeRequire('/prefix/path/node_modules/some-module/index.js'));
-    vi.mocked(Url.pathToFileURL).mockReturnValue({
-      href: 'file:///prefix/path/node_modules/some-module/index.js'
-    } as URL);
-    const result = await Npm.import(NPM_INSTALL_PREFIX_CONFIGURATION, 'some-module');
+    vi.mocked(Url.pathToFileURL)
+      .mockReturnValueOnce({ href: `file://${CWD}/package.json` } as URL)
+      .mockReturnValueOnce({ href: `file://${CWD}/package.json` } as URL)
+      .mockReturnValueOnce({ href: 'file:///prefix/path/node_modules/some-module/index.js' } as URL);
+    const result = await TestNpm.import(NPM_INSTALL_PREFIX_CONFIGURATION, 'some-module');
     expect(result).toBe(FAKE_MODULE);
     expect(logger.debug).toHaveBeenCalledWith(
       expect.objectContaining({ message: expect.stringContaining('found in npmInstallPrefix') as string })
@@ -207,8 +232,7 @@ describe('import', () => {
       }
       return makeProcess((arguments_ ?? []).includes('--global') ? '/global/root' : '/local/root');
     });
-    // install succeeds but re-import still fails (module truly doesn't exist) — just check install was called
-    await expect(Npm.import(LOCAL_INSTALL_CONFIGURATION, 'non-existent-module-xyz-abc')).rejects.toThrow();
+    await expect(TestNpm.import(LOCAL_INSTALL_CONFIGURATION, 'non-existent-module-xyz-abc')).rejects.toThrow();
     expect(Process.spawn).toHaveBeenCalledWith(
       'node',
       expect.arrayContaining(['install', '--no-save', 'non-existent-module-xyz-abc']) as string[],
@@ -223,7 +247,7 @@ describe('import', () => {
       }
       return makeProcess((arguments_ ?? []).includes('--global') ? '/global/root' : '/local/root');
     });
-    await expect(Npm.import(GLOBAL_INSTALL_CONFIGURATION, 'non-existent-module-xyz-abc')).rejects.toThrow();
+    await expect(TestNpm.import(GLOBAL_INSTALL_CONFIGURATION, 'non-existent-module-xyz-abc')).rejects.toThrow();
     expect(Process.spawn).toHaveBeenCalledWith(
       'node',
       expect.arrayContaining(['install', '-g', 'non-existent-module-xyz-abc']) as string[],
@@ -238,7 +262,7 @@ describe('import', () => {
       }
       return makeProcess((arguments_ ?? []).includes('--global') ? '/global/root' : '/local/root');
     });
-    await expect(Npm.import(PREFIX_INSTALL_CONFIGURATION, 'non-existent-module-xyz-abc')).rejects.toThrow();
+    await expect(TestNpm.import(PREFIX_INSTALL_CONFIGURATION, 'non-existent-module-xyz-abc')).rejects.toThrow();
     expect(Process.spawn).toHaveBeenCalledWith(
       'node',
       expect.arrayContaining([
@@ -254,34 +278,36 @@ describe('import', () => {
 
   it('returns the module when found via reimportPath after global install', async () => {
     const FAKE_MODULE = { default: 'installed-module' };
-    vi.spyOn(Import, 'dynamic')
+    // local fails, global tryImportFromPath fails, install runs, then reimportPath resolves
+    TestNpm.dynamicImportSpy
       .mockRejectedValueOnce(Object.assign(new Error('ERR_MODULE_NOT_FOUND'), { code: 'ERR_MODULE_NOT_FOUND' }))
       .mockResolvedValueOnce(FAKE_MODULE);
     vi.mocked(Module.createRequire)
       .mockReturnValueOnce(makeRequireThrow())
       .mockReturnValueOnce(makeRequire('/global/root/some-module/index.js'));
-    vi.mocked(Url.pathToFileURL).mockReturnValue({ href: 'file:///global/root/some-module/index.js' } as URL);
+    vi.mocked(Url.pathToFileURL)
+      .mockReturnValueOnce({ href: `file://${CWD}/package.json` } as URL)
+      .mockReturnValueOnce({ href: `file://${CWD}/package.json` } as URL)
+      .mockReturnValueOnce({ href: 'file:///global/root/some-module/index.js' } as URL);
     vi.mocked(Process.spawn).mockImplementation((command, arguments_) => {
       if (command === 'npm') {
         return makeProcess('npm@10.0.0 /usr/local/lib/node_modules/npm');
       }
       return makeProcess((arguments_ ?? []).includes('--global') ? '/global/root' : '/local/root');
     });
-    const result = await Npm.import(GLOBAL_INSTALL_CONFIGURATION, 'some-module');
+    const result = await TestNpm.import(GLOBAL_INSTALL_CONFIGURATION, 'some-module');
     expect(result).toBe(FAKE_MODULE);
   });
 
   it('does not install when module is found in alternateNpmPath', async () => {
-    // require.resolve will fail for a truly non-existent module, so we just verify no install is attempted
-    // by checking noNpmInstall blocks the install path — alternateNpmPath check happens before install
     await expect(
-      Npm.import({ ...ALTERNATE_NPM_PATH_CONFIGURATION, noNpmInstall: true }, 'non-existent-module-xyz-abc')
+      TestNpm.import({ ...ALTERNATE_NPM_PATH_CONFIGURATION, noNpmInstall: true }, 'non-existent-module-xyz-abc')
     ).rejects.toThrow('noNpmInstall is set');
   });
 
   it('does not install when module is found in npmInstallPrefix', async () => {
     await expect(
-      Npm.import({ ...NPM_INSTALL_PREFIX_CONFIGURATION, noNpmInstall: true }, 'non-existent-module-xyz-abc')
+      TestNpm.import({ ...NPM_INSTALL_PREFIX_CONFIGURATION, noNpmInstall: true }, 'non-existent-module-xyz-abc')
     ).rejects.toThrow('noNpmInstall is set');
   });
 });

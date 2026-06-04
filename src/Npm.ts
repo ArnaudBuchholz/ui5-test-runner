@@ -63,23 +63,27 @@ const buildInstallPlan = (strategy: string, moduleName: string, globalRoot: stri
   return { installArguments: ['install', '--no-save', moduleName], reimportPath: undefined };
 };
 
-export const Import = {
-  dynamic: (specifier: string): Promise<unknown> => import(specifier)
-};
-
-const tryImportFromPath = async (moduleName: string, nodeModulesPath: string): Promise<unknown> => {
-  try {
-    const require = Module.createRequire(import.meta.url);
-    const resolved = require.resolve(moduleName, { paths: [nodeModulesPath] });
-    return await Import.dynamic(Url.pathToFileURL(resolved).href);
-  } catch {
-    return undefined;
+export class Npm {
+  protected static dynamicImport(specifier: string): Promise<unknown> {
+    return import(specifier);
   }
-};
 
-export const Npm = {
+  private static async tryImportFromPath(
+    configuration: Configuration,
+    moduleName: string,
+    nodeModulesPath: string
+  ): Promise<unknown> {
+    try {
+      const require = Module.createRequire(Url.pathToFileURL(Path.join(configuration.cwd, 'package.json')).href);
+      const resolved = require.resolve(moduleName, { paths: [nodeModulesPath] });
+      return await this.dynamicImport(Url.pathToFileURL(resolved).href);
+    } catch {
+      return undefined;
+    }
+  }
+
   /** fetch the latest version info for the given module */
-  async getLatestVersion(moduleName: string): Promise<string> {
+  static async getLatestVersion(moduleName: string): Promise<string> {
     try {
       const response = await Http.get(`https://registry.npmjs.org/${moduleName}/latest`);
       const { version } = JSON.parse(response) as { version: string };
@@ -89,9 +93,9 @@ export const Npm = {
         cause: error
       });
     }
-  },
+  }
 
-  async checkIfLatestVersion(moduleName: string, isLocal: boolean): Promise<void> {
+  static async checkIfLatestVersion(moduleName: string, isLocal: boolean): Promise<void> {
     try {
       const { local, global } = await getRoots();
       const { version: installedVersion } = JSON.parse(
@@ -105,16 +109,16 @@ export const Npm = {
     } catch (error) {
       logger.error({ source: 'npm', message: 'Failed in checkIfLatestVersion', error });
     }
-  },
+  }
 
   /** Locate the module (or install it) then import it */
-  async import(configuration: Configuration, moduleName: string): Promise<unknown> {
+  static async import(configuration: Configuration, moduleName: string): Promise<unknown> {
     logger.debug({ source: 'npm', message: `Npm.import(${moduleName})` });
 
     try {
-      const module = await Import.dynamic(moduleName);
+      const module = await this.dynamicImport(moduleName);
       logger.debug({ source: 'npm', message: `Module ${moduleName} found locally` });
-      void this.checkIfLatestVersion(moduleName, true);
+      void Npm.checkIfLatestVersion(moduleName, true);
       return module;
     } catch (error) {
       const code = (error as NodeJS.ErrnoException).code;
@@ -125,15 +129,15 @@ export const Npm = {
     }
 
     const { global: globalRoot } = await getRoots();
-    const fromGlobal = await tryImportFromPath(moduleName, globalRoot);
+    const fromGlobal = await this.tryImportFromPath(configuration, moduleName, globalRoot);
     if (fromGlobal !== undefined) {
       logger.debug({ source: 'npm', message: `Module ${moduleName} found globally` });
-      void this.checkIfLatestVersion(moduleName, false);
+      void Npm.checkIfLatestVersion(moduleName, false);
       return fromGlobal;
     }
 
     if (configuration.alternateNpmPath) {
-      const fromAlternate = await tryImportFromPath(moduleName, configuration.alternateNpmPath);
+      const fromAlternate = await this.tryImportFromPath(configuration, moduleName, configuration.alternateNpmPath);
       if (fromAlternate !== undefined) {
         logger.debug({ source: 'npm', message: `Module ${moduleName} found in alternateNpmPath` });
         return fromAlternate;
@@ -141,7 +145,11 @@ export const Npm = {
     }
 
     if (configuration.npmInstallPrefix) {
-      const fromPrefix = await tryImportFromPath(moduleName, Path.join(configuration.npmInstallPrefix, 'node_modules'));
+      const fromPrefix = await this.tryImportFromPath(
+        configuration,
+        moduleName,
+        Path.join(configuration.npmInstallPrefix, 'node_modules')
+      );
       if (fromPrefix !== undefined) {
         logger.debug({ source: 'npm', message: `Module ${moduleName} found in npmInstallPrefix` });
         return fromPrefix;
@@ -168,7 +176,7 @@ export const Npm = {
     await installProcess.closed;
 
     if (reimportPath !== undefined) {
-      const result = await tryImportFromPath(moduleName, reimportPath);
+      const result = await this.tryImportFromPath(configuration, moduleName, reimportPath);
       if (result === undefined) {
         const message = `Module ${moduleName} could not be loaded after install`;
         logger.fatal({ source: 'npm', message });
@@ -177,6 +185,6 @@ export const Npm = {
       return result;
     }
 
-    return await Import.dynamic(moduleName);
+    return await this.dynamicImport(moduleName);
   }
-};
+}
