@@ -1,1 +1,4 @@
-Can be either a `file` or a `folder`, see option modifiers.
+Can be either a `file` or a `folder`, allowed modifiers are :
+* [[modifiers/file]]
+* [[modifiers/overwrite]]
+* [[modifiers/safe-default]]

@@ -1,0 +1,1 @@
+A value within a predefined list, see type modifiers (free).

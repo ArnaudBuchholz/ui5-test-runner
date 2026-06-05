@@ -1,6 +1,7 @@
 export type OptionType =
   | 'boolean'
   | 'browser'
+  | 'enumeration'
   | 'fs-entry'
   | 'integer'
   | 'percent'
@@ -8,8 +9,6 @@ export type OptionType =
   | 'string'
   | 'timeout'
   | 'url';
-
-export type OptionTypeModifiers = 'file' | 'overwrite' | 'safe-default';
 
 export type InferOptionType<T extends OptionType> = T extends 'boolean'
   ? boolean
@@ -26,7 +25,7 @@ export type Option<T extends OptionType = OptionType> = {
   short?: string;
   description: string;
   type: T;
-  typeModifiers?: Set<OptionTypeModifiers>;
+  typeModifiers?: Set<string>;
   defaultLabel?: string;
 } & (
   | {

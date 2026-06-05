@@ -2,6 +2,7 @@ import type { OptionType } from '../Option.js';
 import type { OptionValidator } from './OptionValidator.js';
 import { boolean } from './boolean.js';
 import { browser } from './browser.js';
+import { enumeration } from './enumeration.js';
 import { fsEntry } from './fsEntry.js';
 import { integer } from './integer.js';
 import { percent } from './percent.js';
@@ -13,6 +14,7 @@ import { url } from './url.js';
 export const validators: { [key in OptionType]: OptionValidator<key> } = {
   boolean,
   browser,
+  enumeration,
   'fs-entry': fsEntry,
   integer,
   percent,
