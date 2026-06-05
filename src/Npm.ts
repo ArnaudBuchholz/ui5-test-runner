@@ -74,6 +74,7 @@ export class Npm {
     nodeModulesPath: string
   ): Promise<unknown> {
     try {
+      // TODO: check if package.json is required here
       const require = Module.createRequire(Url.pathToFileURL(Path.join(configuration.cwd, 'package.json')).href);
       const resolved = require.resolve(moduleName, { paths: [nodeModulesPath] });
       return await this.dynamicImport(Url.pathToFileURL(resolved).href);
