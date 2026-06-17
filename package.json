@@ -100,7 +100,7 @@
     "eslint-plugin-unicorn": "^64.0.0",
     "globals": "^17.6.0",
     "jsdom": "^29.1.1",
-    "markdownlint-cli": "^0.48.0",
+    "markdownlint-cli": "^0.49.0",
     "npm-check-updates": "^22.2.2",
     "puppeteer": "^25.1.0",
     "qunit": "^2.26.0",
