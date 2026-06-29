@@ -9,7 +9,7 @@ registerHooks({
       const fileUrl = new URL(path, parentURL);
       const filePath = fileURLToPath(fileUrl);
 
-      if (filePath.endsWith('.js')) {
+      if (filePath.endsWith('.js') && !filePath.includes('node_modules')) {
         const tsPath = filePath.slice(0, -3) + '.ts';
         try {
           accessSync(tsPath, constants.R_OK);
@@ -19,8 +19,8 @@ registerHooks({
             format: 'module',
             shortCircuit: true
           };
-        } catch {
-          // ignore
+        } catch (error) {
+          console.error(error);
         }
       }
     }

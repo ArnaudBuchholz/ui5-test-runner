@@ -113,8 +113,8 @@ const examples = [
 ] satisfies InternalLogAttributes[];
 
 it('supports timestamps until 2200', () => {
-  const maxTimeStamp = DIGITS.length ** MAX_TIMESTAMP_DIGITS;
-  expect(new Date(2200, 0, 1, 0, 0, 0, 0).getTime()).toBeLessThanOrEqual(maxTimeStamp);
+  const maxTimestamp = DIGITS.length ** MAX_TIMESTAMP_DIGITS;
+  expect(new Date(2200, 0, 1, 0, 0, 0, 0).getTime()).toBeLessThanOrEqual(maxTimestamp);
 });
 
 it('supports DWORD encoding', () => {
@@ -156,7 +156,7 @@ it('does not duplicate information', () => {
   for (const line of compressed.split('\n')) {
     if (line) {
       // Ensure the line appears only once
-      expect(compressed.split(line).length).toStrictEqual(2);
+      expect(compressed.split(line)).toHaveLength(2);
     }
   }
 });

@@ -23,7 +23,7 @@ it('processes all the values', async () => {
     expect(array[index]).toStrictEqual(value);
     return value;
   }, list);
-  expect(result.length).toStrictEqual(list.length);
+  expect(result).toHaveLength(list.length);
   expect(result).toStrictEqual(
     list.map((value) => ({
       status: 'fulfilled',
@@ -90,7 +90,7 @@ describe('runs as many concurrent tasks as necessary', () => {
         list,
         { parallel }
       );
-      expect(result.length).toStrictEqual(list.length);
+      expect(result).toHaveLength(list.length);
       expect(result).toStrictEqual(
         list.map((value) => ({
           status: 'fulfilled',
@@ -116,7 +116,7 @@ describe('supports growing list', () => {
         partial,
         { parallel }
       );
-      expect(result.length).toStrictEqual(list.length);
+      expect(result).toHaveLength(list.length);
       expect(result).toStrictEqual(
         list.map((value) => ({
           status: 'fulfilled',
@@ -145,7 +145,7 @@ it('augments parallelism (if needed) when the list is growing', async () => {
     partial,
     { parallel: 2 }
   );
-  expect(result.length).toStrictEqual(3);
+  expect(result).toHaveLength(3);
   expect(maxActive).toStrictEqual(2);
   expect(result).toStrictEqual([
     {
@@ -165,7 +165,7 @@ it('augments parallelism (if needed) when the list is growing', async () => {
 
 it('does not go beyond the number of items', async () => {
   const result = await parallelize((value) => value, list, { parallel: 200 });
-  expect(result.length).toStrictEqual(list.length);
+  expect(result).toHaveLength(list.length);
   expect(result).toStrictEqual(
     list.map((value) => ({
       status: 'fulfilled',
@@ -187,7 +187,7 @@ it('does not go beyond the number of items (slow start)', async () => {
     partial,
     { parallel: 200 }
   );
-  expect(result.length).toStrictEqual(list.length);
+  expect(result).toHaveLength(list.length);
   expect(result).toStrictEqual(
     list.map((value) => ({
       status: 'fulfilled',
@@ -208,7 +208,7 @@ it('collects the errors', async () => {
     list,
     { parallel: 4 }
   );
-  expect(result.length).toStrictEqual(list.length);
+  expect(result).toHaveLength(list.length);
   expect(result).toStrictEqual(
     list.map((value) =>
       value === 'f'
@@ -236,7 +236,7 @@ it('offers an helper to stop all processing', async () => {
     list,
     { parallel: 4 }
   );
-  expect(result.length).toStrictEqual(4);
+  expect(result).toHaveLength(4);
   expect(result).toStrictEqual([
     {
       status: 'fulfilled',

@@ -51,7 +51,7 @@ export class InteractiveLoggerOutput extends BaseLoggerOutput {
     for (const pageId of this.pageIds) {
       const pageProgress = this.pageProgressMap[pageId]!; // key is coming from Object.keys
       const rendered = pageProgress.bar.render(this._terminalWidth - 4);
-      let status = '   ';
+      let status = ' '.repeat(3);
       if (pageProgress.errors) {
         status = `${Terminal.RED}${Math.min(pageProgress.errors, 999).toString().padEnd(3, ' ')}${Terminal.WHITE}`;
       } else if (pageProgress.type === 'opa') {

@@ -33,14 +33,15 @@ for (const fileName of await readdir(OPTIONS_FOLDER)) {
     if (!fileContent.includes('"#type": "[[option]]"')) {
       continue;
     }
-    const name = fileName.split('.md')[0];
+    const name = fileName.split('.md', 1)[0];
     const errors = [];
     const [, properties] = fileContent.match(/---(:?(-|[^-])*)---/) ?? [];
     const [, short] = properties.match(/short: (.*)/) ?? [];
     if (checkIfDuplicate(name, short)) {
       errors.push(`duplicate name / short detected: ${name} ${short ?? ''}`);
     }
-    const [, type] = properties.match(/type: "\[\[(?:[^\\\]]+\|)?(.*)\]\]"/);
+    // eslint-disable-next-line sonarjs/super-linear-regex -- optional prefix is bounded by [^\]] so catastrophic backtracking cannot occur
+    const [, type] = properties.match(/type: "\[\[(?:[^\\\]]+\|)?([^\]]*)\]\]"/);
     if (!types.includes(type)) {
       errors.push(`Unknown type ${type}`);
     }
@@ -55,7 +56,8 @@ for (const fileName of await readdir(OPTIONS_FOLDER)) {
     const [, typeModifiersList] = properties.match(/typeModifiers:((?:\n {2}- "[^"]*")*)/) ?? [];
     if (typeModifiersList) {
       typeModifiers = [];
-      typeModifiersList.replaceAll(/"\[\[(?:[^\\\]]+\|)?(.*)\]\]"/g, (_, modifier) => typeModifiers.push(modifier));
+      // eslint-disable-next-line sonarjs/super-linear-regex -- optional prefix is bounded by [^\]] so catastrophic backtracking cannot occur
+      typeModifiersList.replaceAll(/"\[\[(?:[^\\\]]+\|)?([^\]]*)\]\]"/g, (_, modifier) => typeModifiers.push(modifier));
     }
     if (errors.length > 0) {
       console.error(`❌ ${fileName} :\n\t` + errors.join('\n\t'));

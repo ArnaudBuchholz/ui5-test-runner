@@ -6,8 +6,7 @@ import { split } from '../../utils/shared/string.js';
 
 const ASCII_RECORD_SEPARATOR = '\u001E';
 
-export const DIGITS = Array.from({ length: 127 - 32 })
-  .fill(0)
+export const DIGITS = Array.from({ length: 127 - 32 }, () => 0)
   .map((_, index) => String.fromCodePoint(32 + index))
   .join('');
 const JSON_VALUE_SEP = ASCII_RECORD_SEPARATOR;

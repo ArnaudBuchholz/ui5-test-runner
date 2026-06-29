@@ -152,7 +152,7 @@ for (const { label, args, expected } of testCases) {
       } catch (error) {
         expect(error).toBeInstanceOf(AggregateError);
         if (error instanceof AggregateError) {
-          expect(error.errors.length).toStrictEqual(expected.errors.length);
+          expect(error.errors).toHaveLength(expected.errors.length);
           for (let index = 0; index < expected.errors.length; ++index) {
             const { message, option } = expected.errors[index]!;
             const errorItem = error.errors[index] as Error;
@@ -238,7 +238,7 @@ describe('handling ConfigurationValidator error(s)', () => {
     } catch (error) {
       expect(error).toBeInstanceOf(AggregateError);
       if (error instanceof AggregateError) {
-        expect(error.errors.length).toStrictEqual(2);
+        expect(error.errors).toHaveLength(2);
         expect(error.errors[1]).toStrictEqual(validationError);
       }
     }
@@ -253,7 +253,7 @@ describe('handling ConfigurationValidator error(s)', () => {
     } catch (error) {
       expect(error).toBeInstanceOf(AggregateError);
       if (error instanceof AggregateError) {
-        expect(error.errors.length).toStrictEqual(3);
+        expect(error.errors).toHaveLength(3);
         expect(error.errors[1]).toStrictEqual(aggregatedValidationErrors.errors[0]);
         expect(error.errors[2]).toStrictEqual(aggregatedValidationErrors.errors[1]);
       }

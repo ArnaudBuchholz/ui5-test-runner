@@ -7,7 +7,7 @@ export default [
   },
   ...base,
   {
-    files: ['src/*.js', 'eslint.base.mjs', 'build/*'],
+    files: ['src/*.js', 'eslint.base.mjs', 'build/*', 'src/platform/js2ts.mjs'],
     languageOptions: {
       globals: {
         ...globals.node
@@ -90,6 +90,17 @@ export default [
     files: ['src/ui/**/*.ts'],
     rules: {
       '@typescript-eslint/no-base-to-string': 'off'
+    }
+  },
+  // Exceptions for unicorn/no-this-outside-of-class
+  {
+    files: [
+      'src/modes/test/pageTask.ts',
+      'src/configuration/ConfigurationValidator.ts',
+      'src/utils/shared/parallelize.spec.ts'
+    ],
+    rules: {
+      'unicorn/no-this-outside-of-class': 'off'
     }
   }
 ];

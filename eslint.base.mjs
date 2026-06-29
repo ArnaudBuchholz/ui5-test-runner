@@ -120,7 +120,9 @@ export default [
         }
       ],
       'unicorn/prefer-add-event-listener': 'off',
+      'unicorn/prefer-top-level-await': 'off', // causes issues when running with js2ts.mjs
       'sonarjs/todo-tag': 'warn',
+      'sonarjs/no-skipped-tests': 'warn',
       'sonarjs/no-unused-vars': 'off' // covered by @typescript-eslint/no-unused-vars
     }
   },

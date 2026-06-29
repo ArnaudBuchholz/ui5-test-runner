@@ -24,7 +24,7 @@ const VALID_FILE_NAME = 'file' as const;
 const VALID_FILE_PATH = VALID_ROOT + VALID_FILE_NAME;
 
 vi.mocked(FileSystem.access).mockImplementation((path) => {
-  if (path === VALID_FOLDER_PATH || path === INVALID_STAT_PATH || path === VALID_FILE_PATH) {
+  if ([VALID_FOLDER_PATH, INVALID_STAT_PATH, VALID_FILE_PATH].includes(path.toString())) {
     return Promise.resolve();
   }
   if (path === READ_ONLY_PATH) {

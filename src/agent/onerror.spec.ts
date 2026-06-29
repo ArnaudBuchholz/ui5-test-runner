@@ -14,7 +14,7 @@ it('captures and document global error', () => {
   });
   window.dispatchEvent(error);
   expect.assert(state.uncaughtErrors !== undefined);
-  expect(state.uncaughtErrors.length).toStrictEqual(1);
+  expect(state.uncaughtErrors).toHaveLength(1);
   expect(state.uncaughtErrors[0]).toStrictEqual({
     event: 'error',
     message: 'KO',
@@ -31,7 +31,7 @@ it('captures and document unhandled promise rejection', () => {
   });
   window.dispatchEvent(event);
   expect.assert(state.uncaughtErrors !== undefined);
-  expect(state.uncaughtErrors.length).toStrictEqual(1);
+  expect(state.uncaughtErrors).toHaveLength(1);
   expect(state.uncaughtErrors[0]).toStrictEqual({
     event: 'unhandledrejection',
     message: 'Rejection KO',
@@ -50,7 +50,7 @@ it('accumulates errors', () => {
   });
   window.dispatchEvent(error2);
   expect.assert(state.uncaughtErrors !== undefined);
-  expect(state.uncaughtErrors.length).toStrictEqual(2);
+  expect(state.uncaughtErrors).toHaveLength(2);
   expect(state.uncaughtErrors).toStrictEqual([
     {
       event: 'error',

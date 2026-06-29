@@ -8,7 +8,7 @@ import { assert } from '../../assert.js';
 
 const icons = {
   [LogLevel.debug]: Terminal.BLUE + '<o>',
-  [LogLevel.info]: '   ',
+  [LogLevel.info]: ' '.repeat(3),
   [LogLevel.warn]: Terminal.YELLOW + '/!\\',
   [LogLevel.error]: Terminal.RED + '(X)',
   [LogLevel.fatal]: Terminal.RED + 'o*!'

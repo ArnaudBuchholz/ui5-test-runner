@@ -214,8 +214,8 @@ function attachSortEvents(): void {
 }
 
 function toggleTestRow(testRows: Element, index: string): void {
-  const details = asHtml(testRows.querySelector(`.test-row-details[data-index="${index}"]`));
-  const toggleButton = asHtml(testRows.querySelector(`.test-toggle-btn[data-index="${index}"]`));
+  const details = asHtml(testRows.querySelector(`.test-row-details[data-index="${CSS.escape(index)}"]`));
+  const toggleButton = asHtml(testRows.querySelector(`.test-toggle-btn[data-index="${CSS.escape(index)}"]`));
   if (!details) return;
   const isOpen = details.style.display !== 'none';
   details.style.display = isOpen ? 'none' : 'block';

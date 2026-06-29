@@ -65,7 +65,7 @@ it('ends on null buffer', async () => {
   for await (const chunk of stream.read()) {
     chunks.push(chunk);
   }
-  expect(chunks.length).toStrictEqual(0);
+  expect(chunks).toHaveLength(0);
 });
 
 const header = (size: number) => {
@@ -93,7 +93,7 @@ it('reads a single chunk in one go', async () => {
     chunks.push(chunk);
   }
 
-  expect(chunks.length).toStrictEqual(1);
+  expect(chunks).toHaveLength(1);
   expect(chunks[0]!.toString()).toStrictEqual(data);
 });
 
@@ -109,7 +109,7 @@ it('reads multiple chunks written in one go', async () => {
     chunks.push(chunk);
   }
 
-  expect(chunks.length).toStrictEqual(2);
+  expect(chunks).toHaveLength(2);
   expect(chunks[0]!.toString()).toStrictEqual(data1);
   expect(chunks[1]!.toString()).toStrictEqual(data2);
 });
@@ -130,7 +130,7 @@ it('handles a chunk split across multiple writes', async () => {
     chunks.push(chunk);
   }
 
-  expect(chunks.length).toStrictEqual(1);
+  expect(chunks).toHaveLength(1);
   expect(chunks[0]!.toString()).toStrictEqual(data);
 });
 
@@ -155,7 +155,7 @@ it('can be interrupted through Exit', async () => {
     chunks.push(chunk);
   }
 
-  expect(chunks.length).toStrictEqual(1);
+  expect(chunks).toHaveLength(1);
   expect(chunks[0]!.toString()).toStrictEqual(data1);
 });
 
@@ -173,7 +173,7 @@ it('can be interrupted through AbortSignal', async () => {
     controller.abort();
   }
 
-  expect(chunks.length).toStrictEqual(1);
+  expect(chunks).toHaveLength(1);
   expect(chunks[0]!.toString()).toStrictEqual(data1);
 });
 
