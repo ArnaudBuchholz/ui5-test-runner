@@ -52,6 +52,8 @@ export const test = async (configuration: Configuration) => {
     browser = await setupBrowser(configuration);
     logger.info({ source: 'progress', message: 'Executing pages', pageId: undefined, data: { value: 0, max: 0 } });
     let completed = 0;
+    let lastLoggedCompleted: number | undefined;
+    let lastLoggedMax: number | undefined;
     await parallelize(pageTask, urls, {
       parallel: configuration.parallel,
       on: (event) => {
@@ -62,12 +64,16 @@ export const test = async (configuration: Configuration) => {
         if (event.type === 'completed') {
           ++completed;
         }
-        logger.info({
-          source: 'progress',
-          message: 'Executing pages',
-          pageId: undefined,
-          data: { value: completed, max: urls.length }
-        });
+        if (lastLoggedCompleted !== completed || lastLoggedMax !== urls.length) {
+          lastLoggedCompleted = completed;
+          lastLoggedMax = urls.length;
+          logger.info({
+            source: 'progress',
+            message: 'Executing pages',
+            pageId: undefined,
+            data: { value: completed, max: urls.length }
+          });
+        }
       }
     });
     reportBuilder.finalize();
