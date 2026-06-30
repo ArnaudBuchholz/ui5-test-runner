@@ -27,10 +27,17 @@ const updateState = (updates: Partial<QUnitState>) => {
 };
 
 export const qunit = () => {
-  state.type = 'QUnit';
   let executed = 0;
   let errors = 0;
   const logs: { [key in string]: QUnitLogDetails[] } = {};
+
+  updateState({
+    type: 'QUnit',
+    isOpa: false,
+    executed,
+    total: 0,
+    errors
+  });
 
   QUnit.begin((details) => {
     report.begin(`QUnit@${window.QUnit!.version}`);
