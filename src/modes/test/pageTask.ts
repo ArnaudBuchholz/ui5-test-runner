@@ -24,6 +24,17 @@ type PageContext = {
   lastTotal: number;
 };
 
+export const agentStateMessage = (agentState: AgentState): string => {
+  if (agentState.type === 'suite') return 'agent state: suite done';
+  if (agentState.type === 'QUnit') {
+    const kind = agentState.isOpa ? 'OPA' : 'QUnit';
+    const progress = `${agentState.executed}/${agentState.total}`;
+    return agentState.done ? `agent state: ${kind} done ${progress}` : `agent state: ${kind} ${progress}`;
+  }
+  if (agentState.type === 'unknown') return 'agent state: unknown';
+  return 'agent state: loading';
+};
+
 const reportQunitProgress = (context: PageContext, agentState: Extract<AgentState, { type: 'QUnit' }>) => {
   if (agentState.isOpa) {
     context.loopDelay = 1000; // No need to stress out, they are slower
@@ -48,7 +59,12 @@ const reportQunitProgress = (context: PageContext, agentState: Extract<AgentStat
 
 const queryAgentState = async (context: PageContext): Promise<boolean> => {
   const agentState = (await context.page.eval("window['ui5-test-runner'].state")) as AgentState;
-  logger.debug({ source: 'page', message: 'agent state', data: { state: agentState }, pageId: context.pageId });
+  logger.debug({
+    source: 'page',
+    message: agentStateMessage(agentState),
+    data: { state: agentState },
+    pageId: context.pageId
+  });
   if (agentState.done) {
     if (agentState.type === 'suite') {
       for (const page of agentState.pages) {
@@ -135,7 +151,14 @@ export const pageTask = async function (this: IParallelizeContext, url: string, 
       }
     }
     const testResults = (await page.eval("window['ui5-test-runner'].results")) as CommonTestReport['results'];
-    logger.debug({ source: 'page', message: 'test results', pageId, data: { results: testResults } });
+    const { passed, failed, tests, duration } = testResults.summary;
+    const durationString = duration === undefined ? '' : ` (${duration}ms)`;
+    logger.debug({
+      source: 'page',
+      message: `test results: passed=${passed} failed=${failed} tests=${tests}${durationString}`,
+      pageId,
+      data: { results: testResults }
+    });
     reportBuilder.merge(url, testResults);
     // TODO: add a catch block and document the problem in the test report
   } finally {
