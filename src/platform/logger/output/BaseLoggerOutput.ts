@@ -29,7 +29,11 @@ const DO_NOT_RENDER_SOURCE: InternalLogAttributes['source'][] = [
   'browser/console',
   'browser/network',
   'metric',
-  'progress'
+  'process',
+  'process/stdout',
+  'process/stderr',
+  'progress',
+  'server/unhandled'
 ] as const;
 
 export abstract class BaseLoggerOutput {
