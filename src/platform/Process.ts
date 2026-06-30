@@ -102,7 +102,8 @@ export class Process implements IProcess {
     });
     this._childProcess.on('close', (code) => {
       this._code = code ?? 0;
-      logger.debug({
+      const logLevel = this._code === 0 ? 'debug' : 'warn';
+      logger[logLevel]({
         source: 'process',
         processId: this.pid,
         message: 'closed',

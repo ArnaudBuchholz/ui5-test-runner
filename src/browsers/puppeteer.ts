@@ -92,6 +92,7 @@ export const factory = async (configuration: Configuration): Promise<IBrowser> =
           const LOG_TYPES: { [key in ConsoleMessageType]?: keyof ILogger } = {
             error: 'error',
             warn: 'warn',
+            assert: 'warn',
             debug: 'debug'
           } as const;
           const logType = LOG_TYPES[message.type()] ?? 'info';

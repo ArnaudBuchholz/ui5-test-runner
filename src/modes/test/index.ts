@@ -78,8 +78,11 @@ export const test = async (configuration: Configuration) => {
     );
     await generateHtmlReport(configuration, reportBuilder.report);
     const { passed, failed, tests, duration } = reportBuilder.report.results.summary;
-    const durationStr = duration ? ` (${formatDuration(duration)})` : '';
-    logger.info({ source: 'job', message: `Tests completed: passed=${passed} failed=${failed} tests=${tests}${durationStr}` });
+    const durationString = duration ? ` (${formatDuration(duration)})` : '';
+    logger.info({
+      source: 'job',
+      message: `Tests completed: passed=${passed} failed=${failed} tests=${tests}${durationString}`
+    });
   } catch (error) {
     logger.error({ source: 'job', message: 'An error occurred', error });
   } finally {

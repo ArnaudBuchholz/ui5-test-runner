@@ -161,13 +161,15 @@ describe('spawn', () => {
       const childProcess = Process.spawn('node', []);
       mockChildProcess?.emit('close', code);
       await childProcess.closed;
-      expect(logger.debug).toHaveBeenCalledWith({
+      const resolvedCode = code ?? 0;
+      const logLevel = resolvedCode === 0 ? 'debug' : 'warn';
+      expect(logger[logLevel]).toHaveBeenCalledWith({
         source: 'process',
         processId: childProcess.pid,
         message: 'closed',
-        data: { code: code ?? 0 }
+        data: { code: resolvedCode }
       });
-      expect(childProcess.code).toStrictEqual(code ?? 0);
+      expect(childProcess.code).toStrictEqual(resolvedCode);
     });
   }
 });
