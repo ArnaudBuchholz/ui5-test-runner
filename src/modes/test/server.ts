@@ -32,7 +32,6 @@ export const server = {
       name: 'server',
       stop: () => server.stop()
     });
-    logger.debug({ source: 'server', message: 'Starting server' });
     serverWorker = Thread.createWorker('modes/test/server', toPlainObject(configuration));
     const { promise, resolve, reject } = Promise.withResolvers<number>();
     channel.onmessage = ({ data: message }: { data: Message }) => {
@@ -54,7 +53,6 @@ export const server = {
     stopping = true;
     try {
       assert(serverWorker !== undefined);
-      logger.debug({ source: 'server', message: 'Stopping server' });
       channel.postMessage({
         command: 'terminate'
       } satisfies Message);
