@@ -20,7 +20,11 @@ export class LogStorage implements ILogStorage {
     return this._logs.length;
   }
 
-  add(log: InternalLogAttributes): void {
+  get all() {
+    return this._logs;
+  }
+
+  add(log: Readonly<InternalLogAttributes>): void {
     this._logs.push(log);
     this._logsAdded = true;
   }
@@ -32,7 +36,7 @@ export class LogStorage implements ILogStorage {
     }
   }
 
-  static buildFilterExpression(filter: string): (log: InternalLogAttributes) => boolean {
+  static buildFilterExpression(filter: string): (log: Readonly<InternalLogAttributes>) => boolean {
     if (!filter) {
       return () => true;
     }
@@ -53,7 +57,7 @@ export class LogStorage implements ILogStorage {
       });
   }
 
-  fetch(query: LogStorageQuery = {}): InternalLogAttributes[] {
+  fetch(query: LogStorageQuery = {}): Readonly<InternalLogAttributes>[] {
     this._sortIfNeeded();
     const { from = 0, to = Number.MAX_SAFE_INTEGER, filter = '' } = query;
     let { skip = 0, limit = MAX_LIMIT } = query;
