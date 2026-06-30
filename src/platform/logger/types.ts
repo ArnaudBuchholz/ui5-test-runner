@@ -11,7 +11,8 @@ type GenericLogSource =
   | 'npm'
   | 'process'
   | 'puppeteer'
-  | 'server';
+  | 'server'
+  | 'server/unhandled';
 
 type PageLogSource = 'page' | 'browser/agent' | 'browser/console' | 'browser/network';
 

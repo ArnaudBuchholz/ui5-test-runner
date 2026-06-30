@@ -53,7 +53,7 @@ export const buildREserveConfiguration = (
     {
       method: 'GET',
       match: '/all',
-      custom: () => [storage.all],
+      custom: () => [storage.all]
     },
     {
       method: 'GET',

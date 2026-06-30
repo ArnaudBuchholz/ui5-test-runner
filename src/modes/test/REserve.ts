@@ -27,8 +27,7 @@ export const buildREserveConfiguration = (configuration: Configuration): REserve
         // static: !configuration.watch && !configuration.debugDevMode
       },
       {
-        custom: (request) =>
-          logger.debug({ source: 'server', message: 'Unhandled request', data: { url: request.url } })
+        custom: (request) => logger.warn({ source: 'server/unhandled', message: request.url! })
       },
       {
         status: 404
