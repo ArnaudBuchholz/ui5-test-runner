@@ -53,7 +53,25 @@ export const buildREserveConfiguration = (
     {
       method: 'GET',
       match: '/all',
-      custom: () => [storage.all]
+      custom: async (request, response) => {
+        response.writeHead(200, {
+          'content-type': 'application/json'
+        });
+        response.write('[\n');
+        const { length } = storage;
+        for (let index = 0; index < length; ++index) {
+          const log = storage.fetch({
+            skip: index,
+            limit: 1
+          })[0];
+          const suffix = index < length - 1 ? ',\n' : '\n';
+          const needDrain = !response.write('  ' + JSON.stringify(log) + suffix);
+          if (needDrain) {
+            await new Promise<void>((resolve) => response.once('drain', resolve));
+          }
+        }
+        response.end(']\n');
+      }
     },
     {
       method: 'GET',
