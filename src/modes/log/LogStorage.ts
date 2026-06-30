@@ -20,10 +20,6 @@ export class LogStorage implements ILogStorage {
     return this._logs.length;
   }
 
-  get all() {
-    return this._logs;
-  }
-
   add(log: Readonly<InternalLogAttributes>): void {
     this._logs.push(log);
     this._logsAdded = true;

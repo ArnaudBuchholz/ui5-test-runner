@@ -13,7 +13,6 @@ export type LogStorageQuery = {
 
 export interface ILogStorage {
   readonly length: number;
-  readonly all: Readonly<InternalLogAttributes>[];
   add(log: Readonly<InternalLogAttributes>): void;
   /** Always sorted by timestamp */
   fetch(query?: LogStorageQuery): Readonly<InternalLogAttributes>[];
