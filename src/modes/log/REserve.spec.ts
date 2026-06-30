@@ -8,6 +8,7 @@ import type { InternalLogAttributes } from '../../platform/logger/types.js';
 
 const storage = {
   length: 147,
+  all: [],
   add: vi.fn(),
   fetch: vi.fn().mockReturnValue([])
 } satisfies ILogStorage;

@@ -52,6 +52,11 @@ export const buildREserveConfiguration = (
     },
     {
       method: 'GET',
+      match: '/all',
+      custom: () => [storage.all],
+    },
+    {
+      method: 'GET',
       match: '/lib.js',
       custom: async () => [
         await getLibrarySource(),
