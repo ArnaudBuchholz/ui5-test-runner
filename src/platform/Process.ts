@@ -92,12 +92,12 @@ export class Process implements IProcess {
     this._closed = promise;
     this._childProcess.stdout?.on('data', (buffer: Buffer) => {
       const message = buffer.toString();
-      logger.debug({ source: 'process', processId: this.pid, message, data: { type: 'stdout' } });
+      logger.debug({ source: 'process/stdout', processId: this.pid, message });
       this._stdout.push(message);
     });
     this._childProcess.stderr?.on('data', (buffer: Buffer) => {
       const message = buffer.toString();
-      logger.debug({ source: 'process', processId: this.pid, message, data: { type: 'stderr' } });
+      logger.debug({ source: 'process/stderr', processId: this.pid, message });
       this._stderr.push(message);
     });
     this._childProcess.on('close', (code) => {

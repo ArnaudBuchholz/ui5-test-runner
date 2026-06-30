@@ -136,10 +136,9 @@ describe('spawn', () => {
     mockChildProcess?.emitStdout('data', 'b');
     mockChildProcess?.emitStdout('data', 'c');
     expect(logger.debug).toHaveBeenCalledWith({
-      source: 'process',
+      source: 'process/stdout',
       processId: childProcess.pid,
-      message: 'a',
-      data: { type: 'stdout' }
+      message: 'a'
     });
     expect(childProcess.stdout).toStrictEqual('abc');
   });
@@ -150,10 +149,9 @@ describe('spawn', () => {
     mockChildProcess?.emitStderr('data', 'b');
     mockChildProcess?.emitStderr('data', 'c');
     expect(logger.debug).toHaveBeenCalledWith({
-      source: 'process',
+      source: 'process/stderr',
       processId: childProcess.pid,
-      message: 'b',
-      data: { type: 'stderr' }
+      message: 'b'
     });
     expect(childProcess.stderr).toStrictEqual('abc');
   });

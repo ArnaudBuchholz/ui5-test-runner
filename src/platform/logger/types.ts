@@ -10,6 +10,8 @@ type GenericLogSource =
   | 'logger'
   | 'npm'
   | 'process'
+  | 'process/stdout'
+  | 'process/stderr'
   | 'puppeteer'
   | 'server'
   | 'server/unhandled';
