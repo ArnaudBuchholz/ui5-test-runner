@@ -30,6 +30,7 @@ export const factory = async (configuration: Configuration): Promise<IBrowser> =
       signal,
       args: ['--start-maximized']
     };
+    logger.debug({ source: 'puppeteer', message: 'launching browser' });
     try {
       browser = await launch(launchOptions);
     } catch (error) {

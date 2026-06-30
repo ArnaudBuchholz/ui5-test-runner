@@ -178,6 +178,7 @@ export const pageTask = async function (this: IParallelizeContext, url: string, 
       // TODO: document end of page with type and duration (to ease search)
     }
     try {
+      logger.debug({ source: 'page', message: 'closing page', pageId });
       await page?.close();
     } catch (error) {
       logger.error({ source: 'page', message: 'page.close failed', error, pageId, data: {} });
