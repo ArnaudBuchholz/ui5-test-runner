@@ -22,6 +22,7 @@ type PageContext = {
   lastExecuted: number;
   errors: number;
   lastTotal: number;
+  isSuite: boolean;
 };
 
 export const agentStateMessage = (agentState: AgentState): string => {
@@ -71,6 +72,7 @@ const queryAgentState = async (context: PageContext): Promise<boolean> => {
       for (const pageUrl of resolvedPages) {
         context.urls.push(pageUrl);
       }
+      context.isSuite = true;
       logger.debug({
         source: 'page',
         message: `suite: dispatching ${resolvedPages.length} pages`,
@@ -143,7 +145,8 @@ export const pageTask = async function (this: IParallelizeContext, url: string, 
       type: 'unknown',
       lastExecuted: 0,
       errors: 0,
-      lastTotal: 0
+      lastTotal: 0,
+      isSuite: false
     };
     while (!this.stopRequested) {
       try {
@@ -157,14 +160,16 @@ export const pageTask = async function (this: IParallelizeContext, url: string, 
       }
     }
     const testResults = (await page.eval("window['ui5-test-runner'].results")) as CommonTestReport['results'];
-    const { passed, failed, tests, duration } = testResults.summary;
-    const durationString = duration === undefined ? '' : ` (${duration}ms)`;
-    logger.debug({
-      source: 'page',
-      message: `test results: passed=${passed} failed=${failed} tests=${tests}${durationString}`,
-      pageId,
-      data: { results: testResults }
-    });
+    if (!context?.isSuite) {
+      const { passed, failed, tests, duration } = testResults.summary;
+      const durationString = duration === undefined ? '' : ` (${duration}ms)`;
+      logger.debug({
+        source: 'page',
+        message: `test results: passed=${passed} failed=${failed} tests=${tests}${durationString}`,
+        pageId,
+        data: { results: testResults }
+      });
+    }
     reportBuilder.merge(url, testResults);
     // TODO: add a catch block and document the problem in the test report
   } finally {
