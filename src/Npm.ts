@@ -114,7 +114,7 @@ export class Npm {
 
   /** Locate the module (or install it) then import it */
   static async import(configuration: Configuration, moduleName: string): Promise<unknown> {
-    logger.debug({ source: 'npm', message: `Npm.import(${moduleName})` });
+    logger.debug({ source: 'npm', message: `Importing module: ${moduleName}` });
 
     try {
       const module = await this.dynamicImport(moduleName);
