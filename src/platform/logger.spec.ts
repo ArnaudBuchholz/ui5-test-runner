@@ -383,7 +383,7 @@ describe('general', () => {
       vi.advanceTimersToNextTimer();
       expect(logger.debug).toHaveBeenCalledWith({
         source: 'metric',
-        message: '',
+        message: 'heapUsed=0MB cpu=0ms',
         data: {
           cpu: threadCpuUsage,
           mem: memoryUsage

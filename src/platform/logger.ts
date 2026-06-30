@@ -35,13 +35,14 @@ const start = () => {
   channel = Thread.createBroadcastChannel('logger');
 
   metricsMonitorInterval = setInterval(() => {
+    const cpu = Thread.threadCpuUsage();
+    const mem = Host.memoryUsage();
+    const heapUsedMB = Math.round(mem.heapUsed / 1024 / 1024);
+    const cpuUserMs = Math.round(cpu.user / 1000);
     logger.debug({
       source: 'metric',
-      message: '',
-      data: {
-        cpu: Thread.threadCpuUsage(),
-        mem: Host.memoryUsage()
-      }
+      message: `heapUsed=${heapUsedMB}MB cpu=${cpuUserMs}ms`,
+      data: { cpu, mem }
     });
   }, 1000);
 

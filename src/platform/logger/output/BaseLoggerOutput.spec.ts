@@ -163,7 +163,7 @@ describe('usual traces', () => {
       isMainThread: true,
       source: 'metric',
       level: LogLevel.info,
-      message: '',
+      message: 'heapUsed=0MB cpu=0ms',
       data: {
         cpu: {},
         mem: {}

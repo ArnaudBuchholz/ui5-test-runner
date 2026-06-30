@@ -54,7 +54,6 @@ export type LogAttributes = {
     }
   | {
       source: 'metric';
-      message: '';
       data: {
         cpu: object;
         mem: object;
