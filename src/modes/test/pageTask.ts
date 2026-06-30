@@ -67,10 +67,16 @@ const queryAgentState = async (context: PageContext): Promise<boolean> => {
   });
   if (agentState.done) {
     if (agentState.type === 'suite') {
-      for (const page of agentState.pages) {
-        const pageUrl = new URL(page, context.url).toString();
+      const resolvedPages = agentState.pages.map((page) => new URL(page, context.url).toString());
+      for (const pageUrl of resolvedPages) {
         context.urls.push(pageUrl);
       }
+      logger.debug({
+        source: 'page',
+        message: `suite: dispatching ${resolvedPages.length} pages`,
+        pageId: context.pageId,
+        data: { pages: resolvedPages }
+      });
     } else if (agentState.type === 'unknown') {
       logger.fatal({
         source: 'page',
