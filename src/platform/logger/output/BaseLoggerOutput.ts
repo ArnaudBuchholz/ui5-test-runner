@@ -26,6 +26,7 @@ type OverallProgress = {
 
 const DO_NOT_RENDER_SOURCE: InternalLogAttributes['source'][] = [
   'browser',
+  'browser/agent',
   'browser/console',
   'browser/network',
   'metric',
