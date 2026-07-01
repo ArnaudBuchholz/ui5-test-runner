@@ -1,8 +1,9 @@
 import { __developmentMode, __sourcesRoot, Path, FileSystem } from '../../platform/index.js';
 import { memoize } from '../../utils/shared/memoize.js';
-import type { Configuration } from 'reserve';
+import type { Configuration as REserveConfiguration } from 'reserve';
 import type { ILogStorage } from './ILogStorage.js';
 import type { LogMetrics } from './LogMetrics.js';
+import type { Configuration } from '../../configuration/Configuration.js';
 
 const getLibrarySource = memoize(async () => {
   /* v8 ignore next -- @preserve */
@@ -25,12 +26,18 @@ const getAsInt = (parameters: URLSearchParams, key: string): number | undefined 
   return value ? Number.parseInt(value) : undefined;
 };
 
-export const buildREserveConfiguration = (
-  storage: ILogStorage,
-  metrics: LogMetrics,
-  abortController: AbortController
-): Configuration => ({
-  port: 0,
+export const buildREserveConfiguration = ({
+  configuration,
+  storage,
+  metrics,
+  abortController
+}: {
+  configuration: Configuration;
+  storage: ILogStorage;
+  metrics: LogMetrics;
+  abortController: AbortController;
+}): REserveConfiguration => ({
+  port: configuration.port ?? 0,
   mappings: [
     {
       method: 'GET',

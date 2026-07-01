@@ -16,7 +16,14 @@ export const log = async (configuration: Configuration) => {
   const { promise, resolve } = Promise.withResolvers<void>();
   const abortController = new AbortController();
   const abortSignal = abortController.signal;
-  const server = serve(buildREserveConfiguration(storage, metrics, abortController));
+  const server = serve(
+    buildREserveConfiguration({
+      configuration,
+      storage,
+      metrics,
+      abortController
+    })
+  );
   const stop = async () => {
     stopped = true;
     await server?.close();

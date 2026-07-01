@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeAll, vi, beforeEach } from 'vitest';
 import { mock } from 'reserve';
 import { FileSystem } from '../../platform/index.js';
+import type { Configuration } from '../../configuration/Configuration.js';
 import type { ILogStorage } from './ILogStorage.js';
 import type { LogMetrics } from './LogMetrics.js';
 import { buildREserveConfiguration } from './REserve.js';
@@ -28,7 +29,9 @@ let abortController: AbortController;
 beforeAll(async () => {
   abortController = new AbortController();
   vi.spyOn(abortController, 'abort');
-  server = mock(buildREserveConfiguration(storage, fakeMetrics, abortController));
+  server = mock(
+    buildREserveConfiguration({ configuration: {} as Configuration, storage, metrics: fakeMetrics, abortController })
+  );
   const { promise, resolve, reject } = Promise.withResolvers<void>();
   server.on('ready', () => resolve()).on('error', (error) => reject(error));
   vi.mocked(FileSystem.readFile).mockResolvedValue('code');
