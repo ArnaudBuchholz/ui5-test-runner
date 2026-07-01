@@ -57,8 +57,13 @@ export class LogStorage implements ILogStorage {
     this._sortIfNeeded();
     const { from = 0, to = Number.MAX_SAFE_INTEGER, filter = '' } = query;
     let { skip = 0, limit = MAX_LIMIT } = query;
-    const filterExpression = LogStorage.buildFilterExpression(filter);
     limit = Math.max(0, Math.min(limit, MAX_LIMIT));
+    const hasRange = from !== 0 || to !== Number.MAX_SAFE_INTEGER;
+    const hasFilter = filter !== '';
+    if (!hasRange && !hasFilter) {
+      return this._logs.slice(skip, skip + limit);
+    }
+    const filterExpression = LogStorage.buildFilterExpression(filter);
     const records: InternalLogAttributes[] = [];
     for (let index = 0; limit > 0 && index < this._logs.length; ++index) {
       const log = this._logs[index]!;
