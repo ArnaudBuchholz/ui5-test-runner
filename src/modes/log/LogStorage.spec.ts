@@ -142,6 +142,14 @@ describe('query logs', () => {
       expect(records).not.toContain(log3);
     });
 
+    it('supports skip (with range)', () => {
+      const records = storage.fetch({ skip: 1, from: 20 });
+      expect(records).toHaveLength(MAX_LIMIT);
+      expect(records).not.toContain(log1);
+      expect(records).not.toContain(log2);
+      expect(records).toContain(log3);
+    });
+
     it('supports limit', () => {
       const records = storage.fetch({ limit: 1 });
       expect(records).toHaveLength(1);
@@ -164,6 +172,11 @@ describe('query logs', () => {
     expect(records).toHaveLength(2);
     expect(records).toContain(log2);
     expect(records).toContain(log3);
+  });
+
+  it('supports time range filtering (out of bound)', () => {
+    const records = storage.fetch({ from: 12_000, to: 13_000 });
+    expect(records).toHaveLength(0);
   });
 
   const filters: { [key: string]: (log: InternalLogAttributes) => boolean } = {

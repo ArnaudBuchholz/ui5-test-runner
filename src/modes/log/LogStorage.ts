@@ -33,9 +33,6 @@ export class LogStorage implements ILogStorage {
   }
 
   static buildFilterExpression(filter: string): (log: Readonly<InternalLogAttributes>) => boolean {
-    if (!filter) {
-      return () => true;
-    }
     const expression = punyexpr(filter);
 
     return (log) =>
@@ -53,36 +50,46 @@ export class LogStorage implements ILogStorage {
       });
   }
 
-  fetch(query: LogStorageQuery = {}): Readonly<InternalLogAttributes>[] {
-    this._sortIfNeeded();
-    const { from = 0, to = Number.MAX_SAFE_INTEGER, filter = '' } = query;
-    let { skip = 0, limit = MAX_LIMIT } = query;
-    limit = Math.max(0, Math.min(limit, MAX_LIMIT));
-    const hasRange = from !== 0 || to !== Number.MAX_SAFE_INTEGER;
-    const hasFilter = filter !== '';
-    if (!hasRange && !hasFilter) {
-      return this._logs.slice(skip, skip + limit);
-    }
-    const filterExpression = LogStorage.buildFilterExpression(filter);
-    const records: InternalLogAttributes[] = [];
-    for (let index = 0; limit > 0 && index < this._logs.length; ++index) {
-      const log = this._logs[index]!;
-      if (log.timestamp < from) {
-        continue;
+  _fetch(
+    query: Required<LogStorageQuery> & { cappedLimit: number; hasRange: boolean; hasFilter: boolean }
+  ): Readonly<InternalLogAttributes>[] {
+    const { from, to, filter, skip, cappedLimit, hasRange, hasFilter } = query;
+    const filterExpression = hasFilter ? LogStorage.buildFilterExpression(filter) : null;
+    let startIndex = 0;
+    if (hasRange) {
+      startIndex = this._logs.findIndex((log) => log.timestamp >= from);
+      if (startIndex === -1) {
+        return [];
       }
-      if (log.timestamp > to) {
+    }
+    const records: InternalLogAttributes[] = [];
+    let skipped = 0;
+    for (let index = startIndex; index < this._logs.length && records.length < cappedLimit; ++index) {
+      const log = this._logs[index]!;
+      if (hasRange && log.timestamp > to) {
         break;
       }
-      if (skip > 0) {
-        --skip;
+      if (filterExpression && !filterExpression(log)) {
         continue;
       }
-      if (!filterExpression(log)) {
+      if (skipped < skip) {
+        ++skipped;
         continue;
       }
       records.push(log);
-      --limit;
     }
     return records;
+  }
+
+  fetch(query: LogStorageQuery = {}): Readonly<InternalLogAttributes>[] {
+    this._sortIfNeeded();
+    const { from = 0, to = Number.MAX_SAFE_INTEGER, filter = '', skip = 0, limit = MAX_LIMIT } = query;
+    const cappedLimit = Math.min(limit, MAX_LIMIT);
+    const hasRange = from !== 0 || to !== Number.MAX_SAFE_INTEGER;
+    const hasFilter = filter !== '';
+    if (!hasRange && !hasFilter) {
+      return this._logs.slice(skip, skip + Math.max(cappedLimit, 0));
+    }
+    return this._fetch({ from, to, filter, skip, limit, cappedLimit, hasRange, hasFilter });
   }
 }
