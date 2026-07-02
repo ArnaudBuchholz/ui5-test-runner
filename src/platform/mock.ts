@@ -70,7 +70,7 @@ vi.mock(import('./Http.js'), async (importActual) => mockStaticMethodsOfExports(
 vi.mock(import('./Module.js'), async (importActual) => mockStaticMethodsOfExports(await importActual()));
 
 const logger = {
-  start: vi.fn(),
+  start: vi.fn(() => Promise.resolve()),
   debug: vi.fn(),
   info: vi.fn(),
   warn: vi.fn(),

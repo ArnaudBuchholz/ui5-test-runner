@@ -1,8 +1,10 @@
 import { Thread } from '../Thread.js';
-import type { LogMessage } from './types.js';
+import type { InternalLogAttributes, LogMessage } from './types.js';
 import '../logger.js';
 import type { Configuration } from '../../configuration/Configuration.js';
 import { LoggerOutputFactory } from './output/factory.js';
+
+const SORT_WINDOW_MS = 20;
 
 const fromHexaCode = (value: string): { r: number; g: number; b: number } => ({
   r: Number.parseInt(value.slice(1, 3), 16),
@@ -13,14 +15,31 @@ const fromHexaCode = (value: string): { r: number; g: number; b: number } => ({
 export const workerMain = ({ configuration, startedAt }: { configuration: Configuration; startedAt: number }) => {
   const loggerOutput = LoggerOutputFactory.build(configuration, startedAt);
 
+  const queue: InternalLogAttributes[] = [];
+  let flushTimer: ReturnType<typeof setTimeout> | undefined;
+
+  const flush = () => {
+    flushTimer = undefined;
+    queue.sort((a, b) => a.timestamp - b.timestamp);
+    for (const message of queue) {
+      loggerOutput.addAttributesToLoggerOutput(message);
+    }
+    queue.length = 0;
+  };
+
   const channel = Thread.createBroadcastChannel('logger');
   channel.onmessage = (event: { data: LogMessage }) => {
     const { data: message } = event;
     if (message.command === 'terminate') {
+      if (flushTimer !== undefined) {
+        clearTimeout(flushTimer);
+        flush();
+      }
       channel.close();
       loggerOutput.closeLoggerOutput();
     } else if (message.command === 'log') {
-      loggerOutput.addAttributesToLoggerOutput(message);
+      queue.push(message);
+      flushTimer ??= setTimeout(flush, SORT_WINDOW_MS);
     } else if (message.command === 'terminal-resized') {
       loggerOutput.terminalResized(message.width);
     }

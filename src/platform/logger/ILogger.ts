@@ -10,6 +10,6 @@ export interface ILogger {
 }
 
 export interface ILoggerService extends ILogger {
-  start(configuration: Configuration): void;
+  start(configuration: Configuration): Promise<void>;
   stop(): Promise<void>;
 }

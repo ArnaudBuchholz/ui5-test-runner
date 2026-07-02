@@ -25,6 +25,7 @@ vi.spyOn(LoggerOutputFactory, 'build').mockImplementation(
 
 beforeEach(() => {
   vi.clearAllMocks();
+  vi.useFakeTimers();
   workerMain({ configuration: { cwd: './tmp', reportDir: './tmp' } as Configuration, startedAt: Date.now() });
 });
 
@@ -37,7 +38,7 @@ it('displays an initial message', () => {
   expect(addTextToLoggerOutput).toHaveBeenCalled();
 });
 
-it('forwards log attributes to the loggerOutput', () => {
+it('forwards log attributes to the loggerOutput after the sort window', () => {
   const channel = Thread.createBroadcastChannel('logger');
   const logMessage: LogMessage = {
     command: 'log',
@@ -50,7 +51,30 @@ it('forwards log attributes to the loggerOutput', () => {
     message: 'Hello World !'
   };
   channel.postMessage(logMessage);
+  expect(addAttributesToLoggerOutput).not.toHaveBeenCalled();
+  vi.runAllTimers();
   expect(addAttributesToLoggerOutput).toHaveBeenCalledWith(logMessage);
+});
+
+it('sorts log messages by timestamp before forwarding', () => {
+  const channel = Thread.createBroadcastChannel('logger');
+  const makeLog = (timestamp: number): LogMessage => ({
+    command: 'log',
+    timestamp,
+    level: LogLevel.info,
+    processId: 1,
+    threadId: 2,
+    isMainThread: true,
+    source: 'job',
+    message: `t=${timestamp}`
+  });
+  channel.postMessage(makeLog(200));
+  channel.postMessage(makeLog(50));
+  channel.postMessage(makeLog(150));
+  vi.runAllTimers();
+  expect(addAttributesToLoggerOutput.mock.calls.map((c) => (c[0] as { timestamp: number }).timestamp)).toStrictEqual([
+    50, 150, 200
+  ]);
 });
 
 it('forwards terminal width to the loggerOutput', () => {
@@ -63,9 +87,21 @@ it('forwards terminal width to the loggerOutput', () => {
   expect(terminalResized).toHaveBeenCalledWith(80);
 });
 
-it('closes the broadcast channel and the loggerOutput when the terminate signal is received', () => {
+it('flushes pending messages immediately on terminate then closes', () => {
   const channel = Thread.createBroadcastChannel('logger');
+  const logMessage: LogMessage = {
+    command: 'log',
+    timestamp: 123,
+    level: LogLevel.info,
+    processId: 1,
+    threadId: 2,
+    isMainThread: true,
+    source: 'job',
+    message: 'Hello World !'
+  };
+  channel.postMessage(logMessage);
   channel.postMessage({ command: 'terminate' });
+  expect(addAttributesToLoggerOutput).toHaveBeenCalledWith(logMessage);
   expect(channel.close).toHaveBeenCalled();
   expect(closeLoggerOutput).toHaveBeenCalled();
 });

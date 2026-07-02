@@ -25,7 +25,7 @@ import { formatDuration } from '../../utils/shared/string.js';
 
 export const test = async (configuration: Configuration) => {
   await Folder.create(configuration.reportDir);
-  logger.start(configuration);
+  await logger.start(configuration);
   logger.debug({ source: 'job', message: 'Configuration', data: { defaults, configuration } });
 
   await logEnvironnement();

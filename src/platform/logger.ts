@@ -20,6 +20,7 @@ let consoleWorker: ReturnType<typeof Thread.createWorker> | undefined;
 const buffer: InternalLogAttributes[] = [];
 const waitingFor: ReadySource[] = ['allCompressed', 'output'];
 let ready = !Thread.isMainThread;
+const { promise: startPromise, resolve: startResolve } = Promise.withResolvers<void>();
 
 let metricsMonitorInterval: ReturnType<typeof setInterval>;
 
@@ -53,14 +54,17 @@ const start = () => {
       const index = waitingFor.indexOf(message.source);
       waitingFor.splice(index, 1); // Only two ready messages will be sent
       ready = waitingFor.length === 0;
-      if (ready && buffer.length > 0) {
-        for (const buffered of buffer) {
-          channel.postMessage({
-            command: 'log',
-            ...buffered
-          } satisfies LogMessage);
+      if (ready) {
+        if (buffer.length > 0) {
+          for (const buffered of buffer) {
+            channel.postMessage({
+              command: 'log',
+              ...buffered
+            } satisfies LogMessage);
+          }
+          buffer.length = 0;
         }
-        buffer.length = 0;
+        startResolve();
       }
     } else if (message.command === 'terminate') {
       clearInterval(metricsMonitorInterval);
@@ -92,7 +96,7 @@ if (!Thread.isMainThread) {
 let stopping: Promise<void> | undefined;
 
 export const logger = {
-  start(configuration: Configuration) {
+  async start(configuration: Configuration): Promise<void> {
     assert.ok(Thread.isMainThread, 'Call logger.start only in main thread');
     assert.ok(!loggerWorker && !consoleWorker, 'Call logger.start only once');
     start();
@@ -112,6 +116,7 @@ export const logger = {
       });
       Terminal.onResize(terminalResized);
     }
+    return startPromise;
   },
 
   debug(attributes: LogAttributes) {

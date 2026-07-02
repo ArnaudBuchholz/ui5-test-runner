@@ -48,10 +48,26 @@ describe('Main thread', () => {
     );
   });
 
+  it('resolves start() only after both workers signal ready', async () => {
+    const { logger } = await vi.importActual<{ logger: typeof LoggerType }>('./logger.js');
+    const channel = Thread.createBroadcastChannel('logger');
+    let resolved = false;
+    const starting = logger.start({ cwd } as Configuration).then(() => {
+      resolved = true;
+    });
+    expect(resolved).toBe(false);
+    ready(channel);
+    await starting;
+    expect(resolved).toBe(true);
+  });
+
   it('creates the logger workers when calling start', async () => {
     Object.assign(Thread, { isMainThread: true });
     const { logger } = await vi.importActual<{ logger: typeof LoggerType }>('./logger.js');
-    logger.start({ cwd } as Configuration);
+    const channel = Thread.createBroadcastChannel('logger');
+    const starting = logger.start({ cwd } as Configuration);
+    ready(channel);
+    await starting;
     expect(Thread.createWorker).toHaveBeenCalledWith('platform/logger/allCompressed', { configuration: { cwd } });
     expect(Thread.createWorker).toHaveBeenCalledWith('platform/logger/output', {
       configuration: { cwd },
@@ -62,10 +78,11 @@ describe('Main thread', () => {
 
   it('sends traces when the logger thread starts', async () => {
     const { logger } = await vi.importActual<{ logger: typeof LoggerType }>('./logger.js');
-    logger.start({ cwd } as Configuration);
+    const starting = logger.start({ cwd } as Configuration);
     const channel = Thread.createBroadcastChannel('logger');
     logger.debug({ source: 'job', message: 'test' });
     ready(channel);
+    await starting;
     expect(channel.postMessage).toHaveBeenCalledWith(
       expect.objectContaining({
         source: 'job',
@@ -90,8 +107,9 @@ describe('Main thread', () => {
     it('closes the logger worker', async () => {
       const { logger } = await vi.importActual<{ logger: typeof LoggerType }>('./logger.js');
       const channel = Thread.createBroadcastChannel('logger');
-      logger.start({ cwd } as Configuration);
+      const starting = logger.start({ cwd } as Configuration);
       ready(channel);
+      await starting;
       const closing = logger.stop();
       simulateWorkersExit();
       await closing;
@@ -101,10 +119,11 @@ describe('Main thread', () => {
     it('closing must wait for the sub workers to be started first', async () => {
       const { logger } = await vi.importActual<{ logger: typeof LoggerType }>('./logger.js');
       const channel = Thread.createBroadcastChannel('logger');
-      logger.start({ cwd } as Configuration);
+      const starting = logger.start({ cwd } as Configuration);
       const closing = logger.stop();
       await vi.advanceTimersToNextTimerAsync();
       ready(channel);
+      await starting;
       await vi.advanceTimersToNextTimerAsync();
       simulateWorkersExit();
       await closing;
@@ -114,8 +133,9 @@ describe('Main thread', () => {
     it('supports multiple closing', async () => {
       const { logger } = await vi.importActual<{ logger: typeof LoggerType }>('./logger.js');
       const channel = Thread.createBroadcastChannel('logger');
-      logger.start({ cwd } as Configuration);
+      const starting = logger.start({ cwd } as Configuration);
       ready(channel);
+      await starting;
       const firstClose = logger.stop();
       const secondClose = logger.stop();
       simulateWorkersExit();
@@ -126,13 +146,19 @@ describe('Main thread', () => {
   describe('raw mode', () => {
     it('uses raw mode (!ci)', async () => {
       const { logger } = await vi.importActual<{ logger: typeof LoggerType }>('./logger.js');
-      logger.start({ cwd } as Configuration);
+      const channel = Thread.createBroadcastChannel('logger');
+      const starting = logger.start({ cwd } as Configuration);
+      ready(channel);
+      await starting;
       expect(Terminal.setRawMode).toHaveBeenCalled();
     });
 
     it('detects CTRL+C and triggers Exit.sigInt', async () => {
       const { logger } = await vi.importActual<{ logger: typeof LoggerType }>('./logger.js');
-      logger.start({ cwd } as Configuration);
+      const channel = Thread.createBroadcastChannel('logger');
+      const starting = logger.start({ cwd } as Configuration);
+      ready(channel);
+      await starting;
       const buffer = Buffer.from([3]);
       expect.assert(typeof __lastTerminalRawModeCallback === 'function');
       __lastTerminalRawModeCallback(buffer);
@@ -141,7 +167,10 @@ describe('Main thread', () => {
 
     it('ignores other input', async () => {
       const { logger } = await vi.importActual<{ logger: typeof LoggerType }>('./logger.js');
-      logger.start({ cwd } as Configuration);
+      const channel = Thread.createBroadcastChannel('logger');
+      const starting = logger.start({ cwd } as Configuration);
+      ready(channel);
+      await starting;
       const buffer = Buffer.from([4]);
       expect.assert(typeof __lastTerminalRawModeCallback === 'function');
       __lastTerminalRawModeCallback(buffer);
@@ -150,7 +179,10 @@ describe('Main thread', () => {
 
     it('ignores other input (2)', async () => {
       const { logger } = await vi.importActual<{ logger: typeof LoggerType }>('./logger.js');
-      logger.start({ cwd } as Configuration);
+      const channel = Thread.createBroadcastChannel('logger');
+      const starting = logger.start({ cwd } as Configuration);
+      ready(channel);
+      await starting;
       const buffer = Buffer.from([3, 4]);
       expect.assert(typeof __lastTerminalRawModeCallback === 'function');
       __lastTerminalRawModeCallback(buffer);
@@ -159,7 +191,10 @@ describe('Main thread', () => {
 
     it('does not use raw mode (ci)', async () => {
       const { logger } = await vi.importActual<{ logger: typeof LoggerType }>('./logger.js');
-      logger.start({ cwd, ci: true } as Configuration);
+      const channel = Thread.createBroadcastChannel('logger');
+      const starting = logger.start({ cwd, ci: true } as Configuration);
+      ready(channel);
+      await starting;
       expect(Terminal.setRawMode).not.toHaveBeenCalled();
     });
   });
@@ -203,7 +238,7 @@ describe('Worker thread', () => {
   it('fails start if not on the main thread', async () => {
     Object.assign(Thread, { isMainThread: false });
     const { logger } = await vi.importActual<{ logger: typeof LoggerType }>('./logger.js');
-    expect(() => logger.start({ cwd } as Configuration)).toThrow(AssertionError);
+    await expect(logger.start({ cwd } as Configuration)).rejects.toThrow(AssertionError);
     expect(Thread.createWorker).not.toHaveBeenCalled();
     expect(Terminal.onResize).not.toHaveBeenCalled();
   });
