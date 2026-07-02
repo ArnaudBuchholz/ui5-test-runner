@@ -2,6 +2,7 @@ import { Exit, ExitShutdownError } from './Exit.js';
 import { Host } from './Host.js';
 import { Terminal } from './Terminal.js';
 import { Thread } from './Thread.js';
+import { performance } from 'node:perf_hooks';
 import type { Configuration } from '../configuration/Configuration.js';
 import type { InternalLogAttributes, LogAttributes, LogMessage, ReadySource } from './logger/types.js';
 import type { ILoggerService } from './logger/ILogger.ts';
@@ -23,6 +24,7 @@ let ready = !Thread.isMainThread;
 const { promise: startPromise, resolve: startResolve } = Promise.withResolvers<void>();
 
 let metricsMonitorInterval: ReturnType<typeof setInterval>;
+let lastELU = performance.eventLoopUtilization();
 
 // Only the main thread can access terminal as TTY
 const terminalResized = (width: number) => {
@@ -38,12 +40,15 @@ const start = () => {
   metricsMonitorInterval = setInterval(() => {
     const cpu = Thread.threadCpuUsage();
     const mem = Host.memoryUsage();
+    const temporaryELU = performance.eventLoopUtilization();
+    const elu = performance.eventLoopUtilization(temporaryELU, lastELU);
+    lastELU = temporaryELU;
     const heapUsedMB = Math.round(mem.heapUsed / 1024 / 1024);
     const cpuUserMs = Math.round(cpu.user / 1000);
     logger.debug({
       source: 'metric',
-      message: `heapUsed=${heapUsedMB}MB cpu=${cpuUserMs}ms`,
-      data: { cpu, mem }
+      message: `heapUsed=${heapUsedMB}MB cpu=${cpuUserMs}ms elu=${elu.utilization.toFixed(3)}`,
+      data: { cpu, mem, elu }
     });
   }, 1000);
 

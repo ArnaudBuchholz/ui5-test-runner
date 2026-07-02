@@ -166,7 +166,8 @@ describe('usual traces', () => {
       message: 'heapUsed=0MB cpu=0ms',
       data: {
         cpu: {},
-        mem: {}
+        mem: {},
+        elu: {}
       }
     });
     expect(addTextToLoggerOutput).not.toHaveBeenCalled();

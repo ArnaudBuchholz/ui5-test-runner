@@ -418,10 +418,11 @@ describe('general', () => {
       vi.advanceTimersToNextTimer();
       expect(logger.debug).toHaveBeenCalledWith({
         source: 'metric',
-        message: 'heapUsed=0MB cpu=0ms',
+        message: 'heapUsed=0MB cpu=0ms elu=1.000',
         data: {
           cpu: threadCpuUsage,
-          mem: memoryUsage
+          mem: memoryUsage,
+          elu: expect.any(Object) as object
         }
       });
     });

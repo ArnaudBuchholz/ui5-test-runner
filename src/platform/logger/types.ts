@@ -57,6 +57,7 @@ export type LogAttributes = {
       data: {
         cpu: object;
         mem: object;
+        elu: object;
       };
     }
   | {
