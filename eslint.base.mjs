@@ -1,23 +1,12 @@
 import eslint from '@eslint/js';
 import tseslint from 'typescript-eslint';
-import prettier from 'eslint-plugin-prettier';
+import prettier from 'eslint-plugin-prettier/recommended';
 import security from 'eslint-plugin-security';
 import noOnlyTests from 'eslint-plugin-no-only-tests';
-import importPlugin from 'eslint-plugin-import';
+import importPlugin from 'eslint-plugin-import-x';
 import stylistic from '@stylistic/eslint-plugin';
 import eslintPluginUnicorn from 'eslint-plugin-unicorn';
 import sonarjs from 'eslint-plugin-sonarjs';
-import path from 'node:path';
-import { fileURLToPath } from 'node:url';
-import { FlatCompat } from '@eslint/eslintrc';
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-const compat = new FlatCompat({
-  baseDirectory: __dirname,
-  recommendedConfig: eslint.configs.recommended,
-  allConfig: eslint.configs.all
-});
 
 export default [
   ...tseslint.config(eslint.configs.recommended, tseslint.configs.recommended, importPlugin.flatConfigs.recommended),
@@ -31,12 +20,11 @@ export default [
       }
     }
   })),
-  ...compat.extends('plugin:prettier/recommended', 'prettier'),
+  prettier,
   eslintPluginUnicorn.configs.recommended,
   sonarjs.configs.recommended,
   {
     plugins: {
-      prettier,
       security,
       'no-only-tests': noOnlyTests,
       stylistic
@@ -80,15 +68,15 @@ export default [
           fixStyle: 'separate-type-imports'
         }
       ],
-      'import/consistent-type-specifier-style': ['error', 'prefer-top-level'],
-      'import/extensions': [
+      'import-x/consistent-type-specifier-style': ['error', 'prefer-top-level'],
+      'import-x/extensions': [
         'error',
         'ignorePackages',
         {
           ts: 'never'
         }
       ],
-      'import/no-unresolved': 'off',
+      'import-x/no-unresolved': 'off',
       '@typescript-eslint/no-import-type-side-effects': 'error',
       '@typescript-eslint/no-explicit-any': 'error',
       'security/detect-unsafe-regex': 'error',
@@ -119,17 +107,23 @@ export default [
           checkInfinity: true
         }
       ],
+      'unicorn/prefer-global-number-constants': 'off',
       'unicorn/prefer-add-event-listener': 'off',
       'unicorn/prefer-top-level-await': 'off', // causes issues when running with js2ts.mjs
+      'unicorn/consistent-class-member-order': 'off', // prefer to add members close to their use
+      'unicorn/no-nonstandard-builtin-properties': 'off', // Use of Symbol.dispose
+      'unicorn/no-top-level-assignment-in-function': 'off',
       'sonarjs/todo-tag': 'warn',
       'sonarjs/no-skipped-tests': 'warn',
       'sonarjs/no-unused-vars': 'off' // covered by @typescript-eslint/no-unused-vars
     }
   },
   {
-    files: ['**/*.spec.ts'],
+    files: ['**/*.spec.ts', '**/*.test.ts', 'src/platform/mock.ts'],
     rules: {
       'unicorn/consistent-function-scoping': 'off',
+      'unicorn/no-global-object-property-assignment': 'off',
+      'unicorn/no-top-level-side-effects': 'off',
       'sonarjs/no-nested-functions': 'off'
     }
   },

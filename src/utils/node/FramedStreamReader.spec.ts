@@ -61,10 +61,7 @@ it('ends on null buffer', async () => {
   ]);
 
   const stream = FramedStreamReader.create(FILENAME);
-  const chunks: Buffer[] = [];
-  for await (const chunk of stream.read()) {
-    chunks.push(chunk);
-  }
+  const chunks: Buffer[] = await Array.fromAsync(stream.read());
   expect(chunks).toHaveLength(0);
 });
 
@@ -88,10 +85,7 @@ it('reads a single chunk in one go', async () => {
   ]);
 
   const stream = FramedStreamReader.create(FILENAME, 50);
-  const chunks: Buffer[] = [];
-  for await (const chunk of stream.read()) {
-    chunks.push(chunk);
-  }
+  const chunks: Buffer[] = await Array.fromAsync(stream.read());
 
   expect(chunks).toHaveLength(1);
   expect(chunks[0]!.toString()).toStrictEqual(data);
@@ -104,10 +98,7 @@ it('reads multiple chunks written in one go', async () => {
   writerPromise = writeToFile([{ delay: 0, buffer: [...chunk(data1), ...chunk(data2), ...nullChunk] }]);
 
   const stream = FramedStreamReader.create(FILENAME);
-  const chunks: Buffer[] = [];
-  for await (const chunk of stream.read()) {
-    chunks.push(chunk);
-  }
+  const chunks: Buffer[] = await Array.fromAsync(stream.read());
 
   expect(chunks).toHaveLength(2);
   expect(chunks[0]!.toString()).toStrictEqual(data1);
@@ -125,10 +116,7 @@ it('handles a chunk split across multiple writes', async () => {
   ]);
 
   const stream = FramedStreamReader.create(FILENAME, 50);
-  const chunks: Buffer[] = [];
-  for await (const chunk of stream.read()) {
-    chunks.push(chunk);
-  }
+  const chunks: Buffer[] = await Array.fromAsync(stream.read());
 
   expect(chunks).toHaveLength(1);
   expect(chunks[0]!.toString()).toStrictEqual(data);

@@ -45,10 +45,10 @@ export const test = async (configuration: Configuration) => {
     logger.info({ source: 'job', message: `UI5 version used by the local server: ${coreVersion}` });
 
     if (!configuration.url) {
-      configuration.url = [new URL(configuration.testsuite, `http://localhost:0`).toString()];
+      configuration.url = [new URL(configuration.testsuite, `http://localhost:0`).href];
     }
 
-    const urls = [...configuration.url.map((url) => url.replace(':0/', `:${port}/`))];
+    const urls = configuration.url.map((url) => url.replace(':0/', `:${port}/`));
     browser = await setupBrowser(configuration);
     logger.info({ source: 'progress', message: 'Executing pages', pageId: undefined, data: { value: 0, max: 0 } });
     let completed = 0;

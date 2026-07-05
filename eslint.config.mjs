@@ -16,11 +16,13 @@ export default [
   },
   {
     rules: {
-      'unicorn/prevent-abbreviations': [
+      'unicorn/name-replacements': [
         'error',
         {
           allowList: {
-            ZLib: true
+            ZLib: true,
+            Configuration: true,
+            configuration: true
           }
         }
       ]

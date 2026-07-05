@@ -184,11 +184,13 @@ function attachFilterBarEvents(): void {
   });
 
   searchInput?.addEventListener('keydown', (event) => {
-    if ((event as KeyboardEvent).key === 'Enter') {
-      const target = event.target as unknown as { value: string };
-      controller.interaction({ search: target.value });
-      writeHash(currentHashState());
+    if ((event as KeyboardEvent).key !== 'Enter') {
+      return;
     }
+
+    const target = event.target as unknown as { value: string };
+    controller.interaction({ search: target.value });
+    writeHash(currentHashState());
   });
 }
 

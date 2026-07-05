@@ -22,7 +22,7 @@ type Message =
 
 let channel: ReturnType<typeof Thread.createBroadcastChannel>;
 let serverWorker: ReturnType<typeof Thread.createWorker> | undefined;
-let stopping = false;
+let isStopping = false;
 
 export const server = {
   async start(configuration: Configuration): Promise<number> {
@@ -47,10 +47,10 @@ export const server = {
   },
 
   async stop() {
-    if (stopping) {
+    if (isStopping) {
       return;
     }
-    stopping = true;
+    isStopping = true;
     try {
       assert(serverWorker !== undefined);
       channel.postMessage({
@@ -58,10 +58,12 @@ export const server = {
       } satisfies Message);
       const { promise, resolve } = Promise.withResolvers<void>();
       channel.onmessage = ({ data: message }: { data: Message }) => {
-        if (message.command === 'terminated') {
-          channel.close();
-          resolve();
+        if (message.command !== 'terminated') {
+          return;
         }
+
+        channel.close();
+        resolve();
       };
       await promise;
     } finally {
@@ -75,16 +77,18 @@ export const workerMain = (configuration: Configuration) => {
   channel = Thread.createBroadcastChannel('server');
 
   channel.onmessage = ({ data: message }: { data: Message }) => {
-    if (message.command === 'terminate') {
-      logger.debug({ source: 'server', message: 'Stopping server...' });
-      void server.close().finally(() => {
-        logger.debug({ source: 'server', message: 'Server stopped.' });
-        channel.postMessage({
-          command: 'terminated'
-        } satisfies Message);
-        channel.close();
-      });
+    if (message.command !== 'terminate') {
+      return;
     }
+
+    logger.debug({ source: 'server', message: 'Stopping server...' });
+    void server.close().finally(() => {
+      logger.debug({ source: 'server', message: 'Server stopped.' });
+      channel.postMessage({
+        command: 'terminated'
+      } satisfies Message);
+      channel.close();
+    });
   };
 
   let server: Server;

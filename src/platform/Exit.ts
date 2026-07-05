@@ -54,7 +54,7 @@ const handleDescriptors: { [key in string]: (handle: Handle) => string } = {
   ChildProcess: (handle: Handle) => {
     return (
       `pid: ${handle.pid}` +
-      (handle.spawnargs ? ` ${handle.spawnargs.map((value: string) => ('' + value).replaceAll(' ', '␣'))}` : ' unknown')
+      (handle.spawnargs ? ` ${handle.spawnargs.map((value: string) => value.replaceAll(' ', '␣'))}` : ' unknown')
     );
   },
   ReadStream: (handle: Handle) => (handle.fd === 0 ? `stdin isTTY: ${handle.isTTY}` : `fd: ${handle.fd}`),
@@ -87,14 +87,14 @@ export class Exit {
       return;
     }
     const activeHandles: Handle[] = undocumentedProcess._getActiveHandles();
-    let messagePortFound = false;
+    let isMessagePortFound = false;
     for (const handle of activeHandles) {
       const { className, label } = describeHandle(handle);
       if (isStdStream(handle)) {
         logger?.debug({ source: 'exit/handle', message: `${className} ${label}` });
-      } else if (className === 'MessagePort' && !messagePortFound) {
+      } else if (className === 'MessagePort' && !isMessagePortFound) {
         // One MessagePort is expected to remain because of the BroadcastChannel
-        messagePortFound = true;
+        isMessagePortFound = true;
         logger?.debug({ source: 'exit/handle', message: `${className} ${label}` });
       } else {
         logger?.warn({ source: 'exit/handle', message: `possible leak ${className} ${label}` });

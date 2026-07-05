@@ -127,7 +127,8 @@ export const CommandLine = {
 
     if (errors.length === 1) {
       throw errors[0];
-    } else if (errors.length > 0) {
+    }
+    if (errors.length > 0) {
       throw new AggregateError(errors, 'Multiple errors occurred');
     }
 

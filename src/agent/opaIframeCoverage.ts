@@ -1,4 +1,4 @@
-import { IN_IFRAME } from './contants.js';
+import { IS_IN_IFRAME } from './contants.js';
 
 // TODO: how to make sure it is added to each IFrame ?
 
@@ -16,6 +16,6 @@ export const setCoverageHandler = (window: Window) => {
 };
 
 /* v8 ignore next -- @preserve */
-if (IN_IFRAME) {
+if (IS_IN_IFRAME) {
   setCoverageHandler(window);
 }

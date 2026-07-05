@@ -28,51 +28,53 @@ const checkIfDuplicate = (name, short) => {
 };
 
 for (const fileName of await readdir(OPTIONS_FOLDER)) {
-  if (fileName.endsWith('md')) {
-    const fileContent = await readFile(join(OPTIONS_FOLDER, fileName), 'utf8');
-    if (!fileContent.includes('"#type": "[[option]]"')) {
-      continue;
-    }
-    const name = fileName.split('.md', 1)[0];
-    const errors = [];
-    const [, properties] = fileContent.match(/---(:?(-|[^-])*)---/) ?? [];
-    const [, short] = properties.match(/short: (.*)/) ?? [];
-    if (checkIfDuplicate(name, short)) {
-      errors.push(`duplicate name / short detected: ${name} ${short ?? ''}`);
-    }
-    // eslint-disable-next-line sonarjs/super-linear-regex -- optional prefix is bounded by [^\]] so catastrophic backtracking cannot occur
-    const [, type] = properties.match(/type: "\[\[(?:[^\\\]]+\|)?([^\]]*)\]\]"/);
-    if (!types.includes(type)) {
-      errors.push(`Unknown type ${type}`);
-    }
-    const [, escapedDefaultValue, rawDefaultValue] = properties.match(/default: (?:"([^"]*)"|(.*))/) ?? [];
-    const defaultValue = rawDefaultValue ?? escapedDefaultValue;
-    const [, summary] = properties.match(/summary: (.*)/) ?? [];
-    const multiple = !!/multiple: yes/.test(properties);
-    if (defaultValue) {
-      defaults[name] = defaultValue;
-    }
-    let typeModifiers;
-    const [, typeModifiersList] = properties.match(/typeModifiers:((?:\n {2}- "[^"]*")*)/) ?? [];
-    if (typeModifiersList) {
-      typeModifiers = [];
-      // eslint-disable-next-line sonarjs/super-linear-regex -- optional prefix is bounded by [^\]] so catastrophic backtracking cannot occur
-      typeModifiersList.replaceAll(/"\[\[(?:[^\\\]]+\|)?([^\]]*)\]\]"/g, (_, modifier) => typeModifiers.push(modifier));
-    }
-    if (errors.length > 0) {
-      console.error(`❌ ${fileName} :\n\t` + errors.join('\n\t'));
-      process.exitCode = 1;
-    }
-    options[name] = {
-      name,
-      short,
-      type,
-      typeModifiers,
-      multiple,
-      description: summary,
-      default: defaultValue
-    };
+  if (!fileName.endsWith('md')) {
+    continue;
   }
+
+  const fileContent = await readFile(join(OPTIONS_FOLDER, fileName), 'utf8');
+  if (!fileContent.includes('"#type": "[[option]]"')) {
+    continue;
+  }
+  const name = fileName.split('.md', 1)[0];
+  const errors = [];
+  const [, properties] = fileContent.match(/---(:?(-|[^-])*)---/) ?? [];
+  const [, short] = properties.match(/short: (.*)/) ?? [];
+  if (checkIfDuplicate(name, short)) {
+    errors.push(`duplicate name / short detected: ${name} ${short ?? ''}`);
+  }
+  // eslint-disable-next-line sonarjs/super-linear-regex -- optional prefix is bounded by [^\]] so catastrophic backtracking cannot occur
+  const [, type] = properties.match(/type: "\[\[(?:[^\\\]]+\|)?([^\]]*)\]\]"/);
+  if (!types.includes(type)) {
+    errors.push(`Unknown type ${type}`);
+  }
+  const [, escapedDefaultValue, rawDefaultValue] = properties.match(/default: (?:"([^"]*)"|(.*))/) ?? [];
+  const defaultValue = rawDefaultValue ?? escapedDefaultValue;
+  const [, summary] = properties.match(/summary: (.*)/) ?? [];
+  const isMultiple = !!/multiple: yes/.test(properties);
+  if (defaultValue) {
+    defaults[name] = defaultValue;
+  }
+  let typeModifiers;
+  const [, typeModifiersList] = properties.match(/typeModifiers:((?:\n {2}- "[^"]*")*)/) ?? [];
+  if (typeModifiersList) {
+    typeModifiers = [];
+    // eslint-disable-next-line sonarjs/super-linear-regex -- optional prefix is bounded by [^\]] so catastrophic backtracking cannot occur
+    typeModifiersList.replaceAll(/"\[\[(?:[^\\\]]+\|)?([^\]]*)\]\]"/g, (_, modifier) => typeModifiers.push(modifier));
+  }
+  if (errors.length > 0) {
+    console.error(`❌ ${fileName} :\n\t` + errors.join('\n\t'));
+    process.exitCode = 1;
+  }
+  options[name] = {
+    name,
+    short,
+    type,
+    typeModifiers,
+    multiple: isMultiple,
+    description: summary,
+    default: defaultValue
+  };
 }
 
 // TODO: leverage dependsOn

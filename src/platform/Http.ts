@@ -16,10 +16,7 @@ export const Http = {
       const response = await fetch(url, {
         signal: controller.signal
       });
-      const headers: Record<string, string | string[]> = {};
-      for (const [name, value] of response.headers) {
-        headers[name] = value;
-      }
+      const headers: Record<string, string | string[]> = Object.fromEntries(response.headers);
       logger.debug({
         source: 'http',
         message: `${response.status} ${response.statusText}`,

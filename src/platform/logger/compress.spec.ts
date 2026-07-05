@@ -148,10 +148,7 @@ for (const attributes of examples) {
 
 it('does not duplicate information', () => {
   const context = createCompressionContext();
-  const parts: string[] = [];
-  for (const attributes of examples) {
-    parts.push(compress(context, attributes));
-  }
+  const parts: string[] = Array.from(examples, (attributes) => compress(context, attributes));
   const compressed = parts.join('');
   for (const line of compressed.split('\n')) {
     if (line) {

@@ -1,6 +1,6 @@
 import { stripVTControlCharacters } from 'node:util';
 
-const ASCII_ESCAPE = '\u001B';
+const ASCII_ESCAPE = '\u{1B}';
 const CSI = `${ASCII_ESCAPE}[`;
 
 export class Terminal {

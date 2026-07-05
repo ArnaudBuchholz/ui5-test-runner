@@ -108,7 +108,7 @@ export class ReportController extends AbstractUserInterfaceController<Settings, 
 
   protected override _onInteraction(stateDiff: Partial<State>, action?: Actions) {
     let update: Partial<State> = {};
-    let triggerUpdate = false;
+    let shouldTriggerUpdate = false;
     let suites: Suite[];
     if (stateDiff.report) {
       this._reset();
@@ -120,15 +120,15 @@ export class ReportController extends AbstractUserInterfaceController<Settings, 
         suites,
         mode: 'display'
       };
-      triggerUpdate = true;
+      shouldTriggerUpdate = true;
     }
     let tests = this._state.report.results.tests;
     if (this._needFilterOrSort(stateDiff)) {
       tests = this._filter(tests);
       tests = this._sort(tests);
-      triggerUpdate = true;
+      shouldTriggerUpdate = true;
     }
-    if (triggerUpdate) {
+    if (shouldTriggerUpdate) {
       this._update({
         ...update,
         tests: tests as TestAndBreadcrumbs[]

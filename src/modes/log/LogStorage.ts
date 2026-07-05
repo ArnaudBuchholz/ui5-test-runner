@@ -26,10 +26,12 @@ export class LogStorage implements ILogStorage {
   }
 
   private _sortIfNeeded() {
-    if (this._logsAdded) {
-      this._logs.sort((a, b) => a.timestamp - b.timestamp);
-      this._logsAdded = false;
+    if (!this._logsAdded) {
+      return;
     }
+
+    this._logs.sort((a, b) => a.timestamp - b.timestamp);
+    this._logsAdded = false;
   }
 
   static buildFilterExpression(filter: string): (log: Readonly<InternalLogAttributes>) => boolean {
@@ -50,7 +52,7 @@ export class LogStorage implements ILogStorage {
       });
   }
 
-  _fetch(
+  #fetch(
     query: Required<LogStorageQuery> & { cappedLimit: number; hasRange: boolean; hasFilter: boolean }
   ): Readonly<InternalLogAttributes>[] {
     const { from, to, filter, skip, cappedLimit, hasRange, hasFilter } = query;
@@ -90,6 +92,6 @@ export class LogStorage implements ILogStorage {
     if (!hasRange && !hasFilter) {
       return this._logs.slice(skip, skip + Math.max(cappedLimit, 0));
     }
-    return this._fetch({ from, to, filter, skip, limit, cappedLimit, hasRange, hasFilter });
+    return this.#fetch({ from, to, filter, skip, limit, cappedLimit, hasRange, hasFilter });
   }
 }

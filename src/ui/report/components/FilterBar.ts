@@ -53,9 +53,9 @@ export function renderFilterBar(state: State, settings: Settings): string {
 }
 
 export function renderSuitePopoverContent(suites: Suite[], currentUid: string): string {
-  const allActive = currentUid === '';
+  const isAllActive = currentUid === '';
   return (
-    `<div class="suite-item${allActive ? ' suite-item--active' : ''}" data-suite-uid="">All suites</div>` +
+    `<div class="suite-item${isAllActive ? ' suite-item--active' : ''}" data-suite-uid="">All suites</div>` +
     renderSuiteItems(suites, currentUid, 1)
   );
 }

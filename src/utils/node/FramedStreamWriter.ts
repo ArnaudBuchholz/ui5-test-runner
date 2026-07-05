@@ -23,12 +23,14 @@ export class FramedStreamWriter implements IFramedStreamWriter {
   }
 
   async write(buffer: Buffer) {
-    if (buffer.length > 0) {
-      const size = Buffer.alloc(4);
-      size.writeUInt32BE(buffer.length, 0);
-      await this._write(size);
-      await this._write(buffer);
+    if (buffer.length === 0) {
+      return;
     }
+
+    const size = Buffer.alloc(4);
+    size.writeUInt32BE(buffer.length, 0);
+    await this._write(size);
+    await this._write(buffer);
   }
 
   async end() {

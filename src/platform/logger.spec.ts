@@ -51,14 +51,14 @@ describe('Main thread', () => {
   it('resolves start() only after both workers signal ready', async () => {
     const { logger } = await vi.importActual<{ logger: typeof LoggerType }>('./logger.js');
     const channel = Thread.createBroadcastChannel('logger');
-    let resolved = false;
+    let isResolved = false;
     const starting = logger.start({ cwd } as Configuration).then(() => {
-      resolved = true;
+      isResolved = true;
     });
-    expect(resolved).toBe(false);
+    expect(isResolved).toBe(false);
     ready(channel);
     await starting;
-    expect(resolved).toBe(true);
+    expect(isResolved).toBe(true);
   });
 
   it('creates the logger workers when calling start', async () => {

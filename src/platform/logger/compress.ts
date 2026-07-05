@@ -4,7 +4,7 @@ import { isDeepStrictEqual } from 'node:util';
 import assert from 'node:assert/strict';
 import { split } from '../../utils/shared/string.js';
 
-const ASCII_RECORD_SEPARATOR = '\u001E';
+const ASCII_RECORD_SEPARATOR = '\u{1E}';
 
 export const DIGITS = Array.from({ length: 127 - 32 }, () => 0)
   .map((_, index) => String.fromCodePoint(32 + index))
@@ -239,8 +239,8 @@ const messageAndExtraSlot: DataSlot = {
     const [data, error] = JSON.parse(json) as [data: object | 0, error: object | 0];
     return {
       message,
-      ...(data ? { data } : {}),
-      ...(error ? { error } : {})
+      ...(data && { data }),
+      ...(error && { error })
     };
   }
 };

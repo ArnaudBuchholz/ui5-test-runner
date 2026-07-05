@@ -57,7 +57,7 @@ export class FramedStreamReader {
   private _buffer: Buffer = Buffer.alloc(0);
   private _task: IRegisteredAsyncTask | undefined;
 
-  async *_read(end: number) {
+  async *#read(end: number) {
     const fileStream = FileSystem.createReadStream(this._fileName, {
       start: this._startPos,
       end,
@@ -100,7 +100,7 @@ export class FramedStreamReader {
     while (this._reading) {
       const stats = await FileSystem.stat(this._fileName);
       if (stats.size > this._startPos) {
-        yield* this._read(stats.size - 1);
+        yield* this.#read(stats.size - 1);
       }
       if (this._reading) {
         await Promise.race([setTimeout(this._pollIntervalMs), abortSignal]);

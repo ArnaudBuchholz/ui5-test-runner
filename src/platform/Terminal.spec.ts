@@ -52,21 +52,21 @@ describe('write', () => {
 describe('special sequences', () => {
   it('hideCursor', () => {
     Terminal.hideCursor();
-    expect(Terminal.write).toHaveBeenCalledWith('\u001B[?25l');
+    expect(Terminal.write).toHaveBeenCalledWith('\u{1B}[?25l');
   });
 
   it('showCursor', () => {
     Terminal.showCursor();
-    expect(Terminal.write).toHaveBeenCalledWith('\u001B[?25h');
+    expect(Terminal.write).toHaveBeenCalledWith('\u{1B}[?25h');
   });
 
   it('eraseToEnd (0)', () => {
     Terminal.eraseToEnd(0);
-    expect(Terminal.write).toHaveBeenCalledWith('\u001B[0G');
+    expect(Terminal.write).toHaveBeenCalledWith('\u{1B}[0G');
   });
 
   it('eraseToEnd (10)', () => {
     Terminal.eraseToEnd(10);
-    expect(Terminal.write).toHaveBeenCalledWith('\u001B[0G\u001B[10A\u001B[0J');
+    expect(Terminal.write).toHaveBeenCalledWith('\u{1B}[0G\u{1B}[10A\u{1B}[0J');
   });
 });

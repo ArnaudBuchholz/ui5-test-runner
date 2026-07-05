@@ -99,11 +99,13 @@ export abstract class BaseLoggerOutput {
   };
 
   private _updateOverallProgressSnapshot(data: PageProgressData) {
-    if (data.type !== 'unknown') {
-      this._overallprogressSnapshot.totalNumberOfExecutedTests += data.value;
-      this._overallprogressSnapshot.totalNumberOfErrors += data.errors;
-      this._overallprogressSnapshot.totalNumberOfTests += data.max;
+    if (data.type === 'unknown') {
+      return;
     }
+
+    this._overallprogressSnapshot.totalNumberOfExecutedTests += data.value;
+    this._overallprogressSnapshot.totalNumberOfErrors += data.errors;
+    this._overallprogressSnapshot.totalNumberOfTests += data.max;
   }
 
   private _overallprogress: OverallProgress = {
@@ -115,11 +117,13 @@ export abstract class BaseLoggerOutput {
   private _updateOverallProgress() {
     const overallProgress = { ...this._overallprogressSnapshot };
     for (const pageProgress of Object.values(this._pageProgressMap) as PageProgress[]) {
-      if (pageProgress.type !== 'unknown') {
-        overallProgress.totalNumberOfExecutedTests += pageProgress.bar.value;
-        overallProgress.totalNumberOfErrors += pageProgress.errors;
-        overallProgress.totalNumberOfTests += pageProgress.bar.max;
+      if (pageProgress.type === 'unknown') {
+        continue;
       }
+
+      overallProgress.totalNumberOfExecutedTests += pageProgress.bar.value;
+      overallProgress.totalNumberOfErrors += pageProgress.errors;
+      overallProgress.totalNumberOfTests += pageProgress.bar.max;
     }
     this._overallprogress = overallProgress;
   }
@@ -183,13 +187,15 @@ export abstract class BaseLoggerOutput {
   }
 
   addAttributesToLoggerOutput(attributes: InternalLogAttributes): void {
-    if (this.renderAttributes(attributes)) {
-      const rendered = this.render(attributes);
-      if (rendered) {
-        const raw = Terminal.stripVTControlCharacters(rendered);
-        this.addTextToLoggerOutput(rendered, raw);
-        this.addToReport(raw);
-      }
+    if (!this.renderAttributes(attributes)) {
+      return;
+    }
+
+    const rendered = this.render(attributes);
+    if (rendered) {
+      const raw = Terminal.stripVTControlCharacters(rendered);
+      this.addTextToLoggerOutput(rendered, raw);
+      this.addToReport(raw);
     }
   }
 

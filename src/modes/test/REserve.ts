@@ -8,7 +8,7 @@ export const buildREserveConfiguration = (configuration: Configuration): REserve
   if (!ui5.endsWith('/')) {
     ui5 += '/';
   }
-  const mappingUrl = new URL('$1', ui5).toString();
+  const mappingUrl = new URL('$1', ui5).href;
 
   return {
     port: configuration.port ?? 0,

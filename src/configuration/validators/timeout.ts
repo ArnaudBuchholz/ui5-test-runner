@@ -11,7 +11,7 @@ export const timeout: OptionValidator<'timeout'> = (option, value) => {
       const [, digits = '0', specifier = ''] = match;
       let int = Number.parseInt(digits);
       if (['s', 'sec'].includes(specifier)) {
-        int = int * 1000;
+        int *= 1000;
       }
       if (['m', 'min'].includes(specifier)) {
         int = int * 60 * 1000;

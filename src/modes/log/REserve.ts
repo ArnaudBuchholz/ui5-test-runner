@@ -72,8 +72,8 @@ export const buildREserveConfiguration = ({
             limit: 1
           })[0];
           const suffix = index < length - 1 ? ',\n' : '\n';
-          const needDrain = !response.write('  ' + JSON.stringify(log) + suffix);
-          if (needDrain) {
+          const isDrainNeeded = !response.write('  ' + JSON.stringify(log) + suffix);
+          if (isDrainNeeded) {
             await new Promise<void>((resolve) => response.once('drain', resolve));
           }
         }

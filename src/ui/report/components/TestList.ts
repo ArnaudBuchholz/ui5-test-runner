@@ -56,8 +56,8 @@ function renderSortButtons(state: State, settings: Settings): string {
 
 export function renderTestListBody(state: State, settings: Settings): string {
   const { tests } = state;
-  const limited = tests.length > 1000;
-  const displayedTests = limited ? tests.slice(0, 1000) : tests;
+  const isLimited = tests.length > 1000;
+  const displayedTests = isLimited ? tests.slice(0, 1000) : tests;
 
   const passed = tests.filter((t) => t.status === 'passed').length;
   const failed = tests.filter((t) => t.status === 'failed').length;
@@ -72,7 +72,7 @@ export function renderTestListBody(state: State, settings: Settings): string {
     ...(other > 0 ? [`<ui5-tag design="None">${other} other</ui5-tag>`] : [])
   ].join('');
 
-  const warning = limited
+  const warning = isLimited
     ? `<div class="test-list-warning"><ui5-message-strip design="Warning" hide-close-button>More than 1000 tests match the current filters. Only the first 1000 are displayed. Use the filters above to narrow down the results.</ui5-message-strip></div>`
     : '';
 

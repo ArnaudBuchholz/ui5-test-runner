@@ -20,7 +20,7 @@ let loggerWorker: ReturnType<typeof Thread.createWorker> | undefined;
 let consoleWorker: ReturnType<typeof Thread.createWorker> | undefined;
 const buffer: InternalLogAttributes[] = [];
 const waitingFor: ReadySource[] = ['allCompressed', 'output'];
-let ready = !Thread.isMainThread;
+let isReady = !Thread.isMainThread;
 const { promise: startPromise, resolve: startResolve } = Promise.withResolvers<void>();
 
 let metricsMonitorInterval: ReturnType<typeof setInterval>;
@@ -58,8 +58,8 @@ const start = () => {
       terminalResized(Terminal.width);
       const index = waitingFor.indexOf(message.source);
       waitingFor.splice(index, 1); // Only two ready messages will be sent
-      ready = waitingFor.length === 0;
-      if (ready) {
+      isReady = waitingFor.length === 0;
+      if (isReady) {
         if (buffer.length > 0) {
           for (const buffered of buffer) {
             channel.postMessage({
@@ -83,7 +83,7 @@ const log = (level: LogLevel, attributes: LogAttributes) => {
   if (attributes.error) {
     allAttributes.error = toIError(attributes.error);
   }
-  if (ready && !stopping) {
+  if (isReady && !stopping) {
     channel.postMessage({
       command: 'log',
       ...allAttributes
@@ -114,10 +114,12 @@ export const logger = {
     });
     if (!configuration.ci) {
       Terminal.setRawMode((data) => {
-        if (data.length === 1 && data[0] === 3) {
-          logger.warn({ source: 'job', message: 'User requested interruption' });
-          Exit.sigInt();
+        if (!(data.length === 1 && data[0] === 3)) {
+          return;
         }
+
+        logger.warn({ source: 'job', message: 'User requested interruption' });
+        Exit.sigInt();
       });
       Terminal.onResize(terminalResized);
     }

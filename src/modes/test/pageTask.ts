@@ -68,7 +68,7 @@ const queryAgentState = async (context: PageContext): Promise<boolean> => {
   });
   if (agentState.done) {
     if (agentState.type === 'suite') {
-      const resolvedPages = agentState.pages.map((page) => new URL(page, context.url).toString());
+      const resolvedPages = agentState.pages.map((page) => new URL(page, context.url).href);
       for (const pageUrl of resolvedPages) {
         context.urls.push(pageUrl);
       }

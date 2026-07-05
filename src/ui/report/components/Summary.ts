@@ -21,9 +21,9 @@ export function renderSummary(state: State): string {
   const { report } = state;
   const { summary } = report.results;
 
-  const overallFailed = summary.failed > 0;
-  const statusDesign = overallFailed ? 'Negative' : 'Positive';
-  const statusLabel = overallFailed ? 'failed' : 'success';
+  const hasOverallFailed = summary.failed > 0;
+  const statusDesign = hasOverallFailed ? 'Negative' : 'Positive';
+  const statusLabel = hasOverallFailed ? 'failed' : 'success';
 
   const date = formatDate(report.timestamp);
   const reportId = report.reportId ? escapeHtml(report.reportId) : 'N/A';

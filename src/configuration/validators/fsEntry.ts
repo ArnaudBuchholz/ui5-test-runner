@@ -5,12 +5,12 @@ import type { Option } from '../Option.js';
 import type { Configuration } from '../Configuration.js';
 
 const fsCheckAccess = async (option: Option, path: string): Promise<string | undefined> => {
-  const overwrite = option.typeModifiers?.has('overwrite') ?? false;
+  const isOverwrite = option.typeModifiers?.has('overwrite') ?? false;
   try {
-    const mode = FileSystem.constants.R_OK | (overwrite ? FileSystem.constants.W_OK : 0);
+    const mode = FileSystem.constants.R_OK | (isOverwrite ? FileSystem.constants.W_OK : 0);
     await FileSystem.access(path, mode);
   } catch (error) {
-    if (overwrite) {
+    if (isOverwrite) {
       const code = typeof error === 'object' && error && 'code' in error && error.code;
       if (code === 'EACCES') {
         throw new OptionValidationError(option, 'Unable to access file system entry', error);
@@ -26,13 +26,13 @@ const fsCheckAccess = async (option: Option, path: string): Promise<string | und
 };
 
 const fsCheckStat = async (option: Option, path: string): Promise<void> => {
-  const file = option.typeModifiers?.has('file') ?? false;
+  const isFile = option.typeModifiers?.has('file') ?? false;
   try {
     const stat = await FileSystem.stat(path);
-    if (!file && !stat.isDirectory()) {
+    if (!isFile && !stat.isDirectory()) {
       throw new OptionValidationError(option, 'Not a folder');
     }
-    if (file && !stat.isFile()) {
+    if (isFile && !stat.isFile()) {
       throw new OptionValidationError(option, 'Not a file');
     }
   } catch (error) {

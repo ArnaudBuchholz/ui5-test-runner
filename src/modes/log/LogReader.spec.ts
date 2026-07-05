@@ -29,10 +29,7 @@ it('reads logs and emits status', async () => {
     yield chunk;
   });
   vi.mocked(ZLib.inflateRawSync).mockReturnValue(Buffer.from(inflated));
-  const items: LogReaderItem[] = [];
-  for await (const item of LogReader.read(FILENAME)) {
-    items.push(item);
-  }
+  const items: LogReaderItem[] = await Array.fromAsync(LogReader.read(FILENAME));
   expect(FramedStreamReader.create).toHaveBeenCalledWith(FILENAME, POLL_INTERVAL_MS);
   expect(ZLib.inflateRawSync).toHaveBeenCalledWith(chunk);
   const outputSize =

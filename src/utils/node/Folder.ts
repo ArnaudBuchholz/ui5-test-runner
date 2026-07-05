@@ -17,10 +17,8 @@ export const Folder = {
     logger.debug({ source: 'job', message: `Creating folder: ${path}` });
     try {
       await FileSystem.mkdir(path, recursive);
-    } catch (error_) {
-      const error = new Error(`Failed to create folder: ${path}`);
-      error.cause = error_;
-      throw error;
+    } catch (error) {
+      throw new Error(`Failed to create folder: ${path}`, { cause: error });
     }
   },
 

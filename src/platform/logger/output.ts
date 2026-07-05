@@ -48,7 +48,7 @@ export const workerMain = ({ configuration, startedAt }: { configuration: Config
   // Spice up the logo with UI5 official colors
   const from = fromHexaCode('#FF5A37');
   const to = fromHexaCode('#FFA42C');
-  const background = '\u001B[40m';
+  const background = '\u{1B}[40m';
   const diff = {
     r: to.r - from.r,
     g: to.g - from.g,
@@ -71,15 +71,15 @@ export const workerMain = ({ configuration, startedAt }: { configuration: Config
             const r = Math.floor(from.r + (diff.r * index) / width);
             const g = Math.floor(from.g + (diff.g * index) / width);
             const b = Math.floor(from.b + (diff.b * index) / width);
-            return `\u001B[38;2;${r};${g};${b}m` + c;
+            return `\u{1B}[38;2;${r};${g};${b}m` + c;
           })
           .join('') +
-        '\u001B[0m'
+        '\u{1B}[0m'
     )
     .join('\n');
 
   loggerOutput.addToReport(rawLogo + '\n');
-  loggerOutput.addTextToLoggerOutput(logo + '\u001B[0m\n', rawLogo + '\n');
+  loggerOutput.addTextToLoggerOutput(logo + '\u{1B}[0m\n', rawLogo + '\n');
 
   channel.postMessage({
     command: 'ready',

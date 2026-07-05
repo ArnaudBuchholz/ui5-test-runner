@@ -36,8 +36,7 @@ export class ProgressBar {
         ']',
         Math.floor(100 * ratio)
           .toString()
-          .padStart(3, ' ')
-          .toString(),
+          .padStart(3, ' '),
         '% '
       ];
     }

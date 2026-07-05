@@ -64,7 +64,7 @@ function applyColumnFilter(field: string): void {
   const content = document.querySelector('#columnFilterPopoverContent');
   if (!content) return;
   const checked = [...content.querySelectorAll('ui5-checkbox')].filter(
-    (callback) => (asUI5(callback)['checked'] as boolean) === true
+    (callback) => asUI5(callback)['checked'] as boolean
   );
   if (checked.length === 0) return;
   const values = checked.map((callback) => {

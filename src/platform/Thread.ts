@@ -32,7 +32,7 @@ export class Thread {
     }
     logger?.debug({ source: 'thread', message: `Creating worker for ${name}`, data });
     const bootstrapPath = Path.join(__sourcesRoot, 'platform/workerBootstrap' + extension);
-    const js2tsUrl = new URL('js2ts.mjs', import.meta.url).toString();
+    const js2tsUrl = new URL('js2ts.mjs', import.meta.url).href;
     /* v8 ignore next -- @preserve */
     const execArgv = extension === '.ts' ? ['--no-warnings', '--import', js2tsUrl] : [];
     const worker = new Worker(bootstrapPath, {

@@ -10,7 +10,7 @@ import { getInitialLogMetrics } from './LogMetrics.js';
 
 export const log = async (configuration: Configuration) => {
   const logFileName = configuration.log!; // Validated by configuration
-  let stopped = false;
+  let isStopped = false;
   const metrics = getInitialLogMetrics();
   const storage = LogStorage.create();
   const { promise, resolve } = Promise.withResolvers<void>();
@@ -25,7 +25,7 @@ export const log = async (configuration: Configuration) => {
     })
   );
   const stop = async () => {
-    stopped = true;
+    isStopped = true;
     await server?.close();
     resolve();
   };
@@ -56,7 +56,7 @@ export const log = async (configuration: Configuration) => {
   });
   // TODO: pass the abort signal here
   for await (const item of LogReader.read(logFileName, abortSignal)) {
-    if (stopped) {
+    if (isStopped) {
       break;
     }
     const { type, ...attributes } = item;
