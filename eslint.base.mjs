@@ -3,13 +3,13 @@ import tseslint from 'typescript-eslint';
 import prettier from 'eslint-plugin-prettier/recommended';
 import security from 'eslint-plugin-security';
 import noOnlyTests from 'eslint-plugin-no-only-tests';
-import importPlugin from 'eslint-plugin-import-x';
+import { flatConfigs } from 'eslint-plugin-import-x';
 import stylistic from '@stylistic/eslint-plugin';
 import eslintPluginUnicorn from 'eslint-plugin-unicorn';
 import sonarjs from 'eslint-plugin-sonarjs';
 
 export default [
-  ...tseslint.config(eslint.configs.recommended, tseslint.configs.recommended, importPlugin.flatConfigs.recommended),
+  ...tseslint.config(eslint.configs.recommended, tseslint.configs.recommended, flatConfigs.recommended),
   ...tseslint.configs.recommendedTypeCheckedOnly.map((config) => ({
     ...config,
     ignores: ['**/*.[cm]js', '**/*.js'],

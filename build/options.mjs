@@ -99,6 +99,7 @@ if (!process.exitCode) {
     const option = options[name];
     for (const [key, value] of Object.entries(option)) {
       if (value === undefined) {
+        // eslint-disable-next-line unicorn/no-break-in-nested-loop -- helper function
         continue;
       }
       if (key === 'default') {

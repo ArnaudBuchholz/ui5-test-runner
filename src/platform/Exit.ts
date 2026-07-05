@@ -45,7 +45,7 @@ const socketHandleDescriptor = (handle: Handle) => {
   if (handle._handle) {
     const underlyingHandle = handle._handle;
     const underlyingClassName = underlyingHandle && underlyingHandle.constructor && underlyingHandle.constructor.name;
-    return `${underlyingClassName || 'handle unknown'}`;
+    return underlyingClassName || 'handle unknown';
   }
   return 'unknown';
 };
@@ -112,10 +112,10 @@ export class Exit {
 
   static registerAsyncTask(task: IAsyncTask): IRegisteredAsyncTask {
     assert(Thread.isMainThread, 'Exit.registerAsyncTask can be called only on main thread');
-    if (Exit._enteringShutdown) {
+    if (this._enteringShutdown) {
       throw new ExitShutdownError();
     }
-    const id = ++Exit._asyncTaskId;
+    const id = ++this._asyncTaskId;
     this._asyncTasks.push({
       id,
       ...task
@@ -139,9 +139,9 @@ export class Exit {
   static async shutdown() {
     assert(Thread.isMainThread, 'Exit.shutdown can be called only on main thread');
     Exit._enteringShutdown = true;
-    const logLevel = Exit._logLevel;
-    while (Exit._asyncTasks.length > 0) {
-      const task = Exit._asyncTasks.at(-1)!; // length > 0
+    const logLevel = this._logLevel;
+    while (this._asyncTasks.length > 0) {
+      const task = this._asyncTasks.at(-1)!; // length > 0
       try {
         logger?.[logLevel]({ source: 'exit', message: `Stopping ${task.name}...` });
         // TODO: can we wait for task to be unregistered ?
@@ -150,12 +150,12 @@ export class Exit {
       } catch (error) {
         logger?.[logLevel]({ source: 'exit', message: `Failed while stopping ${task.name}...`, error });
       } finally {
-        if (task === Exit._asyncTasks.at(-1)) {
-          Exit._asyncTasks.pop();
+        if (task === this._asyncTasks.at(-1)) {
+          this._asyncTasks.pop();
         }
       }
     }
-    Exit._checkForHandlesLeak();
+    this._checkForHandlesLeak();
     logger?.[logLevel]({ source: 'exit', message: `Stopping logger...` });
     await logger?.stop();
   }

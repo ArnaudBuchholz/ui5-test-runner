@@ -39,17 +39,20 @@ const createMockChildProcess = () => {
     }),
     // Helper methods to trigger events in tests
     emit: (event: string, ...arguments_: unknown[]) => {
-      for (const handler of processHandlers.get(event) ?? []) {
+      const allHandlers = processHandlers.get(event) ?? [];
+      for (const handler of allHandlers) {
         handler(...arguments_);
       }
     },
     emitStdout: (event: string, ...arguments_: unknown[]) => {
-      for (const handler of stdoutHandlers.get(event) ?? []) {
+      const allHandlers = stdoutHandlers.get(event) ?? [];
+      for (const handler of allHandlers) {
         handler(...arguments_);
       }
     },
     emitStderr: (event: string, ...arguments_: unknown[]) => {
-      for (const handler of stderrHandlers.get(event) ?? []) {
+      const allHandlers = stderrHandlers.get(event) ?? [];
+      for (const handler of allHandlers) {
         handler(...arguments_);
       }
     }
