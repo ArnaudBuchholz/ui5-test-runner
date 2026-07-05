@@ -103,7 +103,7 @@ export class Npm {
         await FileSystem.readFile(Path.join(isLocal ? local : global, moduleName, 'package.json'), 'utf8')
       ) as { version: string };
       logger.info({ source: 'npm', message: `Installed version of ${moduleName} is ${installedVersion}` });
-      const latestVersion = await Npm.getLatestVersion(moduleName);
+      const latestVersion = await this.getLatestVersion(moduleName);
       if (latestVersion !== installedVersion) {
         logger.warn({ source: 'npm', message: `[PKGVRS] Latest version of ${moduleName} is ${latestVersion}` });
       }
@@ -119,7 +119,7 @@ export class Npm {
     try {
       const module = await this.dynamicImport(moduleName);
       logger.debug({ source: 'npm', message: `Module ${moduleName} found locally` });
-      void Npm.checkIfLatestVersion(moduleName, true);
+      void this.checkIfLatestVersion(moduleName, true);
       return module;
     } catch (error) {
       const code = (error as NodeJS.ErrnoException).code;
@@ -133,7 +133,7 @@ export class Npm {
     const fromGlobal = await this.tryImportFromPath(configuration, moduleName, globalRoot);
     if (fromGlobal !== undefined) {
       logger.debug({ source: 'npm', message: `Module ${moduleName} found globally` });
-      void Npm.checkIfLatestVersion(moduleName, false);
+      void this.checkIfLatestVersion(moduleName, false);
       return fromGlobal;
     }
 

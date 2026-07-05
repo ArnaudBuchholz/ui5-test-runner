@@ -13,7 +13,7 @@ registerHooks({
         const tsPath = filePath.slice(0, -3) + '.ts';
         try {
           accessSync(tsPath, constants.R_OK);
-          const url = fileUrl.toString().slice(0, -3) + '.ts';
+          const url = fileUrl.href.slice(0, -3) + '.ts';
           return {
             url,
             format: 'module',

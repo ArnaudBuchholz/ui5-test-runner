@@ -113,6 +113,7 @@ export default [
       'unicorn/consistent-class-member-order': 'off', // prefer to add members close to their use
       'unicorn/no-nonstandard-builtin-properties': 'off', // Use of Symbol.dispose
       'unicorn/no-top-level-assignment-in-function': 'off',
+      'unicorn/no-top-level-side-effects': 'off',
       'sonarjs/todo-tag': 'warn',
       'sonarjs/no-skipped-tests': 'warn',
       'sonarjs/no-unused-vars': 'off' // covered by @typescript-eslint/no-unused-vars
@@ -123,7 +124,6 @@ export default [
     rules: {
       'unicorn/consistent-function-scoping': 'off',
       'unicorn/no-global-object-property-assignment': 'off',
-      'unicorn/no-top-level-side-effects': 'off',
       'sonarjs/no-nested-functions': 'off'
     }
   },

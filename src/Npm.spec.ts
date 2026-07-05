@@ -12,7 +12,7 @@ class TestNpm extends Npm {
   static readonly dynamicImportSpy = vi.fn<(specifier: string) => Promise<unknown>>();
 
   protected static override dynamicImport(specifier: string): Promise<unknown> {
-    return TestNpm.dynamicImportSpy(specifier);
+    return this.dynamicImportSpy(specifier);
   }
 }
 

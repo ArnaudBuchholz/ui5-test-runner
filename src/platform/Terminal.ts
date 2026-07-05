@@ -6,7 +6,7 @@ const CSI = `${ASCII_ESCAPE}[`;
 export class Terminal {
   static readonly isTTY = process.stdout.isTTY;
   static onResize(callback: (width: number) => void) {
-    process.stdout.on('resize', () => callback(Terminal.width));
+    process.stdout.on('resize', () => callback(this.width));
   }
   static setRawMode(callback: ((buffer: Buffer) => void) | false) {
     if (callback === false) {
@@ -26,16 +26,16 @@ export class Terminal {
   }
   // see https://gist.github.com/fnky/458719343aabd01cfb17a3a4f7296797
   static hideCursor() {
-    Terminal.write(`${CSI}?25l`);
+    this.write(`${CSI}?25l`);
   }
   static showCursor() {
-    Terminal.write(`${CSI}?25h`);
+    this.write(`${CSI}?25h`);
   }
   static eraseToEnd(lines: number) {
     if (lines === 0) {
-      Terminal.write(`${CSI}0G`);
+      this.write(`${CSI}0G`);
     } else {
-      Terminal.write(`${CSI}0G${CSI}${lines}A${CSI}0J`);
+      this.write(`${CSI}0G${CSI}${lines}A${CSI}0J`);
     }
   }
   static readonly BLUE = `${CSI}34m`;

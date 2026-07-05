@@ -3,7 +3,7 @@ import type { Configuration } from './Configuration.js';
 import { ConfigurationValidator } from './ConfigurationValidator.js';
 import type { Option } from './Option.js';
 import { OptionValidationError } from './OptionValidationError.js';
-import { looksLikeAnUrl } from './validators/url.js';
+import { isLikeAnUrl } from './validators/url.js';
 
 type ConfigurationKeys = keyof Configuration;
 
@@ -66,7 +66,7 @@ const positionalOption: Option = {
 } as const;
 
 const handlePositional = (configuration: CommandLineConfiguration, value: string) => {
-  if (looksLikeAnUrl(value)) {
+  if (isLikeAnUrl(value)) {
     setOption(configuration, indexedOptions.url, value);
     return;
   }
