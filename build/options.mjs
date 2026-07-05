@@ -9,7 +9,8 @@ const defaults = {};
 const names = new Set();
 const shorts = new Set();
 
-for (const fileName of await readdir('src/configuration/validators')) {
+const validatorsFileNames = await readdir('src/configuration/validators');
+for (const fileName of validatorsFileNames) {
   const [, typeName] = fileName.match(/^(\w+)\.ts$/) ?? [];
   if (typeName && !['OptionValidator', 'index'].includes(typeName)) {
     types.push(typeName.replaceAll(/([A-Z])/g, (_, letter) => `-${letter.toLowerCase()}`));
@@ -27,7 +28,8 @@ const checkIfDuplicate = (name, short) => {
   return false;
 };
 
-for (const fileName of await readdir(OPTIONS_FOLDER)) {
+const optionsFileNames = await readdir(OPTIONS_FOLDER);
+for (const fileName of optionsFileNames) {
   if (!fileName.endsWith('md')) {
     continue;
   }
@@ -60,7 +62,9 @@ for (const fileName of await readdir(OPTIONS_FOLDER)) {
   if (typeModifiersList) {
     typeModifiers = [];
     // eslint-disable-next-line sonarjs/super-linear-regex -- optional prefix is bounded by [^\]] so catastrophic backtracking cannot occur
-    typeModifiersList.replaceAll(/"\[\[(?:[^\\\]]+\|)?([^\]]*)\]\]"/g, (_, modifier) => typeModifiers.push(modifier));
+    typeModifiersList.replaceAll(/"\[\[(?:[^\\\]]+\|)?([^\]]*)\]\]"/g, (_, modifier) => {
+      typeModifiers.push(modifier);
+    });
   }
   if (errors.length > 0) {
     console.error(`❌ ${fileName} :\n\t` + errors.join('\n\t'));
