@@ -63,18 +63,12 @@ fileInput.type = 'file';
 fileInput.accept = '.json';
 fileInput.style.display = 'none';
 
-fileInput.addEventListener('change', () => {
+fileInput.addEventListener('change', async () => {
   const file = fileInput.files?.[0];
   if (!file) return;
-  file
-    .text()
-    .then((text) => {
-      const report = JSON.parse(text) as CommonTestReport;
-      controller.interaction({ report });
-    })
-    .catch(() => {
-      /* ignore read errors */
-    });
+  const text = await file.text();
+  const report = JSON.parse(text) as CommonTestReport;
+  controller.interaction({ report });
   fileInput.value = '';
 });
 
@@ -217,8 +211,8 @@ function attachSortEvents(): void {
 
 function toggleTestRow(testRows: Element, index: string): void {
   const details = asHtml(testRows.querySelector(`.test-row-details[data-index="${CSS.escape(index)}"]`));
-  const toggleButton = asHtml(testRows.querySelector(`.test-toggle-btn[data-index="${CSS.escape(index)}"]`));
   if (!details) return;
+  const toggleButton = asHtml(testRows.querySelector(`.test-toggle-btn[data-index="${CSS.escape(index)}"]`));
   const isOpen = details.style.display !== 'none';
   details.style.display = isOpen ? 'none' : 'block';
   if (toggleButton) toggleButton.textContent = isOpen ? '[>]' : '[V]';

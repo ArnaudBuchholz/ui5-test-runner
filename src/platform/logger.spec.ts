@@ -296,8 +296,7 @@ describe('general', () => {
     it('extracts cause', async () => {
       const { logger } = await vi.importActual<{ logger: typeof LoggerType }>('./logger.js');
       const channel = Thread.createBroadcastChannel('logger');
-      const error = new Error('error');
-      error.cause = new Error('cause');
+      const error = new Error('error', { cause: new Error('cause') });
       logger.debug({ source: 'job', message: 'test', error });
       expect(channel.postMessage).toHaveBeenCalledWith(
         expect.objectContaining({

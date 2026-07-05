@@ -90,7 +90,8 @@ export class ReportController extends AbstractUserInterfaceController<Settings, 
         suites
       } satisfies Suite;
       const suitePath: string[] = [];
-      for (const suiteId of test.suite ?? []) {
+      const suiteIds = test.suite ?? [];
+      for (const suiteId of suiteIds) {
         suitePath.push(suiteId);
         const suiteUid = suitePath.join(SUITE_SEPARATOR);
         const suite = findSuite(parent.suites, suiteUid);
@@ -109,11 +110,10 @@ export class ReportController extends AbstractUserInterfaceController<Settings, 
   protected override _onInteraction(stateDiff: Partial<State>, action?: Actions) {
     let update: Partial<State> = {};
     let shouldTriggerUpdate = false;
-    let suites: Suite[];
     if (stateDiff.report) {
       this._reset();
       this._state.report = stateDiff.report;
-      suites = buildSuites(this._state.report.results.tests);
+      const suites = buildSuites(this._state.report.results.tests);
       this._injectBreadcrumbs(this._state.report.results.tests, suites);
       update = {
         ...this._state,

@@ -26,6 +26,7 @@ export const workerMain = ({ configuration }: { configuration: Configuration }) 
     clearTimeout(flushTimeout);
     flushTimeout = undefined;
     const compressed = ZLib.deflateRawSync(chunk, { level: ZLib.constants.Z_BEST_COMPRESSION });
+    // eslint-disable-next-line unicorn/prefer-await -- need to chain promise manually
     writePromise = writePromise.then(() => stream.write(compressed));
   };
 
