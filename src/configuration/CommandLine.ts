@@ -30,7 +30,7 @@ const setOption = (configuration: CommandLineConfiguration, option: Option, valu
     }
   } else {
     if (option.multiple) {
-      if (!(option.name in configuration)) {
+      if (!Object.hasOwn(configuration, option.name)) {
         Object.assign(configuration, {
           [name]: []
         });

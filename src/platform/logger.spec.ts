@@ -52,6 +52,7 @@ describe('Main thread', () => {
     const { logger } = await vi.importActual<{ logger: typeof LoggerType }>('./logger.js');
     const channel = Thread.createBroadcastChannel('logger');
     let isResolved = false;
+    // eslint-disable-next-line unicorn/prefer-await -- to check if the promise resolution is done at the right time
     const starting = logger.start({ cwd } as Configuration).then(() => {
       isResolved = true;
     });

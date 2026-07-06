@@ -48,7 +48,7 @@ function renderLevelFilterContent(): string {
 }
 
 function renderValueFilterContent(field: string, logs: State['logs']): string {
-  // eslint-disable-next-line sonarjs/no-alphabetical-sort -- Good enough
+  // eslint-disable-next-line sonarjs/no-alphabetical-sort, unicorn/require-array-sort-compare -- Good enough
   const values = [...new Set(logs.map((log) => (log as unknown as Record<string, unknown>)[field]))].toSorted();
   return values
     .map((v) => {
@@ -320,7 +320,7 @@ const TOOLBAR_FIELDS: ReadonlyArray<keyof State> = [
 ];
 
 function update(changed: Partial<State>): void {
-  if (TOOLBAR_FIELDS.some((f) => f in changed)) {
+  if (TOOLBAR_FIELDS.some((f) => Object.hasOwn(changed, f))) {
     rerenderToolbar();
   }
   if ('metrics' in changed) {

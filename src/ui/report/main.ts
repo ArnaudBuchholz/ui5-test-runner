@@ -63,6 +63,7 @@ fileInput.type = 'file';
 fileInput.accept = '.json';
 fileInput.style.display = 'none';
 
+// eslint-disable-next-line @typescript-eslint/no-misused-promises
 fileInput.addEventListener('change', async () => {
   const file = fileInput.files?.[0];
   if (!file) return;

@@ -48,7 +48,7 @@ export const test = async (configuration: Configuration) => {
       configuration.url = [new URL(configuration.testsuite, `http://localhost:0`).href];
     }
 
-    const urls = configuration.url.map((url) => url.replace(':0/', `:${port}/`));
+    const urls = configuration.url.map((url) => url.replace(':0/', () => `:${port}/`));
     browser = await setupBrowser(configuration);
     logger.info({ source: 'progress', message: 'Executing pages', pageId: undefined, data: { value: 0, max: 0 } });
     let completed = 0;
@@ -60,8 +60,7 @@ export const test = async (configuration: Configuration) => {
         if (event.type === 'failed') {
           logger.error({ source: 'job', message: 'page failed', error: event.error, data: { url: event.input } });
           Exit.code = -1;
-        }
-        if (event.type === 'completed') {
+        } else if (event.type === 'completed') {
           ++completed;
         }
         if (lastLoggedCompleted !== completed || lastLoggedMax !== urls.length) {

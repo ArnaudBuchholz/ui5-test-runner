@@ -96,6 +96,7 @@ export class ReportController extends AbstractUserInterfaceController<Settings, 
         const suiteUid = suitePath.join(SUITE_SEPARATOR);
         const suite = findSuite(parent.suites, suiteUid);
         if (!suite) {
+          // eslint-disable-next-line unicorn/no-break-in-nested-loop -- simpler that way
           break;
         }
         breadcrumbs.push(suite);

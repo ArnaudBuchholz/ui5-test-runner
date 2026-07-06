@@ -17,6 +17,7 @@ const mockMethods = (object: Record<string, unknown>, members: string[]) => {
 const mockStaticMethodsOfExports = <T extends object>(actual: T): T => {
   const mocked = { ...actual };
   for (const exportName in mocked) {
+    // eslint-disable-next-line unicorn/no-unsafe-property-key -- safe because enumerated
     const exportValue = mocked[exportName as keyof T];
     if (typeof exportValue === 'function') {
       mockMethods(exportValue as Record<string, unknown>, Object.getOwnPropertyNames(exportValue));

@@ -44,7 +44,8 @@ const socketHandleDescriptor = (handle: Handle) => {
   }
   if (handle._handle) {
     const underlyingHandle = handle._handle;
-    const underlyingClassName = underlyingHandle && underlyingHandle.constructor && underlyingHandle.constructor.name;
+    const underlyingClassName: string =
+      underlyingHandle && underlyingHandle.constructor && underlyingHandle.constructor.name;
     return underlyingClassName || 'handle unknown';
   }
   return 'unknown';
@@ -160,13 +161,13 @@ export class Exit {
     await logger?.stop();
   }
 
-  static sigInt(this: void) {
+  static sigInt(this: typeof Exit) {
     Exit._logLevel = 'info';
-    void Exit.shutdown();
+    void this.shutdown();
   }
 }
 
 /* v8 ignore else -- @preserve */
 if (Thread.isMainThread) {
-  process.on('SIGINT', Exit.sigInt);
+  process.on('SIGINT', () => Exit.sigInt());
 }
