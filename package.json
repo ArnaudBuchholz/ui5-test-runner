@@ -28,7 +28,7 @@
     "test:openui5": "npm run cli -- --url http://localhost:8000/test-resources/sap/ui/core/qunit/testsuite.qunit.html --parallel 4",
     "test:openui5.uncaught": "npm run cli -- --url \"http://localhost:8000/resources/sap/ui/test/starter/Test.qunit.html?testsuite=test-resources/sap/ui/core/qunit/odata/v2/testsuite.odatav2.qunit&test=ODataV2TreeBindingFlat_MockSrv\"",
     "lint": "dpdm src/cli.ts --circular --tree false --warning false --skip-dynamic-imports circular && npm run eslint -- --fix --cache --cache-strategy content && tsc --build --noEmit",
-    "eslint": "eslint \"**/*.mjs\" \"./src/**/*.ts\"",
+    "eslint": "eslint \"**/*.mjs\" \"./src/**/*.ts\" --concurrency=auto",
     "build:options": "node build/options.mjs > ./src/configuration/options.ts && npm run lint",
     "build:agent": "vite build",
     "build:ui:report": "vite build -c src/ui/report/vite.config.mjs",

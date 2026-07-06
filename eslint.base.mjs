@@ -116,7 +116,8 @@ export default [
       'unicorn/no-top-level-side-effects': 'off',
       'sonarjs/todo-tag': 'warn',
       'sonarjs/no-skipped-tests': 'warn',
-      'sonarjs/no-unused-vars': 'off' // covered by @typescript-eslint/no-unused-vars
+      'sonarjs/no-unused-vars': 'off', // covered by @typescript-eslint/no-unused-vars
+      'sonarjs/aws-restricted-ip-admin-access': 'off' // useless
     }
   },
   {
