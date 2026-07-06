@@ -1,14 +1,5 @@
 export type OptionType =
-  | 'boolean'
-  | 'browser'
-  | 'enumeration'
-  | 'fs-entry'
-  | 'integer'
-  | 'percent'
-  | 'regexp'
-  | 'string'
-  | 'timeout'
-  | 'url';
+  'boolean' | 'browser' | 'enumeration' | 'fs-entry' | 'integer' | 'percent' | 'regexp' | 'string' | 'timeout' | 'url';
 
 export type InferOptionType<T extends OptionType> = T extends 'boolean'
   ? boolean

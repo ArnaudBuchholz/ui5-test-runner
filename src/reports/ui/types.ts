@@ -28,7 +28,8 @@ export type State = {
   search: string;
   sortBy: (typeof SORT_BY)[number]['key'];
   sortAscending: boolean;
-  readonly mode: /** asks user to pick a file to open */
+  readonly mode:
+    /** asks user to pick a file to open */
     | 'open'
     /** displays report */
     | 'display';

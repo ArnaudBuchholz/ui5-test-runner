@@ -1,6 +1,6 @@
 import eslint from '@eslint/js';
 import tseslint from 'typescript-eslint';
-import prettier from 'eslint-plugin-prettier/recommended';
+import prettierConfig from 'eslint-config-prettier';
 import security from 'eslint-plugin-security';
 import noOnlyTests from 'eslint-plugin-no-only-tests';
 import { flatConfigs } from 'eslint-plugin-import-x';
@@ -20,7 +20,7 @@ export default [
       }
     }
   })),
-  prettier,
+  prettierConfig,
   eslintPluginUnicorn.configs.recommended,
   sonarjs.configs.recommended,
   {
@@ -35,18 +35,6 @@ export default [
       }
     },
     rules: {
-      // prettier
-      'prettier/prettier': [
-        'error',
-        {
-          semi: true,
-          singleQuote: true,
-          tabWidth: 2,
-          useTabs: false,
-          printWidth: 120,
-          trailingComma: 'none'
-        }
-      ],
       'no-unused-vars': 'off',
       'comma-dangle': ['error', 'never'],
       '@typescript-eslint/no-unused-vars': [
