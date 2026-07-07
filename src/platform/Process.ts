@@ -33,7 +33,7 @@ export class Process implements IProcess {
     arguments_,
     options = {}
   ) => {
-    const finalCommand = command === 'node' ? (process.argv[0] as string) : command;
+    const finalCommand = command === 'node' ? (Host.argv[0] as string) : command;
     let asyncTask: IRegisteredAsyncTask | undefined;
     try {
       const stopper = new ProcessStopper();

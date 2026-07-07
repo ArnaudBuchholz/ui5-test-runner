@@ -1,6 +1,7 @@
 import { machine, cpus, platform } from 'node:os';
 
 export class Host {
+  static readonly argv = process.argv;
   static readonly cpus = cpus;
   static readonly cwd = process.cwd.bind(process);
   static readonly machine = machine;

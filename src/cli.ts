@@ -8,8 +8,8 @@ import { execute } from './modes/execute.js';
 try {
   const cliVersion = await version();
   const cliName = cliVersion.split('@', 1)[0] ?? 'ui5-test-runner';
-  const indexOfCli = process.argv.findIndex((value) => /[\\/]cli(\.[tj]s)?$/.exec(value) || value.endsWith(cliName));
-  const configuration = await CommandLine.buildConfigurationFrom(Host.cwd(), process.argv.slice(indexOfCli + 1));
+  const indexOfCli = Host.argv.findIndex((value) => /[\\/]cli(\.[tj]s)?$/.exec(value) || value.endsWith(cliName));
+  const configuration = await CommandLine.buildConfigurationFrom(Host.cwd(), Host.argv.slice(indexOfCli + 1));
   await execute(configuration);
 } catch (error) {
   console.error(error);
