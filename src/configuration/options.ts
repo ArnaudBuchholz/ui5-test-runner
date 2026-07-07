@@ -55,6 +55,16 @@ export const options = [
     description: 'keeps the browser open after the tests completed'
   },
   {
+    name: 'end',
+    type: 'string',
+    description: 'command to be executed after the tests'
+  },
+  {
+    name: 'endTimeout',
+    type: 'timeout',
+    description: 'maximum waiting time for the end command to execute'
+  },
+  {
     name: 'failFast',
     short: 'f',
     type: 'boolean',
