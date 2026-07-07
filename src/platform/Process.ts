@@ -11,6 +11,7 @@ export interface IProcess {
   readonly stderr: string;
   readonly code: number | undefined;
   readonly closed: Promise<void>;
+  kill(): Promise<void>;
 }
 
 class ProcessStopper {
