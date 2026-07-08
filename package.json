@@ -89,7 +89,7 @@
     "@ui5/webcomponents": "^2.23.2",
     "@ui5/webcomponents-fiori": "^2.23.2",
     "@vitest/coverage-v8": "^4.1.9",
-    "baseline-browser-mapping": "^2.10.41",
+    "baseline-browser-mapping": "^2.10.42",
     "dotenv": "^17.4.2",
     "dpdm": "^4.2.0",
     "@eslint/js": "^10.0.1",
