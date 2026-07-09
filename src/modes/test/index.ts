@@ -44,6 +44,17 @@ export const test = async (configuration: Configuration) => {
     };
     logger.info({ source: 'job', message: `UI5 version used by the local server: ${coreVersion}` });
 
+    if (configuration.serveOnly) {
+      const { promise, resolve } = Promise.withResolvers<void>();
+      Exit.registerAsyncTask({
+        name: 'serveOnly',
+        stop: () => resolve()
+      });
+      logger.warn({ source: 'job', message: 'Serving only, use CTRL+C to end command' });
+      await promise;
+      return;
+    }
+
     if (!configuration.url) {
       configuration.url = [new URL(configuration.testsuite, `http://localhost:0`).href];
     }
