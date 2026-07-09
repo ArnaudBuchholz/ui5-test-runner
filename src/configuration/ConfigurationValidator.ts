@@ -71,7 +71,6 @@ export const ConfigurationValidator = {
     const merged = await this.merge(withDefaults);
     merged.mode = this.computeMode(merged);
     for (const option of options) {
-      // eslint-disable-next-line  unicorn/no-computed-property-existence-check -- want to handle prototype inheritance
       if (Object.hasOwn(merged, option.name) || (merged[option.name] && option.type === 'fs-entry')) {
         Object.assign(merged, {
           [option.name]: await validateValue(option, merged)

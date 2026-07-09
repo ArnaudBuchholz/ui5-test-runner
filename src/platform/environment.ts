@@ -11,7 +11,6 @@ export const logEnvironnement = async () => {
   });
   const cpus: { [key in string]?: number } = {};
   for (const { model } of Host.cpus()) {
-    // eslint-disable-next-line unicorn/no-computed-property-existence-check -- needed to validate next line
     if (cpus[model]) {
       ++cpus[model];
     } else {
