@@ -32,11 +32,6 @@ export const options = [
     default: 'puppeteer'
   },
   {
-    name: 'capabilities',
-    type: 'boolean',
-    description: 'run browser tests'
-  },
-  {
     name: 'ci',
     type: 'boolean',
     description: 'forces CI mode (no interactive output)',

@@ -13,7 +13,6 @@ const notImplemented = () => {
 
 const modeFunctions: { [key in Modes]: ModeFunction } = {
   [Modes.batch]: notImplemented,
-  [Modes.capabilities]: notImplemented,
   [Modes.help]: help,
   [Modes.legacy]: test,
   [Modes.log]: log,

@@ -1,6 +1,5 @@
 export const Modes = {
   batch: 'batch',
-  capabilities: 'capabilities',
   help: 'help',
   legacy: 'legacy',
   log: 'log',
