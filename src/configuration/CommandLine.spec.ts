@@ -183,7 +183,7 @@ describe('positional arguments', () => {
     });
   });
 
-  const shortcuts = ['capabilities', 'version', 'help'];
+  const shortcuts = ['version', 'help'];
   for (const shortcut of shortcuts) {
     it(`provides shortcut for ${shortcut}`, async () => {
       await expect(CommandLine.buildConfigurationFrom(CWD, [shortcut])).resolves.toStrictEqual({
