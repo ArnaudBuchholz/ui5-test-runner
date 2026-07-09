@@ -106,6 +106,10 @@ export class Exit {
     }
   }
 
+  static get code() {
+    return (process.exitCode ?? 0) as number;
+  }
+
   static set code(code: number) {
     assert(Thread.isMainThread, 'Exit.code can be set only on main thread');
     process.exitCode = code;
