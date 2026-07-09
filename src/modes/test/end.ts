@@ -14,10 +14,12 @@ export const end = async (configuration: Configuration): Promise<void> => {
   let code: number | undefined;
   if (configuration.endTimeout) {
     let didTimeout = false;
-    const timeout = new Promise<void>((resolve) => setTimeout(() => {
-      didTimeout = true;
-      resolve();
-    }, configuration.endTimeout));
+    const timeout = new Promise<void>((resolve) =>
+      setTimeout(() => {
+        didTimeout = true;
+        resolve();
+      }, configuration.endTimeout)
+    );
     await Promise.race([process.closed, timeout]);
     if (didTimeout) {
       logger.fatal({ source: 'job', message: 'End command timed out, killing' });
