@@ -26,6 +26,16 @@ export const Command = {
     } else if (commandSpecifier !== 'node') {
       executable = commandSpecifier;
     }
-    return [executable, parameters];
+    return [
+      executable,
+      parameters.map((parameter) => {
+        if (parameter.startsWith('{{') && parameter.endsWith('}}')) {
+          const optionName = parameter.slice(2, -2) as keyof Configuration;
+          assert(optionName in configuration, `Invalid command line substitution parameter: ${optionName}`);
+          return configuration[optionName]?.toString() ?? '';
+        }
+        return parameter;
+      })
+    ];
   }
 };

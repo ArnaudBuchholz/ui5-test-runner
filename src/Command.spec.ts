@@ -3,7 +3,10 @@ import { Command } from './Command.js';
 import type { Configuration } from './configuration/Configuration.js';
 import { Npm } from './Npm.js';
 
-const EMPTY_CONFIGURATION = {} as Configuration;
+const TEST_CONFIGURATION = {
+  cwd: '/home/usr',
+  reportDir: '/home/usr/report'
+} as Configuration;
 
 describe('Command.split', () => {
   it('split the command on spaces', () => {
@@ -33,18 +36,33 @@ describe('Command.split', () => {
 
 describe('Command.parse', () => {
   it('splits the command', async () => {
-    await expect(Command.parse(EMPTY_CONFIGURATION, 'bash test')).resolves.toStrictEqual(['bash', ['test']]);
+    await expect(Command.parse(TEST_CONFIGURATION, 'bash test')).resolves.toStrictEqual(['bash', ['test']]);
   });
 
   it('splits the command (using node)', async () => {
-    await expect(Command.parse(EMPTY_CONFIGURATION, 'node test')).resolves.toStrictEqual(['node', ['test']]);
+    await expect(Command.parse(TEST_CONFIGURATION, 'node test')).resolves.toStrictEqual(['node', ['test']]);
   });
 
   it('replaces npm with node and npm cli path', async () => {
     vi.spyOn(Npm, 'getCliPath').mockResolvedValue('npm_cli.js');
-    await expect(Command.parse(EMPTY_CONFIGURATION, 'npm run test')).resolves.toStrictEqual([
+    await expect(Command.parse(TEST_CONFIGURATION, 'npm run test')).resolves.toStrictEqual([
       'node',
       ['npm_cli.js', 'run', 'test']
     ]);
+  });
+
+  describe('parameter substitution', () => {
+    it('replaces a parameter with its equivalent in config', async () => {
+      await expect(Command.parse(TEST_CONFIGURATION, 'npm run test -- {{reportDir}}')).resolves.toStrictEqual([
+        'node',
+        ['npm_cli.js', 'run', 'test', '--', '/home/usr/report']
+      ]);
+    });
+
+    it('fails if trying to use an known a parameter', async () => {
+      await expect(Command.parse(TEST_CONFIGURATION, 'npm run test -- {{reportDi}}')).rejects.toThrow(
+        'Invalid command line substitution parameter: reportDi'
+      );
+    });
   });
 });
