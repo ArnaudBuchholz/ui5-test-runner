@@ -12,23 +12,23 @@ export const end = async (configuration: Configuration): Promise<void> => {
     cwd: configuration.cwd
   });
   let code: number | undefined;
-  if (!configuration.endTimeout) {
-    await process.closed;
-    code = process.code;
-  } else {
-    let didTimeOut = false;
+  if (configuration.endTimeout) {
+    let didTimeout = false;
     const timeout = new Promise<void>((resolve) => setTimeout(() => {
-      didTimeOut = true;
+      didTimeout = true;
       resolve();
     }, configuration.endTimeout));
     await Promise.race([process.closed, timeout]);
-    if (didTimeOut) {
+    if (didTimeout) {
       logger.fatal({ source: 'job', message: 'End command timed out, killing' });
       await process.kill();
       code = -1; // Error
     } else {
       code = process.code;
     }
+  } else {
+    await process.closed;
+    code = process.code;
   }
   if (code !== undefined) {
     Exit.code = code;
