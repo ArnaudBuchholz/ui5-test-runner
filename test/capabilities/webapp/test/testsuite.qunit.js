@@ -27,9 +27,12 @@ sap.ui.define(() => {
         title: 'Local storage (1)'
       },
       // Only if complete isolation is used (i.e. separate windows)
-      // 'unit/localStorage#2': {
-      //   title: 'Local storage (2)'
-      // },
+      'unit/localStorage#2': {
+        title: 'Local storage (2)'
+      },
+      'unit/timerResolution': {
+        title: 'Time resolution'
+      },
     }
   }
 })
