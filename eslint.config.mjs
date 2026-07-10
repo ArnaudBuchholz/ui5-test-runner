@@ -44,7 +44,8 @@ export default [
       }
     },
     rules: {
-      'unicorn/prefer-global-this': 'off'
+      'unicorn/prefer-global-this': 'off',
+      'unicorn/prefer-iterator-to-array': 'off'
     }
   },
   // TODO implement a regexp validator

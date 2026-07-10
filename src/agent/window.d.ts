@@ -11,6 +11,7 @@ declare global {
     QUnit?: QUnit;
     /** Managed by the agent */
     [UI5_TEST_RUNNER]: {
+      config?: { browser: string; parallel: number };
       state: State;
       results: CommonTestReport['results'];
     };
