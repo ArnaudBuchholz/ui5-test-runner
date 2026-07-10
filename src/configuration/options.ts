@@ -28,6 +28,7 @@ export const options = [
     name: 'browser',
     short: 'b',
     type: 'browser',
+    browserExposed: true,
     description: 'browser selection',
     default: 'puppeteer'
   },

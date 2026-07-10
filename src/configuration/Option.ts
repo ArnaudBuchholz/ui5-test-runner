@@ -18,6 +18,7 @@ export type Option<T extends OptionType = OptionType> = {
   type: T;
   typeModifiers?: Set<string>;
   defaultLabel?: string;
+  browserExposed?: true;
 } & (
   | {
       multiple?: false;

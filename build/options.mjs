@@ -54,6 +54,7 @@ for (const fileName of optionsFileNames) {
   const defaultValue = rawDefaultValue ?? escapedDefaultValue;
   const [, summary] = properties.match(/summary: (.*)/) ?? [];
   const isMultiple = !!/multiple: yes/.test(properties);
+  const isBrowserExposed = !!/browserExposed: yes/.test(properties);
   if (defaultValue) {
     defaults[name] = defaultValue;
   }
@@ -76,6 +77,7 @@ for (const fileName of optionsFileNames) {
     type,
     typeModifiers,
     multiple: isMultiple,
+    browserExposed: isBrowserExposed,
     description: summary,
     default: defaultValue
   };
@@ -107,6 +109,10 @@ if (!process.exitCode) {
       } else if (key === 'multiple') {
         if (value) {
           console.log(`    multiple: true,`);
+        }
+      } else if (key === 'browserExposed') {
+        if (value) {
+          console.log(`    browserExposed: true,`);
         }
       } else if (key === 'typeModifiers') {
         console.log(`    typeModifiers: new Set(${JSON.stringify(value).replaceAll('"', "'")} as const),`);

@@ -6,6 +6,7 @@ import { state } from './state.js';
 import { results } from './report.js';
 
 window[UI5_TEST_RUNNER] = {
+  ...window[UI5_TEST_RUNNER],
   state,
   results
 };

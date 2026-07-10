@@ -9,6 +9,7 @@ import { setTimeout } from 'node:timers/promises';
 import { getReportBuilder } from './report.js';
 import type { CommonTestReport } from '../../types/CommonTestReportFormat.js';
 import type { IWindow } from '../../browsers/IBrowser.js';
+import { getBrowserConfigScript } from './browserConfig.js';
 
 let lastPageId = 0;
 
@@ -130,10 +131,11 @@ export const pageTask = async function (this: IParallelizeContext, url: string, 
   let context: PageContext | undefined;
   try {
     const agentSource = await getAgentSource();
+    const browserConfig = getBrowserConfigScript();
     const browser = getBrowser();
     page = await browser.newWindow({
       pageId,
-      scripts: [agentSource],
+      scripts: [browserConfig, agentSource],
       url
     });
     context = {

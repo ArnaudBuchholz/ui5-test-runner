@@ -5,6 +5,7 @@ import { parallelize } from '../../utils/shared/parallelize.js';
 import { getAgentSource } from './agent.js';
 import { setupBrowser } from './browser.js';
 import { pageTask } from './pageTask.js';
+import { initBrowserConfig } from './browserConfig.js';
 import { initReportBuilder, getReportBuilder } from './report.js';
 import { generateHtmlReport } from '../../reports/html.js';
 import { Folder } from '../../utils/node/Folder.js';
@@ -63,6 +64,7 @@ export const test = async (configuration: Configuration) => {
 
     const urls = configuration.url.map((url) => url.replace(':0/', () => `:${port}/`));
     browser = await setupBrowser(configuration);
+    initBrowserConfig(configuration);
     logger.info({ source: 'progress', message: 'Executing pages', pageId: undefined, data: { value: 0, max: 0 } });
     let completed = 0;
     let lastLoggedCompleted: number | undefined;
