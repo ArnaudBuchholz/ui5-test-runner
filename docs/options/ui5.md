@@ -7,5 +7,4 @@ tags:
   - legacy
   - remote
   - batch
-  - capabilities
 ---

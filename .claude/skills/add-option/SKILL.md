@@ -121,7 +121,6 @@ summary: stop the whole execution after the first failing page
 tags:
   - legacy
   - remote
-  - capabilities
   - batch
 ---
 ```
@@ -137,7 +136,6 @@ default: "2"
 tags:
   - legacy
   - remote
-  - capabilities
   - batch
 ---
 This option controls how many parallel executions can occur inside the runner.
@@ -156,7 +154,6 @@ dependsOn: "[[cwd]]"
 tags:
   - legacy
   - remote
-  - capabilities
 ---
 ```
 

@@ -152,6 +152,7 @@ export const options = [
     name: 'parallel',
     short: 'p',
     type: 'integer',
+    browserExposed: true,
     description: 'number of parallel executions',
     default: 2
   },

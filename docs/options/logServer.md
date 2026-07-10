@@ -6,6 +6,5 @@ summary: log inner server traces
 tags:
   - legacy
   - remote
-  - capabilities
   - batch
 ---

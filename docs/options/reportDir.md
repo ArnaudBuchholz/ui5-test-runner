@@ -12,6 +12,5 @@ dependsOn: "[[cwd]]"
 tags:
   - legacy
   - remote
-  - capabilities
 ---
 The `report/` folder contains test execution results.

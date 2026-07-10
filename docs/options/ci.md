@@ -6,7 +6,6 @@ default: "!process.stdout.isTTY"
 tags:
   - legacy
   - remote
-  - capabilities
   - batch
 see:
   - "[[reportDir]]"

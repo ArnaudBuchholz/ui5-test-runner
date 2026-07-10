@@ -10,5 +10,4 @@ dependsOn: "[[cwd]]"
 tags:
   - legacy
   - remote
-  - capabilities
 ---

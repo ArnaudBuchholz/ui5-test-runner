@@ -6,6 +6,5 @@ summary: limit the tests execution time, fail remaining pages if it takes longer
 tags:
   - legacy
   - remote
-  - capabilities
 ---
 This option does **not** work for [[modes/batch]] mode.
