@@ -1,11 +1,14 @@
 import { logger, Exit, Process } from '../../platform/index.js';
 import type { Configuration } from '../../configuration/Configuration.js';
 import { Command } from '../../Command.js';
+import { formatDuration } from '../../utils/shared/string.js';
 
 export const end = async (configuration: Configuration): Promise<void> => {
   if (!configuration.end) {
     return;
   }
+  const start = Date.now();
+  logger.info({ source: 'job', message: 'Executing end command...' });
   logger.info({ source: 'progress', message: 'Executing end command', pageId: undefined, data: { value: 0, max: 0 } });
   const [command, arguments_] = await Command.parse(configuration, configuration.end);
   const process = Process.spawn(command, arguments_, {
@@ -35,4 +38,6 @@ export const end = async (configuration: Configuration): Promise<void> => {
   if (code !== undefined) {
     Exit.code = code;
   }
+  const duration = formatDuration(Date.now() - start);
+  logger.info({ source: 'job', message: `End command executed (${duration})` });
 };

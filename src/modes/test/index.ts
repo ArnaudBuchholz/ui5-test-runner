@@ -10,6 +10,7 @@ import { generateHtmlReport } from '../../reports/html.js';
 import { Folder } from '../../utils/node/Folder.js';
 import { server } from './server.js';
 import { formatDuration } from '../../utils/shared/string.js';
+import { end } from './end.js';
 
 /**
  * TODO
@@ -99,6 +100,7 @@ export const test = async (configuration: Configuration) => {
       source: 'job',
       message: `Tests completed: passed=${passed} failed=${failed} tests=${tests}${durationString}`
     });
+    await end(configuration);
   } catch (error) {
     logger.error({ source: 'job', message: 'An error occurred', error });
   } finally {
