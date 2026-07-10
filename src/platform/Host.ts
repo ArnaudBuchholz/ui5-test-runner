@@ -1,4 +1,4 @@
-import { machine, cpus, platform, homedir } from 'node:os';
+import { machine, cpus, platform, release, version, homedir } from 'node:os';
 
 export class Host {
   static readonly argv = process.argv;
@@ -10,4 +10,6 @@ export class Host {
   static readonly nodeVersion = process.version;
   static readonly pid = process.pid;
   static readonly platform = platform;
+  static readonly osRelease = release;
+  static readonly osVersion = version;
 }
