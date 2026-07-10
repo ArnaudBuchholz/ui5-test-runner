@@ -53,7 +53,6 @@ it('merges a test result with no suite', () => {
   reportBuilder.finalize();
   expect(reportBuilder.report).toStrictEqual(
     comparableTestReport({
-      tool: { name: 'test' },
       tests: [
         {
           ...test0,
@@ -72,6 +71,29 @@ it('merges a test result with no suite', () => {
       }
     })
   );
+});
+
+it('captures qunit version in tool.extra on merge', () => {
+  reportBuilder.merge(
+    'http://localhost:8080/test0',
+    createTestResults({
+      tool: { name: 'QUnit', version: '2.21.0' },
+      tests: []
+    })
+  );
+  expect(reportBuilder.report.results.tool.extra).toStrictEqual({ qunitVersion: '2.21.0' });
+});
+
+it('keeps the first qunit version when merging multiple results', () => {
+  reportBuilder.merge(
+    'http://localhost:8080/test0',
+    createTestResults({ tool: { name: 'QUnit', version: '2.21.0' }, tests: [] })
+  );
+  reportBuilder.merge(
+    'http://localhost:8080/test1',
+    createTestResults({ tool: { name: 'QUnit', version: '2.22.0' }, tests: [] })
+  );
+  expect(reportBuilder.report.results.tool.extra).toStrictEqual({ qunitVersion: '2.21.0' });
 });
 
 it('merges 2 test results', () => {
@@ -111,7 +133,6 @@ it('merges 2 test results', () => {
   reportBuilder.finalize();
   expect(reportBuilder.report).toStrictEqual(
     comparableTestReport({
-      tool: { name: 'test' },
       tests: [
         {
           ...test0,

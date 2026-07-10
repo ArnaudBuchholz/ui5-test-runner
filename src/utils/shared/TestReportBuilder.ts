@@ -31,10 +31,11 @@ export class TestReportBuilder {
   }
 
   merge(url: string, testResults: CommonTestReport['results']) {
-    const { name: toolName } = this._report.results.tool;
-    // TODO: what if the tool name changes between different test results ?
-    if (testResults.tool.name && toolName === '') {
-      this._report.results.tool = testResults.tool;
+    if (testResults.tool.version && !this._report.results.tool.extra?.['qunitVersion']) {
+      this._report.results.tool.extra = {
+        ...this._report.results.tool.extra,
+        qunitVersion: testResults.tool.version
+      };
     }
     const { results } = this._report;
     const suites = [...(this._suites[url] ?? []), url];

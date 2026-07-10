@@ -3,12 +3,16 @@ import { version } from '../../platform/version.js';
 import type { Configuration } from '../../configuration/Configuration.js';
 import { toPlainObject } from '../../utils/shared/object.js';
 import { anonymize } from '../../utils/node/anonymize.js';
-import { Host } from '../../platform/Host.js';
+import { assert, Host } from '../../platform/index.js';
 
 let _reportBuilder: TestReportBuilder | undefined;
 
 export async function initReportBuilder(configuration: Configuration): Promise<void> {
-  _reportBuilder = new TestReportBuilder(crypto.randomUUID(), await version());
+  const toolFullName = await version();
+  const [toolName, toolVersion] = toolFullName.split('@');
+  assert(toolName !== undefined);
+  _reportBuilder = new TestReportBuilder(crypto.randomUUID(), toolFullName);
+  _reportBuilder.report.results.tool = { name: toolName, version: toolVersion };
   _reportBuilder.report.extra = {
     configuration: anonymize(toPlainObject(configuration))
   };
