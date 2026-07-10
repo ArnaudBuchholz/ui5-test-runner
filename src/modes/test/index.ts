@@ -5,7 +5,7 @@ import { parallelize } from '../../utils/shared/parallelize.js';
 import { getAgentSource } from './agent.js';
 import { setupBrowser } from './browser.js';
 import { pageTask } from './pageTask.js';
-import { reportBuilder } from './report.js';
+import { initReportBuilder, getReportBuilder } from './report.js';
 import { generateHtmlReport } from '../../reports/html.js';
 import { Folder } from '../../utils/node/Folder.js';
 import { server } from './server.js';
@@ -25,6 +25,7 @@ import { end } from './end.js';
  */
 
 export const test = async (configuration: Configuration) => {
+  await initReportBuilder(configuration);
   await Folder.create(configuration.reportDir);
   await logger.start(configuration);
   logger.debug({ source: 'job', message: 'Configuration', data: { defaults, configuration } });
@@ -87,14 +88,14 @@ export const test = async (configuration: Configuration) => {
         }
       }
     });
-    reportBuilder.finalize();
+    getReportBuilder().finalize();
     FileSystem.writeFileSync(
       Path.join(configuration.reportDir, 'report.json'),
-      JSON.stringify(reportBuilder.report, undefined, 2),
+      JSON.stringify(getReportBuilder().report, undefined, 2),
       'utf8'
     );
-    await generateHtmlReport(configuration, reportBuilder.report);
-    const { passed, failed, tests, duration } = reportBuilder.report.results.summary;
+    await generateHtmlReport(configuration, getReportBuilder().report);
+    const { passed, failed, tests, duration } = getReportBuilder().report.results.summary;
     const durationString = duration ? ` (${formatDuration(duration)})` : '';
     logger.info({
       source: 'job',

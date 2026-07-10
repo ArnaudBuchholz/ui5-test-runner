@@ -6,7 +6,7 @@ import { getBrowser } from './browser.js';
 import type { AgentState } from '../../types/AgentState.js';
 import { Exit, ExitShutdownError } from '../../platform/Exit.js';
 import { setTimeout } from 'node:timers/promises';
-import { reportBuilder } from './report.js';
+import { getReportBuilder } from './report.js';
 import type { CommonTestReport } from '../../types/CommonTestReportFormat.js';
 import type { IWindow } from '../../browsers/IBrowser.js';
 
@@ -170,7 +170,7 @@ export const pageTask = async function (this: IParallelizeContext, url: string, 
         data: { results: testResults }
       });
     }
-    reportBuilder.merge(url, testResults);
+    getReportBuilder().merge(url, testResults);
     // TODO: add a catch block and document the problem in the test report
   } finally {
     if (context !== undefined) {
