@@ -18,8 +18,18 @@ sap.ui.define(() => {
     },
     tests: {
       'unit/basic': {
-        title: 'Basic loading'
+        title: 'Basic QUnit'
       },
+      'unit/dynamic': {
+        title: 'Dynamic includes'
+      },
+      'unit/localStorage': {
+        title: 'Local storage (1)'
+      },
+      // Only if complete isolation is used (i.e. separate windows)
+      // 'unit/localStorage#2': {
+      //   title: 'Local storage (2)'
+      // },
     }
   }
 })
