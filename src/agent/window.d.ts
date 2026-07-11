@@ -5,6 +5,18 @@ import type { CommonTestReport } from '../types/CommonTestReportFormat.js';
 
 declare global {
   interface Window {
+    localStorage: Storage & {
+      addEventListener(
+        type: string,
+        listener: EventListenerOrEventListenerObject,
+        options?: boolean | AddEventListenerOptions
+      ): void;
+      removeEventListener(
+        type: string,
+        listener: EventListenerOrEventListenerObject,
+        options?: boolean | EventListenerOptions
+      ): void;
+    };
     __coverage__?: unknown;
     suite?: () => void | Promise<void>;
     sap?: { ui?: { test?: { Opa5?: object } } };
