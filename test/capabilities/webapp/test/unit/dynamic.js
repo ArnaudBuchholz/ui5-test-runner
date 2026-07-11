@@ -1,1 +1,1 @@
-window.dynamic = true
+window.dynamic = true;

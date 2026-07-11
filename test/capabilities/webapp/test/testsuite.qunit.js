@@ -13,6 +13,9 @@ sap.ui.define(() => {
     },
     'unit/timerResolution': {
       title: 'Time resolution'
+    },
+    'unit/timerResolution#250-1250-4': {
+      title: 'Time resolution (2)'
     }
   }
 
