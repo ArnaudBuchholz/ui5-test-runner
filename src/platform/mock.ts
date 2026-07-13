@@ -86,6 +86,7 @@ vi.mock(import('./Path.js'), async (importActual) => {
   const mocked = mockStaticMethodsOfExports(await importActual());
   const { Path } = mocked;
   // Normalize to unix-like file system
+  vi.mocked(Path.dirname).mockImplementation((path) => join(path, '..').replaceAll('\\', '/'));
   vi.mocked(Path.isAbsolute).mockImplementation((path) => path.startsWith('/'));
   vi.mocked(Path.join).mockImplementation((...arguments_: string[]) => join(...arguments_).replaceAll('\\', '/'));
   return mocked;
