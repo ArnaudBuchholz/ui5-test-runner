@@ -4,6 +4,7 @@ import type { Configuration } from '../../configuration/Configuration.js';
 import { toPlainObject } from '../../utils/shared/object.js';
 import { anonymize } from '../../utils/node/anonymize.js';
 import { assert, Host } from '../../platform/index.js';
+import type { BrowserCapabilities } from '../../browsers/IBrowser.js';
 
 let _reportBuilder: TestReportBuilder | undefined;
 
@@ -30,4 +31,15 @@ export async function initReportBuilder(configuration: Configuration): Promise<v
 export function getReportBuilder(): TestReportBuilder {
   if (_reportBuilder === undefined) throw new Error('reportBuilder not initialized');
   return _reportBuilder;
+}
+
+export function setReportBrowserInfo(capabilities: BrowserCapabilities): void {
+  const environment = getReportBuilder().report.results.environment;
+  if (environment) {
+    environment.extra = {
+      ...environment.extra,
+      browserName: capabilities.browserName,
+      browserVersion: capabilities.browserVersion
+    };
+  }
 }

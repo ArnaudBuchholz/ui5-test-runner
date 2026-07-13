@@ -57,7 +57,9 @@ export const factory = async (configuration: Configuration): Promise<IBrowser> =
     }
     logger.debug({ source: 'puppeteer', message: 'setup completed' });
     return {
-      screenshotFormat: '.png'
+      screenshotFormat: '.png',
+      browserName: 'chrome',
+      browserVersion: await browser.version()
     };
   };
 

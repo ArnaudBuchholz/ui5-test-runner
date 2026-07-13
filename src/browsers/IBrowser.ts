@@ -14,6 +14,8 @@ export type BrowserSettings = {
 
 export type BrowserCapabilities = {
   screenshotFormat: string;
+  browserName: string;
+  browserVersion: string;
 };
 
 export type WindowSettings = {

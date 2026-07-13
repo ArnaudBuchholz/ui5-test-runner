@@ -3,10 +3,10 @@ import type { Configuration } from '../../configuration/Configuration.js';
 import { defaults } from '../../configuration/options.js';
 import { parallelize } from '../../utils/shared/parallelize.js';
 import { getAgentSource } from './agent.js';
-import { setupBrowser } from './browser.js';
+import { setupBrowser, getBrowser } from './browser.js';
 import { pageTask } from './pageTask.js';
 import { initBrowserConfig } from './browserConfig.js';
-import { initReportBuilder, getReportBuilder } from './report.js';
+import { initReportBuilder, getReportBuilder, setReportBrowserInfo } from './report.js';
 import { generateHtmlReport } from '../../reports/html.js';
 import { Folder } from '../../utils/node/Folder.js';
 import { server } from './server.js';
@@ -34,7 +34,7 @@ export const test = async (configuration: Configuration) => {
   await logEnvironnement();
   await getAgentSource();
 
-  let browser: Awaited<ReturnType<typeof setupBrowser>> | undefined;
+  let isBrowserStarted = false;
   try {
     const port = await server.start(configuration);
 
@@ -63,7 +63,9 @@ export const test = async (configuration: Configuration) => {
     }
 
     const urls = configuration.url.map((url) => url.replace(':0/', () => `:${port}/`));
-    browser = await setupBrowser(configuration);
+    const capabilities = await setupBrowser(configuration);
+    setReportBrowserInfo(capabilities);
+    isBrowserStarted = true;
     initBrowserConfig(configuration);
     logger.info({ source: 'progress', message: 'Executing pages', pageId: undefined, data: { value: 0, max: 0 } });
     let completed = 0;
@@ -107,7 +109,9 @@ export const test = async (configuration: Configuration) => {
   } catch (error) {
     logger.error({ source: 'job', message: 'An error occurred', error });
   } finally {
-    await browser?.shutdown();
+    if (isBrowserStarted) {
+      await getBrowser().shutdown();
+    }
     await server.stop();
   }
 };

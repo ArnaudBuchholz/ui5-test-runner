@@ -54,7 +54,9 @@ export const factory = async (configuration: Configuration): Promise<IBrowser> =
     }
     logger.debug({ source: 'playwright', message: 'setup completed' });
     return {
-      screenshotFormat: '.png'
+      screenshotFormat: '.png',
+      browserName: browser.browserType().name(),
+      browserVersion: browser.version()
     };
   };
 
