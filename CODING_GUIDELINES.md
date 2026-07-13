@@ -17,13 +17,13 @@ Applies to all implemented modules. Not to tooling config files (`vite.config.ts
 ```
 src/
   agent/          # Browser-side code injected into test pages (QUnit/OPA)
-  ui/             # Browser UIs
   browsers/       # Browser abstraction
   configuration/  # CLI argument parsing, options, validators
   modes/          # Execution modes (test, batch, help, version…)
   platform/       # Node.js abstraction layer (Exit, Process, FileSystem, logger…)
   reports/        # Report generation
   types/          # Shared TypeScript types, interfaces, type utilities
+  ui/             # Browser UIs
   utils/          # Utilities split by environment: node/, shared/, ui/
 ```
 
