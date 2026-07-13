@@ -1,7 +1,7 @@
 import { OptionValidationError } from '../OptionValidationError.js';
 import type { OptionValidator } from './OptionValidator.js';
 
-const KNOWN_BROWSERS = new Set(['puppeteer']);
+const KNOWN_BROWSERS = new Set(['puppeteer', 'playwright']);
 
 export const browser: OptionValidator<'browser'> = (option, value) => {
   if (typeof value === 'string') {

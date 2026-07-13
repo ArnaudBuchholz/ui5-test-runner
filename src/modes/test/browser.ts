@@ -1,4 +1,5 @@
 import { BrowserFactory } from '../../browsers/factory.js';
+import type { Browser } from '../../browsers/factory.js';
 import type { BrowserSettings, IBrowser } from '../../browsers/IBrowser.js';
 import type { Configuration } from '../../configuration/Configuration.js';
 import { Exit, assert, logger } from '../../platform/index.js';
@@ -6,8 +7,9 @@ import { Exit, assert, logger } from '../../platform/index.js';
 let browser: IBrowser;
 
 export const setupBrowser = async (configuration: Configuration): Promise<IBrowser> => {
-  assert(configuration.browser === 'puppeteer');
-  browser = await BrowserFactory.build(configuration, 'puppeteer');
+  const browserName = configuration.browser as Browser;
+  assert(browserName === 'puppeteer' || browserName === 'playwright');
+  browser = await BrowserFactory.build(configuration, browserName);
   const { debugKeepBrowserOpen } = configuration;
   const settings: BrowserSettings = {
     visible: debugKeepBrowserOpen // Or there is no value to keep it
