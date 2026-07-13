@@ -12,6 +12,7 @@ type GenericLogSource =
   | 'process'
   | 'process/stdout'
   | 'process/stderr'
+  | 'playwright'
   | 'puppeteer'
   | 'server'
   | 'server/unhandled';
