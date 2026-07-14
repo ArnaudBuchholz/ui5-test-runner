@@ -9,6 +9,7 @@ export interface IProcess {
   readonly pid: number;
   readonly stdout: string;
   readonly stderr: string;
+  /** code remains undefined until the process is closed */
   readonly code: number | undefined;
   readonly closed: Promise<void>;
   kill(): Promise<void>;
