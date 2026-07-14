@@ -98,6 +98,32 @@ describe('Http.fetch', () => {
     });
   });
 
+  describe('signal forwarding', () => {
+    const addEventListenerMock = vi.fn();
+    const removeEventListenerMock = vi.fn();
+    const EXTERNAL_SIGNAL = {
+      addEventListener: addEventListenerMock,
+      removeEventListener: removeEventListenerMock
+    } as unknown as AbortSignal;
+
+    it('subscribes to the abort event on the provided signal', async () => {
+      await Http.fetch(URL, { signal: EXTERNAL_SIGNAL });
+      expect(addEventListenerMock).toHaveBeenCalledWith('abort', expect.any(Function) as () => void);
+    });
+
+    it('forwards the received abort signal to the inner controller', async () => {
+      await Http.fetch(URL, { signal: EXTERNAL_SIGNAL });
+      const [, abortForwarder] = addEventListenerMock.mock.calls[0]! as [string, () => void];
+      abortForwarder();
+      expect(abortController.abort).toHaveBeenCalled();
+    });
+
+    it('unsubscribes from the signal abort event after fetch completes', async () => {
+      await Http.fetch(URL, { signal: EXTERNAL_SIGNAL });
+      expect(removeEventListenerMock).toHaveBeenCalledWith('abort', expect.any(Function) as () => void);
+    });
+  });
+
   it('returns the Response object', async () => {
     const result = await Http.fetch(URL);
     expect(result).toBe(response);

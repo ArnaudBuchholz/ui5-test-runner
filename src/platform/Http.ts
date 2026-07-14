@@ -10,6 +10,11 @@ interface FetchInit extends RequestInit {
 
 const _fetch = async (url: string, init?: FetchInit): Promise<Response> => {
   const { requestId = ++_lastRequestId, controller = new AbortController(), ...fetchInit } = init ?? {};
+  let abortForwarder: (() => void) | undefined;
+  if (init?.signal) {
+    abortForwarder = () => controller.abort();
+    init.signal.addEventListener('abort', abortForwarder);
+  }
   const loggedInit = Object.keys(fetchInit).length > 0 ? fetchInit : undefined;
   using _ = Exit.registerAsyncTask({
     name: `http.fetch#${requestId}`,
@@ -31,6 +36,10 @@ const _fetch = async (url: string, init?: FetchInit): Promise<Response> => {
   } catch (error) {
     logger.debug({ source: 'http', message: 'error caught', data: { requestId }, error });
     throw error;
+  } finally {
+    if (abortForwarder) {
+      init?.signal?.removeEventListener('abort', abortForwarder);
+    }
   }
 };
 
