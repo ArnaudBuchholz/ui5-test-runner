@@ -163,7 +163,7 @@ export class Npm {
   /** fetch the latest version info for the given module */
   static async getLatestVersion(moduleName: string): Promise<string> {
     try {
-      const response = await Http.get(`https://registry.npmjs.org/${moduleName}/latest`);
+      const response = await Http.getAsText(`https://registry.npmjs.org/${moduleName}/latest`);
       const { version } = JSON.parse(response) as { version: string };
       return version;
     } catch (error) {

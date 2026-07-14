@@ -70,13 +70,13 @@ describe('getNpmCliPath', () => {
 
 describe('getLatestVersion', () => {
   it('returns the version from the NPM registry', async () => {
-    vi.mocked(Http.get).mockResolvedValue(JSON.stringify({ version: '2.3.4' }));
+    vi.mocked(Http.getAsText).mockResolvedValue(JSON.stringify({ version: '2.3.4' }));
     await expect(Npm.getLatestVersion('some-module')).resolves.toBe('2.3.4');
-    expect(Http.get).toHaveBeenCalledWith('https://registry.npmjs.org/some-module/latest');
+    expect(Http.getAsText).toHaveBeenCalledWith('https://registry.npmjs.org/some-module/latest');
   });
 
   it('wraps HTTP errors with a descriptive message', async () => {
-    vi.mocked(Http.get).mockRejectedValue(new Error('Network error'));
+    vi.mocked(Http.getAsText).mockRejectedValue(new Error('Network error'));
     await expect(Npm.getLatestVersion('some-module')).rejects.toThrow(
       'Unable to fetch latest version of some-module from NPM registry'
     );
@@ -86,14 +86,14 @@ describe('getLatestVersion', () => {
 describe('checkIfLatestVersion', () => {
   it('does not warn when the installed version is up to date', async () => {
     vi.mocked(FileSystem.readFile).mockResolvedValue(JSON.stringify({ version: '1.0.0' }));
-    vi.mocked(Http.get).mockResolvedValue(JSON.stringify({ version: '1.0.0' }));
+    vi.mocked(Http.getAsText).mockResolvedValue(JSON.stringify({ version: '1.0.0' }));
     await Npm.checkIfLatestVersion('some-module', true);
     expect(logger.warn).not.toHaveBeenCalled();
   });
 
   it('warns with [PKGVRS] when a newer version is available', async () => {
     vi.mocked(FileSystem.readFile).mockResolvedValue(JSON.stringify({ version: '1.0.0' }));
-    vi.mocked(Http.get).mockResolvedValue(JSON.stringify({ version: '2.0.0' }));
+    vi.mocked(Http.getAsText).mockResolvedValue(JSON.stringify({ version: '2.0.0' }));
     await Npm.checkIfLatestVersion('some-module', true);
     expect(logger.warn).toHaveBeenCalledWith(
       expect.objectContaining({ message: expect.stringContaining('[PKGVRS]') as string })
@@ -102,14 +102,14 @@ describe('checkIfLatestVersion', () => {
 
   it('reads package.json from the local root when isLocal is true', async () => {
     vi.mocked(FileSystem.readFile).mockResolvedValue(JSON.stringify({ version: '1.0.0' }));
-    vi.mocked(Http.get).mockResolvedValue(JSON.stringify({ version: '1.0.0' }));
+    vi.mocked(Http.getAsText).mockResolvedValue(JSON.stringify({ version: '1.0.0' }));
     await Npm.checkIfLatestVersion('some-module', true);
     expect(FileSystem.readFile).toHaveBeenCalledWith('/local/root/some-module/package.json', 'utf8');
   });
 
   it('reads package.json from the global root when isLocal is false', async () => {
     vi.mocked(FileSystem.readFile).mockResolvedValue(JSON.stringify({ version: '1.0.0' }));
-    vi.mocked(Http.get).mockResolvedValue(JSON.stringify({ version: '1.0.0' }));
+    vi.mocked(Http.getAsText).mockResolvedValue(JSON.stringify({ version: '1.0.0' }));
     await Npm.checkIfLatestVersion('some-module', false);
     expect(FileSystem.readFile).toHaveBeenCalledWith('/global/root/some-module/package.json', 'utf8');
   });
@@ -137,7 +137,7 @@ describe('import', () => {
   it('returns the module when found locally', async () => {
     const FAKE_MODULE = { default: 'local-module' };
     vi.mocked(FileSystem.readFile).mockResolvedValue(JSON.stringify({ version: '1.0.0' }));
-    vi.mocked(Http.get).mockResolvedValue(JSON.stringify({ version: '1.0.0' }));
+    vi.mocked(Http.getAsText).mockResolvedValue(JSON.stringify({ version: '1.0.0' }));
     TestNpm.dynamicImportSpy.mockResolvedValueOnce(FAKE_MODULE);
     const module = await TestNpm.import(NO_CONFIGURATION, 'some-module');
     expect(module).toBe(FAKE_MODULE);
