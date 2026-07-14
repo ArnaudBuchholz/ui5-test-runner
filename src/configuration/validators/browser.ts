@@ -10,5 +10,5 @@ export const browser: OptionValidator<'browser'> = (option, value) => {
       return name;
     }
   }
-  throw new OptionValidationError(option);
+  throw OptionValidationError.createInvalidValue(option);
 };

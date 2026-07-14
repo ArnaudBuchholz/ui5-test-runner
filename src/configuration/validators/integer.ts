@@ -7,7 +7,7 @@ export const integer: OptionValidator<'integer'> = (option, value) => {
   }
   // TODO: what about negative numbers ?
   if (typeof value !== 'number' || value % 1 !== 0) {
-    throw new OptionValidationError(option);
+    throw OptionValidationError.createInvalidValue(option);
   }
   return value;
 };

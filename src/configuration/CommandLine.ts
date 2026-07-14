@@ -26,7 +26,7 @@ const setOption = (configuration: CommandLineConfiguration, option: Option, valu
         [name]: true
       });
     } else if (option.multiple !== true) {
-      configuration.errors.push(new OptionValidationError(option, 'Missing value'));
+      configuration.errors.push(OptionValidationError.createMissingValue(option));
     }
   } else {
     if (option.multiple) {
@@ -77,7 +77,7 @@ const handlePositional = (configuration: CommandLineConfiguration, value: string
       return;
     }
   }
-  configuration.errors.push(new OptionValidationError(positionalOption, `Unable to process: ${value}`));
+  configuration.errors.push(OptionValidationError.createUnprocessable(positionalOption, value));
 };
 
 const traverseArguments = (configuration: CommandLineConfiguration, argv: string[]) => {

@@ -3,7 +3,7 @@ import type { OptionValidator } from './OptionValidator.js';
 
 export const string: OptionValidator<'string'> = (option, value) => {
   if (typeof value !== 'string' || !value) {
-    throw new OptionValidationError(option);
+    throw OptionValidationError.createInvalidValue(option);
   }
   return value;
 };

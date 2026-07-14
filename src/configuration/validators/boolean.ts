@@ -14,5 +14,5 @@ export const boolean: OptionValidator<'boolean'> = (option, value) => {
   if (BOOLEAN_FALSE.has(value)) {
     return false;
   }
-  throw new OptionValidationError(option);
+  throw OptionValidationError.createInvalidValue(option);
 };

@@ -7,5 +7,5 @@ export const url: OptionValidator<'url'> = (option, value) => {
   if (typeof value === 'string' && isLikeAnUrl(value)) {
     return value;
   }
-  throw new OptionValidationError(option);
+  throw OptionValidationError.createInvalidValue(option);
 };

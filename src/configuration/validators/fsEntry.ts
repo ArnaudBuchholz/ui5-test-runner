@@ -13,13 +13,13 @@ const fsCheckAccess = async (option: Option, path: string): Promise<string | und
     if (isOverwrite) {
       const code = typeof error === 'object' && error && 'code' in error && error.code;
       if (code === 'EACCES') {
-        throw new OptionValidationError(option, 'Unable to access file system entry', error);
+        throw OptionValidationError.createFsAccessError(option, error);
       }
       if (code === 'ENOENT') {
         return path; // will be created
       }
     } else {
-      throw new OptionValidationError(option, `Unable to access file system entry`, error);
+      throw OptionValidationError.createFsAccessError(option, error);
     }
   }
   return undefined;
@@ -30,19 +30,19 @@ const fsCheckStat = async (option: Option, path: string): Promise<void> => {
   try {
     const stat = await FileSystem.stat(path);
     if (!isFile && !stat.isDirectory()) {
-      throw new OptionValidationError(option, 'Not a folder');
+      throw OptionValidationError.createFsNotFolder(option);
     }
     if (isFile && !stat.isFile()) {
-      throw new OptionValidationError(option, 'Not a file');
+      throw OptionValidationError.createFsNotFile(option);
     }
   } catch (error) {
-    throw new OptionValidationError(option, 'Unable to check type', error);
+    throw OptionValidationError.createFsCheckTypeError(option, error);
   }
 };
 
 export const fsOption = async (option: Option, value: unknown, configuration: Configuration): Promise<string> => {
   if (typeof value !== 'string') {
-    throw new OptionValidationError(option, 'Expected string');
+    throw OptionValidationError.createFsExpectedString(option);
   }
   let path: string;
   if (Path.isAbsolute(value)) {

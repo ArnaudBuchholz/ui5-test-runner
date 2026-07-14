@@ -62,13 +62,13 @@ describe('validation', () => {
 
   it('rejects short option name', async () => {
     await expect(ConfigurationValidator.validate({ c: '/test/user' })).rejects.toThrow(
-      new OptionValidationError(indexedOptions.cwd, 'Do not use short name')
+      OptionValidationError.createShortName(indexedOptions.cwd)
     );
   });
 
   it('rejects kebab-case option name', async () => {
     await expect(ConfigurationValidator.validate({ 'page-timeout': 10 })).rejects.toThrow(
-      new OptionValidationError(indexedOptions.pageTimeout, 'Do not use kebab-case')
+      OptionValidationError.createKebabCase(indexedOptions.pageTimeout)
     );
   });
 
@@ -139,109 +139,115 @@ describe('merge (config file loading)', () => {
   describe('file reading errors', () => {
     it('throws an OptionValidationError for config when the file cannot be read', async () => {
       vi.mocked(FileSystem.readFile).mockRejectedValue(new Error('ENOENT'));
-      const error = await ConfigurationValidator.validate({ config: CONFIG_FILE_PATH }).catch((e) => e);
-      expect(error).toBeInstanceOf(OptionValidationError);
-      expect((error as OptionValidationError).option).toStrictEqual(indexedOptions.config);
-      expect((error as OptionValidationError).message).toContain(`cannot read config file ${CONFIG_FILE_PATH}`);
+      let capturedError: unknown;
+      try {
+        await ConfigurationValidator.validate({ config: CONFIG_FILE_PATH });
+      } catch (error) {
+        capturedError = error;
+      }
+      expect.assert(capturedError instanceof OptionValidationError);
+      expect(capturedError.option).toStrictEqual(indexedOptions.config);
+      expect(capturedError.message).toContain(`cannot read config file ${CONFIG_FILE_PATH}`);
     });
   });
 
   describe('parsing errors', () => {
     it('throws an OptionValidationError for config when the file is not valid JSON', async () => {
-      vi.mocked(FileSystem.readFile).mockResolvedValue('not json' as never);
-      const error = await ConfigurationValidator.validate({ config: CONFIG_FILE_PATH }).catch((e) => e);
-      expect(error).toBeInstanceOf(OptionValidationError);
-      expect((error as OptionValidationError).option).toStrictEqual(indexedOptions.config);
-      expect((error as OptionValidationError).message).toContain(`config file ${CONFIG_FILE_PATH} is not valid JSON`);
+      vi.mocked(FileSystem.readFile).mockResolvedValue('not json');
+      let capturedError: unknown;
+      try {
+        await ConfigurationValidator.validate({ config: CONFIG_FILE_PATH });
+      } catch (error) {
+        capturedError = error;
+      }
+      expect.assert(capturedError instanceof OptionValidationError);
+      expect(capturedError.option).toStrictEqual(indexedOptions.config);
+      expect(capturedError.message).toContain(`config file ${CONFIG_FILE_PATH} is not valid JSON`);
     });
 
     it('throws an OptionValidationError for config when the file is a JSON array', async () => {
-      vi.mocked(FileSystem.readFile).mockResolvedValue('[]' as never);
+      vi.mocked(FileSystem.readFile).mockResolvedValue('[]');
       await expect(ConfigurationValidator.validate({ config: CONFIG_FILE_PATH })).rejects.toThrow(
-        new OptionValidationError(indexedOptions.config, `config file ${CONFIG_FILE_PATH} must be a JSON object`)
+        OptionValidationError.createConfigNotObject(indexedOptions.config, CONFIG_FILE_PATH)
       );
     });
 
     it('throws an OptionValidationError for config when the file is a JSON scalar', async () => {
-      vi.mocked(FileSystem.readFile).mockResolvedValue('42' as never);
+      vi.mocked(FileSystem.readFile).mockResolvedValue('42');
       await expect(ConfigurationValidator.validate({ config: CONFIG_FILE_PATH })).rejects.toThrow(
-        new OptionValidationError(indexedOptions.config, `config file ${CONFIG_FILE_PATH} must be a JSON object`)
+        OptionValidationError.createConfigNotObject(indexedOptions.config, CONFIG_FILE_PATH)
       );
     });
   });
 
   describe('key validation', () => {
     it('throws when the config file contains an unknown key', async () => {
-      vi.mocked(FileSystem.readFile).mockResolvedValue(JSON.stringify({ unknown: 1 }) as never);
+      vi.mocked(FileSystem.readFile).mockResolvedValue(JSON.stringify({ unknown: 1 }));
       await expect(ConfigurationValidator.validate({ config: CONFIG_FILE_PATH })).rejects.toThrow(
         OptionValidationError.createUnknown('unknown')
       );
     });
 
     it('throws when the config file uses a kebab-case key', async () => {
-      vi.mocked(FileSystem.readFile).mockResolvedValue(JSON.stringify({ 'page-timeout': 30000 }) as never);
+      vi.mocked(FileSystem.readFile).mockResolvedValue(JSON.stringify({ 'page-timeout': 30_000 }));
       await expect(ConfigurationValidator.validate({ config: CONFIG_FILE_PATH })).rejects.toThrow(
-        new OptionValidationError(indexedOptions.pageTimeout, 'Do not use kebab-case')
+        OptionValidationError.createKebabCase(indexedOptions.pageTimeout)
       );
     });
 
     it('throws when the config file uses a short option name', async () => {
-      vi.mocked(FileSystem.readFile).mockResolvedValue(JSON.stringify({ c: '/some/path' }) as never);
+      vi.mocked(FileSystem.readFile).mockResolvedValue(JSON.stringify({ c: '/some/path' }));
       await expect(ConfigurationValidator.validate({ config: CONFIG_FILE_PATH })).rejects.toThrow(
-        new OptionValidationError(indexedOptions.cwd, 'Do not use short name')
+        OptionValidationError.createShortName(indexedOptions.cwd)
       );
     });
   });
 
   describe('CLI wins (no ! prefix)', () => {
     it('does not override a CLI option with the config file value', async () => {
-      vi.mocked(FileSystem.readFile).mockResolvedValue(JSON.stringify({ pageTimeout: 99000 }) as never);
-      const result = await ConfigurationValidator.validate({ config: CONFIG_FILE_PATH, pageTimeout: 30000 });
-      expect(result.pageTimeout).toStrictEqual(30000);
+      vi.mocked(FileSystem.readFile).mockResolvedValue(JSON.stringify({ pageTimeout: 99_000 }));
+      const result = await ConfigurationValidator.validate({ config: CONFIG_FILE_PATH, pageTimeout: 30_000 });
+      expect(result.pageTimeout).toStrictEqual(30_000);
     });
 
     it('fills in an option not set on CLI from the config file', async () => {
-      vi.mocked(FileSystem.readFile).mockResolvedValue(JSON.stringify({ pageTimeout: 99000 }) as never);
+      vi.mocked(FileSystem.readFile).mockResolvedValue(JSON.stringify({ pageTimeout: 99_000 }));
       const result = await ConfigurationValidator.validate({ config: CONFIG_FILE_PATH });
-      expect(result.pageTimeout).toStrictEqual(99000);
+      expect(result.pageTimeout).toStrictEqual(99_000);
     });
   });
 
   describe('! forcing', () => {
     it('overwrites a CLI option when the config file key is forced', async () => {
-      vi.mocked(FileSystem.readFile).mockResolvedValue(JSON.stringify({ '!pageTimeout': 99000 }) as never);
-      const result = await ConfigurationValidator.validate({ config: CONFIG_FILE_PATH, pageTimeout: 30000 });
-      expect(result.pageTimeout).toStrictEqual(99000);
+      vi.mocked(FileSystem.readFile).mockResolvedValue(JSON.stringify({ '!pageTimeout': 99_000 }));
+      const result = await ConfigurationValidator.validate({ config: CONFIG_FILE_PATH, pageTimeout: 30_000 });
+      expect(result.pageTimeout).toStrictEqual(99_000);
     });
 
     it('sets a forced option that was not set on CLI', async () => {
-      vi.mocked(FileSystem.readFile).mockResolvedValue(JSON.stringify({ '!pageTimeout': 99000 }) as never);
+      vi.mocked(FileSystem.readFile).mockResolvedValue(JSON.stringify({ '!pageTimeout': 99_000 }));
       const result = await ConfigurationValidator.validate({ config: CONFIG_FILE_PATH });
-      expect(result.pageTimeout).toStrictEqual(99000);
+      expect(result.pageTimeout).toStrictEqual(99_000);
     });
   });
 
   describe('cwd for path resolution', () => {
     it('injects the config file directory as cwd for the second validation pass', async () => {
-      vi.mocked(FileSystem.readFile).mockResolvedValue(JSON.stringify({ pageTimeout: 5000 }) as never);
+      vi.mocked(FileSystem.readFile).mockResolvedValue(JSON.stringify({ pageTimeout: 5000 }));
       await ConfigurationValidator.validate({ config: CONFIG_FILE_PATH });
       // The second validate() call must receive cwd = the config file's directory
-      expect(validators['fs-entry']).toHaveBeenCalledWith(
-        indexedOptions.cwd,
-        CONFIG_FILE_DIR,
-        expect.any(Object)
-      );
+      expect(validators['fs-entry']).toHaveBeenCalledWith(indexedOptions.cwd, CONFIG_FILE_DIR, expect.any(Object));
     });
 
     it('uses the absolute cwd from the config file when explicitly set', async () => {
       const customCwd = '/custom/cwd';
-      vi.mocked(FileSystem.readFile).mockResolvedValue(JSON.stringify({ cwd: customCwd }) as never);
+      vi.mocked(FileSystem.readFile).mockResolvedValue(JSON.stringify({ cwd: customCwd }));
       await ConfigurationValidator.validate({ config: CONFIG_FILE_PATH });
       expect(validators['fs-entry']).toHaveBeenCalledWith(indexedOptions.cwd, customCwd, expect.any(Object));
     });
 
     it('resolves a relative cwd in the config file against the config file directory', async () => {
-      vi.mocked(FileSystem.readFile).mockResolvedValue(JSON.stringify({ cwd: 'sub/dir' }) as never);
+      vi.mocked(FileSystem.readFile).mockResolvedValue(JSON.stringify({ cwd: 'sub/dir' }));
       await ConfigurationValidator.validate({ config: CONFIG_FILE_PATH });
       expect(validators['fs-entry']).toHaveBeenCalledWith(
         indexedOptions.cwd,
@@ -259,10 +265,10 @@ describe('merge (config file loading)', () => {
           return Promise.resolve(JSON.stringify({ config: NESTED_CONFIG_PATH }) as never);
         }
         // nested file sets pageTimeout
-        return Promise.resolve(JSON.stringify({ pageTimeout: 99000 }) as never);
+        return Promise.resolve(JSON.stringify({ pageTimeout: 99_000 }) as never);
       });
       const result = await ConfigurationValidator.validate({ config: CONFIG_FILE_PATH });
-      expect(result.pageTimeout).toStrictEqual(99000);
+      expect(result.pageTimeout).toStrictEqual(99_000);
     });
 
     it('CLI value wins over a key from a nested config file', async () => {
@@ -271,36 +277,38 @@ describe('merge (config file loading)', () => {
         if (path === CONFIG_FILE_PATH) {
           return Promise.resolve(JSON.stringify({ config: NESTED_CONFIG_PATH }) as never);
         }
-        return Promise.resolve(JSON.stringify({ pageTimeout: 99000 }) as never);
+        return Promise.resolve(JSON.stringify({ pageTimeout: 99_000 }) as never);
       });
-      const result = await ConfigurationValidator.validate({ config: CONFIG_FILE_PATH, pageTimeout: 30000 });
-      expect(result.pageTimeout).toStrictEqual(30000);
+      const result = await ConfigurationValidator.validate({ config: CONFIG_FILE_PATH, pageTimeout: 30_000 });
+      expect(result.pageTimeout).toStrictEqual(30_000);
     });
 
     it('parent config file value wins over a nested config file value', async () => {
       const NESTED_CONFIG_PATH = '/project/nested/ui5-test-runner.json' as const;
       vi.mocked(FileSystem.readFile).mockImplementation((path) => {
         if (path === CONFIG_FILE_PATH) {
-          return Promise.resolve(JSON.stringify({ pageTimeout: 55000, config: NESTED_CONFIG_PATH }) as never);
+          return Promise.resolve(JSON.stringify({ pageTimeout: 55_000, config: NESTED_CONFIG_PATH }) as never);
         }
-        return Promise.resolve(JSON.stringify({ pageTimeout: 99000 }) as never);
+        return Promise.resolve(JSON.stringify({ pageTimeout: 99_000 }) as never);
       });
       const result = await ConfigurationValidator.validate({ config: CONFIG_FILE_PATH });
-      expect(result.pageTimeout).toStrictEqual(55000);
+      expect(result.pageTimeout).toStrictEqual(55_000);
     });
   });
-
 
   describe('depth limit', () => {
     it('throws an OptionValidationError for config when nesting exceeds the maximum depth', async () => {
       // Every read returns a config that points to another config file
-      vi.mocked(FileSystem.readFile).mockResolvedValue(
-        JSON.stringify({ config: CONFIG_FILE_PATH }) as never
-      );
-      const error = await ConfigurationValidator.validate({ config: CONFIG_FILE_PATH }).catch((e) => e);
-      expect(error).toBeInstanceOf(OptionValidationError);
-      expect((error as OptionValidationError).option).toStrictEqual(indexedOptions.config);
-      expect((error as OptionValidationError).message).toContain('config file nesting exceeded maximum depth');
+      vi.mocked(FileSystem.readFile).mockResolvedValue(JSON.stringify({ config: CONFIG_FILE_PATH }));
+      let capturedError: unknown;
+      try {
+        await ConfigurationValidator.validate({ config: CONFIG_FILE_PATH });
+      } catch (error) {
+        capturedError = error;
+      }
+      expect.assert(capturedError instanceof OptionValidationError);
+      expect(capturedError.option).toStrictEqual(indexedOptions.config);
+      expect(capturedError.message).toContain('config file nesting exceeded maximum depth');
     });
   });
 });

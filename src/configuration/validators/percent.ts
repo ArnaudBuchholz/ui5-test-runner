@@ -16,5 +16,5 @@ export const percent: OptionValidator<'percent'> = (option, value) => {
   if (typeof value === 'number' && !Number.isNaN(value) && value >= 0 && value <= 100) {
     return value;
   }
-  throw new OptionValidationError(option);
+  throw OptionValidationError.createInvalidValue(option);
 };

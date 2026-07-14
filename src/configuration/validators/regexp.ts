@@ -6,7 +6,7 @@ export const regexp: OptionValidator<'regexp'> = (option, value) => {
     return value;
   }
   if (typeof value !== 'string' || !value) {
-    throw new OptionValidationError(option);
+    throw OptionValidationError.createInvalidValue(option);
   }
   try {
     const match = /^\/(.+)\/(\w*)$/.exec(value);
@@ -16,6 +16,6 @@ export const regexp: OptionValidator<'regexp'> = (option, value) => {
     }
     return new RegExp(value);
   } catch (error) {
-    throw new OptionValidationError(option, 'Invalid regexp', error);
+    throw OptionValidationError.createInvalidRegexp(option, error);
   }
 };

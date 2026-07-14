@@ -14,9 +14,9 @@ const assertIfConfiguration: (value: object) => asserts value is Configuration =
     const option = indexedOptions[key];
     if (option) {
       if (key === option.short) {
-        errors.push(new OptionValidationError(option, 'Do not use short name'));
+        errors.push(OptionValidationError.createShortName(option));
       } else if (key !== option.name) {
-        errors.push(new OptionValidationError(option, 'Do not use kebab-case'));
+        errors.push(OptionValidationError.createKebabCase(option));
       }
     } else {
       errors.push(OptionValidationError.createUnknown(key));
@@ -47,50 +47,59 @@ const validateValue = async (option: (typeof options)[number], configuration: Co
   return await validators[option.type](option, value, configuration);
 };
 
+const loadConfigFile = async (configPath: string): Promise<Record<string, unknown>> => {
+  let content: string;
+  try {
+    content = await FileSystem.readFile(configPath, 'utf8');
+  } catch (error) {
+    throw OptionValidationError.createConfigReadError(indexedOptions.config, configPath, error);
+  }
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(content);
+  } catch (error) {
+    throw OptionValidationError.createConfigInvalidJson(indexedOptions.config, configPath, error);
+  }
+  if (typeof parsed !== 'object' || parsed === null || Array.isArray(parsed)) {
+    throw OptionValidationError.createConfigNotObject(indexedOptions.config, configPath);
+  }
+  return parsed as Record<string, unknown>;
+};
+
+const extractConfigEntries = (parsed: Record<string, unknown>, configDirectory: string) => {
+  const forcedKeys = new Set<string>();
+  const configFileKeys = new Set<string>();
+  const configFileObject: Record<string, unknown> = {};
+  for (const [rawKey, value] of Object.entries(parsed)) {
+    const key = rawKey.startsWith('!') ? rawKey.slice(1) : rawKey;
+    if (rawKey.startsWith('!')) {
+      forcedKeys.add(key);
+    }
+    configFileObject[key] = value;
+    configFileKeys.add(key);
+  }
+  if (configFileKeys.has('cwd')) {
+    const rawCwd = configFileObject['cwd'] as string;
+    if (!Path.isAbsolute(rawCwd)) {
+      configFileObject['cwd'] = Path.join(configDirectory, rawCwd);
+    }
+  } else {
+    configFileObject['cwd'] = configDirectory;
+  }
+  return { forcedKeys, configFileKeys, configFileObject };
+};
+
 export const ConfigurationValidator = {
   async merge(configuration: Configuration, explicitKeys: Set<string>, depth: number): Promise<Configuration> {
     if (!configuration.config || !Path.isAbsolute(configuration.config)) {
       return configuration;
     }
     if (depth >= MAX_CONFIG_DEPTH) {
-      throw new OptionValidationError(indexedOptions.config, `config file nesting exceeded maximum depth of ${MAX_CONFIG_DEPTH}`);
+      throw OptionValidationError.createConfigNestingDepth(indexedOptions.config, MAX_CONFIG_DEPTH);
     }
-    let content: string;
-    try {
-      content = await FileSystem.readFile(configuration.config, 'utf-8');
-    } catch (error) {
-      throw new OptionValidationError(indexedOptions.config, `cannot read config file ${configuration.config}`, error);
-    }
-    let parsed: unknown;
-    try {
-      parsed = JSON.parse(content);
-    } catch (error) {
-      throw new OptionValidationError(indexedOptions.config, `config file ${configuration.config} is not valid JSON`, error);
-    }
-    if (typeof parsed !== 'object' || parsed === null || Array.isArray(parsed)) {
-      throw new OptionValidationError(indexedOptions.config, `config file ${configuration.config} must be a JSON object`);
-    }
-
-    const forcedKeys = new Set<string>();
-    const configFileKeys = new Set<string>();
-    const configFileObject: Record<string, unknown> = {};
-    for (const [rawKey, value] of Object.entries(parsed as Record<string, unknown>)) {
-      const key = rawKey.startsWith('!') ? rawKey.slice(1) : rawKey;
-      if (rawKey.startsWith('!')) {
-        forcedKeys.add(key);
-      }
-      configFileObject[key] = value;
-      configFileKeys.add(key);
-    }
-    const configFileDir = Path.dirname(configuration.config);
-    if (configFileKeys.has('cwd')) {
-      const rawCwd = configFileObject['cwd'] as string;
-      if (!Path.isAbsolute(rawCwd)) {
-        configFileObject['cwd'] = Path.join(configFileDir, rawCwd);
-      }
-    } else {
-      configFileObject['cwd'] = configFileDir;
-    }
+    const parsed = await loadConfigFile(configuration.config);
+    const configDirectory = Path.dirname(configuration.config);
+    const { forcedKeys, configFileKeys, configFileObject } = extractConfigEntries(parsed, configDirectory);
     const fileConfig = await this.validate(configFileObject, depth + 1);
     for (const [key, value] of Object.entries(fileConfig)) {
       if (key === 'mode' || key === 'config') {
@@ -127,13 +136,16 @@ export const ConfigurationValidator = {
     assertIfConfiguration(withDefaults);
     const explicitKeys = new Set(Object.keys(withDefaults));
     for (const option of options) {
-      if (Object.hasOwn(withDefaults, option.name) || (depth === 0 && withDefaults[option.name] && option.type === 'fs-entry')) {
+      if (
+        Object.hasOwn(withDefaults, option.name) ||
+        (depth === 0 && withDefaults[option.name] && option.type === 'fs-entry')
+      ) {
         Object.assign(withDefaults, {
-          [option.name]: await validateValue(option, withDefaults as Configuration)
+          [option.name]: await validateValue(option, withDefaults)
         });
       }
     }
-    const merged = await this.merge(withDefaults as Configuration, explicitKeys, depth);
+    const merged = await this.merge(withDefaults, explicitKeys, depth);
     merged.mode = this.computeMode(merged);
     return merged;
   }
