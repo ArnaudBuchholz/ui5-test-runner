@@ -18,7 +18,7 @@ type GenericLogSource =
 
 type PageLogSource = 'browser/agent' | 'browser/console' | 'browser/network' | 'page';
 
-export type LogSource = 'assert' | 'http' | 'metric' | 'progress' | 'reserve' | GenericLogSource | PageLogSource ;
+export type LogSource = 'assert' | 'http' | 'metric' | 'progress' | 'reserve' | GenericLogSource | PageLogSource;
 
 export type OverallProgressData = {
   /** Pages executed */

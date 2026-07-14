@@ -20,7 +20,11 @@ const _fetch = async (url: string, init?: FetchInit): Promise<Response> => {
     name: `http.fetch#${requestId}`,
     stop: () => controller.abort()
   });
-  logger.debug({ source: 'http', message: `${fetchInit?.method ?? 'GET'} ${url}`, data: { requestId, init: loggedInit } });
+  logger.debug({
+    source: 'http',
+    message: `${fetchInit?.method ?? 'GET'} ${url}`,
+    data: { requestId, init: loggedInit }
+  });
   try {
     const response = await fetch(url, {
       ...fetchInit,
@@ -58,7 +62,7 @@ export const Http = {
     using _ = Exit.registerAsyncTask({
       name: `http.getAsText#${requestId}`,
       stop: () => controller.abort()
-    });    
+    });
     const text = await response.text();
     logger.debug({ source: 'http', message: text, data: { requestId } });
     return text;
