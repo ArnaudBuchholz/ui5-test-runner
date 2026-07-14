@@ -4,6 +4,7 @@ export class Host {
   static readonly argv = process.argv;
   static readonly cpus = cpus;
   static readonly cwd = process.cwd.bind(process);
+  static readonly env = process.env;
   static readonly homedir = homedir;
   static readonly machine = machine;
   static readonly memoryUsage = process.memoryUsage.bind(process);
