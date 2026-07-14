@@ -39,7 +39,7 @@ export const test = async (configuration: Configuration) => {
     const port = await server.start(configuration);
 
     // TODO: only when local is being used
-    const version = JSON.parse(await Http.get(`http://localhost:${port}/resources/sap-ui-version.json`)) as {
+    const version = JSON.parse(await Http.getAsText(`http://localhost:${port}/resources/sap-ui-version.json`)) as {
       libraries: { name: string; version: string }[];
     };
     const { version: coreVersion } = version.libraries.find(({ name }: { name: string }) => name === 'sap.ui.core') ?? {
