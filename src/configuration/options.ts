@@ -176,6 +176,28 @@ export const options = [
     description: 'serve only'
   },
   {
+    name: 'start',
+    type: 'string',
+    description: 'command to be executed before the tests'
+  },
+  {
+    name: 'startTimeout',
+    type: 'timeout',
+    description: 'maximum waiting time for the start command to become ready',
+    default: 30_000
+  },
+  {
+    name: 'startWaitMethod',
+    type: 'string',
+    description: 'HTTP method used when polling the startWaitUrl',
+    default: 'GET'
+  },
+  {
+    name: 'startWaitUrl',
+    type: 'url',
+    description: 'URL to poll after the start command is executed'
+  },
+  {
     name: 'ui5',
     type: 'url',
     description: 'UI5 url',
@@ -205,6 +227,8 @@ export const defaults = {
   outputInterval: 30_000,
   parallel: 2,
   reportDir: 'report',
+  startTimeout: 30_000,
+  startWaitMethod: 'GET',
   testsuite: 'test/testsuite.qunit.html',
   ui5: 'https://ui5.sap.com',
   webapp: 'webapp'
