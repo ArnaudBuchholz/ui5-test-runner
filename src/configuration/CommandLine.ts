@@ -4,6 +4,7 @@ import { ConfigurationValidator } from './ConfigurationValidator.js';
 import type { Option } from './Option.js';
 import { OptionValidationError } from './OptionValidationError.js';
 import { isLikeAnUrl } from './validators/url.js';
+import { Host } from '../platform/index.js';
 
 type ConfigurationKeys = keyof Configuration;
 
@@ -48,15 +49,18 @@ const switchOption = (
   configuration: CommandLineConfiguration,
   currentOption: Option | undefined,
   name: string
-): Option => {
+): Option | undefined => {
   if (currentOption) {
     setOption(configuration, currentOption);
   }
   const option = indexedOptions[name];
-  if (!option) {
-    throw OptionValidationError.createUnknown(name);
+  if (option) {
+    return option;
   }
-  return option;
+  if (Host.env['IGNORE_UNKNOWN_OPTION']) {
+    return undefined;
+  }
+  throw OptionValidationError.createUnknown(name);
 };
 
 const positionalOption: Option = {

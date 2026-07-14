@@ -4,7 +4,7 @@ import { indexedOptions } from './indexedOptions.js';
 import { validators } from './validators/index.js';
 import { OptionValidationError } from './OptionValidationError.js';
 import { Modes } from '../modes/Modes.js';
-import { FileSystem, Path } from '../platform/index.js';
+import { FileSystem, Host, Path } from '../platform/index.js';
 
 const MAX_CONFIG_DEPTH = 10;
 
@@ -18,7 +18,7 @@ const assertIfConfiguration: (value: object) => asserts value is Configuration =
       } else if (key !== option.name) {
         errors.push(OptionValidationError.createKebabCase(option));
       }
-    } else {
+    } else if (!Host.env['IGNORE_UNKNOWN_OPTION']) {
       errors.push(OptionValidationError.createUnknown(key));
     }
   }
