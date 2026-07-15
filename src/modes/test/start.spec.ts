@@ -22,7 +22,7 @@ const START_WITH_WAIT_CONFIGURATION = {
   startTimeout: START_TIMEOUT
 } as unknown as Configuration;
 
-const makeProcess = (code?: number  ): IProcess => ({
+const makeProcess = (code?: number): IProcess => ({
   pid: 123,
   stdout: '',
   stderr: '',
@@ -31,8 +31,8 @@ const makeProcess = (code?: number  ): IProcess => ({
   kill: vi.fn().mockResolvedValue(undefined)
 });
 
-const makeOkResponse = (): Response => ({ ok: true, status: 200 } as Response);
-const makeNotOkResponse = (): Response => ({ ok: false, status: 503 } as Response);
+const makeOkResponse = (): Response => ({ ok: true, status: 200 }) as Response;
+const makeNotOkResponse = (): Response => ({ ok: false, status: 503 }) as Response;
 
 beforeEach(() => {
   vi.clearAllMocks();
@@ -119,7 +119,7 @@ describe('start', () => {
       await start(START_WITH_WAIT_CONFIGURATION);
       expect(Http.fetch).toHaveBeenCalledWith(START_URL, {
         method: 'GET',
-        signal: expect.any(AbortSignal)
+        signal: expect.any(AbortSignal) as unknown
       });
     });
 
