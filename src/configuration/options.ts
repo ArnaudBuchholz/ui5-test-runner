@@ -22,6 +22,7 @@ export const options = [
   {
     name: 'alternateNpmPath',
     type: 'fs-entry',
+    batchForwarded: true,
     description: 'alternate NPM package path'
   },
   {
@@ -35,12 +36,14 @@ export const options = [
     short: 'b',
     type: 'browser',
     browserExposed: true,
+    batchForwarded: true,
     description: 'browser selection',
     default: 'puppeteer'
   },
   {
     name: 'ci',
     type: 'boolean',
+    batchForwarded: true,
     description: 'forces CI mode (no interactive output)',
     default: !process.stdout.isTTY
   },
@@ -70,18 +73,21 @@ export const options = [
     name: 'failFast',
     short: 'f',
     type: 'boolean',
+    batchForwarded: true,
     description: 'stop the whole execution after the first failing page'
   },
   {
     name: 'failOpaFast',
     short: 'fo',
     type: 'boolean',
+    batchForwarded: true,
     description: 'stop the OPA page execution after the first failing test'
   },
   {
     name: 'globalTimeout',
     short: 't',
     type: 'timeout',
+    batchForwarded: true,
     description: 'limit the tests execution time, fail remaining pages if it takes longer than the timeout'
   },
   {
@@ -98,11 +104,13 @@ export const options = [
     name: 'keepAlive',
     short: 'k',
     type: 'boolean',
+    batchForwarded: true,
     description: 'keep the server alive'
   },
   {
     name: 'localhost',
     type: 'string',
+    batchForwarded: true,
     description: 'hostname for legacy URL',
     default: 'localhost'
   },
@@ -116,11 +124,13 @@ export const options = [
     name: 'logServer',
     short: 'l',
     type: 'boolean',
+    batchForwarded: true,
     description: 'log inner server traces'
   },
   {
     name: 'noNpmInstall',
     type: 'boolean',
+    batchForwarded: true,
     description: 'prevent any NPM install'
   },
   {
@@ -138,6 +148,7 @@ export const options = [
     name: 'outputInterval',
     short: 'oi',
     type: 'timeout',
+    batchForwarded: true,
     description: 'interval for reporting progress on non interactive output (CI/CD)',
     default: 30_000
   },
@@ -145,18 +156,21 @@ export const options = [
     name: 'pageFilter',
     short: 'pf',
     type: 'regexp',
+    batchForwarded: true,
     description: 'filter pages to execute'
   },
   {
     name: 'pageParams',
     short: 'pp',
     type: 'string',
+    batchForwarded: true,
     description: 'add parameters to page URL'
   },
   {
     name: 'pageTimeout',
     short: 'pt',
     type: 'timeout',
+    batchForwarded: true,
     description: 'fails a page if it takes longer than this timeout'
   },
   {
@@ -164,6 +178,7 @@ export const options = [
     short: 'p',
     type: 'integer',
     browserExposed: true,
+    batchForwarded: true,
     description: 'number of parallel executions',
     default: 2
   },

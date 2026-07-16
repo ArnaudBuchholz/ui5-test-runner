@@ -3,7 +3,7 @@ import { logger, Exit, Process } from '../../platform/index.js';
 import type { IProcess } from '../../platform/index.js';
 import type { Configuration } from '../../configuration/Configuration.js';
 import { Command } from '../../Command.js';
-import { end } from './end.js';
+import { end } from '../../end.js';
 
 vi.spyOn(Command, 'parse');
 

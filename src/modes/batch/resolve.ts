@@ -16,6 +16,7 @@ const folder = (items: IBatchItem[], folderPath: string): void => {
 const configurationFile = (items: IBatchItem[], configPath: string): void => {
   try {
     const require = Module.createRequire(import.meta.url);
+    // eslint-disable-next-line security/detect-non-literal-require -- configPath is validated as an absolute .json file path before reaching here
     const { batchId: id = batchId(configPath), batchLabel: label = batchLabel(configPath) } = require(configPath) as {
       batchId?: string;
       batchLabel?: string;
@@ -27,7 +28,11 @@ const configurationFile = (items: IBatchItem[], configPath: string): void => {
       args: ['--config', configPath]
     });
   } catch {
-    logger.warn({ source: 'job', message: 'batch item failed', data: { path: configPath, reason: 'invalid JSON configuration file' } });
+    logger.warn({
+      source: 'job',
+      message: 'batch item failed',
+      data: { path: configPath, reason: 'invalid JSON configuration file' }
+    });
   }
 };
 
@@ -50,7 +55,8 @@ const scan = async (items: IBatchItem[], cwd: string, re: RegExp): Promise<void>
 
 export const resolve = async (configuration: Configuration): Promise<IBatchItem[]> => {
   const items: IBatchItem[] = [];
-  for (const spec of configuration.batch ?? []) {
+  const specs = configuration.batch ?? [];
+  for (const spec of specs) {
     // Try as a direct path first (folder or JSON file)
     try {
       const path = Path.isAbsolute(spec) ? spec : Path.join(configuration.cwd, spec);
@@ -60,7 +66,11 @@ export const resolve = async (configuration: Configuration): Promise<IBatchItem[
       } else if (pathStat.isFile() && path.endsWith('.json')) {
         configurationFile(items, path);
       } else {
-        logger.warn({ source: 'job', message: 'batch item failed', data: { path: spec, reason: 'only folders and JSON configuration files are supported' } });
+        logger.warn({
+          source: 'job',
+          message: 'batch item failed',
+          data: { path: spec, reason: 'only folders and JSON configuration files are supported' }
+        });
       }
       continue;
     } catch {
@@ -68,9 +78,14 @@ export const resolve = async (configuration: Configuration): Promise<IBatchItem[
     }
     let re: RegExp;
     try {
+      // eslint-disable-next-line security/detect-non-literal-regexp -- spec is user-provided and intentionally treated as a regex pattern
       re = new RegExp(spec);
     } catch {
-      logger.warn({ source: 'job', message: 'batch item failed', data: { path: spec, reason: 'invalid regular expression' } });
+      logger.warn({
+        source: 'job',
+        message: 'batch item failed',
+        data: { path: spec, reason: 'invalid regular expression' }
+      });
       continue;
     }
     await scan(items, configuration.cwd, re);
