@@ -55,6 +55,7 @@ for (const fileName of optionsFileNames) {
   const [, summary] = properties.match(/summary: (.*)/) ?? [];
   const isMultiple = !!/multiple: yes/.test(properties);
   const isBrowserExposed = !!/browserExposed: yes/.test(properties);
+  const isBatchForwarded = !!/batchForwarded: yes/.test(properties);
   if (defaultValue) {
     defaults[name] = defaultValue;
   }
@@ -78,6 +79,7 @@ for (const fileName of optionsFileNames) {
     typeModifiers,
     multiple: isMultiple,
     browserExposed: isBrowserExposed,
+    batchForwarded: isBatchForwarded,
     description: summary,
     default: defaultValue
   };
@@ -113,6 +115,10 @@ if (!process.exitCode) {
       } else if (key === 'browserExposed') {
         if (value) {
           console.log(`    browserExposed: true,`);
+        }
+      } else if (key === 'batchForwarded') {
+        if (value) {
+          console.log(`    batchForwarded: true,`);
         }
       } else if (key === 'typeModifiers') {
         console.log(`    typeModifiers: new Set(${JSON.stringify(value).replaceAll('"', "'")} as const),`);

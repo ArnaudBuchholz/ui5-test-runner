@@ -25,6 +25,12 @@ export const options = [
     description: 'alternate NPM package path'
   },
   {
+    name: 'batch',
+    type: 'string',
+    multiple: true,
+    description: 'batch item specification (folder, config file, or regex pattern)'
+  },
+  {
     name: 'browser',
     short: 'b',
     type: 'browser',
@@ -82,6 +88,11 @@ export const options = [
     name: 'help',
     type: 'boolean',
     description: 'display help'
+  },
+  {
+    name: 'if',
+    type: 'string',
+    description: 'skip execution if the expression evaluates to falsy'
   },
   {
     name: 'keepAlive',
