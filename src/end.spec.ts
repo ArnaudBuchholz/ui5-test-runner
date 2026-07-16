@@ -1,9 +1,9 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { logger, Exit, Process } from '../../platform/index.js';
-import type { IProcess } from '../../platform/index.js';
-import type { Configuration } from '../../configuration/Configuration.js';
-import { Command } from '../../Command.js';
-import { end } from '../../end.js';
+import { logger, Exit, Process } from './platform/index.js';
+import type { IProcess } from './platform/index.js';
+import type { Configuration } from './configuration/Configuration.js';
+import { Command } from './Command.js';
+import { end } from './end.js';
 
 vi.spyOn(Command, 'parse');
 
@@ -120,7 +120,7 @@ describe('end', () => {
       vi.mocked(Process.spawn).mockReturnValue(process);
 
       const promise = end(END_WITH_TIMEOUT_CONFIGURATION);
-      await vi.advanceTimersByTimeAsync(END_WITH_TIMEOUT_CONFIGURATION.endTimeout!);
+      await vi.advanceTimersByTimeAsync(END_WITH_TIMEOUT_CONFIGURATION.endTimeout);
       setProcessAsClosed();
       await promise;
 
