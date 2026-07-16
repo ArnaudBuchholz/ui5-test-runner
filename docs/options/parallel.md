@@ -3,6 +3,7 @@
 short: p
 type: "[[integer]]"
 summary: number of parallel executions
+batchForwarded: yes
 default: "2"
 browserExposed: yes
 tags:

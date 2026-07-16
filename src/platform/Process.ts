@@ -1,4 +1,4 @@
-import type { ChildProcess, SpawnOptions } from 'node:child_process';
+import type { ChildProcess, SendHandle, Serializable, SpawnOptions } from 'node:child_process';
 import { Host } from './Host.js';
 import { spawn } from 'node:child_process';
 import { logger } from './logger.js';
@@ -17,7 +17,7 @@ export interface IProcess {
   readonly code: number | undefined;
   readonly closed: Promise<void>;
   kill(): Promise<void>;
-  send?(data: unknown): void;
+  send?(data: Serializable): void;
 }
 
 class ProcessStopper {
@@ -50,7 +50,9 @@ export class Process implements IProcess {
       });
       if (onMessage) {
         const stdio = spawnOptions.stdio;
-        spawnOptions.stdio = Array.isArray(stdio) ? [...stdio, 'ipc'] : [stdio ?? 'pipe', stdio ?? 'pipe', stdio ?? 'pipe', 'ipc'];
+        spawnOptions.stdio = Array.isArray(stdio)
+          ? [...stdio, 'ipc']
+          : [stdio ?? 'pipe', stdio ?? 'pipe', stdio ?? 'pipe', 'ipc'];
       }
       const childProcess = spawn(finalCommand, arguments_, spawnOptions);
       logger.debug({
@@ -133,8 +135,8 @@ export class Process implements IProcess {
     return this._childProcess.pid!;
   }
 
-  send(data: unknown): void {
-    this._childProcess.send(data);
+  send(data: Serializable): void {
+    this._childProcess.send(data as Serializable & SendHandle);
   }
 
   async kill(): Promise<void> {

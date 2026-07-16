@@ -2,6 +2,7 @@
 "#type": "[[option]]"
 type: "[[string]]"
 summary: hostname for legacy URL
+batchForwarded: yes
 default: "'localhost'"
 tags:
   - legacy

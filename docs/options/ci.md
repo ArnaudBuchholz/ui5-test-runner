@@ -2,6 +2,7 @@
 "#type": "[[option]]"
 type: "[[boolean]]"
 summary: forces CI mode (no interactive output)
+batchForwarded: yes
 default: "!process.stdout.isTTY"
 tags:
   - legacy

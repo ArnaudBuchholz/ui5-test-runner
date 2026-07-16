@@ -2,6 +2,7 @@
 "#type": "[[option]]"
 type: "[[fs-entry]]"
 summary: alternate NPM package path
+batchForwarded: yes
 dependsOn: "[[cwd]]"
 ---
 When searching for packages, the runner checks paths in the following order:
