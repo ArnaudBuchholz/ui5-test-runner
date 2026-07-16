@@ -123,6 +123,9 @@ export const ConfigurationValidator = {
     if (configuration.version) {
       return Modes.version;
     }
+    if (configuration.batch) {
+      return Modes.batch;
+    }
     if (configuration.log) {
       return Modes.log;
     }
@@ -148,6 +151,9 @@ export const ConfigurationValidator = {
     }
     if (!Object.hasOwn(withDefaults, 'sources')) {
       Object.assign(withDefaults, { sources: {} });
+    }
+    if (Host.env['UI5TR_BATCH_MODE']) {
+      Object.assign(withDefaults, { outputInterval: 1000 });
     }
     const merged = await this.merge(withDefaults, explicitKeys, depth);
     merged.mode = this.computeMode(merged);
