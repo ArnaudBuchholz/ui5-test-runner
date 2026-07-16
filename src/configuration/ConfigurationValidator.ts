@@ -110,6 +110,7 @@ export const ConfigurationValidator = {
       }
       if (forcedKeys.has(key) || !explicitKeys.has(key)) {
         Object.assign(configuration, { [key]: value });
+        configuration.sources[key as keyof Configuration['sources']] = 'config';
       }
     }
     return configuration;
@@ -144,6 +145,9 @@ export const ConfigurationValidator = {
           [option.name]: await validateValue(option, withDefaults)
         });
       }
+    }
+    if (!Object.hasOwn(withDefaults, 'sources')) {
+      Object.assign(withDefaults, { sources: {} });
     }
     const merged = await this.merge(withDefaults, explicitKeys, depth);
     merged.mode = this.computeMode(merged);

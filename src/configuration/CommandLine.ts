@@ -117,6 +117,8 @@ export const CommandLine = {
 
     const { errors, ...configWithoutErrors } = configuration;
 
+    const cliKeys = new Set(Object.keys(configWithoutErrors).filter((k) => k !== 'cwd'));
+
     let validatedConfiguration: Configuration;
     try {
       validatedConfiguration = await ConfigurationValidator.validate(configWithoutErrors);
@@ -134,6 +136,10 @@ export const CommandLine = {
     }
     if (errors.length > 0) {
       throw new AggregateError(errors, 'Multiple errors occurred');
+    }
+
+    for (const key of cliKeys) {
+      validatedConfiguration!.sources[key as keyof Configuration['sources']] = 'cli';
     }
 
     return validatedConfiguration!;

@@ -15,4 +15,5 @@ export type Configuration = {
   [K in ConfigKeys as HasDefault<GetConfig<K>> extends true ? never : K]?: ConfigType<GetConfig<K>>;
 } & {
   mode: Modes;
+  sources: Partial<Record<ConfigKeys, 'cli' | 'config'>>;
 };
