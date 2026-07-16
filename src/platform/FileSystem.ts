@@ -1,4 +1,4 @@
-import { access, stat, constants, readFile, mkdir, rm } from 'node:fs/promises';
+import { access, stat, constants, readFile, readdir, mkdir, rm } from 'node:fs/promises';
 import { createReadStream, createWriteStream, writeFileSync } from 'node:fs';
 
 export class FileSystem {
@@ -7,6 +7,7 @@ export class FileSystem {
   static readonly createReadStream = createReadStream;
   static readonly createWriteStream = createWriteStream;
   static readonly mkdir = mkdir;
+  static readonly readdir = readdir;
   static readonly readFile = readFile;
   static readonly rm = rm;
   static readonly stat = stat;

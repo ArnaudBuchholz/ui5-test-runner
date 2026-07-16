@@ -5,6 +5,10 @@ import { logger } from './logger.js';
 import { Exit } from './Exit.js';
 import type { IRegisteredAsyncTask } from './Exit.js';
 
+export interface SpawnOptionsWithIPC extends SpawnOptions {
+  onMessage?: (data: unknown) => void;
+}
+
 export interface IProcess {
   readonly pid: number;
   readonly stdout: string;
@@ -13,6 +17,7 @@ export interface IProcess {
   readonly code: number | undefined;
   readonly closed: Promise<void>;
   kill(): Promise<void>;
+  send?(data: unknown): void;
 }
 
 class ProcessStopper {
@@ -29,11 +34,12 @@ class ProcessStopper {
 }
 
 export class Process implements IProcess {
-  static readonly spawn: (command: string, arguments_: string[], options?: SpawnOptions) => IProcess = (
+  static readonly spawn: (command: string, arguments_: string[], options?: SpawnOptionsWithIPC) => IProcess = (
     command,
     arguments_,
     options = {}
   ) => {
+    const { onMessage, ...spawnOptions } = options;
     const finalCommand = command === 'node' ? (Host.argv[0] as string) : command;
     let asyncTask: IRegisteredAsyncTask | undefined;
     try {
@@ -42,13 +48,20 @@ export class Process implements IProcess {
         name: `Process.spawn(${command},${arguments_.join(',')})`,
         stop: () => stopper.stop()
       });
-      const childProcess = spawn(finalCommand, arguments_, options);
+      if (onMessage) {
+        const stdio = spawnOptions.stdio;
+        spawnOptions.stdio = Array.isArray(stdio) ? [...stdio, 'ipc'] : [stdio ?? 'pipe', stdio ?? 'pipe', stdio ?? 'pipe', 'ipc'];
+      }
+      const childProcess = spawn(finalCommand, arguments_, spawnOptions);
       logger.debug({
         source: 'process',
         processId: childProcess.pid,
         message: 'spawned',
         data: { command, arguments: arguments_, options }
       });
+      if (onMessage) {
+        childProcess.on('message', onMessage);
+      }
       const process = new Process(childProcess, asyncTask);
       stopper.process = process;
       return process;
@@ -118,6 +131,10 @@ export class Process implements IProcess {
 
   get pid(): number {
     return this._childProcess.pid!;
+  }
+
+  send(data: unknown): void {
+    this._childProcess.send(data);
   }
 
   async kill(): Promise<void> {
