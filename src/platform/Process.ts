@@ -1,4 +1,4 @@
-import type { ChildProcess, SendHandle, Serializable, SpawnOptions } from 'node:child_process';
+import type { ChildProcess, Serializable, SpawnOptions } from 'node:child_process';
 import { Host } from './Host.js';
 import { spawn } from 'node:child_process';
 import { logger } from './logger.js';
@@ -136,7 +136,7 @@ export class Process implements IProcess {
   }
 
   send(data: Serializable): void {
-    this._childProcess.send(data as Serializable & SendHandle);
+    this._childProcess.send(data);
   }
 
   async kill(): Promise<void> {
