@@ -1,7 +1,7 @@
-import { logger, Http, Process, assert } from '../../platform/index.js';
-import type { IProcess } from '../../platform/index.js';
-import type { Configuration } from '../../configuration/Configuration.js';
-import { Command } from '../../Command.js';
+import { logger, Http, Process, assert } from './platform/index.js';
+import type { IProcess } from './platform/index.js';
+import type { Configuration } from './configuration/Configuration.js';
+import { Command } from './Command.js';
 
 const POLL_INTERVAL = 250;
 

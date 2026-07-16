@@ -11,8 +11,8 @@ import { generateHtmlReport } from '../../reports/html.js';
 import { Folder } from '../../utils/node/Folder.js';
 import { server } from './server.js';
 import { formatDuration } from '../../utils/shared/string.js';
-import { start } from './start.js';
-import { end } from './end.js';
+import { start } from '../../start.js';
+import { end } from '../../end.js';
 
 /**
  * TODO

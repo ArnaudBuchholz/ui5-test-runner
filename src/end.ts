@@ -1,7 +1,7 @@
-import { logger, Exit, Process } from '../../platform/index.js';
-import type { Configuration } from '../../configuration/Configuration.js';
-import { Command } from '../../Command.js';
-import { formatDuration } from '../../utils/shared/string.js';
+import { logger, Exit, Process } from './platform/index.js';
+import type { Configuration } from './configuration/Configuration.js';
+import { Command } from './Command.js';
+import { formatDuration } from './utils/shared/string.js';
 
 export const end = async (configuration: Configuration): Promise<void> => {
   if (!configuration.end) {
