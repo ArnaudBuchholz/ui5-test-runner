@@ -11,6 +11,7 @@ import { generateHtmlReport } from '../../reports/html.js';
 import { Folder } from '../../utils/node/Folder.js';
 import { server } from './server.js';
 import { formatDuration } from '../../utils/shared/string.js';
+import { start } from './start.js';
 import { end } from './end.js';
 
 /**
@@ -36,6 +37,7 @@ export const test = async (configuration: Configuration) => {
 
   let isBrowserStarted = false;
   try {
+    await start(configuration);
     const port = await server.start(configuration);
 
     // TODO: only when local is being used
