@@ -4,7 +4,7 @@ import { Exit, Host, logger } from './platform/index.js';
 import { version } from './platform/version.js';
 import { CommandLine } from './configuration/CommandLine.js';
 import { execute } from './modes/execute.js';
-import { shouldExecuteIf } from './modes/batch/executeIf.js';
+import { shouldExecuteIf } from './executeIf.js';
 
 try {
   const cliVersion = await version();
