@@ -164,7 +164,13 @@ Ports `task()` from `src/batch.js`. Key TypeScript decisions:
 
 ---
 
-### Step 8 — `src/modes/batch/index.ts`
+### Step 8 — Move `start` and `end` helpers to `src/`
+
+`src/modes/test/start.ts` and `src/modes/test/end.ts` are test-mode-only but batch mode needs the same behaviour. Move both to `src/start.ts` and `src/end.ts` respectively, and update the imports in `src/modes/test/index.ts`.
+
+---
+
+### Step 9 — `src/modes/batch/index.ts`
 
 Ports `batch()` as the `ModeFunction`:
 
@@ -175,14 +181,14 @@ export const batch = async (configuration: Configuration): Promise<void> => { ..
 Key steps:
 1. Resolve all specs into `IBatchItem[]` (via `resolve.ts`)
 2. If empty → log warn + return
-3. `parallelize(task, batchItems, { parallel: configuration.parallel })`
-4. Aggregate failures, set `Exit.code = -1` if any failed
-
-The `start` command (if any) is handled internally by the mode (same pattern as `test` mode) — not by `execute.ts`.
+3. Run `start()` (shared helper) if `configuration.start` is set
+4. `parallelize(task, batchItems, { parallel: configuration.parallel })`
+5. Aggregate failures, set `Exit.code = -1` if any failed
+6. Kill the start process on completion
 
 ---
 
-### Step 9 — Wire up in `execute.ts`
+### Step 10 — Wire up in `execute.ts`
 
 Replace the `notImplemented` stub for `Modes.batch`:
 
@@ -194,13 +200,13 @@ import { batch } from './batch/index.js';
 
 ---
 
-### Step 10 — `--if` conditional (`src/modes/batch/executeIf.ts`)
+### Step 11 — `--if` conditional (`src/modes/batch/executeIf.ts`)
 
 ```typescript
+import { punyexpr } from 'punyexpr';
 import { Host } from '../../platform/index.js';
 
 export const executeIf = (condition: string): boolean => {
-  const { punyexpr } = require('punyexpr');  // or import if ESM-compatible
   return !!punyexpr(condition)({
     ...Host.env,
     NODE_MAJOR_VERSION: parseInt(process.version.match(/v(\d+)\./)?.[1] ?? '0', 10)
@@ -221,7 +227,7 @@ if (configuration.if && !executeIf(configuration.if)) {
 
 ---
 
-### Step 11 — `UI5TR_BATCH_MODE` detection in `cli.ts`
+### Step 12 — `UI5TR_BATCH_MODE` detection in `cli.ts`
 
 When `Host.env['UI5TR_BATCH_MODE']` is set, log the `[BATCHM]` warning:
 
@@ -233,7 +239,7 @@ if (Host.env['UI5TR_BATCH_MODE']) {
 
 ---
 
-### Step 12 — Unit tests
+### Step 13 — Unit tests
 
 | File | What to test |
 |---|---|
@@ -261,7 +267,12 @@ All tests must use `vi.mock(import('../../platform/mock.js'))` — never mock `n
 | `src/modes/Modes.ts` | Already has `batch` — no change needed |
 | `src/modes/execute.ts` | Wire `Modes.batch → batch` |
 | `src/cli.ts` | Add `UI5TR_BATCH_MODE` warning + `--if` evaluation |
+| `src/start.ts` | Move from `src/modes/test/start.ts` |
+| `src/end.ts` | Move from `src/modes/test/end.ts` |
+| `src/modes/test/start.ts` | Remove (moved to `src/start.ts`) |
+| `src/modes/test/end.ts` | Remove (moved to `src/end.ts`) |
 | `src/modes/batch/BatchItem.ts` | Create |
+| `src/modes/batch/batchId.ts` | Create |
 | `src/modes/batch/resolve.ts` | Create |
 | `src/modes/batch/task.ts` | Create |
 | `src/modes/batch/executeIf.ts` | Create |
@@ -280,12 +291,13 @@ Each commit is a single logical change:
 2. `feat(options): add batch and if options`
 3. `feat(configuration): detect batch mode; force outputInterval when UI5TR_BATCH_MODE`
 4. `feat(platform): add FileSystem.readdir and Process.spawn IPC support`
-5. `feat(batch): implement BatchItem, resolve helpers`
-6. `feat(batch): implement task() child process runner`
-7. `feat(batch): implement batch() orchestration + executeIf`
-8. `feat(cli): add UI5TR_BATCH_MODE warning and --if evaluation`
-9. `feat(execute): wire batch mode function`
-10. `test(batch): full unit test coverage`
+5. `refactor(modes): move start and end helpers to src/`
+6. `feat(batch): implement BatchItem, resolve helpers`
+7. `feat(batch): implement task() child process runner`
+8. `feat(batch): implement batch() orchestration + executeIf`
+9. `feat(cli): add UI5TR_BATCH_MODE warning and --if evaluation`
+10. `feat(execute): wire batch mode function`
+11. `test(batch): full unit test coverage`
 
 ---
 
