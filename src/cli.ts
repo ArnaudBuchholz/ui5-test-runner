@@ -4,7 +4,7 @@ import { Exit, Host, logger } from './platform/index.js';
 import { version } from './platform/version.js';
 import { CommandLine } from './configuration/CommandLine.js';
 import { execute } from './modes/execute.js';
-import { executeIf } from './modes/batch/executeIf.js';
+import { shouldExecuteIf } from './modes/batch/executeIf.js';
 
 try {
   const cliVersion = await version();
@@ -14,7 +14,7 @@ try {
   if (Host.env['UI5TR_BATCH_MODE']) {
     logger.warn({ source: 'job', message: '⚠️ [BATCHM] Batch mode item execution' });
   }
-  if (configuration.if && !executeIf(configuration.if)) {
+  if (configuration.if && !shouldExecuteIf(configuration.if)) {
     logger.warn({ source: 'job', message: '⚠️ [SKIPIF] Skipping execution (--if)' });
   } else {
     await execute(configuration);

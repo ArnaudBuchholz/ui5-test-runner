@@ -25,10 +25,11 @@ const buildForwardedParameters = (configuration: Configuration): string[] => {
       }
     } else if ('multiple' in option && option.multiple) {
       for (const item of value as string[]) {
-        parameters.push(flag, String(item));
+        parameters.push(flag, item);
       }
     } else {
-      parameters.push(flag, String(value));
+      // eslint-disable-next-line @typescript-eslint/restrict-template-expressions, unicorn/no-useless-template-literals, @typescript-eslint/no-base-to-string -- forwarded scalar options are string/number/timeout, not complex objects
+      parameters.push(flag, `${value}`);
     }
   }
   return parameters;
@@ -52,13 +53,13 @@ export const task = async (configuration: Configuration, batchItem: IBatchItem):
     env: { ...Host.env, UI5TR_BATCH_MODE: '1' },
     windowsHide: true,
     onMessage: (data) => {
-      const msg = data as ProgressMessage;
-      if (msg?.type === 'progress') {
+      const message = data as ProgressMessage;
+      if (message?.type === 'progress') {
         logger.info({
           source: 'progress',
           message: label,
           pageId: undefined,
-          data: { value: msg.count, max: msg.total }
+          data: { value: message.count, max: message.total }
         });
       }
     }
