@@ -73,10 +73,29 @@ describe('end', () => {
       expect(Exit.code).toStrictEqual(0);
     });
 
+    it('warns when switching Exit.code from something to 0', async () => {
+      Exit.code = 42;
+      await end(END_CONFIGURATION);
+      expect(logger.warn).toHaveBeenCalledWith({
+        source: 'job',
+        message: 'Status changed to success by end command'
+      });
+    });
+
     it('sets Exit.code to the process exit code', async () => {
       vi.mocked(Process.spawn).mockReturnValue(makeProcess(42));
       await end(END_CONFIGURATION);
       expect(Exit.code).toBe(42);
+    });
+
+    it('warns when switching Exit.code from 0 to something', async () => {
+      Exit.code = 0;
+      vi.mocked(Process.spawn).mockReturnValue(makeProcess(42));
+      await end(END_CONFIGURATION);
+      expect(logger.warn).toHaveBeenCalledWith({
+        source: 'job',
+        message: 'Status changed to error by end command'
+      });
     });
   });
 

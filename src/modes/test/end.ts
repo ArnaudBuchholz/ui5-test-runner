@@ -36,6 +36,18 @@ export const end = async (configuration: Configuration): Promise<void> => {
     code = process.code;
   }
   if (code !== undefined) {
+    const before = Exit.code;
+    if (before === 0 && code !== 0) {
+      logger.warn({
+        source: 'job',
+        message: 'Status changed to error by end command'
+      });
+    } else if (before !== 0 && code === 0) {
+      logger.warn({
+        source: 'job',
+        message: 'Status changed to success by end command'
+      });
+    }
     Exit.code = code;
   }
   const duration = formatDuration(Date.now() - start);
