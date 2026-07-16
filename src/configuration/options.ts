@@ -121,13 +121,6 @@ export const options = [
     description: 'read and dump log file using jsonl format'
   },
   {
-    name: 'logServer',
-    short: 'l',
-    type: 'boolean',
-    batchForwarded: true,
-    description: 'log inner server traces'
-  },
-  {
     name: 'noNpmInstall',
     type: 'boolean',
     batchForwarded: true,

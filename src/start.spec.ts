@@ -1,11 +1,11 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { logger, Http, Process } from '../../platform/index.js';
-import type { IProcess } from '../../platform/index.js';
-import type { Configuration } from '../../configuration/Configuration.js';
-import { Command } from '../../Command.js';
-import { start } from '../../start.js';
+import { logger, Http, Process } from './platform/index.js';
+import type { IProcess } from './platform/index.js';
+import type { Configuration } from './configuration/Configuration.js';
+import { Command } from './Command.js';
+import { start } from './start.js';
 
-vi.mock('../../platform/mock.js');
+vi.mock('./platform/mock.js');
 vi.spyOn(Command, 'parse');
 
 const CWD = '/test/cwd';
