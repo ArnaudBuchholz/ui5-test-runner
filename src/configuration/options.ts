@@ -104,7 +104,6 @@ export const options = [
     name: 'keepAlive',
     short: 'k',
     type: 'boolean',
-    batchForwarded: true,
     description: 'keep the server alive'
   },
   {
