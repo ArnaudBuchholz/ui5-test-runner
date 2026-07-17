@@ -4,7 +4,7 @@ import { ConfigurationValidator } from './ConfigurationValidator.js';
 import type { Option } from './Option.js';
 import { OptionValidationError } from './OptionValidationError.js';
 import { isLikeAnUrl } from './validators/url.js';
-import { Host } from '../platform/index.js';
+import { assert, Host } from '../platform/index.js';
 
 type ConfigurationKeys = keyof Configuration;
 
@@ -119,7 +119,7 @@ export const CommandLine = {
 
     const cliKeys = new Set(Object.keys(configWithoutErrors).filter((k) => k !== 'cwd'));
 
-    let validatedConfiguration: Configuration;
+    let validatedConfiguration: Configuration | undefined;
     try {
       validatedConfiguration = await ConfigurationValidator.validate(configWithoutErrors);
     } catch (error) {
@@ -138,10 +138,13 @@ export const CommandLine = {
       throw new AggregateError(errors, 'Multiple errors occurred');
     }
 
+    assert(validatedConfiguration !== undefined);
+    validatedConfiguration.sources = {
+      ...validatedConfiguration.sources
+    };
     for (const key of cliKeys) {
-      validatedConfiguration!.sources[key as keyof Configuration['sources']] = 'cli';
+      validatedConfiguration.sources[key] = 'cli';
     }
-
-    return validatedConfiguration!;
+    return validatedConfiguration;
   }
 };

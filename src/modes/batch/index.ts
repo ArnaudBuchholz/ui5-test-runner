@@ -16,21 +16,17 @@ export const batch = async (configuration: Configuration): Promise<void> => {
   let failed = 0;
 
   try {
-    await parallelize(
-      (item) => task(configuration, item),
-      items,
-      {
-        parallel: configuration.parallel,
-        on: (event) => {
-          if (event.type === 'completed' && event.input.statusCode !== 0) {
-            ++failed;
-          }
-          if (event.type === 'failed') {
-            ++failed;
-          }
+    await parallelize((item) => task(configuration, item), items, {
+      parallel: configuration.parallel,
+      on: (event) => {
+        if (event.type === 'completed' && event.input.statusCode !== 0) {
+          ++failed;
+        }
+        if (event.type === 'failed') {
+          ++failed;
         }
       }
-    );
+    });
   } finally {
     await startProcess?.kill();
   }

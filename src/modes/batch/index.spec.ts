@@ -14,8 +14,7 @@ import { start } from '../../start.js';
 import type { IBatchItem } from './BatchItem.js';
 import type { IProcess } from '../../platform/index.js';
 
-const makeConfig = (): Configuration =>
-  ({ cwd: '/cwd', parallel: 2, sources: {} }) as unknown as Configuration;
+const makeConfig = (): Configuration => ({ cwd: '/cwd', parallel: 2, sources: {} }) as unknown as Configuration;
 
 const makeItem = (id: string): IBatchItem => ({
   path: `/path/${id}`,

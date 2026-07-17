@@ -9,8 +9,9 @@ export class Host {
   static readonly machine = machine;
   static readonly memoryUsage = process.memoryUsage.bind(process);
   static readonly nodeVersion = process.version;
-  static readonly pid = process.pid;
-  static readonly platform = platform;
   static readonly osRelease = release;
   static readonly osVersion = version;
+  static readonly pid = process.pid;
+  static readonly platform = platform;
+  static readonly version = process.version;
 }
