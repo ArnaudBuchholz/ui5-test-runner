@@ -17,11 +17,7 @@ const buildForwardedParameters = (configuration: Configuration): string[] => {
     const flag = `--${toKebabCase(option.name)}`;
     const value = configuration[name];
     if (option.type === 'boolean') {
-      if (value) {
-        parameters.push(flag);
-      } else {
-        parameters.push(`--no-${toKebabCase(option.name)}`);
-      }
+      parameters.push(flag, String(value));
     } else if ('multiple' in option && option.multiple) {
       for (const item of value as string[]) {
         parameters.push(flag, item);
