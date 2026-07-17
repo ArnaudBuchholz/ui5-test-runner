@@ -31,6 +31,8 @@ const buildForwardedParameters = (configuration: Configuration): string[] => {
 };
 
 type ProgressMessage = { type: 'progress'; count: number; total: number };
+type SkipMessage = { type: 'skip' };
+type IPCMessage = ProgressMessage | SkipMessage;
 
 export const task = async (configuration: Configuration, batchItem: IBatchItem): Promise<void> => {
   batchItem.start = new Date();
@@ -48,7 +50,7 @@ export const task = async (configuration: Configuration, batchItem: IBatchItem):
     env: { ...Host.env, UI5TR_BATCH_MODE: '1' },
     windowsHide: true,
     onMessage: (data) => {
-      const message = data as ProgressMessage;
+      const message = data as IPCMessage;
       if (message?.type === 'progress') {
         logger.info({
           source: 'progress',
@@ -56,6 +58,8 @@ export const task = async (configuration: Configuration, batchItem: IBatchItem):
           pageId: undefined,
           data: { value: message.count, max: message.total }
         });
+      } else if (message?.type === 'skip') {
+        logger.info({ source: 'job', message: `⏭️  ${label} (skipped)` });
       }
     }
   });

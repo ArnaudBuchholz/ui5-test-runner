@@ -13,6 +13,9 @@ try {
   const configuration = await CommandLine.buildConfigurationFrom(Host.cwd(), Host.argv.slice(indexOfCli + 1));
   if (configuration.if && !shouldExecuteIf(configuration.if)) {
     console.log('⚠️ [SKIPIF] Skipping execution (--if)');
+    if (Host.env['UI5TR_BATCH_MODE']) {
+      process.send?.({ type: 'skip' });
+    }
   } else {
     await execute(configuration);
   }
