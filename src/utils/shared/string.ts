@@ -1,3 +1,5 @@
+export const toKebabCase = (name: string): string => name.replaceAll(/[A-Z]/g, (letter) => `-${letter.toLowerCase()}`);
+
 export function split(string: string): [string];
 export function split<T extends number[]>(s: string, ...lengths: T): [...{ [K in keyof T]: string }, string];
 export function split(string: string, ...lengthes: number[]): string[] {

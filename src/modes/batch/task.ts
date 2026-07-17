@@ -3,8 +3,7 @@ import { options } from '../../configuration/options.js';
 import type { Configuration } from '../../configuration/Configuration.js';
 import type { IBatchItem } from './BatchItem.js';
 import { join } from 'node:path';
-
-const toKebabCase = (name: string): string => name.replaceAll(/[A-Z]/g, (letter) => `-${letter.toLowerCase()}`);
+import { toKebabCase } from '../../utils/shared/string.js';
 
 const forwardedOptions = options.filter((o) => 'batchForwarded' in o && o.batchForwarded);
 
