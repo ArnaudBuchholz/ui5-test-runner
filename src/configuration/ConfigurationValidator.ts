@@ -110,7 +110,7 @@ export const ConfigurationValidator = {
       }
       if (forcedKeys.has(key) || !explicitKeys.has(key)) {
         Object.assign(configuration, { [key]: value });
-        configuration.sources[key as keyof Configuration['sources']] = 'config';
+        configuration.sources[key] = 'config';
       }
     }
     return configuration;

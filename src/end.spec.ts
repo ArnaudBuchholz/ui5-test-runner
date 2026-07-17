@@ -11,10 +11,11 @@ const CWD = '/test/cwd';
 
 const NO_END_CONFIGURATION = { cwd: CWD } as Configuration;
 const END_CONFIGURATION = { cwd: CWD, end: 'my-command --flag' } as Configuration;
+const END_TIMEOUT = 5000;
 const END_WITH_TIMEOUT_CONFIGURATION = {
   cwd: CWD,
   end: 'my-command --flag',
-  endTimeout: 5000
+  endTimeout: END_TIMEOUT
 } as Configuration;
 
 const DEFAULT_EXIT_CODE = 999;
@@ -120,7 +121,7 @@ describe('end', () => {
       vi.mocked(Process.spawn).mockReturnValue(process);
 
       const promise = end(END_WITH_TIMEOUT_CONFIGURATION);
-      await vi.advanceTimersByTimeAsync(END_WITH_TIMEOUT_CONFIGURATION.endTimeout);
+      await vi.advanceTimersByTimeAsync(END_TIMEOUT);
       setProcessAsClosed();
       await promise;
 

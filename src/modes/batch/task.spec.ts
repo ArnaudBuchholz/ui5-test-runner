@@ -37,7 +37,6 @@ const makeProcess = (code = 0): IProcess => ({
 
 beforeEach(() => {
   vi.clearAllMocks();
-  vi.mocked(Host.env, true).__proto__ = {};
   Object.assign(Host, { env: {} });
 });
 

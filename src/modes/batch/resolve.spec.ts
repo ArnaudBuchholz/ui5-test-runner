@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { FileSystem, Module, logger } from '../../platform/index.js';
+import { FileSystem, logger } from '../../platform/index.js';
 import type { Configuration } from '../../configuration/Configuration.js';
 import { resolve } from './resolve.js';
 
@@ -7,8 +7,7 @@ vi.mock('../../platform/mock.js');
 
 const CWD = '/test/cwd';
 
-const config = (batch: string[]): Configuration =>
-  ({ cwd: CWD, batch, sources: {} }) as unknown as Configuration;
+const config = (batch: string[]): Configuration => ({ cwd: CWD, batch, sources: {} }) as unknown as Configuration;
 
 const makeStatDirectory = () => ({ isDirectory: () => true, isFile: () => false });
 const makeStatFile = () => ({ isDirectory: () => false, isFile: () => true });
@@ -16,7 +15,7 @@ const makeStatOther = () => ({ isDirectory: () => false, isFile: () => false });
 
 beforeEach(() => {
   vi.clearAllMocks();
-  vi.mocked(Module.createRequire).mockReturnValue((() => ({})) as ReturnType<typeof Module.createRequire>);
+  vi.mocked(FileSystem.readFile).mockResolvedValue('{}');
 });
 
 describe('resolve', () => {
@@ -52,8 +51,8 @@ describe('resolve', () => {
 
     it('uses batchId and batchLabel from the JSON file when present', async () => {
       vi.mocked(FileSystem.stat).mockResolvedValue(makeStatFile() as Awaited<ReturnType<typeof FileSystem.stat>>);
-      vi.mocked(Module.createRequire).mockReturnValue(
-        (() => ({ batchId: 'custom-id', batchLabel: 'Custom Label' })) as ReturnType<typeof Module.createRequire>
+      vi.mocked(FileSystem.readFile).mockResolvedValue(
+        JSON.stringify({ batchId: 'custom-id', batchLabel: 'Custom Label' })
       );
       const items = await resolve(config(['/some/config.json']));
       expect(items[0]!.id).toBe('custom-id');
@@ -62,20 +61,32 @@ describe('resolve', () => {
 
     it('falls back to basename for id and label when batchId/batchLabel are absent', async () => {
       vi.mocked(FileSystem.stat).mockResolvedValue(makeStatFile() as Awaited<ReturnType<typeof FileSystem.stat>>);
-      vi.mocked(Module.createRequire).mockReturnValue((() => ({})) as ReturnType<typeof Module.createRequire>);
+      vi.mocked(FileSystem.readFile).mockResolvedValue('{}');
       const items = await resolve(config(['/some/JS_LEGACY.json']));
       expect(items[0]!.label).toBe('JS_LEGACY.json');
     });
 
-    it('logs a warning and skips when require throws (invalid JSON)', async () => {
+    it('logs a warning and skips when readFile throws (invalid JSON)', async () => {
       vi.mocked(FileSystem.stat).mockResolvedValue(makeStatFile() as Awaited<ReturnType<typeof FileSystem.stat>>);
-      vi.mocked(Module.createRequire).mockReturnValue(
-        (() => { throw new Error('JSON parse error'); }) as ReturnType<typeof Module.createRequire>
-      );
+      vi.mocked(FileSystem.readFile).mockRejectedValue(new Error('JSON parse error'));
       const items = await resolve(config(['/some/bad.json']));
       expect(items).toHaveLength(0);
       expect(logger.warn).toHaveBeenCalledWith(
-        expect.objectContaining({ data: expect.objectContaining({ reason: 'invalid JSON configuration file' }) as unknown })
+        expect.objectContaining({
+          data: expect.objectContaining({ reason: 'invalid JSON configuration file' }) as unknown
+        })
+      );
+    });
+
+    it('logs a warning and skips when JSON.parse fails', async () => {
+      vi.mocked(FileSystem.stat).mockResolvedValue(makeStatFile() as Awaited<ReturnType<typeof FileSystem.stat>>);
+      vi.mocked(FileSystem.readFile).mockResolvedValue('not valid json {{{');
+      const items = await resolve(config(['/some/bad.json']));
+      expect(items).toHaveLength(0);
+      expect(logger.warn).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({ reason: 'invalid JSON configuration file' }) as unknown
+        })
       );
     });
   });
@@ -86,7 +97,11 @@ describe('resolve', () => {
       const items = await resolve(config(['/some/file.txt']));
       expect(items).toHaveLength(0);
       expect(logger.warn).toHaveBeenCalledWith(
-        expect.objectContaining({ data: expect.objectContaining({ reason: 'only folders and JSON configuration files are supported' }) as unknown })
+        expect.objectContaining({
+          data: expect.objectContaining({
+            reason: 'only folders and JSON configuration files are supported'
+          }) as unknown
+        })
       );
     });
   });
@@ -96,7 +111,9 @@ describe('resolve', () => {
       vi.mocked(FileSystem.stat)
         .mockRejectedValueOnce(new Error('ENOENT'))
         .mockResolvedValue(makeStatDirectory() as Awaited<ReturnType<typeof FileSystem.stat>>);
-      vi.mocked(FileSystem.readdir).mockResolvedValue(['my-project'] as Awaited<ReturnType<typeof FileSystem.readdir>>);
+      vi.mocked(FileSystem.readdir).mockResolvedValue(['my-project'] as unknown as Awaited<
+        ReturnType<typeof FileSystem.readdir>
+      >);
       const items = await resolve(config(['my-project']));
       expect(items).toHaveLength(1);
       expect(items[0]!.args[0]).toBe('--cwd');
@@ -106,7 +123,9 @@ describe('resolve', () => {
       vi.mocked(FileSystem.stat)
         .mockRejectedValueOnce(new Error('ENOENT'))
         .mockResolvedValue(makeStatFile() as Awaited<ReturnType<typeof FileSystem.stat>>);
-      vi.mocked(FileSystem.readdir).mockResolvedValue(['app.json'] as Awaited<ReturnType<typeof FileSystem.readdir>>);
+      vi.mocked(FileSystem.readdir).mockResolvedValue(['app.json'] as unknown as Awaited<
+        ReturnType<typeof FileSystem.readdir>
+      >);
       const items = await resolve(config([String.raw`app\.json`]));
       expect(items[0]!.args[0]).toBe('--config');
     });
@@ -115,14 +134,16 @@ describe('resolve', () => {
       vi.mocked(FileSystem.stat)
         .mockRejectedValueOnce(new Error('ENOENT'))
         .mockResolvedValue(makeStatDirectory() as Awaited<ReturnType<typeof FileSystem.stat>>);
-      vi.mocked(FileSystem.readdir).mockResolvedValue(['my-app'] as Awaited<ReturnType<typeof FileSystem.readdir>>);
+      vi.mocked(FileSystem.readdir).mockResolvedValue(['my-app'] as unknown as Awaited<
+        ReturnType<typeof FileSystem.readdir>
+      >);
       const items = await resolve(config(['my-app']));
       expect(items).toHaveLength(1);
     });
 
     it('returns no items and no warning when regex matches nothing', async () => {
       vi.mocked(FileSystem.stat).mockRejectedValue(new Error('ENOENT'));
-      vi.mocked(FileSystem.readdir).mockResolvedValue([] as Awaited<ReturnType<typeof FileSystem.readdir>>);
+      vi.mocked(FileSystem.readdir).mockResolvedValue([]);
       const items = await resolve(config(['no-match-at-all']));
       expect(items).toHaveLength(0);
       expect(logger.warn).not.toHaveBeenCalled();

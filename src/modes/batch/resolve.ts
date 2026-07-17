@@ -1,4 +1,4 @@
-import { FileSystem, Module, Path, logger } from '../../platform/index.js';
+import { FileSystem, Path, logger } from '../../platform/index.js';
 import type { Configuration } from '../../configuration/Configuration.js';
 import type { IBatchItem } from './BatchItem.js';
 import { batchId, batchLabel } from './batchId.js';
@@ -13,14 +13,12 @@ const folder = (items: IBatchItem[], folderPath: string): void => {
   });
 };
 
-const configurationFile = (items: IBatchItem[], configPath: string): void => {
+const configurationFile = async (items: IBatchItem[], configPath: string): Promise<void> => {
   try {
-    const require = Module.createRequire(import.meta.url);
-    // eslint-disable-next-line security/detect-non-literal-require -- configPath is validated as an absolute .json file path before reaching here
-    const { batchId: id = batchId(configPath), batchLabel: label = batchLabel(configPath) } = require(configPath) as {
-      batchId?: string;
-      batchLabel?: string;
-    };
+    const content = await FileSystem.readFile(configPath, 'utf8');
+    const parsed = JSON.parse(content) as { batchId?: string; batchLabel?: string };
+    const id = parsed.batchId ?? batchId(configPath);
+    const label = parsed.batchLabel ?? batchLabel(configPath);
     items.push({
       path: configPath,
       id,
@@ -48,7 +46,7 @@ const scan = async (items: IBatchItem[], cwd: string, re: RegExp): Promise<void>
       }
       await scan(items, path, re);
     } else if (pathStat.isFile() && (re.test(path) || re.test(path.replaceAll('\\', '/')))) {
-      configurationFile(items, path);
+      await configurationFile(items, path);
     }
   }
 };
@@ -64,7 +62,7 @@ export const resolve = async (configuration: Configuration): Promise<IBatchItem[
       if (pathStat.isDirectory()) {
         folder(items, path);
       } else if (pathStat.isFile() && path.endsWith('.json')) {
-        configurationFile(items, path);
+        await configurationFile(items, path);
       } else {
         logger.warn({
           source: 'job',

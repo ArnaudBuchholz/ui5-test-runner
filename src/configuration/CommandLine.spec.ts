@@ -29,7 +29,8 @@ it('returns the result of finalizeConfig', async () => {
 
 it('copies cwd', async () => {
   await expect(CommandLine.buildConfigurationFrom(CWD, [])).resolves.toStrictEqual({
-    cwd: CWD
+    cwd: CWD,
+    sources: {}
   });
 });
 
@@ -163,10 +164,12 @@ for (const { label, args, expected } of testCases) {
         }
       }
     } else {
+      const sources = Object.fromEntries(Object.keys(expected).map((k) => [k, 'cli']));
       await expect(CommandLine.buildConfigurationFrom(CWD, args)).resolves.toStrictEqual(
         Object.assign(
           {
-            cwd: CWD
+            cwd: CWD,
+            sources
           },
           expected
         )
@@ -179,6 +182,7 @@ describe('positional arguments', () => {
   it('recognizes URLs', async () => {
     await expect(CommandLine.buildConfigurationFrom(CWD, ['https://server.domain/path'])).resolves.toStrictEqual({
       cwd: CWD,
+      sources: { url: 'cli' },
       url: ['https://server.domain/path']
     });
   });
@@ -188,6 +192,7 @@ describe('positional arguments', () => {
     it(`provides shortcut for ${shortcut}`, async () => {
       await expect(CommandLine.buildConfigurationFrom(CWD, [shortcut])).resolves.toStrictEqual({
         cwd: CWD,
+        sources: { [shortcut]: 'cli' },
         [shortcut]: true
       });
     });
