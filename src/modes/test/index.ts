@@ -103,8 +103,8 @@ export const test = async (configuration: Configuration) => {
       source: 'job',
       message: `Tests completed: passed=${passed} failed=${failed} tests=${tests}${durationString}`
     });
-    if (Host.env['UI5TR_BATCH_MODE']) {
-      process.send?.({ type: 'done', passed, failed, tests });
+    if (Host.env['UI5TR_BATCH_MODE'] && typeof process.send === 'function') {
+      process.send({ type: 'done', passed, failed, tests });
     }
     await end(configuration);
   } catch (error) {
