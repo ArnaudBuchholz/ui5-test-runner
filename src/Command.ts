@@ -32,6 +32,7 @@ export const Command = {
         if (parameter.startsWith('{{') && parameter.endsWith('}}')) {
           const optionName = parameter.slice(2, -2) as keyof Configuration;
           assert(optionName in configuration, `Invalid command line substitution parameter: ${optionName}`);
+          // eslint-disable-next-line @typescript-eslint/no-base-to-string -- {{placeholder}} substitution is only used with scalar options (string/number/boolean), never complex objects
           return configuration[optionName]?.toString() ?? '';
         }
         return parameter;

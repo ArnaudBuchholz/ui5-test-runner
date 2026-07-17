@@ -17,6 +17,7 @@ const buildForwardedParameters = (configuration: Configuration): string[] => {
     const flag = `--${toKebabCase(option.name)}`;
     const value = configuration[name];
     if (option.type === 'boolean') {
+      // eslint-disable-next-line @typescript-eslint/no-base-to-string -- narrowed to boolean by option.type check, TypeScript cannot track this through the wide Configuration union
       parameters.push(flag, String(value));
     } else if ('multiple' in option && option.multiple) {
       for (const item of value as string[]) {
