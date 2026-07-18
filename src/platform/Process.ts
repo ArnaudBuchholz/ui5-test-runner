@@ -33,6 +33,13 @@ class ProcessStopper {
 }
 
 export class Process implements IProcess {
+  static readonly sendToParent: (message: unknown) => void = (message) => {
+    if (process.send === undefined) {
+      throw new Error('process.send is not defined: this process has not been created with IPC mappings');
+    }
+    process.send(message);
+  };
+
   static readonly spawn: (command: string, arguments_: string[], options?: SpawnOptionsWithIPC) => IProcess = (
     command,
     arguments_,
