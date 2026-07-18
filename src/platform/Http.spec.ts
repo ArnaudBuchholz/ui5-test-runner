@@ -168,6 +168,13 @@ describe('Http.getAsText', () => {
     expect(__unregisterExitAsyncTask).toHaveBeenCalledTimes(2); // +1 for the _fetch
   });
 
+  it('uses the AbortController to stop the text download', async () => {
+    await Http.getAsText(URL);
+    expect(abortController.abort).not.toHaveBeenCalled();
+    await __lastRegisteredExitAsyncTask.stop();
+    expect(abortController.abort).toHaveBeenCalled();
+  });
+
   it('throws on non-ok response', async () => {
     vi.mocked(globalThis.fetch).mockResolvedValueOnce({
       ok: false,
