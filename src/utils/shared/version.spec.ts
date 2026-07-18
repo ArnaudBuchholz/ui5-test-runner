@@ -43,12 +43,36 @@ describe('compareVersions (with prerelease support)', () => {
       expect(compareVersions('1.2', '1.2.0')).toBe(0);
     });
 
+    it('should handle versions with different component counts (v2 shorter)', () => {
+      expect(compareVersions('1.2.0', '1.2')).toBe(0);
+    });
+
     it('should compare numeric components correctly without string comparison', () => {
       expect(compareVersions('1.10.0', '1.2.0')).toBe(1);
     });
 
     it('should handle major version differences', () => {
       expect(compareVersions('2.0.0', '3.0.0')).toBe(-1);
+    });
+
+    it('should handle empty version string', () => {
+      expect(compareVersions('', '')).toBe(0);
+    });
+
+    it('should return 1 when v1 prerelease part is a string and v2 part is a number', () => {
+      expect(compareVersions('1.0.0-alpha.1', '1.0.0-1.1')).toBe(1);
+    });
+
+    it('should return -1 when v1 prerelease part is a number and v2 part is a string', () => {
+      expect(compareVersions('1.0.0-1.1', '1.0.0-alpha.1')).toBe(-1);
+    });
+
+    it('should handle v1 prerelease shorter than v2 prerelease', () => {
+      expect(compareVersions('1.0.0-alpha', '1.0.0-alpha.1')).toBe(-1);
+    });
+
+    it('should handle v2 prerelease shorter than v1 prerelease', () => {
+      expect(compareVersions('1.0.0-alpha.1', '1.0.0-alpha')).toBe(1);
     });
   });
 });
