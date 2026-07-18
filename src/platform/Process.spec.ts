@@ -72,6 +72,23 @@ beforeEach(() => {
   mockChildProcess = createMockChildProcess();
 });
 
+describe('sendToParent', () => {
+  it('triggers process.send', () => {
+    process.send = vi.fn();
+    const message = {};
+    Process.sendToParent(message);
+    expect(process.send).toHaveBeenCalledWith(message);
+  });
+
+  it('fails with a clear error message', () => {
+    process.send = undefined;
+    const message = {};
+    expect(() => Process.sendToParent(message)).toThrow(
+      'process.send is not defined: this process has not been created with IPC mappings'
+    );
+  });
+});
+
 describe('spawn', () => {
   it('allocates a Process instance after calling node.js spawn', () => {
     const options = {};
