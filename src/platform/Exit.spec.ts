@@ -14,6 +14,11 @@ it('offers a wrapper for process.exitCode', () => {
   expect(process.exitCode).toStrictEqual(-1);
 });
 
+it('returns 0 when process.exitCode is undefined', () => {
+  process.exitCode = undefined;
+  expect(Exit.code).toStrictEqual(0);
+});
+
 it('offers a method to shutdown', () => {
   expect(typeof Exit.shutdown).toStrictEqual('function');
 });
