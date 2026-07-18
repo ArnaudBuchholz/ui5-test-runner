@@ -134,6 +134,11 @@ describe('shutdown', () => {
       Exit.sigInt();
       expect(Exit.shutdown).toHaveBeenCalled();
     });
+
+    it('is wired to SIGINT', () => {
+      process.emit('SIGINT');
+      expect(Exit.shutdown).toHaveBeenCalled();
+    });
   });
 });
 
