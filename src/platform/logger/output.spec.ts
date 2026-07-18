@@ -87,6 +87,14 @@ it('forwards terminal width to the loggerOutput', () => {
   expect(terminalResized).toHaveBeenCalledWith(80);
 });
 
+it('closes without flushing on terminate when no messages are pending', () => {
+  const channel = Thread.createBroadcastChannel('logger');
+  channel.postMessage({ command: 'terminate' });
+  expect(addAttributesToLoggerOutput).not.toHaveBeenCalled();
+  expect(channel.close).toHaveBeenCalled();
+  expect(closeLoggerOutput).toHaveBeenCalled();
+});
+
 it('flushes pending messages immediately on terminate then closes', () => {
   const channel = Thread.createBroadcastChannel('logger');
   const logMessage: LogMessage = {
