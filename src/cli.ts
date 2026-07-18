@@ -5,6 +5,7 @@ import { version } from './platform/version.js';
 import { CommandLine } from './configuration/CommandLine.js';
 import { execute } from './modes/execute.js';
 import { evaluateIf } from './if.js';
+import { sendToParentProcess } from './sendToParentProcess.js';
 
 try {
   const cliVersion = await version();
@@ -15,9 +16,7 @@ try {
     await execute(configuration);
   } else {
     console.log('⚠️ [SKIPIF] Skipping execution (--if)');
-    if (Host.env['UI5TR_BATCH_MODE'] && typeof process.send === 'function') {
-      process.send({ type: 'skip' });
-    }
+    sendToParentProcess({ type: 'skip' });
   }
 } catch (error) {
   console.error(error);

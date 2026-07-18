@@ -1,4 +1,4 @@
-import { logger, logEnvironnement, Exit, FileSystem, Path, Http, Host } from '../../platform/index.js';
+import { logger, logEnvironnement, Exit, FileSystem, Path, Http } from '../../platform/index.js';
 import type { Configuration } from '../../configuration/Configuration.js';
 import { defaults } from '../../configuration/options.js';
 import { parallelize } from '../../utils/shared/parallelize.js';
@@ -12,8 +12,8 @@ import { Folder } from '../../utils/node/Folder.js';
 import { server } from './server.js';
 import { formatDuration } from '../../utils/shared/string.js';
 import { start } from '../../start.js';
-import { notifyProgress } from './notifyProgress.js';
 import { end } from '../../end.js';
+import { sendToParentProcess } from '../../sendToParentProcess.js';
 
 /**
  * TODO
@@ -70,7 +70,8 @@ export const test = async (configuration: Configuration) => {
     setReportBrowserInfo(capabilities);
     isBrowserStarted = true;
     initBrowserConfig(configuration);
-    notifyProgress('Executing pages', 0, 0);
+    logger.info({ source: 'progress', message: 'Executing pages', pageId: undefined, data: { value: 0, max: 0 } });
+    sendToParentProcess({ type: 'progress', count: 0, total: 0 });
     let completed = 0;
     let lastLoggedCompleted: number | undefined;
     let lastLoggedMax: number | undefined;
@@ -86,7 +87,13 @@ export const test = async (configuration: Configuration) => {
         if (lastLoggedCompleted !== completed || lastLoggedMax !== urls.length) {
           lastLoggedCompleted = completed;
           lastLoggedMax = urls.length;
-          notifyProgress('Executing pages', completed, urls.length);
+          logger.info({
+            source: 'progress',
+            message: 'Executing pages',
+            pageId: undefined,
+            data: { value: completed, max: urls.length }
+          });
+          sendToParentProcess({ type: 'progress', count: completed, total: urls.length });
         }
       }
     });
@@ -103,9 +110,7 @@ export const test = async (configuration: Configuration) => {
       source: 'job',
       message: `Tests completed: passed=${passed} failed=${failed} tests=${tests}${durationString}`
     });
-    if (Host.env['UI5TR_BATCH_MODE'] && typeof process.send === 'function') {
-      process.send({ type: 'done', passed, failed, tests });
-    }
+    sendToParentProcess({ type: 'done', passed, failed, tests });
     await end(configuration);
   } catch (error) {
     logger.error({ source: 'job', message: 'An error occurred', error });
