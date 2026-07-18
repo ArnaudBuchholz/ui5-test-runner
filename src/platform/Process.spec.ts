@@ -176,6 +176,37 @@ describe('spawn', () => {
     expect(childProcess.stderr).toStrictEqual('abc');
   });
 
+  describe('onMessage', () => {
+    it('enables ipc and registers the handler', () => {
+      const onMessage = vi.fn();
+      Process.spawn('node', [], { onMessage });
+      expect(spawn).toHaveBeenCalledWith(process.argv[0], [], { stdio: ['pipe', 'pipe', 'pipe', 'ipc'] });
+      expect(mockChildProcess?.on).toHaveBeenCalledWith('message', onMessage);
+    });
+
+    it('preserves an existing array stdio when adding ipc', () => {
+      const onMessage = vi.fn();
+      Process.spawn('node', [], { stdio: ['pipe', 'inherit', 'inherit'], onMessage });
+      expect(spawn).toHaveBeenCalledWith(process.argv[0], [], {
+        stdio: ['pipe', 'inherit', 'inherit', 'ipc']
+      });
+    });
+
+    it('forwards child process messages to the handler', () => {
+      const onMessage = vi.fn();
+      Process.spawn('node', [], { onMessage });
+      const MESSAGE = { type: 'ping', value: 42 };
+      mockChildProcess?.emit('message', MESSAGE);
+      expect(onMessage).toHaveBeenCalledWith(MESSAGE);
+    });
+
+    it('does not set up ipc or message handler without onMessage', () => {
+      Process.spawn('node', []);
+      expect(spawn).toHaveBeenCalledWith(process.argv[0], [], {});
+      expect(mockChildProcess?.on).not.toHaveBeenCalledWith('message', expect.anything());
+    });
+  });
+
   for (const code of [0, undefined, 1, -1]) {
     it(`documents process termination (${code ?? 'none'})`, async () => {
       const childProcess = Process.spawn('node', []);
