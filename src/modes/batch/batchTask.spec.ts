@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { logger, Process, Host } from '../../platform/index.js';
+import { Process, Host } from '../../platform/index.js';
 import type { IProcess } from '../../platform/index.js';
 import type { Configuration } from '../../configuration/Configuration.js';
 import type { IBatchItem } from './BatchItem.js';
@@ -74,24 +74,13 @@ describe('task()', () => {
     expect(parameters).not.toContain('--report-dir');
   });
 
-  it('logs ✔️ and sets statusCode when child exits with code 0', async () => {
+  it('returns the documented batchItem when the batch completes', async () => {
     vi.mocked(Process.spawn).mockReturnValue(makeProcess(0));
     const item = makeItem();
-    await batchTask(makeConfig(), item);
-    expect(item.statusCode).toBe(0);
-    expect(logger.info).toHaveBeenCalledWith(
-      expect.objectContaining({ message: expect.stringContaining('✔️') as unknown })
-    );
-  });
-
-  it('logs ❌ and sets statusCode when child exits with non-zero code', async () => {
-    vi.mocked(Process.spawn).mockReturnValue(makeProcess(1));
-    const item = makeItem();
-    await batchTask(makeConfig(), item);
-    expect(item.statusCode).toBe(1);
-    expect(logger.info).toHaveBeenCalledWith(
-      expect.objectContaining({ message: expect.stringContaining('❌') as unknown })
-    );
+    const returnedItem = await batchTask(makeConfig(), item);
+    expect(returnedItem).toStrictEqual(item);
+    expect(returnedItem.statusCode).toStrictEqual(0);
+    expect(returnedItem.end).not.toBeUndefined();
   });
 
   it('sets start and end timestamps on the batch item', async () => {

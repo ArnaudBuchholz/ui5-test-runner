@@ -5,7 +5,7 @@ import { batch } from './index.js';
 
 vi.mock('../../platform/mock.js');
 vi.mock('./resolve.js');
-vi.mock('./task.js');
+vi.mock('./batchTask.js');
 vi.mock('../../start.js');
 
 import { resolve } from './resolve.js';
@@ -39,7 +39,6 @@ beforeEach(() => {
   vi.clearAllMocks();
   Exit.code = DEFAULT_EXIT_CODE;
   vi.mocked(start).mockResolvedValue(undefined);
-  vi.mocked(batchTask).mockResolvedValue(undefined);
 });
 
 describe('batch()', () => {
@@ -73,7 +72,7 @@ describe('batch()', () => {
       vi.mocked(resolve).mockResolvedValue([item]);
       vi.mocked(batchTask).mockImplementation((_, batchItem) => {
         batchItem.statusCode = 1;
-        return Promise.resolve();
+        return Promise.resolve(batchItem);
       });
       await batch(makeConfig());
       expect(Exit.code).toBe(-1);
