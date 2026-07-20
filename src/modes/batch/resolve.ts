@@ -1,10 +1,9 @@
 import { FileSystem, Path, logger } from '../../platform/index.js';
 import type { Configuration } from '../../configuration/Configuration.js';
 import type { IBatchItem } from './BatchItem.js';
-import { batchId, batchLabel } from './batchId.js';
 
 const folder = (items: IBatchItem[], folderPath: string): void => {
-  const id = batchLabel(folderPath);
+  const id = Path.basename(folderPath);
   items.push({
     path: folderPath,
     id,
@@ -17,8 +16,8 @@ const configurationFile = async (items: IBatchItem[], configPath: string): Promi
   try {
     const content = await FileSystem.readFile(configPath, 'utf8');
     const parsed = JSON.parse(content) as { batchId?: string; batchLabel?: string };
-    const id = parsed.batchId ?? batchId(configPath);
-    const label = parsed.batchLabel ?? batchLabel(configPath);
+    const id = parsed.batchId ?? Path.basename(configPath);
+    const label = parsed.batchLabel ?? Path.basename(configPath);
     items.push({
       path: configPath,
       id,
