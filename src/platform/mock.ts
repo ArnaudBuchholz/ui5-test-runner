@@ -1,7 +1,7 @@
 import { vi } from 'vitest';
 import type { ReadStream, WriteStream } from 'node:fs';
 import type { BroadcastChannel, Worker } from 'node:worker_threads';
-import { join } from 'node:path';
+import { basename, join } from 'node:path';
 import type { ILoggerService } from './logger/ILogger.js';
 import type { IAsyncTask } from './Exit.js';
 import type { Terminal } from './Terminal.js';
@@ -86,6 +86,7 @@ vi.mock(import('./Path.js'), async (importActual) => {
   const mocked = mockStaticMethodsOfExports(await importActual());
   const { Path } = mocked;
   // Normalize to unix-like file system
+  vi.mocked(Path.basename).mockImplementation((path) => basename(path));
   vi.mocked(Path.dirname).mockImplementation((path) => join(path, '..').replaceAll('\\', '/'));
   vi.mocked(Path.isAbsolute).mockImplementation((path) => path.startsWith('/'));
   vi.mocked(Path.join).mockImplementation((...arguments_: string[]) => join(...arguments_).replaceAll('\\', '/'));
