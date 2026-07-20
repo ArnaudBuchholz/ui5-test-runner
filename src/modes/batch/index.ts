@@ -3,7 +3,7 @@ import type { Configuration } from '../../configuration/Configuration.js';
 import { parallelize } from '../../utils/shared/parallelize.js';
 import { start } from '../../start.js';
 import { resolve } from './resolve.js';
-import { task } from './task.js';
+import { batchTask } from './batchTask.js';
 
 export const batch = async (configuration: Configuration): Promise<void> => {
   const items = await resolve(configuration);
@@ -12,13 +12,11 @@ export const batch = async (configuration: Configuration): Promise<void> => {
     return;
   }
 
-  // TODO: add Exit.registerAsyncTask to interrupt loop on CTRL+C
-
   const startProcess = await start(configuration);
   let failed = 0;
 
   try {
-    await parallelize((item) => task(configuration, item), items, {
+    await parallelize((item) => batchTask(configuration, item), items, {
       parallel: configuration.parallel,
       on: (event) => {
         if (event.type === 'completed' && event.input.statusCode !== 0) {
