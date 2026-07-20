@@ -3,7 +3,7 @@ import { logger, Process, Host } from '../../platform/index.js';
 import type { IProcess } from '../../platform/index.js';
 import type { Configuration } from '../../configuration/Configuration.js';
 import type { IBatchItem } from './BatchItem.js';
-import { task } from './task.js';
+import { batchTask } from './batchTask.js';
 
 vi.mock('../../platform/mock.js');
 
@@ -43,7 +43,7 @@ beforeEach(() => {
 describe('task()', () => {
   it('sets UI5TR_BATCH_MODE=1 in the child environment', () => {
     vi.mocked(Process.spawn).mockReturnValue(makeProcess());
-    void task(makeConfig(), makeItem());
+    void batchTask(makeConfig(), makeItem());
     expect(Process.spawn).toHaveBeenCalledWith(
       'node',
       expect.any(Array) as unknown,
@@ -53,7 +53,7 @@ describe('task()', () => {
 
   it('passes batchItem.args as the first parameters', () => {
     vi.mocked(Process.spawn).mockReturnValue(makeProcess());
-    void task(makeConfig(), makeItem({ args: ['--cwd', '/my/path'] }));
+    void batchTask(makeConfig(), makeItem({ args: ['--cwd', '/my/path'] }));
     const [, parameters] = vi.mocked(Process.spawn).mock.calls[0]!;
     expect(parameters.slice(0, 2)).toEqual(['--cwd', '/my/path']);
   });
@@ -61,7 +61,7 @@ describe('task()', () => {
   it('appends --report-dir when reportDir is CLI-sourced', () => {
     vi.mocked(Process.spawn).mockReturnValue(makeProcess());
     const item = makeItem({ id: 'abc123' });
-    void task(makeConfig({ reportDir: 'cli' }), item);
+    void batchTask(makeConfig({ reportDir: 'cli' }), item);
     const [, parameters] = vi.mocked(Process.spawn).mock.calls[0]!;
     expect(parameters).toContain('--report-dir');
     expect(parameters).toContain(`${REPORT_DIR}/abc123`);
@@ -69,7 +69,7 @@ describe('task()', () => {
 
   it('does not append --report-dir when reportDir is not CLI-sourced', () => {
     vi.mocked(Process.spawn).mockReturnValue(makeProcess());
-    void task(makeConfig({}), makeItem());
+    void batchTask(makeConfig({}), makeItem());
     const [, parameters] = vi.mocked(Process.spawn).mock.calls[0]!;
     expect(parameters).not.toContain('--report-dir');
   });
@@ -77,7 +77,7 @@ describe('task()', () => {
   it('logs ✔️ and sets statusCode when child exits with code 0', async () => {
     vi.mocked(Process.spawn).mockReturnValue(makeProcess(0));
     const item = makeItem();
-    await task(makeConfig(), item);
+    await batchTask(makeConfig(), item);
     expect(item.statusCode).toBe(0);
     expect(logger.info).toHaveBeenCalledWith(
       expect.objectContaining({ message: expect.stringContaining('✔️') as unknown })
@@ -87,7 +87,7 @@ describe('task()', () => {
   it('logs ❌ and sets statusCode when child exits with non-zero code', async () => {
     vi.mocked(Process.spawn).mockReturnValue(makeProcess(1));
     const item = makeItem();
-    await task(makeConfig(), item);
+    await batchTask(makeConfig(), item);
     expect(item.statusCode).toBe(1);
     expect(logger.info).toHaveBeenCalledWith(
       expect.objectContaining({ message: expect.stringContaining('❌') as unknown })
@@ -97,7 +97,7 @@ describe('task()', () => {
   it('sets start and end timestamps on the batch item', async () => {
     vi.mocked(Process.spawn).mockReturnValue(makeProcess());
     const item = makeItem();
-    await task(makeConfig(), item);
+    await batchTask(makeConfig(), item);
     expect(item.start).toBeInstanceOf(Date);
     expect(item.end).toBeInstanceOf(Date);
   });

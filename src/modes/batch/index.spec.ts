@@ -9,7 +9,7 @@ vi.mock('./task.js');
 vi.mock('../../start.js');
 
 import { resolve } from './resolve.js';
-import { task } from './task.js';
+import { batchTask } from './batchTask.js';
 import { start } from '../../start.js';
 import type { IBatchItem } from './BatchItem.js';
 import type { IProcess } from '../../platform/index.js';
@@ -39,7 +39,7 @@ beforeEach(() => {
   vi.clearAllMocks();
   Exit.code = DEFAULT_EXIT_CODE;
   vi.mocked(start).mockResolvedValue(undefined);
-  vi.mocked(task).mockResolvedValue(undefined);
+  vi.mocked(batchTask).mockResolvedValue(undefined);
 });
 
 describe('batch()', () => {
@@ -50,7 +50,7 @@ describe('batch()', () => {
       expect(logger.warn).toHaveBeenCalledWith(
         expect.objectContaining({ message: expect.stringContaining('No batch items') as unknown })
       );
-      expect(task).not.toHaveBeenCalled();
+      expect(batchTask).not.toHaveBeenCalled();
     });
   });
 
@@ -59,7 +59,7 @@ describe('batch()', () => {
       const items = [makeItem('a'), makeItem('b')];
       vi.mocked(resolve).mockResolvedValue(items);
       await batch(makeConfig());
-      expect(task).toHaveBeenCalledTimes(2);
+      expect(batchTask).toHaveBeenCalledTimes(2);
     });
 
     it('does not set Exit.code when all items succeed', async () => {
@@ -71,7 +71,7 @@ describe('batch()', () => {
     it('sets Exit.code to -1 when an item has a non-zero statusCode', async () => {
       const item = makeItem('a');
       vi.mocked(resolve).mockResolvedValue([item]);
-      vi.mocked(task).mockImplementation((_, batchItem) => {
+      vi.mocked(batchTask).mockImplementation((_, batchItem) => {
         batchItem.statusCode = 1;
         return Promise.resolve();
       });
@@ -91,7 +91,7 @@ describe('batch()', () => {
       const startProcess = makeProcess();
       vi.mocked(start).mockResolvedValue(startProcess);
       vi.mocked(resolve).mockResolvedValue([makeItem('a')]);
-      vi.mocked(task).mockRejectedValue(new Error('task failed'));
+      vi.mocked(batchTask).mockRejectedValue(new Error('task failed'));
       await batch(makeConfig());
       expect(startProcess.kill).toHaveBeenCalled();
     });

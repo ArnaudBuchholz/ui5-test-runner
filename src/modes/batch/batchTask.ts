@@ -36,20 +36,25 @@ type ProgressMessage = { type: 'progress'; count: number; total: number };
 type SkipMessage = { type: 'skip' };
 type IPCMessage = ProgressMessage | SkipMessage;
 
-// TODO: rename in batchTask, allocate a page id
+let lastPageId = 0;
 
-export const task = async (configuration: Configuration, batchItem: IBatchItem): Promise<void> => {
-  batchItem.start = new Date();
+export const batchTask = async (configuration: Configuration, batchItem: IBatchItem): Promise<IBatchItem> => {
+  const pageId = ++lastPageId;
   const label = `${batchItem.label} (${batchItem.id})`;
+  logger.info({
+    source: 'progress',
+    message: label,
+    pageId,
+    data: { max: 0, value: 1, type: 'unknown', errors: 0 }
+  });
+
+  batchItem.start = new Date();
 
   const parameters: string[] = [...batchItem.args];
-
   if (configuration.sources['reportDir'] === 'cli') {
     parameters.push('--report-dir', join(configuration.reportDir, batchItem.id));
   }
-
   parameters.push(...buildForwardedParameters(configuration));
-
   const childProcess = Process.spawn('node', parameters, {
     env: { ...Host.env, UI5TR_BATCH_MODE: '1' },
     windowsHide: true,
@@ -59,22 +64,30 @@ export const task = async (configuration: Configuration, batchItem: IBatchItem):
         logger.info({
           source: 'progress',
           message: label,
-          pageId: undefined,
-          data: { value: message.count, max: message.total }
+          pageId,
+          data: { value: message.count, max: message.total, errors: 0, type: 'unknown' }
         });
       } else if (message?.type === 'skip') {
-        logger.info({ source: 'job', message: `${label} (skipped)` });
+        logger.info({ source: 'page', pageId, message: `${label} (skipped)` });
       }
     }
+  });
+  logger.debug({
+    source: 'page',
+    message: 'new batch task',
+    pageId,
+    data: { ...batchItem, processId: childProcess.pid }
   });
 
   await childProcess.closed;
   batchItem.end = new Date();
   batchItem.statusCode = childProcess.code;
 
-  if (childProcess.code === 0) {
-    logger.info({ source: 'job', message: `✔️ ${label}` });
-  } else {
-    logger.info({ source: 'job', message: `❌ ${label} (exit code: ${childProcess.code})` });
-  }
+  logger.debug({
+    source: 'page',
+    message: 'batch task closed',
+    pageId,
+    data: { ...batchItem, processId: childProcess.pid }
+  });
+  return batchItem;
 };
