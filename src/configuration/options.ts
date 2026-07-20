@@ -32,6 +32,16 @@ export const options = [
     description: 'batch item specification (folder, config file, or regex pattern)'
   },
   {
+    name: 'batchId',
+    type: 'string',
+    description: 'identifier for the batch item'
+  },
+  {
+    name: 'batchLabel',
+    type: 'string',
+    description: 'display label for the batch item'
+  },
+  {
     name: 'browser',
     short: 'b',
     type: 'browser',
