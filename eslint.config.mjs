@@ -68,7 +68,9 @@ export default [
       // unbound methods in spec files are common due to mocking
       '@typescript-eslint/unbound-method': 'off',
       // Math.random is enough in spec files
-      'sonarjs/pseudo-random': 'off'
+      'sonarjs/pseudo-random': 'off',
+      // Parameterized tests are used when useful
+      'sonarjs/parameterized-tests': 'off'
     }
   },
   // *Must* use any
