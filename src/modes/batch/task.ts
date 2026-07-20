@@ -24,6 +24,7 @@ const buildForwardedParameters = (configuration: Configuration): string[] => {
         parameters.push(flag, item);
       }
     } else {
+      // TODO: some options might need a rewrite
       // eslint-disable-next-line @typescript-eslint/restrict-template-expressions, unicorn/no-useless-template-literals, @typescript-eslint/no-base-to-string -- forwarded scalar options are string/number/timeout, not complex objects
       parameters.push(flag, `${value}`);
     }
@@ -34,6 +35,8 @@ const buildForwardedParameters = (configuration: Configuration): string[] => {
 type ProgressMessage = { type: 'progress'; count: number; total: number };
 type SkipMessage = { type: 'skip' };
 type IPCMessage = ProgressMessage | SkipMessage;
+
+// TODO: rename in batchTask, allocate a page id
 
 export const task = async (configuration: Configuration, batchItem: IBatchItem): Promise<void> => {
   batchItem.start = new Date();
@@ -60,7 +63,7 @@ export const task = async (configuration: Configuration, batchItem: IBatchItem):
           data: { value: message.count, max: message.total }
         });
       } else if (message?.type === 'skip') {
-        logger.info({ source: 'job', message: `⏭️  ${label} (skipped)` });
+        logger.info({ source: 'job', message: `${label} (skipped)` });
       }
     }
   });
@@ -70,7 +73,7 @@ export const task = async (configuration: Configuration, batchItem: IBatchItem):
   batchItem.statusCode = childProcess.code;
 
   if (childProcess.code === 0) {
-    logger.info({ source: 'job', message: `✔️  ${label}` });
+    logger.info({ source: 'job', message: `✔️ ${label}` });
   } else {
     logger.info({ source: 'job', message: `❌ ${label} (exit code: ${childProcess.code})` });
   }

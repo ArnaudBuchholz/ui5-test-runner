@@ -12,6 +12,8 @@ export const batch = async (configuration: Configuration): Promise<void> => {
     return;
   }
 
+  // TODO: add Exit.registerAsyncTask to interrupt loop on CTRL+C
+
   const startProcess = await start(configuration);
   let failed = 0;
 
