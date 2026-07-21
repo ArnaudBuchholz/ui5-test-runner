@@ -27,11 +27,9 @@ it('returns the result of finalizeConfig', async () => {
   expect(result).toStrictEqual(uniqueObject);
 });
 
-it('copies cwd', async () => {
-  await expect(CommandLine.buildConfigurationFrom(CWD, [])).resolves.toStrictEqual({
-    cwd: CWD,
-    sources: {}
-  });
+it('puts cwd in the prototype chain', async () => {
+  const configuration = await CommandLine.buildConfigurationFrom(CWD, []);
+  expect(configuration.cwd).toStrictEqual(CWD);
 });
 
 it('fails on unknown long option', async () => {
@@ -165,10 +163,11 @@ for (const { label, args, expected } of testCases) {
       }
     } else {
       const sources = Object.fromEntries(Object.keys(expected).map((k) => [k, 'cli']));
-      await expect(CommandLine.buildConfigurationFrom(CWD, args)).resolves.toStrictEqual(
+      const configuration = await CommandLine.buildConfigurationFrom(CWD, args);
+      expect(configuration.cwd).toStrictEqual(CWD);
+      expect(configuration).toStrictEqual(
         Object.assign(
           {
-            cwd: CWD,
             sources
           },
           expected
@@ -181,7 +180,6 @@ for (const { label, args, expected } of testCases) {
 describe('positional arguments', () => {
   it('recognizes URLs', async () => {
     await expect(CommandLine.buildConfigurationFrom(CWD, ['https://server.domain/path'])).resolves.toStrictEqual({
-      cwd: CWD,
       sources: { url: 'cli' },
       url: ['https://server.domain/path']
     });
@@ -191,7 +189,6 @@ describe('positional arguments', () => {
   for (const shortcut of shortcuts) {
     it(`provides shortcut for ${shortcut}`, async () => {
       await expect(CommandLine.buildConfigurationFrom(CWD, [shortcut])).resolves.toStrictEqual({
-        cwd: CWD,
         sources: { [shortcut]: 'cli' },
         [shortcut]: true
       });
