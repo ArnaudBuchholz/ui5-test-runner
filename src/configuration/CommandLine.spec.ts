@@ -7,6 +7,8 @@ import type { Configuration } from './Configuration.js';
 
 const CWD = '/usr/test';
 
+// TODO when --cwd is used it must be relative to command line cwd, it might need to be resolved directly
+
 const validateConfiguration = vi
   .spyOn(ConfigurationValidator, 'validate')
   .mockImplementation((configuration) => Promise.resolve(configuration as Configuration));
