@@ -57,6 +57,7 @@ const switchOption = (
   if (option) {
     return option;
   }
+  /* v8 ignore next -- @preserve */ // Not intended to be kept long term
   if (Host.env['IGNORE_UNKNOWN_OPTION']) {
     return undefined;
   }
@@ -111,12 +112,10 @@ const traverseArguments = (configuration: CommandLineConfiguration, argv: string
 
 export const CommandLine = {
   async buildConfigurationFrom(cwd: string, argv: string[]) {
+    // Using prototype inheritance, we can have cwd and errors be part of the object without being own keys
     const configuration = Object.create({ cwd, errors: [] }) as CommandLineConfiguration;
-
     traverseArguments(configuration, argv);
-
-    const cliKeys = new Set(Object.keys(configuration).filter((k) => k !== 'cwd'));
-
+    const cliKeys = new Set(Object.keys(configuration));
     let validatedConfiguration: Configuration | undefined;
     try {
       validatedConfiguration = await ConfigurationValidator.validate(configuration);
@@ -128,14 +127,12 @@ export const CommandLine = {
         configuration.errors.push(error);
       }
     }
-
     if (configuration.errors.length === 1) {
       throw configuration.errors[0];
     }
     if (configuration.errors.length > 0) {
       throw new AggregateError(configuration.errors, 'Multiple errors occurred');
     }
-
     assert(validatedConfiguration !== undefined);
     validatedConfiguration.sources = {
       ...validatedConfiguration.sources

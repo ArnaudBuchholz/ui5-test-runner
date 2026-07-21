@@ -47,6 +47,13 @@ const testCases: {
     | { errors: { message: string; option: string }[] };
 }[] = [
   {
+    label: 'allows the use of --cwd',
+    args: ['--cwd', './sub'],
+    expected: {
+      cwd: './sub'
+    }
+  },
+  {
     label: 'sets boolean option',
     args: ['--help'],
     expected: {
@@ -134,47 +141,65 @@ const testCases: {
   }
 ];
 
-for (const { label, args, expected } of testCases) {
+const expectError = async ({ args, expected }: (typeof testCases)[number]) => {
+  expect.assert('error' in expected);
+  try {
+    await CommandLine.buildConfigurationFrom(CWD, args);
+    expect.unreachable();
+  } catch (error) {
+    expect(error).toBeInstanceOf(OptionValidationError);
+    const optionValidationError = error as OptionValidationError;
+    expect(optionValidationError.message).toStrictEqual(expected.error);
+    expect(optionValidationError.option.name).toStrictEqual(expected.option);
+  }
+};
+
+const expectErrors = async ({ args, expected }: (typeof testCases)[number]) => {
+  expect.assert('errors' in expected);
+  try {
+    await CommandLine.buildConfigurationFrom(CWD, args);
+    expect.unreachable();
+  } catch (error) {
+    expect(error).toBeInstanceOf(AggregateError);
+    if (error instanceof AggregateError) {
+      expect(error.errors).toHaveLength(expected.errors.length);
+      for (let index = 0; index < expected.errors.length; ++index) {
+        const { message, option } = expected.errors[index]!;
+        const errorItem = error.errors[index] as Error;
+        expect.assert(errorItem instanceof OptionValidationError);
+        expect(errorItem.message).toStrictEqual(message);
+        expect(errorItem.option.name).toStrictEqual(option);
+      }
+    }
+  }
+};
+
+const expectArguments = async ({ args, expected }: (typeof testCases)[number]) => {
+  const sources = Object.fromEntries(Object.keys(expected).map((k) => [k, 'cli']));
+  const configuration = await CommandLine.buildConfigurationFrom(CWD, args);
+  if (!('cwd' in expected)) {
+    expect(configuration.cwd).toStrictEqual(CWD);
+    expect.assert(!Object.hasOwn(configuration, 'cwd'));
+  }
+  expect(configuration).toStrictEqual(
+    Object.assign(
+      {
+        sources
+      },
+      expected
+    )
+  );
+};
+
+for (const testCase of testCases) {
+  const { label, expected } = testCase;
   it(label, async () => {
     if ('error' in expected) {
-      try {
-        await CommandLine.buildConfigurationFrom(CWD, args);
-        expect.unreachable();
-      } catch (error) {
-        expect(error).toBeInstanceOf(OptionValidationError);
-        const optionValidationError = error as OptionValidationError;
-        expect(optionValidationError.message).toStrictEqual(expected.error);
-        expect(optionValidationError.option.name).toStrictEqual(expected.option);
-      }
+      await expectError(testCase);
     } else if ('errors' in expected) {
-      try {
-        await CommandLine.buildConfigurationFrom(CWD, args);
-        expect.unreachable();
-      } catch (error) {
-        expect(error).toBeInstanceOf(AggregateError);
-        if (error instanceof AggregateError) {
-          expect(error.errors).toHaveLength(expected.errors.length);
-          for (let index = 0; index < expected.errors.length; ++index) {
-            const { message, option } = expected.errors[index]!;
-            const errorItem = error.errors[index] as Error;
-            expect.assert(errorItem instanceof OptionValidationError);
-            expect(errorItem.message).toStrictEqual(message);
-            expect(errorItem.option.name).toStrictEqual(option);
-          }
-        }
-      }
+      await expectErrors(testCase);
     } else {
-      const sources = Object.fromEntries(Object.keys(expected).map((k) => [k, 'cli']));
-      const configuration = await CommandLine.buildConfigurationFrom(CWD, args);
-      expect(configuration.cwd).toStrictEqual(CWD);
-      expect(configuration).toStrictEqual(
-        Object.assign(
-          {
-            sources
-          },
-          expected
-        )
-      );
+      await expectArguments(testCase);
     }
   });
 }
