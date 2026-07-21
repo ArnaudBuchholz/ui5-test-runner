@@ -303,6 +303,13 @@ describe('merge (config file loading)', () => {
         expect(result.cwd).toStrictEqual(RESOLVED_CWD);
         expect(result.webapp).toStrictEqual(`${RESOLVED_CWD}/src`);
       });
+
+      it('resolves the default webapp against the cwd from the config file', async () => {
+        const CUSTOM_CWD = '/custom/cwd' as const;
+        vi.mocked(FileSystem.readFile).mockResolvedValue(JSON.stringify({ cwd: CUSTOM_CWD }));
+        const result = await ConfigurationValidator.validate({ config: CONFIG_FILE_PATH });
+        expect(result.webapp).toStrictEqual(`${CUSTOM_CWD}/webapp`);
+      });
     });
   });
 
