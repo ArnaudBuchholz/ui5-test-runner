@@ -70,6 +70,11 @@ export const options = [
     description: 'keeps the browser open after the tests completed'
   },
   {
+    name: 'dumpConfig',
+    type: 'boolean',
+    description: 'dump the resolved configuration as JSON and exit'
+  },
+  {
     name: 'end',
     type: 'string',
     description: 'command to be executed after the tests'

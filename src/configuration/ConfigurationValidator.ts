@@ -123,6 +123,9 @@ export const ConfigurationValidator = {
     if (configuration.version) {
       return Modes.version;
     }
+    if (configuration.dumpConfig) {
+      return Modes.dumpConfig;
+    }
     if (configuration.batch) {
       return Modes.batch;
     }
@@ -140,10 +143,7 @@ export const ConfigurationValidator = {
     assertIfConfiguration(withDefaults);
     const explicitKeys = new Set(Object.keys(withDefaults));
     for (const option of options) {
-      if (
-        Object.hasOwn(withDefaults, option.name) ||
-        (depth === 0 && withDefaults[option.name] && option.type === 'fs-entry')
-      ) {
+      if (Object.hasOwn(withDefaults, option.name)) {
         Object.assign(withDefaults, {
           [option.name]: await validateValue(option, withDefaults)
         });
@@ -156,6 +156,15 @@ export const ConfigurationValidator = {
       Object.assign(withDefaults, { outputInterval: 1000 });
     }
     const merged = await this.merge(withDefaults, explicitKeys, depth);
+    if (depth === 0) {
+      for (const option of options) {
+        if (!Object.hasOwn(merged, option.name) && merged[option.name] && option.type === 'fs-entry') {
+          Object.assign(merged, {
+            [option.name]: await validateValue(option, merged)
+          });
+        }
+      }
+    }
     merged.mode = this.computeMode(merged);
     return merged;
   }

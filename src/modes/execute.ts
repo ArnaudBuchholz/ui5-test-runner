@@ -1,4 +1,5 @@
 import type { Configuration } from '../configuration/Configuration.js';
+import { dumpConfig } from './dumpConfig.js';
 import { help } from './help.js';
 import { log } from './log/index.js';
 import type { ModeFunction } from './ModeFunction.js';
@@ -10,6 +11,7 @@ import { Exit } from '../platform/Exit.js';
 
 const modeFunctions: { [key in Modes]: ModeFunction } = {
   [Modes.batch]: batch,
+  [Modes.dumpConfig]: dumpConfig,
   [Modes.help]: help,
   [Modes.legacy]: test,
   [Modes.log]: log,
