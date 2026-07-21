@@ -111,31 +111,29 @@ const traverseArguments = (configuration: CommandLineConfiguration, argv: string
 
 export const CommandLine = {
   async buildConfigurationFrom(cwd: string, argv: string[]) {
-    const configuration: CommandLineConfiguration = { cwd, errors: [] };
+    const configuration = Object.create({ cwd, errors: [] }) as CommandLineConfiguration;
 
     traverseArguments(configuration, argv);
 
-    const { errors, ...configWithoutErrors } = configuration;
-
-    const cliKeys = new Set(Object.keys(configWithoutErrors).filter((k) => k !== 'cwd'));
+    const cliKeys = new Set(Object.keys(configuration).filter((k) => k !== 'cwd'));
 
     let validatedConfiguration: Configuration | undefined;
     try {
-      validatedConfiguration = await ConfigurationValidator.validate(configWithoutErrors);
+      validatedConfiguration = await ConfigurationValidator.validate(configuration);
     } catch (error) {
-      if (errors.length > 0 && error instanceof AggregateError) {
+      if (configuration.errors.length > 0 && error instanceof AggregateError) {
         // eslint-disable-next-line @typescript-eslint/no-unsafe-argument -- Cannot change the base type definition of errors
-        errors.push(...error.errors);
+        configuration.errors.push(...error.errors);
       } else {
-        errors.push(error);
+        configuration.errors.push(error);
       }
     }
 
-    if (errors.length === 1) {
-      throw errors[0];
+    if (configuration.errors.length === 1) {
+      throw configuration.errors[0];
     }
-    if (errors.length > 0) {
-      throw new AggregateError(errors, 'Multiple errors occurred');
+    if (configuration.errors.length > 0) {
+      throw new AggregateError(configuration.errors, 'Multiple errors occurred');
     }
 
     assert(validatedConfiguration !== undefined);
