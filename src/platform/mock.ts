@@ -10,7 +10,7 @@ import assert from 'node:assert';
 
 export const MOCK_CWD = '~/ui5-test-runner/vitest';
 // patch options to ensure the value is propagated
-assert(options[0].name === 'cwd');
+assert.ok(options[0].name === 'cwd');
 Object.assign(options[0], { default: MOCK_CWD });
 Object.assign(defaults, { cwd: MOCK_CWD });
 
