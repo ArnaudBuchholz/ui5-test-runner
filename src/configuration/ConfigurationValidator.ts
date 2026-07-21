@@ -136,7 +136,6 @@ export const ConfigurationValidator = {
   },
 
   async validate(configuration: object, depth = 0): Promise<Configuration> {
-    // TODO: if configuration.cwd (inherited) then it should alter the default
     const withDefaults = Object.assign(Object.create(defaults), configuration) as object;
     assertIfConfiguration(withDefaults);
     const explicitKeys = new Set(Object.keys(withDefaults));
