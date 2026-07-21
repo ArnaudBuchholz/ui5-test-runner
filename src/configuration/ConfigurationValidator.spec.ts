@@ -1,4 +1,4 @@
-import { it, expect, describe, vi, beforeEach } from 'vitest';
+import { it, expect, describe, vi, beforeEach, afterEach } from 'vitest';
 import { ConfigurationValidator } from './ConfigurationValidator.js';
 import { OptionValidationError } from './OptionValidationError.js';
 import { indexedOptions } from './indexedOptions.js';
@@ -9,9 +9,13 @@ import type { Configuration } from './Configuration.js';
 import { Modes } from '../modes/Modes.js';
 import type { OptionValidator } from './validators/OptionValidator.js';
 import { FileSystem } from '../platform/index.js';
+import { fsEntry } from './validators/fsEntry.js';
+import { MOCK_CWD } from '../platform/mock.js';
+
+const PASS_THROUGH = (option: Option, value: unknown) => value;
 
 for (const key of Object.keys(validators)) {
-  validators[key as OptionType] = vi.fn((option: Option, value: unknown) => value) as OptionValidator<OptionType>;
+  validators[key as OptionType] = vi.fn(PASS_THROUGH) as OptionValidator<OptionType>;
 }
 
 const CONFIG_FILE_PATH = '/project/ui5-test-runner.json' as const;
@@ -254,6 +258,51 @@ describe('merge (config file loading)', () => {
         `${CONFIG_FILE_DIR}/sub/dir`,
         expect.any(Object)
       );
+    });
+
+    describe('cwd controls resolution of other fs-entry options', () => {
+      const PASS_THROUGH: OptionValidator<OptionType> = (option, value) => value as never;
+
+      beforeEach(() => {
+        vi.mocked(validators['fs-entry']).mockImplementation(fsEntry);
+        vi.mocked(FileSystem.access).mockResolvedValue(undefined);
+        vi.mocked(FileSystem.stat).mockImplementation((path) => {
+          const isFile = path === CONFIG_FILE_PATH;
+          return Promise.resolve({ isDirectory: () => !isFile, isFile: () => isFile } as Awaited<
+            ReturnType<typeof FileSystem.stat>
+          >);
+        });
+      });
+
+      afterEach(() => {
+        // @ts-expect-error -- Not able to type it properly
+        vi.mocked(validators['fs-entry']).mockImplementation(PASS_THROUGH);
+        vi.mocked(FileSystem.access).mockReset();
+        vi.mocked(FileSystem.stat).mockReset();
+      });
+
+      it('resolves webapp relatively to the config file (cwd remains unchanged because not defined)', async () => {
+        vi.mocked(FileSystem.readFile).mockResolvedValue(JSON.stringify({ webapp: 'src' }));
+        const result = await ConfigurationValidator.validate({ config: CONFIG_FILE_PATH });
+        expect(result.cwd).toStrictEqual(MOCK_CWD);
+        expect(result.webapp).toStrictEqual(`${CONFIG_FILE_DIR}/src`);
+      });
+
+      it('resolves webapp against the absolute cwd set in the config file', async () => {
+        const CUSTOM_CWD = '/custom/cwd' as const;
+        vi.mocked(FileSystem.readFile).mockResolvedValue(JSON.stringify({ cwd: CUSTOM_CWD, webapp: 'src' }));
+        const result = await ConfigurationValidator.validate({ config: CONFIG_FILE_PATH });
+        expect(result.cwd).toStrictEqual(CUSTOM_CWD);
+        expect(result.webapp).toStrictEqual(`${CUSTOM_CWD}/src`);
+      });
+
+      it('resolves webapp against the resolved relative cwd from the config file', async () => {
+        const RESOLVED_CWD = `${CONFIG_FILE_DIR}/sub/dir` as const;
+        vi.mocked(FileSystem.readFile).mockResolvedValue(JSON.stringify({ cwd: 'sub/dir', webapp: 'src' }));
+        const result = await ConfigurationValidator.validate({ config: CONFIG_FILE_PATH });
+        expect(result.cwd).toStrictEqual(RESOLVED_CWD);
+        expect(result.webapp).toStrictEqual(`${RESOLVED_CWD}/src`);
+      });
     });
   });
 
