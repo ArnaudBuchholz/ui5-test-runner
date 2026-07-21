@@ -5,6 +5,14 @@ import { basename, join } from 'node:path';
 import type { ILoggerService } from './logger/ILogger.js';
 import type { IAsyncTask } from './Exit.js';
 import type { Terminal } from './Terminal.js';
+import { options, defaults } from '../configuration/options.js';
+import assert from 'node:assert';
+
+export const MOCK_CWD = '~/ui5-test-runner/vitest';
+// patch options to ensure the value is propagated
+assert(options[0].name === 'cwd');
+Object.assign(options[0], { default: MOCK_CWD });
+Object.assign(defaults, { cwd: MOCK_CWD });
 
 const mockMethods = (object: Record<string, unknown>, members: string[]) => {
   for (const member of members) {
@@ -64,7 +72,12 @@ vi.mock(import('./FileSystem.js'), async (importActual) => {
   return mocked;
 });
 
-vi.mock(import('./Host.js'), async (importActual) => mockStaticMethodsOfExports(await importActual()));
+vi.mock(import('./Host.js'), async (importActual) => {
+  const mocked = mockStaticMethodsOfExports(await importActual());
+  const { Host } = mocked;
+  vi.mocked(Host.cwd).mockReturnValue(MOCK_CWD);
+  return mocked;
+});
 
 vi.mock(import('./Http.js'), async (importActual) => mockStaticMethodsOfExports(await importActual()));
 
