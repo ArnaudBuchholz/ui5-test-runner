@@ -114,6 +114,7 @@ export const pageTask = async function (this: IParallelizeContext, url: string, 
     pageId,
     data: { max: 0, value: 1, type: 'unknown', errors: 0 }
   });
+  // TODO a quick probe may help to figure out if the page is accessible (using Http.fetch and checking response.ok)
   const { promise: taskStopped, resolve: setTaskAsStopped } = Promise.withResolvers<void>();
   using _ = Exit.registerAsyncTask({
     name: url,
