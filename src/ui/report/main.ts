@@ -285,7 +285,9 @@ document.addEventListener('DOMContentLoaded', () => {
   attachOpenExportEvents();
   attachSuitePopoverEvents();
   controller.connect(update);
-
+  if ('ctrf' in window && typeof window.ctrf === 'object' && window.ctrf) {
+    controller.interaction({ report: window.ctrf as CommonTestReport });
+  }
   const initialHash = readHash();
   if (Object.keys(initialHash).length > 0) {
     controller.interaction(initialHash as Partial<State>);
