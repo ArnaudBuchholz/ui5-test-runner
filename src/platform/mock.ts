@@ -75,6 +75,7 @@ vi.mock(import('./FileSystem.js'), async (importActual) => {
 vi.mock(import('./Host.js'), async (importActual) => {
   const mocked = mockStaticMethodsOfExports(await importActual());
   const { Host } = mocked;
+  vi.mocked(Host.cpus).mockReturnValue([]);
   vi.mocked(Host.cwd).mockReturnValue(MOCK_CWD);
   return mocked;
 });
