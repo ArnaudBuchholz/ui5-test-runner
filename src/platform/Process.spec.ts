@@ -34,8 +34,9 @@ const createMockChildProcess = () => {
         registerHandler(stderrHandlers, event, handler);
       })
     },
-    on: vi.fn((event: string, handler: EventHandler) => {
+    on: vi.fn(function (this: ReturnType<typeof createMockChildProcess>, event: string, handler: EventHandler) {
       registerHandler(processHandlers, event, handler);
+      return this;
     }),
     // Helper methods to trigger events in tests
     emit: (event: string, ...arguments_: unknown[]) => {

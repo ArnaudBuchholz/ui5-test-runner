@@ -37,7 +37,7 @@ export default [
   },
   // These modules are designed to be used in a browser
   {
-    files: ['src/agent/**.ts'],
+    files: ['src/agent/**/*.ts', 'src/ui/**/*.ts'],
     languageOptions: {
       globals: {
         ...globals.browser
@@ -102,6 +102,7 @@ export default [
     files: [
       'src/modes/test/pageTask.ts',
       'src/configuration/ConfigurationValidator.ts',
+      'src/platform/Process.spec.ts',
       'src/utils/shared/parallelize.spec.ts'
     ],
     rules: {

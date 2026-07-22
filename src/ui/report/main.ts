@@ -269,7 +269,7 @@ function update(changed: Partial<State>): void {
 
 // ---- Popstate (back/forward navigation) ----
 
-globalThis.addEventListener('popstate', () => {
+window.addEventListener('popstate', () => {
   const hashState = readHash();
   if (Object.keys(hashState).length > 0) {
     controller.interaction(hashState as Partial<State>);
