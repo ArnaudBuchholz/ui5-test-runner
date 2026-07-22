@@ -1,9 +1,17 @@
-import { logger, Process, Host } from '../../platform/index.js';
+import { logger, Path, Process, Host, __sourcesRoot } from '../../platform/index.js';
 import { options } from '../../configuration/options.js';
 import type { Configuration } from '../../configuration/Configuration.js';
 import type { IBatchItem } from './BatchItem.js';
 import { join } from 'node:path';
 import { toKebabCase } from '../../utils/shared/string.js';
+
+const buildRunnerCommand = () => {
+  const extension = Path.extname(import.meta.url);
+  const cliPath = Path.join(__sourcesRoot, 'cli' + extension);
+  const js2tsUrl = Path.join(__sourcesRoot, 'platform/js2ts.mjs');
+  /* v8 ignore next -- @preserve */
+  return extension === '.ts' ? ['--no-warnings', '--import', js2tsUrl, cliPath] : [cliPath];
+};
 
 const forwardedOptions = options.filter((o) => 'batchForwarded' in o && o.batchForwarded);
 
@@ -50,7 +58,7 @@ export const batchTask = async (configuration: Configuration, batchItem: IBatchI
 
   batchItem.start = new Date();
 
-  const parameters: string[] = [...batchItem.args];
+  const parameters: string[] = [...buildRunnerCommand(), ...batchItem.args];
   if (configuration.sources['reportDir'] === 'cli') {
     parameters.push('--report-dir', join(configuration.reportDir, batchItem.id));
   }
