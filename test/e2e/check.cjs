@@ -1,16 +1,13 @@
-/* global DecompressionStream */
-
 'use strict'
 
 const { parseArgs } = require('node:util')
 const assert = require('node:assert/strict')
 const { readFile, stat } = require('node:fs/promises')
 const { join } = require('node:path')
-const { resolvePackage } = require('../../src/npm')
 
 const {
   values: {
-    'qunit-pages': qunitPages,
+    pages,
     coverage,
     'report-uncovered': coverageReportUncovered,
     'junit-xml-report': junitXmlReport,
@@ -20,7 +17,7 @@ const {
 } = parseArgs({
   allowPositionals: true,
   options: {
-    'qunit-pages': {
+    'pages': {
       type: 'string',
       default: ''
     },
@@ -44,46 +41,36 @@ const {
 })
 
 async function main () {
-  const job = require(positionals[0])
+  const reportDir = positionals[0]
+  assert.ok(reportDir, 'Report directory must be provided as a positional argument')
+  const jobPath = join(reportDir, 'report.json')
+  let jobContent
+  try {
+    jobContent = await readFile(jobPath, 'utf8')
+  } catch (e) {
+    assert.fail(`Failed to read report file at '${jobPath}': ${e.message}`)
+  }
+  let job
+  try {
+    job = JSON.parse(jobContent)
+  } catch (e) {
+    assert.fail(`Failed to parse report file at '${jobPath}' as JSON: ${e.message}`)
+  }
+
+  assert.strictEqual(job.reportFormat, 'CTRF', 'report.json has CTRF format')
+  assert.ok(job.results?.summary, 'report.json has results.summary')
+  assert.ok(Array.isArray(job.results?.tests), 'report.json has results.tests array')
 
   if (failed) {
-    assert.strictEqual(job.failed, true, 'Job failed')
+    assert.ok(job.results.summary.failed > 0, 'Job failed')
   } else {
-    assert.strictEqual(job.failed, false, 'Job succeeded')
+    assert.strictEqual(job.results.summary.failed, 0, 'Job succeeded')
   }
 
-  const hasReport = job.reportGenerator.some(generator => generator.match(/src[/\\]defaults[/\\]report\.js$/))
-  if (hasReport) {
-    const jsdomPath = await resolvePackage(null, 'jsdom')
-    const jsdom = require(jsdomPath)
-    const { JSDOM, VirtualConsole } = jsdom
-    const reportHtmlPath = join(job.reportDir, 'report.html')
-    const reportHtml = await readFile(reportHtmlPath, 'utf8')
-    const virtualConsole = new VirtualConsole()
-    const errors = []
-    virtualConsole.on('error', (error) => {
-      errors.push(error)
-    })
-    virtualConsole.on('jsdomError', (error) => {
-      errors.push(error)
-    })
-    const dom = new JSDOM(reportHtml, {
-      runScripts: 'dangerously',
-      virtualConsole,
-      beforeParse: (window) => Object.assign(window, { DecompressionStream, ReadableStream, Response })
-    })
-    if (errors.length > 0) {
-      assert.fail(`Errors in report.html: ${errors.join('\n')}`)
-    }
-    await new Promise((resolve) => setTimeout(resolve, 100)) // Wait for the report to be updated
-    assert.strictEqual(dom.window.document.querySelector('h1').textContent, 'Test report', 'Report title is correct')
-    assert.strictEqual(dom.window.document.querySelector('div.elapsed').textContent.includes('Duration'), true, 'Report duration is displayed')
-  }
-
-  if (qunitPages) {
-    assert.notStrictEqual(job.qunitPages, undefined, 'Pages found')
-    const expectedCount = parseInt(qunitPages)
-    assert.strictEqual(Object.keys(job.qunitPages).length, expectedCount, 'Number of test pages')
+  if (pages) {
+    const expectedCount = parseInt(pages)
+    const pageUrls = new Set(job.results.tests.flatMap(test => (test.suite ?? []).filter(s => s.startsWith('http'))))
+    assert.strictEqual(pageUrls.size, expectedCount, 'Number of test pages')
   }
 
   if (coverage) {
