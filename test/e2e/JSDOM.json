@@ -1,7 +1,0 @@
-{
-  "batchId": "JSDOM",
-  "batchLabel": "JSDOM browser",
-  "capabilities": null,
-  "debugKeepReport": null,
-  "browser": "$/jsdom.js"
-}
