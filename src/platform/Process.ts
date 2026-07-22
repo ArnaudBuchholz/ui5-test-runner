@@ -66,7 +66,7 @@ export class Process implements IProcess {
         source: 'process',
         processId: childProcess.pid,
         message: 'spawned',
-        data: { command, arguments: arguments_, options }
+        data: { command, arguments: arguments_, options: spawnOptions }
       });
       if (onMessage) {
         childProcess.on('message', onMessage);
@@ -78,7 +78,11 @@ export class Process implements IProcess {
       logger.error({
         source: 'process',
         message: 'spawn failed',
-        data: { command, arguments: arguments_, options },
+        data: {
+          command,
+          arguments: arguments_,
+          options: spawnOptions
+        },
         error
       });
       asyncTask?.[Symbol.dispose]();
