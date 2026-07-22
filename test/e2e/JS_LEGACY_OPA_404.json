@@ -3,6 +3,5 @@
   "batchLabel": "Legacy JS Sample",
   "cwd": "../sample.js",
   "testsuite": "test/testsuite.qunit-opa-404.html",
-  "globalTimeout": "15s",
-  "end": "../e2e/check.js --failed"
+  "end": "node ../e2e/check.cjs {{reportDir}} --failed"
 }
