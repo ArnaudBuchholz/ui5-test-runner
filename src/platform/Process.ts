@@ -61,7 +61,8 @@ export class Process implements IProcess {
           : [stdio ?? 'pipe', stdio ?? 'pipe', stdio ?? 'pipe', 'ipc'];
       }
       const childProcess = spawn(finalCommand, arguments_, spawnOptions);
-      logger.debug({
+      const logMethod = childProcess.pid ? 'debug' : 'warn';
+      logger[logMethod]({
         source: 'process',
         processId: childProcess.pid,
         message: 'spawned',
@@ -123,18 +124,27 @@ export class Process implements IProcess {
       logger.debug({ source: 'process/stderr', processId: this.pid, message });
       this._stderr.push(message);
     });
-    this._childProcess.on('close', (code) => {
-      this._code = code ?? 0;
-      const logLevel = this._code === 0 ? 'debug' : 'warn';
-      logger[logLevel]({
-        source: 'process',
-        processId: this.pid,
-        message: 'closed',
-        data: { code: this._code }
+    this._childProcess
+      .on('error', (error) => {
+        logger.error({
+          source: 'process',
+          processId: childProcess.pid,
+          message: error.message,
+          error
+        });
+      })
+      .on('close', (code) => {
+        this._code = code ?? 0;
+        const logLevel = this._code === 0 ? 'debug' : 'warn';
+        logger[logLevel]({
+          source: 'process',
+          processId: this.pid,
+          message: 'closed',
+          data: { code: this._code }
+        });
+        this._asyncTask[Symbol.dispose]();
+        resolve();
       });
-      this._asyncTask[Symbol.dispose]();
-      resolve();
-    });
   }
 
   get pid(): number {
