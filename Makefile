@@ -23,4 +23,9 @@ options: src/configuration/options.ts
 src/configuration/options.ts: build/options.mjs docs/options/**
 	npm run build:options
 
-precli: agent lib html-report log-viewer options
+cli: dist/cli.js
+
+dist/cli.js: src/**
+	npm run build:cli
+
+precli: agent lib html-report log-viewer options cli
