@@ -1,11 +1,19 @@
-import { logger, Exit } from '../../platform/index.js';
+import { logger, Exit, logEnvironnement } from '../../platform/index.js';
 import type { Configuration } from '../../configuration/Configuration.js';
 import { parallelize } from '../../utils/shared/parallelize.js';
 import { start } from '../../start.js';
 import { resolve } from './resolve.js';
 import { batchTask } from './batchTask.js';
+import { defaults } from '../../configuration/options.js';
+import { Folder } from '../../utils/node/Folder.js';
 
 export const batch = async (configuration: Configuration): Promise<void> => {
+  await Folder.create(configuration.reportDir);
+  await logger.start(configuration);
+  logger.debug({ source: 'job', message: 'Configuration', data: { defaults, configuration } });
+
+  await logEnvironnement();
+
   const items = await resolve(configuration);
   if (items.length === 0) {
     logger.warn({ source: 'job', message: 'No batch items found' });
