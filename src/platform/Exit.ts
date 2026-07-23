@@ -129,7 +129,10 @@ export class Exit {
       [Symbol.dispose]() {
         const index = Exit._asyncTasks.findIndex((task) => task.id === id);
         try {
-          assert(index !== -1, 'unable to find Exit async task to unregister');
+          assert(
+            Exit._enteringShutdown || index !== -1,
+            `unable to find Exit async task "${task.name}" to unregister (shutdown=${Exit._enteringShutdown})`
+          );
           Exit._asyncTasks.splice(index, 1);
         } catch {
           // ignore
