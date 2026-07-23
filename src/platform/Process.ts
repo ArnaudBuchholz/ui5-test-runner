@@ -147,7 +147,7 @@ export class Process implements IProcess {
           data: { code: this._code }
         });
         this._asyncTask[Symbol.dispose]();
-        resolve();
+        setTimeout(resolve, 0); // Or it will appear as a leak
       });
   }
 
