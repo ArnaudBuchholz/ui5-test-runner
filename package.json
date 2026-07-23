@@ -21,7 +21,7 @@
     "ts-run": "node --no-warnings --experimental-strip-types --import ./src/platform/js2ts.mjs",
     "cli": "make precli && npm run ts-run -- src/cli.ts",
     "test:capabilities": "npm run cli -- --cwd test/capabilities",
-    "test:error1": "npm run cli -- --cwd test/sample.js --testsuite test/no-testsuite.qunit.html --end \"node endOfError.cjs {{reportDir}}\"",
+    "test:error1": "npm run cli -- --cwd test/sample.js --testsuite test/no-testsuite.qunit.html --end \"node endOfErrors.mjs {{reportDir}}\"",
     "test:cli1": "npm run cli -- --url https://ui5.sap.com/test-resources/sap/m/demokit/cart/webapp/test/testsuite.qunit.html --report-dir tmp",
     "test:cli2": "npm run cli -- --url \"https://ui5.sap.com/test-resources/sap/m/demokit/cart/webapp/test/Test.qunit.html?testsuite=test-resources/sap/ui/demo/cart/testsuite.qunit&test=unit/unitTests\" --report-dir tmp",
     "test:cli3": "npm run cli -- --url \"https://ui5.sap.com/test-resources/sap/m/demokit/cart/webapp/test/Test.qunit.html?testsuite=test-resources%2Fsap%2Fui%2Fdemo%2Fcart%2Ftestsuite.qunit&test=integration%2FopaTestsComponent#/categories\" --report-dir tmp",

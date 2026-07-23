@@ -7,6 +7,7 @@ import type { AgentState } from '../../types/AgentState.js';
 import { Exit, ExitShutdownError } from '../../platform/Exit.js';
 import { setTimeout } from 'node:timers/promises';
 import { getReportBuilder } from './report.js';
+import { createEmptyTestResults } from '../../types/CommonTestReportFormat.js';
 import type { CommonTestReport } from '../../types/CommonTestReportFormat.js';
 import type { IWindow } from '../../browsers/IBrowser.js';
 import { getBrowserConfigScript } from './browserConfig.js';
@@ -134,6 +135,16 @@ export const pageTask = async function (this: IParallelizeContext, url: string, 
         remove: true
       }
     });
+    const result = createEmptyTestResults();
+    result.summary.tests = 1;
+    result.summary.failed = 1;
+    result.tests.push({
+      name: url,
+      status: 'failed',
+      message: 'An error occurred while fetching the URL',
+      duration: 0
+    });
+    getReportBuilder().merge(url, result);
     return;
   }
 
