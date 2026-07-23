@@ -70,11 +70,14 @@ const handleDescriptors: { [key in string]: (handle: Handle) => string } = {
 
 const isStdStream = (handle: Handle) => 'fd' in handle && handle.fd >= 0 && handle.fd < 3;
 
-const unknownHandleDescriptor = () => 'unknown';
+const unknownHandleDescriptor = (_handle: Handle) => 'unknown';
 
 const describeHandle = (handle: Handle) => {
-  const className = handle && handle.constructor && handle.constructor.name;
-  return { className, label: (handleDescriptors[className] ?? unknownHandleDescriptor)(handle) };
+  const className = (handle && handle.constructor && handle.constructor.name) as string | undefined;
+  if (className) {
+    return { className, label: (handleDescriptors[className] ?? unknownHandleDescriptor)(handle) };
+  }
+  return { className: 'unknown', label: unknownHandleDescriptor(handle) };
 };
 
 export class Exit {
@@ -97,11 +100,12 @@ export class Exit {
         // One MessagePort is expected to remain because of the BroadcastChannel
         isMessagePortFound = true;
         logger?.debug({ source: 'exit/handle', message: `${className} ${label}` });
+      } else if (['TLSSocket', 'Socket'].includes(className)) {
+        // These are common and handled through destroy
+        logger?.debug({ source: 'exit/handle', message: `destroying leak ${className} ${label}` });
+        handle.destroy();
       } else {
         logger?.warn({ source: 'exit/handle', message: `possible leak ${className} ${label}` });
-        if (className === 'TLSSocket' || className === 'Socket') {
-          handle.destroy();
-        }
       }
     }
   }
