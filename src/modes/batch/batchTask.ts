@@ -102,6 +102,6 @@ export const batchTask = async (configuration: Configuration, batchItem: IBatchI
     message: label,
     pageId,
     data: { max: 0, value: 0, type: 'unknown', errors: 0, remove: true }
-  });  
+  });
   return batchItem;
 };
