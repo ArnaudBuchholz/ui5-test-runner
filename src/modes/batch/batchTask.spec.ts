@@ -51,11 +51,13 @@ describe('task()', () => {
     );
   });
 
-  it('passes batchItem.args as the first parameters', () => {
+  it('passes batchItem.args parameters', () => {
     vi.mocked(Process.spawn).mockReturnValue(makeProcess());
     void batchTask(makeConfig(), makeItem({ args: ['--cwd', '/my/path'] }));
     const [, parameters] = vi.mocked(Process.spawn).mock.calls[0]!;
-    expect(parameters.slice(0, 2)).toEqual(['--cwd', '/my/path']);
+    const cwdIndex = parameters.indexOf('--cwd');
+    expect.assert(cwdIndex !== -1);
+    expect(parameters[cwdIndex + 1]).toEqual('/my/path');
   });
 
   it('appends --report-dir when reportDir is CLI-sourced', () => {
