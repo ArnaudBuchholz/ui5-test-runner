@@ -1,5 +1,5 @@
 import type { IParallelizeContext } from '../../utils/shared/parallelize.js';
-import { assert, logger } from '../../platform/index.js';
+import { assert, Http, logger } from '../../platform/index.js';
 import type { PageProgressData } from '../../platform/logger/types.js';
 import { getAgentSource } from './agent.js';
 import { getBrowser } from './browser.js';
@@ -114,7 +114,29 @@ export const pageTask = async function (this: IParallelizeContext, url: string, 
     pageId,
     data: { max: 0, value: 1, type: 'unknown', errors: 0 }
   });
-  // TODO a quick probe may help to figure out if the page is accessible (using Http.fetch and checking response.ok)
+
+  try {
+    const response = await Http.fetch(url);
+    if (!response.ok) {
+      throw new Error(`Unexpected status code ${response.status}`);
+    }
+  } catch (error) {
+    logger.error({ source: 'page', message: 'An error occurred while fetching the URL', error, pageId, data: {} });
+    logger.info({
+      source: 'progress',
+      message: url,
+      pageId,
+      data: {
+        max: 0,
+        value: 1,
+        type: 'unknown',
+        errors: 1,
+        remove: true
+      }
+    });
+    return;
+  }
+
   const { promise: taskStopped, resolve: setTaskAsStopped } = Promise.withResolvers<void>();
   using _ = Exit.registerAsyncTask({
     name: url,
@@ -189,7 +211,6 @@ export const pageTask = async function (this: IParallelizeContext, url: string, 
           remove: true
         }
       });
-      // TODO: document end of page with type and duration (to ease search)
     }
     try {
       logger.debug({ source: 'page', message: 'closing page', pageId });
