@@ -3,5 +3,5 @@
   "batchLabel": "Legacy JS Sample",
   "cwd": "../sample.js",
   "testsuite": "test/testsuite.qunit-opa-404.html",
-  "end": "node ../e2e/check.cjs {{reportDir}} --failed"
+  "end": "node ../e2e/check.mjs {{reportDir}} --failed"
 }

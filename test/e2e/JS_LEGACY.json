@@ -2,5 +2,5 @@
   "batchId": "JS_LEGACY",
   "batchLabel": "Legacy JS Sample",
   "cwd": "../sample.js",
-  "end": "node ../e2e/check.cjs {{reportDir}} --pages 2"
+  "end": "node ../e2e/check.mjs {{reportDir}} --pages 2"
 }
