@@ -281,9 +281,9 @@ describe('handles', () => {
             destroy
           }
         ],
-        logType: 'warn',
+        logType: 'debug',
         destroyed: true,
-        message: 'possible leak Socket IncomingRequest GET http://localhost'
+        message: 'destroying leak Socket IncomingRequest GET http://localhost'
       },
       {
         // Socket (Client Request)
@@ -302,9 +302,9 @@ describe('handles', () => {
             destroy
           }
         ],
-        logType: 'warn',
+        logType: 'debug',
         destroyed: true,
-        message: 'possible leak Socket ClientRequest GET http://localhost/test'
+        message: 'destroying leak Socket ClientRequest GET http://localhost/test'
       },
       {
         // Socket (raw addresses)
@@ -321,9 +321,9 @@ describe('handles', () => {
             destroy
           }
         ],
-        logType: 'warn',
+        logType: 'debug',
         destroyed: true,
-        message: 'possible leak Socket local 127.0.0.1:80 <-> remote 127.0.0.2:99'
+        message: 'destroying leak Socket local 127.0.0.1:80 <-> remote 127.0.0.2:99'
       },
       {
         // Socket (raw local only)
@@ -338,9 +338,9 @@ describe('handles', () => {
             destroy
           }
         ],
-        logType: 'warn',
+        logType: 'debug',
         destroyed: true,
-        message: 'possible leak Socket local 127.0.0.1:80'
+        message: 'destroying leak Socket local 127.0.0.1:80'
       },
       {
         // Socket (handle)
@@ -358,9 +358,9 @@ describe('handles', () => {
             destroy
           }
         ],
-        logType: 'warn',
+        logType: 'debug',
         destroyed: true,
-        message: 'possible leak Socket whatever'
+        message: 'destroying leak Socket whatever'
       },
       {
         // Socket (unknown handle)
@@ -376,9 +376,9 @@ describe('handles', () => {
             destroy
           }
         ],
-        logType: 'warn',
+        logType: 'debug',
         destroyed: true,
-        message: 'possible leak Socket handle unknown'
+        message: 'destroying leak Socket handle unknown'
       },
       {
         // Socket (unknown)
@@ -391,9 +391,9 @@ describe('handles', () => {
             destroy
           }
         ],
-        logType: 'warn',
+        logType: 'debug',
         destroyed: true,
-        message: 'possible leak Socket unknown'
+        message: 'destroying leak Socket unknown'
       },
       {
         // WriteStream (custom)
