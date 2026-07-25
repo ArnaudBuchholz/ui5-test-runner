@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { logger, Exit, Process } from './platform/index.js';
+import { logger, Exit, Process, Host } from './platform/index.js';
 import type { IProcess } from './platform/index.js';
 import type { Configuration } from './configuration/Configuration.js';
 import { Command } from './Command.js';
@@ -18,6 +18,7 @@ const END_WITH_TIMEOUT_CONFIGURATION = {
   endTimeout: END_TIMEOUT
 } as Configuration;
 
+const MOCK_ENV = { PATH: '/usr/bin' };
 const DEFAULT_EXIT_CODE = 999;
 
 const makeProcess = (code: number): IProcess => ({
@@ -32,7 +33,8 @@ const makeProcess = (code: number): IProcess => ({
 beforeEach(() => {
   vi.clearAllMocks();
   Exit.code = DEFAULT_EXIT_CODE;
-  vi.mocked(Command.parse).mockResolvedValue(['my-command', ['--flag']]);
+  vi.mocked(Command.parse).mockResolvedValue(['my-command', ['--flag'], {}]);
+  Object.assign(Host, { env: MOCK_ENV });
 });
 
 describe('end', () => {
@@ -59,14 +61,15 @@ describe('end', () => {
       });
     });
 
-    it('parses the command with Command.parse', async () => {
+    it('parses the command with Command.parse passing exitCode as extra', async () => {
+      Exit.code = 42;
       await end(END_CONFIGURATION);
-      expect(Command.parse).toHaveBeenCalledWith(END_CONFIGURATION, 'my-command --flag');
+      expect(Command.parse).toHaveBeenCalledWith(END_CONFIGURATION, 'my-command --flag', { exitCode: '42' });
     });
 
     it('spawns the process with parsed command and cwd', async () => {
       await end(END_CONFIGURATION);
-      expect(Process.spawn).toHaveBeenCalledWith('my-command', ['--flag'], { cwd: CWD });
+      expect(Process.spawn).toHaveBeenCalledWith('my-command', ['--flag'], { cwd: CWD, env: MOCK_ENV });
     });
 
     it('sets Exit.code to 0 on clean exit', async () => {

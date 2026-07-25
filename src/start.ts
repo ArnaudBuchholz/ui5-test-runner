@@ -1,4 +1,4 @@
-import { logger, Http, Process, assert } from './platform/index.js';
+import { logger, Http, Process, Host, assert } from './platform/index.js';
 import type { IProcess } from './platform/index.js';
 import type { Configuration } from './configuration/Configuration.js';
 import { Command } from './Command.js';
@@ -58,11 +58,12 @@ export const start = async (configuration: Configuration): Promise<IProcess | un
     pageId: undefined,
     data: { value: 0, max: 0 }
   });
-  const [command, arguments_] = await Command.parse(configuration, configuration.start);
+  const [command, arguments_, environment] = await Command.parse(configuration, configuration.start);
   const startProcess = Process.spawn(command, arguments_, {
     cwd: configuration.cwd,
     windowsHide: true,
-    detached: true
+    detached: true,
+    env: { ...Host.env, ...environment }
   });
   if (configuration.startWaitUrl) {
     await waitForStart(configuration, startProcess);

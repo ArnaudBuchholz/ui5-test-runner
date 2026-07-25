@@ -36,18 +36,19 @@ describe('Command.split', () => {
 
 describe('Command.parse', () => {
   it('splits the command', async () => {
-    await expect(Command.parse(TEST_CONFIGURATION, 'bash test')).resolves.toStrictEqual(['bash', ['test']]);
+    await expect(Command.parse(TEST_CONFIGURATION, 'bash test')).resolves.toStrictEqual(['bash', ['test'], {}]);
   });
 
   it('splits the command (using node)', async () => {
-    await expect(Command.parse(TEST_CONFIGURATION, 'node test')).resolves.toStrictEqual(['node', ['test']]);
+    await expect(Command.parse(TEST_CONFIGURATION, 'node test')).resolves.toStrictEqual(['node', ['test'], {}]);
   });
 
   it('replaces npm with node and npm cli path', async () => {
     vi.spyOn(Npm, 'getCliPath').mockResolvedValue('npm_cli.js');
     await expect(Command.parse(TEST_CONFIGURATION, 'npm run test')).resolves.toStrictEqual([
       'node',
-      ['npm_cli.js', 'run', 'test']
+      ['npm_cli.js', 'run', 'test'],
+      {}
     ]);
   });
 
@@ -55,7 +56,8 @@ describe('Command.parse', () => {
     it('replaces a parameter with its equivalent in config', async () => {
       await expect(Command.parse(TEST_CONFIGURATION, 'npm run test -- {{reportDir}}')).resolves.toStrictEqual([
         'node',
-        ['npm_cli.js', 'run', 'test', '--', '/home/usr/report']
+        ['npm_cli.js', 'run', 'test', '--', '/home/usr/report'],
+        {}
       ]);
     });
 
@@ -63,6 +65,72 @@ describe('Command.parse', () => {
       await expect(Command.parse(TEST_CONFIGURATION, 'npm run test -- {{reportDi}}')).rejects.toThrow(
         'Invalid command line substitution parameter: reportDi'
       );
+    });
+  });
+
+  describe('extras substitution', () => {
+    it('replaces a parameter with its value from extras', async () => {
+      await expect(
+        Command.parse(TEST_CONFIGURATION, 'node test.ts {{exitCode}}', { exitCode: '42' })
+      ).resolves.toStrictEqual(['node', ['test.ts', '42'], {}]);
+    });
+
+    it('extras take precedence over configuration', async () => {
+      await expect(
+        Command.parse(TEST_CONFIGURATION, 'node test.ts {{reportDir}}', { reportDir: '/override' })
+      ).resolves.toStrictEqual(['node', ['test.ts', '/override'], {}]);
+    });
+
+    it('supports extras substitution in env var values', async () => {
+      await expect(
+        Command.parse(TEST_CONFIGURATION, 'CODE={{exitCode}} node test.ts', { exitCode: '1' })
+      ).resolves.toStrictEqual(['node', ['test.ts'], { CODE: '1' }]);
+    });
+
+    it('fails if the parameter is neither in extras nor in configuration', async () => {
+      await expect(Command.parse(TEST_CONFIGURATION, 'node test.ts {{unknown}}', {})).rejects.toThrow(
+        'Invalid command line substitution parameter: unknown'
+      );
+    });
+  });
+
+  describe('environment variables', () => {
+    it('extracts a single env var before the command', async () => {
+      await expect(Command.parse(TEST_CONFIGURATION, 'TEST=yes node test.ts')).resolves.toStrictEqual([
+        'node',
+        ['test.ts'],
+        { TEST: 'yes' }
+      ]);
+    });
+
+    it('extracts multiple env vars before the command', async () => {
+      await expect(Command.parse(TEST_CONFIGURATION, 'A=1 B=2 node test.ts')).resolves.toStrictEqual([
+        'node',
+        ['test.ts'],
+        { A: '1', B: '2' }
+      ]);
+    });
+
+    it('supports substitution in env var values', async () => {
+      await expect(Command.parse(TEST_CONFIGURATION, 'TEST={{reportDir}} node test.ts')).resolves.toStrictEqual([
+        'node',
+        ['test.ts'],
+        { TEST: '/home/usr/report' }
+      ]);
+    });
+
+    it('fails if substitution in env var value uses an unknown parameter', async () => {
+      await expect(Command.parse(TEST_CONFIGURATION, 'TEST={{reportDi}} node test.ts')).rejects.toThrow(
+        'Invalid command line substitution parameter: reportDi'
+      );
+    });
+
+    it('supports an env var value containing an = sign', async () => {
+      await expect(Command.parse(TEST_CONFIGURATION, 'TEST=a=b node test.ts')).resolves.toStrictEqual([
+        'node',
+        ['test.ts'],
+        { TEST: 'a=b' }
+      ]);
     });
   });
 });

@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { logger, Http, Process } from './platform/index.js';
+import { logger, Http, Process, Host } from './platform/index.js';
 import type { IProcess } from './platform/index.js';
 import type { Configuration } from './configuration/Configuration.js';
 import { Command } from './Command.js';
@@ -12,6 +12,7 @@ const CWD = '/test/cwd';
 const START_URL = 'http://localhost:8080/health';
 const START_TIMEOUT = 5000;
 
+const MOCK_ENV = { PATH: '/usr/bin' };
 const NO_START_CONFIGURATION = { cwd: CWD } as unknown as Configuration;
 const START_CONFIGURATION = { cwd: CWD, start: 'my-server --port 8080' } as unknown as Configuration;
 const START_WITH_WAIT_CONFIGURATION = {
@@ -37,7 +38,8 @@ const makeNotOkResponse = (): Response => ({ ok: false, status: 503 }) as Respon
 beforeEach(() => {
   vi.clearAllMocks();
   vi.useRealTimers();
-  vi.mocked(Command.parse).mockResolvedValue(['my-server', ['--port', '8080']]);
+  vi.mocked(Command.parse).mockResolvedValue(['my-server', ['--port', '8080'], {}]);
+  Object.assign(Host, { env: MOCK_ENV });
 });
 
 describe('start', () => {
@@ -75,7 +77,8 @@ describe('start', () => {
       expect(Process.spawn).toHaveBeenCalledWith('my-server', ['--port', '8080'], {
         cwd: CWD,
         windowsHide: true,
-        detached: true
+        detached: true,
+        env: MOCK_ENV
       });
     });
 

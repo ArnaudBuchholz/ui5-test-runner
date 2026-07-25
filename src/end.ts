@@ -1,4 +1,4 @@
-import { logger, Exit, Process } from './platform/index.js';
+import { logger, Exit, Process, Host } from './platform/index.js';
 import type { Configuration } from './configuration/Configuration.js';
 import { Command } from './Command.js';
 import { formatDuration } from './utils/shared/string.js';
@@ -10,9 +10,12 @@ export const end = async (configuration: Configuration): Promise<void> => {
   const start = Date.now();
   logger.info({ source: 'job', message: 'Executing end command...' });
   logger.info({ source: 'progress', message: 'Executing end command', pageId: undefined, data: { value: 0, max: 0 } });
-  const [command, arguments_] = await Command.parse(configuration, configuration.end);
+  const [command, arguments_, environment] = await Command.parse(configuration, configuration.end, {
+    exitCode: String(Exit.code)
+  });
   const process = Process.spawn(command, arguments_, {
-    cwd: configuration.cwd
+    cwd: configuration.cwd,
+    env: { ...Host.env, ...environment }
   });
   let code: number | undefined;
   if (configuration.endTimeout) {
