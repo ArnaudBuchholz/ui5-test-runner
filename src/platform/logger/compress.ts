@@ -161,6 +161,12 @@ interface DataSlot {
   uncompress(context: Context, compressed: string): Partial<InternalLogAttributes>;
 }
 
+export const nullSlot: DataSlot = {
+  width: 0,
+  compress: () => ({ compressed: '' }),
+  uncompress: () => ({})
+};
+
 const levelSlot: DataSlot = {
   width: 1,
   compress(_, { level }) {
@@ -245,7 +251,7 @@ const messageAndExtraSlot: DataSlot = {
   }
 };
 
-const DATA_LINE_SLOTS: DataSlot[] = [
+export const DATA_LINE_SLOTS: DataSlot[] = [
   levelSlot,
   timestampSlot,
   processSlot,
@@ -253,9 +259,9 @@ const DATA_LINE_SLOTS: DataSlot[] = [
   pageIdSlot,
   messageAndExtraSlot
 ];
-const FIXED_SLOTS = DATA_LINE_SLOTS.filter((s) => s.width > 0);
-const FIXED_SLOT_WIDTHS = FIXED_SLOTS.map((s) => s.width);
-const VARIABLE_SLOTS = DATA_LINE_SLOTS.filter((s) => s.width === 0);
+const FIXED_SLOTS = DATA_LINE_SLOTS.filter((dataSlot) => dataSlot !== nullSlot && dataSlot.width > 0);
+const FIXED_SLOT_WIDTHS = FIXED_SLOTS.map((dataSlot) => dataSlot.width);
+const VARIABLE_SLOTS = DATA_LINE_SLOTS.filter((dataSlot) => dataSlot !== nullSlot && dataSlot.width === 0);
 assert.ok(VARIABLE_SLOTS.length === 1, 'DATA_LINE_SLOTS must contain exactly one variable-width slot');
 const VARIABLE_SLOT = VARIABLE_SLOTS[0]!;
 
@@ -268,6 +274,7 @@ export const _ALL_LOG_ATTRIBUTES_ARE_HANDLED: Record<keyof Required<InternalLogA
   isMainThread: processSlot,
   source: sourceSlot,
   pageId: pageIdSlot,
+  forceRender: nullSlot,
   message: messageAndExtraSlot,
   data: messageAndExtraSlot,
   error: messageAndExtraSlot

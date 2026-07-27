@@ -7,7 +7,10 @@ import {
   uncompress,
   DIGITS,
   MAX_TIMESTAMP_DIGITS,
-  MAX_DWORD_DIGITS
+  MAX_DWORD_DIGITS,
+  DATA_LINE_SLOTS,
+  nullSlot,
+  _ALL_LOG_ATTRIBUTES_ARE_HANDLED
 } from './compress.js';
 
 const examples = [
@@ -163,4 +166,21 @@ it('detects unexpected situation', () => {
   expect(() => uncompress(createCompressionContext(), compressed.trim().split('\n').at(-1)!)).toThrow(
     'Invalid process index 0 (length: 0)'
   );
+});
+
+describe('_ALL_LOG_ATTRIBUTES_ARE_HANDLED', () => {
+  it('every non-null slot is present in DATA_LINE_SLOTS', () => {
+    for (const [field, slot] of Object.entries(_ALL_LOG_ATTRIBUTES_ARE_HANDLED)) {
+      if (slot !== nullSlot) {
+        expect(DATA_LINE_SLOTS, `slot for "${field}" is not in DATA_LINE_SLOTS`).toContain(slot);
+      }
+    }
+  });
+
+  it('every slot in DATA_LINE_SLOTS is referenced by at least one field', () => {
+    const referencedSlots = new Set(Object.values(_ALL_LOG_ATTRIBUTES_ARE_HANDLED));
+    for (const slot of DATA_LINE_SLOTS) {
+      expect(referencedSlots, `a slot in DATA_LINE_SLOTS is not referenced in _ALL_LOG_ATTRIBUTES_ARE_HANDLED`).toContain(slot);
+    }
+  });
 });

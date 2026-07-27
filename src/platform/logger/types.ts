@@ -44,6 +44,7 @@ export type LogAttributes = {
   data?: object;
   processId?: number;
   pageId?: number;
+  forceRender?: true;
 } & (
   | {
       source: 'assert';
