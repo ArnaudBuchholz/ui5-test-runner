@@ -156,7 +156,7 @@ describe('spawn', () => {
     mockChildProcess?.emitStdout('data', 'a');
     mockChildProcess?.emitStdout('data', 'b');
     mockChildProcess?.emitStdout('data', 'c');
-    expect(logger.debug).toHaveBeenCalledWith({
+    expect(logger.info).toHaveBeenCalledWith({
       source: 'process/stdout',
       processId: childProcess.pid,
       message: 'a'
@@ -169,7 +169,7 @@ describe('spawn', () => {
     mockChildProcess?.emitStderr('data', 'a');
     mockChildProcess?.emitStderr('data', 'b');
     mockChildProcess?.emitStderr('data', 'c');
-    expect(logger.debug).toHaveBeenCalledWith({
+    expect(logger.error).toHaveBeenCalledWith({
       source: 'process/stderr',
       processId: childProcess.pid,
       message: 'b'

@@ -5,7 +5,7 @@ import { logger } from './logger.js';
 import { Exit } from './Exit.js';
 import type { IRegisteredAsyncTask } from './Exit.js';
 
-export interface SpawnOptionsWithIPC extends SpawnOptions {
+export interface SpawnOptionsExtended extends SpawnOptions {
   onMessage?: (data: unknown) => void;
 }
 
@@ -40,7 +40,7 @@ export class Process implements IProcess {
     process.send(message);
   };
 
-  static readonly spawn: (command: string, arguments_: string[], options?: SpawnOptionsWithIPC) => IProcess = (
+  static readonly spawn: (command: string, arguments_: string[], options?: SpawnOptionsExtended) => IProcess = (
     command,
     arguments_,
     options = {}
@@ -68,10 +68,7 @@ export class Process implements IProcess {
         message: 'spawned',
         data: { command, arguments: arguments_, options: spawnOptions }
       });
-      if (onMessage) {
-        childProcess.on('message', onMessage);
-      }
-      const process = new Process(childProcess, asyncTask);
+      const process = new Process(childProcess, asyncTask, options);
       stopper.process = process;
       return process;
     } catch (error) {
@@ -113,19 +110,22 @@ export class Process implements IProcess {
   private _childProcess: ChildProcess;
   private _asyncTask: IRegisteredAsyncTask;
 
-  constructor(childProcess: ChildProcess, asyncTask: IRegisteredAsyncTask) {
+  constructor(childProcess: ChildProcess, asyncTask: IRegisteredAsyncTask, options: SpawnOptionsExtended) {
     this._childProcess = childProcess;
     this._asyncTask = asyncTask;
     const { promise, resolve } = Promise.withResolvers<void>();
     this._closed = promise;
+    if (options.onMessage) {
+      this._childProcess.on('message', options.onMessage);
+    }
     this._childProcess.stdout?.on('data', (buffer: Buffer) => {
       const message = buffer.toString();
-      logger.debug({ source: 'process/stdout', processId: this.pid, message });
+      logger.info({ source: 'process/stdout', processId: this.pid, message });
       this._stdout.push(message);
     });
     this._childProcess.stderr?.on('data', (buffer: Buffer) => {
       const message = buffer.toString();
-      logger.debug({ source: 'process/stderr', processId: this.pid, message });
+      logger.error({ source: 'process/stderr', processId: this.pid, message });
       this._stderr.push(message);
     });
     this._childProcess
