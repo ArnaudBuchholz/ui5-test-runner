@@ -67,9 +67,13 @@ describe('end', () => {
       expect(Command.parse).toHaveBeenCalledWith(END_CONFIGURATION, 'my-command --flag', { exitCode: '42' });
     });
 
-    it('spawns the process with parsed command and cwd', async () => {
+    it('spawns the process with parsed command and related options', async () => {
       await end(END_CONFIGURATION);
-      expect(Process.spawn).toHaveBeenCalledWith('my-command', ['--flag'], { cwd: CWD, env: MOCK_ENV });
+      expect(Process.spawn).toHaveBeenCalledWith('my-command', ['--flag'], {
+        cwd: CWD,
+        env: MOCK_ENV,
+        forceRender: true
+      });
     });
 
     it('sets Exit.code to 0 on clean exit', async () => {

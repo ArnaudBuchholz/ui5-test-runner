@@ -15,7 +15,8 @@ export const end = async (configuration: Configuration): Promise<void> => {
   });
   const process = Process.spawn(command, arguments_, {
     cwd: configuration.cwd,
-    env: { ...Host.env, ...environment }
+    env: { ...Host.env, ...environment },
+    forceRender: true
   });
   let code: number | undefined;
   if (configuration.endTimeout) {
