@@ -6,7 +6,10 @@ import { Exit, ExitShutdownError } from './Exit.js';
 import { __lastRegisteredExitAsyncTask, __unregisterExitAsyncTask } from './mock.js';
 import { Host } from './Host.js';
 import { logger } from './logger.js';
-const { Process } = await vi.importActual<{ Process: typeof ProcessType }>('./Process.js');
+const { trimEndOfLine, Process } = await vi.importActual<{
+  trimEndOfLine: (string: string) => string;
+  Process: typeof ProcessType;
+}>('./Process.js');
 
 type EventHandler = (...arguments_: unknown[]) => unknown;
 
@@ -71,6 +74,16 @@ vi.spyOn(process, 'kill').mockImplementation(() => true);
 beforeEach(() => {
   vi.clearAllMocks();
   mockChildProcess = createMockChildProcess();
+});
+
+describe('trimEndOfLine', () => {
+  it.each([
+    ['abc', 'abc'],
+    ['abc\n', 'abc'],
+    ['abc\r\n', 'abc']
+  ])(`trims %s into %s`, (string, expected) => {
+    expect(trimEndOfLine(string)).toStrictEqual(expected);
+  });
 });
 
 describe('sendToParent', () => {

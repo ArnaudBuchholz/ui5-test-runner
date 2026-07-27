@@ -7,6 +7,7 @@ import type { IRegisteredAsyncTask } from './Exit.js';
 
 export interface SpawnOptionsExtended extends SpawnOptions {
   onMessage?: (data: unknown) => void;
+  forceRender?: true;
 }
 
 export interface IProcess {
@@ -32,6 +33,16 @@ class ProcessStopper {
   }
 }
 
+export const trimEndOfLine = (string: string): string => {
+  if (string.endsWith('\r\n')) {
+    return string.slice(0, -2);
+  }
+  if (string.endsWith('\n')) {
+    return string.slice(0, -1);
+  }
+  return string;
+};
+
 export class Process implements IProcess {
   static readonly sendToParent: (message: unknown) => void = (message) => {
     if (process.send === undefined) {
@@ -45,7 +56,7 @@ export class Process implements IProcess {
     arguments_,
     options = {}
   ) => {
-    const { onMessage, ...spawnOptions } = options;
+    const { onMessage, forceRender: _forceRender, ...spawnOptions } = options;
     const finalCommand = command === 'node' ? (Host.argv[0] as string) : command;
     let asyncTask: IRegisteredAsyncTask | undefined;
     try {
@@ -118,14 +129,15 @@ export class Process implements IProcess {
     if (options.onMessage) {
       this._childProcess.on('message', options.onMessage);
     }
+    const { forceRender } = options;
     this._childProcess.stdout?.on('data', (buffer: Buffer) => {
       const message = buffer.toString();
-      logger.info({ source: 'process/stdout', processId: this.pid, message });
+      logger.info({ source: 'process/stdout', processId: this.pid, forceRender, message: trimEndOfLine(message) });
       this._stdout.push(message);
     });
     this._childProcess.stderr?.on('data', (buffer: Buffer) => {
       const message = buffer.toString();
-      logger.error({ source: 'process/stderr', processId: this.pid, message });
+      logger.error({ source: 'process/stderr', processId: this.pid, forceRender, message: trimEndOfLine(message) });
       this._stderr.push(message);
     });
     this._childProcess
