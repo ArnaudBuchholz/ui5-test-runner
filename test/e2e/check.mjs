@@ -36,10 +36,13 @@ const {
 const reportDir = positionals[0];
 const report = await loadReport(reportDir);
 
+const { RUNNER_EXIT_CODE } = process.env;
 if (failed) {
-  assert.ok(report.results.summary.failed > 0, 'Job failed');
+  assert.ok(report.results.summary.failed > 0, 'Job did not fail');
+  assert.ok(!RUNNER_EXIT_CODE || RUNNER_EXIT_CODE !== '0', 'Runner did not fail');
 } else {
-  assert.strictEqual(report.results.summary.failed, 0, 'Job succeeded');
+  assert.strictEqual(report.results.summary.failed, 0, 'Job did not succeed');
+  assert.ok(!RUNNER_EXIT_CODE || RUNNER_EXIT_CODE === '0', 'Runner did not succeed');
 }
 
 if (pages) {
