@@ -50,21 +50,27 @@ export abstract class BaseLoggerOutput {
     return formatDuration(timestamp - this._startedAt);
   }
 
+  private _shouldRender({ source, forceRender, level }: InternalLogAttributes): boolean {
+    return forceRender || (!DO_NOT_RENDER_SOURCE.includes(source) && level !== LogLevel.debug);
+  }
+
   protected render(attributes: InternalLogAttributes): string | void {
-    const { level, timestamp, source, message, data, error } = attributes;
-    if (!DO_NOT_RENDER_SOURCE.includes(source) && level !== LogLevel.debug) {
-      return [
-        icons[level],
-        Terminal.MAGENTA,
-        this.formatTimestamp(timestamp),
-        Terminal.WHITE,
-        ' ',
-        message,
-        data ? ` ${JSON.stringify(data)}` : '',
-        error ? ` ${Terminal.RED}${(error as Error).name} ${(error as Error).message}` : '',
-        '\n'
-      ].join('');
+    if (!this._shouldRender(attributes)) {
+      return;
     }
+
+    const { level, timestamp, message, data, error } = attributes;
+    return [
+      icons[level],
+      Terminal.MAGENTA,
+      this.formatTimestamp(timestamp),
+      Terminal.WHITE,
+      ' ',
+      message,
+      data ? ` ${JSON.stringify(data)}` : '',
+      error ? ` ${Terminal.RED}${(error as Error).name} ${(error as Error).message}` : '',
+      '\n'
+    ].join('');
   }
 
   addToReport(rawText: string): void {
