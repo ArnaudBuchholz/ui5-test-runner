@@ -180,7 +180,10 @@ describe('_ALL_LOG_ATTRIBUTES_ARE_HANDLED', () => {
   it('every slot in DATA_LINE_SLOTS is referenced by at least one field', () => {
     const referencedSlots = new Set(Object.values(_ALL_LOG_ATTRIBUTES_ARE_HANDLED));
     for (const slot of DATA_LINE_SLOTS) {
-      expect(referencedSlots, `a slot in DATA_LINE_SLOTS is not referenced in _ALL_LOG_ATTRIBUTES_ARE_HANDLED`).toContain(slot);
+      expect(
+        referencedSlots,
+        `a slot in DATA_LINE_SLOTS is not referenced in _ALL_LOG_ATTRIBUTES_ARE_HANDLED`
+      ).toContain(slot);
     }
   });
 });
