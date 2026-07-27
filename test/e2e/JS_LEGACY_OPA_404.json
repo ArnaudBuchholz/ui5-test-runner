@@ -3,5 +3,5 @@
   "batchLabel": "Legacy JS Sample",
   "cwd": "../sample.js",
   "testsuite": "test/testsuite.qunit-opa-404.html",
-  "end": "node ../e2e/check.mjs {{reportDir}} --failed"
+  "end": "RUNNER_EXIT_CODE={{exitCode}} node ../e2e/check.mjs {{reportDir}} --failed"
 }
