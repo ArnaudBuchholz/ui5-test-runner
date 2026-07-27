@@ -7,8 +7,8 @@ export const loadReport = async (reportDir) => {
   await access(reportPath, constants.R_OK);
   const reportText = await readFile(reportPath, 'utf8');
   const report = JSON.parse(reportText);
-  assert.strictEqual(report.reportFormat, 'CTRF', 'report.json has CTRF format');
-  assert.ok(report.results?.summary, 'report.json has results.summary');
-  assert.ok(Array.isArray(report.results?.tests), 'report.json has results.tests array');
+  assert.strictEqual(report.reportFormat, 'CTRF', 'report.json does not have CTRF format');
+  assert.ok(report.results?.summary, 'report.json is missing results.summary');
+  assert.ok(Array.isArray(report.results?.tests), "report.json's results.tests is not an array");
   return report;
 };
