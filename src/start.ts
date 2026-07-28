@@ -27,16 +27,26 @@ const waitForStart = async (configuration: Configuration, startProcess: IProcess
       clearTimeout(timeoutHandle);
     }
   };
+  let numberOfAttempts = 0;
+  let lastStatus: string;
   while (!isTimedOut && startProcess.code === undefined) {
     try {
+      ++numberOfAttempts;
       const fetchResult = await Http.fetch(url, { method, signal: controller.signal });
       if (fetchResult.ok) {
         return;
       }
+      lastStatus = fetchResult.statusText;
     } catch {
-      // errors are already logged by Http.fetch
+      lastStatus = 'Unreachable';
     }
     if (!isTimedOut && startProcess.code === undefined) {
+      logger.info({
+        source: 'progress',
+        message: `Waiting for start URL to be reachable (${numberOfAttempts}:${lastStatus})`,
+        pageId: undefined,
+        data: { value: 0, max: 0 }
+      });
       await new Promise((resolve) => setTimeout(resolve, POLL_INTERVAL));
     }
   }
@@ -63,7 +73,8 @@ export const start = async (configuration: Configuration): Promise<IProcess | un
     cwd: configuration.cwd,
     windowsHide: true,
     detached: true,
-    env: { ...Host.env, ...environment }
+    env: { ...Host.env, ...environment },
+    forceRender: true
   });
   if (configuration.startWaitUrl) {
     await waitForStart(configuration, startProcess);

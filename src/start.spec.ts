@@ -78,7 +78,8 @@ describe('start', () => {
         cwd: CWD,
         windowsHide: true,
         detached: true,
-        env: MOCK_ENV
+        env: MOCK_ENV,
+        forceRender: true
       });
     });
 
