@@ -22,16 +22,25 @@ export const batch = async (configuration: Configuration): Promise<void> => {
 
   const startProcess = await start(configuration);
   let failed = 0;
-
+  logger.info({ source: 'progress', message: 'Executing batch items', pageId: undefined, data: { value: 0, max: 0 } });
+  let completed = 0;
+  let lastLoggedCompleted: number | undefined;
   try {
     await parallelize((item) => batchTask(configuration, item), items, {
       parallel: configuration.parallel,
       on: (event) => {
-        if (event.type === 'completed' && event.input.statusCode !== 0) {
+        if ((event.type === 'completed' && event.input.statusCode !== 0) || event.type === 'failed') {
           ++failed;
+          ++completed;
         }
-        if (event.type === 'failed') {
-          ++failed;
+        if (lastLoggedCompleted !== completed) {
+          lastLoggedCompleted = completed;
+          logger.info({
+            source: 'progress',
+            message: 'Executing batch items',
+            pageId: undefined,
+            data: { value: completed, max: items.length }
+          });
         }
       }
     });

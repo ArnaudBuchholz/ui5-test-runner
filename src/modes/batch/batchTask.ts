@@ -1,4 +1,4 @@
-import { logger, Path, Process, Host, __sourcesRoot } from '../../platform/index.js';
+import { logger, Path, Process, Host, __sourcesRoot, assert } from '../../platform/index.js';
 import { options } from '../../configuration/options.js';
 import type { Configuration } from '../../configuration/Configuration.js';
 import type { IBatchItem } from './BatchItem.js';
@@ -42,7 +42,8 @@ const buildForwardedParameters = (configuration: Configuration): string[] => {
 
 type ProgressMessage = { type: 'progress'; count: number; total: number };
 type SkipMessage = { type: 'skip' };
-type IPCMessage = ProgressMessage | SkipMessage;
+type DoneMessage = { type: 'done'; passed: number; failed: number; tests: number };
+type IPCMessage = ProgressMessage | SkipMessage | DoneMessage;
 
 let lastPageId = 0;
 
@@ -76,7 +77,15 @@ export const batchTask = async (configuration: Configuration, batchItem: IBatchI
           data: { value: message.count, max: message.total, errors: 0, type: 'unknown' }
         });
       } else if (message?.type === 'skip') {
-        logger.info({ source: 'page', pageId, message: `${label} (skipped)` });
+        logger.warn({ source: 'page', pageId, message: `skipped ${label}` });
+      } else {
+        assert(message?.type === 'done');
+        const logLevel = message.failed === 0 ? 'info' : 'error';
+        logger[logLevel]({
+          source: 'page',
+          pageId,
+          message: `${message.failed === 0 ? 'succeeded' : 'failed'} ${label}`
+        });
       }
     }
   });
