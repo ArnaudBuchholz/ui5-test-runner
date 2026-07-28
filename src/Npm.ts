@@ -192,4 +192,20 @@ export class Npm {
   static async getCliPath() {
     return await memoizedNpmCliPath();
   }
+
+  static async listPackageScriptNames(cwd: string): Promise<string[]> {
+    try {
+      const packageJsonPath = Module.findPackageJSON(`${Url.pathToFileURL(cwd).href}/`);
+      if (!packageJsonPath) {
+        return [];
+      }
+      const content = JSON.parse(await FileSystem.readFile(packageJsonPath, 'utf8')) as {
+        scripts?: Record<string, string>;
+      };
+      return Object.keys(content?.scripts ?? {});
+    } catch (error) {
+      logger.error({ source: 'npm', message: 'Failed to list package script names', error, data: { cwd } });
+      return [];
+    }
+  }
 }

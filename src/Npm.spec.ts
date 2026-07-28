@@ -121,6 +121,42 @@ describe('checkIfLatestVersion', () => {
   });
 });
 
+describe('listPackageScriptNames', () => {
+  const PACKAGE_JSON_PATH = '/home/usr/package.json';
+
+  const mockFindPackageJSON = (path: string | undefined) => {
+    vi.mocked(Url.pathToFileURL).mockReturnValue({ href: 'file:///home/usr' } as URL);
+    vi.mocked(Module.findPackageJSON).mockReturnValue(path);
+  };
+
+  it('returns script names when package.json has scripts', async () => {
+    mockFindPackageJSON(PACKAGE_JSON_PATH);
+    vi.mocked(FileSystem.readFile).mockResolvedValue(JSON.stringify({ scripts: { build: 'tsc', test: 'vitest' } }));
+    await expect(Npm.listPackageScriptNames('/home/usr')).resolves.toStrictEqual(['build', 'test']);
+  });
+
+  it('returns empty array when no package.json is found', async () => {
+    mockFindPackageJSON(undefined);
+    await expect(Npm.listPackageScriptNames('/home/usr')).resolves.toStrictEqual([]);
+  });
+
+  it('returns empty array when package.json has no scripts field', async () => {
+    mockFindPackageJSON(PACKAGE_JSON_PATH);
+    vi.mocked(FileSystem.readFile).mockResolvedValue(JSON.stringify({ name: 'my-package' }));
+    await expect(Npm.listPackageScriptNames('/home/usr')).resolves.toStrictEqual([]);
+  });
+
+  it('returns empty array and logs error when readFile throws', async () => {
+    mockFindPackageJSON(PACKAGE_JSON_PATH);
+    const error = new Error('read error');
+    vi.mocked(FileSystem.readFile).mockRejectedValue(error);
+    await expect(Npm.listPackageScriptNames('/home/usr')).resolves.toStrictEqual([]);
+    expect(logger.error).toHaveBeenCalledWith(
+      expect.objectContaining({ message: 'Failed to list package script names', error })
+    );
+  });
+});
+
 describe('import', () => {
   const makeRequire = (resolvedPath: string) =>
     Object.assign(vi.fn(), {

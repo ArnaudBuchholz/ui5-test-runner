@@ -94,6 +94,44 @@ describe('Command.parse', () => {
     });
   });
 
+  describe('script resolution', () => {
+    const PACKAGE_SCRIPTS = ['build', 'test'];
+
+    it('runs a matching script via npm run', async () => {
+      vi.spyOn(Npm, 'listPackageScriptNames').mockResolvedValue(PACKAGE_SCRIPTS);
+      vi.spyOn(Npm, 'getCliPath').mockResolvedValue('npm_cli.js');
+      await expect(Command.parse(TEST_CONFIGURATION, 'build')).resolves.toStrictEqual([
+        'node',
+        ['npm_cli.js', 'run', 'build'],
+        {}
+      ]);
+    });
+
+    it('passes extra parameters after the script name', async () => {
+      vi.spyOn(Npm, 'listPackageScriptNames').mockResolvedValue(PACKAGE_SCRIPTS);
+      vi.spyOn(Npm, 'getCliPath').mockResolvedValue('npm_cli.js');
+      await expect(Command.parse(TEST_CONFIGURATION, 'test -- --reporter=verbose')).resolves.toStrictEqual([
+        'node',
+        ['npm_cli.js', 'run', 'test', '--', '--reporter=verbose'],
+        {}
+      ]);
+    });
+
+    it('falls back to executable when no package.json is found', async () => {
+      vi.spyOn(Npm, 'listPackageScriptNames').mockResolvedValue([]);
+      await expect(Command.parse(TEST_CONFIGURATION, 'mybinary')).resolves.toStrictEqual(['mybinary', [], {}]);
+    });
+
+    it('falls back to executable when script is not in package.json', async () => {
+      vi.spyOn(Npm, 'listPackageScriptNames').mockResolvedValue(PACKAGE_SCRIPTS);
+      await expect(Command.parse(TEST_CONFIGURATION, 'unknown-script')).resolves.toStrictEqual([
+        'unknown-script',
+        [],
+        {}
+      ]);
+    });
+  });
+
   describe('environment variables', () => {
     it('extracts a single env var before the command', async () => {
       await expect(Command.parse(TEST_CONFIGURATION, 'TEST=yes node test.ts')).resolves.toStrictEqual([

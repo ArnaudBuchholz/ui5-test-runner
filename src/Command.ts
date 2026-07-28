@@ -45,7 +45,12 @@ export const Command = {
     if (commandSpecifier === 'npm') {
       parameters.unshift(await Npm.getCliPath());
     } else if (commandSpecifier !== 'node') {
-      executable = commandSpecifier;
+      const scripts = await Npm.listPackageScriptNames(configuration.cwd);
+      if (scripts.includes(commandSpecifier)) {
+        parameters.unshift(await Npm.getCliPath(), 'run', commandSpecifier);
+      } else {
+        executable = commandSpecifier;
+      }
     }
     return [
       executable,

@@ -24,7 +24,7 @@ The command string is split on whitespace (single or double quotes group tokens 
 [KEY=value ...] <executable> [args ...]
 ```
 
-The executable defaults to `node` if not specified. Use `npm` to run npm scripts — it is automatically replaced with the path to the npm CLI.
+The executable defaults to `node` if not specified. Use `npm` to run npm scripts — it is automatically replaced with the path to the npm CLI. If the executable matches a script name defined in the `package.json` closest to `cwd`, it is automatically run as `npm run <script>`.
 
 ## Environment variables
 
