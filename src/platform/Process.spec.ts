@@ -6,8 +6,8 @@ import { Exit, ExitShutdownError } from './Exit.js';
 import { __lastRegisteredExitAsyncTask, __unregisterExitAsyncTask } from './mock.js';
 import { Host } from './Host.js';
 import { logger } from './logger.js';
-const { trimEndOfLine, Process } = await vi.importActual<{
-  trimEndOfLine: (string: string) => string;
+const { splitLines, Process } = await vi.importActual<{
+  splitLines: (string: string) => string[];
   Process: typeof ProcessType;
 }>('./Process.js');
 
@@ -76,13 +76,16 @@ beforeEach(() => {
   mockChildProcess = createMockChildProcess();
 });
 
-describe('trimEndOfLine', () => {
+describe('splitLines', () => {
   it.each([
-    ['abc', 'abc'],
-    ['abc\n', 'abc'],
-    ['abc\r\n', 'abc']
-  ])(`trims %s into %s`, (string, expected) => {
-    expect(trimEndOfLine(string)).toStrictEqual(expected);
+    ['abc', ['abc']],
+    ['abc\n', ['abc']],
+    ['abc\r\n', ['abc']],
+    ['abc\ndef\n', ['abc', 'def']],
+    ['abc\r\ndef\r\n', ['abc', 'def']],
+    ['abc\ndef', ['abc', 'def']]
+  ])(`splits %s into %j`, (string, expected) => {
+    expect(splitLines(string)).toStrictEqual(expected);
   });
 });
 

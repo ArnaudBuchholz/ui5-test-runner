@@ -33,15 +33,8 @@ class ProcessStopper {
   }
 }
 
-export const trimEndOfLine = (string: string): string => {
-  if (string.endsWith('\r\n')) {
-    return string.slice(0, -2);
-  }
-  if (string.endsWith('\n')) {
-    return string.slice(0, -1);
-  }
-  return string;
-};
+export const splitLines = (string: string): string[] =>
+  string.split(/\r?\n/).filter((line, index, array) => index < array.length - 1 || line.length > 0);
 
 export class Process implements IProcess {
   static readonly sendToParent: (message: unknown) => void = (message) => {
@@ -132,12 +125,16 @@ export class Process implements IProcess {
     const { forceRender } = options;
     this._childProcess.stdout?.on('data', (buffer: Buffer) => {
       const message = buffer.toString();
-      logger.info({ source: 'process/stdout', processId: this.pid, forceRender, message: trimEndOfLine(message) });
+      for (const line of splitLines(message)) {
+        logger.info({ source: 'process/stdout', processId: this.pid, forceRender, message: line });
+      }
       this._stdout.push(message);
     });
     this._childProcess.stderr?.on('data', (buffer: Buffer) => {
       const message = buffer.toString();
-      logger.error({ source: 'process/stderr', processId: this.pid, forceRender, message: trimEndOfLine(message) });
+      for (const line of splitLines(message)) {
+        logger.error({ source: 'process/stderr', processId: this.pid, forceRender, message: line });
+      }
       this._stderr.push(message);
     });
     this._childProcess
