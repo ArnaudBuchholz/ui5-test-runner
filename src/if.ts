@@ -4,6 +4,9 @@ import { Host } from './platform/index.js';
 import { version } from './platform/version.js';
 import { compareVersions } from './utils/shared/version.js';
 
+import { options } from './configuration/options.js';
+export const implemented = (option: string): boolean => !!Object.values(options).find(({ name }) => name === option);
+
 export const evaluateIf = async ({ if: condition }: Configuration): Promise<boolean> => {
   if (!condition) {
     return true;
@@ -19,6 +22,7 @@ export const evaluateIf = async ({ if: condition }: Configuration): Promise<bool
     UI5TR_VERSION: runnerVersion,
     NODE_VERSIOM: Host.version,
     NODE_MAJOR_VERSION: Number(nodeMajorVersion),
-    compareVersions
+    compareVersions,
+    implemented
   });
 };
