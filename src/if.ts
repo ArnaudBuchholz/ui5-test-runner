@@ -5,7 +5,7 @@ import { version } from './platform/version.js';
 import { compareVersions } from './utils/shared/version.js';
 
 import { options } from './configuration/options.js';
-export const implemented = (option: string): boolean => !!Object.values(options).find(({ name }) => name === option);
+export const isImplemented = (option: string): boolean => Object.values(options).some(({ name }) => name === option);
 
 export const evaluateIf = async ({ if: condition }: Configuration): Promise<boolean> => {
   if (!condition) {
@@ -23,6 +23,6 @@ export const evaluateIf = async ({ if: condition }: Configuration): Promise<bool
     NODE_VERSIOM: Host.version,
     NODE_MAJOR_VERSION: Number(nodeMajorVersion),
     compareVersions,
-    implemented
+    implemented: isImplemented
   });
 };
