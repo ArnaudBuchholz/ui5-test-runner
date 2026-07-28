@@ -3,5 +3,5 @@
   "batchLabel": "Legacy JS QUnit Suite",
   "cwd": "../sample.js",
   "testsuite": "test/testsuite.suite.qunit.html",
-   "end": "node ../e2e/check.mjs {{reportDir}} --pages 2"
+   "end": "RUNNER_EXIT_CODE={{exitCode}} NODE_OPTIONS= node ../e2e/check.mjs {{reportDir}} --pages 2"
 }

@@ -1,4 +1,5 @@
 {
+  "if": "implemented('coverage')",
   "batchId": "JS_LEGACY_REMOTE_COVERAGE",
   "batchLabel": "Legacy JS Sample accessed using --url with coverage",
   "cwd": "../sample.js",
@@ -9,5 +10,5 @@
   "coverageTempDir": "📂report/.nyc_output",
   "coverageReportDir": "📂report/coverage",
   "coverageCheckStatements": 65,
-  "end": "../e2e/check.js --qunit-pages 2 --coverage --report-uncovered"
+  "end": "RUNNER_EXIT_CODE={{exitCode}} NODE_OPTIONS= node ../e2e/check.mjs {{reportDir}} --pages 2 --coverage --report-uncovered"
 }

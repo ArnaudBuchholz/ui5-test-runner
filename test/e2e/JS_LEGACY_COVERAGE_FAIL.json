@@ -1,4 +1,5 @@
 {
+  "if": "implemented('coverage')",
   "batchId": "JS_LEGACY_COVERAGE_FAIL",
   "batchLabel": "Legacy JS Sample with coverage threshold failure",
   "cwd": "../sample.js",
@@ -8,5 +9,5 @@
   "coverageTempDir": "📂report/.nyc_output",
   "coverageReportDir": "📂report/coverage",
   "coverageCheckStatements": 100,
-  "end": "../e2e/check.js --qunit-pages 2 --coverage --report-uncovered --failed"
+  "end": "RUNNER_EXIT_CODE={{exitCode}} NODE_OPTIONS= node ../e2e/check.mjs {{reportDir}} --pages 2 --coverage --report-uncovered --failed"
 }

@@ -1,4 +1,5 @@
 {
+  "if": "implemented('coverage') && implemented('libs')",
   "batchId": "JS_LEGACY_COVERAGE_LIB",
   "batchLabel": "Legacy JS Sample lib with coverage",
   "cwd": "../sample.lib.js",
@@ -12,5 +13,5 @@
   "coverageTempDir": "📂report/.nyc_output",
   "coverageReportDir": "📂report/coverage",
   "coverageCheckStatements": 60,
-  "end": "../e2e/check.js --coverage"
+  "end": "RUNNER_EXIT_CODE={{exitCode}} NODE_OPTIONS= node ../e2e/check.mjs {{reportDir}} --coverage"
 }

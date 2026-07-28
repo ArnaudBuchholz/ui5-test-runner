@@ -1,8 +1,8 @@
 {
+  "if": "false && 'Not yet implemented",
   "batchId": "WEBDRIVERIO_FIREFOX",
   "batchLabel": "Webdriver.io browser",
-  "capabilities": null,
-  "debugKeepReport": null,
+  "cwd": "../capabilities",
   "browser": "$/webdriverio.js",
   "--": ["--browser", "firefox"]
 }

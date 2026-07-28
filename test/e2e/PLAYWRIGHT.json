@@ -1,8 +1,6 @@
 {
   "batchId": "PLAYWRIGHT",
   "batchLabel": "Playwright browser",
-  "capabilities": null,
-  "debugKeepReport": null,
-  "browser": "$/playwright.js",
-  "browserArgs": ["--unsecure"]
+  "cwd": "../capabilities",
+  "browser": "playwright"
 }

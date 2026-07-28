@@ -1,8 +1,8 @@
 {
+  "if": "false && 'Not yet implemented",
   "batchId": "SELENIUM",
   "batchLabel": "Selenium-webdriver browser (chrome)",
-  "capabilities": null,
-  "debugKeepReport": null,
+  "cwd": "../capabilities",
   "browser": "$/selenium-webdriver.js",
   "browserArgs": ["--browser", "chrome", "--unsecure"]
 }

@@ -1,7 +1,7 @@
 {
+  "if": "implemented('coverage')",
   "batchId": "JS_REMOTE_COVERAGE_MAPPED",
   "batchLabel": "Remote JS sample with coverage (with local mapping)",
-  "if": "NODE_MAJOR_VERSION >= 20",
   "cwd": "../sample.js",
   "url": ["http://localhost:8080/test/testsuite.qunit.html"],
   "noScreenshot": null,
@@ -10,5 +10,5 @@
   "coverageTempDir": "📂report/.nyc_output",
   "coverageReportDir": "📂report/coverage",
   "coverageCheckStatements": 65,
-  "end": "../e2e/check.js --qunit-pages 2 --coverage --report-uncovered"
+  "end": "RUNNER_EXIT_CODE={{exitCode}} NODE_OPTIONS= node ../e2e/check.mjs {{reportDir}} --pages 2 --coverage --report-uncovered"
 }

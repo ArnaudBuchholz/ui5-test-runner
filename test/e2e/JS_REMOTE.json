@@ -1,7 +1,6 @@
 {
   "batchId": "JS_REMOTE",
   "batchLabel": "Remote JS sample",
-  "if": "NODE_MAJOR_VERSION >= 20",
   "url": ["http://localhost:8080/test/testsuite.qunit.html"],
-  "end": "node check.js --qunit-pages 2"
+  "end": "RUNNER_EXIT_CODE={{exitCode}} NODE_OPTIONS= node ../e2e/check.mjs {{reportDir}} --pages 2"
 }
