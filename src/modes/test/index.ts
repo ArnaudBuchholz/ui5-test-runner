@@ -1,4 +1,4 @@
-import { logger, logEnvironnement, Exit, FileSystem, Path, Http } from '../../platform/index.js';
+import { logger, logEnvironnement, Exit, Http } from '../../platform/index.js';
 import type { Configuration } from '../../configuration/Configuration.js';
 import { defaults } from '../../configuration/options.js';
 import { parallelize } from '../../utils/shared/parallelize.js';
@@ -7,7 +7,7 @@ import { setupBrowser, getBrowser } from './browser.js';
 import { pageTask } from './pageTask.js';
 import { initBrowserConfig } from './browserConfig.js';
 import { initReportBuilder, getReportBuilder, setReportBrowserInfo } from './report.js';
-import { generateHtmlReport } from '../../reports/html.js';
+import { saveReport } from '../../reports/saveReport.js';
 import { Folder } from '../../utils/node/Folder.js';
 import { server } from './server.js';
 import { formatDuration } from '../../utils/shared/string.js';
@@ -98,12 +98,7 @@ export const test = async (configuration: Configuration) => {
       }
     });
     getReportBuilder().finalize();
-    FileSystem.writeFileSync(
-      Path.join(configuration.reportDir, 'report.json'),
-      JSON.stringify(getReportBuilder().report, undefined, 2),
-      'utf8'
-    );
-    await generateHtmlReport(configuration, getReportBuilder().report);
+    await saveReport(configuration, getReportBuilder().report);
     const { passed, failed, tests, duration } = getReportBuilder().report.results.summary;
     const durationString = duration ? ` (${formatDuration(duration)})` : '';
     logger.info({

@@ -77,6 +77,7 @@ export const batchTask = async (configuration: Configuration, batchItem: IBatchI
           data: { value: message.count, max: message.total, errors: 0, type: 'unknown' }
         });
       } else if (message?.type === 'skip') {
+        batchItem.skipped = true;
         logger.warn({ source: 'page', pageId, message: `skipped ${label}` });
       } else {
         assert(message?.type === 'done');

@@ -4,6 +4,7 @@ import type { IProcess } from '../../platform/index.js';
 import type { Configuration } from '../../configuration/Configuration.js';
 import type { IBatchItem } from './BatchItem.js';
 import { batchTask } from './batchTask.js';
+import type { SpawnOptionsExtended } from '../../platform/Process.js';
 
 vi.mock('../../platform/mock.js');
 
@@ -34,6 +35,11 @@ const makeProcess = (code = 0): IProcess => ({
   code,
   kill: vi.fn().mockResolvedValue(undefined)
 });
+
+const getOnMessage = (): ((data: unknown) => void) => {
+  const options = vi.mocked(Process.spawn).mock.calls[0]![2];
+  return (options as SpawnOptionsExtended).onMessage!;
+};
 
 beforeEach(() => {
   vi.clearAllMocks();
@@ -91,5 +97,13 @@ describe('task()', () => {
     await batchTask(makeConfig(), item);
     expect(item.start).toBeInstanceOf(Date);
     expect(item.end).toBeInstanceOf(Date);
+  });
+
+  it('sets skipped to true on the batch item when the skip IPC message is received', () => {
+    vi.mocked(Process.spawn).mockReturnValue(makeProcess());
+    const item = makeItem();
+    void batchTask(makeConfig(), item);
+    getOnMessage()({ type: 'skip' });
+    expect(item.skipped).toBe(true);
   });
 });

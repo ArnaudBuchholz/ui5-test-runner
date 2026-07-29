@@ -4,8 +4,10 @@ import { parallelize } from '../../utils/shared/parallelize.js';
 import { start } from '../../start.js';
 import { resolve } from './resolve.js';
 import { batchTask } from './batchTask.js';
+import { buildBatchReport } from './report.js';
 import { defaults } from '../../configuration/options.js';
 import { Folder } from '../../utils/node/Folder.js';
+import { saveReport } from '../../reports/saveReport.js';
 
 export const batch = async (configuration: Configuration): Promise<void> => {
   await Folder.create(configuration.reportDir);
@@ -47,6 +49,8 @@ export const batch = async (configuration: Configuration): Promise<void> => {
   } finally {
     await startProcess?.kill();
   }
+
+  await saveReport(configuration, await buildBatchReport(items, configuration));
 
   if (failed > 0) {
     Exit.code = -1;
