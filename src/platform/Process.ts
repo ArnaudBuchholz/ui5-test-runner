@@ -36,6 +36,12 @@ class ProcessStopper {
 export const splitLines = (string: string): string[] =>
   string.split(/\r?\n/).filter((line, index, array) => index < array.length - 1 || line.length > 0);
 
+function sanitizeSpawnOptions(options: SpawnOptions): object {
+  if (!options.env) return options;
+  const { env, ...rest } = options;
+  return { ...rest, env: Object.keys(env) };
+}
+
 export class Process implements IProcess {
   static readonly sendToParent: (message: unknown) => void = (message) => {
     if (process.send === undefined) {
@@ -70,7 +76,7 @@ export class Process implements IProcess {
         source: 'process',
         processId: childProcess.pid,
         message: 'spawned',
-        data: { command, arguments: arguments_, options: spawnOptions }
+        data: { command, arguments: arguments_, options: sanitizeSpawnOptions(spawnOptions) }
       });
       const process = new Process(childProcess, asyncTask, options);
       stopper.process = process;
@@ -82,7 +88,7 @@ export class Process implements IProcess {
         data: {
           command,
           arguments: arguments_,
-          options: spawnOptions
+          options: sanitizeSpawnOptions(spawnOptions)
         },
         error
       });
