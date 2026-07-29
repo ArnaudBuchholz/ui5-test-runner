@@ -9,7 +9,6 @@ import {
   MAX_TIMESTAMP_DIGITS,
   MAX_DWORD_DIGITS,
   DATA_LINE_SLOTS,
-  nullSlot,
   _ALL_LOG_ATTRIBUTES_ARE_HANDLED
 } from './compress.js';
 
@@ -22,6 +21,16 @@ const examples = [
     isMainThread: true,
     source: 'job',
     message: 'Simple trace'
+  },
+  {
+    timestamp: Date.now(),
+    level: LogLevel.info,
+    // Because of the missing message the compressed 'header' might be found multiple times, make it unique
+    processId: 321,
+    threadId: 654,
+    isMainThread: false,
+    source: 'job',
+    message: '' // displayed as (no message)
   },
   {
     timestamp: Date.now(),
@@ -126,7 +135,7 @@ it('supports DWORD encoding', () => {
 });
 
 for (const attributes of examples) {
-  describe(attributes.message, () => {
+  describe(attributes.message || '(no message)', () => {
     let compressed: string;
 
     it('reduces message size', () => {
@@ -171,7 +180,7 @@ it('detects unexpected situation', () => {
 describe('_ALL_LOG_ATTRIBUTES_ARE_HANDLED', () => {
   it('every non-null slot is present in DATA_LINE_SLOTS', () => {
     for (const [field, slot] of Object.entries(_ALL_LOG_ATTRIBUTES_ARE_HANDLED)) {
-      if (slot !== nullSlot) {
+      if (slot !== null) {
         expect(DATA_LINE_SLOTS, `slot for "${field}" is not in DATA_LINE_SLOTS`).toContain(slot);
       }
     }

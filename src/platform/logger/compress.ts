@@ -161,12 +161,6 @@ interface DataSlot {
   uncompress(context: Context, compressed: string): Partial<InternalLogAttributes>;
 }
 
-export const nullSlot: DataSlot = {
-  width: 0,
-  compress: () => ({ compressed: '' }),
-  uncompress: () => ({})
-};
-
 const levelSlot: DataSlot = {
   width: 1,
   compress(_, { level }) {
@@ -230,9 +224,14 @@ const messageAndExtraSlot: DataSlot = {
         JSON.stringify([data ?? 0, error ?? 0]).replaceAll(/"(\w+)":/g, (_, name) => `${name}${JSON_VALUE_SEP}`)
       );
     }
-    return { compressed: parts.join('') };
+    return { compressed: parts.join('') }; // Might return empty
   },
   uncompress(_, compressed) {
+    if (!compressed) {
+      return {
+        message: ''
+      };
+    }
     const startOfJson = compressed.indexOf(JSON_VALUE_SEP);
     if (startOfJson === -1) {
       return { message: compressed.replaceAll('\r', '\n') };
@@ -259,14 +258,14 @@ export const DATA_LINE_SLOTS: DataSlot[] = [
   pageIdSlot,
   messageAndExtraSlot
 ];
-const FIXED_SLOTS = DATA_LINE_SLOTS.filter((dataSlot) => dataSlot !== nullSlot && dataSlot.width > 0);
+const FIXED_SLOTS = DATA_LINE_SLOTS.filter((dataSlot) => dataSlot.width > 0);
 const FIXED_SLOT_WIDTHS = FIXED_SLOTS.map((dataSlot) => dataSlot.width);
-const VARIABLE_SLOTS = DATA_LINE_SLOTS.filter((dataSlot) => dataSlot !== nullSlot && dataSlot.width === 0);
+const VARIABLE_SLOTS = DATA_LINE_SLOTS.filter((dataSlot) => dataSlot.width === 0);
 assert.ok(VARIABLE_SLOTS.length === 1, 'DATA_LINE_SLOTS must contain exactly one variable-width slot');
 const VARIABLE_SLOT = VARIABLE_SLOTS[0]!;
 
 /** Each entry documents how the field is compressed; the Record type ensures no field is missed when InternalLogAttributes changes */
-export const _ALL_LOG_ATTRIBUTES_ARE_HANDLED: Record<keyof Required<InternalLogAttributes>, DataSlot> = {
+export const _ALL_LOG_ATTRIBUTES_ARE_HANDLED: Record<keyof Required<InternalLogAttributes>, DataSlot | null> = {
   level: levelSlot,
   timestamp: timestampSlot,
   processId: processSlot,
@@ -274,7 +273,7 @@ export const _ALL_LOG_ATTRIBUTES_ARE_HANDLED: Record<keyof Required<InternalLogA
   isMainThread: processSlot,
   source: sourceSlot,
   pageId: pageIdSlot,
-  forceRender: nullSlot,
+  forceRender: null,
   message: messageAndExtraSlot,
   data: messageAndExtraSlot,
   error: messageAndExtraSlot
