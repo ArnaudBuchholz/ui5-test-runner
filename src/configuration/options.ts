@@ -135,6 +135,11 @@ export const options = [
     description: 'read and dump log file using jsonl format'
   },
   {
+    name: 'logDump',
+    type: 'boolean',
+    description: 'dump all traces to stdout instead of opening a browser (requires --log)'
+  },
+  {
     name: 'noNpmInstall',
     type: 'boolean',
     batchForwarded: true,

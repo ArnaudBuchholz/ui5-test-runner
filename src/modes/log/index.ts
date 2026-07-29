@@ -8,11 +8,34 @@ import { BrowserFactory } from '../../browsers/factory.js';
 import type { InternalLogAttributes } from '../../platform/logger/types.js';
 import { getInitialLogMetrics } from './LogMetrics.js';
 
+const dumpLogToStdout = async (logFileName: string) => {
+  process.stdout.write('[\n');
+  let isFirst = true;
+  for await (const { type, ...attributes } of LogReader.read(logFileName)) {
+    if (type !== 'log') {
+      continue;
+    }
+    if (!isFirst) {
+      process.stdout.write(',\n');
+    }
+    process.stdout.write('  ' + JSON.stringify(attributes));
+    isFirst = false;
+  }
+  process.stdout.write(isFirst ? ']\n' : '\n]\n');
+};
+
 export const log = async (configuration: Configuration) => {
   const logFileName = configuration.log!; // Validated by configuration
+
+  if (configuration.logDump) {
+    await dumpLogToStdout(logFileName);
+    return;
+  }
+
   let isStopped = false;
   const metrics = getInitialLogMetrics();
   const storage = LogStorage.create();
+
   const { promise, resolve } = Promise.withResolvers<void>();
   const abortController = new AbortController();
   const abortSignal = abortController.signal;
