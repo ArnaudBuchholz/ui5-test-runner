@@ -2,6 +2,7 @@ import type { CommonTestReport, CommonTestStatus } from '../../types/CommonTestR
 import type { Configuration } from '../../configuration/Configuration.js';
 import type { IBatchItem } from './BatchItem.js';
 import { initReportBuilder } from '../../reports/initReportBuilder.js';
+import { anonymize } from '../../utils/node/anonymize.js';
 
 const itemStatus = (item: IBatchItem): CommonTestStatus => {
   if (item.skipped) {
@@ -33,7 +34,7 @@ export const buildBatchReport = async (
       duration: itemStop - itemStart,
       start: itemStart,
       stop: itemStop,
-      filePath: item.path
+      filePath: anonymize(item).path
     };
   });
 
