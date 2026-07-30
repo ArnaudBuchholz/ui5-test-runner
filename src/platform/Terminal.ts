@@ -3,6 +3,8 @@ import { stripVTControlCharacters } from 'node:util';
 const ASCII_ESCAPE = '\u{1B}';
 const CSI = `${ASCII_ESCAPE}[`;
 
+let isRawModeSet = false;
+
 export class Terminal {
   static readonly isTTY = process.stdout.isTTY;
   static onResize(callback: (width: number) => void) {
@@ -10,9 +12,12 @@ export class Terminal {
   }
   static setRawMode(callback: ((buffer: Buffer) => void) | false) {
     if (callback === false) {
-      process.stdin.setRawMode(false);
-      process.stdin.pause();
+      if (isRawModeSet) {
+        process.stdin.setRawMode(false);
+        process.stdin.pause();
+      }
     } else {
+      isRawModeSet = true;
       process.stdin.setRawMode(true);
       process.stdin.on('data', callback);
     }
