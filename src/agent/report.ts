@@ -18,7 +18,9 @@ export class AgentTestResultsBuilder {
     if (version !== undefined) {
       this._results.tool.version = version;
     }
-    this._results.summary.start = Date.now();
+    if (!this._results.summary.start) {
+      this._results.summary.start = Date.now();
+    }
   }
 
   test(test: CTRFTest): void {

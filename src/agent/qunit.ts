@@ -31,6 +31,17 @@ export const qunit = () => {
   let errors = 0;
   const logs: { [key in string]: QUnitLogDetails[] } = {};
 
+  let doneTimeout: ReturnType<typeof setTimeout> | undefined;
+
+  const cancelDone = () => {
+    if (doneTimeout === undefined) {
+      return;
+    }
+
+    clearTimeout(doneTimeout);
+    doneTimeout = undefined;
+  };
+
   updateState({
     type: 'QUnit',
     isOpa: false,
@@ -47,6 +58,7 @@ export const qunit = () => {
       total: details.totalTests,
       errors
     });
+    cancelDone();
   });
 
   QUnit.log((details: QUnitLogDetails) => {
@@ -86,10 +98,20 @@ export const qunit = () => {
     delete logs[getTestId(details.testId)];
   });
 
-  QUnit.done(() => {
+  const done = () => {
     report.end();
     updateState({
       done: true
     });
+  };
+
+  const DONE_BUT_NO_TESTS_TIMEOUT = 5000;
+
+  QUnit.done(() => {
+    if (report.results.summary.tests === 0) {
+      doneTimeout = setTimeout(done, DONE_BUT_NO_TESTS_TIMEOUT);
+    } else {
+      done();
+    }
   });
 };
