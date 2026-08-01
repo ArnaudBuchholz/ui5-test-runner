@@ -50,7 +50,11 @@ jobs:
       with:
         name: dist
         path: ./dist
-    - run: npx --prefix ./sr --no semantic-release
+    - run: |
+          mv package.json package0.json
+          jq 'del(.scripts,.devDependencies)' package0.json > package.json
+          rm package0.json
+          npx --prefix ./sr --no semantic-release
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         npm_config_package_lock: false
