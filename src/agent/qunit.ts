@@ -11,6 +11,10 @@ const NO_TEST_ID = 'unknown';
 /* v8 ignore next -- @preserve */
 const getTestId = (testId?: string): string => testId ?? NO_TEST_ID;
 
+type QUnitModuleStartDetails = Parameters<Parameters<typeof QUnit.moduleStart>[0]>[0] & {
+  tests?: { name: string; testId: string; skip: boolean }[]
+};
+
 type QUnitLogDetails = Parameters<Parameters<typeof QUnit.log>[0]>[0] & {
   testId?: string;
   result?: boolean;
@@ -38,7 +42,7 @@ export const qunit = () => {
     if (doneTimeout === undefined) {
       return;
     }
-
+    log('New tests found, cancelling done call');
     clearTimeout(doneTimeout);
     doneTimeout = undefined;
   };
@@ -60,7 +64,20 @@ export const qunit = () => {
       total: details.totalTests,
       errors
     });
+  });
+
+  let modulesAggregatedTotal = 0;
+
+  QUnit.moduleStart((details: QUnitModuleStartDetails) => {
+    log(`QUnit.moduleStart({name: "${details.name}"})`);
     cancelDone();
+    modulesAggregatedTotal += details.tests?.length ?? 0;
+    if (state.type === 'QUnit' && modulesAggregatedTotal > state.total) {
+      updateState({
+        isOpa: !!window?.sap?.ui?.test?.Opa5,
+        total: modulesAggregatedTotal
+      });
+    }
   });
 
   QUnit.log((details: QUnitLogDetails) => {
@@ -118,6 +135,7 @@ export const qunit = () => {
   QUnit.done((details) => {
     log(`QUnit.done({passed: ${details.passed}, failed: ${details.failed}, total: ${details.total}}")`);
     if (report.results.summary.tests === 0) {
+      log.warn('QUnit.done triggered but no tests were executed, waiting for asynchronous tests loading');
       doneTimeout = setTimeout(done, DONE_BUT_NO_TESTS_TIMEOUT);
     } else {
       done();
