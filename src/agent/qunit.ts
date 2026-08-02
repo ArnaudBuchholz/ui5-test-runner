@@ -2,6 +2,7 @@ import type { AgentState } from '../types/AgentState.js';
 import { state } from './state.js';
 import { report } from './report.js';
 import type { CommonTestStatus, CTRFTest } from '../types/CommonTestReportFormat.js';
+import { log } from './log.js';
 
 type QUnitState = Extract<AgentState, { type: 'QUnit' }>;
 
@@ -51,6 +52,7 @@ export const qunit = () => {
   });
 
   QUnit.begin((details) => {
+    log(`QUnit.begin({totalTests: ${details.totalTests}, modules: [...${details.modules.length}...]})`);
     report.begin(`QUnit@${window.QUnit!.version}`);
     updateState({
       isOpa: !!window?.sap?.ui?.test?.Opa5,
@@ -62,12 +64,18 @@ export const qunit = () => {
   });
 
   QUnit.log((details: QUnitLogDetails) => {
+    log(
+      `QUnit.log({testId: ${details.testId}, result: ${details.result}, name: "${details.name}", module: "${details.module}}")`
+    );
     const testId = getTestId(details.testId);
     logs[testId] ??= [];
     logs[testId].push(details);
   });
 
   QUnit.testDone((details: QUnitTestDoneDetails) => {
+    log(
+      `QUnit.log({testId: ${details.testId}, passed: ${details.passed}, failed: ${details.failed}, name: "${details.name}", module: "${details.module}}")`
+    );
     let status: CommonTestStatus = 'passed';
     const test: CTRFTest = {
       id: details.testId,
@@ -107,7 +115,8 @@ export const qunit = () => {
 
   const DONE_BUT_NO_TESTS_TIMEOUT = 5000;
 
-  QUnit.done(() => {
+  QUnit.done((details) => {
+    log(`QUnit.done({passed: ${details.passed}, failed: ${details.failed}, total: ${details.total}}")`);
     if (report.results.summary.tests === 0) {
       doneTimeout = setTimeout(done, DONE_BUT_NO_TESTS_TIMEOUT);
     } else {
