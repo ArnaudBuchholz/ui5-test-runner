@@ -11,8 +11,16 @@ const NO_TEST_ID = 'unknown';
 /* v8 ignore next -- @preserve */
 const getTestId = (testId?: string): string => testId ?? NO_TEST_ID;
 
+type QUnitConfigWithModules = QUnit['config'] & {
+  modules: {
+    name: string;
+    moduleId: string;
+    tests: { name: string; testId: string; skip: boolean }[];
+  }[];
+};
+
 type QUnitModuleStartDetails = Parameters<Parameters<typeof QUnit.moduleStart>[0]>[0] & {
-  tests?: { name: string; testId: string; skip: boolean }[]
+  tests?: { name: string; testId: string; skip: boolean }[];
 };
 
 type QUnitLogDetails = Parameters<Parameters<typeof QUnit.log>[0]>[0] & {
@@ -66,16 +74,20 @@ export const qunit = () => {
     });
   });
 
-  let modulesAggregatedTotal = 0;
-
   QUnit.moduleStart((details: QUnitModuleStartDetails) => {
     log(`QUnit.moduleStart({name: "${details.name}"})`);
     cancelDone();
-    modulesAggregatedTotal += details.tests?.length ?? 0;
-    if (state.type === 'QUnit' && modulesAggregatedTotal > state.total) {
+    const { modules } = QUnit.config as QUnitConfigWithModules;
+    let total = 0;
+    for (const module of modules) {
+      for (const _test of module.tests) {
+        total += 1;
+      }
+    }
+    if (state.type === 'QUnit' && total > state.total) {
       updateState({
         isOpa: !!window?.sap?.ui?.test?.Opa5,
-        total: modulesAggregatedTotal
+        total
       });
     }
   });
