@@ -3,6 +3,7 @@ import { state } from './state.js';
 import { report } from './report.js';
 import type { CommonTestStatus, CTRFTest } from '../types/CommonTestReportFormat.js';
 import { log } from './log.js';
+import { getConfig } from './config.js';
 
 type QUnitState = Extract<AgentState, { type: 'QUnit' }>;
 
@@ -40,6 +41,7 @@ const updateState = (updates: Partial<QUnitState>) => {
 };
 
 export const qunit = () => {
+  const { agentNoTestsTimeout } = getConfig();
   let executed = 0;
   let errors = 0;
   const logs: { [key in string]: QUnitLogDetails[] } = {};
@@ -142,13 +144,11 @@ export const qunit = () => {
     });
   };
 
-  const DONE_BUT_NO_TESTS_TIMEOUT = 5000;
-
   QUnit.done((details) => {
     log(`QUnit.done({passed: ${details.passed}, failed: ${details.failed}, total: ${details.total}}")`);
     if (report.results.summary.tests === 0) {
       log.warn('QUnit.done triggered but no tests were executed, waiting for asynchronous tests loading');
-      doneTimeout = setTimeout(done, DONE_BUT_NO_TESTS_TIMEOUT);
+      doneTimeout = setTimeout(done, agentNoTestsTimeout);
     } else {
       done();
     }

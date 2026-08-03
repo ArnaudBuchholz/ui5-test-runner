@@ -3,6 +3,18 @@ import { qunit } from './qunit.js';
 import { report } from './report.js';
 import { state } from './state.js';
 
+vi.mock(import('./config.js'), () => ({ getConfig: vi.fn() }));
+import { getConfig } from './config.js';
+
+const DEFAULT_CONFIG = {
+  agentDetectionTimeout: 5000,
+  agentDetectionInterval: 100,
+  agentDetectionMaxInterval: 1000,
+  agentNoTestsTimeout: 5000,
+  browser: '',
+  parallel: 1
+};
+
 const id = expect.any(String) as string;
 const trace = expect.any(String) as string;
 
@@ -18,6 +30,7 @@ beforeAll(() => {
 });
 
 beforeEach(async () => {
+  vi.mocked(getConfig).mockReturnValue(DEFAULT_CONFIG);
   report.reset();
   Object.assign(state, { done: false, type: undefined });
   delete window.QUnit;

@@ -20,6 +20,34 @@ export const options = [
     default: 'test/testsuite.qunit.html'
   },
   {
+    name: 'agentDetectionInterval',
+    type: 'timeout',
+    browserExposed: true,
+    description: 'initial polling interval when detecting a test framework after page load',
+    default: 100
+  },
+  {
+    name: 'agentDetectionMaxInterval',
+    type: 'timeout',
+    browserExposed: true,
+    description: 'maximum polling interval when detecting a test framework after page load',
+    default: 1000
+  },
+  {
+    name: 'agentDetectionTimeout',
+    type: 'timeout',
+    browserExposed: true,
+    description: 'maximum time to wait for a test framework to be detected after page load',
+    default: 5000
+  },
+  {
+    name: 'agentNoTestsTimeout',
+    type: 'timeout',
+    browserExposed: true,
+    description: 'time to wait after QUnit.done fires with no tests before declaring the page done',
+    default: 5000
+  },
+  {
     name: 'alternateNpmPath',
     type: 'fs-entry',
     batchForwarded: true,
@@ -256,6 +284,10 @@ export const options = [
 ] as const;
 
 export const defaults = {
+  agentDetectionInterval: 100,
+  agentDetectionMaxInterval: 1000,
+  agentDetectionTimeout: 5000,
+  agentNoTestsTimeout: 5000,
   browser: 'puppeteer',
   ci: !process.stdout.isTTY,
   config: 'ui5-test-runner.json',

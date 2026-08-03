@@ -144,7 +144,8 @@ export const defaults = {`);
     if (option.browserExposed) {
       const type = {
         browser: 'string',
-        integer: 'number'
+        integer: 'number',
+        timeout: 'number'
       }[option.type];
       if (!type) {
         throw new Error(`Missing TypeScript type mapping for ${option.type}`);

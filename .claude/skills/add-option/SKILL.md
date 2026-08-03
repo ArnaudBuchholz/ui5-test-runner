@@ -16,7 +16,7 @@ Options in ui5-test-runner are **never added by editing `src/configuration/optio
 
 1. **Create the doc file** — `docs/options/<name>.md` with the correct frontmatter
 2. **Confirm** before running the generator
-3. **Run `make options`** — regenerates `src/configuration/options.ts`
+3. **Run `make options`** — regenerates `src/configuration/options.ts` **and** `src/agent/Configuration.ts`
 
 ## Step 0 — Verify the type exists
 
@@ -64,7 +64,8 @@ Ask the user for the following, one block at a time if not already provided via 
 | `multiple` | no | `yes` if the option can be repeated |
 | `typeModifiers` | no | for `fs-entry` only: `file`, `safe-default`, `overwrite` (one or more) |
 | `dependsOn` | no | wikilink to another option this one is relative to, e.g. `"[[cwd]]"` |
-| `tags` | no | subset of: `legacy`, `remote`, `capabilities`, `batch` |
+| `browserExposed` | no | `yes` if the option value must be passed to the agent (browser context) — also adds it to `src/agent/Configuration.ts` |
+| `tags` | no | subset of: `legacy`, `remote`, `capabilities`, `batch`, `agent` |
 | `see` | no | wikilinks to related options |
 | description body | no | one or more sentences explaining behaviour; leave empty if the summary is self-explanatory |
 
@@ -105,9 +106,9 @@ Show the draft file content to the user and ask for confirmation before writing.
 Once confirmed:
 
 1. Write `docs/options/<name>.md`
-2. Ask: *"Ready to run `make options` to regenerate `src/configuration/options.ts`?"*
+2. Ask: *"Ready to run `make options` to regenerate `src/configuration/options.ts` and `src/agent/Configuration.ts`?"*
 3. If confirmed: run `make options`
-4. Remind the user to review the diff in `src/configuration/options.ts` before committing
+4. Remind the user to review the diff in `src/configuration/options.ts` and `src/agent/Configuration.ts` before committing
 
 ## Examples
 

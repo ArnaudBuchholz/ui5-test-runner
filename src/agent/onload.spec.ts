@@ -1,9 +1,22 @@
 import { it, expect, beforeEach, vi } from 'vitest';
-import { DETECTION_TIMEOUT } from './onload.js';
 import { state } from './state.js';
 import type { JsUnitTestSuite } from './suite.js';
 import { installQUnit } from './qunit.test.js';
 import { setTimeout } from 'node:timers/promises';
+
+vi.mock(import('./config.js'), () => ({
+  getConfig: vi.fn().mockReturnValue({
+    agentDetectionTimeout: 5000,
+    agentDetectionInterval: 100,
+    agentDetectionMaxInterval: 1000,
+    agentNoTestsTimeout: 5000,
+    browser: '',
+    parallel: 1
+  })
+}));
+import './onload.js';
+
+const DETECTION_TIMEOUT = 5000;
 
 // Mute console outputs
 vi.spyOn(console, 'debug').mockImplementation(() => {});
