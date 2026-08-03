@@ -33,18 +33,19 @@ const configurationFile = async (items: IBatchItem[], configPath: string): Promi
   }
 };
 
-const scan = async (items: IBatchItem[], cwd: string, re: RegExp): Promise<void> => {
+const scan = async (items: IBatchItem[], cwd: string, re: RegExp, root: string = cwd): Promise<void> => {
   const names = await FileSystem.readdir(cwd);
   for (const name of names) {
     const path = Path.join(cwd, name);
+    const relativePath = path.slice(root.length + 1).replaceAll('\\', '/');
     const pathStat = await FileSystem.stat(path);
     if (pathStat.isDirectory()) {
-      if (re.test(path) || re.test(path.replaceAll('\\', '/'))) {
+      if (re.test(relativePath)) {
         folder(items, path);
         continue;
       }
-      await scan(items, path, re);
-    } else if (pathStat.isFile() && (re.test(path) || re.test(path.replaceAll('\\', '/')))) {
+      await scan(items, path, re, root);
+    } else if (pathStat.isFile() && re.test(relativePath)) {
       await configurationFile(items, path);
     }
   }

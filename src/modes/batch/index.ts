@@ -16,11 +16,13 @@ export const batch = async (configuration: Configuration): Promise<void> => {
 
   await logEnvironnement();
 
+  logger.info({ source: 'progress', message: 'Resolving batch items', pageId: undefined, data: { value: 0, max: 0 } });
   const items = await resolve(configuration);
   if (items.length === 0) {
     logger.warn({ source: 'job', message: 'No batch items found' });
     return;
   }
+  logger.info({ source: 'job', message: `Found ${items.length} batch items` });
 
   const startProcess = await start(configuration);
   let failed = 0;

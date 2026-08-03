@@ -23,6 +23,8 @@ The `--batch` parameter accepts multiple values and supports three kind of param
 
   * a JSON file matches the regular expression : it adds `--batch <filename>`
 
+  The regex is tested against the **path relative to `--cwd`**, with path separators normalized to `/`. A `^` anchor can be prepended, so the pattern must match from the start of the relative path. For example, `^test/e2e/[\w_]*\.json` matches `test/e2e/app.json` but not `.worktrees/branch/test/e2e/app.json`.
+
 Once all the values are processed, `ui5-test-runner` starts the execution of all identified batch items in parallel (using the value of `--parallel`).
 
 ## Execution
