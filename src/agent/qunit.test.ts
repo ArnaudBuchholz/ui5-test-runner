@@ -1,6 +1,7 @@
 export const installQUnit = () => {
   const hooks: {
     begin?: Parameters<typeof QUnit.begin>[0];
+    moduleStart?: Parameters<typeof QUnit.moduleStart>[0];
     log?: Parameters<typeof QUnit.log>[0];
     testDone?: Parameters<typeof QUnit.testDone>[0];
     done?: Parameters<typeof QUnit.done>[0];
@@ -9,6 +10,9 @@ export const installQUnit = () => {
   window.QUnit = {
     begin(callback) {
       hooks.begin = callback;
+    },
+    moduleStart(callback) {
+      hooks.moduleStart = callback;
     },
     log(callback) {
       hooks.log = callback;
