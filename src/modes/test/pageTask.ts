@@ -122,7 +122,6 @@ export const pageTask = async function (this: IParallelizeContext, url: string, 
       throw new Error(`Unexpected status code ${response.status}`);
     }
   } catch (error) {
-    logger.error({ source: 'page', message: 'An error occurred while fetching the URL', error, pageId, data: {} });
     logger.info({
       source: 'progress',
       message: url,
@@ -145,7 +144,7 @@ export const pageTask = async function (this: IParallelizeContext, url: string, 
       duration: 0
     });
     getReportBuilder().merge(url, result);
-    return;
+    throw new Error('An error occurred while fetching the URL', { cause: error });
   }
 
   const { promise: taskStopped, resolve: setTaskAsStopped } = Promise.withResolvers<void>();
