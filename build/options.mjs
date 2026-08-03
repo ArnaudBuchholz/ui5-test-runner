@@ -1,4 +1,4 @@
-import { readdir, readFile } from 'node:fs/promises';
+import { readdir, readFile, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 
 const OPTIONS_FOLDER = 'docs/options';
@@ -97,9 +97,9 @@ for (const name of Object.keys(options)) {
 }
 
 if (!process.exitCode) {
-  console.log(`export const options = [`);
+  const configOptions = [`export const options = [`];
   for (const name of sortedOptionNames) {
-    console.log(` {`);
+    configOptions.push(` {`);
     const option = options[name];
     for (const [key, value] of Object.entries(option)) {
       if (value === undefined) {
@@ -107,32 +107,52 @@ if (!process.exitCode) {
         continue;
       }
       if (key === 'default') {
-        console.log(`    ${key}: ${value},`);
+        configOptions.push(`    ${key}: ${value},`);
       } else if (key === 'multiple') {
         if (value) {
-          console.log(`    multiple: true,`);
+          configOptions.push(`    multiple: true,`);
         }
       } else if (key === 'browserExposed') {
         if (value) {
-          console.log(`    browserExposed: true,`);
+          configOptions.push(`    browserExposed: true,`);
         }
       } else if (key === 'batchForwarded') {
         if (value) {
-          console.log(`    batchForwarded: true,`);
+          configOptions.push(`    batchForwarded: true,`);
         }
       } else if (key === 'typeModifiers') {
-        console.log(`    typeModifiers: new Set(${JSON.stringify(value).replaceAll('"', "'")} as const),`);
+        configOptions.push(`    typeModifiers: new Set(${JSON.stringify(value).replaceAll('"', "'")} as const),`);
       } else {
-        console.log(`    ${key}: '${value}',`);
+        configOptions.push(`    ${key}: '${value}',`);
       }
     }
-    console.log(` },`);
+    configOptions.push(` },`);
   }
-  console.log(`] as const;
+  configOptions.push(`] as const;
 
 export const defaults = {`);
   for (const [key, value] of Object.entries(defaults)) {
-    console.log(`    ${key}: ${value},`);
+    configOptions.push(`    ${key}: ${value},`);
   }
-  console.log(`} as const;`);
+  configOptions.push(`} as const;`);
+
+  await writeFile('./src/configuration/options.ts', configOptions.join('\n'));
+
+  const agentConfig = ['export type Configuration = {'];
+  for (const name of sortedOptionNames) {
+    const option = options[name];
+    if (option.browserExposed) {
+      const type = {
+        browser: 'string',
+        integer: 'number'
+      }[option.type];
+      if (!type) {
+        throw new Error(`Missing TypeScript type mapping for ${option.type}`);
+      }
+      agentConfig.push(`  ${name}: ${type};`);
+    }
+  }
+  agentConfig.push('};');
+
+  await writeFile('./src/agent/Configuration.ts', agentConfig.join('\n'));
 }

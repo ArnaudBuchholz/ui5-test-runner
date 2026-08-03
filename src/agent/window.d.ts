@@ -1,6 +1,7 @@
 import type QUnit from 'qunit';
 import type { UI5_TEST_RUNNER } from './contants.js';
 import type { State } from './state.js';
+import type { Configuration } from './Configuration.js';
 import type { CommonTestReport } from '../types/CommonTestReportFormat.js';
 
 declare global {
@@ -23,7 +24,7 @@ declare global {
     QUnit?: QUnit;
     /** Managed by the agent */
     [UI5_TEST_RUNNER]: {
-      config?: { browser: string; parallel: number };
+      config: Configuration;
       state: State;
       results: CommonTestReport['results'];
     };

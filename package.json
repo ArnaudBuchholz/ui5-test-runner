@@ -38,7 +38,7 @@
     "lint": "dpdm src/cli.ts --circular --tree false --warning false --skip-dynamic-imports circular && npm run eslint -- --fix --cache --cache-strategy content && npm run prettier && tsc --build --noEmit",    
     "eslint": "eslint \"**/*.mjs\" \"./src/**/*.ts\" --concurrency=auto",
     "prettier": "prettier --write --log-level warn \"**/*.mjs\" \"./src/**/*.ts\"",
-    "build:options": "node build/options.mjs > ./src/configuration/options.ts && eslint --fix ./src/configuration/options.ts && prettier --write ./src/configuration/options.ts",
+    "build:options": "node build/options.mjs && eslint --fix ./src/configuration/options.ts && prettier --write ./src/configuration/options.ts",
     "build:agent": "vite build",
     "build:ui:report": "vite build -c src/ui/report/vite.config.mjs",
     "start:ui:report": "vite -c src/ui/report/vite.config.mjs",
