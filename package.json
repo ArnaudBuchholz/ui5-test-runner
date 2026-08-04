@@ -99,7 +99,7 @@
     "@ui5/webcomponents-fiori": "^2.25.0",
     "@vitest/coverage-v8": "^4.1.10",
     "babel-plugin-istanbul": "^8.0.0",
-    "baseline-browser-mapping": "^2.11.8",
+    "baseline-browser-mapping": "^2.11.9",
     "dotenv": "^17.4.2",
     "dpdm": "^4.3.0",
     "eslint": "^10.8.0",
