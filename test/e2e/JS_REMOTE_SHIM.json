@@ -2,5 +2,5 @@
   "batchId": "JS_REMOTE_SHIM",
   "batchLabel": "Remote JS SHIM sample",
   "url": ["http://localhost:8080/test/integration/opaTests.qunit-shim.html"],
-  "end": "RUNNER_EXIT_CODE={{exitCode}} NODE_OPTIONS= node ../e2e/check.mjs {{reportDir}} --pages 1"
+  "end": "RUNNER_EXIT_CODE={{exitCode}} NODE_OPTIONS= node test/e2e/check.mjs {{reportDir}} --pages 1"
 }

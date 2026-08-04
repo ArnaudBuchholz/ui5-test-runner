@@ -1,5 +1,5 @@
 {
-  "if": "false && 'Not yet implemented",
+  "if": "false && 'Not yet implemented'",
   "batchId": "SELENIUM",
   "batchLabel": "Selenium-webdriver browser (chrome)",
   "cwd": "../capabilities",

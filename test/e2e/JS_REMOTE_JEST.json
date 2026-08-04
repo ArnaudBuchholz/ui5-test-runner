@@ -4,5 +4,5 @@
   "batchLabel": "Remote JS Jest",
   "jest": true,
   "url": ["http://localhost:8080/test/unit/unitTests.jest.html"],
-  "end": "RUNNER_EXIT_CODE={{exitCode}} NODE_OPTIONS= node ../e2e/check.mjs {{reportDir}} --pages 1"
+  "end": "RUNNER_EXIT_CODE={{exitCode}} NODE_OPTIONS= node test/e2e/check.mjs {{reportDir}} --pages 1"
 }

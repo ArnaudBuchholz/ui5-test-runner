@@ -2,5 +2,5 @@
   "batchId": "JS_REMOTE_UI5_SAMPLE",
   "batchLabel": "Remote JS UI5 sample",
   "url": ["https://ui5.sap.com/test-resources/sap/m/demokit/orderbrowser/webapp/test/testsuite.qunit.html"],
-  "end": "RUNNER_EXIT_CODE={{exitCode}} NODE_OPTIONS= node ../e2e/check.mjs {{reportDir}} --pages 4"
+  "end": "RUNNER_EXIT_CODE={{exitCode}} NODE_OPTIONS= node test/e2e/check.mjs {{reportDir}} --pages 4"
 }

@@ -1,5 +1,5 @@
 {
-  "if": "false && 'Not yet implemented",
+  "if": "false && 'Not yet implemented'",
   "batchId": "WEBDRIVERIO",
   "batchLabel": "Webdriver.io browser",
   "cwd": "../capabilities",

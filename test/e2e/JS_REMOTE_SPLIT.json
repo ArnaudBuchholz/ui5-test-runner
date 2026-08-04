@@ -4,5 +4,5 @@
   "batchLabel": "Remote JS sample with OPA split",
   "url": ["http://localhost:8080/test/testsuite.qunit.html"],
   "splitOpa": null,
-  "end": "RUNNER_EXIT_CODE={{exitCode}} NODE_OPTIONS= node ../e2e/check.mjs {{reportDir}} --pages 3"
+  "end": "RUNNER_EXIT_CODE={{exitCode}} NODE_OPTIONS= node test/e2e/check.mjs {{reportDir}} --pages 3"
 }

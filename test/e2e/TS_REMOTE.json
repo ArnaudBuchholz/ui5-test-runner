@@ -2,5 +2,5 @@
   "batchId": "TS_REMOTE",
   "batchLabel": "Remote TS sample",
   "url": ["http://localhost:8082/test/testsuite.qunit.html"],
-  "end": "RUNNER_EXIT_CODE={{exitCode}} NODE_OPTIONS= node ../e2e/check.mjs {{reportDir}} --pages 2"
+  "end": "RUNNER_EXIT_CODE={{exitCode}} NODE_OPTIONS= node test/e2e/check.mjs {{reportDir}} --pages 2"
 }

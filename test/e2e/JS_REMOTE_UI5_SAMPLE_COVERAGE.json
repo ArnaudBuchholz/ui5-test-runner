@@ -11,5 +11,5 @@
   "coverageProxyInclude": "/webapp/",
   "coverageProxyExclude": "/resources/|/webapp/test/",
   "disableUi5": null,
-  "end": "RUNNER_EXIT_CODE={{exitCode}} NODE_OPTIONS= node ../e2e/check.mjs {{reportDir}} --coverage"
+  "end": "RUNNER_EXIT_CODE={{exitCode}} NODE_OPTIONS= node test/e2e/check.mjs {{reportDir}} --coverage"
 }
