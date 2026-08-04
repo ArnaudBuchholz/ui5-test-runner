@@ -11,6 +11,7 @@ import { createEmptyTestResults } from '../../types/CommonTestReportFormat.js';
 import type { CommonTestReport } from '../../types/CommonTestReportFormat.js';
 import type { IWindow } from '../../browsers/IBrowser.js';
 import { getBrowserConfigScript } from './browserConfig.js';
+import type { IError } from '../../types/IError.js';
 
 let lastPageId = 0;
 
@@ -25,6 +26,7 @@ type PageContext = {
   errors: number;
   lastTotal: number;
   isSuite: boolean;
+  lastUncaughtErrorsCount: number;
 };
 
 export const agentStateMessage = (agentState: AgentState): string => {
@@ -58,6 +60,37 @@ const reportQunitProgress = (context: PageContext, agentState: Extract<AgentStat
       });
     }
   }
+};
+
+const shouldUncaughtErrorsFail = (context: PageContext, errors: IError[]): boolean => {
+  const { lastUncaughtErrorsCount, pageId } = context;
+  let errorsCount = 0;
+  if (lastUncaughtErrorsCount < errors.length) {
+    let index = lastUncaughtErrorsCount;
+    context.lastUncaughtErrorsCount = errors.length;
+    for (; index < errors.length; ++index) {
+      const error = errors[index]!;
+      let logMethod: 'warn' | 'error' = 'error';
+      let message = 'Uncaught error';
+      if (
+        error.message === 'Called start() outside of a test context too many times' &&
+        error.stack?.includes('/sap/ui/thirdparty/qunit-2.js')
+      ) {
+        logMethod = 'warn';
+        message = 'Uncaught error (expected)';
+      }
+      logger[logMethod]({
+        source: 'page',
+        message,
+        pageId,
+        error
+      });
+      if (logMethod === 'error') {
+        ++errorsCount;
+      }
+    }
+  }
+  return errorsCount !== 0;
 };
 
 const queryAgentState = async (context: PageContext): Promise<boolean> => {
@@ -97,10 +130,8 @@ const queryAgentState = async (context: PageContext): Promise<boolean> => {
   }
   if (agentState.type === 'QUnit') {
     reportQunitProgress(context, agentState);
-    // TODO: document the problem in the test report
-    // TODO: add an option to ignore the uncaught errors
     if (agentState.uncaughtErrors?.length) {
-      return true;
+      return shouldUncaughtErrorsFail(context, agentState.uncaughtErrors);
     }
   }
   return false;
@@ -181,7 +212,8 @@ export const pageTask = async function (this: IParallelizeContext, url: string, 
       lastExecuted: 0,
       errors: 0,
       lastTotal: 0,
-      isSuite: false
+      isSuite: false,
+      lastUncaughtErrorsCount: 0
     };
     while (!this.stopRequested) {
       try {
