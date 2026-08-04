@@ -74,7 +74,7 @@ const shouldUncaughtErrorsFail = (context: PageContext, errors: IError[]): boole
       let message = 'Uncaught error';
       if (
         error.message === 'Called start() outside of a test context too many times' &&
-        error.stack?.includes('/sap/ui/thirdparty/qunit-2.js')
+        (error.stack?.includes('/sap/ui/thirdparty/qunit-2.js') || error.stack?.includes('/sap/ui/thirdparty/qunit.js'))
       ) {
         logMethod = 'warn';
         message = 'Uncaught error (expected)';
