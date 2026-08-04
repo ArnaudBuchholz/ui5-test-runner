@@ -25,6 +25,7 @@ export const factory = async (configuration: Configuration): Promise<IBrowser> =
   const launchAndInstallIfNeeded = async (settings: BrowserSettings): Promise<BrowserCapabilities> => {
     logger.debug({ source: 'playwright', message: 'launching browser' });
     try {
+      // TODO define args for chrome
       browser = await chromium.launch({
         headless: !settings.visible,
         handleSIGINT: false

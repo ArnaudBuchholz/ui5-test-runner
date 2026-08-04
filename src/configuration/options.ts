@@ -79,6 +79,20 @@ export const options = [
     default: 'puppeteer'
   },
   {
+    name: 'browserViewportHeight',
+    short: 'H',
+    type: 'integer',
+    description: 'height of the browser viewport in pixels',
+    default: 1080
+  },
+  {
+    name: 'browserViewportWidth',
+    short: 'W',
+    type: 'integer',
+    description: 'width of the browser viewport in pixels',
+    default: 1920
+  },
+  {
     name: 'browserVisible',
     short: 'V',
     type: 'boolean',
@@ -296,6 +310,8 @@ export const defaults = {
   agentDetectionTimeout: 5000,
   agentNoTestsTimeout: 5000,
   browser: 'puppeteer',
+  browserViewportHeight: 1080,
+  browserViewportWidth: 1920,
   browserVisible: false,
   ci: !process.stdout.isTTY,
   config: 'ui5-test-runner.json',

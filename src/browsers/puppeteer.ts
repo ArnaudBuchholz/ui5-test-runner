@@ -23,12 +23,17 @@ export const factory = async (configuration: Configuration): Promise<IBrowser> =
   let openedPages = 0;
 
   const launchAndInstallIfNeeded = async (settings: BrowserSettings): Promise<BrowserCapabilities> => {
+    // TODO maximize should not be set when viewport is set
+    const arguments_: string[] = ['--start-maximized'];
+    if (settings.viewport) {
+      arguments_.push(`--window-size=${settings.viewport.width},${settings.viewport.height}`);
+    }
     const launchOptions: Parameters<typeof launch>[0] = {
       headless: !settings.visible,
       defaultViewport: null,
       handleSIGINT: false,
       signal,
-      args: ['--start-maximized']
+      args: arguments_
     };
     logger.debug({ source: 'puppeteer', message: 'launching browser' });
     try {
