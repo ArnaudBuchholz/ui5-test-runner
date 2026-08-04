@@ -7,6 +7,13 @@ import { getConfig } from './config.js';
 
 window.addEventListener('load', () => {
   log('DOM load event fired');
+  log(`URL: ${document.URL}`);
+  log(`viewport: ${window.innerWidth}x${window.innerHeight}`);
+  log(`viewport/outer: ${window.outerWidth}x${window.outerHeight}`);
+  log(`viewport/inner: ${window.innerWidth}x${window.innerHeight}`);
+  log(`screen: ${screen.width}x${screen.height}, devicePixelRatio: ${window.devicePixelRatio}`);
+  log(`position: ${window.screenX},${window.screenY}`);
+  log(`userAgent: ${navigator.userAgent}`);
   const { agentDetectionTimeout, agentDetectionInterval, agentDetectionMaxInterval } = getConfig();
   const loaded = Date.now();
   state.loaded = loaded;
