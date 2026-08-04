@@ -11,9 +11,9 @@ export const setupBrowser = async (configuration: Configuration): Promise<Browse
   const browserName = configuration.browser as Browser;
   assert(browserName === 'puppeteer' || browserName === 'playwright');
   _browser = await BrowserFactory.build(configuration, browserName);
-  const { debugKeepBrowserOpen } = configuration;
+  const { debugKeepBrowserOpen, browserVisible } = configuration;
   const settings: BrowserSettings = {
-    visible: debugKeepBrowserOpen // Or there is no value to keep it
+    visible: browserVisible || debugKeepBrowserOpen // Or there is no value to keep it
   };
   try {
     _capabilities = await _browser.setup(settings);

@@ -79,6 +79,13 @@ export const options = [
     default: 'puppeteer'
   },
   {
+    name: 'browserVisible',
+    short: 'V',
+    type: 'boolean',
+    description: 'control if the browser should be visible during the tests',
+    default: false
+  },
+  {
     name: 'ci',
     type: 'boolean',
     batchForwarded: true,
@@ -289,6 +296,7 @@ export const defaults = {
   agentDetectionTimeout: 5000,
   agentNoTestsTimeout: 5000,
   browser: 'puppeteer',
+  browserVisible: false,
   ci: !process.stdout.isTTY,
   config: 'ui5-test-runner.json',
   cwd: process.cwd(),
