@@ -35,7 +35,7 @@
     "test:batch0": "rm -rf e2e && IGNORE_UNKNOWN_OPTION=true npm run cli -- --batch test/e2e/JS_LEGACY.json test/e2e/JS_LEGACY_REMOTE.json --report-dir e2e",
     "test:batch1": "rm -rf e2e && IGNORE_UNKNOWN_OPTION=true npm run cli -- --batch test/e2e/JS_LEGACY_COVERAGE.json test/e2e/JS_LEGACY.json test/e2e/JS_LEGACY_REMOTE.json --report-dir e2e",
     "test:batch": "rm -rf e2e && IGNORE_UNKNOWN_OPTION=true npm run cli -- --batch \"test/e2e/JS_LEGACY.*\\.json$\" --report-dir e2e",
-    "lint": "dpdm src/cli.ts --circular --tree false --warning false --skip-dynamic-imports circular && npm run eslint -- --fix --cache --cache-strategy content && npm run prettier && tsc --build --noEmit",    
+    "lint": "dpdm src/cli.ts --circular --tree false --warning false --skip-dynamic-imports circular && npm run eslint -- --fix --cache --cache-strategy content && npm run prettier && tsc --build --noEmit",
     "eslint": "eslint \"**/*.mjs\" \"./src/**/*.ts\" --concurrency=auto",
     "prettier": "prettier --write --log-level warn \"**/*.mjs\" \"./src/**/*.ts\"",
     "build:options": "node build/options.mjs && eslint --fix ./src/configuration/options.ts && prettier --write ./src/configuration/options.ts ./src/agent/Configuration.ts",
@@ -99,7 +99,7 @@
     "@ui5/webcomponents-fiori": "^2.25.0",
     "@vitest/coverage-v8": "^4.1.10",
     "babel-plugin-istanbul": "^8.0.0",
-    "baseline-browser-mapping": "^2.11.9",
+    "baseline-browser-mapping": "^2.11.10",
     "dotenv": "^17.4.2",
     "dpdm": "^4.3.0",
     "eslint": "^10.8.0",
@@ -127,6 +127,7 @@
     "ui5-tooling-transpile": "^3.12.0",
     "vite": "^8.2.0",
     "vite-plugin-css-injected-by-js": "^5.0.2",
-    "vitest": "^4.1.10"
+    "vitest": "^4.1.10",
+    "yaml": "^2.9.0"
   }
 }
