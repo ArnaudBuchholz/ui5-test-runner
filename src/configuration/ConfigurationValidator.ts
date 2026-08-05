@@ -3,6 +3,7 @@ import { options, defaults } from './options.js';
 import { indexedOptions } from './indexedOptions.js';
 import { validators } from './validators/index.js';
 import { OptionValidationError } from './OptionValidationError.js';
+import { validations } from './validations.js';
 import { Modes } from '../modes/Modes.js';
 import { FileSystem, Host, Path } from '../platform/index.js';
 
@@ -164,8 +165,11 @@ export const ConfigurationValidator = {
           });
         }
       }
+      merged.mode = this.computeMode(merged);
+      for (const validate of validations) {
+        validate(merged);
+      }
     }
-    merged.mode = this.computeMode(merged);
     return merged;
   }
 };

@@ -9,5 +9,5 @@ see:
 validation:
   - message: "requires log"
     conditions:
-      - "isSet(log)"
+      - "log !== undefined"
 ---

@@ -111,7 +111,7 @@ const testCases: {
     label: 'fails if a string option does not receive a value',
     args: ['--cwd', '--url', 'a'],
     expected: {
-      error: 'Missing value',
+      error: 'Missing value for cwd',
       option: 'cwd'
     }
   },
@@ -119,7 +119,7 @@ const testCases: {
     label: 'fails if a non boolean option does not receive a value',
     args: ['--page-timeout', '--url', 'a'],
     expected: {
-      error: 'Missing value',
+      error: 'Missing value for pageTimeout',
       option: 'pageTimeout'
     }
   },
@@ -129,11 +129,11 @@ const testCases: {
     expected: {
       errors: [
         {
-          message: 'Missing value',
+          message: 'Missing value for pageTimeout',
           option: 'pageTimeout'
         },
         {
-          message: 'Missing value',
+          message: 'Missing value for cwd',
           option: 'cwd'
         }
       ]

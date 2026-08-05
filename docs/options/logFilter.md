@@ -11,6 +11,6 @@ tags:
 validation:
   - message: "requires log and logDump"
     conditions:
-      - "isSet(log)"
-      - "isSet(logDump)"
+      - "log !== undefined"
+      - "logDump !== undefined"
 ---

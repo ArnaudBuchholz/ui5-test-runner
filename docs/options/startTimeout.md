@@ -13,6 +13,6 @@ see:
 validation:
   - message: "requires start and startWaitUrl"
     conditions:
-      - "isSet(start)"
-      - "isSet(startWaitUrl)"
+      - "start !== undefined"
+      - "startWaitUrl !== undefined"
 ---

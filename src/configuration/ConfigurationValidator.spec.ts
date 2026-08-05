@@ -103,6 +103,42 @@ describe('validation', () => {
   it.skip('may return multiple errors');
 });
 
+describe('cross-option validation', () => {
+  it('does not throw when a validated option is not set', async () => {
+    await expect(ConfigurationValidator.validate({})).resolves.not.toThrow();
+  });
+
+  it('does not throw when conditions are met', async () => {
+    await expect(
+      ConfigurationValidator.validate({ startWaitUrl: 'http://localhost:8080', start: 'npm start' })
+    ).resolves.not.toThrow();
+  });
+
+  it('throws when option is set but condition is not met', async () => {
+    let capturedError: unknown;
+    try {
+      await ConfigurationValidator.validate({ startWaitUrl: 'http://localhost:8080' });
+    } catch (error) {
+      capturedError = error;
+    }
+    expect.assert(capturedError instanceof OptionValidationError);
+    expect(capturedError.option).toStrictEqual(indexedOptions.startWaitUrl);
+    expect(capturedError.message).toStrictEqual('invalid use of startWaitUrl: requires start');
+  });
+
+  it('throws for the correct option when multiple conditions must hold', async () => {
+    let capturedError: unknown;
+    try {
+      await ConfigurationValidator.validate({ startWaitMethod: 'GET', start: 'npm start' });
+    } catch (error) {
+      capturedError = error;
+    }
+    expect.assert(capturedError instanceof OptionValidationError);
+    expect(capturedError.option).toStrictEqual(indexedOptions.startWaitMethod);
+    expect(capturedError.message).toStrictEqual('invalid use of startWaitMethod: requires start and startWaitUrl');
+  });
+});
+
 describe('mode', () => {
   const config = (options: Partial<Configuration>) => Object.assign(Object.create(defaults), options) as Configuration;
 

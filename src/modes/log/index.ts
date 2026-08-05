@@ -11,7 +11,8 @@ import { getInitialLogMetrics } from './LogMetrics.js';
 const dumpLogToStdout = async (configuration: Configuration) => {
   const logFileName = configuration.log!; // Validated by configuration
   const logFilter = configuration.logFilter;
-  const filterExpression = logFilter && logFilter.trim() !== '' ? LogStorage.buildFilterExpression(logFilter) : undefined;
+  const filterExpression =
+    logFilter && logFilter.trim() !== '' ? LogStorage.buildFilterExpression(logFilter) : undefined;
 
   process.stdout.write('[\n');
   let isFirst = true;
@@ -33,13 +34,12 @@ const dumpLogToStdout = async (configuration: Configuration) => {
 };
 
 export const log = async (configuration: Configuration) => {
-  const logFileName = configuration.log!; // Validated by configuration
-
   if (configuration.logDump) {
     await dumpLogToStdout(configuration);
     return;
   }
 
+  const logFileName = configuration.log!; // Validated by configuration
   let isStopped = false;
   const metrics = getInitialLogMetrics();
   const storage = LogStorage.create();

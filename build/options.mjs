@@ -1,11 +1,13 @@
 import { readdir, readFile, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
+import { parse as parseYaml } from 'yaml';
 
 const OPTIONS_FOLDER = 'docs/options';
 
 const types = [];
 const options = {};
 const defaults = {};
+const validations = [];
 const names = new Set();
 const shorts = new Set();
 
@@ -35,38 +37,42 @@ for (const fileName of optionsFileNames) {
   }
 
   const fileContent = await readFile(join(OPTIONS_FOLDER, fileName), 'utf8');
-  if (!fileContent.includes('"#type": "[[option]]"')) {
+  const [, rawFrontmatter] = fileContent.match(/^---\n([\s\S]*?\n)---/) ?? [];
+  if (!rawFrontmatter) {
+    continue;
+  }
+  const metadata = parseYaml(rawFrontmatter);
+  if (metadata['#type'] !== '[[option]]') {
     continue;
   }
   const name = fileName.split('.md', 1)[0];
   const errors = [];
-  const [, properties] = fileContent.match(/---(:?(-|[^-])*)---/) ?? [];
-  const [, short] = properties.match(/short: (.*)/) ?? [];
+  const short = metadata.short ? String(metadata.short) : undefined;
   if (checkIfDuplicate(name, short)) {
     errors.push(`duplicate name / short detected: ${name} ${short ?? ''}`);
   }
   // eslint-disable-next-line sonarjs/super-linear-regex -- optional prefix is bounded by [^\]] so catastrophic backtracking cannot occur
-  const [, type] = properties.match(/type: "\[\[(?:[^\\\]]+\|)?([^\]]*)\]\]"/);
-  if (!types.includes(type)) {
-    errors.push(`Unknown type ${type}`);
+  const [, type] = (metadata.type ?? '').match(/\[\[(?:[^\\\]]+\|)?([^\]]*)\]\]/) ?? [];
+  if (!type || !types.includes(type)) {
+    errors.push(`Unknown type ${metadata.type}`);
   }
-  const [, escapedDefaultValue, rawDefaultValue] = properties.match(/default: (?:"([^"]*)"|(.*))/) ?? [];
-  const defaultValue = rawDefaultValue ?? escapedDefaultValue;
-  const [, summary] = properties.match(/summary: (.*)/) ?? [];
-  const isMultiple = !!/multiple: yes/.test(properties);
-  const isBrowserExposed = !!/browserExposed: yes/.test(properties);
-  const isBatchForwarded = !!/batchForwarded: yes/.test(properties);
+  const defaultValue = metadata.default === undefined ? undefined : String(metadata.default);
+  const summary = metadata.summary;
+  const isMultiple = metadata.multiple === 'yes' || metadata.multiple === true;
+  const isBrowserExposed = metadata.browserExposed === 'yes' || metadata.browserExposed === true;
+  const isBatchForwarded = metadata.batchForwarded === 'yes' || metadata.batchForwarded === true;
   if (defaultValue) {
     defaults[name] = defaultValue;
   }
   let typeModifiers;
-  const [, typeModifiersList] = properties.match(/typeModifiers:((?:\n {2}- "[^"]*")*)/) ?? [];
-  if (typeModifiersList) {
-    typeModifiers = [];
-    // eslint-disable-next-line sonarjs/super-linear-regex -- optional prefix is bounded by [^\]] so catastrophic backtracking cannot occur
-    typeModifiersList.replaceAll(/"\[\[(?:[^\\\]]+\|)?([^\]]*)\]\]"/g, (_, modifier) => {
-      typeModifiers.push(modifier);
-    });
+  if (Array.isArray(metadata.typeModifiers)) {
+    typeModifiers = metadata.typeModifiers
+      .map((entry) => {
+        // eslint-disable-next-line sonarjs/super-linear-regex -- optional prefix is bounded by [^\]] so catastrophic backtracking cannot occur
+        const [, modifier] = entry.match(/\[\[(?:[^\\\]]+\|)?([^\]]*)\]\]/) ?? [];
+        return modifier;
+      })
+      .filter(Boolean);
   }
   if (errors.length > 0) {
     console.error(`❌ ${fileName} :\n\t` + errors.join('\n\t'));
@@ -83,6 +89,11 @@ for (const fileName of optionsFileNames) {
     description: summary,
     default: defaultValue
   };
+  if (Array.isArray(metadata.validation)) {
+    for (const rule of metadata.validation) {
+      validations.push({ name, message: rule.message, conditions: rule.conditions });
+    }
+  }
 }
 
 // TODO: leverage dependsOn
@@ -156,4 +167,28 @@ export const defaults = {`);
   agentConfig.push('};');
 
   await writeFile('./src/agent/Configuration.ts', agentConfig.join('\n'));
+
+  const validationsOutput = [
+    `import { punyexpr } from 'punyexpr';`,
+    `import type { Configuration } from './Configuration.js';`,
+    `import { indexedOptions } from './indexedOptions.js';`,
+    `import { OptionValidationError } from './OptionValidationError.js';`,
+    ``,
+    `export const validations: Array<(configuration: Configuration) => void> = [`
+  ];
+  for (const { name, message, conditions } of validations) {
+    const checks = conditions.map((check) => `(${check})`).join(' && ');
+    validationsOutput.push(
+      ` (configuration) => {`,
+      `  if (Object.hasOwn(configuration, ${JSON.stringify(name)})) {`,
+      `   if (!punyexpr(${JSON.stringify(checks)})(configuration)) {`,
+      `    throw OptionValidationError.createValidationError(indexedOptions.${name}, ${JSON.stringify(message)});`,
+      `   }`,
+      `  }`,
+      ` },`
+    );
+  }
+  validationsOutput.push(`];`);
+
+  await writeFile('./src/configuration/validations.ts', validationsOutput.join('\n'));
 }

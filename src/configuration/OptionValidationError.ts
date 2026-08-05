@@ -2,7 +2,7 @@ import type { Option } from './Option.js';
 
 export class OptionValidationError extends Error {
   static createInvalidValue(option: Option) {
-    return new OptionValidationError(option, 'Invalid value');
+    return new OptionValidationError(option, `Invalid value for ${option.name}`);
   }
 
   static createUnknown(name: string) {
@@ -18,7 +18,7 @@ export class OptionValidationError extends Error {
   }
 
   static createMissingValue(option: Option) {
-    return new OptionValidationError(option, 'Missing value');
+    return new OptionValidationError(option, `Missing value for ${option.name}`);
   }
 
   static createUnprocessable(option: Option, value: string) {
@@ -26,7 +26,7 @@ export class OptionValidationError extends Error {
   }
 
   static createInvalidRegexp(option: Option, cause: unknown) {
-    return new OptionValidationError(option, 'Invalid regexp', cause);
+    return new OptionValidationError(option, `Invalid regexp set to ${option.name}`, cause);
   }
 
   static createFsAccessError(option: Option, cause: unknown) {
@@ -63,6 +63,10 @@ export class OptionValidationError extends Error {
 
   static createConfigNotObject(option: Option, path: string) {
     return new OptionValidationError(option, `config file ${path} must be a JSON object`);
+  }
+
+  static createValidationError(option: Option, message: string) {
+    return new OptionValidationError(option, `invalid use of ${option.name}: ${message}`);
   }
 
   private _option: Option;
