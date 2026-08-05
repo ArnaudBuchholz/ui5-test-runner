@@ -8,11 +8,19 @@ import { BrowserFactory } from '../../browsers/factory.js';
 import type { InternalLogAttributes } from '../../platform/logger/types.js';
 import { getInitialLogMetrics } from './LogMetrics.js';
 
-const dumpLogToStdout = async (logFileName: string) => {
+const dumpLogToStdout = async (configuration: Configuration) => {
+  const logFileName = configuration.log!; // Validated by configuration
+  const logFilter = configuration.logFilter;
+  const filterExpression = logFilter && logFilter.trim() !== '' ? LogStorage.buildFilterExpression(logFilter) : undefined;
+
   process.stdout.write('[\n');
   let isFirst = true;
   for await (const { type, ...attributes } of LogReader.read(logFileName)) {
     if (type !== 'log') {
+      continue;
+    }
+    const logAttributes = attributes as Readonly<InternalLogAttributes>;
+    if (filterExpression && !filterExpression(logAttributes)) {
       continue;
     }
     if (!isFirst) {
@@ -28,7 +36,7 @@ export const log = async (configuration: Configuration) => {
   const logFileName = configuration.log!; // Validated by configuration
 
   if (configuration.logDump) {
-    await dumpLogToStdout(logFileName);
+    await dumpLogToStdout(configuration);
     return;
   }
 

@@ -14,7 +14,7 @@ Options in ui5-test-runner are **never added by editing `src/configuration/optio
 
 ## Workflow
 
-1. **Create the doc file** — `docs/options/<name>.md` with the correct frontmatter
+1. **Create the doc file** — `docs/options/<name>.md` with the correct frontmatter (filename must use lowerCamelCase, e.g. `logFilter.md`)
 2. **Confirm** before running the generator
 3. **Run `make options`** — regenerates `src/configuration/options.ts` **and** `src/agent/Configuration.ts`
 
@@ -91,6 +91,8 @@ see:
 ---
 <description body>
 ```
+
+**Important**: The filename must use lowerCamelCase (e.g. `logFilter.md`, `pageFilter.md`, `agentDetectionInterval.md`)
 
 **Type wikilink format:**
 - Simple types: `"[[boolean]]"`, `"[[string]]"`, `"[[integer]]"`, `"[[percent]]"`, `"[[timeout]]"`, `"[[url]]"`, `"[[regexp]]"`, `"[[browser]]"`

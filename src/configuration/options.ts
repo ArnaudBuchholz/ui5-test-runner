@@ -189,6 +189,12 @@ export const options = [
     description: 'dump all traces to stdout instead of opening a browser (requires --log)'
   },
   {
+    name: 'logFilter',
+    short: 'lf',
+    type: 'string',
+    description: 'JavaScript expression (using punyexpr) to filter logs for dumping with --log-dump'
+  },
+  {
     name: 'noNpmInstall',
     type: 'boolean',
     batchForwarded: true,
