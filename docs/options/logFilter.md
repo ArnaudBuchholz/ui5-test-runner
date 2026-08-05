@@ -8,4 +8,9 @@ see:
   - "[[logDump]]"
 tags:
   - "#debug"
+validation:
+  - message: "requires log and logDump"
+    conditions:
+      - "isSet(log)"
+      - "isSet(logDump)"
 ---

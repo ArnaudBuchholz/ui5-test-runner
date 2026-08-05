@@ -6,4 +6,8 @@ tags:
   - "#debug"
 see:
   - "[[log]]"
+validation:
+  - message: "requires log"
+    conditions:
+      - "isSet(log)"
 ---

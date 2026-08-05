@@ -10,6 +10,10 @@ see:
   - "[[start]]"
   - "[[startWaitMethod]]"
   - "[[startTimeout]]"
+validation:
+  - message: "requires start"
+    conditions:
+      - "isSet(start)"
 ---
 
 Once the start command is spawned, the runner polls this URL until it responds with HTTP 200 (using the method defined by `startWaitMethod`). The polling continues until success or until `startTimeout` is reached.
