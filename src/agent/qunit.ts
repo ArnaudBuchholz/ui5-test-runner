@@ -4,6 +4,7 @@ import { report } from './report.js';
 import type { CommonTestStatus, CTRFTest } from '../types/CommonTestReportFormat.js';
 import { log } from './log.js';
 import { getConfig } from './config.js';
+import { stringify } from './stringify.js';
 
 type QUnitState = Extract<AgentState, { type: 'QUnit' }>;
 
@@ -120,8 +121,13 @@ export const qunit = () => {
       status = 'failed';
       const errorLogs = logs[getTestId(details.testId)]?.filter(({ result }) => !result);
       if (errorLogs && errorLogs.length > 0) {
-        test.message = errorLogs[0]!.message ?? 'failed';
-        test.trace = errorLogs[0]!.source;
+        const errorLog = errorLogs[0]!; // tested above
+        test.message = errorLog.message ?? 'failed';
+        test.trace = errorLog.source;
+        test.extra = {
+          actual: stringify(errorLog.actual),
+          expected: stringify(errorLog.expected)
+        };
       }
     } else if (details.skipped) {
       status = 'skipped';
