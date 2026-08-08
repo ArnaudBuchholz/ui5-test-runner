@@ -30,7 +30,7 @@ export class TestReportBuilder {
     }
   }
 
-  merge(url: string, testResults: CommonTestReport['results']) {
+  merge(url: string, testResults: CommonTestReport['results'], extra?: { [k: string]: unknown }) {
     if (testResults.tool.version && !this._report.results.tool.extra?.['qunitVersion']) {
       this._report.results.tool.extra = {
         ...this._report.results.tool.extra,
@@ -42,7 +42,8 @@ export class TestReportBuilder {
     for (const test of testResults.tests) {
       results.tests.push({
         ...test,
-        suite: [...suites, ...(test.suite ?? [])] as [string, ...string[]]
+        suite: [...suites, ...(test.suite ?? [])] as [string, ...string[]],
+        extra: test.extra || extra ? { ...test.extra, ...extra } : undefined
       });
     }
     for (const summaryField of SUMMARY_FIELDS) {

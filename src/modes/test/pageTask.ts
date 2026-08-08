@@ -237,7 +237,9 @@ export const pageTask = async function (this: IParallelizeContext, url: string, 
         data: { results: testResults }
       });
     }
-    getReportBuilder().merge(url, testResults);
+    getReportBuilder().merge(url, testResults, {
+      pageId: context.pageId
+    });
     // TODO: add a catch block and document the problem in the test report
   } finally {
     if (context !== undefined) {
