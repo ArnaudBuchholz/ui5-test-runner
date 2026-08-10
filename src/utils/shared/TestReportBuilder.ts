@@ -40,11 +40,14 @@ export class TestReportBuilder {
     const { results } = this._report;
     const suites = [...(this._suites[url] ?? []), url];
     for (const test of testResults.tests) {
-      results.tests.push({
+      const resolvedTest = {
         ...test,
-        suite: [...suites, ...(test.suite ?? [])] as [string, ...string[]],
-        extra: test.extra || extra ? { ...test.extra, ...extra } : undefined
-      });
+        suite: [...suites, ...(test.suite ?? [])] as [string, ...string[]]
+      };
+      if (test.extra || extra) {
+        resolvedTest.extra = { ...test.extra, ...extra };
+      }
+      results.tests.push(resolvedTest);
     }
     for (const summaryField of SUMMARY_FIELDS) {
       results.summary[summaryField] += testResults.summary[summaryField];

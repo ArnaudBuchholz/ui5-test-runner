@@ -219,6 +219,151 @@ it('supports suite construction', () => {
   );
 });
 
+it('merges extra info (test)', () => {
+  const test = {
+    suite: ['suite'],
+    name: 'test',
+    status: 'passed',
+    duration: 1,
+    extra: {
+      test: 'test'
+    }
+  } as const;
+  reportBuilder.merge(
+    'http://localhost:8080/test',
+    createTestResults({
+      tool: { name: 'test' },
+      tests: [test],
+      summary: {
+        start: 123,
+        stop: 456
+      }
+    })
+  );
+  reportBuilder.finalize();
+  expect(reportBuilder.report).toStrictEqual(
+    comparableTestReport({
+      tests: [
+        {
+          ...test,
+          suite: ['http://localhost:8080/test', 'suite'],
+          extra: {
+            test: 'test'
+          }
+        }
+      ],
+      summary: {
+        failed: 0,
+        other: 0,
+        passed: 1,
+        pending: 0,
+        skipped: 0,
+        start: 0,
+        stop: 0,
+        tests: 1
+      }
+    })
+  );
+});
+
+it('merges extra info (merge)', () => {
+  const test = {
+    suite: ['suite'],
+    name: 'test',
+    status: 'passed',
+    duration: 1
+  } as const;
+  reportBuilder.merge(
+    'http://localhost:8080/test',
+    createTestResults({
+      tool: { name: 'test' },
+      tests: [test],
+      summary: {
+        start: 123,
+        stop: 456
+      }
+    }),
+    {
+      merge: 'merge'
+    }
+  );
+  reportBuilder.finalize();
+  expect(reportBuilder.report).toStrictEqual(
+    comparableTestReport({
+      tests: [
+        {
+          ...test,
+          suite: ['http://localhost:8080/test', 'suite'],
+          extra: {
+            merge: 'merge'
+          }
+        }
+      ],
+      summary: {
+        failed: 0,
+        other: 0,
+        passed: 1,
+        pending: 0,
+        skipped: 0,
+        start: 0,
+        stop: 0,
+        tests: 1
+      }
+    })
+  );
+});
+
+it('merges extra info (both)', () => {
+  const test = {
+    suite: ['suite'],
+    name: 'test',
+    status: 'passed',
+    duration: 1,
+    extra: {
+      test: 'test'
+    }
+  } as const;
+  reportBuilder.merge(
+    'http://localhost:8080/test',
+    createTestResults({
+      tool: { name: 'test' },
+      tests: [test],
+      summary: {
+        start: 123,
+        stop: 456
+      }
+    }),
+    {
+      merge: 'merge'
+    }
+  );
+  reportBuilder.finalize();
+  expect(reportBuilder.report).toStrictEqual(
+    comparableTestReport({
+      tests: [
+        {
+          ...test,
+          suite: ['http://localhost:8080/test', 'suite'],
+          extra: {
+            test: 'test',
+            merge: 'merge'
+          }
+        }
+      ],
+      summary: {
+        failed: 0,
+        other: 0,
+        passed: 1,
+        pending: 0,
+        skipped: 0,
+        start: 0,
+        stop: 0,
+        tests: 1
+      }
+    })
+  );
+});
+
 it('takes care of the summary duration', () => {
   const now = Date.now();
   vi.setSystemTime(now);
