@@ -116,7 +116,7 @@ it('generates a default error message', async () => {
   ]);
 });
 
-it('documents only the first failed assertion of a test', async () => {
+it('documents only the first failed assertion of a test (but provides the logs)', async () => {
   QUnit.module('suite1');
   QUnit.test('test1', (assert) => {
     assert.ok(true);
@@ -135,7 +135,12 @@ it('documents only the first failed assertion of a test', async () => {
       status: 'failed',
       suite: ['suite1'],
       message: 'failed 1',
-      trace
+      trace,
+      extra: {
+        actual: '1',
+        expected: '2',
+        QUnitLogs: expect.any(Array) as unknown[]
+      }
     }
   ]);
 });

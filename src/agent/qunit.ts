@@ -104,6 +104,31 @@ export const qunit = () => {
     logs[testId].push(details);
   });
 
+  const getErrorDetails = (test: CTRFTest, details: QUnitTestDoneDetails) => {
+    const testLogs = logs[getTestId(details.testId)];
+    if (!testLogs) {
+      test.message = 'No logs';
+      return;
+    }
+    const firstErrorLog = testLogs.find(({ result }) => !result);
+    if (firstErrorLog) {
+      test.message = firstErrorLog.message ?? 'failed';
+      test.trace = firstErrorLog.source;
+      test.extra = {
+        actual: stringify(firstErrorLog.actual),
+        expected: stringify(firstErrorLog.expected)
+      };
+    } else {
+      test.message = 'No error log';
+    }
+    test.extra ??= {};
+    test.extra['QUnitLogs'] = testLogs.map((testLog) => ({
+      ...testLog,
+      actual: stringify(testLog.actual),
+      expected: stringify(testLog.expected)
+    }));
+  };
+
   QUnit.testDone((details: QUnitTestDoneDetails) => {
     log(
       `QUnit.log({testId: ${details.testId}, passed: ${details.passed}, failed: ${details.failed}, name: "${details.name}", module: "${details.module}}")`
@@ -119,16 +144,7 @@ export const qunit = () => {
     if (details.failed > 0) {
       ++errors;
       status = 'failed';
-      const errorLogs = logs[getTestId(details.testId)]?.filter(({ result }) => !result);
-      if (errorLogs && errorLogs.length > 0) {
-        const errorLog = errorLogs[0]!; // tested above
-        test.message = errorLog.message ?? 'failed';
-        test.trace = errorLog.source;
-        test.extra = {
-          actual: stringify(errorLog.actual),
-          expected: stringify(errorLog.expected)
-        };
-      }
+      getErrorDetails(test, details);
     } else if (details.skipped) {
       status = 'skipped';
     } else if (details.todo) {
