@@ -11,7 +11,8 @@ try {
       coverage,
       'report-uncovered': coverageReportUncovered,
       'junit-xml-report': junitXmlReport,
-      failed
+      failed,
+      summary
     },
     positionals
   } = parseArgs({
@@ -36,6 +37,10 @@ try {
       failed: {
         type: 'boolean',
         default: false
+      },
+      summary: {
+        type: 'string',
+        default: ''
       }
     }
   });
@@ -58,6 +63,14 @@ try {
       report.results.tests.flatMap((test) => (test.suite ?? []).filter((s) => s.startsWith('http')))
     );
     assert.strictEqual(pageUrls.size, expectedCount, 'Number of test pages');
+  }
+
+  if (summary) {
+    const [expectedPassed, expectedFailed, expectedTotal] = summary.split(',').map(Number);
+    const { passed, failed, tests } = report.results.summary;
+    assert.strictEqual(passed, expectedPassed, 'Number of tests passed');
+    assert.strictEqual(failed, expectedFailed, 'Number of tests failed');
+    assert.strictEqual(tests, expectedTotal, 'Total number of tests');
   }
 
   if (coverage) {
