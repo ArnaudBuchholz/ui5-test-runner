@@ -6,5 +6,5 @@
     "http://localhost:0/test/unit/unitTests.qunit.uncaught.html",
     "http://localhost:0/test/unit/unitTests.qunit.uncaught2.html"
   ],
-  "end": "RUNNER_EXIT_CODE={{exitCode}} NODE_OPTIONS= node ../e2e/check.mjs {{reportDir}} --pages 1 --failed --summary 0,2,2"
+  "end": "RUNNER_EXIT_CODE={{exitCode}} NODE_OPTIONS= node ../e2e/check.mjs {{reportDir}} --pages 2 --failed --summary 1,2,3"
 }

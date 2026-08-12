@@ -62,6 +62,19 @@ const reportQunitProgress = (context: PageContext, agentState: Extract<AgentStat
   }
 };
 
+const reportError = (url: string, message: string) => {
+  const result = createEmptyTestResults();
+  result.summary.tests = 1;
+  result.summary.failed = 1;
+  result.tests.push({
+    name: url,
+    status: 'failed',
+    message: `${message}, check the logs`,
+    duration: 0
+  });
+  getReportBuilder().merge(url, result);
+};
+
 const shouldUncaughtErrorsFail = (context: PageContext, errors: IError[]): boolean => {
   const { lastUncaughtErrorsCount, pageId } = context;
   let errorsCount = 0;
@@ -90,7 +103,11 @@ const shouldUncaughtErrorsFail = (context: PageContext, errors: IError[]): boole
       }
     }
   }
-  return errorsCount !== 0;
+  if (errorsCount !== 0) {
+    reportError(context.url, `Uncaught error(s): ${errorsCount}`);
+    return true;
+  }
+  return false;
 };
 
 const queryAgentState = async (context: PageContext): Promise<boolean> => {
@@ -165,16 +182,7 @@ export const pageTask = async function (this: IParallelizeContext, url: string, 
         remove: true
       }
     });
-    const result = createEmptyTestResults();
-    result.summary.tests = 1;
-    result.summary.failed = 1;
-    result.tests.push({
-      name: url,
-      status: 'failed',
-      message: 'An error occurred while fetching the URL',
-      duration: 0
-    });
-    getReportBuilder().merge(url, result);
+    reportError(url, 'An error occurred while fetching the URL');
     throw new Error('An error occurred while fetching the URL', { cause: error });
   }
 
