@@ -80,7 +80,7 @@ export const test = async (configuration: Configuration) => {
       on: (event) => {
         if (event.type === 'failed') {
           logger.error({ source: 'job', message: 'page failed', error: event.error, data: { url: event.input } });
-          Exit.code = -1;
+          ++completed;
         } else if (event.type === 'completed') {
           ++completed;
         }
@@ -98,13 +98,17 @@ export const test = async (configuration: Configuration) => {
       }
     });
     getReportBuilder().finalize();
-    await saveReport(configuration, getReportBuilder().report);
-    const { passed, failed, tests, duration } = getReportBuilder().report.results.summary;
+    const { report } = getReportBuilder();
+    await saveReport(configuration, report);
+    const { passed, failed, tests, duration } = report.results.summary;
     const durationString = duration ? ` (${formatDuration(duration)})` : '';
     logger.info({
       source: 'job',
       message: `Tests completed: passed=${passed} failed=${failed} tests=${tests}${durationString}`
     });
+    if (failed) {
+      Exit.code = -1;
+    }
     sendToParentProcess({ type: 'done', passed, failed, tests });
     await end(configuration);
   } catch (error) {
