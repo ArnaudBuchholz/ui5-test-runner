@@ -11,6 +11,9 @@ This directory documents significant architectural decisions made in the `ui5-te
 | [0003](./0003-configuration-validation-strategy.md) | Configuration Validation Strategy | Accepted | Implement multi-stage configuration validation (schema, defaults, transformations) with clear separation between parsing, validation, and merging |
 | [0004](./0004-report-generation-architecture.md) | Report Generation Architecture | Accepted | Decouple report generation from test execution using a pipeline approach, supporting multiple output formats and interactive UIs |
 | [0005](./0005-logging-and-tracing-architecture.md) | Logging and Tracing Architecture | Accepted | Worker-based structured logging with a compressed binary trace format, separating live terminal output from a complete queryable record written to disk |
+| [0006](./0006-batch-mode-orchestration.md) | Batch Mode Orchestration | Accepted | Orchestrate multi-project test runs by spawning one isolated child process per batch item, using IPC as a thin signal channel for progress and skip events |
+| [0007](./0007-start-end-command-lifecycle.md) | Start/End Command Lifecycle | Accepted | Support pre-test and post-test hook commands with NPM script resolution, parameter substitution, `forceRender` output bypass, and unconditional end-command exit-code authority |
+| [0008](./0008-ui-controller-pattern.md) | UI Controller Pattern | Accepted | Implement browser-side UIs using a typed `AbstractUserInterfaceController` base class that enforces a diff-only, optimistic-update MVC protocol without a frontend framework |
 
 ## Quick Navigation
 
@@ -19,6 +22,9 @@ This directory documents significant architectural decisions made in the `ui5-te
 - **When modifying `src/configuration/`** → See [ADR-0003](./0003-configuration-validation-strategy.md)
 - **When modifying `src/reports/` or `src/ui/`** → See [ADR-0004](./0004-report-generation-architecture.md)
 - **When modifying `src/platform/logger/` or `src/modes/log/`** → See [ADR-0005](./0005-logging-and-tracing-architecture.md)
+- **When modifying `src/modes/batch/` or `src/if.ts`** → See [ADR-0006](./0006-batch-mode-orchestration.md)
+- **When modifying `src/Command.ts`, `src/start.ts`, or `src/end.ts`** → See [ADR-0007](./0007-start-end-command-lifecycle.md)
+- **When modifying `src/utils/ui/` or any `*Controller.ts`** → See [ADR-0008](./0008-ui-controller-pattern.md)
 
 ## Cross-Cutting Concerns
 
