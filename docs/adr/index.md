@@ -10,6 +10,7 @@ This directory documents significant architectural decisions made in the `ui5-te
 | [0002](./0002-parallel-browser-agents.md) | Parallel Browser Agents Architecture | Accepted | Execute tests in parallel across multiple isolated browser instances using an in-browser agent pattern to overcome memory and performance constraints |
 | [0003](./0003-configuration-validation-strategy.md) | Configuration Validation Strategy | Accepted | Implement multi-stage configuration validation (schema, defaults, transformations) with clear separation between parsing, validation, and merging |
 | [0004](./0004-report-generation-architecture.md) | Report Generation Architecture | Accepted | Decouple report generation from test execution using a pipeline approach, supporting multiple output formats and interactive UIs |
+| [0005](./0005-logging-and-tracing-architecture.md) | Logging and Tracing Architecture | Accepted | Worker-based structured logging with a compressed binary trace format, separating live terminal output from a complete queryable record written to disk |
 
 ## Quick Navigation
 
@@ -17,6 +18,7 @@ This directory documents significant architectural decisions made in the `ui5-te
 - **When modifying `src/agent/` or `src/browsers/`** → See [ADR-0002](./0002-parallel-browser-agents.md)
 - **When modifying `src/configuration/`** → See [ADR-0003](./0003-configuration-validation-strategy.md)
 - **When modifying `src/reports/` or `src/ui/`** → See [ADR-0004](./0004-report-generation-architecture.md)
+- **When modifying `src/platform/logger/` or `src/modes/log/`** → See [ADR-0005](./0005-logging-and-tracing-architecture.md)
 
 ## Cross-Cutting Concerns
 
