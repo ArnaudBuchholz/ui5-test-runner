@@ -21,16 +21,16 @@ Each batch item is executed as an **independent child process** — a full invoc
 
 ```
 ┌─────────────────────────────────────────────────────────┐
-│  Parent process  (batch orchestrator)                    │
-│                                                          │
-│  resolve() ──► IBatchItem[]                              │
-│                    │                                     │
+│  Parent process  (batch orchestrator)                   │
+│                                                         │
+│  resolve() ──► IBatchItem[]                             │
+│                    │                                    │
 │             parallelize() ──► up to N concurrent        │
-│                    │                                     │
-│      ┌─────────────┼─────────────┐                       │
-│      ▼             ▼             ▼                       │
-│  batchTask()   batchTask()   batchTask()                 │
-│  Process.spawn  Process.spawn  Process.spawn             │
+│                    │                                    │
+│      ┌─────────────┼─────────────┐                      │
+│      ▼             ▼             ▼                      │
+│  batchTask()   batchTask()   batchTask()                │
+│  Process.spawn  Process.spawn  Process.spawn            │
 └──────┬──────────────┬──────────────┬────────────────────┘
        │  IPC         │  IPC         │  IPC
        ▼              ▼              ▼
