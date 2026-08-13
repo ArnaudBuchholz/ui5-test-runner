@@ -50,17 +50,28 @@ type InstallPlan = {
   reimportPath: string | undefined;
 };
 
-const buildInstallPlan = (strategy: string, moduleName: string, globalRoot: string, prefix: string): InstallPlan => {
+type InstallOptions = {
+  globalRoot: string;
+  prefix: string;
+  allowScripts: boolean;
+  minReleaseAge: number;
+};
+
+const buildInstallPlan = (strategy: string, moduleName: string, options: InstallOptions): InstallPlan => {
+  const { globalRoot, prefix, allowScripts, minReleaseAge } = options;
+  const noScripts = allowScripts ? [] : ['--ignore-scripts'];
+  const releaseAge = minReleaseAge > 0 ? [`--min-release-age=${minReleaseAge}`] : [];
+  const extraFlags = [...noScripts, ...releaseAge];
   if (strategy === 'global') {
-    return { installArguments: ['install', '-g', moduleName], reimportPath: globalRoot };
+    return { installArguments: ['install', '-g', ...extraFlags, moduleName], reimportPath: globalRoot };
   }
   if (strategy === 'prefix') {
     return {
-      installArguments: ['install', '--prefix', prefix, '--no-save', moduleName],
+      installArguments: ['install', '--prefix', prefix, '--no-save', ...extraFlags, moduleName],
       reimportPath: Path.join(prefix, 'node_modules')
     };
   }
-  return { installArguments: ['install', '--no-save', moduleName], reimportPath: undefined };
+  return { installArguments: ['install', '--no-save', ...extraFlags, moduleName], reimportPath: undefined };
 };
 
 export class Npm {
@@ -137,12 +148,12 @@ export class Npm {
     const strategy = configuration.npmInstall;
     logger.info({ source: 'npm', message: `Installing ${moduleName} (strategy: ${strategy})` });
 
-    const { installArguments, reimportPath } = buildInstallPlan(
-      strategy,
-      moduleName,
+    const { installArguments, reimportPath } = buildInstallPlan(strategy, moduleName, {
       globalRoot,
-      configuration.npmInstallPrefix ?? ''
-    );
+      prefix: configuration.npmInstallPrefix ?? '',
+      allowScripts: configuration.npmAllowInstallScripts,
+      minReleaseAge: configuration.npmInstallMinReleaseAge
+    });
 
     const installProcess = await npm(...installArguments);
     await installProcess.closed;

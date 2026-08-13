@@ -201,10 +201,24 @@ export const options = [
     description: 'prevent any NPM install'
   },
   {
+    name: 'npmAllowInstallScripts',
+    type: 'boolean',
+    batchForwarded: true,
+    description: 'allow postinstall scripts when installing missing packages',
+    default: false
+  },
+  {
     name: 'npmInstall',
     type: 'string',
     description: 'npm install strategy for missing packages',
     default: 'global'
+  },
+  {
+    name: 'npmInstallMinReleaseAge',
+    type: 'integer',
+    batchForwarded: true,
+    description: 'minimum release age (in days) required before installing a package',
+    default: 3
   },
   {
     name: 'npmInstallPrefix',
@@ -323,7 +337,9 @@ export const defaults = {
   config: 'ui5-test-runner.json',
   cwd: process.cwd(),
   localhost: 'localhost',
+  npmAllowInstallScripts: false,
   npmInstall: 'global',
+  npmInstallMinReleaseAge: 3,
   outputInterval: 30_000,
   parallel: 2,
   reportDir: 'report',
