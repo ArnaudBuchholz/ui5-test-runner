@@ -16,62 +16,79 @@ The `ui5-test-runner` executes tests in browsers, coordinates multiple processes
 
 ## Decision
 
-Create a **Platform Abstraction Layer** (`src/platform/`) that wraps Node.js APIs behind a testable, injectable interface:
+Create a **Platform Abstraction Layer** (`src/platform/`) that wraps Node.js APIs behind mockable static classes:
 
 ```
 src/platform/
-├── fs/          (File System abstraction)
-├── http/        (HTTP client abstraction)
-├── process/     (Process management abstraction)
-├── threading/   (Threading/Worker abstraction)
-├── url/         (URL handling abstraction)
-├── compression/ (Compression utilities abstraction)
-└── index.ts     (Platform facade)
+├── assert.ts       (Custom assert using logger before throwing)
+├── constants.ts    (__sourcesRoot, __developmentMode)
+├── environment.ts  (logEnvironment utility)
+├── Exit.ts         (Async-task lifecycle + SIGINT handler)
+├── FileSystem.ts   (fs/promises + fs stream wrappers)
+├── Host.ts         (OS / process metadata: cpus, cwd, env, pid, platform, …)
+├── Http.ts         (fetch-based HTTP client with logging + abort)
+├── Module.ts       (createRequire, findPackageJSON)
+├── Path.ts         (path module wrappers)
+├── Process.ts      (child_process spawn wrapper + IProcess interface)
+├── Terminal.ts     (stdout/stdin TTY helpers + ANSI escape constants)
+├── Thread.ts       (worker_threads: Worker, BroadcastChannel, threadId)
+├── Url.ts          (pathToFileURL)
+├── ZLib.ts         (gzipSync, deflateRawSync, inflateRawSync)
+├── logger/         (Worker-based structured logging subsystem)
+├── version.ts      (reads package.json for version string)
+├── mock.ts         (vi.mock() stubs for all modules — imported in tests)
+└── index.ts        (re-exports all of the above)
 ```
 
+Each module is a **static class** (or a plain object/function for modules like `Http`, `logger`, `assert`). There is no aggregate `IPlatform` interface and no dependency-injection pattern. The single exception is `IProcess`, which is an interface exported from `Process.ts` and used as a return type for `Process.spawn` to allow test doubles.
 
-Each module exports:
-- An **interface** defining the contract (e.g., `IFileSystem`)
-- An **implementation** using Node.js APIs
-- A **factory** to instantiate the implementation
+Mocking is centralised in `mock.ts`, which uses Vitest's `vi.mock()` to replace every module with a spy-friendly version. Test files import `mock.ts` as a side-effect to activate all mocks at once.
 
 ## Consequences
 
 ### Positive
-✅ **Testability**: Code can be tested without touching the file system, network, or spawning processes
-✅ **Flexibility**: Implementations can be swapped (e.g., for different runtimes or test mocking)
-✅ **Maintainability**: All Node.js API usage is centralized and versioned consistently
-✅ **Documentation**: Interfaces serve as documentation of platform dependencies
-✅ **Gradual Refactoring**: Abstractions can be introduced incrementally without rewriting the entire codebase
+- ✅ **Testability**: Code can be tested without touching the file system,  network, or spawning processes
+- ✅ **Maintainability**: All Node.js API usage is centralized and consistently wrapped
+- ✅ **Mockability**: `mock.ts` provides a single import that activates vi.mock stubs for every platform module
+- ✅ **Gradual Refactoring**: Abstractions can be introduced incrementally without rewriting the entire codebase
 
 ### Negative/Trade-offs
-❌ **Indirection**: Every file operation goes through an abstraction layer (minimal performance impact)
-❌ **Complexity**: Added layer of code to understand and maintain
-❌ **Boilerplate**: Creating implementations and mocks requires more code
+- ❌ **Indirection**: Every file operation goes through an abstraction layer (minimal performance impact)
+- ❌ **Complexity**: Added layer of code to understand and maintain
+- ❌ **Static coupling**: Static classes cannot be swapped via dependency injection; swapping requires `vi.mock` in tests
 
 ### Mitigation
-- Use dependency injection to keep abstractions transparent
-- Provide clear, focused interfaces (not god objects)
+- Provide clear, focused modules (not god objects)
 - Keep implementations thin (delegate to Node.js APIs, don't duplicate logic)
-- Include examples in module documentation
+- Centralise all mocking in `mock.ts` to avoid per-test boilerplate
 
 ## Related Files & Modules
-- **Usage**: Throughout `src/cli.ts`, `src/agent/`, `src/configuration/`, `src/reports/`
-- **Tests**: Each platform module should have corresponding `.spec.ts` test file with mocked implementations
-- **Entry Point**: `src/platform/index.ts` exports the default platform instance
+- **Usage**: Throughout `src/cli.ts`, `src/configuration/`, `src/reports/`, `src/modes/`, `src/start.ts`, `src/end.ts`
+- **Tests**: Selected platform modules have `.spec.ts` files (`Exit.spec.ts`, `Http.spec.ts`, `Process.spec.ts`, `Terminal.spec.ts`, `Thread.spec.ts`); thin wrappers are intentionally untested (noted in `platform/README.md`)
+- **Mock helper**: `src/platform/mock.ts` — import this file in a test setup or at the top of a spec to activate all platform mocks
+- **Entry Point**: `src/platform/index.ts` re-exports every module by name; there is no singleton platform instance
 
 ## Example Usage
 
 ```typescript
-// ✅ Good: Use injected platform
-export class TestRunner {
-  constructor(private platform: IPlatform) {}
-  
-  async run() {
-    const config = await this.platform.fs.readFile('test-config.json');
-  }
-}
+// ✅ Good: Import the static class and call its methods directly
+import { FileSystem } from './platform/index.js';
 
-// ❌ Avoid: Direct Node.js API usage
-import fs from 'fs';
-const config = fs.readFileSync('test-config.json');
+const config = await FileSystem.readFile('test-config.json', 'utf8');
+
+// ✅ Good: Use IProcess interface for test doubles
+import type { IProcess } from './platform/index.js';
+
+const makeProcess = (code: number): IProcess => ({
+  pid: 1,
+  stdout: '',
+  stderr: '',
+  code,
+  closed: Promise.resolve(),
+  kill: async () => {}
+});
+
+// ❌ Avoid: Direct Node.js API usage (bypasses mock.ts and logging)
+import fs from 'node:fs/promises';
+const config = await fs.readFile('test-config.json', 'utf8');
+```
