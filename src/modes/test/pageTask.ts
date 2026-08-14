@@ -1,7 +1,7 @@
 import type { IParallelizeContext } from '../../utils/shared/parallelize.js';
 import { assert, Http, logger } from '../../platform/index.js';
 import type { PageProgressData } from '../../platform/logger/types.js';
-import { getAgentSource } from './agent.js';
+import { getAgentSource, getCoverageAgentSource } from './agent.js';
 import { getBrowser } from './browser.js';
 import type { AgentState } from '../../types/AgentState.js';
 import { Exit, ExitShutdownError } from '../../platform/Exit.js';
@@ -12,6 +12,14 @@ import type { CommonTestReport } from '../../types/CommonTestReportFormat.js';
 import type { IWindow } from '../../browsers/IBrowser.js';
 import { getBrowserConfigScript } from './browserConfig.js';
 import type { IError } from '../../types/IError.js';
+import { collect } from './coverage/index.js';
+import type { Configuration } from '../../configuration/Configuration.js';
+
+let _configuration: Configuration | undefined;
+
+export const initPageTaskConfig = (configuration: Configuration): void => {
+  _configuration = configuration;
+};
 
 let lastPageId = 0;
 
@@ -204,10 +212,14 @@ export const pageTask = async function (this: IParallelizeContext, url: string, 
   try {
     const agentSource = await getAgentSource();
     const browserConfig = getBrowserConfigScript();
+    const scripts = [browserConfig, agentSource];
+    if (_configuration?.coverage) {
+      scripts.push(await getCoverageAgentSource());
+    }
     const browser = getBrowser();
     page = await browser.newWindow({
       pageId,
-      scripts: [browserConfig, agentSource],
+      scripts,
       url
     });
     context = {
@@ -235,6 +247,14 @@ export const pageTask = async function (this: IParallelizeContext, url: string, 
       }
     }
     const testResults = (await page.eval("window['ui5-test-runner'].results")) as CommonTestReport['results'];
+    if (_configuration?.coverage) {
+      const coverageData = await page.eval('window.__coverage__');
+      if (coverageData !== undefined && coverageData !== null) {
+        await collect(_configuration, url, coverageData);
+      } else {
+        logger.warn({ source: 'coverage', message: 'No coverage data found for page', data: { url } });
+      }
+    }
     if (!context?.isSuite) {
       const { passed, failed, tests, duration } = testResults.summary;
       const durationString = duration === undefined ? '' : ` (${duration}ms)`;

@@ -2,6 +2,7 @@ import type { ServerEventName, ServerEvent } from 'reserve';
 
 type GenericLogSource =
   | 'browser'
+  | 'coverage'
   | 'exit'
   | 'exit/handle'
   | 'job'
