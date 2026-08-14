@@ -74,8 +74,10 @@ try {
   }
 
   if (coverage) {
-    const { coverageTempDir, coverageReportDir } = report;
-    const mergedCoveragePath = join(coverageTempDir, 'merged/coverage.json');
+    const home = process.env.HOME ?? process.env.USERPROFILE ?? '';
+    const expand = (p) => p.replace(/^~/, home);
+    const { coverageTempDir, coverageReportDir } = report.extra.configuration;
+    const mergedCoveragePath = join(expand(coverageTempDir), 'merged/coverage.json');
     assert.strictEqual((await stat(mergedCoveragePath)).isFile(), true, 'Merged coverage file exists');
     const mergedCoverage = JSON.parse((await readFile(mergedCoveragePath)).toString());
     assert.ok(
@@ -85,13 +87,13 @@ try {
       }),
       'Merged coverage file contains only absolute paths (key === path)'
     );
-    assert.strictEqual((await stat(coverageReportDir)).isDirectory(), true, 'Coverage folder exists');
+    assert.strictEqual((await stat(expand(coverageReportDir))).isDirectory(), true, 'Coverage folder exists');
     assert.strictEqual(
-      (await stat(join(coverageReportDir, 'lcov-report/index.html'))).isFile(),
+      (await stat(join(expand(coverageReportDir), 'lcov-report/index.html'))).isFile(),
       true,
       'Coverage HTML report exists'
     );
-    const lcov = (await readFile(join(coverageReportDir, 'lcov.info'))).toString();
+    const lcov = (await readFile(join(expand(coverageReportDir), 'lcov.info'))).toString();
     assert.ok(lcov.length > 0, 'lcov data exists');
     if (coverageReportUncovered) {
       assert.ok(lcov.match(/\bcontroller(\/|\\)uncovered\.(js|ts)\b/), 'uncovered is reported');
@@ -99,7 +101,7 @@ try {
   }
 
   if (junitXmlReport) {
-    assert.strictEqual((await stat(join(report.reportDir, 'junit.xml'))).isFile(), true, 'junit XML report exists');
+    assert.strictEqual((await stat(join(expand(report.extra.configuration.reportDir), 'junit.xml'))).isFile(), true, 'junit XML report exists');
   }
 } catch (error) {
   console.error(error.message);

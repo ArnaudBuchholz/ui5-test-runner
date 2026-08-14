@@ -4,7 +4,7 @@ import { defaults } from '../../configuration/options.js';
 import { parallelize } from '../../utils/shared/parallelize.js';
 import { getAgentSource } from './agent.js';
 import { setupBrowser, getBrowser } from './browser.js';
-import { pageTask } from './pageTask.js';
+import { pageTask, initPageTaskConfig } from './pageTask.js';
 import { initBrowserConfig } from './browserConfig.js';
 import { initReportBuilder, getReportBuilder, setReportBrowserInfo } from './report.js';
 import { saveReport } from '../../reports/saveReport.js';
@@ -14,6 +14,7 @@ import { formatDuration } from '../../utils/shared/string.js';
 import { start } from '../../start.js';
 import { end } from '../../end.js';
 import { sendToParentProcess } from '../../sendToParentProcess.js';
+import { instrument, generateReport } from './coverage/index.js';
 
 /**
  * TODO
@@ -39,6 +40,9 @@ export const test = async (configuration: Configuration) => {
   let isBrowserStarted = false;
   try {
     await start(configuration);
+    if (configuration.coverage) {
+      await instrument(configuration);
+    }
     const port = await server.start(configuration);
 
     // TODO: only when local is being used
@@ -70,6 +74,7 @@ export const test = async (configuration: Configuration) => {
     setReportBrowserInfo(capabilities);
     isBrowserStarted = true;
     initBrowserConfig(configuration);
+    initPageTaskConfig(configuration);
     logger.info({ source: 'progress', message: 'Executing pages', pageId: undefined, data: { value: 0, max: 0 } });
     sendToParentProcess({ type: 'progress', count: 0, total: 0 });
     let completed = 0;
@@ -98,6 +103,9 @@ export const test = async (configuration: Configuration) => {
       }
     });
     getReportBuilder().finalize();
+    if (configuration.coverage) {
+      await generateReport(configuration);
+    }
     const { report } = getReportBuilder();
     await saveReport(configuration, report);
     const { passed, failed, tests, duration } = report.results.summary;

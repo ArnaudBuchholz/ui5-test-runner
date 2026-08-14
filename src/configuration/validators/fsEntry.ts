@@ -55,7 +55,7 @@ export const fsOption = async (option: Option, value: unknown, configuration: Co
   try {
     const accessChecked = await fsCheckAccess(option, path);
     if (accessChecked !== undefined) {
-      return accessChecked;
+      return accessChecked; // path doesn't exist yet but will be created (overwrite modifier)
     }
     await fsCheckStat(option, path);
   } catch (error) {

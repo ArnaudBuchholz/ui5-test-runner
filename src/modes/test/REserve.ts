@@ -1,6 +1,7 @@
 import { logger } from '../../platform/index.js';
 import type { Configuration as REserveConfiguration } from 'reserve';
 import type { Configuration } from '../../configuration/Configuration.js';
+import { Path } from '../../platform/index.js';
 
 export const buildREserveConfiguration = (configuration: Configuration): REserveConfiguration => {
   const match = /\/((?:test-)?resources\/.*)/; // Captured value never starts with /
@@ -9,6 +10,16 @@ export const buildREserveConfiguration = (configuration: Configuration): REserve
     ui5 += '/';
   }
   const mappingUrl = new URL('$1', ui5).href;
+
+  const coverageMappings: REserveConfiguration['mappings'] = configuration.coverage
+    ? [
+        {
+          match: /(.*\.js)(\?.*)?$/,
+          cwd: Path.join(configuration.coverageTempDir, 'instrumented'),
+          file: '$1'
+        }
+      ]
+    : [];
 
   return {
     port: configuration.port ?? 0,
@@ -19,6 +30,7 @@ export const buildREserveConfiguration = (configuration: Configuration): REserve
         url: mappingUrl,
         'ignore-unverifiable-certificate': true
       },
+      ...coverageMappings,
       {
         // Project mapping
         match: /^\/(.*)/,
