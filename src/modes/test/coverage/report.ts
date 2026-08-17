@@ -9,8 +9,8 @@ export const generateReport = async (configuration: Configuration): Promise<void
   await Folder.recreate(configuration.coverageReportDir);
 
   // Merge per-page coverage files into a single object for nyc report
-  const mergedDir = Path.join(configuration.coverageTempDir, 'merged');
-  await Folder.create(mergedDir);
+  const mergedDirectory = Path.join(configuration.coverageTempDir, 'merged');
+  await Folder.create(mergedDirectory);
   const merged: Record<string, unknown> = {};
   const entries = await FileSystem.readdir(configuration.coverageTempDir, { withFileTypes: true });
   for (const entry of entries) {
@@ -20,7 +20,7 @@ export const generateReport = async (configuration: Configuration): Promise<void
     ) as Record<string, unknown>;
     Object.assign(merged, data);
   }
-  const mergedPath = Path.join(mergedDir, 'coverage.json');
+  const mergedPath = Path.join(mergedDirectory, 'coverage.json');
   await FileSystem.writeFile(mergedPath, JSON.stringify(merged));
 
   // Run nyc report
@@ -28,16 +28,16 @@ export const generateReport = async (configuration: Configuration): Promise<void
   const settingsPath = getSettingsPath();
   const reporters = [...configuration.coverageReporters];
   if (!reporters.includes('text')) reporters.push('text');
-  const reporterArgs = reporters.flatMap((r) => ['--reporter', r]);
+  const reporterArguments = reporters.flatMap((r) => ['--reporter', r]);
 
   const proc = Process.spawn(
     'node',
     [
       nycBin, 'report',
       '--nycrc-path', settingsPath,
-      '--temp-dir', mergedDir,
+      '--temp-dir', mergedDirectory,
       '--report-dir', configuration.coverageReportDir,
-      ...reporterArgs
+      ...reporterArguments
     ],
     { detached: true, forceRender: true }
   );
@@ -53,11 +53,11 @@ export const generateReport = async (configuration: Configuration): Promise<void
     ['--lines', configuration.coverageCheckLines],
     ['--statements', configuration.coverageCheckStatements]
   ];
-  const thresholdArgs = checks.flatMap(([flag, value]) => (value > 0 ? [flag, String(value)] : []));
-  if (thresholdArgs.length > 0) {
+  const thresholdArguments = checks.flatMap(([flag, value]) => (value > 0 ? [flag, String(value)] : []));
+  if (thresholdArguments.length > 0) {
     const checkProc = Process.spawn(
       'node',
-      [nycBin, 'check-coverage', '--nycrc-path', settingsPath, '--temp-dir', mergedDir, ...thresholdArgs],
+      [nycBin, 'check-coverage', '--nycrc-path', settingsPath, '--temp-dir', mergedDirectory, ...thresholdArguments],
       { detached: true }
     );
     await checkProc.closed;

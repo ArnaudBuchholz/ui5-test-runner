@@ -4,7 +4,7 @@ import type { Configuration } from '../../../configuration/Configuration.js';
 
 let cachedBinPath: string | undefined;
 
-const resolveNycDir = async (configuration: Configuration): Promise<string> => {
+const resolveNycPath = async (configuration: Configuration): Promise<string> => {
   const cwdRequire = Module.createRequire(
     Url.pathToFileURL(Path.join(configuration.cwd, 'package.json')).href
   );
@@ -43,7 +43,7 @@ export const getNycBin = async (configuration: Configuration): Promise<string> =
     return cachedBinPath;
   }
   await Npm.import(configuration, 'nyc');
-  const nycDir = await resolveNycDir(configuration);
-  cachedBinPath = Path.join(nycDir, 'bin', 'nyc.js');
+  const nycPath = await resolveNycPath(configuration);
+  cachedBinPath = Path.join(nycPath, 'bin', 'nyc.js');
   return cachedBinPath;
 };

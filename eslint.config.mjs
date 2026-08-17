@@ -48,6 +48,20 @@ export default [
       'unicorn/prefer-iterator-to-array': 'off'
     }
   },
+  // This one hooks specifically browser APIs
+  {
+    files: ['src/agent/ui5Coverage.ts'],
+    languageOptions: {
+      globals: {
+        ...globals.browser
+      }
+    },
+    rules: {
+      'unicorn/prefer-url-href': 'off',
+      '@typescript-eslint/unbound-method': 'off',
+      'unicorn/no-this-outside-of-class': 'off'
+    }
+  },
   // TODO implement a regexp validator
   {
     files: ['src/configuration/validators/regexp.ts'],

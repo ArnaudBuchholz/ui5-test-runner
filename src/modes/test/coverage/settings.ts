@@ -31,13 +31,13 @@ export const initSettings = async (configuration: Configuration): Promise<Istanb
   }
 
   const exclude: string[] = [...(Array.isArray(base.exclude) ? base.exclude : [])];
-  const tempDirRelative = Path.relative(configuration.webapp, configuration.coverageTempDir);
-  const reportDirRelative = Path.relative(configuration.webapp, configuration.coverageReportDir);
-  const testReportDirRelative = Path.relative(configuration.webapp, configuration.reportDir);
+  const temporaryDirectoryRelative = Path.relative(configuration.webapp, configuration.coverageTempDir);
+  const reportDirectoryRelative = Path.relative(configuration.webapp, configuration.coverageReportDir);
+  const testReportDirectoryRelative = Path.relative(configuration.webapp, configuration.reportDir);
   exclude.push(
-    `${tempDirRelative}/**`,
-    `${reportDirRelative}/**`,
-    `${testReportDirRelative}/**`
+    `${temporaryDirectoryRelative}/**`,
+    `${reportDirectoryRelative}/**`,
+    `${testReportDirectoryRelative}/**`
   );
 
   const settings: IstanbulSettings = {
@@ -50,9 +50,9 @@ export const initSettings = async (configuration: Configuration): Promise<Istanb
     exclude
   };
 
-  const settingsDir = Path.join(configuration.coverageTempDir, 'settings');
-  _settingsPath = Path.join(settingsDir, '.nycrc.json');
-  await FileSystem.mkdir(settingsDir, { recursive: true });
+  const settingsDirectory = Path.join(configuration.coverageTempDir, 'settings');
+  _settingsPath = Path.join(settingsDirectory, '.nycrc.json');
+  await FileSystem.mkdir(settingsDirectory, { recursive: true });
   await FileSystem.writeFile(_settingsPath, JSON.stringify(settings, undefined, 2));
   _settings = settings;
   logger.debug({ source: 'coverage', message: `Coverage settings written to ${_settingsPath}` });
