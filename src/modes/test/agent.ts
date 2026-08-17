@@ -7,4 +7,3 @@ export const getAgentSource = memoize(async () => {
     : Path.join(__sourcesRoot, 'ui/agent.js');
   return FileSystem.readFile(path, 'utf8');
 });
-

@@ -15,10 +15,14 @@ export const instrument = async (configuration: Configuration): Promise<void> =>
   const proc = Process.spawn(
     'node',
     [
-      nycBin, 'instrument',
-      '--nycrc-path', settingsPath,
-      '--cwd', configuration.webapp,
-      configuration.webapp, destinationDirectory
+      nycBin,
+      'instrument',
+      '--nycrc-path',
+      settingsPath,
+      '--cwd',
+      configuration.webapp,
+      configuration.webapp,
+      destinationDirectory
     ],
     { detached: true }
   );
