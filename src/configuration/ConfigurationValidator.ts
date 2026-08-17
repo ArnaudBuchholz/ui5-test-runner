@@ -90,6 +90,31 @@ const extractConfigEntries = (parsed: Record<string, unknown>, configDirectory: 
   return { forcedKeys, configFileKeys, configFileObject };
 };
 
+const finalizeConfiguration = async (merged: Configuration) => {
+  for (const option of options) {
+    if (!Object.hasOwn(merged, option.name) && merged[option.name] && option.type === 'fs-entry') {
+      Object.assign(merged, {
+        [option.name]: await validateValue(option, merged)
+      });
+    }
+  }
+  for (const option of options) {
+    if (!(
+      option.type === 'fs-entry' &&
+      typeof merged[option.name] === 'string' &&
+      (merged[option.name] as string).includes('{{reportDir}}')
+    )) {
+      continue;
+    }
+    const substituted = Path.join(merged.reportDir, (merged[option.name] as string).split('{{reportDir}}', 2)[1]!);
+    Object.assign(merged, { [option.name]: await validateValue(option, { ...merged, [option.name]: substituted }) });
+  }
+  merged.mode = ConfigurationValidator.computeMode(merged);
+  for (const validate of validations) {
+    validate(merged);
+  }
+};
+
 export const ConfigurationValidator = {
   async merge(configuration: Configuration, explicitKeys: Set<string>, depth: number): Promise<Configuration> {
     if (!configuration.config || !Path.isAbsolute(configuration.config)) {
@@ -158,17 +183,7 @@ export const ConfigurationValidator = {
     }
     const merged = await this.merge(withDefaults, explicitKeys, depth);
     if (depth === 0) {
-      for (const option of options) {
-        if (!Object.hasOwn(merged, option.name) && merged[option.name] && option.type === 'fs-entry') {
-          Object.assign(merged, {
-            [option.name]: await validateValue(option, merged)
-          });
-        }
-      }
-      merged.mode = this.computeMode(merged);
-      for (const validate of validations) {
-        validate(merged);
-      }
+      await finalizeConfiguration(merged);
     }
     return merged;
   }

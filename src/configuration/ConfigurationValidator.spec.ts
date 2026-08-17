@@ -388,6 +388,33 @@ describe('merge (config file loading)', () => {
     });
   });
 
+  describe('{{reportDir}} substitution', () => {
+    const REPORT_DIR = '/custom/report' as const;
+
+    beforeEach(() => {
+      vi.mocked(validators['fs-entry']).mockImplementation(fsEntry);
+      vi.mocked(FileSystem.access).mockResolvedValue(undefined);
+      vi.mocked(FileSystem.stat).mockResolvedValue({ isDirectory: () => true, isFile: () => false } as Awaited<
+        ReturnType<typeof FileSystem.stat>
+      >);
+    });
+
+    afterEach(() => {
+      // @ts-expect-error -- Not able to type it properly
+      vi.mocked(validators['fs-entry']).mockImplementation(PASS_THROUGH);
+      vi.mocked(FileSystem.access).mockReset();
+      vi.mocked(FileSystem.stat).mockReset();
+    });
+
+    it('resolves {{reportDir}} relative to the resolved reportDir, ignoring the cwd prefix added in pass 1', async () => {
+      const result = await ConfigurationValidator.validate({
+        reportDir: REPORT_DIR,
+        coverageTempDir: '{{reportDir}}/.nyc_output'
+      });
+      expect(result.coverageTempDir).toStrictEqual(`${REPORT_DIR}/.nyc_output`);
+    });
+  });
+
   describe('depth limit', () => {
     it('throws an OptionValidationError for config when nesting exceeds the maximum depth', async () => {
       // Every read returns a config that points to another config file
