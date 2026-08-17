@@ -1,6 +1,7 @@
 ---
 "#type": "[[option]]"
 type: "[[fs-entry]]"
+short: cs
 typeModifiers:
   - "[[file]]"
   - "[[safe-default]]"

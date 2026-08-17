@@ -1,6 +1,7 @@
 ---
 "#type": "[[option]]"
 type: "[[fs-entry]]"
+short: crd
 typeModifiers:
   - "[[overwrite]]"
 summary: directory for the final coverage report
