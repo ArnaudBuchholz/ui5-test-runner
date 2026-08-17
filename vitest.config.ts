@@ -15,7 +15,9 @@ export default defineConfig({
         'src/**/*.spec.ts',
         'src/**/index.ts',
         'test/**',
-        'src/system/**'
+        'src/system/**',
+        // Generated
+        'src/configuration/validations.ts'
       ]
     },
     projects: [{
