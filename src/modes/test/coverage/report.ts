@@ -33,10 +33,14 @@ export const generateReport = async (configuration: Configuration): Promise<void
   const proc = Process.spawn(
     'node',
     [
-      nycBin, 'report',
-      '--nycrc-path', settingsPath,
-      '--temp-dir', mergedDirectory,
-      '--report-dir', configuration.coverageReportDir,
+      nycBin,
+      'report',
+      '--nycrc-path',
+      settingsPath,
+      '--temp-dir',
+      mergedDirectory,
+      '--report-dir',
+      configuration.coverageReportDir,
       ...reporterArguments
     ],
     { detached: true, forceRender: true }

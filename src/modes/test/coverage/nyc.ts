@@ -5,9 +5,7 @@ import type { Configuration } from '../../../configuration/Configuration.js';
 let cachedBinPath: string | undefined;
 
 const resolveNycPath = async (configuration: Configuration): Promise<string> => {
-  const cwdRequire = Module.createRequire(
-    Url.pathToFileURL(Path.join(configuration.cwd, 'package.json')).href
-  );
+  const cwdRequire = Module.createRequire(Url.pathToFileURL(Path.join(configuration.cwd, 'package.json')).href);
   const tryResolve = (paths: string[]): string | undefined => {
     try {
       return Path.dirname(cwdRequire.resolve('nyc/package.json', { paths }));

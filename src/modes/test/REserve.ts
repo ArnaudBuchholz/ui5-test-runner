@@ -1,4 +1,4 @@
-import { logger, Path  } from '../../platform/index.js';
+import { logger, Path } from '../../platform/index.js';
 import type { Configuration as REserveConfiguration } from 'reserve';
 import type { Configuration } from '../../configuration/Configuration.js';
 
