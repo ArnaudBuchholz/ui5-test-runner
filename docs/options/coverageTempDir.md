@@ -1,6 +1,7 @@
 ---
 "#type": "[[option]]"
 type: "[[fs-entry]]"
+short: ctd
 typeModifiers:
   - "[[overwrite]]"
 summary: temporary directory for coverage data

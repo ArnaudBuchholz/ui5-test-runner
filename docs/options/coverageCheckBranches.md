@@ -1,6 +1,7 @@
 ---
 "#type": "[[option]]"
 type: "[[percent]]"
+short: ccb
 summary: minimum branch coverage threshold (0 = no check)
 default: "0"
 tags:

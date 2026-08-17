@@ -121,30 +121,35 @@ export const options = [
   },
   {
     name: 'coverageCheckBranches',
+    short: 'ccb',
     type: 'percent',
     description: 'minimum branch coverage threshold (0 = no check)',
     default: 0
   },
   {
     name: 'coverageCheckFunctions',
+    short: 'ccf',
     type: 'percent',
     description: 'minimum function coverage threshold (0 = no check)',
     default: 0
   },
   {
     name: 'coverageCheckLines',
+    short: 'ccl',
     type: 'percent',
     description: 'minimum line coverage threshold (0 = no check)',
     default: 0
   },
   {
     name: 'coverageCheckStatements',
+    short: 'ccs',
     type: 'percent',
     description: 'minimum statement coverage threshold (0 = no check)',
     default: 0
   },
   {
     name: 'coverageReportDir',
+    short: 'crd',
     type: 'fs-entry',
     typeModifiers: new Set(['overwrite'] as const),
     description: 'directory for the final coverage report',
@@ -152,6 +157,7 @@ export const options = [
   },
   {
     name: 'coverageReporters',
+    short: 'cr',
     type: 'string',
     multiple: true,
     description: 'istanbul-lib-report reporters to use',
@@ -159,6 +165,7 @@ export const options = [
   },
   {
     name: 'coverageSettings',
+    short: 'cs',
     type: 'fs-entry',
     typeModifiers: new Set(['file', 'safe-default'] as const),
     description: 'path to the Istanbul configuration file (.nycrc.json)',
@@ -166,6 +173,7 @@ export const options = [
   },
   {
     name: 'coverageTempDir',
+    short: 'ctd',
     type: 'fs-entry',
     typeModifiers: new Set(['overwrite'] as const),
     description: 'temporary directory for coverage data',
