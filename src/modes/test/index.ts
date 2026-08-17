@@ -4,7 +4,7 @@ import { defaults } from '../../configuration/options.js';
 import { parallelize } from '../../utils/shared/parallelize.js';
 import { getAgentSource } from './agent.js';
 import { setupBrowser, getBrowser } from './browser.js';
-import { pageTask, initPageTaskConfig } from './pageTask.js';
+import { makePageTask } from './pageTask.js';
 import { initBrowserConfig } from './browserConfig.js';
 import { initReportBuilder, getReportBuilder, setReportBrowserInfo } from './report.js';
 import { saveReport } from '../../reports/saveReport.js';
@@ -74,13 +74,12 @@ export const test = async (configuration: Configuration) => {
     setReportBrowserInfo(capabilities);
     isBrowserStarted = true;
     initBrowserConfig(configuration);
-    initPageTaskConfig(configuration);
     logger.info({ source: 'progress', message: 'Executing pages', pageId: undefined, data: { value: 0, max: 0 } });
     sendToParentProcess({ type: 'progress', count: 0, total: 0 });
     let completed = 0;
     let lastLoggedCompleted: number | undefined;
     let lastLoggedMax: number | undefined;
-    await parallelize(pageTask, urls, {
+    await parallelize(makePageTask(configuration), urls, {
       parallel: configuration.parallel,
       on: (event) => {
         if (event.type === 'failed') {

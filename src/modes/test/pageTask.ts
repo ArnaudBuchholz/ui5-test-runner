@@ -15,12 +15,6 @@ import type { IError } from '../../types/IError.js';
 import { collect } from './coverage/index.js';
 import type { Configuration } from '../../configuration/Configuration.js';
 
-let _configuration: Configuration | undefined;
-
-export const initPageTaskConfig = (configuration: Configuration): void => {
-  _configuration = configuration;
-};
-
 let lastPageId = 0;
 
 type PageContext = {
@@ -162,7 +156,8 @@ const queryAgentState = async (context: PageContext): Promise<boolean> => {
   return false;
 };
 
-export const pageTask = async function (this: IParallelizeContext, url: string, index: number, urls: string[]) {
+export const makePageTask = (configuration: Configuration) =>
+  async function (this: IParallelizeContext, url: string, _index: number, urls: string[]) {
   const pageId = ++lastPageId;
   logger.debug({ source: 'page', message: 'new page task', pageId, data: { url } });
   logger.info({
@@ -244,10 +239,10 @@ export const pageTask = async function (this: IParallelizeContext, url: string, 
       }
     }
     const testResults = (await page.eval("window['ui5-test-runner'].results")) as CommonTestReport['results'];
-    if (_configuration?.coverage) {
+    if (configuration.coverage) {
       const coverageData = await page.eval('window.__coverage__');
       if (coverageData !== undefined && coverageData !== null) {
-        await collect(_configuration, url, coverageData);
+        await collect(configuration, url, coverageData);
       } else {
         logger.warn({ source: 'coverage', message: 'No coverage data found for page', data: { url } });
       }
@@ -289,4 +284,4 @@ export const pageTask = async function (this: IParallelizeContext, url: string, 
     }
     setTaskAsStopped();
   }
-};
+  };
