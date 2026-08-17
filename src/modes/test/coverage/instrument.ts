@@ -11,14 +11,14 @@ export const instrument = async (configuration: Configuration): Promise<void> =>
 
   const nycBin = await getNycBin(configuration);
   const settingsPath = getSettingsPath();
-  const destDir = Path.join(configuration.coverageTempDir, 'instrumented');
+  const destinationDirectory = Path.join(configuration.coverageTempDir, 'instrumented');
   const proc = Process.spawn(
     'node',
     [
       nycBin, 'instrument',
       '--nycrc-path', settingsPath,
       '--cwd', configuration.webapp,
-      configuration.webapp, destDir
+      configuration.webapp, destinationDirectory
     ],
     { detached: true }
   );

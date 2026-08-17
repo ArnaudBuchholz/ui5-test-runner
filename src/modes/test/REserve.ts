@@ -1,7 +1,6 @@
-import { logger } from '../../platform/index.js';
+import { logger, Path  } from '../../platform/index.js';
 import type { Configuration as REserveConfiguration } from 'reserve';
 import type { Configuration } from '../../configuration/Configuration.js';
-import { Path } from '../../platform/index.js';
 
 export const buildREserveConfiguration = (configuration: Configuration): REserveConfiguration => {
   const match = /\/((?:test-)?resources\/.*)/; // Captured value never starts with /
@@ -14,6 +13,7 @@ export const buildREserveConfiguration = (configuration: Configuration): REserve
   const coverageMappings: REserveConfiguration['mappings'] = configuration.coverage
     ? [
         {
+          // eslint-disable-next-line security/detect-unsafe-regex, sonarjs/super-linear-regex -- kind of safe
           match: /(.*\.js)(\?.*)?$/,
           cwd: Path.join(configuration.coverageTempDir, 'instrumented'),
           file: '$1'

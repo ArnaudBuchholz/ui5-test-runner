@@ -1,4 +1,5 @@
 import './opaIframeCoverage.js';
+import './ui5Coverage.js';
 import './onload.js';
 import './onerror.js';
 import { UI5_TEST_RUNNER } from './contants.js';

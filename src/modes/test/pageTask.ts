@@ -1,7 +1,7 @@
 import type { IParallelizeContext } from '../../utils/shared/parallelize.js';
 import { assert, Http, logger } from '../../platform/index.js';
 import type { PageProgressData } from '../../platform/logger/types.js';
-import { getAgentSource, getCoverageAgentSource } from './agent.js';
+import { getAgentSource } from './agent.js';
 import { getBrowser } from './browser.js';
 import type { AgentState } from '../../types/AgentState.js';
 import { Exit, ExitShutdownError } from '../../platform/Exit.js';
@@ -213,9 +213,6 @@ export const pageTask = async function (this: IParallelizeContext, url: string, 
     const agentSource = await getAgentSource();
     const browserConfig = getBrowserConfigScript();
     const scripts = [browserConfig, agentSource];
-    if (_configuration?.coverage) {
-      scripts.push(await getCoverageAgentSource());
-    }
     const browser = getBrowser();
     page = await browser.newWindow({
       pageId,
