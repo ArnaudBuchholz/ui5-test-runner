@@ -1,4 +1,4 @@
-import { FileSystem, Path, Process, Exit, logger } from '../../../platform/index.js';
+import { Host, Path, Process, Exit, logger } from '../../../platform/index.js';
 import type { Configuration } from '../../../configuration/Configuration.js';
 import { Folder } from '../../../utils/node/Folder.js';
 import { getNycBin } from './nyc.js';
@@ -8,26 +8,38 @@ export const generateReport = async (configuration: Configuration): Promise<void
   logger.info({ source: 'coverage', message: 'Generating coverage report...' });
   await Folder.recreate(configuration.coverageReportDir);
 
-  // Merge per-page coverage files into a single object for nyc report
-  const mergedDirectory = Path.join(configuration.coverageTempDir, 'merged');
-  await Folder.create(mergedDirectory);
-  const merged: Record<string, unknown> = {};
-  const entries = await FileSystem.readdir(configuration.coverageTempDir, { withFileTypes: true });
-  for (const entry of entries) {
-    if (!entry.isFile() || !entry.name.endsWith('.json')) continue;
-    const data = JSON.parse(
-      await FileSystem.readFile(Path.join(configuration.coverageTempDir, entry.name), 'utf8')
-    ) as Record<string, unknown>;
-    Object.assign(merged, data);
-  }
-  const mergedPath = Path.join(mergedDirectory, 'coverage.json');
-  await FileSystem.writeFile(mergedPath, JSON.stringify(merged));
-
-  // Run nyc report
   const nycBin = await getNycBin(configuration);
   const settingsPath = getSettingsPath();
+
+  // Merge per-page coverage files using nyc merge
+  const mergedDirectory = Path.join(configuration.coverageTempDir, 'merged');
+  await Folder.create(mergedDirectory);
+  const mergedPath = Path.join(mergedDirectory, 'coverage.json');
+  const mergeProc = Process.spawn('node', [nycBin, 'merge', configuration.coverageTempDir, mergedPath], {
+    detached: true
+  });
+  await mergeProc.closed;
+  if (mergeProc.code !== 0) {
+    throw new Error(`nyc merge failed with code ${mergeProc.code}`);
+  }
+
+  const checks: [string, number][] = [
+    ['--branches', configuration.coverageCheckBranches],
+    ['--functions', configuration.coverageCheckFunctions],
+    ['--lines', configuration.coverageCheckLines],
+    ['--statements', configuration.coverageCheckStatements]
+  ];
+  const hasThresholds = checks.some(([, value]) => value > 0);
+  // Always pass all four flags explicitly when --check-coverage is used: @istanbuljs/schema defaults
+  // lines to 90, so omitting a flag would silently enforce a 90% threshold.
+  const thresholdArguments = checks.flatMap(([flag, value]) => [flag, String(value)]);
+  const checkCoverageArguments = hasThresholds ? ['--check-coverage', ...thresholdArguments] : [];
+
+  // Run nyc report (with optional threshold checks via --check-coverage)
   const reporters = [...configuration.coverageReporters];
-  if (!reporters.includes('text')) reporters.push('text');
+  if (!reporters.includes('text')) {
+    reporters.push('text');
+  }
   const reporterArguments = reporters.flatMap((r) => ['--reporter', r]);
 
   const proc = Process.spawn(
@@ -41,37 +53,22 @@ export const generateReport = async (configuration: Configuration): Promise<void
       mergedDirectory,
       '--report-dir',
       configuration.coverageReportDir,
-      ...reporterArguments
+      ...reporterArguments,
+      ...checkCoverageArguments
     ],
-    { detached: true, forceRender: true }
+    { detached: true, forceRender: true, env: { ...Host.env, NODE_OPTIONS: '' } }
   );
   await proc.closed;
   if (proc.code !== 0) {
-    throw new Error(`nyc report failed with code ${proc.code}`);
-  }
-
-  // Threshold checks via nyc check-coverage
-  const checks: [string, number][] = [
-    ['--branches', configuration.coverageCheckBranches],
-    ['--functions', configuration.coverageCheckFunctions],
-    ['--lines', configuration.coverageCheckLines],
-    ['--statements', configuration.coverageCheckStatements]
-  ];
-  const thresholdArguments = checks.flatMap(([flag, value]) => (value > 0 ? [flag, String(value)] : []));
-  if (thresholdArguments.length > 0) {
-    const checkProc = Process.spawn(
-      'node',
-      [nycBin, 'check-coverage', '--nycrc-path', settingsPath, '--temp-dir', mergedDirectory, ...thresholdArguments],
-      { detached: true }
-    );
-    await checkProc.closed;
-    if (checkProc.code !== 0) {
+    if (checkCoverageArguments.length > 0) {
       const thresholds = checks
         .filter(([, value]) => value > 0)
         .map(([flag, value]) => `${flag.replace('--', '')}=${value}%`)
         .join(', ');
       logger.error({ source: 'coverage', message: `Coverage thresholds not met (${thresholds})` });
       Exit.code = -1;
+    } else {
+      throw new Error(`nyc report failed with code ${proc.code}`);
     }
   }
 

@@ -1,6 +1,5 @@
 import type { IParallelizeContext } from '../../utils/shared/parallelize.js';
 import { assert, Http, logger } from '../../platform/index.js';
-import type { PageProgressData } from '../../platform/logger/types.js';
 import { getAgentSource } from './agent.js';
 import { getBrowser } from './browser.js';
 import type { AgentState } from '../../types/AgentState.js';
@@ -14,22 +13,9 @@ import { getBrowserConfigScript } from './browserConfig.js';
 import type { IError } from '../../types/IError.js';
 import { collect } from './coverage/index.js';
 import type { Configuration } from '../../configuration/Configuration.js';
+import type { PageContext } from './PageContext.js';
 
 let lastPageId = 0;
-
-type PageContext = {
-  pageId: number;
-  urls: string[];
-  url: string;
-  page: IWindow;
-  loopDelay: number;
-  type: PageProgressData['type'];
-  lastExecuted: number;
-  errors: number;
-  lastTotal: number;
-  isSuite: boolean;
-  lastUncaughtErrorsCount: number;
-};
 
 export const agentStateMessage = (agentState: AgentState): string => {
   if (agentState.type === 'suite') return 'agent state: suite done';
@@ -180,16 +166,17 @@ const tryToFetchThePageFirst = async (url: string, pageId: number) => {
   }
 };
 
-const collectCoverage = async (configuration: Configuration, { page, url }: PageContext) => {
-  if (!configuration.coverage) {
+const collectCoverage = async (configuration: Configuration, pageContext: PageContext) => {
+  const { page, url, isSuite, pageId } = pageContext;
+  if (!configuration.coverage || isSuite) {
     return;
   }
 
   const coverageData = await page.eval('window.__coverage__');
   if (coverageData !== undefined && coverageData !== null) {
-    await collect(configuration, url, coverageData);
+    await collect(configuration, pageContext, coverageData);
   } else {
-    logger.warn({ source: 'coverage', message: 'No coverage data found for page', data: { url } });
+    logger.warn({ source: 'coverage', pageId, message: 'No coverage data found for page', data: { url } });
   }
 };
 
