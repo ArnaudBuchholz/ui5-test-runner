@@ -201,19 +201,73 @@ describe('listPackageScriptNames', () => {
   });
 });
 
+const makeRequire = (resolvedPath: string) =>
+  Object.assign(vi.fn(), {
+    resolve: vi.fn().mockReturnValue(resolvedPath)
+  }) as unknown as ReturnType<typeof Module.createRequire>;
+
+const makeRequireThrow = () =>
+  Object.assign(vi.fn(), {
+    resolve: vi.fn().mockImplementation(() => {
+      throw new Error('Module not found');
+    })
+  }) as unknown as ReturnType<typeof Module.createRequire>;
+
+describe('resolvePackageDir', () => {
+  it('returns the package dir when found in local root', async () => {
+    vi.mocked(Module.createRequire).mockReturnValue(makeRequire('/local/root/some-module/package.json'));
+    vi.mocked(Url.pathToFileURL).mockReturnValueOnce({ href: `file://${CWD}/package.json` } as URL);
+    await expect(Npm.resolvePackageDir(NO_CONFIGURATION, 'some-module')).resolves.toBe('/local/root/some-module');
+  });
+
+  it('returns the package dir when found in global root', async () => {
+    vi.mocked(Module.createRequire)
+      .mockReturnValueOnce(makeRequireThrow())
+      .mockReturnValueOnce(makeRequire('/global/root/some-module/package.json'));
+    vi.mocked(Url.pathToFileURL)
+      .mockReturnValueOnce({ href: `file://${CWD}/package.json` } as URL)
+      .mockReturnValueOnce({ href: `file://${CWD}/package.json` } as URL);
+    await expect(Npm.resolvePackageDir(NO_CONFIGURATION, 'some-module')).resolves.toBe('/global/root/some-module');
+  });
+
+  it('returns the package dir when found in alternateNpmPath', async () => {
+    vi.mocked(Module.createRequire)
+      .mockReturnValueOnce(makeRequireThrow())
+      .mockReturnValueOnce(makeRequireThrow())
+      .mockReturnValueOnce(makeRequire('/alternate/path/some-module/package.json'));
+    vi.mocked(Url.pathToFileURL)
+      .mockReturnValueOnce({ href: `file://${CWD}/package.json` } as URL)
+      .mockReturnValueOnce({ href: `file://${CWD}/package.json` } as URL)
+      .mockReturnValueOnce({ href: `file://${CWD}/package.json` } as URL);
+    await expect(Npm.resolvePackageDir(ALTERNATE_NPM_PATH_CONFIGURATION, 'some-module')).resolves.toBe(
+      '/alternate/path/some-module'
+    );
+  });
+
+  it('returns the package dir when found in npmInstallPrefix', async () => {
+    vi.mocked(Module.createRequire)
+      .mockReturnValueOnce(makeRequireThrow())
+      .mockReturnValueOnce(makeRequireThrow())
+      .mockReturnValueOnce(makeRequire('/prefix/path/node_modules/some-module/package.json'));
+    vi.mocked(Url.pathToFileURL)
+      .mockReturnValueOnce({ href: `file://${CWD}/package.json` } as URL)
+      .mockReturnValueOnce({ href: `file://${CWD}/package.json` } as URL)
+      .mockReturnValueOnce({ href: `file://${CWD}/package.json` } as URL);
+    await expect(Npm.resolvePackageDir(NPM_INSTALL_PREFIX_CONFIGURATION, 'some-module')).resolves.toBe(
+      '/prefix/path/node_modules/some-module'
+    );
+  });
+
+  it('throws when the package cannot be found in any location', async () => {
+    vi.mocked(Module.createRequire).mockReturnValue(makeRequireThrow());
+    vi.mocked(Url.pathToFileURL).mockReturnValue({ href: `file://${CWD}/package.json` } as URL);
+    await expect(Npm.resolvePackageDir(NO_CONFIGURATION, 'missing-module')).rejects.toThrow(
+      'Cannot locate package directory for missing-module'
+    );
+  });
+});
+
 describe('import', () => {
-  const makeRequire = (resolvedPath: string) =>
-    Object.assign(vi.fn(), {
-      resolve: vi.fn().mockReturnValue(resolvedPath)
-    }) as unknown as ReturnType<typeof Module.createRequire>;
-
-  const makeRequireThrow = () =>
-    Object.assign(vi.fn(), {
-      resolve: vi.fn().mockImplementation(() => {
-        throw new Error('Module not found');
-      })
-    }) as unknown as ReturnType<typeof Module.createRequire>;
-
   it('returns the module when found locally', async () => {
     const FAKE_MODULE = { default: 'local-module' };
     vi.mocked(FileSystem.readFile).mockResolvedValue(JSON.stringify({ version: '1.0.0' }));

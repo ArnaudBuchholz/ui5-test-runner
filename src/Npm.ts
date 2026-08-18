@@ -79,6 +79,19 @@ export class Npm {
     return import(specifier);
   }
 
+  private static tryResolvePackageDir(
+    configuration: Configuration,
+    moduleName: string,
+    nodeModulesPath: string
+  ): string | undefined {
+    try {
+      const require = Module.createRequire(Url.pathToFileURL(Path.join(configuration.cwd, 'package.json')).href);
+      return Path.dirname(require.resolve(`${moduleName}/package.json`, { paths: [nodeModulesPath] }));
+    } catch {
+      return undefined;
+    }
+  }
+
   private static async tryImportFromPath(
     configuration: Configuration,
     moduleName: string,
@@ -169,6 +182,33 @@ export class Npm {
     }
 
     return await this.dynamicImport(moduleName);
+  }
+
+  /** Locate the installed package root directory, searching in the same order as Npm.import */
+  static async resolvePackageDir(configuration: Configuration, moduleName: string): Promise<string> {
+    const { local, global: globalRoot } = await getRoots();
+
+    const fromLocal = this.tryResolvePackageDir(configuration, moduleName, local);
+    if (fromLocal) return fromLocal;
+
+    const fromGlobal = this.tryResolvePackageDir(configuration, moduleName, globalRoot);
+    if (fromGlobal) return fromGlobal;
+
+    if (configuration.alternateNpmPath) {
+      const fromAlternate = this.tryResolvePackageDir(configuration, moduleName, configuration.alternateNpmPath);
+      if (fromAlternate) return fromAlternate;
+    }
+
+    if (configuration.npmInstallPrefix) {
+      const fromPrefix = this.tryResolvePackageDir(
+        configuration,
+        moduleName,
+        Path.join(configuration.npmInstallPrefix, 'node_modules')
+      );
+      if (fromPrefix) return fromPrefix;
+    }
+
+    throw new Error(`Cannot locate package directory for ${moduleName}`);
   }
 
   /** fetch the latest version info for the given module */
