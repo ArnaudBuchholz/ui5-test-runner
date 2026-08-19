@@ -9,11 +9,15 @@ interface SettingsEntry {
 
 const cache = new WeakMap<Configuration, Promise<SettingsEntry>>();
 
-export const getSettingsPath = async (configuration: Configuration): Promise<string> =>
-  (await initSettings(configuration)).settingsPath;
+export const getSettingsPath = async (configuration: Configuration): Promise<string> => {
+  const { settingsPath } = await initSettings(configuration);
+  return settingsPath;
+};
 
-export const getSettings = async (configuration: Configuration): Promise<IstanbulSettings> =>
-  (await initSettings(configuration)).settings;
+export const getSettings = async (configuration: Configuration): Promise<IstanbulSettings> => {
+  const { settings } = await initSettings(configuration);
+  return settings;
+};
 
 export const initSettings = (configuration: Configuration): Promise<SettingsEntry> => {
   let promise = cache.get(configuration);
