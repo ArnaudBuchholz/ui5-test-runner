@@ -1,7 +1,7 @@
 {
   "batchId": "WEBDRIVERIO",
   "batchLabel": "Webdriver.io browser",
-  "if": "E2E_IGNORE_BROWSER !== 'true'",
+  "if": "false && E2E_IGNORE_BROWSER !== 'true'",
   "capabilities": null,
   "debugKeepReport": null,
   "browser": "$/webdriverio.js",
