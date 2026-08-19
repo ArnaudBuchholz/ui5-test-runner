@@ -24,6 +24,7 @@
   -u, --unsecure                    Disable security features (default: false)
   --device <name>                   Emulate a device (see puppeteer known
                                     devices), overrides --viewport-width/height
+                                    (default: "")
   --basic-auth-username <username>  Username for basic authentication (default:
                                     "")
   --basic-auth-password <password>  Password for basic authentication (default:
