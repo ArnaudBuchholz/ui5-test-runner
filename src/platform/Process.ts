@@ -56,7 +56,7 @@ export class Process implements IProcess {
     options = {}
   ) => {
     const { onMessage, forceRender: _forceRender, ...spawnOptions } = options;
-    const finalCommand = command === 'node' ? (Host.argv[0] as string) : command;
+    const finalCommand = command === 'node' ? Host.nodePath : command;
     let asyncTask: IRegisteredAsyncTask | undefined;
     try {
       const stopper = new ProcessStopper();
