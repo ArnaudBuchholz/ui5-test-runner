@@ -22,6 +22,8 @@
   -l, --language <lang...>          Language(s) (see rfc5646) (default:
                                     ["en-US"])
   -u, --unsecure                    Disable security features (default: false)
+  --device <name>                   Emulate a device (see puppeteer known
+                                    devices), overrides --viewport-width/height
   --basic-auth-username <username>  Username for basic authentication (default:
                                     "")
   --basic-auth-password <password>  Password for basic authentication (default:
@@ -35,6 +37,8 @@ For instance :
 * `ui5-test-runner --url http://localhost:8080/testsuite.qunit.html -- --unsecure -- --disable-infobars`
 * or *(equivalent)* `ui5-test-runner --url http://localhost:8080/testsuite.qunit.html --browser-args --unsecure --browser-args -- --browser-args --disable-infobars`
 
+
+The `--device` option accepts one of puppeteer's [known device names](https://pptr.dev/api/puppeteer.knowndevices) (e.g. `"iPhone X"`), and emulates its viewport, user agent and touch support. It takes precedence over `--viewport-width`/`--viewport-height`.
 
 ## Implementation notes
 

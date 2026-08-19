@@ -15,6 +15,7 @@ require('./browser')({
       'viewport',
       'language',
       'unsecure',
+      ['--device <name>', 'Emulate a device (see puppeteer known devices), overrides --viewport-width/height', ''],
       ['--basic-auth-username <username>', 'Username for basic authentication', ''],
       ['--basic-auth-password <password>', 'Password for basic authentication', '']
     ]
@@ -78,6 +79,15 @@ require('./browser')({
     console.timeEnd('⏲ launch   ')
 
     page = (await browser.pages())[0]
+
+    if (options.device) {
+      const knownDevices = puppeteer.KnownDevices || {}
+      const device = knownDevices[options.device]
+      if (!device) {
+        throw new Error(`Unknown device "${options.device}", available devices: ${Object.keys(knownDevices).join(', ')}`)
+      }
+      await page.emulate(device)
+    }
 
     if (options.unsecure) {
       await page.setBypassCSP(true)

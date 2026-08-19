@@ -1,0 +1,10 @@
+{
+  "batchId": "PUPPETEER_DEVICE_UNKNOWN",
+  "batchLabel": "Puppeteer device emulation with an unknown device name",
+  "if": "E2E_IGNORE_BROWSER !== 'true'",
+  "url": ["http://localhost:8080/test/unit/device.qunit.html"],
+  "browser": "$/puppeteer.js",
+  "browserArgs": ["--device", "no-such-device"],
+  "browserRetry": 0,
+  "end": "../e2e/check.js --failed"
+}
