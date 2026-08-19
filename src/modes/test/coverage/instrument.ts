@@ -50,6 +50,13 @@ export const instrument = async (configuration: Configuration): Promise<void> =>
     throw new Error(`nyc instrument failed with code ${proc.code}`);
   }
 
+  /** TODO
+   * extract baseline only if all is specified
+   * use nyc for performance (and complexity reason)
+   * node nyc.js --nycrc-path /.../.nycrc.json --temp-dir /.nyc_output/baseline node -e ""
+   * then move baseline to the root of .nyc_output 
+   * We must do that this way because nyc clears out the temp dir...
+   */
   const baselines: Record<string, unknown> = {};
   await extractBaseline(baselines, destinationDirectory);
   await FileSystem.writeFile(Path.join(configuration.coverageTempDir, 'baselines.json'), JSON.stringify(baselines));
