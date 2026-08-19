@@ -1,0 +1,9 @@
+{
+  "batchId": "PUPPETEER_DEVICE",
+  "batchLabel": "Puppeteer device emulation",
+  "if": "E2E_IGNORE_BROWSER !== 'true'",
+  "url": ["http://localhost:8080/test/unit/device.qunit.html"],
+  "browser": "$/puppeteer.js",
+  "browserArgs": ["--device", "iPhone X"],
+  "end": "../e2e/check.js --qunit-pages 1"
+}
