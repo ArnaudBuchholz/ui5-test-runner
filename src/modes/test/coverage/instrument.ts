@@ -1,27 +1,10 @@
-import { FileSystem, Path, Process, logger } from '../../../platform/index.js';
+import { FileSystem, Host, Path, Process, logger } from '../../../platform/index.js';
 import type { Configuration } from '../../../configuration/Configuration.js';
 import { Folder } from '../../../utils/node/Folder.js';
 import { getNycBin } from './nyc.js';
-import { initSettings, getSettingsPath } from './settings.js';
+import { initSettings, getSettings, getSettingsPath } from './settings.js';
 
-const COVERAGE_DATA_PATTERN = /var coverageData=(\{.*?\});var coverage=/s;
-
-const extractBaseline = async (baselines: Record<string, unknown>, directory: string): Promise<void> => {
-  const entries = await FileSystem.readdir(directory, { withFileTypes: true });
-  for (const entry of entries) {
-    const fullPath = Path.join(directory, entry.name);
-    if (entry.isDirectory()) {
-      await extractBaseline(baselines, fullPath);
-    } else if (entry.isFile() && entry.name.endsWith('.js')) {
-      const source = await FileSystem.readFile(fullPath, 'utf8');
-      const match = COVERAGE_DATA_PATTERN.exec(source);
-      if (match) {
-        const data = (0, eval)(`(${match[1]})`) as { path: string };
-        baselines[data.path] = data;
-      }
-    }
-  }
-};
+const MIN_BASELINE_FILE_SIZE = 5; // avoids empty {}
 
 export const instrument = async (configuration: Configuration): Promise<void> => {
   logger.info({ source: 'coverage', message: 'Instrumenting source files...' });
@@ -50,16 +33,35 @@ export const instrument = async (configuration: Configuration): Promise<void> =>
     throw new Error(`nyc instrument failed with code ${proc.code}`);
   }
 
-  /** TODO
-   * extract baseline only if all is specified
-   * use nyc for performance (and complexity reason)
-   * node nyc.js --nycrc-path /.../.nycrc.json --temp-dir /.nyc_output/baseline node -e ""
-   * then move baseline to the root of .nyc_output 
-   * We must do that this way because nyc clears out the temp dir...
-   */
-  const baselines: Record<string, unknown> = {};
-  await extractBaseline(baselines, destinationDirectory);
-  await FileSystem.writeFile(Path.join(configuration.coverageTempDir, 'baselines.json'), JSON.stringify(baselines));
+  if (getSettings().all !== false) {
+    // Use nyc itself to generate baseline coverage (all files at zero hits).
+    const baselineTemporaryDirectory = Path.join(configuration.coverageTempDir, 'baseline');
+    const baselineProc = Process.spawn(
+      'node',
+      [nycBin, '--nycrc-path', settingsPath, '--temp-dir', baselineTemporaryDirectory, Host.nodePath, '-e', ''],
+      { detached: true }
+    );
+    await baselineProc.closed;
+    if (baselineProc.code !== 0) {
+      throw new Error(`nyc baseline generation failed with code ${baselineProc.code}`);
+    }
+    const baselineFiles = await FileSystem.readdir(baselineTemporaryDirectory, { withFileTypes: true });
+    let baselineIndex = 0;
+    for (const entry of baselineFiles) {
+      if (!entry.isFile()) {
+        continue;
+      }
+      const sourcePath = Path.join(baselineTemporaryDirectory, entry.name);
+      const { size } = await FileSystem.stat(sourcePath);
+      if (size <= MIN_BASELINE_FILE_SIZE) {
+        continue;
+      }
+      const destinationName = baselineIndex === 0 ? 'baseline.json' : `baseline-${baselineIndex}.json`;
+      await FileSystem.rename(sourcePath, Path.join(configuration.coverageTempDir, destinationName));
+      ++baselineIndex;
+    }
+    await FileSystem.rm(baselineTemporaryDirectory, { recursive: true });
+  }
 
   logger.info({ source: 'coverage', message: 'Instrumentation complete' });
 };
