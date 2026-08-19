@@ -2,24 +2,29 @@ import { FileSystem, Path, logger } from '../../../platform/index.js';
 import type { Configuration } from '../../../configuration/Configuration.js';
 import type { IstanbulSettings } from './types.js';
 
-let _settings: IstanbulSettings | undefined;
-let _settingsPath: string | undefined;
+interface SettingsEntry {
+  settings: IstanbulSettings;
+  settingsPath: string;
+}
 
-export const getSettingsPath = (): string => {
-  if (_settingsPath === undefined) {
-    throw new Error('Coverage settings not initialized');
+const cache = new WeakMap<Configuration, Promise<SettingsEntry>>();
+
+export const getSettingsPath = async (configuration: Configuration): Promise<string> =>
+  (await initSettings(configuration)).settingsPath;
+
+export const getSettings = async (configuration: Configuration): Promise<IstanbulSettings> =>
+  (await initSettings(configuration)).settings;
+
+export const initSettings = (configuration: Configuration): Promise<SettingsEntry> => {
+  let promise = cache.get(configuration);
+  if (!promise) {
+    promise = _initSettings(configuration);
+    cache.set(configuration, promise);
   }
-  return _settingsPath;
+  return promise;
 };
 
-export const getSettings = (): IstanbulSettings => {
-  if (_settings === undefined) {
-    throw new Error('Coverage settings not initialized');
-  }
-  return _settings;
-};
-
-export const initSettings = async (configuration: Configuration): Promise<IstanbulSettings> => {
+const _initSettings = async (configuration: Configuration): Promise<SettingsEntry> => {
   let base: IstanbulSettings = {};
   try {
     await FileSystem.access(configuration.coverageSettings, FileSystem.constants.R_OK);
@@ -51,10 +56,9 @@ export const initSettings = async (configuration: Configuration): Promise<Istanb
   };
 
   const settingsDirectory = Path.join(configuration.coverageTempDir, 'settings');
-  _settingsPath = Path.join(settingsDirectory, '.nycrc.json');
+  const settingsPath = Path.join(settingsDirectory, '.nycrc.json');
   await FileSystem.mkdir(settingsDirectory, { recursive: true });
-  await FileSystem.writeFile(_settingsPath, JSON.stringify(settings, undefined, 2));
-  _settings = settings;
-  logger.debug({ source: 'coverage', message: `Coverage settings written to ${_settingsPath}` });
-  return settings;
+  await FileSystem.writeFile(settingsPath, JSON.stringify(settings, undefined, 2));
+  logger.debug({ source: 'coverage', message: `Coverage settings written to ${settingsPath}` });
+  return { settings, settingsPath };
 };

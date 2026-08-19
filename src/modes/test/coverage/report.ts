@@ -12,8 +12,7 @@ export const generateReport = async (
   logger.info({ source: 'coverage', message: 'Generating coverage report...' });
   await Folder.recreate(configuration.coverageReportDir);
 
-  const nycBin = await getNycBin(configuration);
-  const settingsPath = getSettingsPath();
+  const [nycBin, settingsPath] = await Promise.all([getNycBin(configuration), getSettingsPath(configuration)]);
 
   // Merge per-page coverage files using nyc merge
   const mergedDirectory = Path.join(configuration.coverageTempDir, 'merged');
