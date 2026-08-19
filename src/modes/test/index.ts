@@ -103,7 +103,10 @@ export const test = async (configuration: Configuration) => {
     });
     getReportBuilder().finalize();
     if (configuration.coverage) {
-      await generateReport(configuration);
+      const coverageFailure = await generateReport(configuration);
+      if (coverageFailure) {
+        getReportBuilder().merge('coverage', coverageFailure);
+      }
     }
     const { report } = getReportBuilder();
     await saveReport(configuration, report);
