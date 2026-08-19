@@ -2,17 +2,16 @@ import { FileSystem, Host, Path, Process, logger } from '../../../platform/index
 import type { Configuration } from '../../../configuration/Configuration.js';
 import { Folder } from '../../../utils/node/Folder.js';
 import { getNycBin } from './nyc.js';
-import { initSettings, getSettings, getSettingsPath } from './settings.js';
+import { initSettings } from './settings.js';
 
 const MIN_BASELINE_FILE_SIZE = 5; // avoids empty {}
 
 export const instrument = async (configuration: Configuration): Promise<void> => {
   logger.info({ source: 'coverage', message: 'Instrumenting source files...' });
   await Folder.recreate(configuration.coverageTempDir);
-  await initSettings(configuration);
+  const { settings, settingsPath } = await initSettings(configuration);
 
   const nycBin = await getNycBin(configuration);
-  const settingsPath = getSettingsPath();
   const destinationDirectory = Path.join(configuration.coverageTempDir, 'instrumented');
   const proc = Process.spawn(
     'node',
@@ -33,7 +32,7 @@ export const instrument = async (configuration: Configuration): Promise<void> =>
     throw new Error(`nyc instrument failed with code ${proc.code}`);
   }
 
-  if (getSettings().all !== false) {
+  if (settings.all !== false) {
     // Use nyc itself to generate baseline coverage (all files at zero hits).
     const baselineTemporaryDirectory = Path.join(configuration.coverageTempDir, 'baseline');
     const baselineProc = Process.spawn(
