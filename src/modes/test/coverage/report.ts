@@ -1,10 +1,14 @@
-import { Host, Path, Process, Exit, logger } from '../../../platform/index.js';
+import { Host, Path, Process, logger } from '../../../platform/index.js';
 import type { Configuration } from '../../../configuration/Configuration.js';
+import type { CommonTestReport } from '../../../types/CommonTestReportFormat.js';
+import { createEmptyTestResults } from '../../../types/CommonTestReportFormat.js';
 import { Folder } from '../../../utils/node/Folder.js';
 import { getNycBin } from './nyc.js';
 import { getSettingsPath } from './settings.js';
 
-export const generateReport = async (configuration: Configuration): Promise<void> => {
+export const generateReport = async (
+  configuration: Configuration
+): Promise<CommonTestReport['results'] | undefined> => {
   logger.info({ source: 'coverage', message: 'Generating coverage report...' });
   await Folder.recreate(configuration.coverageReportDir);
 
@@ -66,11 +70,22 @@ export const generateReport = async (configuration: Configuration): Promise<void
         .map(([flag, value]) => `${flag.replace('--', '')}=${value}%`)
         .join(', ');
       logger.error({ source: 'coverage', message: `Coverage thresholds not met (${thresholds})` });
-      Exit.code = -1;
-    } else {
-      throw new Error(`nyc report failed with code ${proc.code}`);
+      logger.info({ source: 'coverage', message: 'Coverage report complete' });
+      const results = createEmptyTestResults();
+      results.tool.name = 'nyc';
+      results.summary.tests = 1;
+      results.summary.failed = 1;
+      results.tests.push({
+        name: 'Global code coverage check',
+        status: 'failed',
+        duration: 0,
+        message: `Coverage thresholds not met (${thresholds})`
+      });
+      return results;
     }
+    throw new Error(`nyc report failed with code ${proc.code}`);
   }
 
   logger.info({ source: 'coverage', message: 'Coverage report complete' });
+  return undefined;
 };
