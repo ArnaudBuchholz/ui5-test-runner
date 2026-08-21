@@ -28,7 +28,7 @@ const BASE_CONFIGURATION = {
 } as unknown as Configuration;
 
 const makeConfiguration = (overrides: object): Configuration =>
-  ({ ...BASE_CONFIGURATION, ...overrides }) as unknown as Configuration;
+  ({ ...BASE_CONFIGURATION, ...overrides });
 
 const setupHappyPath = () => {
   vi.spyOn(Folder, 'recreate').mockResolvedValue(undefined);
@@ -85,8 +85,8 @@ describe('generateReport', () => {
   it('always includes text reporter', async () => {
     setupHappyPath();
     await generateReport(BASE_CONFIGURATION);
-    const reportCall = vi.mocked(Process.spawn).mock.calls.find(([, args]) =>
-      Array.isArray(args) && args.includes('report')
+    const reportCall = vi.mocked(Process.spawn).mock.calls.find(([, arguments_]) =>
+      Array.isArray(arguments_) && arguments_.includes('report')
     );
     expect(reportCall?.[1]).toContain('text');
   });
@@ -95,11 +95,11 @@ describe('generateReport', () => {
     setupHappyPath();
     const config = makeConfiguration({ coverageReporters: ['text', 'html'] });
     await generateReport(config);
-    const reportCall = vi.mocked(Process.spawn).mock.calls.find(([, args]) =>
-      Array.isArray(args) && args.includes('report')
+    const reportCall = vi.mocked(Process.spawn).mock.calls.find(([, arguments_]) =>
+      Array.isArray(arguments_) && arguments_.includes('report')
     );
-    const args = reportCall?.[1] ?? [];
-    const textCount = args.filter((a) => a === 'text').length;
+    const arguments_ = reportCall?.[1] ?? [];
+    const textCount = arguments_.filter((a) => a === 'text').length;
     expect(textCount).toBe(1);
   });
 
@@ -107,8 +107,8 @@ describe('generateReport', () => {
     setupHappyPath();
     const config = makeConfiguration({ coverageReporters: ['html', 'lcov'] });
     await generateReport(config);
-    const reportCall = vi.mocked(Process.spawn).mock.calls.find(([, args]) =>
-      Array.isArray(args) && args.includes('report')
+    const reportCall = vi.mocked(Process.spawn).mock.calls.find(([, arguments_]) =>
+      Array.isArray(arguments_) && arguments_.includes('report')
     );
     expect(reportCall?.[1]).toContain('html');
     expect(reportCall?.[1]).toContain('lcov');
@@ -132,8 +132,8 @@ describe('generateReport', () => {
       setupHappyPath();
       const config = makeConfiguration({ coverageCheckLines: 80 });
       await generateReport(config);
-      const reportCall = vi.mocked(Process.spawn).mock.calls.find(([, args]) =>
-        Array.isArray(args) && args.includes('report')
+      const reportCall = vi.mocked(Process.spawn).mock.calls.find(([, arguments_]) =>
+        Array.isArray(arguments_) && arguments_.includes('report')
       );
       expect(reportCall?.[1]).toContain('--check-coverage');
     });
@@ -142,14 +142,14 @@ describe('generateReport', () => {
       setupHappyPath();
       const config = makeConfiguration({ coverageCheckLines: 80 });
       await generateReport(config);
-      const reportCall = vi.mocked(Process.spawn).mock.calls.find(([, args]) =>
-        Array.isArray(args) && args.includes('report')
+      const reportCall = vi.mocked(Process.spawn).mock.calls.find(([, arguments_]) =>
+        Array.isArray(arguments_) && arguments_.includes('report')
       );
-      const args = reportCall?.[1] ?? [];
-      expect(args).toContain('--branches');
-      expect(args).toContain('--functions');
-      expect(args).toContain('--lines');
-      expect(args).toContain('--statements');
+      const arguments_ = reportCall?.[1] ?? [];
+      expect(arguments_).toContain('--branches');
+      expect(arguments_).toContain('--functions');
+      expect(arguments_).toContain('--lines');
+      expect(arguments_).toContain('--statements');
     });
 
     it('returns a failed test result when nyc report exits non-zero with thresholds', async () => {
@@ -203,8 +203,8 @@ describe('generateReport', () => {
     it('does not pass --check-coverage flag', async () => {
       setupHappyPath();
       await generateReport(BASE_CONFIGURATION);
-      const reportCall = vi.mocked(Process.spawn).mock.calls.find(([, args]) =>
-        Array.isArray(args) && args.includes('report')
+      const reportCall = vi.mocked(Process.spawn).mock.calls.find(([, arguments_]) =>
+        Array.isArray(arguments_) && arguments_.includes('report')
       );
       expect(reportCall?.[1]).not.toContain('--check-coverage');
     });
@@ -214,8 +214,8 @@ describe('generateReport', () => {
     setupHappyPath();
     vi.mocked(Host.env).mockReturnValue?.({});
     await generateReport(BASE_CONFIGURATION);
-    const reportCall = vi.mocked(Process.spawn).mock.calls.find(([, args]) =>
-      Array.isArray(args) && args.includes('report')
+    const reportCall = vi.mocked(Process.spawn).mock.calls.find(([, arguments_]) =>
+      Array.isArray(arguments_) && arguments_.includes('report')
     );
     expect(reportCall?.[2]).toMatchObject({ env: expect.objectContaining({ NODE_OPTIONS: '' }) as object });
   });

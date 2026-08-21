@@ -23,7 +23,7 @@ const BASE_CONFIGURATION = {
 } as unknown as Configuration;
 
 const makeConfiguration = (overrides: object): Configuration =>
-  ({ ...BASE_CONFIGURATION, ...overrides }) as unknown as Configuration;
+  ({ ...BASE_CONFIGURATION, ...overrides });
 
 const setupHappyPath = () => {
   vi.spyOn(Folder, 'recreate').mockResolvedValue(undefined);
@@ -219,7 +219,7 @@ describe('instrument', () => {
       // only instrument spawn, no baseline spawn
       const spawnCalls = vi.mocked(Process.spawn).mock.calls;
       const baselineCalls = spawnCalls.filter(
-        ([, args]) => Array.isArray(args) && args.includes('--temp-dir')
+        ([, arguments_]) => Array.isArray(arguments_) && arguments_.includes('--temp-dir')
       );
       expect(baselineCalls).toHaveLength(0);
     });
