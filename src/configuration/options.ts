@@ -172,6 +172,12 @@ export const options = [
     default: '.nycrc.json'
   },
   {
+    name: 'coverageSourceDir',
+    type: 'fs-entry',
+    typeModifiers: new Set(['safe-default'] as const),
+    description: 'directory containing the source files used for coverage reporting'
+  },
+  {
     name: 'coverageTempDir',
     short: 'ctd',
     type: 'fs-entry',

@@ -1,10 +1,10 @@
 {
   "if": "implemented('coverage')",
   "batchId": "JS_REMOTE_COVERAGE",
-  "batchLabel": "Remote JS sample with coverage (no local mapping)",
+  "batchLabel": "Remote JS sample with coverage (no local instrumentation)",
   "url": ["http://localhost:8080/test/testsuite.qunit.html"],
-  "noScreenshot": null,
   "coverage": true,
+  "coverageSourceDir": "../sample.js/webapp",
   "coverageSettings": "../sample.js/.nycrc.json",
   "coverageTempDir": "{{reportDir}}/.nyc_output",
   "coverageReportDir": "{{reportDir}}/coverage",

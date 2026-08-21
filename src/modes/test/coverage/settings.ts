@@ -40,14 +40,17 @@ const _initSettings = async (configuration: Configuration): Promise<SettingsEntr
   }
 
   const exclude: string[] = [...(Array.isArray(base.exclude) ? base.exclude : [])];
-  const temporaryDirectoryRelative = Path.relative(configuration.webapp, configuration.coverageTempDir);
-  const reportDirectoryRelative = Path.relative(configuration.webapp, configuration.coverageReportDir);
-  const testReportDirectoryRelative = Path.relative(configuration.webapp, configuration.reportDir);
-  exclude.push(
-    `${temporaryDirectoryRelative}/**`,
-    `${reportDirectoryRelative}/**`,
-    `${testReportDirectoryRelative}/**`
-  );
+  const sourceDirectory = configuration.coverageSourceDir || configuration.webapp;
+  if (sourceDirectory) {
+    const temporaryDirectoryRelative = Path.relative(sourceDirectory, configuration.coverageTempDir);
+    const reportDirectoryRelative = Path.relative(sourceDirectory, configuration.coverageReportDir);
+    const testReportDirectoryRelative = Path.relative(sourceDirectory, configuration.reportDir);
+    exclude.push(
+      `${temporaryDirectoryRelative}/**`,
+      `${reportDirectoryRelative}/**`,
+      `${testReportDirectoryRelative}/**`
+    );
+  }
 
   const settings: IstanbulSettings = {
     ...base,
@@ -55,7 +58,7 @@ const _initSettings = async (configuration: Configuration): Promise<SettingsEntr
     sourceMap: false,
     coverageGlobalScope: 'window.top',
     coverageGlobalScopeFunc: false,
-    cwd: configuration.webapp,
+    ...(sourceDirectory && { cwd: sourceDirectory }),
     exclude
   };
 

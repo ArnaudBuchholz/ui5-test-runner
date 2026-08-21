@@ -11,7 +11,7 @@ import type { CommonTestReport } from '../../types/CommonTestReportFormat.js';
 import type { IWindow } from '../../browsers/IBrowser.js';
 import { getBrowserConfigScript } from './browserConfig.js';
 import type { IError } from '../../types/IError.js';
-import { collect } from './coverage/index.js';
+import { collect as collectCoverage } from './coverage/index.js';
 import type { Configuration } from '../../configuration/Configuration.js';
 import type { PageContext } from './PageContext.js';
 
@@ -163,20 +163,6 @@ const tryToFetchThePageFirst = async (url: string, pageId: number) => {
     });
     reportError(url, 'An error occurred while fetching the URL');
     throw new Error('An error occurred while fetching the URL', { cause: error });
-  }
-};
-
-const collectCoverage = async (configuration: Configuration, pageContext: PageContext) => {
-  const { page, url, isSuite, pageId } = pageContext;
-  if (!configuration.coverage || isSuite) {
-    return;
-  }
-
-  const coverageData = await page.eval('window.__coverage__');
-  if (coverageData !== undefined && coverageData !== null) {
-    await collect(configuration, pageContext, coverageData);
-  } else {
-    logger.warn({ source: 'coverage', pageId, message: 'No coverage data found for page', data: { url } });
   }
 };
 

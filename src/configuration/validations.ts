@@ -5,6 +5,17 @@ import { OptionValidationError } from './OptionValidationError.js';
 
 export const validations: Array<(configuration: Configuration) => void> = [
   (configuration) => {
+    if (
+      Object.hasOwn(configuration, 'coverage') &&
+      !punyexpr("(!coverage || webapp !== '' || coverageSourceDir !== '')")(configuration)
+    ) {
+      throw OptionValidationError.createValidationError(
+        indexedOptions.coverage,
+        'at least one of webapp or coverageSourceDir must be set'
+      );
+    }
+  },
+  (configuration) => {
     if (Object.hasOwn(configuration, 'dumpConfig') && !punyexpr("(mode === 'dumpConfig')")(configuration)) {
       throw OptionValidationError.createValidationError(
         indexedOptions.dumpConfig,
