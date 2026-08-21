@@ -39,8 +39,8 @@ describe('getNycBin', () => {
     vi.spyOn(Npm, 'import').mockResolvedValue(undefined);
     vi.spyOn(Npm, 'resolvePackageDir').mockResolvedValue('/node_modules/nyc');
     vi.mocked(Path.join).mockImplementation((...parts) => parts.join('/'));
-    const first = getNycBin(CONFIG);
-    const second = getNycBin(CONFIG);
+    const first = await getNycBin(CONFIG);
+    const second = await getNycBin(CONFIG);
     expect(first).toBe(second);
   });
 });

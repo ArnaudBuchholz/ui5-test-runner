@@ -1,6 +1,15 @@
 import { FileSystem, Path, logger } from '../../../platform/index.js';
 import type { Configuration } from '../../../configuration/Configuration.js';
-import type { IstanbulSettings } from './types.js';
+
+type IstanbulSettings = {
+  all?: boolean;
+  sourceMap?: boolean;
+  coverageGlobalScope?: string;
+  coverageGlobalScopeFunc?: boolean;
+  cwd?: string;
+  exclude?: string[];
+  [key: string]: unknown;
+};
 
 interface SettingsEntry {
   settings: IstanbulSettings;

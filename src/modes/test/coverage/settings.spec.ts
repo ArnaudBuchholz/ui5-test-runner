@@ -23,8 +23,7 @@ const NO_WEBAPP_CONFIGURATION = {
   reportDir: REPORT_DIR
 } as unknown as Configuration;
 
-const makeConfiguration = (overrides: object): Configuration =>
-  ({ ...BASE_CONFIGURATION, ...overrides });
+const makeConfiguration = (overrides: object): Configuration => ({ ...BASE_CONFIGURATION, ...overrides });
 
 describe('initSettings', () => {
   it('writes .nycrc.json into <coverageTempDir>/settings/', async () => {
@@ -149,7 +148,7 @@ describe('initSettings', () => {
     vi.mocked(Path.relative).mockReturnValue('relative');
     const config = makeConfiguration({ coverageSettings: '/path/to/.nycrc.json' });
     const { settings } = await initSettings(config);
-    expect(settings.customKey).toBe('value');
+    expect(settings['customKey']).toBe('value');
   });
 
   it('logs debug when settings file is loaded', async () => {
@@ -160,7 +159,10 @@ describe('initSettings', () => {
     const config = makeConfiguration({ coverageSettings: '/path/to/.nycrc.json' });
     await initSettings(config);
     expect(logger.debug).toHaveBeenCalledWith(
-      expect.objectContaining({ source: 'coverage', message: expect.stringContaining('Loaded coverage settings') as string })
+      expect.objectContaining({
+        source: 'coverage',
+        message: expect.stringContaining('Loaded coverage settings') as string
+      })
     );
   });
 
@@ -180,8 +182,8 @@ describe('initSettings', () => {
     vi.mocked(Path.join).mockImplementation((...parts) => parts.join('/'));
     vi.mocked(Path.relative).mockReturnValue('relative');
     const config = makeConfiguration({});
-    const first = initSettings(config);
-    const second = initSettings(config);
+    const first = await initSettings(config);
+    const second = await initSettings(config);
     expect(first).toBe(second);
   });
 });

@@ -76,6 +76,7 @@ export default [
       'unicorn/prefer-top-level-await': 'off'
     }
   },
+  // Be less stricts on spec files
   {
     files: ['**/*.spec.ts'],
     rules: {
@@ -84,7 +85,9 @@ export default [
       // Math.random is enough in spec files
       'sonarjs/pseudo-random': 'off',
       // Parameterized tests are used when useful
-      'sonarjs/parameterized-tests': 'off'
+      'sonarjs/parameterized-tests': 'off',
+      // File system APIs are all mocked
+      'sonarjs/publicly-writable-directories': 'off'
     }
   },
   // *Must* use any
