@@ -24,7 +24,7 @@ const NO_WEBAPP_CONFIGURATION = {
 } as unknown as Configuration;
 
 const makeConfiguration = (overrides: object): Configuration =>
-  ({ ...BASE_CONFIGURATION, ...overrides }) as unknown as Configuration;
+  ({ ...BASE_CONFIGURATION, ...overrides });
 
 describe('initSettings', () => {
   it('writes .nycrc.json into <coverageTempDir>/settings/', async () => {
