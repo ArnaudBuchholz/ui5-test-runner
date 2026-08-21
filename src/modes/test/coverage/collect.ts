@@ -10,7 +10,12 @@ const isCoverageData = (value: unknown): value is CoverageData => {
     return false;
   }
   const entries = Object.values(value as Record<string, unknown>);
-  return entries.length > 0 && entries.every(entry => entry !== null && typeof entry === 'object' && 'path' in entry && typeof entry['path'] === 'string');
+  return (
+    entries.length > 0 &&
+    entries.every(
+      (entry) => entry !== null && typeof entry === 'object' && 'path' in entry && typeof entry['path'] === 'string'
+    )
+  );
 };
 
 const remapPaths = (coverageData: CoverageData, sourceDirectory: string): CoverageData =>
@@ -32,7 +37,9 @@ export const collect = async (configuration: Configuration, pageContext: PageCon
     return;
   }
   assert(isCoverageData(coverageData), `Invalid coverage data for page ${url}`);
-  const data = configuration.coverageSourceDir ? remapPaths(coverageData, configuration.coverageSourceDir) : coverageData;
+  const data = configuration.coverageSourceDir
+    ? remapPaths(coverageData, configuration.coverageSourceDir)
+    : coverageData;
   const fileName = `${pageId}.json`;
   const filePath = Path.join(configuration.coverageTempDir, fileName);
   await FileSystem.writeFile(filePath, JSON.stringify(data));

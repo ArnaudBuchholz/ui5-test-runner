@@ -12,8 +12,7 @@ const WEBAPP = '/app/webapp';
 const NYC_BIN = '/node_modules/nyc/bin/nyc.js';
 const SETTINGS_PATH = `${COVERAGE_TEMP_DIR}/settings/.nycrc.json`;
 
-const makeProcess = (code: number) =>
-  ({ code, closed: Promise.resolve() }) as unknown as InstanceType<typeof Process>;
+const makeProcess = (code: number) => ({ code, closed: Promise.resolve() }) as unknown as InstanceType<typeof Process>;
 
 const BASE_CONFIGURATION = {
   coverageTempDir: COVERAGE_TEMP_DIR,
@@ -22,8 +21,7 @@ const BASE_CONFIGURATION = {
   webapp: WEBAPP
 } as unknown as Configuration;
 
-const makeConfiguration = (overrides: object): Configuration =>
-  ({ ...BASE_CONFIGURATION, ...overrides });
+const makeConfiguration = (overrides: object): Configuration => ({ ...BASE_CONFIGURATION, ...overrides });
 
 const setupHappyPath = () => {
   vi.spyOn(Folder, 'recreate').mockResolvedValue(undefined);
@@ -109,7 +107,15 @@ describe('instrument', () => {
       await instrument(config);
       expect(Process.spawn).toHaveBeenCalledWith(
         'node',
-        expect.arrayContaining([NYC_BIN, 'instrument', '--nycrc-path', SETTINGS_PATH, '--cwd', WEBAPP, WEBAPP]) as string[],
+        expect.arrayContaining([
+          NYC_BIN,
+          'instrument',
+          '--nycrc-path',
+          SETTINGS_PATH,
+          '--cwd',
+          WEBAPP,
+          WEBAPP
+        ]) as string[],
         expect.objectContaining({ detached: true })
       );
     });

@@ -69,9 +69,7 @@ it('does not write and logs a warning when page has no coverage data', async () 
   const pageContext = makePageContext({ page: { eval: vi.fn().mockResolvedValue(null) } as never });
   await collect(BASE_CONFIGURATION, pageContext);
   expect(FileSystem.writeFile).not.toHaveBeenCalled();
-  expect(logger.warn).toHaveBeenCalledWith(
-    expect.objectContaining({ source: 'coverage', pageId: 'page1' })
-  );
+  expect(logger.warn).toHaveBeenCalledWith(expect.objectContaining({ source: 'coverage', pageId: 'page1' }));
 });
 
 it('throws when coverage data is not an object', async () => {
