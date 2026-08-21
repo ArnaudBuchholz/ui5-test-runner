@@ -301,3 +301,14 @@ Each change has a **single purpose**: **Fix** (correct behavior), **Feature** (n
 | `enum` | `as const` + derived union type |
 | Parsing logic in `CommandLine.ts` | Validator in `configuration/validators/` |
 | Global variable for shared state | `Exit.registerAsyncTask` |
+
+---
+
+## Dependencies
+
+Production dependencies (`dependencies` in `package.json`) must meet **both** criteria:
+
+- **Zero transitive dependencies** — the package must have no dependencies of its own
+- **MIT licensed**
+
+Prefer implementing functionality inline over adding a dependency that doesn't qualify. `devDependencies` are not subject to these constraints.
