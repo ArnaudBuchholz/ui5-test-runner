@@ -33,10 +33,18 @@ const configurationFile = async (items: IBatchItem[], configPath: string): Promi
   }
 };
 
-const scan = async (items: IBatchItem[], cwd: string, re: RegExp, root: string = cwd): Promise<void> => {
+const scan = async (items: IBatchItem[], cwd: string, re: RegExp, root: string = cwd): Promise<number> => {
   const names = await FileSystem.readdir(cwd);
+  let count = 0;
   for (const name of names) {
     const path = Path.join(cwd, name);
+    if (name === 'node_modules' || name.startsWith('.')) {
+      logger.debug({
+        source: 'job',
+        message: `Ignored ${path} while scanning for batch items`
+      });
+      continue;
+    }
     const relativePath = path.slice(root.length + 1).replaceAll('\\', '/');
     const pathStat = await FileSystem.stat(path);
     if (pathStat.isDirectory()) {
@@ -44,11 +52,15 @@ const scan = async (items: IBatchItem[], cwd: string, re: RegExp, root: string =
         folder(items, path);
         continue;
       }
-      await scan(items, path, re, root);
-    } else if (pathStat.isFile() && re.test(relativePath)) {
-      await configurationFile(items, path);
+      count += await scan(items, path, re, root);
+    } else if (pathStat.isFile()) {
+      ++count;
+      if (re.test(relativePath)) {
+        await configurationFile(items, path);
+      }
     }
   }
+  return count;
 };
 
 export const resolve = async (configuration: Configuration): Promise<IBatchItem[]> => {
@@ -86,7 +98,11 @@ export const resolve = async (configuration: Configuration): Promise<IBatchItem[
       });
       continue;
     }
-    await scan(items, configuration.cwd, re);
+    const scanned = await scan(items, configuration.cwd, re);
+    logger.debug({
+      source: 'job',
+      message: `Scanned ${scanned} items`
+    });
   }
   return items;
 };
