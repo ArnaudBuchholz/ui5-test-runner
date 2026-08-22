@@ -156,9 +156,31 @@ describe('resolve', () => {
     });
 
     it('does not match files nested under a subdirectory that would match from a worktree path', async () => {
-      // Simulates: cwd has .claude/worktrees/branch/test/e2e/app.json
+      // Simulates: cwd has worktrees/branch/test/e2e/app.json
       // The regex test/e2e/[\w_]*\.json must NOT match because 'test/e2e' is not at cwd root
       vi.mocked(FileSystem.stat)
+        .mockReset()
+        .mockRejectedValueOnce(new Error('ENOENT')) // spec is not a direct path
+        .mockResolvedValueOnce(makeStatDirectory()) // worktrees
+        .mockResolvedValueOnce(makeStatDirectory()) // worktrees/branch
+        .mockResolvedValueOnce(makeStatDirectory()) // worktrees/branch/test
+        .mockResolvedValueOnce(makeStatDirectory()) // worktrees/branch/test/e2e
+        .mockResolvedValueOnce(makeStatFile()); // worktrees/branch/test/e2e/app.json
+      vi.mocked(FileSystem.readdir)
+        .mockReset()
+        .mockResolvedValueOnce(['worktrees'] as unknown as FileSystemReadir)
+        .mockResolvedValueOnce(['branch'] as unknown as FileSystemReadir)
+        .mockResolvedValueOnce(['test'] as unknown as FileSystemReadir)
+        .mockResolvedValueOnce(['e2e'] as unknown as FileSystemReadir)
+        .mockResolvedValueOnce(['app.json'] as unknown as FileSystemReadir);
+      const items = await resolve(config([String.raw`^test/e2e/[\w_]*\.json`]));
+      expect(items).toHaveLength(0);
+    });
+
+    it('does not crawl in a folder which name starts with .', async () => {
+      // Simulates: cwd has .claude/worktrees/branch/test/e2e/app.json
+      vi.mocked(FileSystem.stat)
+        .mockReset()
         .mockRejectedValueOnce(new Error('ENOENT')) // spec is not a direct path
         .mockResolvedValueOnce(makeStatDirectory()) // .claude
         .mockResolvedValueOnce(makeStatDirectory()) // .claude/worktrees
@@ -167,13 +189,33 @@ describe('resolve', () => {
         .mockResolvedValueOnce(makeStatDirectory()) // .claude/worktrees/branch/test/e2e
         .mockResolvedValueOnce(makeStatFile()); // .claude/worktrees/branch/test/e2e/app.json
       vi.mocked(FileSystem.readdir)
+        .mockReset()
         .mockResolvedValueOnce(['.claude'] as unknown as FileSystemReadir)
         .mockResolvedValueOnce(['worktrees'] as unknown as FileSystemReadir)
         .mockResolvedValueOnce(['branch'] as unknown as FileSystemReadir)
         .mockResolvedValueOnce(['test'] as unknown as FileSystemReadir)
         .mockResolvedValueOnce(['e2e'] as unknown as FileSystemReadir)
         .mockResolvedValueOnce(['app.json'] as unknown as FileSystemReadir);
-      const items = await resolve(config([String.raw`^test/e2e/[\w_]*\.json`]));
+      const items = await resolve(config([String.raw`test/e2e/[\w_]*\.json`]));
+      expect(items).toHaveLength(0);
+    });
+
+    it('does not crawl in a folder which name is node_modules', async () => {
+      // Simulates: cwd has node_modules/test/e2e/app.json
+      vi.mocked(FileSystem.stat)
+        .mockReset()
+        .mockRejectedValueOnce(new Error('ENOENT')) // spec is not a direct path
+        .mockResolvedValueOnce(makeStatDirectory()) // node_modules
+        .mockResolvedValueOnce(makeStatDirectory()) // node_modules/test
+        .mockResolvedValueOnce(makeStatDirectory()) // node_modules/test/e2e
+        .mockResolvedValueOnce(makeStatFile()); // node_modules/test/e2e/app.json
+      vi.mocked(FileSystem.readdir)
+        .mockReset()
+        .mockResolvedValueOnce(['node_modules'] as unknown as FileSystemReadir)
+        .mockResolvedValueOnce(['test'] as unknown as FileSystemReadir)
+        .mockResolvedValueOnce(['e2e'] as unknown as FileSystemReadir)
+        .mockResolvedValueOnce(['app.json'] as unknown as FileSystemReadir);
+      const items = await resolve(config([String.raw`test/e2e/[\w_]*\.json`]));
       expect(items).toHaveLength(0);
     });
   });
