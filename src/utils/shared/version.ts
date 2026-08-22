@@ -1,5 +1,5 @@
 const parseVersion = (version: string): [number[], (string | number)[]] => {
-  const [release, prerelease] = version.split('-');
+  const [release, prerelease] = version.split('-', 2);
   if (release) {
     const releaseParts = release.split('.').map(Number);
     const prereleaseParts = prerelease

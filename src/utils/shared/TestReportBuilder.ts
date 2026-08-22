@@ -44,7 +44,7 @@ export class TestReportBuilder {
         ...test,
         suite: [...suites, ...(test.suite ?? [])] as [string, ...string[]]
       };
-      if (test.extra || extra) {
+      if (extra || test.extra) {
         resolvedTest.extra = { ...test.extra, ...extra };
       }
       results.tests.push(resolvedTest);

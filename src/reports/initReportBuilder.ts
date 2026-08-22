@@ -7,7 +7,7 @@ import { TestReportBuilder } from '../utils/shared/TestReportBuilder.js';
 
 export async function initReportBuilder(configuration: Configuration): Promise<TestReportBuilder> {
   const toolFullName = await version();
-  const [toolName, toolVersion] = toolFullName.split('@');
+  const [toolName, toolVersion] = toolFullName.split('@', 2);
   assert(toolName !== undefined);
   const builder = new TestReportBuilder(crypto.randomUUID(), toolFullName);
   builder.report.results.tool = { name: toolName, version: toolVersion };

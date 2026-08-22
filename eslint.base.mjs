@@ -103,6 +103,7 @@ export default [
       'unicorn/no-top-level-assignment-in-function': 'off',
       'unicorn/no-top-level-side-effects': 'off',
       'unicorn/no-computed-property-existence-check': 'off', // Needed
+      'unicorn/single-line-block-comment-style': 'off',
       'sonarjs/todo-tag': 'warn',
       'sonarjs/no-skipped-tests': 'warn',
       'sonarjs/no-unused-vars': 'off', // covered by @typescript-eslint/no-unused-vars

@@ -13,7 +13,7 @@ export class AgentTestResultsBuilder {
   }
 
   begin(tool: string): void {
-    const [name, version] = tool.split('@');
+    const [name, version] = tool.split('@', 2);
     this._results.tool.name = name!; // cannot be undefined
     if (version !== undefined) {
       this._results.tool.version = version;

@@ -50,7 +50,7 @@ export abstract class AbstractUserInterfaceController<
     const { action, ...state } = event;
     const stateDiff = this._update(state as Partial<State>);
     console.log('🎮⏪', { event, action, stateDiff });
-    if (Object.keys(stateDiff).length > 0 || action !== undefined) {
+    if (action !== undefined || Object.keys(stateDiff).length > 0) {
       this._onInteraction(stateDiff, action);
     }
   }
