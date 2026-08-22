@@ -264,7 +264,9 @@ const VARIABLE_SLOTS = DATA_LINE_SLOTS.filter((dataSlot) => dataSlot.width === 0
 assert.ok(VARIABLE_SLOTS.length === 1, 'DATA_LINE_SLOTS must contain exactly one variable-width slot');
 const VARIABLE_SLOT = VARIABLE_SLOTS[0]!;
 
-/** Each entry documents how the field is compressed; the Record type ensures no field is missed when InternalLogAttributes changes */
+/**
+Each entry documents how the field is compressed; the Record type ensures no field is missed when InternalLogAttributes changes
+*/
 export const _ALL_LOG_ATTRIBUTES_ARE_HANDLED: Record<keyof Required<InternalLogAttributes>, DataSlot | null> = {
   level: levelSlot,
   timestamp: timestampSlot,

@@ -4,7 +4,7 @@ import { Exit, Host } from './platform/index.js';
 import { version } from './platform/version.js';
 import { CommandLine } from './configuration/CommandLine.js';
 import { execute } from './modes/execute.js';
-import { evaluateIf } from './if.js';
+import { isIfEvaluatedAsTrue } from './if.js';
 import { sendToParentProcess } from './sendToParentProcess.js';
 
 try {
@@ -12,7 +12,7 @@ try {
   const cliName = cliVersion.split('@', 1)[0] ?? 'ui5-test-runner';
   const indexOfCli = Host.argv.findIndex((value) => /[\\/]cli(\.[tj]s)?$/.exec(value) || value.endsWith(cliName));
   const configuration = await CommandLine.buildConfigurationFrom(Host.cwd(), Host.argv.slice(indexOfCli + 1));
-  if (await evaluateIf(configuration)) {
+  if (await isIfEvaluatedAsTrue(configuration)) {
     await execute(configuration);
   } else {
     console.log('⚠️ [SKIPIF] Skipping execution (--if)');

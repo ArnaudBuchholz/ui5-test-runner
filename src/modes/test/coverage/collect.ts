@@ -28,7 +28,7 @@ const remapPaths = (coverageData: CoverageData, sourceDirectory: string): Covera
 
 export const collect = async (configuration: Configuration, pageContext: PageContext): Promise<void> => {
   const { page, pageId, url, isSuite } = pageContext;
-  if (!configuration.coverage || isSuite) {
+  if (isSuite || !configuration.coverage) {
     return;
   }
   const coverageData = await page.eval('window.__coverage__');

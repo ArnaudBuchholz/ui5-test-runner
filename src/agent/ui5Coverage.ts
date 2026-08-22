@@ -24,7 +24,7 @@ XMLHttpRequest.prototype.open = function (
   password?: string | null
 ) {
   const actualUrl =
-    window.sap && window.sap.ui && window.sap.ui.loader && url && url.toString().endsWith('.js')
+    url && url.toString().endsWith('.js') && window.sap && window.sap.ui && window.sap.ui.loader
       ? appendUrlParameter(url.toString())
       : url;
   return nativeXhrOpen.call(this, method, actualUrl, isAsync ?? true, username, password);

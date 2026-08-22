@@ -98,7 +98,7 @@ const shouldUncaughtErrorsFail = (context: PageContext, errors: IError[]): boole
   return false;
 };
 
-const queryAgentState = async (context: PageContext): Promise<boolean> => {
+const shouldStopBasedOnAgentState = async (context: PageContext): Promise<boolean> => {
   const agentState = (await context.page.eval("window['ui5-test-runner'].state")) as AgentState;
   logger.debug({
     source: 'page',
@@ -220,7 +220,7 @@ export const makePageTask = (configuration: Configuration) =>
       while (!this.stopRequested) {
         try {
           await setTimeout(context.loopDelay);
-          if (await queryAgentState(context)) {
+          if (await shouldStopBasedOnAgentState(context)) {
             break;
           }
         } catch (error) {
