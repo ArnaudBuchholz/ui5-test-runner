@@ -10,8 +10,8 @@
   "noScreenshot": null,
   "coverage": true,
   "coverageSettings": "./.nycrc.json",
-  "coverageTempDir": "📂report/.nyc_output",
-  "coverageReportDir": "📂report/coverage",
+  "coverageTempDir": "{{reportDir}}/.nyc_output",
+  "coverageReportDir": "{{reportDir}}/coverage",
   "coverageCheckStatements": 60,
   "end": "RUNNER_EXIT_CODE={{exitCode}} NODE_OPTIONS= node ../e2e/check.mjs {{reportDir}} --coverage"
 }

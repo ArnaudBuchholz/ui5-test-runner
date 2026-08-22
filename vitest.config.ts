@@ -1,4 +1,5 @@
 import { defineConfig, configDefaults } from 'vitest/config';
+import { resolve } from 'node:path';
 
 const exclude = [...configDefaults.exclude, 'src/**/*.js', 'src/**/*.test.ts', 'dist/**', 'test/**', 'e2e/**', '.claude/**'];
 
@@ -6,6 +7,7 @@ export default defineConfig({
   test: {
     exclude,
     coverage: {
+      include: ['src/**/*.ts'],
       exclude: [
         '**/*.js',
         'build/**',
@@ -14,8 +16,11 @@ export default defineConfig({
         'vite.config.mjs',
         'src/**/*.spec.ts',
         'src/**/index.ts',
-        'test/**',
-        'src/system/**'
+        // Use absolute paths so picomatch's `contains` option doesn't match src/modes/test/
+        resolve('test') + '/**',
+        resolve('e2e') + '/**',
+        // Generated
+        'src/configuration/validations.ts'
       ]
     },
     projects: [{
@@ -36,7 +41,7 @@ export default defineConfig({
           deps: {
             inline: ['qunit'] // run through Vite, not Node's require cache
           }
-        }        
+        }
       }
     }, {
       extends: true,

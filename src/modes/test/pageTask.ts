@@ -1,6 +1,5 @@
 import type { IParallelizeContext } from '../../utils/shared/parallelize.js';
 import { assert, Http, logger } from '../../platform/index.js';
-import type { PageProgressData } from '../../platform/logger/types.js';
 import { getAgentSource } from './agent.js';
 import { getBrowser } from './browser.js';
 import type { AgentState } from '../../types/AgentState.js';
@@ -12,22 +11,11 @@ import type { CommonTestReport } from '../../types/CommonTestReportFormat.js';
 import type { IWindow } from '../../browsers/IBrowser.js';
 import { getBrowserConfigScript } from './browserConfig.js';
 import type { IError } from '../../types/IError.js';
+import { collect as collectCoverage } from './coverage/index.js';
+import type { Configuration } from '../../configuration/Configuration.js';
+import type { PageContext } from './PageContext.js';
 
 let lastPageId = 0;
-
-type PageContext = {
-  pageId: number;
-  urls: string[];
-  url: string;
-  page: IWindow;
-  loopDelay: number;
-  type: PageProgressData['type'];
-  lastExecuted: number;
-  errors: number;
-  lastTotal: number;
-  isSuite: boolean;
-  lastUncaughtErrorsCount: number;
-};
 
 export const agentStateMessage = (agentState: AgentState): string => {
   if (agentState.type === 'suite') return 'agent state: suite done';
@@ -110,7 +98,7 @@ const shouldUncaughtErrorsFail = (context: PageContext, errors: IError[]): boole
   return false;
 };
 
-const queryAgentState = async (context: PageContext): Promise<boolean> => {
+const shouldStopBasedOnAgentState = async (context: PageContext): Promise<boolean> => {
   const agentState = (await context.page.eval("window['ui5-test-runner'].state")) as AgentState;
   logger.debug({
     source: 'page',
@@ -154,16 +142,7 @@ const queryAgentState = async (context: PageContext): Promise<boolean> => {
   return false;
 };
 
-export const pageTask = async function (this: IParallelizeContext, url: string, index: number, urls: string[]) {
-  const pageId = ++lastPageId;
-  logger.debug({ source: 'page', message: 'new page task', pageId, data: { url } });
-  logger.info({
-    source: 'progress',
-    message: url,
-    pageId,
-    data: { max: 0, value: 1, type: 'unknown', errors: 0 }
-  });
-
+const tryToFetchThePageFirst = async (url: string, pageId: number) => {
   try {
     const response = await Http.fetch(url);
     if (!response.ok) {
@@ -185,91 +164,107 @@ export const pageTask = async function (this: IParallelizeContext, url: string, 
     reportError(url, 'An error occurred while fetching the URL');
     throw new Error('An error occurred while fetching the URL', { cause: error });
   }
+};
 
-  const { promise: taskStopped, resolve: setTaskAsStopped } = Promise.withResolvers<void>();
-  using _ = Exit.registerAsyncTask({
-    name: url,
-    stop: async () => {
-      try {
-        this.stop(new ExitShutdownError()); // throws
-      } catch {
-        // ignore
-      } finally {
-        await taskStopped;
-      }
-    }
-  });
-  let page: IWindow | undefined;
-  let context: PageContext | undefined;
-  try {
-    const agentSource = await getAgentSource();
-    const browserConfig = getBrowserConfigScript();
-    const browser = getBrowser();
-    page = await browser.newWindow({
+export const makePageTask = (configuration: Configuration) =>
+  async function (this: IParallelizeContext, url: string, _index: number, urls: string[]) {
+    const pageId = ++lastPageId;
+    logger.debug({ source: 'page', message: 'new page task', pageId, data: { url } });
+    logger.info({
+      source: 'progress',
+      message: url,
       pageId,
-      scripts: [browserConfig, agentSource],
-      url
+      data: { max: 0, value: 1, type: 'unknown', errors: 0 }
     });
-    context = {
-      pageId,
-      urls,
-      url,
-      page,
-      loopDelay: 250, // default
-      type: 'unknown',
-      lastExecuted: 0,
-      errors: 0,
-      lastTotal: 0,
-      isSuite: false,
-      lastUncaughtErrorsCount: 0
-    };
-    while (!this.stopRequested) {
-      try {
-        await setTimeout(context.loopDelay);
-        if (await queryAgentState(context)) {
+
+    await tryToFetchThePageFirst(url, pageId);
+
+    const { promise: taskStopped, resolve: setTaskAsStopped } = Promise.withResolvers<void>();
+    using _ = Exit.registerAsyncTask({
+      name: url,
+      stop: async () => {
+        try {
+          this.stop(new ExitShutdownError()); // throws
+        } catch {
+          // ignore
+        } finally {
+          await taskStopped;
+        }
+      }
+    });
+    let page: IWindow | undefined;
+    let context: PageContext | undefined;
+    try {
+      const agentSource = await getAgentSource();
+      const browserConfig = getBrowserConfigScript();
+      const scripts = [browserConfig, agentSource];
+      const browser = getBrowser();
+      page = await browser.newWindow({
+        pageId,
+        scripts,
+        url
+      });
+      context = {
+        pageId,
+        urls,
+        url,
+        page,
+        loopDelay: 250, // default
+        type: 'unknown',
+        lastExecuted: 0,
+        errors: 0,
+        lastTotal: 0,
+        isSuite: false,
+        lastUncaughtErrorsCount: 0
+      };
+      while (!this.stopRequested) {
+        try {
+          await setTimeout(context.loopDelay);
+          if (await shouldStopBasedOnAgentState(context)) {
+            break;
+          }
+        } catch (error) {
+          logger.error({ source: 'page', message: 'An error occurred', error, pageId, data: {} });
           break;
         }
-      } catch (error) {
-        logger.error({ source: 'page', message: 'An error occurred', error, pageId, data: {} });
-        break;
       }
-    }
-    const testResults = (await page.eval("window['ui5-test-runner'].results")) as CommonTestReport['results'];
-    if (!context?.isSuite) {
-      const { passed, failed, tests, duration } = testResults.summary;
-      const durationString = duration === undefined ? '' : ` (${duration}ms)`;
-      logger.debug({
-        source: 'page',
-        message: `test results: passed=${passed} failed=${failed} tests=${tests}${durationString}`,
-        pageId,
-        data: { results: testResults }
+      const testResults = (await page.eval("window['ui5-test-runner'].results")) as CommonTestReport['results'];
+      await collectCoverage(configuration, context);
+      if (!context?.isSuite) {
+        const { passed, failed, tests, duration } = testResults.summary;
+        const durationString = duration === undefined ? '' : ` (${duration}ms)`;
+        logger.debug({
+          source: 'page',
+          message: `test results: passed=${passed} failed=${failed} tests=${tests}${durationString}`,
+          pageId,
+          data: { results: testResults }
+        });
+      }
+      getReportBuilder().merge(url, testResults, {
+        pageId: context.pageId
       });
+      // TODO: add a catch block and document the problem in the test report
+    } finally {
+      if (context !== undefined) {
+        logger.info({
+          source: 'progress',
+          message: url,
+          pageId,
+          data: {
+            max: context.lastTotal,
+            value: context.lastExecuted,
+            type: context.type,
+            errors: context.errors,
+            remove: true
+          }
+        });
+      }
+      try {
+        logger.debug({ source: 'page', message: 'closing page', pageId });
+        await page?.close();
+      } catch (error) {
+        logger.error({ source: 'page', message: 'page.close failed', error, pageId, data: {} });
+      }
+      setTaskAsStopped();
     }
-    getReportBuilder().merge(url, testResults, {
-      pageId: context.pageId
-    });
-    // TODO: add a catch block and document the problem in the test report
-  } finally {
-    if (context !== undefined) {
-      logger.info({
-        source: 'progress',
-        message: url,
-        pageId,
-        data: {
-          max: context.lastTotal,
-          value: context.lastExecuted,
-          type: context.type,
-          errors: context.errors,
-          remove: true
-        }
-      });
-    }
-    try {
-      logger.debug({ source: 'page', message: 'closing page', pageId });
-      await page?.close();
-    } catch (error) {
-      logger.error({ source: 'page', message: 'page.close failed', error, pageId, data: {} });
-    }
-    setTaskAsStopped();
-  }
-};
+  };

@@ -54,7 +54,7 @@ jobs:
           mv package.json package0.json
           jq 'del(.scripts,.devDependencies)' package0.json > package.json
           rm package0.json
-          npx --prefix ./sr --no semantic-release
+          npx --y --prefix ./sr --no semantic-release@25
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         npm_config_package_lock: false

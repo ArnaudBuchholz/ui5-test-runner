@@ -114,6 +114,78 @@ export const options = [
     default: 'ui5-test-runner.json'
   },
   {
+    name: 'coverage',
+    type: 'boolean',
+    description: 'enable code coverage',
+    default: false
+  },
+  {
+    name: 'coverageCheckBranches',
+    short: 'ccb',
+    type: 'percent',
+    description: 'minimum branch coverage threshold (0 = no check)',
+    default: 0
+  },
+  {
+    name: 'coverageCheckFunctions',
+    short: 'ccf',
+    type: 'percent',
+    description: 'minimum function coverage threshold (0 = no check)',
+    default: 0
+  },
+  {
+    name: 'coverageCheckLines',
+    short: 'ccl',
+    type: 'percent',
+    description: 'minimum line coverage threshold (0 = no check)',
+    default: 0
+  },
+  {
+    name: 'coverageCheckStatements',
+    short: 'ccs',
+    type: 'percent',
+    description: 'minimum statement coverage threshold (0 = no check)',
+    default: 0
+  },
+  {
+    name: 'coverageReportDir',
+    short: 'crd',
+    type: 'fs-entry',
+    typeModifiers: new Set(['overwrite'] as const),
+    description: 'directory for the final coverage report',
+    default: 'coverage'
+  },
+  {
+    name: 'coverageReporters',
+    short: 'cr',
+    type: 'string',
+    multiple: true,
+    description: 'istanbul-lib-report reporters to use',
+    default: ['lcov', 'cobertura']
+  },
+  {
+    name: 'coverageSettings',
+    short: 'cs',
+    type: 'fs-entry',
+    typeModifiers: new Set(['file', 'safe-default'] as const),
+    description: 'path to the Istanbul configuration file (.nycrc.json)',
+    default: '.nycrc.json'
+  },
+  {
+    name: 'coverageSourceDir',
+    type: 'fs-entry',
+    typeModifiers: new Set(['safe-default'] as const),
+    description: 'directory containing the source files used for coverage reporting'
+  },
+  {
+    name: 'coverageTempDir',
+    short: 'ctd',
+    type: 'fs-entry',
+    typeModifiers: new Set(['overwrite'] as const),
+    description: 'temporary directory for coverage data',
+    default: '.nyc_output'
+  },
+  {
     name: 'debugKeepBrowserOpen',
     type: 'boolean',
     description: 'keeps the browser open after the tests completed'
@@ -335,6 +407,15 @@ export const defaults = {
   browserVisible: false,
   ci: !process.stdout.isTTY,
   config: 'ui5-test-runner.json',
+  coverage: false,
+  coverageCheckBranches: 0,
+  coverageCheckFunctions: 0,
+  coverageCheckLines: 0,
+  coverageCheckStatements: 0,
+  coverageReportDir: 'coverage',
+  coverageReporters: ['lcov', 'cobertura'],
+  coverageSettings: '.nycrc.json',
+  coverageTempDir: '.nyc_output',
   cwd: process.cwd(),
   localhost: 'localhost',
   npmAllowInstallScripts: false,

@@ -20,7 +20,7 @@ declare global {
     };
     __coverage__?: unknown;
     suite?: () => void | Promise<void>;
-    sap?: { ui?: { test?: { Opa5?: object } } };
+    sap?: { ui?: { test?: { Opa5?: object }; loader?: unknown } };
     QUnit?: QUnit;
     /** Managed by the agent */
     [UI5_TEST_RUNNER]: {

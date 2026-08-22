@@ -7,14 +7,14 @@ import { compareVersions } from './utils/shared/version.js';
 import { options } from './configuration/options.js';
 export const isImplemented = (option: string): boolean => Object.values(options).some(({ name }) => name === option);
 
-export const evaluateIf = async ({ if: condition }: Configuration): Promise<boolean> => {
+export const isIfEvaluatedAsTrue = async ({ if: condition }: Configuration): Promise<boolean> => {
   if (!condition) {
     return true;
   }
 
-  const [nodeMajorVersion] = Host.version.slice(1).split('.');
+  const [nodeMajorVersion] = Host.version.slice(1).split('.', 1);
   const runnerFullName = await version();
-  const [runnerName, runnerVersion] = runnerFullName.split('@');
+  const [runnerName, runnerVersion] = runnerFullName.split('@', 2);
 
   return !!(punyexpr(condition) as (context: Record<string, unknown>) => unknown)({
     ...Host.env,

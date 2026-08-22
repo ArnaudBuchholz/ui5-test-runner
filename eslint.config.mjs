@@ -48,6 +48,20 @@ export default [
       'unicorn/prefer-iterator-to-array': 'off'
     }
   },
+  // This one hooks specifically browser APIs
+  {
+    files: ['src/agent/ui5Coverage.ts'],
+    languageOptions: {
+      globals: {
+        ...globals.browser
+      }
+    },
+    rules: {
+      'unicorn/prefer-url-href': 'off',
+      '@typescript-eslint/unbound-method': 'off',
+      'unicorn/no-this-outside-of-class': 'off'
+    }
+  },
   // TODO implement a regexp validator
   {
     files: ['src/configuration/validators/regexp.ts'],
@@ -62,6 +76,7 @@ export default [
       'unicorn/prefer-top-level-await': 'off'
     }
   },
+  // Be less stricts on spec files
   {
     files: ['**/*.spec.ts'],
     rules: {
@@ -70,7 +85,9 @@ export default [
       // Math.random is enough in spec files
       'sonarjs/pseudo-random': 'off',
       // Parameterized tests are used when useful
-      'sonarjs/parameterized-tests': 'off'
+      'sonarjs/parameterized-tests': 'off',
+      // File system APIs are all mocked
+      'sonarjs/publicly-writable-directories': 'off'
     }
   },
   // *Must* use any

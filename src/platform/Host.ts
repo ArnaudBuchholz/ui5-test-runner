@@ -2,6 +2,7 @@ import { machine, cpus, platform, release, version, homedir } from 'node:os';
 
 export class Host {
   static readonly argv = process.argv;
+  static readonly nodePath = process.argv[0] as string;
   static readonly cpus = cpus;
   static readonly cwd = process.cwd.bind(process);
   static readonly env = process.env;
