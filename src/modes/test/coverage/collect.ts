@@ -37,9 +37,14 @@ export const collect = async (configuration: Configuration, pageContext: PageCon
     return;
   }
   assert(isCoverageData(coverageData), `Invalid coverage data for page ${url}`);
-  const data = configuration.coverageSourceDir
-    ? remapPaths(coverageData, configuration.coverageSourceDir)
-    : coverageData;
+  let data = coverageData;
+  const firstFilePath = Object.keys(data)[0]!;
+  try {
+    await FileSystem.access(firstFilePath, FileSystem.constants.R_OK);
+  } catch {
+    logger.debug({ source: 'coverage', pageId, message: 'Coverage data requires mapping' });
+    data = remapPaths(coverageData, configuration.coverageSourceDir ?? configuration.webapp);
+  }
   const fileName = `${pageId}.json`;
   const filePath = Path.join(configuration.coverageTempDir, fileName);
   await FileSystem.writeFile(filePath, JSON.stringify(data));
