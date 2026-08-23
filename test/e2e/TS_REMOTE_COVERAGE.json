@@ -4,9 +4,10 @@
   "batchLabel": "Remote TS sample with coverage (no local mapping)",
   "url": ["http://localhost:8083/test/testsuite.qunit.html"],
   "coverage": true,
+  "coverageSourceDir": "../sample.ts/webapp", 
   "coverageSettings": "../sample.ts/.nycrc.json",
   "coverageTempDir": "{{reportDir}}/.nyc_output",
   "coverageReportDir": "{{reportDir}}/coverage",
   "coverageCheckStatements": 53,
-  "end": "RUNNER_EXIT_CODE={{exitCode}} NODE_OPTIONS= node ./check.mjs {{reportDir}} --pages 2 --coverage --report-uncovered"
+  "end": "RUNNER_EXIT_CODE={{exitCode}} NODE_OPTIONS= node test/e2e/check.mjs {{reportDir}} --pages 2 --coverage --report-uncovered"
 }
