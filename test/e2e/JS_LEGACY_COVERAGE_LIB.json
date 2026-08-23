@@ -7,7 +7,6 @@
   "libs": [
     "sap/utr/lib=src/sap/utr/lib"
   ],  
-  "noScreenshot": null,
   "coverage": true,
   "coverageSettings": "./.nycrc.json",
   "coverageTempDir": "{{reportDir}}/.nyc_output",

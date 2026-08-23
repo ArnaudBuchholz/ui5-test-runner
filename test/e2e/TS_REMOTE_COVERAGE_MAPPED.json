@@ -4,7 +4,6 @@
   "batchLabel": "Remote TS sample with coverage (with local mapping)",
   "cwd": "../sample.ts",
   "url": ["http://localhost:8083/test/testsuite.qunit.html"],
-  "noScreenshot": null,
   "coverage": true,
   "coverageSettings": "./.nycrc.json",
   "coverageTempDir": "{{reportDir}}/.nyc_output",
