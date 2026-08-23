@@ -16,18 +16,6 @@ import { end } from '../../end.js';
 import { sendToParentProcess } from '../../sendToParentProcess.js';
 import { instrument, generateReport } from './coverage/index.js';
 
-/**
- * TODO
- * - log environment
- * - handle coverage
- * - allocate browser
- * - read agent to inject
- * - (legacy) build URL
- * - start server
- * - parallelize
- * - build reports
- */
-
 export const test = async (configuration: Configuration) => {
   await initReportBuilder(configuration);
   await Folder.create(configuration.reportDir);
