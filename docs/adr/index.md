@@ -15,6 +15,7 @@ This directory documents significant architectural decisions made in the `ui5-te
 | [0007](./0007-start-end-command-lifecycle.md) | Start/End Command Lifecycle | Accepted | Support pre-test and post-test hook commands with NPM script resolution, parameter substitution, `forceRender` output bypass, and unconditional end-command exit-code authority |
 | [0008](./0008-ui-controller-pattern.md) | UI Controller Pattern | Accepted | Implement browser-side UIs using a typed `AbstractUserInterfaceController` base class that enforces a diff-only, optimistic-update MVC protocol without a frontend framework |
 | [0009](./0009-coverage-architecture.md) | Coverage Architecture | Accepted | Instrument UI5 source files via nyc subprocess, intercept dynamic module loading in-browser, collect per-page coverage data, then merge and report with optional threshold-as-CTRF-failure integration |
+| [0010](./0010-graceful-shutdown.md) | Graceful Shutdown | Accepted | LIFO async task registry with SIGINT handler, `ExitShutdownError` for post-shutdown safety, and handle leak detection |
 
 ## Quick Navigation
 
@@ -27,6 +28,7 @@ This directory documents significant architectural decisions made in the `ui5-te
 - **When modifying `src/Command.ts`, `src/start.ts`, or `src/end.ts`** → See [ADR-0007](./0007-start-end-command-lifecycle.md)
 - **When modifying `src/utils/ui/` or any `*Controller.ts`** → See [ADR-0008](./0008-ui-controller-pattern.md)
 - **When modifying `src/modes/test/coverage/`, `src/agent/ui5Coverage.ts`, or `src/Npm.ts`** → See [ADR-0009](./0009-coverage-architecture.md)
+- **When modifying `src/platform/Exit.ts` or shutdown/SIGINT handling** → See [ADR-0010](./0010-graceful-shutdown.md)
 
 ## Cross-Cutting Concerns
 
