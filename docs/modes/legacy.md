@@ -5,12 +5,8 @@
 `ui5-test-runner` can **serve** the application to test it.
 The application files are delivered through its inner **web server**.
 
-This mode offers unique capabilities :
-
-* Selecting the UI5 version to use,
-* Caching the UI5 resources to speed up the tests,
-* Mapping of libraries,
-* Measuring the code coverage.
+This mode offers unique capabilities such as selecting which UI5 version to use or mapping custom libraries.
+* Mapping of libraries
 
 **NOTE** : `ui5-test-runner` can serve the application without testing it with the option `--serve-only`.
 
@@ -44,27 +40,19 @@ This mode offers unique capabilities :
 
 * In the project root folder, run the following command :
 
-`ui5-test-runner --port 8081 --cache .ui5 --libs my/namespace/feature/lib/=../my.namespace.feature.project.lib/src/my/namespace/feature/lib/`
+`ui5-test-runner --port 8081 --libs my/namespace/feature/lib/=../my.namespace.feature.project.lib/src/my/namespace/feature/lib/`
 
 The list of options is available using `ui5-test-runner --help` but to explain the command :
 * `--port 8081` : uses the fixed http port `8081`
-
-* `--cache .ui5` : caches UI5 resources to boost loading of pages. It stores resources in a project folder named `.ui5` *(you may use an absolute path if preferred)*.
 
 * `--libs my/namespace/feature/lib/=../my.namespace.feature.project.lib/src/my/namespace/feature/lib/` : maps the library path (access to URL `/resources/my/namespace/feature/lib/library.js` will be mapped to the file path `../my.namespace.feature.project.lib/src/my/namespace/feature/lib/library.js`)
 
 You may also use :
 * `--ui5 https://ui5.sap.com/1.109.0/` : uses a specific version of UI5
 
-* `--no-coverage` : **ignores**  code coverage measurement *(if you don’t need it, it speeds up a bit the startup)*
+* `--coverage` : code coverage measurement
 
-* `--browser-args --visible` : changes the browser spawning command line to make the browser windows **visible** *(for puppeteer)*
-
-* `--parallel 3` : increases the number of parallel execution *(default is 2)*
-
-**During** the test executions *(which can take some time)* you can monitor the progress by opening : http://localhost:8081/_/progress.html
-
-  ![progress](progress.png)
+* `--parallel` : to increase the number of parallel execution *(default is 2)*
 
 **After** the tests are executed :
 
@@ -86,7 +74,5 @@ You may also use :
   * `.nyc_output/` : contains coverage information
 
   * `report/` : contains test report *(as well as screenshots and console log outputs)*
-
-  * `.ui5/` : contains cached UI5 resources
 
   * These folder names can be changed through parameters

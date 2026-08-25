@@ -49,20 +49,20 @@ When all the test pages are executed, the coverage report is generated using two
 
 ## `.nycrc.json`
 
-Coverage settings are specified through a `.nycrc.json` file, available options are described [here](https://github.com/istanbuljs/nyc?tab=readme-ov-file#common-configuration-options).
+Coverage settings are specified through a `.nycrc.json` file (path controlled by `--coverage-settings`). Available options are described [here](https://github.com/istanbuljs/nyc?tab=readme-ov-file#common-configuration-options).
 
-The runner provides a minimal configuration file with :
-```json
-{
-  "all": true,
-  "sourceMap": false
-}
-```
+The runner merges your settings file with the following forced overrides before passing it to nyc:
 
-The `all` option, when set, significantly impacts the coverage report. It forces the runner to scan the project to discover all files :
+| Key | Value | Reason |
+|---|---|---|
+| `all` | `true` (unless you explicitly set `false`) | ensures files never loaded during tests still appear with 0% coverage |
+| `sourceMap` | `false` | source maps point to pre-instrumented originals, causing double-mapping |
+| `coverageGlobalScope` | `"window.top"` | UI5 apps run in iframes; coverage is accumulated on `window.top` |
+| `coverageGlobalScopeFunc` | `false` | prevents nyc from wrapping the scope lookup, which breaks in sandboxed iframes |
+| `cwd` | `coverageSourceDir` or `webapp` | ensures relative paths in reports resolve to the source root |
+| `exclude` | appended with temp/report/test-report dirs | prevents coverage output from being counted as source |
 
-* In `legacy` mode, the runner is responsible of instrumenting the sources.
-* In `remote` mode, a **scanner** is required to discover and fetch instrumented files from the remote repository. A default scanner is provided for `@ui5/cli` served projects (`$/scan-ui5.js`).
+The merged settings are written to `<coverageTempDir>/settings/.nycrc.json` and passed to every nyc subprocess via `--nycrc-path`.
 
 ## Legacy mode
 
@@ -155,15 +155,6 @@ To exclude the test files from coverage reporting, create a `.nycrc.json` file w
 }
 ```
 
-### coverage-proxy *(experimental)*
-
-If the remote server does not provide instrumented source files, an experimental approach consists in using `ui5-test-runner` as a 'proxy' to get the files. It will instrument the sources on the fly.
-
-Example :
-```bash
-ui5-test-runner --url https://ui5.sap.com/test-resources/sap/m/demokit/orderbrowser/webapp/test/testsuite.qunit.html --coverage --coverage-proxy --coverage-proxy-include webapp/* --coverage-proxy-exclude webapp/test --disable-ui5
-```
-
 ## Aggregate coverage for several projects
 
 It is possible to execute `ui5-test-runner` on several projects and **aggregate** all coverage results to generate a **single** report.
@@ -198,8 +189,8 @@ There are several requirements :
 
 * For each project (referenced as `<PROJECT_NAME>`) :
   * `ui5-test-runner` with coverage extraction
-  * By default, coverage information is stored in the project root under `.nyc_output\merged\coverage.json`
-  * **after** `ui5-test-runner` successful execution, copy `.nyc_output\merged\coverage.json` to `<MERGE_COVERAGE_FOLDER>/<PROJECT_NAME>.json`
+  * By default, coverage information is stored in the project root under `.nyc_output/merged/coverage.json`
+  * **after** `ui5-test-runner` successful execution, copy `.nyc_output/merged/coverage.json` to `<MERGE_COVERAGE_FOLDER>/<PROJECT_NAME>.json`
 
 * Once all projects are executed and coverage files copied, execute `npx nyc merge <MERGE_COVERAGE_FOLDER> <MERGE_COVERAGE_FOLDER>/overall/coverage.json`
 

@@ -56,10 +56,10 @@ New parameters and behaviors are introduced to control the execution :
 
 * `--report-dir`: when used in the main command, all batch items report folders are overridden to generate a folder under the main `--report-dir` :
 
-  * `--batch-id`: if provided in a configuration file, this conditions the sub folder name used under the overridden `--report-dir` *(otherwise a hash is computed based on the batch item folder / file path)*.
+* `--batch-id`: if provided in a configuration file, this conditions the sub folder name used under the overridden `--report-dir` *(otherwise a hash is computed based on the batch item folder / file path)*.
 
 * `--batch-label`: if provided in a configuration file, the label is used in the main command output *(otherwise the folder / file path is being used)*.
 
 * `--if`: if provided in a configuration file, it conditions the execution of the batch item. The expression can test any environment variable (for instance: `--if "ALL_TESTS === 'true'"`) or use the Node.js' major version (`--if "NODE_MAJOR_VERSION >= 20"`).
 
-* [Parameters](https://arnaudbuchholz.github.io/ui5-test-runner/usage/) flagged with 📡 are forwarded to the batch item execution.
+* Some parameters are forwarded to the batch item execution when specified in the main command, check the list of options and look for the batchForwarded setting.
