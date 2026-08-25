@@ -16,6 +16,14 @@ export const validations: Array<(configuration: Configuration) => void> = [
     }
   },
   (configuration) => {
+    if (
+      Object.hasOwn(configuration, 'debugMcpLocalDocs') &&
+      !punyexpr("(!debugMcpLocalDocs || mode === 'mcp')")(configuration)
+    ) {
+      throw OptionValidationError.createValidationError(indexedOptions.debugMcpLocalDocs, 'this option requires --mcp');
+    }
+  },
+  (configuration) => {
     if (Object.hasOwn(configuration, 'dumpConfig') && !punyexpr("(mode === 'dumpConfig')")(configuration)) {
       throw OptionValidationError.createValidationError(
         indexedOptions.dumpConfig,
@@ -50,6 +58,14 @@ export const validations: Array<(configuration: Configuration) => void> = [
       !punyexpr('(log !== undefined) && (logDump !== undefined)')(configuration)
     ) {
       throw OptionValidationError.createValidationError(indexedOptions.logFilter, 'requires log and logDump');
+    }
+  },
+  (configuration) => {
+    if (Object.hasOwn(configuration, 'mcp') && !punyexpr("(mode === 'mcp')")(configuration)) {
+      throw OptionValidationError.createValidationError(
+        indexedOptions.mcp,
+        'this option cannot be combined with other mode options'
+      );
     }
   },
   (configuration) => {

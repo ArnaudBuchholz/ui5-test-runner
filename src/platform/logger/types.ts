@@ -7,6 +7,7 @@ type GenericLogSource =
   | 'exit/handle'
   | 'job'
   | 'logger'
+  | 'mcp'
   | 'npm'
   | 'process'
   | 'process/stdout'

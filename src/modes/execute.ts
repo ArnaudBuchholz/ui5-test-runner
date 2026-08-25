@@ -2,6 +2,7 @@ import type { Configuration } from '../configuration/Configuration.js';
 import { dumpConfig } from './dumpConfig.js';
 import { help } from './help.js';
 import { log } from './log/index.js';
+import { mcp } from './mcp/index.js';
 import type { ModeFunction } from './ModeFunction.js';
 import { Modes } from './Modes.js';
 import { version } from './version.js';
@@ -15,6 +16,7 @@ const modeFunctions: { [key in Modes]: ModeFunction } = {
   [Modes.help]: help,
   [Modes.legacy]: test,
   [Modes.log]: log,
+  [Modes.mcp]: mcp,
   [Modes.remote]: test,
   [Modes.version]: version
 };

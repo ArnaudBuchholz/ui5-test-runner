@@ -191,6 +191,12 @@ export const options = [
     description: 'keeps the browser open after the tests completed'
   },
   {
+    name: 'debugMcpLocalDocs',
+    type: 'boolean',
+    description: 'use local docs/ directory instead of fetching from GitHub (development only)',
+    default: false
+  },
+  {
     name: 'dumpConfig',
     type: 'boolean',
     description: 'dump the resolved configuration as JSON and exit'
@@ -265,6 +271,11 @@ export const options = [
     short: 'lf',
     type: 'string',
     description: 'JavaScript expression (using punyexpr) to filter logs for dumping with --log-dump'
+  },
+  {
+    name: 'mcp',
+    type: 'boolean',
+    description: 'start an MCP server to pilot ui5-test-runner with an MCP client'
   },
   {
     name: 'noNpmInstall',
@@ -417,6 +428,7 @@ export const defaults = {
   coverageSettings: '.nycrc.json',
   coverageTempDir: '.nyc_output',
   cwd: process.cwd(),
+  debugMcpLocalDocs: false,
   localhost: 'localhost',
   npmAllowInstallScripts: false,
   npmInstall: 'global',

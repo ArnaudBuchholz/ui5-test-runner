@@ -152,6 +152,9 @@ export const ConfigurationValidator = {
     if (configuration.dumpConfig) {
       return Modes.dumpConfig;
     }
+    if (configuration.mcp) {
+      return Modes.mcp;
+    }
     if (configuration.batch) {
       return Modes.batch;
     }

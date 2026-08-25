@@ -4,6 +4,7 @@ export const Modes = {
   help: 'help',
   legacy: 'legacy',
   log: 'log',
+  mcp: 'mcp',
   remote: 'remote',
   version: 'version'
 } as const;
