@@ -1,6 +1,6 @@
 import { readFile } from '../knowledgeBase.js';
 
-export const listTopics = {
+export const toolDefinitionListTopics = {
   definition: {
     name: 'list_topics',
     description: 'List all available documentation topics. Call this first to discover what is available.',

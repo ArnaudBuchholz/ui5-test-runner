@@ -1,6 +1,6 @@
 import { readFile } from '../knowledgeBase.js';
 
-export const getTopic = {
+export const toolDefinitionGetTopic = {
   definition: {
     name: 'get_topic',
     description:
@@ -15,9 +15,7 @@ export const getTopic = {
   },
   handler: async (arguments_: Record<string, unknown>): Promise<string> => {
     const topic = (arguments_['topic'] as string).replace(/^\[\[(.+)]]$/, '$1');
-    const candidates = topic.includes('/')
-      ? [`${topic}.md`]
-      : [`${topic}.md`, `${topic}/index.md`];
+    const candidates = topic.includes('/') ? [`${topic}.md`] : [`${topic}.md`, `${topic}/index.md`];
     for (const relativePath of candidates) {
       try {
         return await readFile(relativePath);
