@@ -100,6 +100,20 @@ describe('tools/call get_topic', () => {
     expect(body.result.content[0]!.text).toContain('[[options]]');
   });
 
+  it('strips [[ ]] brackets from topic name', async () => {
+    vi.mocked(FileSystem.readFile).mockResolvedValue('# Installation\nSome content');
+    const response = await post(server, {
+      jsonrpc: '2.0',
+      id: ID,
+      method: 'tools/call',
+      params: { name: 'get_topic', arguments: { topic: '[[installation]]' } }
+    });
+    await response.waitForFinish();
+    // eslint-disable-next-line @typescript-eslint/no-base-to-string -- REserve response body
+    const body = JSON.parse(response.toString()) as { result: { content: Array<{ text: string }> } };
+    expect(body.result.content[0]!.text).toContain('# Installation');
+  });
+
   it('returns not found message for unknown topic', async () => {
     vi.mocked(FileSystem.readFile).mockRejectedValue(new Error('ENOENT'));
     const response = await post(server, {
