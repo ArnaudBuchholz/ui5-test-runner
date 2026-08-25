@@ -16,6 +16,7 @@ This directory documents significant architectural decisions made in the `ui5-te
 | [0008](./0008-ui-controller-pattern.md) | UI Controller Pattern | Accepted | Implement browser-side UIs using a typed `AbstractUserInterfaceController` base class that enforces a diff-only, optimistic-update MVC protocol without a frontend framework |
 | [0009](./0009-coverage-architecture.md) | Coverage Architecture | Accepted | Instrument UI5 source files via nyc subprocess, intercept dynamic module loading in-browser, collect per-page coverage data, then merge and report with optional threshold-as-CTRF-failure integration |
 | [0010](./0010-graceful-shutdown.md) | Graceful Shutdown | Accepted | LIFO async task registry with SIGINT handler, `ExitShutdownError` for post-shutdown safety, and handle leak detection |
+| [0011](./0011-mcp-knowledge-base.md) | MCP Knowledge Base | Accepted | GitHub-hosted docs fetched on demand via raw.githubusercontent.com and Contents API, with git tree SHA for cheap update detection |
 
 ## Quick Navigation
 
@@ -29,6 +30,7 @@ This directory documents significant architectural decisions made in the `ui5-te
 - **When modifying `src/utils/ui/` or any `*Controller.ts`** → See [ADR-0008](./0008-ui-controller-pattern.md)
 - **When modifying `src/modes/test/coverage/`, `src/agent/ui5Coverage.ts`, or `src/Npm.ts`** → See [ADR-0009](./0009-coverage-architecture.md)
 - **When modifying `src/platform/Exit.ts` or shutdown/SIGINT handling** → See [ADR-0010](./0010-graceful-shutdown.md)
+- **When modifying `src/modes/mcp/` or the knowledge base fetch strategy** → See [ADR-0011](./0011-mcp-knowledge-base.md)
 
 ## Cross-Cutting Concerns
 
