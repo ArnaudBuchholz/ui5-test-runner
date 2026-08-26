@@ -191,4 +191,15 @@ export const defaults = {`);
   validationsOutput.push(`];`);
 
   await writeFile('./src/configuration/validations.ts', validationsOutput.join('\n'));
+
+  const optionsMarkdown = ['|Option|CLI arg|CLI shorcut|Type|Description|', '|---|---|---|---|---|'];
+  const toKebabCase = (name) => name.replaceAll(/[A-Z]/g, (letter) => `-${letter.toLowerCase()}`);
+  for (const name of sortedOptionNames) {
+    const option = options[name];
+    optionsMarkdown.push(
+      `|[${option.name}](options/${option.name}.md)|--${toKebabCase(option.name)}|${option.short ? '-' + option.short : ''}|${option.type}|${option.description}|`
+    );
+  }
+
+  await writeFile('./docs/options.md', optionsMarkdown.join('\n'));
 }
