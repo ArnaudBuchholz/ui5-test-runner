@@ -11,6 +11,7 @@
 |[batch](options/batch.md)|--batch||string|batch item specification (folder, config file, or regex pattern)|
 |[batchId](options/batchId.md)|--batch-id||string|identifier for the batch item|
 |[batchLabel](options/batchLabel.md)|--batch-label||string|display label for the batch item|
+|[batchTimeout](options/batchTimeout.md)|--batch-timeout|-bt|timeout|fails a batch item if it takes longer than this timeout|
 |[browser](options/browser.md)|--browser|-b|browser|browser selection|
 |[browserViewportHeight](options/browserViewportHeight.md)|--browser-viewport-height|-H|integer|height of the browser viewport in pixels|
 |[browserViewportWidth](options/browserViewportWidth.md)|--browser-viewport-width|-W|integer|width of the browser viewport in pixels|

@@ -29,7 +29,7 @@ export const batch = async (configuration: Configuration): Promise<void> => {
   let completed = 0;
   let lastLoggedCompleted: number | undefined;
   try {
-    await parallelize((item) => batchTask(configuration, item), items, {
+    await parallelize((item) => batchTask(configuration, item, batchStart), items, {
       parallel: configuration.parallel,
       on: (event) => {
         if (event.type === 'completed') {

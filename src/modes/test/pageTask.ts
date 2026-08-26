@@ -4,7 +4,7 @@ import { getAgentSource } from './agent.js';
 import { getBrowser } from './browser.js';
 import type { AgentState } from '../../types/AgentState.js';
 import { Exit, ExitShutdownError } from '../../platform/Exit.js';
-import { setTimeout } from 'node:timers/promises';
+import { setTimeout as pause } from 'node:timers/promises';
 import { getReportBuilder } from './report.js';
 import { createEmptyTestResults } from '../../types/CommonTestReportFormat.js';
 import type { CommonTestReport } from '../../types/CommonTestReportFormat.js';
@@ -15,6 +15,7 @@ import { collect as collectCoverage } from './coverage/index.js';
 import type { Configuration } from '../../configuration/Configuration.js';
 import type { PageContext } from './PageContext.js';
 import { makeScreenshotHandlers } from './screenshot.js';
+import { getPageTimeout, isGloballyTimedOut } from './timeout.js';
 
 let lastPageId = 0;
 
@@ -185,6 +186,13 @@ export const makePageTask = (configuration: Configuration) => {
       data: { max: 0, value: 1, type: 'unknown', errors: 0 }
     });
 
+    const startTime = getReportBuilder().report.results.summary.start;
+    if (isGloballyTimedOut(configuration, startTime)) {
+      logger.warn({ source: 'page', message: 'Global timeout reached, skipping page', pageId, data: { url } });
+      reportError(url, 'Global timeout reached');
+      return;
+    }
+
     await tryToFetchThePageFirst(url, pageId);
 
     const { promise: taskStopped, resolve: setTaskAsStopped } = Promise.withResolvers<void>();
@@ -225,18 +233,37 @@ export const makePageTask = (configuration: Configuration) => {
         isSuite: false,
         lastUncaughtErrorsCount: 0
       };
-      while (!this.stopRequested) {
-        try {
-          await setTimeout(context.loopDelay);
-          if (screenshot) {
-            await handlePendingScreenshot(page, pageId);
+      const pageTimeoutMs = getPageTimeout(configuration, startTime);
+      let pageTimeoutHandle: ReturnType<typeof setTimeout> | undefined;
+      if (pageTimeoutMs > 0) {
+        pageTimeoutHandle = setTimeout(() => {
+          logger.warn({ source: 'page', message: 'Page timed out', pageId, data: { url } });
+          reportError(url, 'Page timed out');
+          try {
+            this.stop(new ExitShutdownError());
+          } catch {
+            // stop() throws by design
           }
-          if (await shouldStopBasedOnAgentState(context, screenshot)) {
+        }, pageTimeoutMs);
+      }
+      try {
+        while (!this.stopRequested) {
+          try {
+            await pause(context.loopDelay);
+            if (screenshot) {
+              await handlePendingScreenshot(page, pageId);
+            }
+            if (await shouldStopBasedOnAgentState(context, screenshot)) {
+              break;
+            }
+          } catch (error) {
+            logger.error({ source: 'page', message: 'An error occurred', error, pageId, data: {} });
             break;
           }
-        } catch (error) {
-          logger.error({ source: 'page', message: 'An error occurred', error, pageId, data: {} });
-          break;
+        }
+      } finally {
+        if (pageTimeoutHandle !== undefined) {
+          clearTimeout(pageTimeoutHandle);
         }
       }
       const testResults = (await page.eval("window['ui5-test-runner'].results")) as CommonTestReport['results'];
