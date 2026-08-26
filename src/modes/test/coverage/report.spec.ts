@@ -34,7 +34,6 @@ const setupHappyPath = () => {
   vi.spyOn(Npm, 'import').mockResolvedValue(undefined);
   vi.spyOn(Npm, 'resolvePackageDir').mockResolvedValue('/node_modules/nyc');
   vi.mocked(FileSystem.access).mockRejectedValue(new Error('not found'));
-  vi.mocked(Path.join).mockImplementation((...parts) => parts.join('/'));
   vi.mocked(Path.relative).mockReturnValue('relative');
   vi.mocked(Process.spawn).mockReturnValue(makeProcess(0));
 };

@@ -1,5 +1,4 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { Path } from '../../../platform/index.js';
 import { Npm } from '../../../Npm.js';
 import type { Configuration } from '../../../configuration/Configuration.js';
 import { getNycBin } from './nyc.js';
@@ -12,7 +11,6 @@ describe('getNycBin', () => {
   it('returns the path to bin/nyc.js inside the resolved nyc package directory', async () => {
     vi.spyOn(Npm, 'import').mockResolvedValue(undefined);
     vi.spyOn(Npm, 'resolvePackageDir').mockResolvedValue('/node_modules/nyc');
-    vi.mocked(Path.join).mockImplementation((...parts) => parts.join('/'));
     await expect(getNycBin(CONFIGURATION)).resolves.toBe('/node_modules/nyc/bin/nyc.js');
   });
 
@@ -20,7 +18,6 @@ describe('getNycBin', () => {
     const config = { cwd: '/test-import' } as unknown as Configuration;
     vi.spyOn(Npm, 'import').mockResolvedValue(undefined);
     vi.spyOn(Npm, 'resolvePackageDir').mockResolvedValue('/node_modules/nyc');
-    vi.mocked(Path.join).mockImplementation((...parts) => parts.join('/'));
     await getNycBin(config);
     expect(Npm.import).toHaveBeenCalledWith(config, 'nyc');
   });
@@ -29,7 +26,6 @@ describe('getNycBin', () => {
     const config = { cwd: '/test-resolve' } as unknown as Configuration;
     vi.spyOn(Npm, 'import').mockResolvedValue(undefined);
     vi.spyOn(Npm, 'resolvePackageDir').mockResolvedValue('/node_modules/nyc');
-    vi.mocked(Path.join).mockImplementation((...parts) => parts.join('/'));
     await getNycBin(config);
     expect(Npm.resolvePackageDir).toHaveBeenCalledWith(config, 'nyc');
   });
@@ -38,7 +34,6 @@ describe('getNycBin', () => {
     const CONFIG = { cwd: '/cached' } as unknown as Configuration;
     vi.spyOn(Npm, 'import').mockResolvedValue(undefined);
     vi.spyOn(Npm, 'resolvePackageDir').mockResolvedValue('/node_modules/nyc');
-    vi.mocked(Path.join).mockImplementation((...parts) => parts.join('/'));
     const first = await getNycBin(CONFIG);
     const second = await getNycBin(CONFIG);
     expect(first).toBe(second);

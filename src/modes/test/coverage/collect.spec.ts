@@ -92,14 +92,14 @@ describe('when coverageSourceDir is set', () => {
     const relativeKey = 'src/file.js';
     const data = { [relativeKey]: { path: relativeKey, s: { 0: 1 } } };
     const pageContext = makePageContext({ page: { eval: vi.fn().mockResolvedValue(data) } as never });
-    vi.mocked(Path.join).mockImplementation((...parts) => parts.join('/'));
+    vi.mocked(FileSystem.access).mockRejectedValue(new Error('No access'));
     await collect(SOURCE_DIR_CONFIGURATION, pageContext);
     const absoluteKey = `${COVERAGE_SOURCE_DIR}/${relativeKey}`;
     const written = JSON.parse(vi.mocked(FileSystem.writeFile).mock.calls[0]![1] as string) as Record<
       string,
       { path: string }
     >;
-    expect(written[absoluteKey]).toBeDefined();
-    expect(written[absoluteKey]!.path).toBe(absoluteKey);
+    expect.assert(written[absoluteKey] !== undefined);
+    expect(written[absoluteKey].path).toBe(absoluteKey);
   });
 });

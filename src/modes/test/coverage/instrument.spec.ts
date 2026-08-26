@@ -30,7 +30,6 @@ const setupHappyPath = () => {
   vi.spyOn(Npm, 'resolvePackageDir').mockResolvedValue('/node_modules/nyc');
   vi.mocked(FileSystem.access).mockRejectedValue(new Error('not found'));
   vi.mocked(FileSystem.readdir).mockResolvedValue([]);
-  vi.mocked(Path.join).mockImplementation((...parts) => parts.join('/'));
   vi.mocked(Path.relative).mockReturnValue('relative');
   vi.mocked(Process.spawn).mockReturnValue(makeProcess(0));
 };
@@ -102,7 +101,6 @@ describe('instrument', () => {
 
     it('spawns nyc instrument with correct arguments', async () => {
       setupHappyPath();
-      vi.mocked(Path.join).mockImplementation((...parts) => parts.join('/'));
       const config = makeConfiguration({});
       await instrument(config);
       expect(Process.spawn).toHaveBeenCalledWith(
@@ -140,7 +138,6 @@ describe('instrument', () => {
   describe('generateBaseline', () => {
     it('spawns nyc with --temp-dir to generate baseline', async () => {
       setupHappyPath();
-      vi.mocked(Path.join).mockImplementation((...parts) => parts.join('/'));
       const config = makeConfiguration({});
       await instrument(config);
       expect(Process.spawn).toHaveBeenCalledWith(
@@ -161,7 +158,6 @@ describe('instrument', () => {
 
     it('moves baseline files larger than 5 bytes to coverageTempDir', async () => {
       setupHappyPath();
-      vi.mocked(Path.join).mockImplementation((...parts) => parts.join('/'));
       const fakeEntry = { isFile: () => true, name: 'abc.json' } as unknown as Awaited<
         ReturnType<typeof FileSystem.readdir>
       >[number];
@@ -177,7 +173,6 @@ describe('instrument', () => {
 
     it('skips baseline files with size <= 5 bytes', async () => {
       setupHappyPath();
-      vi.mocked(Path.join).mockImplementation((...parts) => parts.join('/'));
       const fakeEntry = { isFile: () => true, name: 'empty.json' } as unknown as Awaited<
         ReturnType<typeof FileSystem.readdir>
       >[number];
@@ -190,7 +185,6 @@ describe('instrument', () => {
 
     it('names subsequent baseline files with an index suffix', async () => {
       setupHappyPath();
-      vi.mocked(Path.join).mockImplementation((...parts) => parts.join('/'));
       const makeEntry = (name: string) =>
         ({ isFile: () => true, name }) as unknown as Awaited<ReturnType<typeof FileSystem.readdir>>[number];
       vi.mocked(FileSystem.readdir).mockResolvedValue([makeEntry('a.json'), makeEntry('b.json')]);
@@ -205,7 +199,6 @@ describe('instrument', () => {
 
     it('removes the baseline temp directory after moving files', async () => {
       setupHappyPath();
-      vi.mocked(Path.join).mockImplementation((...parts) => parts.join('/'));
       const config = makeConfiguration({});
       await instrument(config);
       expect(FileSystem.rm).toHaveBeenCalledWith(`${COVERAGE_TEMP_DIR}/baseline`, { recursive: true });
@@ -217,7 +210,6 @@ describe('instrument', () => {
       vi.spyOn(Npm, 'resolvePackageDir').mockResolvedValue('/node_modules/nyc');
       vi.mocked(FileSystem.access).mockResolvedValue(undefined);
       vi.mocked(FileSystem.readFile).mockResolvedValue(JSON.stringify({ all: false }));
-      vi.mocked(Path.join).mockImplementation((...parts) => parts.join('/'));
       vi.mocked(Path.relative).mockReturnValue('relative');
       vi.mocked(Process.spawn).mockReturnValue(makeProcess(0));
       const config = makeConfiguration({});
