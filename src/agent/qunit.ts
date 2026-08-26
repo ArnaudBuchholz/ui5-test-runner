@@ -68,27 +68,52 @@ export const qunit = () => {
     pendingScreenshot: false
   });
 
+  const isSuiteDone = () => state.done && state.type === 'suite';
+
+  const countTotalTests = () => {
+    const { modules } = QUnit.config as QUnitConfigWithModules;
+    const moduleId = new URL(window.location.href).searchParams.get('moduleId');
+    if (moduleId) {
+      return modules.find((m) => m.moduleId === moduleId)?.tests.length ?? 0;
+    }
+    let total = 0;
+    for (const module of modules) {
+      total += module.tests.length;
+    }
+    return total;
+  };
+
   QUnit.begin((details) => {
     log(`QUnit.begin({totalTests: ${details.totalTests}, modules: [...${details.modules.length}...]})`);
     report.begin(`QUnit@${window.QUnit!.version}`);
+    const isOpa = !!window?.sap?.ui?.test?.Opa5;
+    const shouldSplit =
+      isOpa &&
+      !!getConfig().splitOpa &&
+      (QUnit.config as QUnitConfigWithModules).modules.length > 1 &&
+      !new URL(window.location.href).searchParams.has('moduleId');
+    if (shouldSplit) {
+      const pages = (QUnit.config as QUnitConfigWithModules).modules.map(({ moduleId }) => {
+        const url = new URL(window.location.href);
+        url.searchParams.set('moduleId', moduleId);
+        return url.href;
+      });
+      Object.assign(state, { done: true, type: 'suite', pages });
+      return;
+    }
     updateState({
-      isOpa: !!window?.sap?.ui?.test?.Opa5,
+      isOpa,
       executed,
-      total: details.totalTests,
+      total: countTotalTests(),
       errors
     });
   });
 
   QUnit.moduleStart((details: QUnitModuleStartDetails) => {
     log(`QUnit.moduleStart({name: "${details.name}"})`);
+    if (isSuiteDone()) return;
     cancelDone();
-    const { modules } = QUnit.config as QUnitConfigWithModules;
-    let total = 0;
-    for (const module of modules) {
-      for (const _test of module.tests) {
-        total += 1;
-      }
-    }
+    const total = countTotalTests();
     if (state.type === 'QUnit' && total > state.total) {
       updateState({
         isOpa: !!window?.sap?.ui?.test?.Opa5,
@@ -101,6 +126,7 @@ export const qunit = () => {
     log(
       `QUnit.log({testId: ${details.testId}, result: ${details.result}, name: "${details.name}", module: "${details.module}}")`
     );
+    if (isSuiteDone()) return;
     const testId = getTestId(details.testId);
     logs[testId] ??= [];
     logs[testId].push(details);
@@ -147,6 +173,7 @@ export const qunit = () => {
     log(
       `QUnit.log({testId: ${details.testId}, passed: ${details.passed}, failed: ${details.failed}, name: "${details.name}", module: "${details.module}}")`
     );
+    if (isSuiteDone()) return;
     let status: CommonTestStatus = 'passed';
     const test: CTRFTest = {
       id: details.testId,
@@ -182,6 +209,7 @@ export const qunit = () => {
 
   QUnit.done((details) => {
     log(`QUnit.done({passed: ${details.passed}, failed: ${details.failed}, total: ${details.total}}")`);
+    if (isSuiteDone()) return;
     if (report.results.summary.tests === 0) {
       log.warn('QUnit.done triggered but no tests were executed, waiting for asynchronous tests loading');
       doneTimeout = setTimeout(done, agentNoTestsTimeout);

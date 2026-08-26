@@ -6,4 +6,5 @@ export type Configuration = {
   browser: string;
   parallel: number;
   screenshot: boolean;
+  splitOpa: boolean;
 };
