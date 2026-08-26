@@ -56,6 +56,7 @@
 |[port](options/port.md)|--port||integer|port to use|
 |[reportDir](options/reportDir.md)|--report-dir|-r|fs-entry|directory to output test reports|
 |[serveOnly](options/serveOnly.md)|--serve-only|-s|boolean|serve only|
+|[splitOpa](options/splitOpa.md)|--split-opa|-so|boolean|split OPA tests by QUnit module, creating one test page per module|
 |[start](options/start.md)|--start||string|command to be executed before the tests|
 |[startTimeout](options/startTimeout.md)|--start-timeout||timeout|maximum waiting time for the start command to become ready|
 |[startWaitMethod](options/startWaitMethod.md)|--start-wait-method||string|HTTP method used when polling the startWaitUrl|

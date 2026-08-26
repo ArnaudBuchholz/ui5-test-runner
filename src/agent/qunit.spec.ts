@@ -184,3 +184,43 @@ it('documents pending tests (QUnit.todo)', async () => {
     }
   ]);
 });
+
+it('splits OPA page by module when splitOpa is enabled', async () => {
+  vi.mocked(getConfig).mockReturnValue({ ...DEFAULT_CONFIG, splitOpa: true });
+  window.sap = { ui: { test: { Opa5: class {} } } } as typeof window.sap;
+  vi.stubGlobal('location', new URL('http://localhost/test/opa.html'));
+
+  QUnit.module('Journey1');
+  QUnit.test('step1', (assert) => assert.ok(true));
+  QUnit.module('Journey2');
+  QUnit.test('step2', (assert) => assert.ok(true));
+
+  QUnit.start();
+  window.dispatchEvent(new Event('load'));
+  await vi.waitFor(() => expect(state.done).toBe(true));
+
+  expect(state).toMatchObject({
+    done: true,
+    type: 'suite',
+    pages: [
+      expect.stringContaining('moduleId='),
+      expect.stringContaining('moduleId=')
+    ]
+  });
+});
+
+it('does not split when moduleId is already in URL (already a split page)', async () => {
+  vi.mocked(getConfig).mockReturnValue({ ...DEFAULT_CONFIG, splitOpa: true });
+  window.sap = { ui: { test: { Opa5: class {} } } } as typeof window.sap;
+  vi.stubGlobal('location', new URL('http://localhost/test/opa.html?moduleId='));
+
+  QUnit.module('Journey1');
+  QUnit.test('step1', (assert) => assert.ok(true));
+  QUnit.module('Journey2');
+  QUnit.test('step2', (assert) => assert.ok(true));
+
+  const results = await execQunit();
+
+  expect(state.type).toBe('QUnit');
+  expect(results.summary.tests).toBe(2);
+});
