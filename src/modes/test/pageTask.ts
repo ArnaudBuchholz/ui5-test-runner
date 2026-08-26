@@ -239,10 +239,10 @@ export const makePageTask = (configuration: Configuration) =>
           pageId,
           data: { results: testResults }
         });
+        getReportBuilder().merge(url, testResults, {
+          pageId: context.pageId
+        });
       }
-      getReportBuilder().merge(url, testResults, {
-        pageId: context.pageId
-      });
       // TODO: add a catch block and document the problem in the test report
     } finally {
       if (context !== undefined) {
