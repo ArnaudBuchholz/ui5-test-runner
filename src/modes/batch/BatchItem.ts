@@ -7,4 +7,5 @@ export interface IBatchItem {
   end?: Date;
   statusCode?: number;
   skipped?: boolean;
+  timedOut?: boolean;
 }
