@@ -170,6 +170,20 @@ const tryToFetchThePageFirst = async (url: string, pageId: number) => {
   }
 };
 
+const mergeTestResults = (url: string, pageId: number, context: PageContext, testResults: CommonTestReport['results']) => {
+  if (!context.isSuite) {
+    const { passed, failed, tests, duration } = testResults.summary;
+    const durationString = duration === undefined ? '' : ` (${duration}ms)`;
+    logger.debug({
+      source: 'page',
+      message: `test results: passed=${passed} failed=${failed} tests=${tests}${durationString}`,
+      pageId,
+      data: { results: testResults }
+    });
+  }
+  getReportBuilder().merge(url, testResults, { pageId });
+};
+
 export const makePageTask = (configuration: Configuration) =>
   async function (this: IParallelizeContext, url: string, _index: number, urls: string[]) {
     const pageId = ++lastPageId;
@@ -234,7 +248,6 @@ export const makePageTask = (configuration: Configuration) =>
       if (pageTimeoutMs > 0) {
         pageTimeoutHandle = setTimeout(() => {
           logger.warn({ source: 'page', message: 'Page timed out', pageId, data: { url } });
-          reportError(url, 'Page timed out');
           isTimedOut = true;
         }, pageTimeoutMs);
       }
@@ -257,19 +270,10 @@ export const makePageTask = (configuration: Configuration) =>
       }
       const testResults = (await page.eval("window['ui5-test-runner'].results")) as CommonTestReport['results'];
       await collectCoverage(configuration, context);
-      if (!context?.isSuite) {
-        const { passed, failed, tests, duration } = testResults.summary;
-        const durationString = duration === undefined ? '' : ` (${duration}ms)`;
-        logger.debug({
-          source: 'page',
-          message: `test results: passed=${passed} failed=${failed} tests=${tests}${durationString}`,
-          pageId,
-          data: { results: testResults }
-        });
+      mergeTestResults(url, pageId, context, testResults);
+      if (isTimedOut) {
+        reportError(url, 'Page timed out');
       }
-      getReportBuilder().merge(url, testResults, {
-        pageId: context.pageId
-      });
       // TODO: add a catch block and document the problem in the test report
     } finally {
       if (context !== undefined) {
