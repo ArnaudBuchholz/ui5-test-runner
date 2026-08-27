@@ -118,7 +118,7 @@ export const batchTask = async (
   batchItem.statusCode = childProcess.code;
   if (batchItem.skipped) {
     logger.warn({ source: 'page', pageId, message: `skipped ${label}` });
-  } else if (batchItem.statusCode === 0) {
+  } else if (batchItem.statusCode === 0 && !batchItem.timedOut) {
     logger.info({
       source: 'page',
       pageId,

@@ -1,0 +1,8 @@
+{
+  "batchId": "JS_LEGACY_GLOBAL_TIMEOUT",
+  "batchLabel": "Legacy JS Sample with global timeout",
+  "cwd": "../sample.js",
+  "url": ["http://localhost:0/test/testsuite.qunit.html"],
+  "globalTimeout": "3s",
+  "end": "RUNNER_EXIT_CODE={{exitCode}} NODE_OPTIONS= node ../e2e/check.mjs {{reportDir}} --failed"
+}

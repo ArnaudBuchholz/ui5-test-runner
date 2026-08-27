@@ -170,7 +170,12 @@ const tryToFetchThePageFirst = async (url: string, pageId: number) => {
   }
 };
 
-const mergeTestResults = (url: string, pageId: number, context: PageContext, testResults: CommonTestReport['results']) => {
+const mergeTestResults = (
+  url: string,
+  pageId: number,
+  context: PageContext,
+  testResults: CommonTestReport['results']
+) => {
   if (!context.isSuite) {
     const { passed, failed, tests, duration } = testResults.summary;
     const durationString = duration === undefined ? '' : ` (${duration}ms)`;
