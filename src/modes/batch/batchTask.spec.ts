@@ -27,6 +27,8 @@ const makeItem = (overrides: Partial<IBatchItem> = {}): IBatchItem => ({
   ...overrides
 });
 
+const START_TIME = Date.now();
+
 const makeProcess = (code = 0): IProcess => ({
   pid: 42,
   stdout: '',
@@ -49,7 +51,7 @@ beforeEach(() => {
 describe('task()', () => {
   it('sets UI5TR_BATCH_MODE=1 in the child environment', () => {
     vi.mocked(Process.spawn).mockReturnValue(makeProcess());
-    void batchTask(makeConfig(), makeItem());
+    void batchTask(makeConfig(), makeItem(), START_TIME);
     expect(Process.spawn).toHaveBeenCalledWith(
       'node',
       expect.any(Array) as unknown,
@@ -59,7 +61,7 @@ describe('task()', () => {
 
   it('passes batchItem.args parameters', () => {
     vi.mocked(Process.spawn).mockReturnValue(makeProcess());
-    void batchTask(makeConfig(), makeItem({ args: ['--cwd', '/my/path'] }));
+    void batchTask(makeConfig(), makeItem({ args: ['--cwd', '/my/path'] }), START_TIME);
     const [, parameters] = vi.mocked(Process.spawn).mock.calls[0]!;
     const cwdIndex = parameters.indexOf('--cwd');
     expect.assert(cwdIndex !== -1);
@@ -69,7 +71,7 @@ describe('task()', () => {
   it('appends --report-dir when reportDir is CLI-sourced', () => {
     vi.mocked(Process.spawn).mockReturnValue(makeProcess());
     const item = makeItem({ id: 'abc123' });
-    void batchTask(makeConfig({ reportDir: 'cli' }), item);
+    void batchTask(makeConfig({ reportDir: 'cli' }), item, START_TIME);
     const [, parameters] = vi.mocked(Process.spawn).mock.calls[0]!;
     expect(parameters).toContain('--report-dir');
     expect(parameters).toContain(`${REPORT_DIR}/abc123`);
@@ -77,7 +79,7 @@ describe('task()', () => {
 
   it('does not append --report-dir when reportDir is not CLI-sourced', () => {
     vi.mocked(Process.spawn).mockReturnValue(makeProcess());
-    void batchTask(makeConfig({}), makeItem());
+    void batchTask(makeConfig({}), makeItem(), START_TIME);
     const [, parameters] = vi.mocked(Process.spawn).mock.calls[0]!;
     expect(parameters).not.toContain('--report-dir');
   });
@@ -85,7 +87,7 @@ describe('task()', () => {
   it('returns the documented batchItem when the batch completes', async () => {
     vi.mocked(Process.spawn).mockReturnValue(makeProcess(0));
     const item = makeItem();
-    const returnedItem = await batchTask(makeConfig(), item);
+    const returnedItem = await batchTask(makeConfig(), item, START_TIME);
     expect(returnedItem).toStrictEqual(item);
     expect(returnedItem.statusCode).toStrictEqual(0);
     expect(returnedItem.end).not.toBeUndefined();
@@ -94,7 +96,7 @@ describe('task()', () => {
   it('sets start and end timestamps on the batch item', async () => {
     vi.mocked(Process.spawn).mockReturnValue(makeProcess());
     const item = makeItem();
-    await batchTask(makeConfig(), item);
+    await batchTask(makeConfig(), item, START_TIME);
     expect(item.start).toBeInstanceOf(Date);
     expect(item.end).toBeInstanceOf(Date);
   });
@@ -102,7 +104,7 @@ describe('task()', () => {
   it('sets skipped to true on the batch item when the skip IPC message is received', () => {
     vi.mocked(Process.spawn).mockReturnValue(makeProcess());
     const item = makeItem();
-    void batchTask(makeConfig(), item);
+    void batchTask(makeConfig(), item, START_TIME);
     getOnMessage()({ type: 'skip' });
     expect(item.skipped).toBe(true);
   });

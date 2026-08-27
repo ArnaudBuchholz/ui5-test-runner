@@ -4,7 +4,10 @@ import type { Configuration } from '../../configuration/Configuration.js';
 import type { IBatchItem } from './BatchItem.js';
 import { join } from 'node:path';
 import { toKebabCase } from '../../utils/shared/string.js';
-import { getBatchTimeout, isGloballyTimedOut } from '../test/timeout.js';
+import { getEffectiveTimeout, isGloballyTimedOut } from '../../utils/node/timeout.js';
+
+const getBatchTimeout = (configuration: Configuration, startTime: number): number =>
+  getEffectiveTimeout(configuration.batchTimeout, configuration.globalTimeout, startTime);
 
 const buildRunnerCommand = () => {
   const extension = Path.extname(import.meta.url);
@@ -47,7 +50,11 @@ type IPCMessage = ProgressMessage | SkipMessage;
 
 let lastPageId = 0;
 
-export const batchTask = async (configuration: Configuration, batchItem: IBatchItem, startTime: number): Promise<IBatchItem> => {
+export const batchTask = async (
+  configuration: Configuration,
+  batchItem: IBatchItem,
+  startTime: number
+): Promise<IBatchItem> => {
   const pageId = ++lastPageId;
   const label = `${batchItem.label} (${batchItem.id})`;
   logger.info({
@@ -57,7 +64,7 @@ export const batchTask = async (configuration: Configuration, batchItem: IBatchI
     data: { max: 0, value: 1, type: 'unknown', errors: 0 }
   });
 
-  if (isGloballyTimedOut(configuration, startTime)) {
+  if (isGloballyTimedOut(configuration.globalTimeout, startTime)) {
     logger.warn({ source: 'page', message: 'Global timeout reached, skipping batch item', pageId, data: { label } });
     batchItem.skipped = true;
     return batchItem;

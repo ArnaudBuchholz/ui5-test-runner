@@ -15,7 +15,10 @@ import { collect as collectCoverage } from './coverage/index.js';
 import type { Configuration } from '../../configuration/Configuration.js';
 import type { PageContext } from './PageContext.js';
 import { makeScreenshotHandlers } from './screenshot.js';
-import { getPageTimeout, isGloballyTimedOut } from './timeout.js';
+import { getEffectiveTimeout, isGloballyTimedOut } from '../../utils/node/timeout.js';
+
+const getPageTimeout = (configuration: Configuration, startTime: number): number =>
+  getEffectiveTimeout(configuration.pageTimeout, configuration.globalTimeout, startTime);
 
 let lastPageId = 0;
 
@@ -56,7 +59,7 @@ const reportQunitProgress = (
   }
 };
 
-const reportError = (url: string, message: string) => {
+export const reportError = (url: string, message: string) => {
   const result = createEmptyTestResults();
   result.summary.tests = 1;
   result.summary.failed = 1;
@@ -187,7 +190,7 @@ export const makePageTask = (configuration: Configuration) => {
     });
 
     const startTime = getReportBuilder().report.results.summary.start;
-    if (isGloballyTimedOut(configuration, startTime)) {
+    if (isGloballyTimedOut(configuration.globalTimeout, startTime)) {
       logger.warn({ source: 'page', message: 'Global timeout reached, skipping page', pageId, data: { url } });
       reportError(url, 'Global timeout reached');
       return;
@@ -234,20 +237,17 @@ export const makePageTask = (configuration: Configuration) => {
         lastUncaughtErrorsCount: 0
       };
       const pageTimeoutMs = getPageTimeout(configuration, startTime);
+      let isTimedOut = false;
       let pageTimeoutHandle: ReturnType<typeof setTimeout> | undefined;
       if (pageTimeoutMs > 0) {
         pageTimeoutHandle = setTimeout(() => {
           logger.warn({ source: 'page', message: 'Page timed out', pageId, data: { url } });
           reportError(url, 'Page timed out');
-          try {
-            this.stop(new ExitShutdownError());
-          } catch {
-            // stop() throws by design
-          }
+          isTimedOut = true;
         }, pageTimeoutMs);
       }
       try {
-        while (!this.stopRequested) {
+        while (!isTimedOut && !this.stopRequested) {
           try {
             await pause(context.loopDelay);
             if (screenshot) {

@@ -1,6 +1,14 @@
-import { describe, it, expect } from 'vitest';
-import { agentStateMessage } from './pageTask.js';
+import { describe, it, expect, vi } from 'vitest';
+import { agentStateMessage, reportError } from './pageTask.js';
 import type { AgentState } from '../../types/AgentState.js';
+import type { TestReportBuilder } from '../../utils/shared/TestReportBuilder.js';
+import type { CommonTestReport } from '../../types/CommonTestReportFormat.js';
+
+vi.mock('./report.js', () => ({
+  getReportBuilder: vi.fn()
+}));
+
+import { getReportBuilder } from './report.js';
 
 const LOADING_STATE = { done: false, type: undefined } satisfies AgentState;
 const UNKNOWN_STATE = { done: false, type: 'unknown' } satisfies AgentState;
@@ -59,5 +67,20 @@ describe('agentStateMessage', () => {
 
   it('returns OPA progress for OPA tests', () => {
     expect(agentStateMessage(OPA_IN_PROGRESS)).toBe('agent state: OPA 1/5');
+  });
+});
+
+const PAGE_URL = 'http://localhost/test/page.html';
+
+describe('reportError', () => {
+  it('reports a failed test with the given message when page times out', () => {
+    const merge = vi.fn();
+    vi.mocked(getReportBuilder).mockReturnValue({ merge } as unknown as TestReportBuilder);
+    reportError(PAGE_URL, 'Page timed out');
+    expect(merge).toHaveBeenCalledOnce();
+    const result = (merge.mock.calls[0] as [string, CommonTestReport['results']])[1];
+    expect(result.summary.tests).toStrictEqual(1);
+    expect(result.summary.failed).toStrictEqual(1);
+    expect(result.tests[0]).toMatchObject({ status: 'failed', message: 'Page timed out, check the logs' });
   });
 });
