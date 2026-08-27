@@ -114,7 +114,7 @@ export class Npm {
     try {
       const module = await this.dynamicImport(moduleName);
       logger.debug({ source: 'npm', message: `Module ${moduleName} found locally` });
-      void this.checkIfLatestVersion(moduleName, true);
+      void this.checkIfLatestVersion(configuration, moduleName);
       return module;
     } catch (error) {
       const code = (error as NodeJS.ErrnoException).code;
@@ -128,7 +128,7 @@ export class Npm {
     const fromGlobal = await this.tryImportFromPath(configuration, moduleName, globalRoot);
     if (fromGlobal !== undefined) {
       logger.debug({ source: 'npm', message: `Module ${moduleName} found globally` });
-      void this.checkIfLatestVersion(moduleName, false);
+      void this.checkIfLatestVersion(configuration, moduleName);
       return fromGlobal;
     }
 
@@ -224,11 +224,11 @@ export class Npm {
     }
   }
 
-  static async checkIfLatestVersion(moduleName: string, isLocal: boolean): Promise<void> {
+  static async checkIfLatestVersion(configuration: Configuration, moduleName: string): Promise<void> {
     try {
-      const { local, global } = await getRoots();
+      const packageDirectory = await this.resolvePackageDir(configuration, moduleName);
       const { version: installedVersion } = JSON.parse(
-        await FileSystem.readFile(Path.join(isLocal ? local : global, moduleName, 'package.json'), 'utf8')
+        await FileSystem.readFile(Path.join(packageDirectory, 'package.json'), 'utf8')
       ) as { version: string };
       logger.info({ source: 'npm', message: `Installed version of ${moduleName} is ${installedVersion}` });
       const latestVersion = await this.getLatestVersion(moduleName);

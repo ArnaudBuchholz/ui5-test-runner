@@ -127,40 +127,54 @@ describe('getLatestVersion', () => {
   });
 });
 
+const makeRequire = (resolvedPath: string) =>
+  Object.assign(vi.fn(), {
+    resolve: vi.fn().mockReturnValue(resolvedPath)
+  }) as unknown as ReturnType<typeof Module.createRequire>;
+
+const makeRequireThrow = () =>
+  Object.assign(vi.fn(), {
+    resolve: vi.fn().mockImplementation(() => {
+      throw new Error('Module not found');
+    })
+  }) as unknown as ReturnType<typeof Module.createRequire>;
+
 describe('checkIfLatestVersion', () => {
+  const mockResolveLocal = () => {
+    vi.mocked(Module.createRequire).mockReturnValue(makeRequire('/local/root/some-module/package.json'));
+    vi.mocked(Url.pathToFileURL).mockReturnValue({ href: `file://${CWD}/package.json` } as URL);
+  };
+
   it('does not warn when the installed version is up to date', async () => {
+    mockResolveLocal();
     vi.mocked(FileSystem.readFile).mockResolvedValue(JSON.stringify({ version: '1.0.0' }));
     vi.mocked(Http.getAsText).mockResolvedValue(JSON.stringify({ version: '1.0.0' }));
-    await Npm.checkIfLatestVersion('some-module', true);
+    await Npm.checkIfLatestVersion(NO_CONFIGURATION, 'some-module');
     expect(logger.warn).not.toHaveBeenCalled();
   });
 
   it('warns with [PKGVRS] when a newer version is available', async () => {
+    mockResolveLocal();
     vi.mocked(FileSystem.readFile).mockResolvedValue(JSON.stringify({ version: '1.0.0' }));
     vi.mocked(Http.getAsText).mockResolvedValue(JSON.stringify({ version: '2.0.0' }));
-    await Npm.checkIfLatestVersion('some-module', true);
+    await Npm.checkIfLatestVersion(NO_CONFIGURATION, 'some-module');
     expect(logger.warn).toHaveBeenCalledWith(
       expect.objectContaining({ message: expect.stringContaining('[PKGVRS]') as string })
     );
   });
 
-  it('reads package.json from the local root when isLocal is true', async () => {
+  it('reads package.json from the resolved package directory', async () => {
+    mockResolveLocal();
     vi.mocked(FileSystem.readFile).mockResolvedValue(JSON.stringify({ version: '1.0.0' }));
     vi.mocked(Http.getAsText).mockResolvedValue(JSON.stringify({ version: '1.0.0' }));
-    await Npm.checkIfLatestVersion('some-module', true);
+    await Npm.checkIfLatestVersion(NO_CONFIGURATION, 'some-module');
     expect(FileSystem.readFile).toHaveBeenCalledWith('/local/root/some-module/package.json', 'utf8');
   });
 
-  it('reads package.json from the global root when isLocal is false', async () => {
-    vi.mocked(FileSystem.readFile).mockResolvedValue(JSON.stringify({ version: '1.0.0' }));
-    vi.mocked(Http.getAsText).mockResolvedValue(JSON.stringify({ version: '1.0.0' }));
-    await Npm.checkIfLatestVersion('some-module', false);
-    expect(FileSystem.readFile).toHaveBeenCalledWith('/global/root/some-module/package.json', 'utf8');
-  });
-
   it('swallows errors and reports them via logger.error', async () => {
-    vi.mocked(FileSystem.readFile).mockRejectedValue(new Error('File not found'));
-    await expect(Npm.checkIfLatestVersion('some-module', true)).resolves.toBeUndefined();
+    vi.mocked(Module.createRequire).mockReturnValue(makeRequireThrow());
+    vi.mocked(Url.pathToFileURL).mockReturnValue({ href: `file://${CWD}/package.json` } as URL);
+    await expect(Npm.checkIfLatestVersion(NO_CONFIGURATION, 'some-module')).resolves.toBeUndefined();
     expect(logger.error).toHaveBeenCalled();
   });
 });
@@ -200,18 +214,6 @@ describe('listPackageScriptNames', () => {
     );
   });
 });
-
-const makeRequire = (resolvedPath: string) =>
-  Object.assign(vi.fn(), {
-    resolve: vi.fn().mockReturnValue(resolvedPath)
-  }) as unknown as ReturnType<typeof Module.createRequire>;
-
-const makeRequireThrow = () =>
-  Object.assign(vi.fn(), {
-    resolve: vi.fn().mockImplementation(() => {
-      throw new Error('Module not found');
-    })
-  }) as unknown as ReturnType<typeof Module.createRequire>;
 
 describe('resolvePackageDir', () => {
   it('returns the package dir when found in local root', async () => {
