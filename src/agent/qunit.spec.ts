@@ -12,7 +12,8 @@ const DEFAULT_CONFIG = {
   agentDetectionMaxInterval: 1000,
   agentNoTestsTimeout: 5000,
   browser: '',
-  parallel: 1
+  parallel: 1,
+  screenshot: false
 };
 
 const id = expect.any(String) as string;

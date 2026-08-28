@@ -11,16 +11,29 @@ const QUNIT_IN_PROGRESS = {
   isOpa: false,
   executed: 3,
   errors: 0,
-  total: 10
+  total: 10,
+  currentLogIndex: 0,
+  pendingScreenshot: false
 } satisfies AgentState;
-const QUNIT_DONE = { done: true, type: 'QUnit', isOpa: false, executed: 10, errors: 0, total: 10 } satisfies AgentState;
+const QUNIT_DONE = {
+  done: true,
+  type: 'QUnit',
+  isOpa: false,
+  executed: 10,
+  errors: 0,
+  total: 10,
+  currentLogIndex: 0,
+  pendingScreenshot: false
+} satisfies AgentState;
 const OPA_IN_PROGRESS = {
   done: false,
   type: 'QUnit',
   isOpa: true,
   executed: 1,
   errors: 0,
-  total: 5
+  total: 5,
+  currentLogIndex: 0,
+  pendingScreenshot: false
 } satisfies AgentState;
 
 describe('agentStateMessage', () => {

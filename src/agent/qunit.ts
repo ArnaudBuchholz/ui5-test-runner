@@ -42,7 +42,7 @@ const updateState = (updates: Partial<QUnitState>) => {
 };
 
 export const qunit = () => {
-  const { agentNoTestsTimeout } = getConfig();
+  const { agentNoTestsTimeout, screenshot } = getConfig();
   let executed = 0;
   let errors = 0;
   const logs: { [key in string]: QUnitLogDetails[] } = {};
@@ -63,7 +63,9 @@ export const qunit = () => {
     isOpa: false,
     executed,
     total: 0,
-    errors
+    errors,
+    currentLogIndex: 0,
+    pendingScreenshot: false
   });
 
   QUnit.begin((details) => {
@@ -102,6 +104,18 @@ export const qunit = () => {
     const testId = getTestId(details.testId);
     logs[testId] ??= [];
     logs[testId].push(details);
+    if (state.type === 'QUnit') {
+      updateState({ currentTestId: details.testId, currentLogIndex: state.currentLogIndex + 1 });
+    }
+    if (screenshot && state.type === 'QUnit' && state.isOpa) {
+      updateState({ pendingScreenshot: true });
+      const opa5 = window.sap?.ui?.test?.Opa5 as { waitFor: (settings: object) => void } | undefined;
+      opa5?.waitFor({
+        check() {
+          return state.type === 'QUnit' && !state.pendingScreenshot;
+        }
+      });
+    }
   });
 
   const getErrorDetails = (test: CTRFTest, details: QUnitTestDoneDetails) => {

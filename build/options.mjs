@@ -154,6 +154,7 @@ export const defaults = {`);
     const option = options[name];
     if (option.browserExposed) {
       const type = {
+        boolean: 'boolean',
         browser: 'string',
         integer: 'number',
         timeout: 'number'

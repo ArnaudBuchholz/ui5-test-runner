@@ -55,6 +55,9 @@
 |[parallel](options/parallel.md)|--parallel|-p|integer|number of parallel executions|
 |[port](options/port.md)|--port||integer|port to use|
 |[reportDir](options/reportDir.md)|--report-dir|-r|fs-entry|directory to output test reports|
+|[screenshot](options/screenshot.md)|--screenshot||boolean|take a screenshot after every OPA assertion|
+|[screenshotOnFailure](options/screenshotOnFailure.md)|--screenshot-on-failure||boolean|take a screenshot when a test fails|
+|[screenshotTimeout](options/screenshotTimeout.md)|--screenshot-timeout||timeout|maximum time allowed to take a screenshot|
 |[serveOnly](options/serveOnly.md)|--serve-only|-s|boolean|serve only|
 |[start](options/start.md)|--start||string|command to be executed before the tests|
 |[startTimeout](options/startTimeout.md)|--start-timeout||timeout|maximum waiting time for the start command to become ready|

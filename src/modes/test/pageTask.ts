@@ -14,6 +14,7 @@ import type { IError } from '../../types/IError.js';
 import { collect as collectCoverage } from './coverage/index.js';
 import type { Configuration } from '../../configuration/Configuration.js';
 import type { PageContext } from './PageContext.js';
+import { makeScreenshotHandlers } from './screenshot.js';
 
 let lastPageId = 0;
 
@@ -28,8 +29,12 @@ export const agentStateMessage = (agentState: AgentState): string => {
   return 'agent state: loading';
 };
 
-const reportQunitProgress = (context: PageContext, agentState: Extract<AgentState, { type: 'QUnit' }>) => {
-  if (agentState.isOpa) {
+const reportQunitProgress = (
+  context: PageContext,
+  agentState: Extract<AgentState, { type: 'QUnit' }>,
+  isScreenshotEnabled: boolean
+) => {
+  if (!isScreenshotEnabled && agentState.isOpa) {
     context.loopDelay = 1000; // No need to stress out, they are slower
   }
   if (agentState.total > 0) {
@@ -98,7 +103,7 @@ const shouldUncaughtErrorsFail = (context: PageContext, errors: IError[]): boole
   return false;
 };
 
-const shouldStopBasedOnAgentState = async (context: PageContext): Promise<boolean> => {
+const shouldStopBasedOnAgentState = async (context: PageContext, isScreenshotEnabled: boolean): Promise<boolean> => {
   const agentState = (await context.page.eval("window['ui5-test-runner'].state")) as AgentState;
   logger.debug({
     source: 'page',
@@ -129,12 +134,12 @@ const shouldStopBasedOnAgentState = async (context: PageContext): Promise<boolea
       throw new Error('Unable to detect page type');
     } else {
       assert(agentState.type === 'QUnit');
-      reportQunitProgress(context, agentState);
+      reportQunitProgress(context, agentState, isScreenshotEnabled);
     }
     return true;
   }
   if (agentState.type === 'QUnit') {
-    reportQunitProgress(context, agentState);
+    reportQunitProgress(context, agentState, isScreenshotEnabled);
     if (agentState.uncaughtErrors?.length) {
       return shouldUncaughtErrorsFail(context, agentState.uncaughtErrors);
     }
@@ -166,8 +171,11 @@ const tryToFetchThePageFirst = async (url: string, pageId: number) => {
   }
 };
 
-export const makePageTask = (configuration: Configuration) =>
-  async function (this: IParallelizeContext, url: string, _index: number, urls: string[]) {
+export const makePageTask = (configuration: Configuration) => {
+  const { screenshot } = configuration;
+  const { handlePendingScreenshot, handleFailureScreenshot } = makeScreenshotHandlers(configuration);
+
+  return async function (this: IParallelizeContext, url: string, _index: number, urls: string[]) {
     const pageId = ++lastPageId;
     logger.debug({ source: 'page', message: 'new page task', pageId, data: { url } });
     logger.info({
@@ -220,7 +228,10 @@ export const makePageTask = (configuration: Configuration) =>
       while (!this.stopRequested) {
         try {
           await setTimeout(context.loopDelay);
-          if (await shouldStopBasedOnAgentState(context)) {
+          if (screenshot) {
+            await handlePendingScreenshot(page, pageId);
+          }
+          if (await shouldStopBasedOnAgentState(context, screenshot)) {
             break;
           }
         } catch (error) {
@@ -229,6 +240,7 @@ export const makePageTask = (configuration: Configuration) =>
         }
       }
       const testResults = (await page.eval("window['ui5-test-runner'].results")) as CommonTestReport['results'];
+      await handleFailureScreenshot(page, pageId, testResults);
       await collectCoverage(configuration, context);
       if (!context?.isSuite) {
         const { passed, failed, tests, duration } = testResults.summary;
@@ -268,3 +280,4 @@ export const makePageTask = (configuration: Configuration) =>
       setTaskAsStopped();
     }
   };
+};
