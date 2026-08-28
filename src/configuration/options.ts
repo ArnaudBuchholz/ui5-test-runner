@@ -70,6 +70,12 @@ export const options = [
     description: 'display label for the batch item'
   },
   {
+    name: 'batchTimeout',
+    short: 'bt',
+    type: 'timeout',
+    description: 'fails a batch item if it takes longer than this timeout'
+  },
+  {
     name: 'browser',
     short: 'b',
     type: 'browser',
@@ -229,7 +235,6 @@ export const options = [
     name: 'globalTimeout',
     short: 't',
     type: 'timeout',
-    batchForwarded: true,
     description: 'limit the tests execution time, fail remaining pages if it takes longer than the timeout'
   },
   {

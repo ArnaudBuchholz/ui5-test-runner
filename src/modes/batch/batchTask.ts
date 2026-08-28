@@ -4,6 +4,10 @@ import type { Configuration } from '../../configuration/Configuration.js';
 import type { IBatchItem } from './BatchItem.js';
 import { join } from 'node:path';
 import { toKebabCase } from '../../utils/shared/string.js';
+import { getEffectiveTimeout, isGloballyTimedOut } from '../../utils/node/timeout.js';
+
+const getBatchTimeout = (configuration: Configuration, startTime: number): number =>
+  getEffectiveTimeout(configuration.batchTimeout, configuration.globalTimeout, startTime);
 
 const buildRunnerCommand = () => {
   const extension = Path.extname(import.meta.url);
@@ -46,7 +50,11 @@ type IPCMessage = ProgressMessage | SkipMessage;
 
 let lastPageId = 0;
 
-export const batchTask = async (configuration: Configuration, batchItem: IBatchItem): Promise<IBatchItem> => {
+export const batchTask = async (
+  configuration: Configuration,
+  batchItem: IBatchItem,
+  startTime: number
+): Promise<IBatchItem> => {
   const pageId = ++lastPageId;
   const label = `${batchItem.label} (${batchItem.id})`;
   logger.info({
@@ -55,6 +63,12 @@ export const batchTask = async (configuration: Configuration, batchItem: IBatchI
     pageId,
     data: { max: 0, value: 1, type: 'unknown', errors: 0 }
   });
+
+  if (isGloballyTimedOut(configuration.globalTimeout, startTime)) {
+    logger.warn({ source: 'page', message: 'Global timeout reached, skipping batch item', pageId, data: { label } });
+    batchItem.skipped = true;
+    return batchItem;
+  }
 
   batchItem.start = new Date();
 
@@ -87,12 +101,24 @@ export const batchTask = async (configuration: Configuration, batchItem: IBatchI
     data: { ...batchItem, processId: childProcess.pid }
   });
 
-  await childProcess.closed;
+  const batchTimeoutMs = getBatchTimeout(configuration, startTime);
+  if (batchTimeoutMs > 0) {
+    const timeoutHandle = setTimeout(() => {
+      logger.warn({ source: 'page', message: 'Batch item timed out', pageId, data: { label } });
+      batchItem.timedOut = true;
+      void childProcess.kill();
+    }, batchTimeoutMs);
+    await childProcess.closed;
+    clearTimeout(timeoutHandle);
+  } else {
+    await childProcess.closed;
+  }
+
   batchItem.end = new Date();
   batchItem.statusCode = childProcess.code;
   if (batchItem.skipped) {
     logger.warn({ source: 'page', pageId, message: `skipped ${label}` });
-  } else if (batchItem.statusCode === 0) {
+  } else if (batchItem.statusCode === 0 && !batchItem.timedOut) {
     logger.info({
       source: 'page',
       pageId,

@@ -9,6 +9,7 @@ import { defaults } from '../../configuration/options.js';
 import { Folder } from '../../utils/node/Folder.js';
 import { saveReport } from '../../reports/saveReport.js';
 import { formatDuration } from '../../utils/shared/string.js';
+import { end } from '../../end.js';
 
 export const batch = async (configuration: Configuration): Promise<void> => {
   const batchStart = Date.now();
@@ -29,12 +30,12 @@ export const batch = async (configuration: Configuration): Promise<void> => {
   let completed = 0;
   let lastLoggedCompleted: number | undefined;
   try {
-    await parallelize((item) => batchTask(configuration, item), items, {
+    await parallelize((item) => batchTask(configuration, item, batchStart), items, {
       parallel: configuration.parallel,
       on: (event) => {
         if (event.type === 'completed') {
           ++completed;
-          if (event.input.statusCode !== 0) {
+          if (event.input.statusCode !== 0 || event.input.timedOut) {
             ++failed;
           }
         } else if (event.type === 'failed') {
@@ -63,4 +64,5 @@ export const batch = async (configuration: Configuration): Promise<void> => {
   if (failed > 0) {
     Exit.code = -1;
   }
+  await end(configuration);
 };

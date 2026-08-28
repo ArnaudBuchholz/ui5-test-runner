@@ -4,7 +4,7 @@ import { getAgentSource } from './agent.js';
 import { getBrowser } from './browser.js';
 import type { AgentState } from '../../types/AgentState.js';
 import { Exit, ExitShutdownError } from '../../platform/Exit.js';
-import { setTimeout } from 'node:timers/promises';
+import { setTimeout as pause } from 'node:timers/promises';
 import { getReportBuilder } from './report.js';
 import { createEmptyTestResults } from '../../types/CommonTestReportFormat.js';
 import type { CommonTestReport } from '../../types/CommonTestReportFormat.js';
@@ -14,6 +14,10 @@ import type { IError } from '../../types/IError.js';
 import { collect as collectCoverage } from './coverage/index.js';
 import type { Configuration } from '../../configuration/Configuration.js';
 import type { PageContext } from './PageContext.js';
+import { getEffectiveTimeout, isGloballyTimedOut } from '../../utils/node/timeout.js';
+
+const getPageTimeout = (configuration: Configuration, startTime: number): number =>
+  getEffectiveTimeout(configuration.pageTimeout, configuration.globalTimeout, startTime);
 
 let lastPageId = 0;
 
@@ -50,7 +54,7 @@ const reportQunitProgress = (context: PageContext, agentState: Extract<AgentStat
   }
 };
 
-const reportError = (url: string, message: string) => {
+export const reportError = (url: string, message: string) => {
   const result = createEmptyTestResults();
   result.summary.tests = 1;
   result.summary.failed = 1;
@@ -166,6 +170,25 @@ const tryToFetchThePageFirst = async (url: string, pageId: number) => {
   }
 };
 
+const mergeTestResults = (
+  url: string,
+  pageId: number,
+  context: PageContext,
+  testResults: CommonTestReport['results']
+) => {
+  if (!context.isSuite) {
+    const { passed, failed, tests, duration } = testResults.summary;
+    const durationString = duration === undefined ? '' : ` (${duration}ms)`;
+    logger.debug({
+      source: 'page',
+      message: `test results: passed=${passed} failed=${failed} tests=${tests}${durationString}`,
+      pageId,
+      data: { results: testResults }
+    });
+    getReportBuilder().merge(url, testResults, { pageId });
+  }
+};
+
 export const makePageTask = (configuration: Configuration) =>
   async function (this: IParallelizeContext, url: string, _index: number, urls: string[]) {
     const pageId = ++lastPageId;
@@ -176,6 +199,13 @@ export const makePageTask = (configuration: Configuration) =>
       pageId,
       data: { max: 0, value: 1, type: 'unknown', errors: 0 }
     });
+
+    const startTime = getReportBuilder().report.results.summary.start;
+    if (isGloballyTimedOut(configuration.globalTimeout, startTime)) {
+      logger.warn({ source: 'page', message: 'Global timeout reached, skipping page', pageId, data: { url } });
+      reportError(url, 'Global timeout reached');
+      return;
+    }
 
     await tryToFetchThePageFirst(url, pageId);
 
@@ -217,31 +247,37 @@ export const makePageTask = (configuration: Configuration) =>
         isSuite: false,
         lastUncaughtErrorsCount: 0
       };
-      while (!this.stopRequested) {
-        try {
-          await setTimeout(context.loopDelay);
-          if (await shouldStopBasedOnAgentState(context)) {
+      const pageTimeoutMs = getPageTimeout(configuration, startTime);
+      let isTimedOut = false;
+      let pageTimeoutHandle: ReturnType<typeof setTimeout> | undefined;
+      if (pageTimeoutMs > 0) {
+        pageTimeoutHandle = setTimeout(() => {
+          logger.warn({ source: 'page', message: 'Page timed out', pageId, data: { url } });
+          isTimedOut = true;
+        }, pageTimeoutMs);
+      }
+      try {
+        while (!isTimedOut && !this.stopRequested) {
+          try {
+            await pause(context.loopDelay);
+            if (await shouldStopBasedOnAgentState(context)) {
+              break;
+            }
+          } catch (error) {
+            logger.error({ source: 'page', message: 'An error occurred', error, pageId, data: {} });
             break;
           }
-        } catch (error) {
-          logger.error({ source: 'page', message: 'An error occurred', error, pageId, data: {} });
-          break;
+        }
+      } finally {
+        if (pageTimeoutHandle !== undefined) {
+          clearTimeout(pageTimeoutHandle);
         }
       }
       const testResults = (await page.eval("window['ui5-test-runner'].results")) as CommonTestReport['results'];
       await collectCoverage(configuration, context);
-      if (!context?.isSuite) {
-        const { passed, failed, tests, duration } = testResults.summary;
-        const durationString = duration === undefined ? '' : ` (${duration}ms)`;
-        logger.debug({
-          source: 'page',
-          message: `test results: passed=${passed} failed=${failed} tests=${tests}${durationString}`,
-          pageId,
-          data: { results: testResults }
-        });
-        getReportBuilder().merge(url, testResults, {
-          pageId: context.pageId
-        });
+      mergeTestResults(url, pageId, context, testResults);
+      if (isTimedOut) {
+        reportError(url, 'Page timed out');
       }
       // TODO: add a catch block and document the problem in the test report
     } finally {
