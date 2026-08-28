@@ -32,7 +32,7 @@ export const Server = {
       name: 'server',
       stop: () => Server.stop()
     });
-    _serverWorker = Thread.createWorker('modes/test/server', toPlainObject(configuration));
+    _serverWorker = Thread.createWorker('modes/test/Server', toPlainObject(configuration));
     const { promise, resolve, reject } = Promise.withResolvers<number>();
     _channel.onmessage = ({ data: message }: { data: Message }) => {
       if (message.command === 'ready') {
