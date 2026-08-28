@@ -371,6 +371,14 @@ export const options = [
     description: 'serve only'
   },
   {
+    name: 'splitOpa',
+    short: 'so',
+    type: 'boolean',
+    browserExposed: true,
+    batchForwarded: true,
+    description: 'split OPA tests by QUnit module, creating one test page per module'
+  },
+  {
     name: 'start',
     type: 'string',
     description: 'command to be executed before the tests'

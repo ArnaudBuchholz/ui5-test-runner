@@ -185,8 +185,8 @@ const mergeTestResults = (
       pageId,
       data: { results: testResults }
     });
+    getReportBuilder().merge(url, testResults, { pageId });
   }
-  getReportBuilder().merge(url, testResults, { pageId });
 };
 
 export const makePageTask = (configuration: Configuration) =>

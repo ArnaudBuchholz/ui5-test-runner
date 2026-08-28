@@ -2,15 +2,11 @@
 
 ## Project overview
 
-`ui5-test-runner` is a standalone Node.js CLI that drives browsers to execute UI5 (Fiori/SAPUI5/OpenUI5) test pages and produces CTRF JSON reports. It is published on npm as `ui5-test-runner`.
-
----
+`ui5-test-runner` is a standalone Node.js CLI that drives browsers to execute UI5 (Fiori/SAPUI5/OpenUI5) test pages and produces CTRF JSON reports.
 
 ## Scope
 
 Applies to all implemented modules. Not to tooling config files (`vite.config.ts`, `vitest.config.ts`, `eslint.config.ts`).
-
----
 
 ## Repository layout
 
@@ -29,31 +25,33 @@ src/
 
 `agent/` and `ui/` run in a browser context — Node.js-specific rules do not apply there.
 
----
+### Agent / Runner boundary
+
+The agent runs in the browser and has direct access to `QUnit.config`, `window.sap`, and the URL; the runner has none of that. Rules:
+
+- Decisions that depend on browser-side state must be made in the agent, not threaded through `AgentState` to the runner.
+- Before designing new agent→runner communication, read `AgentState` and `pageTask.ts` — an existing state type may already express the intent.
+- When agent behaviour must be conditional on a runner option, mark it `browserExposed: yes` in its doc file; this seeds `window['ui5-test-runner'].config` automatically.
 
 ## Execution pipeline
 
 `src/cli.ts` → `CommandLine` parses args → `ConfigurationValidator` validates and resolves the mode → `modes/execute.ts` dispatches to a mode function → mode uses browsers, platform, reports.
 
----
-
 ## File structure
 
-- One concept per file, named after it (`Exit.ts`, `CommandLine.ts`); small related helpers may be grouped (`constants.ts`, `types.ts`)
+- One concept per file, named after it; small related helpers may be grouped (`constants.ts`, `types.ts`)
 - Test files co-located: `Exit.ts` → `Exit.spec.ts`; shared test helpers use `.test.ts`
 - **Barrel files (`index.ts`)**: only where a stable public API is needed, not for tidiness
-- **File size**: max **200 lines** (signal only, not linted) — split when exceeded
+- **File size**: max **200 lines** (signal only) — split when exceeded
 - **File naming**: `camelCase` for non-class modules; `PascalCase` for class/factory modules
-- **Splitting**: move to a **subfolder** named after the concept; no catch-all helpers (e.g. avoid `fooHelpers.ts`)
-- **Exports**: **named exports only**; default exports forbidden in implemented modules
-
----
+- **Splitting**: move to a subfolder named after the concept; no catch-all helpers (avoid `fooHelpers.ts`)
+- **Exports**: named exports only; default exports forbidden in implemented modules
 
 ## TypeScript
 
 ### Strict mode
 
-`tsconfig.base.json` enables `strict: true` with all sub-flags — never disable any.
+`tsconfig.base.json` enables `strict: true` — never disable any sub-flag.
 
 ### Naming
 
@@ -75,13 +73,13 @@ export type Mode = (typeof Modes)[keyof typeof Modes];
 
 ### Type utilities
 
-`src/types/typeUtilities.ts` provides `Equal`, `Expect`, `Writable`, `DeepPartial`. Use them; don't reimplement. Inline type-level tests live alongside their utility.
+`src/types/typeUtilities.ts` provides `Equal`, `Expect`, `Writable`, `DeepPartial`. Use them; don't reimplement.
 
 ### Type safety
 
 - Prefer `unknown` over `any`
 - No type assertions (`as`) in implemented modules — use typeguard functions instead
-- Type assertions acceptable in test files
+- Type assertions acceptable in test files; prefer `as T` over `as unknown as T` unless TypeScript rejects the direct cast
 
 ### Interfaces and types
 
@@ -92,9 +90,7 @@ export type Mode = (typeof Modes)[keyof typeof Modes];
 
 ### Factory functions
 
-Prefer factory functions returning a typed interface for DI. Max **3 parameters** per function — don't pass dependencies as extra parameters.
-
----
+Prefer factory functions returning a typed interface for DI. Max **3 parameters** — don't pass dependencies as extra parameters.
 
 ## Design patterns
 
@@ -108,26 +104,17 @@ Prefer factory functions returning a typed interface for DI. Max **3 parameters*
 
 Do not introduce new module-level singletons.
 
----
-
 ## UI Controller pattern
 
-The different UIs follow a strict MVC split:
+Strict MVC split:
 
-- **Controller** (for instance: `src/reports/ui/ReportController.ts`): holds all state and business logic, exposes `IUserInterfaceController<Settings, State, Actions>`.
-- **View** (for instance: `src/ui/report/`): wires DOM → controller and controller → DOM. No business logic. Calls `controller.connect(update)` on load; uses `controller.interaction({ changedField })` for user events; applies `update(changed)` patches only for fields present in the changed object.
+- **Controller** (`src/reports/ui/ReportController.ts`): holds all state and logic, exposes `IUserInterfaceController<Settings, State, Actions>`.
+- **View** (`src/ui/report/`): wires DOM ↔ controller. No business logic. Calls `controller.connect(update)` on load; uses `controller.interaction({ changedField })` for user events; applies `update(changed)` patches only for present fields.
 
-Each UI bundle is built with Vite using `vite-plugin-css-injected-by-js` (CSS packed into the JS output), output format `iife`, minified with terser.
-
----
 
 ## Platform abstraction (`src/platform/`)
 
-All `node:*` access goes through `src/platform/`. Never import `node:*` directly outside that folder.
-
-`platform/mock.ts` is the centralised Vitest mock — use it via `vi.mock`; never mock `node:*` directly.
-
----
+All `node:*` access goes through `src/platform/`. Never import `node:*` directly outside that folder. `platform/mock.ts` is the centralised Vitest mock — use it via `vi.mock`; never mock `node:*` directly.
 
 ## Graceful shutdown — `Exit` and `IAsyncTask`
 
@@ -146,11 +133,9 @@ using _server = Exit.registerAsyncTask({
 - Tasks stop in LIFO order
 - Never call `process.exit()` — use `Exit.shutdown()`
 
----
-
 ## Logger
 
-`console.log/warn/error` forbidden in application code. Import via `'../platform/index.js'`.
+`console.log/warn/error` forbidden. Import via `'../platform/index.js'`.
 
 | Level | When |
 |---|---|
@@ -161,8 +146,6 @@ using _server = Exit.registerAsyncTask({
 | `fatal` | Unrecoverable — program will exit |
 
 Every call requires `source` and `message`. Pass errors in the `error` field — never interpolate into `message`. `logger.error` auto-downgrades to `debug` for `ExitShutdownError`.
-
----
 
 ## Configuration system (`src/configuration/`)
 
@@ -178,13 +161,9 @@ Every call requires `source` and `message`. Pass errors in the `error` field —
 
 To add/change an option: edit `docs/options/` → `npm run build:options` → add validator if new type.
 
----
-
 ## Assertion
 
 Use `assert` from `src/platform/` for internal invariants. Never `console.assert` or bare `throw new Error`.
-
----
 
 ## Comments
 
@@ -197,8 +176,6 @@ No comments by default. Add one only when the **why** is non-obvious.
 ```
 
 `/* v8 ignore next -- @preserve */` only for genuinely unreachable branches.
-
----
 
 ## Testing
 
@@ -219,32 +196,32 @@ it('throws when the input is missing')
 
 ### `describe` nesting
 
-Not required at top level. Nest when tests share setup or are logically grouped. Max **5 levels**.
+Not required at top level. Nest when tests share setup or are logically grouped. Max **5 levels**. Scope `beforeEach` inside the relevant `describe` rather than repeating setup in every test.
 
 ### Mocking
 
-Prefer DI via factory functions over module-level mocking. Use `vi.mock()` at module level when DI isn't applicable.
+- Prefer DI via factory functions over module-level mocking. Use `vi.mock()` at module level when DI isn't applicable.
+- `src/platform/mock.ts` mocks all platform exports as `vi.fn()`. Never add `vi.spyOn()` in spec files for platform modules.
+- Setup: `vi.mocked(method).mockResolvedValue(...)`. Assertions: `expect(method).toHaveBeenCalledWith(...)` — no `vi.mocked()` wrapper in `expect`.
+- For non-platform static methods, use `vi.spyOn(Class, 'method')` rather than a full `vi.mock()` of the module.
+- Stub spawned processes as `IProcess` (from `platform/index.js`), not `InstanceType<typeof Process>`.
 
-`src/platform/mock.ts` mocks all platform exports — both class-style exports and plain-object exports — as `vi.fn()`. Never add extra `vi.spyOn()` calls in spec files for platform modules; they are already mockable.
+### Asserting no-op paths
 
-Use `vi.mocked(platformMethod).mockResolvedValue(...)` to set up return values. For assertions, use the method directly — `expect(platformMethod).toHaveBeenCalledWith(...)` — not wrapped in `vi.mocked()`.
+Set a sentinel value before calling and assert it is unchanged. Use a value that cannot pass accidentally (`999` for an exit code, not `0`). Assert `Exit.code` directly — never `process.exitCode`.
+
+### Controllable promises
+
+Use `Promise.withResolvers()` — not a manually-captured resolver variable.
 
 ### Named constants for repeated values
 
-Extract any complex or repeated value into a named constant rather than inlining it multiple times:
+Extract any repeated or cast value into a `UPPER_SNAKE_CASE` constant at the top of the file:
 
 ```typescript
-// ❌ Repeated cast scattered across tests
-Npm.import({} as unknown as Configuration, 'node:path')
-Npm.import({} as unknown as Configuration, 'other-module')
-
-// ✅ Named once at the top of the file (UPPER_SNAKE_CASE for constants)
-const NO_CONFIGURATION = {} as unknown as Configuration;
+const NO_CONFIGURATION = {} as Configuration;
 Npm.import(NO_CONFIGURATION, 'node:path')
-Npm.import(NO_CONFIGURATION, 'other-module')
 ```
-
----
 
 ## Commands
 
@@ -252,41 +229,33 @@ Npm.import(NO_CONFIGURATION, 'other-module')
 npm run lint              # ESLint + Prettier + tsc --noEmit + circular import check
 npm run test:unit         # Vitest with coverage
 npm run test:unit:watch   # Vitest watch mode
-
-# Run a single test file
 npx vitest run src/path/to/Foo.spec.ts
 
-# Build outputs
-npm run build:agent       # Bundles src/agent/ (browser-side code injected into test pages)
-npm run build:ui:report   # Bundles src/ui/report/ → dist/ui5-test-runner-html-report.js
-npm run build:ui:log      # Bundles src/ui/log/ → dist/ui5-test-runner-log-viewer.js
-
-# Dev servers for manual testing of UI bundles
-npm run start:ui:report   # Vite dev server for the HTML report viewer
-npm run start:ui:log      # Vite dev server for the log viewer
-
-# Regenerate src/configuration/options.ts from docs/options/ (never edit options.ts by hand)
-npm run build:options
-
-# Run the CLI directly (TypeScript, no pre-build needed)
-npm run ts-run -- src/cli.ts [args]
+npm run build:agent       # Bundles src/agent/
+npm run build:ui:report   # → dist/ui5-test-runner-html-report.js
+npm run build:ui:log      # → dist/ui5-test-runner-log-viewer.js
+npm run start:ui:report   # Vite dev server for HTML report viewer
+npm run start:ui:log      # Vite dev server for log viewer
+npm run build:options     # Regenerate options.ts from docs/options/
+npm run ts-run -- src/cli.ts [args]  # Run CLI directly (no pre-build)
 ```
 
-`npm run lint` must pass with zero errors before every commit. Circular imports are forbidden. `src/platform/logger/proxy.ts` breaks one unavoidable internal loop — do not replicate. When adding source files, verify they are included in the correct `tsconfig` project.
-
----
+`npm run lint` must pass with zero errors before every commit. Circular imports are forbidden. `src/platform/logger/proxy.ts` breaks one unavoidable internal loop — do not replicate. Verify new source files are included in the correct `tsconfig` project.
 
 ## UI5 Web Components
 
 Use UI5 Web Components over plain HTML for style consistency. Avoid complex or deeply nested component compositions.
 
----
-
 ## Change Scope
 
 Each change has a **single purpose**: **Fix** (correct behavior), **Feature** (new behavior), or **Refactor** (structure only). Never mix purposes in one change.
 
----
+## Implementation discipline
+
+- **"Implemented" ≠ "enforced"**: an option being parsed, validated, and forwarded is not the same as being acted on. Grep for the option name in non-config, non-test `src/` files to verify it actually changes behaviour.
+- **Prefer existing shared state**: before adding a new variable, check whether an already-initialised shared object holds what you need.
+- **Factorize shared logic**: if writing a second function that is identical to the first except for one parameter, extract a private core and expose named wrappers.
+- **Default parameters over `?? 0` at call sites**: for numeric helpers that treat `undefined` as zero, put the default in the function signature.
 
 ## Anti-patterns
 
@@ -302,13 +271,11 @@ Each change has a **single purpose**: **Fix** (correct behavior), **Feature** (n
 | Parsing logic in `CommandLine.ts` | Validator in `configuration/validators/` |
 | Global variable for shared state | `Exit.registerAsyncTask` |
 
----
-
 ## Dependencies
 
-Production dependencies (`dependencies` in `package.json`) must meet **both** criteria:
+Production dependencies must meet **both** criteria:
 
-- **Zero transitive dependencies** — the package must have no dependencies of its own
+- **Zero transitive dependencies**
 - **MIT licensed**
 
 Prefer implementing functionality inline over adding a dependency that doesn't qualify. `devDependencies` are not subject to these constraints.
