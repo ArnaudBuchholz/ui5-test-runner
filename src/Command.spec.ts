@@ -2,6 +2,7 @@ import { it, expect, describe, vi } from 'vitest';
 import { Command } from './Command.js';
 import type { Configuration } from './configuration/Configuration.js';
 import { Npm } from './Npm.js';
+import { ExitShutdownError } from './platform/Exit.js';
 
 const TEST_CONFIGURATION = {
   cwd: '/home/usr',
@@ -63,7 +64,7 @@ describe('Command.parse', () => {
 
     it('fails if trying to use an known a parameter', async () => {
       await expect(Command.parse(TEST_CONFIGURATION, 'npm run test -- {{reportDi}}')).rejects.toThrow(
-        'Invalid command line substitution parameter: reportDi'
+        ExitShutdownError
       );
     });
   });
@@ -89,7 +90,7 @@ describe('Command.parse', () => {
 
     it('fails if the parameter is neither in extras nor in configuration', async () => {
       await expect(Command.parse(TEST_CONFIGURATION, 'node test.ts {{unknown}}', {})).rejects.toThrow(
-        'Invalid command line substitution parameter: unknown'
+        ExitShutdownError
       );
     });
   });
@@ -159,7 +160,7 @@ describe('Command.parse', () => {
 
     it('fails if substitution in env var value uses an unknown parameter', async () => {
       await expect(Command.parse(TEST_CONFIGURATION, 'TEST={{reportDi}} node test.ts')).rejects.toThrow(
-        'Invalid command line substitution parameter: reportDi'
+        ExitShutdownError
       );
     });
 

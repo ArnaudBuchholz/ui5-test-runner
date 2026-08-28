@@ -1,7 +1,10 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import type { Exit as ExitType, IAsyncTask } from './Exit.js';
+import type { Exit as ExitType, IAsyncTask, ExitShutdownError as ExitShutdownErrorType } from './Exit.js';
 import { logger } from './logger.js';
-const { Exit } = await vi.importActual<{ Exit: typeof ExitType }>('./Exit.js');
+const { Exit, ExitShutdownError } = await vi.importActual<{
+  Exit: typeof ExitType;
+  ExitShutdownError: typeof ExitShutdownErrorType;
+}>('./Exit.js');
 import { ServerResponse, ClientRequest } from 'node:http';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Undocumented API
@@ -69,7 +72,24 @@ describe('shutdown', () => {
 
     it('fails when registering a task during shutdown', async () => {
       await Exit.shutdown();
-      expect(() => Exit.registerAsyncTask(task)).toThrow('Exiting application');
+      expect(() => Exit.registerAsyncTask(task)).toThrow(ExitShutdownError);
+    });
+
+    it('ignores concurrent calls (second call returns immediately)', async () => {
+      let stopCount = 0;
+      const { promise, resolve } = Promise.withResolvers<void>();
+      Exit.registerAsyncTask({
+        name: 'slow',
+        stop: async () => {
+          stopCount++;
+          await promise;
+        }
+      });
+      const first = Exit.shutdown();
+      const second = Exit.shutdown();
+      resolve();
+      await Promise.all([first, second]);
+      expect(stopCount).toStrictEqual(1);
     });
 
     it('offers a way for the task to unregister itself', async () => {

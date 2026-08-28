@@ -4,7 +4,7 @@ import type { BroadcastChannel, Worker } from 'node:worker_threads';
 import { basename, extname, join, relative } from 'node:path';
 import { setTimeout } from 'node:timers/promises';
 import type { ILoggerService } from './logger/ILogger.js';
-import type { IAsyncTask } from './Exit.js';
+import type { IAsyncTask, ExitShutdownError as ExitShutdownErrorType } from './Exit.js';
 import type { Terminal } from './Terminal.js';
 import { options, defaults } from '../configuration/options.js';
 import assert from 'node:assert';
@@ -47,9 +47,12 @@ vi.mock(import('./constants.js'), async (importActual) => {
 
 export const __unregisterExitAsyncTask = vi.fn();
 export let __lastRegisteredExitAsyncTask: IAsyncTask;
+let _ExitShutdownError: typeof ExitShutdownErrorType;
 
 vi.mock(import('./Exit.js'), async (importActual) => {
-  const mocked = mockStaticMethodsOfExports(await importActual());
+  const actual = await importActual();
+  _ExitShutdownError = actual.ExitShutdownError;
+  const mocked = mockStaticMethodsOfExports(actual);
   const { Exit } = mocked;
   // eslint-disable-next-line @typescript-eslint/unbound-method -- unregister is not bound to the returned object
   vi.mocked(Exit.registerAsyncTask).mockImplementation((task) => {
@@ -90,7 +93,9 @@ const logger = {
   info: vi.fn(),
   warn: vi.fn(),
   error: vi.fn(),
-  fatal: vi.fn(),
+  fatal: vi.fn().mockImplementation(() => {
+    throw new _ExitShutdownError();
+  }) as unknown as ILoggerService['fatal'],
   stop: vi.fn()
 } satisfies ILoggerService;
 
