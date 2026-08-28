@@ -29,7 +29,7 @@ export const end = async (configuration: Configuration): Promise<void> => {
     );
     await Promise.race([process.closed, timeout]);
     if (didTimeout) {
-      logger.fatal({ source: 'job', message: 'End command timed out, killing' });
+      logger.error({ source: 'job', message: 'End command timed out, killing' });
       await process.kill();
       code = -1; // Error
     } else {

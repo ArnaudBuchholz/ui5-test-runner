@@ -123,7 +123,7 @@ const shouldStopBasedOnAgentState = async (context: PageContext): Promise<boolea
         data: { pages: resolvedPages }
       });
     } else if (agentState.type === 'unknown') {
-      logger.fatal({
+      logger.error({
         source: 'page',
         message: 'Unable to detect page type',
         pageId: context.pageId,
