@@ -41,6 +41,21 @@ const updateState = (updates: Partial<QUnitState>) => {
   Object.assign(state, updates);
 };
 
+const isSuiteDone = () => state.done && state.type === 'suite';
+
+const countTotalTests = () => {
+  const { modules } = QUnit.config as QUnitConfigWithModules;
+  const moduleId = new URL(window.location.href).searchParams.get('moduleId');
+  if (moduleId) {
+    return modules.find((m) => m.moduleId === moduleId)?.tests.length ?? 0;
+  }
+  let total = 0;
+  for (const module of modules) {
+    total += module.tests.length;
+  }
+  return total;
+};
+
 export const qunit = () => {
   const { agentNoTestsTimeout } = getConfig();
   let executed = 0;
@@ -65,21 +80,6 @@ export const qunit = () => {
     total: 0,
     errors
   });
-
-  const isSuiteDone = () => state.done && state.type === 'suite';
-
-  const countTotalTests = () => {
-    const { modules } = QUnit.config as QUnitConfigWithModules;
-    const moduleId = new URL(window.location.href).searchParams.get('moduleId');
-    if (moduleId) {
-      return modules.find((m) => m.moduleId === moduleId)?.tests.length ?? 0;
-    }
-    let total = 0;
-    for (const module of modules) {
-      total += module.tests.length;
-    }
-    return total;
-  };
 
   QUnit.begin((details) => {
     log(`QUnit.begin({totalTests: ${details.totalTests}, modules: [...${details.modules.length}...]})`);

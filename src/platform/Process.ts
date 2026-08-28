@@ -1,14 +1,15 @@
 import type { ChildProcess, SpawnOptions } from 'node:child_process';
 import { Host } from './Host.js';
 import { spawn } from 'node:child_process';
+import { setTimeout as setTimeoutPromise } from 'node:timers/promises';
 import { logger } from './logger.js';
 import { Exit } from './Exit.js';
 import type { IRegisteredAsyncTask } from './Exit.js';
 
-export interface SpawnOptionsExtended extends SpawnOptions {
+export type SpawnOptionsExtended = SpawnOptions & {
   onMessage?: (data: unknown) => void;
   forceRender?: true;
-}
+};
 
 export interface IProcess {
   readonly pid: number;
@@ -209,4 +210,6 @@ export class Process implements IProcess {
       });
     }
   }
+
+  static readonly sleep = (ms: number): Promise<void> => setTimeoutPromise(ms);
 }

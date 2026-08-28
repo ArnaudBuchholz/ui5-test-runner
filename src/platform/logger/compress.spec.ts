@@ -1,16 +1,8 @@
 import { it, expect, describe } from 'vitest';
 import type { InternalLogAttributes } from './types.js';
 import { LogLevel } from './types.js';
-import {
-  createCompressionContext,
-  compress,
-  uncompress,
-  DIGITS,
-  MAX_TIMESTAMP_DIGITS,
-  MAX_DWORD_DIGITS,
-  DATA_LINE_SLOTS,
-  _ALL_LOG_ATTRIBUTES_ARE_HANDLED
-} from './compress.js';
+import { compress, uncompress, DATA_LINE_SLOTS, _ALL_LOG_ATTRIBUTES_ARE_HANDLED } from './compress.js';
+import { CompressionContext, DIGITS, MAX_TIMESTAMP_DIGITS, MAX_DWORD_DIGITS } from './CompressionContext.js';
 
 const examples = [
   {
@@ -139,7 +131,7 @@ for (const attributes of examples) {
     let compressed: string;
 
     it('reduces message size', () => {
-      const context = createCompressionContext();
+      const context = CompressionContext.create();
       const json = JSON.stringify(attributes);
       compressed = compress(context, attributes);
       expect(compressed.length).toBeLessThan(json.length);
@@ -150,7 +142,7 @@ for (const attributes of examples) {
     });
 
     it('keeps the message integrity', () => {
-      const context = createCompressionContext();
+      const context = CompressionContext.create();
       const uncompressed = uncompress(context, compressed);
       expect.assert(uncompressed.length === 1);
       expect(uncompressed[0]).toStrictEqual(attributes);
@@ -159,7 +151,7 @@ for (const attributes of examples) {
 }
 
 it('does not duplicate information', () => {
-  const context = createCompressionContext();
+  const context = CompressionContext.create();
   const parts: string[] = Array.from(examples, (attributes) => compress(context, attributes));
   const compressed = parts.join('');
   for (const line of compressed.split('\n')) {
@@ -171,8 +163,8 @@ it('does not duplicate information', () => {
 });
 
 it('detects unexpected situation', () => {
-  const compressed = compress(createCompressionContext(), examples[0]!);
-  expect(() => uncompress(createCompressionContext(), compressed.trim().split('\n').at(-1)!)).toThrow(
+  const compressed = compress(CompressionContext.create(), examples[0]!);
+  expect(() => uncompress(CompressionContext.create(), compressed.trim().split('\n').at(-1)!)).toThrow(
     'Invalid process index 0 (length: 0)'
   );
 });

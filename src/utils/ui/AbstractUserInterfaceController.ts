@@ -26,7 +26,6 @@ export abstract class AbstractUserInterfaceController<
       }
     }
     Object.assign(this._state, stateDiff);
-    console.log('🎮⏩', stateDiff);
     if (Object.keys(stateDiff).length > 0) {
       this._updateCb({ ...stateDiff });
     }
@@ -38,10 +37,6 @@ export abstract class AbstractUserInterfaceController<
   connect(update: (event: Partial<State>) => void) {
     this._updateCb = update;
     this._onConnect();
-    console.log('🎮🔛', {
-      initialState: { ...this._state },
-      settings: this._settings
-    });
   }
 
   protected abstract _onInteraction(stateDiff: Partial<State>, action?: Actions): void;
@@ -49,7 +44,6 @@ export abstract class AbstractUserInterfaceController<
   interaction(event: UIEvent<State, Actions>) {
     const { action, ...state } = event;
     const stateDiff = this._update(state as Partial<State>);
-    console.log('🎮⏪', { event, action, stateDiff });
     if (action !== undefined || Object.keys(stateDiff).length > 0) {
       this._onInteraction(stateDiff, action);
     }

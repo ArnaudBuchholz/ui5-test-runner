@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeAll } from 'vitest';
 import { mock } from 'reserve';
 import type { Configuration } from '../../configuration/Configuration.js';
-import { buildREserveConfiguration } from './REserve.js';
+import { buildREserveConfiguration } from './reserve.js';
 import { logger } from '../../platform/logger.js';
 
 const UNHANDLED_URL = '/not-found.js';

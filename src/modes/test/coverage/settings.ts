@@ -11,10 +11,10 @@ type IstanbulSettings = {
   [key: string]: unknown;
 };
 
-interface SettingsEntry {
+type SettingsEntry = {
   settings: IstanbulSettings;
   settingsPath: string;
-}
+};
 
 const cache = new WeakMap<Configuration, Promise<SettingsEntry>>();
 

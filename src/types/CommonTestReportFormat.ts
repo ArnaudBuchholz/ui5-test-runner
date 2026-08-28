@@ -7,7 +7,7 @@ export type CommonTestStatus = 'passed' | 'failed' | 'skipped' | 'pending' | 'ot
 export const SPEC_VERSION = 'pre-1.0' as const;
 
 /** Common Test Report Format - an open standard JSON format for test results reports */
-export interface CommonTestReport {
+export type CommonTestReport = {
   /** Document format identifier. Must be 'CTRF' */
   reportFormat: 'CTRF';
   /** CTRF specification version in SemVer format (MAJOR.MINOR.PATCH) */
@@ -371,7 +371,7 @@ export interface CommonTestReport {
       [k: string]: unknown;
     };
   };
-}
+};
 
 export type CTRFTest = CommonTestReport['results']['tests'][number];
 

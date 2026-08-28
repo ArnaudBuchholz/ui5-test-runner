@@ -139,7 +139,7 @@ export const factory = async (configuration: Configuration): Promise<IBrowser> =
           return await page?.evaluate(script);
         },
         screenshot(/* path: string */) {
-          throw new Error('Not implemented');
+          assert(false, 'Not implemented');
         },
         async close() {
           try {

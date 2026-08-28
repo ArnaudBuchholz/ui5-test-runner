@@ -1,5 +1,6 @@
 import { ZLib } from '../../platform/index.js';
-import { createCompressionContext, uncompress } from '../../platform/logger/compress.js';
+import { CompressionContext } from '../../platform/logger/CompressionContext.js';
+import { uncompress } from '../../platform/logger/compress.js';
 import type { InternalLogAttributes } from '../../platform/logger/types.js';
 import { FramedStreamReader } from '../../utils/node/FramedStreamReader.js';
 import type { LogMetrics } from './LogMetrics.js';
@@ -17,7 +18,7 @@ export type LogReaderItem =
 
 export const LogReader = {
   async *read(logFileName: string, signal?: AbortSignal): AsyncIterableIterator<LogReaderItem> {
-    const context = createCompressionContext();
+    const context = CompressionContext.create();
     const stream = FramedStreamReader.create(logFileName, POLL_INTERVAL_MS);
     const metrics = getInitialLogMetrics();
     for await (const chunk of stream.read(signal)) {

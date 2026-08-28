@@ -1,10 +1,9 @@
 import type { IParallelizeContext } from '../../utils/shared/parallelize.js';
-import { assert, Http, logger } from '../../platform/index.js';
+import { assert, Http, logger, Process } from '../../platform/index.js';
 import { getAgentSource } from './agent.js';
 import { getBrowser } from './browser.js';
 import type { AgentState } from '../../types/AgentState.js';
 import { Exit, ExitShutdownError } from '../../platform/Exit.js';
-import { setTimeout as pause } from 'node:timers/promises';
 import { getReportBuilder } from './report.js';
 import { createEmptyTestResults } from '../../types/CommonTestReportFormat.js';
 import type { CommonTestReport } from '../../types/CommonTestReportFormat.js';
@@ -130,7 +129,7 @@ const shouldStopBasedOnAgentState = async (context: PageContext): Promise<boolea
         pageId: context.pageId,
         data: { state: agentState }
       });
-      throw new Error('Unable to detect page type');
+      assert(false, 'Unable to detect page type');
     } else {
       assert(agentState.type === 'QUnit');
       reportQunitProgress(context, agentState);
@@ -176,17 +175,19 @@ const mergeTestResults = (
   context: PageContext,
   testResults: CommonTestReport['results']
 ) => {
-  if (!context.isSuite) {
-    const { passed, failed, tests, duration } = testResults.summary;
-    const durationString = duration === undefined ? '' : ` (${duration}ms)`;
-    logger.debug({
-      source: 'page',
-      message: `test results: passed=${passed} failed=${failed} tests=${tests}${durationString}`,
-      pageId,
-      data: { results: testResults }
-    });
-    getReportBuilder().merge(url, testResults, { pageId });
+  if (context.isSuite) {
+    return;
   }
+
+  const { passed, failed, tests, duration } = testResults.summary;
+  const durationString = duration === undefined ? '' : ` (${duration}ms)`;
+  logger.debug({
+    source: 'page',
+    message: `test results: passed=${passed} failed=${failed} tests=${tests}${durationString}`,
+    pageId,
+    data: { results: testResults }
+  });
+  getReportBuilder().merge(url, testResults, { pageId });
 };
 
 export const makePageTask = (configuration: Configuration) =>
@@ -259,7 +260,7 @@ export const makePageTask = (configuration: Configuration) =>
       try {
         while (!isTimedOut && !this.stopRequested) {
           try {
-            await pause(context.loopDelay);
+            await Process.sleep(context.loopDelay);
             if (await shouldStopBasedOnAgentState(context)) {
               break;
             }

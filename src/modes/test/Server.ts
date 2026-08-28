@@ -1,9 +1,9 @@
 import { assert, Exit, logger, Thread } from '../../platform/index.js';
 import type { Configuration } from '../../configuration/Configuration.js';
 import { serve } from 'reserve';
-import type { Server } from 'reserve';
+import type { Server as REserveServer } from 'reserve';
 import { toPlainObject } from '../../utils/shared/object.js';
-import { buildREserveConfiguration } from './REserve.js';
+import { buildREserveConfiguration } from './reserve.js';
 
 type Message =
   | {
@@ -20,21 +20,21 @@ type Message =
       command: 'terminated';
     };
 
-let channel: ReturnType<typeof Thread.createBroadcastChannel>;
-let serverWorker: ReturnType<typeof Thread.createWorker> | undefined;
-let isStopping = false;
+let _channel: ReturnType<typeof Thread.createBroadcastChannel>;
+let _serverWorker: ReturnType<typeof Thread.createWorker> | undefined;
+let _isStopping = false;
 
-export const server = {
+export const Server = {
   async start(configuration: Configuration): Promise<number> {
-    assert(serverWorker === undefined);
-    channel = Thread.createBroadcastChannel('server');
+    assert(_serverWorker === undefined);
+    _channel = Thread.createBroadcastChannel('server');
     Exit.registerAsyncTask({
       name: 'server',
-      stop: () => server.stop()
+      stop: () => Server.stop()
     });
-    serverWorker = Thread.createWorker('modes/test/server', toPlainObject(configuration));
+    _serverWorker = Thread.createWorker('modes/test/server', toPlainObject(configuration));
     const { promise, resolve, reject } = Promise.withResolvers<number>();
-    channel.onmessage = ({ data: message }: { data: Message }) => {
+    _channel.onmessage = ({ data: message }: { data: Message }) => {
       if (message.command === 'ready') {
         resolve(message.port);
       } else if (message.command === 'error') {
@@ -47,78 +47,78 @@ export const server = {
   },
 
   async stop() {
-    if (isStopping) {
+    if (_isStopping) {
       return;
     }
-    isStopping = true;
+    _isStopping = true;
     try {
-      assert(serverWorker !== undefined);
-      channel.postMessage({
+      assert(_serverWorker !== undefined);
+      _channel.postMessage({
         command: 'terminate'
       } satisfies Message);
       const { promise, resolve } = Promise.withResolvers<void>();
-      channel.onmessage = ({ data: message }: { data: Message }) => {
+      _channel.onmessage = ({ data: message }: { data: Message }) => {
         if (message.command !== 'terminated') {
           return;
         }
 
-        channel.close();
+        _channel.close();
         resolve();
       };
       await promise;
     } finally {
-      channel.close();
+      _channel.close();
     }
   }
 };
 
 export const workerMain = (configuration: Configuration) => {
   logger.debug({ source: 'server', message: 'Starting server...' });
-  channel = Thread.createBroadcastChannel('server');
+  _channel = Thread.createBroadcastChannel('server');
 
-  channel.onmessage = ({ data: message }: { data: Message }) => {
+  let reserveServer: REserveServer;
+
+  _channel.onmessage = ({ data: message }: { data: Message }) => {
     if (message.command !== 'terminate') {
       return;
     }
 
     logger.debug({ source: 'server', message: 'Stopping server...' });
-    void server.close().finally(() => {
+    void reserveServer.close().finally(() => {
       logger.debug({ source: 'server', message: 'Server stopped.' });
-      channel.postMessage({
+      _channel.postMessage({
         command: 'terminated'
       } satisfies Message);
-      channel.close();
+      _channel.close();
     });
   };
 
-  let server: Server;
   try {
-    server = serve(buildREserveConfiguration(configuration));
+    reserveServer = serve(buildREserveConfiguration(configuration));
   } catch (error) {
     logger.error({ source: 'server', message: 'An error occurred while configuring', error });
-    channel.postMessage({
+    _channel.postMessage({
       command: 'error'
     } satisfies Message);
     return;
   }
 
-  server.on('created', () => {
-    // the properties of the event can't be transmitted through workers
+  reserveServer.on('created', () => {
     logger.debug({ source: 'reserve', message: 'created', data: {} });
   });
   for (const eventName of ['incoming', 'redirecting', 'redirected', 'aborted', 'closed'] as const) {
-    server.on(eventName, (event) => {
+    reserveServer.on(eventName, (event) => {
       const { eventName: message, ...data } = event;
       logger.debug({ source: 'reserve', message, data });
     });
   }
 
-  server
+  reserveServer
     .on('ready', (event) => {
       const { eventName: message, ...data } = event;
       logger.debug({ source: 'reserve', message, data });
       logger.info({ source: 'server', message: `Server listening on: ${event.url}` });
-      channel.postMessage({
+      _channel.postMessage({
         command: 'ready',
         port: event.port
       } satisfies Message);
@@ -127,7 +127,7 @@ export const workerMain = (configuration: Configuration) => {
       // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment -- REserve uses any
       const { eventName: message, reason: error, ...data } = event;
       logger.debug({ source: 'reserve', message, data, error });
-      channel.postMessage({
+      _channel.postMessage({
         command: 'error'
       } satisfies Message);
     });

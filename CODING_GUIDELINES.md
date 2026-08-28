@@ -42,7 +42,7 @@ The agent runs in the browser and has direct access to `QUnit.config`, `window.s
 - One concept per file, named after it; small related helpers may be grouped (`constants.ts`, `types.ts`)
 - Test files co-located: `Exit.ts` → `Exit.spec.ts`; shared test helpers use `.test.ts`
 - **Barrel files (`index.ts`)**: only where a stable public API is needed, not for tidiness
-- **File size**: max **200 lines** (signal only) — split when exceeded
+- **File size**: max **200 lines** (signal only, 25% tolerance) — split when clearly exceeded. `src/types/CommonTestReportFormat.ts` is exempt as a self-contained type definition file that cannot be split meaningfully. Generated files (`src/configuration/options.ts`, `src/configuration/validations.ts`, `src/ui/**`) are also exempt.
 - **File naming**: `camelCase` for non-class modules; `PascalCase` for class/factory modules
 - **Splitting**: move to a subfolder named after the concept; no catch-all helpers (avoid `fooHelpers.ts`)
 - **Exports**: named exports only; default exports forbidden in implemented modules
@@ -102,7 +102,7 @@ Prefer factory functions returning a typed interface for DI. Max **3 parameters*
 | Builder | Accumulates state then returns result | `AgentTestResultsBuilder` |
 | Memoization | `memoize` from `src/utils/shared/` for expensive, side-effect-free computations | |
 
-Do not introduce new module-level singletons.
+Do not introduce new module-level singletons. The `logger` export in `src/platform/logger.ts` is the only known exception — it predates this rule and is too widely used to refactor safely.
 
 ## UI Controller pattern
 
@@ -135,7 +135,15 @@ using _server = Exit.registerAsyncTask({
 
 ## Logger
 
-`console.log/warn/error` forbidden. Import via `'../platform/index.js'`.
+The platform logger relies on worker threads and writes structured log files — it is designed for long-running processes.
+
+**Short-lived, immediate-exit modes** (`help`, `version`, `dumpConfig`, and any future mode that exits without starting a browser or server) **must use `console.*`** for their output. The logger is too heavy for these modes: spawning a worker thread and producing a log file would be wasteful noise.
+
+**All other code** — long-running modes (`test`, `batch`, `log`…), browsers, platform utilities, and shared modules — **must use the platform logger** and must never call `console.*` directly.
+
+> A mode is short-lived if it exits without starting a browser or server. If in doubt, use the platform logger.
+
+Import via `'../platform/index.js'`.
 
 | Level | When |
 |---|---|
@@ -163,7 +171,34 @@ To add/change an option: edit `docs/options/` → `npm run build:options` → ad
 
 ## Assertion
 
-Use `assert` from `src/platform/` for internal invariants. Never `console.assert` or bare `throw new Error`.
+Two distinct mechanisms exist for signalling failure — pick based on the nature of the failure:
+
+**Internal invariants** — use `assert` from `src/platform/` (Node.js code only; not available in `src/agent/` or `src/ui/`):
+
+```typescript
+// ✅ Invariant: this should never happen if the code is correct
+assert(_browserConfigScript !== undefined, 'browserConfig not initialized');
+```
+
+An invariant is a condition that *must* be true given correct internal code. If it fails, it indicates a programming error, not a runtime condition.
+
+**Runtime operation failures** — use `throw new Error`:
+
+```typescript
+// ✅ Runtime failure: external operation failed, this is an expected failure mode
+throw new Error(`nyc merge failed with code ${mergeProc.code}`);
+throw new Error(`Timeout while waiting for ${url}`);
+```
+
+A runtime failure is an outcome that depends on external state (subprocess exit codes, network, filesystem) and can legitimately occur on a correct codebase.
+
+When wrapping a caught error, always pass `cause`:
+
+```typescript
+throw new Error(`Unable to fetch latest version of ${moduleName}`, { cause: error });
+```
+
+**Never use** `console.assert` or bare `throw new Error` for invariants — `assert` provides consistent formatting and integrates with the platform shutdown flow.
 
 ## Comments
 

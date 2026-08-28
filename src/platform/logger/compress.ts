@@ -1,150 +1,14 @@
 import type { InternalLogAttributes, LogSource } from './types.js';
 import { LogLevel } from './types.js';
-import { isDeepStrictEqual } from 'node:util';
 import assert from 'node:assert/strict';
 import { split } from '../../utils/shared/string.js';
+import { CompressionContext, MAX_TIMESTAMP_DIGITS } from './CompressionContext.js';
 
 const ASCII_RECORD_SEPARATOR = '\u{1E}';
-
-export const DIGITS = Array.from({ length: 127 - 32 }, () => 0)
-  .map((_, index) => String.fromCodePoint(32 + index))
-  .join('');
 const JSON_VALUE_SEP = ASCII_RECORD_SEPARATOR;
 const MAX_INDEX_DIGITS = 2; // 95**2=9025 values
 const CONTEXT_PROCESS_ID = 'p';
 const CONTEXT_SOURCE_ID = 's';
-export const MAX_TIMESTAMP_DIGITS = 7;
-export const MAX_DWORD_DIGITS = 5;
-
-type ProcessContext = Pick<InternalLogAttributes, 'processId' | 'threadId' | 'isMainThread'>;
-
-/** Used to keep track of constantly repeated values */
-class Context {
-  static compressNumber(value: number, maxLength: number): string {
-    const digits: string[] = [];
-    while (value > 0) {
-      const digit = value % DIGITS.length;
-      digits.push(DIGITS[digit]!);
-      value = (value - digit) / DIGITS.length;
-    }
-    // eslint-disable-next-line sonarjs/argument-type -- DIGITS has at least one char
-    return digits.join('').padEnd(maxLength, DIGITS[0]);
-  }
-
-  static uncompressNumber(value: string): number {
-    let result = 0;
-    let factor = 1;
-    for (const digit of value) {
-      const index = DIGITS.indexOf(digit);
-      result += index * factor;
-      factor *= DIGITS.length;
-    }
-    return result;
-  }
-
-  private fail(message: string): never {
-    throw new Error(message);
-  }
-
-  private _compressWithList<T>({
-    array,
-    value,
-    compress
-  }: {
-    array: T[];
-    value: T;
-    compress: (value: T) => string[];
-  }): { context: string; compressed: string } {
-    const index = array.findIndex((candidate) => isDeepStrictEqual(candidate, value));
-    if (index !== -1) {
-      const compressed = Context.compressNumber(index, MAX_INDEX_DIGITS);
-      return {
-        context: '', // empty string: already registered, no context line needed
-        compressed
-      };
-    }
-    const lastIndex = array.length;
-    array.push(value);
-    return {
-      context: compress(value).join(''),
-      compressed: Context.compressNumber(lastIndex, MAX_INDEX_DIGITS)
-    };
-  }
-
-  private _uncompressFromList<T>({ type, array, compressed }: { type: string; array: T[]; compressed: string }): T {
-    const index = Context.uncompressNumber(compressed);
-    return array[index] ?? this.fail(`Invalid ${type} index ${index} (length: ${array.length})`);
-  }
-
-  private _processes: ProcessContext[] = [];
-
-  compressProcess(value: ProcessContext): { context: string; compressed: string } {
-    return this._compressWithList({
-      array: this._processes,
-      value,
-      compress: ({ processId, threadId, isMainThread }: ProcessContext) => {
-        if (threadId === -1) {
-          return [CONTEXT_PROCESS_ID, Context.compressNumber(processId, MAX_DWORD_DIGITS)];
-        }
-        return [
-          CONTEXT_PROCESS_ID,
-          Context.compressNumber(processId, MAX_DWORD_DIGITS),
-          Context.compressNumber(threadId, MAX_DWORD_DIGITS),
-          isMainThread ? '!' : ''
-        ];
-      }
-    });
-  }
-
-  addProcess(compressed: string) {
-    const [, cProcessId, cThreadId, cIsMainThread] = split(compressed, 1, MAX_DWORD_DIGITS, MAX_DWORD_DIGITS, 1);
-    if (cThreadId) {
-      this._processes.push({
-        processId: Context.uncompressNumber(cProcessId),
-        threadId: Context.uncompressNumber(cThreadId),
-        isMainThread: cIsMainThread === '!'
-      });
-    } else {
-      this._processes.push({
-        processId: Context.uncompressNumber(cProcessId),
-        threadId: -1,
-        isMainThread: false
-      });
-    }
-  }
-
-  uncompressProcess(compressed: string): ProcessContext {
-    return this._uncompressFromList({
-      type: 'process',
-      array: this._processes,
-      compressed
-    });
-  }
-
-  private _sources: string[] = [];
-
-  compressSource(value: string): { context: string; compressed: string } {
-    return this._compressWithList({
-      array: this._sources,
-      value,
-      compress: (value: string) => [CONTEXT_SOURCE_ID, value]
-    });
-  }
-
-  addSource(compressed: string) {
-    this._sources.push(compressed.slice(1));
-  }
-
-  uncompressSource(compressed: string): string {
-    return this._uncompressFromList({
-      type: 'source',
-      array: this._sources,
-      compressed
-    });
-  }
-}
-
-export const createCompressionContext = () => new Context() as unknown;
 
 const LEVEL_MAPPING: { [key in LogLevel]: string } = {
   [LogLevel.debug]: 'D',
@@ -155,13 +19,16 @@ const LEVEL_MAPPING: { [key in LogLevel]: string } = {
 } as const;
 const LEVELS = Object.values(LEVEL_MAPPING).join('');
 
-interface DataSlot {
+interface IDataSlot {
   readonly width: number; // > 0: fixed char count; 0: variable-width (takes the rest of the line)
-  compress(context: Context, attributes: InternalLogAttributes): { contextLine?: string; compressed: string };
-  uncompress(context: Context, compressed: string): Partial<InternalLogAttributes>;
+  compress(
+    context: CompressionContext,
+    attributes: InternalLogAttributes
+  ): { contextLine?: string; compressed: string };
+  uncompress(context: CompressionContext, compressed: string): Partial<InternalLogAttributes>;
 }
 
-const levelSlot: DataSlot = {
+const levelSlot: IDataSlot = {
   width: 1,
   compress(_, { level }) {
     return { compressed: LEVEL_MAPPING[level] };
@@ -171,17 +38,17 @@ const levelSlot: DataSlot = {
   }
 };
 
-const timestampSlot: DataSlot = {
+const timestampSlot: IDataSlot = {
   width: MAX_TIMESTAMP_DIGITS,
   compress(_, { timestamp }) {
-    return { compressed: Context.compressNumber(timestamp, MAX_TIMESTAMP_DIGITS) };
+    return { compressed: CompressionContext.compressNumber(timestamp, MAX_TIMESTAMP_DIGITS) };
   },
   uncompress(_, compressed) {
-    return { timestamp: Context.uncompressNumber(compressed) };
+    return { timestamp: CompressionContext.uncompressNumber(compressed) };
   }
 };
 
-const processSlot: DataSlot = {
+const processSlot: IDataSlot = {
   width: MAX_INDEX_DIGITS,
   compress(context, { processId, threadId, isMainThread }) {
     const { context: contextLine, compressed } = context.compressProcess({ processId, threadId, isMainThread });
@@ -192,7 +59,7 @@ const processSlot: DataSlot = {
   }
 };
 
-const sourceSlot: DataSlot = {
+const sourceSlot: IDataSlot = {
   width: MAX_INDEX_DIGITS,
   compress(context, { source }) {
     const { context: contextLine, compressed } = context.compressSource(source);
@@ -203,18 +70,18 @@ const sourceSlot: DataSlot = {
   }
 };
 
-const pageIdSlot: DataSlot = {
+const pageIdSlot: IDataSlot = {
   width: MAX_INDEX_DIGITS,
   compress(_, { pageId }) {
-    return { compressed: Context.compressNumber(pageId === undefined ? 0 : pageId + 1, MAX_INDEX_DIGITS) };
+    return { compressed: CompressionContext.compressNumber(pageId === undefined ? 0 : pageId + 1, MAX_INDEX_DIGITS) };
   },
   uncompress(_, compressed) {
-    const value = Context.uncompressNumber(compressed);
+    const value = CompressionContext.uncompressNumber(compressed);
     return value > 0 ? { pageId: value - 1 } : {};
   }
 };
 
-const messageAndExtraSlot: DataSlot = {
+const messageAndExtraSlot: IDataSlot = {
   width: 0,
   compress(_, { message, data, error }) {
     const parts = [message.replaceAll(/\r?\n/g, '\r')];
@@ -250,7 +117,7 @@ const messageAndExtraSlot: DataSlot = {
   }
 };
 
-export const DATA_LINE_SLOTS: DataSlot[] = [
+export const DATA_LINE_SLOTS: IDataSlot[] = [
   levelSlot,
   timestampSlot,
   processSlot,
@@ -267,7 +134,7 @@ const VARIABLE_SLOT = VARIABLE_SLOTS[0]!;
 /**
 Each entry documents how the field is compressed; the Record type ensures no field is missed when InternalLogAttributes changes
 */
-export const _ALL_LOG_ATTRIBUTES_ARE_HANDLED: Record<keyof Required<InternalLogAttributes>, DataSlot | null> = {
+export const _ALL_LOG_ATTRIBUTES_ARE_HANDLED: Record<keyof Required<InternalLogAttributes>, IDataSlot | null> = {
   level: levelSlot,
   timestamp: timestampSlot,
   processId: processSlot,
@@ -282,7 +149,7 @@ export const _ALL_LOG_ATTRIBUTES_ARE_HANDLED: Record<keyof Required<InternalLogA
 };
 
 export const compress = (context: unknown, attributes: InternalLogAttributes): string => {
-  assert.ok(context instanceof Context);
+  assert.ok(context instanceof CompressionContext);
   const contextLines: string[] = [];
   const parts: string[] = [];
   for (const slot of DATA_LINE_SLOTS) {
@@ -293,7 +160,7 @@ export const compress = (context: unknown, attributes: InternalLogAttributes): s
   return [...contextLines, parts.join('')].join('\n') + '\n';
 };
 
-const augmentContext = (context: Context, line: string) => {
+const augmentContext = (context: CompressionContext, line: string) => {
   const firstChar = line.charAt(0);
   if (firstChar === CONTEXT_PROCESS_ID) {
     context.addProcess(line);
@@ -303,7 +170,7 @@ const augmentContext = (context: Context, line: string) => {
   }
 };
 
-const uncompressLine = (context: Context, line: string): InternalLogAttributes | undefined => {
+const uncompressLine = (context: CompressionContext, line: string): InternalLogAttributes | undefined => {
   const firstChar = line.charAt(0);
   if (!LEVELS.includes(firstChar)) {
     augmentContext(context, line);
@@ -319,7 +186,7 @@ const uncompressLine = (context: Context, line: string): InternalLogAttributes |
 };
 
 export const uncompress = (context: unknown, compressed: string): InternalLogAttributes[] => {
-  assert.ok(context instanceof Context);
+  assert.ok(context instanceof CompressionContext);
   const result: InternalLogAttributes[] = [];
   for (const line of compressed.split('\n')) {
     if (!line) {

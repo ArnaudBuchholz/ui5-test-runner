@@ -2,11 +2,12 @@ import type { Configuration } from '../configuration/Configuration.js';
 import type { IBrowser } from './IBrowser.js';
 import { factory as puppeteerFactory } from './puppeteer.js';
 import { factory as playwrightFactory } from './playwright.js';
+import { assert } from '../platform/index.js';
 
 export type Browser = 'puppeteer' | 'playwright' | 'webdriverio' | 'selenium-webdriver';
 
 const notImplemented = () => {
-  throw new Error('Not implemented');
+  assert(false, 'Not implemented');
 };
 
 const factories: { [key in Browser]: (configuration: Configuration) => Promise<IBrowser> } = {

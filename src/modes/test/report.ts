@@ -2,6 +2,7 @@ import type { TestReportBuilder } from '../../utils/shared/TestReportBuilder.js'
 import type { Configuration } from '../../configuration/Configuration.js';
 import { initReportBuilder as buildReportBuilder } from '../../reports/initReportBuilder.js';
 import type { BrowserCapabilities } from '../../browsers/IBrowser.js';
+import { assert } from '../../platform/index.js';
 
 let _reportBuilder: TestReportBuilder | undefined;
 
@@ -10,7 +11,7 @@ export async function initReportBuilder(configuration: Configuration): Promise<v
 }
 
 export function getReportBuilder(): TestReportBuilder {
-  if (_reportBuilder === undefined) throw new Error('reportBuilder not initialized');
+  assert(_reportBuilder !== undefined, 'reportBuilder not initialized');
   return _reportBuilder;
 }
 

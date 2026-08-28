@@ -3,10 +3,10 @@ import { Exit } from './Exit.js';
 
 let _lastRequestId = 0;
 
-interface FetchInit extends RequestInit {
+type FetchInit = RequestInit & {
   requestId?: number;
   controller?: AbortController;
-}
+};
 
 const _fetch = async (url: string, init?: FetchInit): Promise<Response> => {
   const { requestId = ++_lastRequestId, controller = new AbortController(), ...fetchInit } = init ?? {};

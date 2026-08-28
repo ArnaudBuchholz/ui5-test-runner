@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeAll, beforeEach, vi } from 'vitest';
 import { mock } from 'reserve';
 import type { Configuration } from '../../configuration/Configuration.js';
-import { buildREserveConfiguration } from './REserve.js';
+import { buildREserveConfiguration } from './reserve.js';
 import { FileSystem, Process } from '../../platform/index.js';
 
 vi.mock(import('../../platform/mock.js'));
