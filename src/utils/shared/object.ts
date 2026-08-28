@@ -8,6 +8,9 @@ export const toPlainObject = (object: object): object => {
   return Object.assign({}, toPlainObject(prototype), object);
 };
 
+export const objectValues = <T>(object: Record<string | number, T | undefined>): T[] =>
+  Object.values(object).filter((v): v is T => v !== undefined);
+
 export const pick = <T extends object, K extends keyof T>(object: T, keys: readonly K[]): Pick<T, K> => {
   const result = {} as Pick<T, K>;
   for (const key of keys) {

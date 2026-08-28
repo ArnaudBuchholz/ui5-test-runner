@@ -42,7 +42,7 @@ The agent runs in the browser and has direct access to `QUnit.config`, `window.s
 - One concept per file, named after it; small related helpers may be grouped (`constants.ts`, `types.ts`)
 - Test files co-located: `Exit.ts` → `Exit.spec.ts`; shared test helpers use `.test.ts`
 - **Barrel files (`index.ts`)**: only where a stable public API is needed, not for tidiness
-- **File size**: max **200 lines** (signal only, 25% tolerance) — split when clearly exceeded. `src/types/CommonTestReportFormat.ts` is exempt as a self-contained type definition file that cannot be split meaningfully. Generated files (`src/configuration/options.ts`, `src/configuration/validations.ts`, `src/ui/**`) are also exempt.
+- **File size**: max **200 lines** (signal only, 25% tolerance). The limit is a prompt to question cohesion — not a hard rule. Ask: *does this file do one thing?* If yes, keep it together even if it exceeds 250 lines. Split only when the file clearly mixes distinct concerns that can be separated without introducing circular dependencies or artificial indirection. Never split solely to hit a line count. `src/types/CommonTestReportFormat.ts` is exempt as a self-contained type definition file that cannot be split meaningfully. Generated files (`src/configuration/options.ts`, `src/configuration/validations.ts`, `src/ui/**`) are also exempt.
 - **File naming**: `camelCase` for non-class modules; `PascalCase` for class/factory modules
 - **Splitting**: move to a subfolder named after the concept; no catch-all helpers (avoid `fooHelpers.ts`)
 - **Exports**: named exports only; default exports forbidden in implemented modules
@@ -78,7 +78,7 @@ export type Mode = (typeof Modes)[keyof typeof Modes];
 ### Type safety
 
 - Prefer `unknown` over `any`
-- No type assertions (`as`) in implemented modules — use typeguard functions instead
+- No type assertions (`as`) in implemented modules — use typeguard functions instead. Before adding a typeguard, first check whether restructuring the consumption can let TypeScript narrow naturally (e.g. consuming a discriminated union on the full item before destructuring, rather than casting the spread result).
 - Type assertions acceptable in test files; prefer `as T` over `as unknown as T` unless TypeScript rejects the direct cast
 
 ### Interfaces and types
@@ -103,6 +103,8 @@ Prefer factory functions returning a typed interface for DI. Max **3 parameters*
 | Memoization | `memoize` from `src/utils/shared/` for expensive, side-effect-free computations | |
 
 Do not introduce new module-level singletons. The `logger` export in `src/platform/logger.ts` is the only known exception — it predates this rule and is too widely used to refactor safely.
+
+A module-level constant that is **built once at load time from static data and never mutated after that** is acceptable (e.g. `indexedOptions.ts` which indexes the generated options list). The smell is a module-level object that accumulates or changes runtime state.
 
 ## UI Controller pattern
 

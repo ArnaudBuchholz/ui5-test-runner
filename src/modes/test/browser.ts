@@ -1,5 +1,4 @@
 import { BrowserFactory } from '../../browsers/factory.js';
-import type { Browser } from '../../browsers/factory.js';
 import type { BrowserCapabilities, BrowserSettings, IBrowser } from '../../browsers/IBrowser.js';
 import type { Configuration } from '../../configuration/Configuration.js';
 import { Exit, assert, logger } from '../../platform/index.js';
@@ -8,8 +7,11 @@ let _browser: IBrowser;
 let _capabilities: BrowserCapabilities;
 
 export const setupBrowser = async (configuration: Configuration): Promise<BrowserCapabilities> => {
-  const browserName = configuration.browser as Browser;
-  assert(browserName === 'puppeteer' || browserName === 'playwright');
+  assert(
+    configuration.browser === 'puppeteer' || configuration.browser === 'playwright',
+    `Unknown browser: ${configuration.browser}`
+  );
+  const browserName = configuration.browser;
   _browser = await BrowserFactory.build(configuration, browserName);
   const { debugKeepBrowserOpen, browserVisible, browserViewportWidth, browserViewportHeight } = configuration;
   const settings: BrowserSettings = {
