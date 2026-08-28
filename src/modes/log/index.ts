@@ -5,7 +5,6 @@ import { serve } from 'reserve';
 import { LogStorage } from './LogStorage.js';
 import { buildREserveConfiguration } from './reserve.js';
 import { BrowserFactory } from '../../browsers/factory.js';
-import type { InternalLogAttributes } from '../../platform/logger/types.js';
 import { getInitialLogMetrics } from './LogMetrics.js';
 
 const dumpLogToStdout = async (configuration: Configuration) => {
@@ -16,18 +15,18 @@ const dumpLogToStdout = async (configuration: Configuration) => {
 
   process.stdout.write('[\n');
   let isFirst = true;
-  for await (const { type, ...attributes } of LogReader.read(logFileName)) {
-    if (type !== 'log') {
+  for await (const item of LogReader.read(logFileName)) {
+    if (item.type !== 'log') {
       continue;
     }
-    const logAttributes = attributes as Readonly<InternalLogAttributes>;
+    const { type: _, ...logAttributes } = item;
     if (filterExpression && !filterExpression(logAttributes)) {
       continue;
     }
     if (!isFirst) {
       process.stdout.write(',\n');
     }
-    process.stdout.write('  ' + JSON.stringify(attributes));
+    process.stdout.write('  ' + JSON.stringify(logAttributes));
     isFirst = false;
   }
   process.stdout.write(isFirst ? ']\n' : '\n]\n');
@@ -92,7 +91,8 @@ export const log = async (configuration: Configuration) => {
     }
     const { type, ...attributes } = item;
     if (type === 'log') {
-      storage.add(attributes as InternalLogAttributes);
+      const { type: _, ...logAttributes } = item;
+      storage.add(logAttributes);
     } else if (__developmentMode) {
       Object.assign(metrics, attributes);
     }

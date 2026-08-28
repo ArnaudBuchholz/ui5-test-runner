@@ -79,8 +79,8 @@ const extractConfigEntries = (parsed: Record<string, unknown>, configDirectory: 
     configFileObject[key] = value;
     configFileKeys.add(key);
   }
-  if (configFileKeys.has('cwd')) {
-    const rawCwd = configFileObject['cwd'] as string;
+  if (configFileKeys.has('cwd') && typeof configFileObject['cwd'] === 'string') {
+    const rawCwd = configFileObject['cwd'];
     if (!Path.isAbsolute(rawCwd)) {
       configFileObject['cwd'] = Path.join(configDirectory, rawCwd);
     }

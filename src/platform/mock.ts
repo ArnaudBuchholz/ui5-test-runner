@@ -2,6 +2,7 @@ import { vi } from 'vitest';
 import type { ReadStream, WriteStream } from 'node:fs';
 import type { BroadcastChannel, Worker } from 'node:worker_threads';
 import { basename, extname, join, relative } from 'node:path';
+import { setTimeout } from 'node:timers/promises';
 import type { ILoggerService } from './logger/ILogger.js';
 import type { IAsyncTask } from './Exit.js';
 import type { Terminal } from './Terminal.js';
@@ -108,7 +109,12 @@ vi.mock(import('./Path.js'), async (importActual) => {
   return mocked;
 });
 
-vi.mock(import('./Process.js'), async (importActual) => mockStaticMethodsOfExports(await importActual()));
+vi.mock(import('./Process.js'), async (importActual) => {
+  const mocked = mockStaticMethodsOfExports(await importActual());
+  const { Process } = mocked;
+  vi.mocked(Process.sleep).mockImplementation((ms) => setTimeout(ms));
+  return mocked;
+});
 
 type TerminalRawMode = Parameters<typeof Terminal.setRawMode>[0];
 export let __lastTerminalRawModeCallback: TerminalRawMode = false;

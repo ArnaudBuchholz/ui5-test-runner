@@ -3,6 +3,7 @@ import type { Configuration } from '../../../configuration/Configuration.js';
 import type { InternalLogAttributes, PageProgressData } from '../types.js';
 import { LogLevel } from '../types.js';
 import { ProgressBar } from '../../../utils/shared/ProgressBar.js';
+import { objectValues } from '../../../utils/shared/object.js';
 import { formatDuration } from '../../../utils/shared/string.js';
 import { assert } from '../../assert.js';
 
@@ -128,7 +129,7 @@ export abstract class BaseLoggerOutput {
 
   private _updateOverallProgress() {
     const overallProgress = { ...this._overallprogressSnapshot };
-    for (const pageProgress of Object.values(this._pageProgressMap) as PageProgress[]) {
+    for (const pageProgress of objectValues(this._pageProgressMap)) {
       if (pageProgress.type === 'unknown') {
         continue;
       }
