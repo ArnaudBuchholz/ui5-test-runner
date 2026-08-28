@@ -4,6 +4,7 @@ import { serve } from 'reserve';
 import type { Server as REserveServer } from 'reserve';
 import { toPlainObject } from '../../utils/shared/object.js';
 import { buildREserveConfiguration } from './reserve.js';
+import { logReserve } from '../../reserveLogger.js';
 
 type Message =
   | {
@@ -103,30 +104,16 @@ export const workerMain = (configuration: Configuration) => {
     return;
   }
 
-  reserveServer.on('created', () => {
-    logger.debug({ source: 'reserve', message: 'created', data: {} });
-  });
-  for (const eventName of ['incoming', 'redirecting', 'redirected', 'aborted', 'closed'] as const) {
-    reserveServer.on(eventName, (event) => {
-      const { eventName: message, ...data } = event;
-      logger.debug({ source: 'reserve', message, data });
-    });
-  }
+  logReserve(reserveServer);
 
   reserveServer
     .on('ready', (event) => {
-      const { eventName: message, ...data } = event;
-      logger.debug({ source: 'reserve', message, data });
-      logger.info({ source: 'server', message: `Server listening on: ${event.url}` });
       _channel.postMessage({
         command: 'ready',
         port: event.port
       } satisfies Message);
     })
-    .on('error', (event) => {
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment -- REserve uses any
-      const { eventName: message, reason: error, ...data } = event;
-      logger.debug({ source: 'reserve', message, data, error });
+    .on('error', () => {
       _channel.postMessage({
         command: 'error'
       } satisfies Message);
