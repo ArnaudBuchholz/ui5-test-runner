@@ -133,7 +133,7 @@ describe('end', () => {
       await promise;
 
       expect(process.kill).toHaveBeenCalled();
-      expect(logger.fatal).toHaveBeenCalledWith({ source: 'job', message: 'End command timed out, killing' });
+      expect(logger.error).toHaveBeenCalledWith({ source: 'job', message: 'End command timed out, killing' });
       expect(Exit.code).toBe(-1);
       vi.useRealTimers();
     });
