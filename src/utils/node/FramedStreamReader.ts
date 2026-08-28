@@ -1,6 +1,5 @@
 import type { IRegisteredAsyncTask } from '../../platform/index.js';
-import { Exit, FileSystem, assert } from '../../platform/index.js';
-import { setTimeout } from 'node:timers/promises';
+import { Exit, FileSystem, Process, assert } from '../../platform/index.js';
 
 export interface IFramedStreamReader {
   read(signal?: AbortSignal): AsyncIterableIterator<Buffer>;
@@ -103,7 +102,7 @@ export class FramedStreamReader {
         yield* this.#read(stats.size - 1);
       }
       if (this._reading) {
-        await Promise.race([setTimeout(this._pollIntervalMs), abortSignal]);
+        await Promise.race([Process.sleep(this._pollIntervalMs), abortSignal]);
       }
     }
   }
