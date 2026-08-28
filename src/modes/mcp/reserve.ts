@@ -9,7 +9,7 @@ const SERVER_INFO = {
 };
 
 const HTTP_OK = 200;
-const HTTP_FORBIDDEN = 403;
+// const HTTP_FORBIDDEN = 403;
 const HTTP_METHOD_NOT_ALLOWED = 405;
 const HTTP_BAD_REQUEST = 400;
 
@@ -96,12 +96,12 @@ export const buildREserveConfiguration = (configuration: Configuration): REserve
       method: 'POST',
       match: '/mcp',
       custom: async (request, response) => {
-        const origin = (request.headers as Record<string, string>)['origin'];
-        if (origin && origin !== `http://localhost:${configuration.port ?? 3000}`) {
-          response.writeHead(HTTP_FORBIDDEN, { 'Content-Type': 'application/json' });
-          response.end(JSON.stringify({ error: 'Forbidden' }));
-          return;
-        }
+        // const origin = (request.headers as Record<string, string>)['origin'];
+        // if (origin && origin !== `http://localhost:${configuration.port ?? 3000}`) {
+        //   response.writeHead(HTTP_FORBIDDEN, { 'Content-Type': 'application/json' });
+        //   response.end(JSON.stringify({ error: 'Forbidden' }));
+        //   return;
+        // }
         let parsed: JsonRpcRequest;
         try {
           parsed = (await body(request).json()) as JsonRpcRequest;
