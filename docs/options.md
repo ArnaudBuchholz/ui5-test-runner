@@ -29,6 +29,7 @@
 |[coverageSourceDir](options/coverageSourceDir.md)|--coverage-source-dir||fs-entry|directory containing the source files used for coverage reporting|
 |[coverageTempDir](options/coverageTempDir.md)|--coverage-temp-dir|-ctd|fs-entry|temporary directory for coverage data|
 |[debugKeepBrowserOpen](options/debugKeepBrowserOpen.md)|--debug-keep-browser-open||boolean|keeps the browser open after the tests completed|
+|[debugLog](options/debugLog.md)|--debug-log||string|output debug logs for given sources|
 |[debugMcpLocalDocs](options/debugMcpLocalDocs.md)|--debug-mcp-local-docs||boolean|use local docs/ directory instead of fetching from GitHub (development only)|
 |[dumpConfig](options/dumpConfig.md)|--dump-config||boolean|dump the resolved configuration as JSON and exit|
 |[end](options/end.md)|--end||string|command to be executed after the tests|

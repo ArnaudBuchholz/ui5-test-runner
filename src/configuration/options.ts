@@ -197,6 +197,12 @@ export const options = [
     description: 'keeps the browser open after the tests completed'
   },
   {
+    name: 'debugLog',
+    type: 'string',
+    multiple: true,
+    description: 'output debug logs for given sources'
+  },
+  {
     name: 'debugMcpLocalDocs',
     type: 'boolean',
     description: 'use local docs/ directory instead of fetching from GitHub (development only)',

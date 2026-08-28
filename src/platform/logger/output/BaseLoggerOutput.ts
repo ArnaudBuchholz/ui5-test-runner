@@ -40,10 +40,12 @@ const DO_NOT_RENDER_SOURCE: InternalLogAttributes['source'][] = [
 export abstract class BaseLoggerOutput {
   protected readonly _configuration: Configuration;
   protected readonly _startedAt: number;
+  private readonly _debugLog?: string[];
 
   constructor(configuration: Configuration, startedAt: number) {
     this._configuration = configuration;
     this._startedAt = startedAt;
+    this._debugLog = configuration.debugLog;
   }
 
   protected formatTimestamp(timestamp: number) {
@@ -51,7 +53,11 @@ export abstract class BaseLoggerOutput {
   }
 
   private _shouldRender({ source, forceRender, level }: InternalLogAttributes): boolean {
-    return forceRender || (!DO_NOT_RENDER_SOURCE.includes(source) && level !== LogLevel.debug);
+    return (
+      forceRender ||
+      this._debugLog?.includes(source) ||
+      (!DO_NOT_RENDER_SOURCE.includes(source) && level !== LogLevel.debug)
+    );
   }
 
   protected render(attributes: InternalLogAttributes): string | void {
