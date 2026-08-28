@@ -4,7 +4,7 @@ import { FileSystem } from '../../platform/index.js';
 import type { Configuration } from '../../configuration/Configuration.js';
 import type { ILogStorage } from './ILogStorage.js';
 import type { LogMetrics } from './LogMetrics.js';
-import { buildREserveConfiguration } from './REserve.js';
+import { buildREserveConfiguration } from './reserve.js';
 import type { InternalLogAttributes } from '../../platform/logger/types.js';
 
 const storage = {

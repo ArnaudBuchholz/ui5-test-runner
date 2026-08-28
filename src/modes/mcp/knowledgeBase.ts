@@ -1,6 +1,5 @@
-import { FileSystem, Path, __sourcesRoot } from '../../platform/index.js';
+import { FileSystem, Path, Process, __sourcesRoot } from '../../platform/index.js';
 import type { Configuration } from '../../configuration/Configuration.js';
-import { setTimeout } from 'node:timers/promises';
 
 const REMOTE_KB_DIR = Path.join(__sourcesRoot, 'mcp-kb');
 
@@ -11,7 +10,7 @@ export const init = async (configuration: Configuration): Promise<void> => {
     _knowledgeBaseDirectory = Path.join(__sourcesRoot, '../docs');
   } else {
     // TODO: implement GitHub fetch strategy (see ADR-0011)
-    await setTimeout(0);
+    await Process.sleep(0);
     _knowledgeBaseDirectory = REMOTE_KB_DIR;
   }
 };

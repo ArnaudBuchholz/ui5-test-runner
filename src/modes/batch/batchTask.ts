@@ -2,7 +2,6 @@ import { logger, Path, Process, Host, __sourcesRoot } from '../../platform/index
 import { options } from '../../configuration/options.js';
 import type { Configuration } from '../../configuration/Configuration.js';
 import type { IBatchItem } from './BatchItem.js';
-import { join } from 'node:path';
 import { toKebabCase } from '../../utils/shared/string.js';
 import { getEffectiveTimeout, isGloballyTimedOut } from '../../utils/node/timeout.js';
 
@@ -74,7 +73,7 @@ export const batchTask = async (
 
   const parameters: string[] = [...buildRunnerCommand(), ...batchItem.args];
   if (configuration.sources['reportDir'] === 'cli') {
-    parameters.push('--report-dir', join(configuration.reportDir, batchItem.id));
+    parameters.push('--report-dir', Path.join(configuration.reportDir, batchItem.id));
   }
   parameters.push(...buildForwardedParameters(configuration));
   const childProcess = Process.spawn('node', parameters, {

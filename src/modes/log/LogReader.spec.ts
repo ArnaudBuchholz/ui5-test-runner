@@ -3,7 +3,8 @@ import type { LogReaderItem } from './LogReader.js';
 import { LogReader, POLL_INTERVAL_MS } from './LogReader.js';
 import { FramedStreamReader } from '../../utils/node/FramedStreamReader.js';
 import { ZLib } from '../../platform/index.js';
-import { createCompressionContext, uncompress } from '../../platform/logger/compress.js';
+import { CompressionContext } from '../../platform/logger/CompressionContext.js';
+import { uncompress } from '../../platform/logger/compress.js';
 
 const FILENAME = 'test.log';
 
@@ -13,7 +14,7 @@ const stream = {
 
 vi.spyOn(FramedStreamReader, 'create').mockReturnValue(stream);
 const compressionContext = {};
-vi.mocked(createCompressionContext).mockReturnValue(compressionContext);
+vi.spyOn(CompressionContext, 'create').mockReturnValue(compressionContext as unknown as CompressionContext);
 vi.mock('../../platform/logger/compress.js');
 vi.mocked(uncompress).mockImplementation((context, inflated) => {
   expect(context).toStrictEqual(compressionContext);

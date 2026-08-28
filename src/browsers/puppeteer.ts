@@ -1,4 +1,4 @@
-import { logger, Exit, Process } from '../platform/index.js';
+import { logger, Exit, Process, assert } from '../platform/index.js';
 import type { BrowserCapabilities, BrowserSettings, IBrowser } from './IBrowser.js';
 import type { launch as launchFunction, Browser, Page, ConsoleMessageType } from 'puppeteer';
 import { Npm } from '../Npm.js';

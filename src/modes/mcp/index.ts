@@ -1,7 +1,7 @@
 import type { Configuration } from '../../configuration/Configuration.js';
 import { Exit, logger } from '../../platform/index.js';
 import { serve } from 'reserve';
-import { buildREserveConfiguration } from './REserve.js';
+import { buildREserveConfiguration } from './reserve.js';
 import { init } from './knowledgeBase.js';
 
 export const mcp = async (configuration: Configuration): Promise<void> => {

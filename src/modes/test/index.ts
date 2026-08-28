@@ -9,7 +9,7 @@ import { initBrowserConfig } from './browserConfig.js';
 import { initReportBuilder, getReportBuilder, setReportBrowserInfo } from './report.js';
 import { saveReport } from '../../reports/saveReport.js';
 import { Folder } from '../../utils/node/Folder.js';
-import { server } from './server.js';
+import { Server } from './Server.js';
 import { formatDuration } from '../../utils/shared/string.js';
 import { start } from '../../start.js';
 import { end } from '../../end.js';
@@ -31,7 +31,7 @@ export const test = async (configuration: Configuration) => {
     if (configuration.coverage) {
       await instrument(configuration);
     }
-    const port = await server.start(configuration);
+    const port = await Server.start(configuration);
 
     // TODO: only when local is being used
     const version = JSON.parse(await Http.getAsText(`http://localhost:${port}/resources/sap-ui-version.json`)) as {
@@ -115,6 +115,6 @@ export const test = async (configuration: Configuration) => {
     if (isBrowserStarted) {
       await getBrowser().shutdown();
     }
-    await server.stop();
+    await Server.stop();
   }
 };

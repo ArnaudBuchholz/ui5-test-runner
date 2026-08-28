@@ -2,6 +2,7 @@ import { it, expect, beforeAll, beforeEach, vi } from 'vitest';
 import { qunit } from './qunit.js';
 import { report } from './report.js';
 import { state } from './state.js';
+import type { Configuration } from './Configuration.js';
 
 vi.mock(import('./config.js'), () => ({ getConfig: vi.fn() }));
 import { getConfig } from './config.js';
@@ -13,8 +14,9 @@ const DEFAULT_CONFIG = {
   agentNoTestsTimeout: 5000,
   browser: '',
   parallel: 1,
-  screenshot: false
-};
+  screenshot: false,
+  splitOpa: false
+} as Configuration;
 
 const id = expect.any(String) as string;
 const trace = expect.any(String) as string;
@@ -188,7 +190,7 @@ it('documents pending tests (QUnit.todo)', async () => {
 
 it('splits OPA page by module when splitOpa is enabled', async () => {
   vi.mocked(getConfig).mockReturnValue({ ...DEFAULT_CONFIG, splitOpa: true });
-  window.sap = { ui: { test: { Opa5: class {} } } } as typeof window.sap;
+  window.sap = { ui: { test: { Opa5: class {} } } };
   vi.stubGlobal('location', new URL('http://localhost/test/opa.html'));
 
   QUnit.module('Journey1');
@@ -203,16 +205,13 @@ it('splits OPA page by module when splitOpa is enabled', async () => {
   expect(state).toMatchObject({
     done: true,
     type: 'suite',
-    pages: [
-      expect.stringContaining('moduleId='),
-      expect.stringContaining('moduleId=')
-    ]
+    pages: [expect.stringContaining('moduleId='), expect.stringContaining('moduleId=')]
   });
 });
 
 it('does not split when moduleId is already in URL (already a split page)', async () => {
   vi.mocked(getConfig).mockReturnValue({ ...DEFAULT_CONFIG, splitOpa: true });
-  window.sap = { ui: { test: { Opa5: class {} } } } as typeof window.sap;
+  window.sap = { ui: { test: { Opa5: class {} } } };
   vi.stubGlobal('location', new URL('http://localhost/test/opa.html?moduleId='));
 
   QUnit.module('Journey1');

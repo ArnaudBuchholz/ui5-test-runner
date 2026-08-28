@@ -3,7 +3,7 @@ import type { Configuration } from '../../configuration/Configuration.js';
 import { LogReader } from './LogReader.js';
 import { serve } from 'reserve';
 import { LogStorage } from './LogStorage.js';
-import { buildREserveConfiguration } from './REserve.js';
+import { buildREserveConfiguration } from './reserve.js';
 import { BrowserFactory } from '../../browsers/factory.js';
 import type { InternalLogAttributes } from '../../platform/logger/types.js';
 import { getInitialLogMetrics } from './LogMetrics.js';
