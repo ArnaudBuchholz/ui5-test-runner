@@ -6,7 +6,7 @@ export interface ILogger {
   info(attributes: LogAttributes): void;
   warn(attributes: LogAttributes): void;
   error(attributes: LogAttributes): void;
-  fatal(attributes: LogAttributes): void;
+  fatal(attributes: LogAttributes): never;
 }
 
 export interface ILoggerService extends ILogger {

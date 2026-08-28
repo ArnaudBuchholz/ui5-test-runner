@@ -1,5 +1,5 @@
 import type { Configuration } from './configuration/Configuration.js';
-import { logger, FileSystem, Http, Module, Path, Process, Url } from './platform/index.js';
+import { assert, logger, FileSystem, Http, Module, Path, Process, Url } from './platform/index.js';
 import { memoize } from './utils/shared/memoize.js';
 
 export const getNpmCliPath = async () => {
@@ -7,17 +7,10 @@ export const getNpmCliPath = async () => {
     shell: true
   });
   await npmChildProcess.closed;
-  const error = new Error('Unable to initialize NPM');
   const match = /^npm@([^ ]+) (.*)$/gm.exec(npmChildProcess.stdout);
-  if (!match) {
-    logger.fatal({ source: 'npm', message: 'Unable to match NPM output', error });
-    throw error;
-  }
+  assert(match !== null, 'Unable to match NPM output');
   const [, semver, path] = match;
-  if (!semver || !path) {
-    logger.fatal({ source: 'npm', message: 'Failed to parse NPM output', error, data: { semver, path } });
-    throw error;
-  }
+  assert(!!semver && !!path, 'Failed to parse NPM output');
   logger.debug({ source: 'npm', message: `npm@${semver} ${path}` });
   return Path.join(path, 'bin/npm-cli.js');
 };
@@ -155,7 +148,6 @@ export class Npm {
     if (configuration.noNpmInstall) {
       const message = `Module ${moduleName} not found and noNpmInstall is set`;
       logger.fatal({ source: 'npm', message });
-      throw new Error(message);
     }
 
     const strategy = configuration.npmInstall;
@@ -176,7 +168,6 @@ export class Npm {
       if (result === undefined) {
         const message = `Module ${moduleName} could not be loaded after install`;
         logger.fatal({ source: 'npm', message });
-        throw new Error(message);
       }
       return result;
     }

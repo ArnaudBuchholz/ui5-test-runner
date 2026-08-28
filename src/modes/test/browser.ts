@@ -25,7 +25,6 @@ export const setupBrowser = async (configuration: Configuration): Promise<Browse
     _capabilities = await _browser.setup(settings);
   } catch (error) {
     logger.fatal({ source: 'job', message: 'Unable to setup browser', error });
-    throw error; // TODO: Use a normalized error with an associated exit code
   }
   if (debugKeepBrowserOpen) {
     // eslint-disable-next-line @typescript-eslint/unbound-method -- Called with .call(browser,...)

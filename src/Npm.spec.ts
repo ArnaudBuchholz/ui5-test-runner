@@ -5,6 +5,7 @@ import { Module } from './platform/Module.js';
 import { Url } from './platform/Url.js';
 import { Process } from './platform/Process.js';
 import { logger } from './platform/logger.js';
+import { ExitShutdownError } from './platform/Exit.js';
 import type { Configuration } from './configuration/Configuration.js';
 import { getNpmCliPath, Npm } from './Npm.js';
 
@@ -101,13 +102,13 @@ describe('getNpmCliPath', () => {
 
   it('throws and logs fatal when npm output does not match the expected format', async () => {
     vi.mocked(Process.spawn).mockImplementationOnce(() => makeProcess('unexpected output'));
-    await expect(getNpmCliPath()).rejects.toThrow('Unable to initialize NPM');
+    await expect(getNpmCliPath()).rejects.toThrow(ExitShutdownError);
     expect(logger.fatal).toHaveBeenCalledWith(expect.objectContaining({ message: 'Unable to match NPM output' }));
   });
 
   it('throws and logs fatal when the parsed path is empty', async () => {
     vi.mocked(Process.spawn).mockImplementationOnce(() => makeProcess('npm@10.2.0 '));
-    await expect(getNpmCliPath()).rejects.toThrow('Unable to initialize NPM');
+    await expect(getNpmCliPath()).rejects.toThrow(ExitShutdownError);
     expect(logger.fatal).toHaveBeenCalledWith(expect.objectContaining({ message: 'Failed to parse NPM output' }));
   });
 });
@@ -295,7 +296,7 @@ describe('import', () => {
 
   it('throws when noNpmInstall is set and module is missing everywhere', async () => {
     await expect(TestNpm.import(NO_INSTALL_CONFIGURATION, 'non-existent-module-xyz-abc')).rejects.toThrow(
-      'noNpmInstall is set'
+      ExitShutdownError
     );
     expect(Process.spawn).not.toHaveBeenCalledWith(
       'node',
@@ -546,12 +547,12 @@ describe('import', () => {
   it('does not install when module is found in alternateNpmPath', async () => {
     await expect(
       TestNpm.import({ ...ALTERNATE_NPM_PATH_CONFIGURATION, noNpmInstall: true }, 'non-existent-module-xyz-abc')
-    ).rejects.toThrow('noNpmInstall is set');
+    ).rejects.toThrow(ExitShutdownError);
   });
 
   it('does not install when module is found in npmInstallPrefix', async () => {
     await expect(
       TestNpm.import({ ...NPM_INSTALL_PREFIX_CONFIGURATION, noNpmInstall: true }, 'non-existent-module-xyz-abc')
-    ).rejects.toThrow('noNpmInstall is set');
+    ).rejects.toThrow(ExitShutdownError);
   });
 });

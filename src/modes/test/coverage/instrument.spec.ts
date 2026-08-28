@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { FileSystem, Path, Process, logger } from '../../../platform/index.js';
+import { ExitShutdownError } from '../../../platform/Exit.js';
 import { Npm } from '../../../Npm.js';
 import type { Configuration } from '../../../configuration/Configuration.js';
 import { Folder } from '../../../utils/node/Folder.js';
@@ -122,7 +123,7 @@ describe('instrument', () => {
       setupHappyPath();
       vi.mocked(Process.spawn).mockReturnValueOnce(makeProcess(1));
       const config = makeConfiguration({});
-      await expect(instrument(config)).rejects.toThrow('nyc instrument failed with code 1');
+      await expect(instrument(config)).rejects.toThrow(ExitShutdownError);
     });
 
     it('logs instrumentation complete on success', async () => {
@@ -153,7 +154,7 @@ describe('instrument', () => {
         .mockReturnValueOnce(makeProcess(0)) // instrument
         .mockReturnValueOnce(makeProcess(2)); // baseline
       const config = makeConfiguration({});
-      await expect(instrument(config)).rejects.toThrow('nyc baseline generation failed with code 2');
+      await expect(instrument(config)).rejects.toThrow(ExitShutdownError);
     });
 
     it('moves baseline files larger than 5 bytes to coverageTempDir', async () => {

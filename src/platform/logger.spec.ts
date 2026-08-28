@@ -384,7 +384,7 @@ describe('general', () => {
     });
   });
 
-  const levels = ['debug', 'info', 'warn', 'error', 'fatal'] as const;
+  const levels = ['debug', 'info', 'warn', 'error'] as const;
   for (const level of levels) {
     it(`offers ${level} method that translates to ${level} trace level`, async () => {
       const { logger } = await vi.importActual<{ logger: typeof LoggerType }>('./logger.js');
@@ -397,6 +397,17 @@ describe('general', () => {
       );
     });
   }
+
+  it('offers fatal method that translates to fatal trace level and throws ExitShutdownError', async () => {
+    const { logger } = await vi.importActual<{ logger: typeof LoggerType }>('./logger.js');
+    const channel = Thread.createBroadcastChannel('logger');
+    expect(() => logger.fatal({ source: 'job', message: 'test' })).toThrow(ExitShutdownError);
+    expect(channel.postMessage).toHaveBeenCalledWith(
+      expect.objectContaining({
+        level: LogLevel.fatal
+      })
+    );
+  });
 
   describe('Metrics automatic monitoring', () => {
     it('monitors thread metrics automatically', async () => {

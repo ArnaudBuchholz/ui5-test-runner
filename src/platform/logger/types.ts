@@ -130,6 +130,9 @@ export type LogMessage =
       command: 'terminal-resized';
       width: number;
     }
+  | {
+      command: 'fatal';
+    }
   | ({
       command: 'log';
     } & InternalLogAttributes);

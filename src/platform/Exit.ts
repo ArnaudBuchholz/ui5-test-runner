@@ -150,7 +150,10 @@ export class Exit {
 
   static async shutdown() {
     assert(Thread.isMainThread, 'Exit.shutdown can be called only on main thread');
-    Exit._enteringShutdown = true;
+    if (this._enteringShutdown) {
+      return;
+    }
+    this._enteringShutdown = true;
     const logLevel = this._logLevel;
     while (this._asyncTasks.length > 0) {
       const task = this._asyncTasks.at(-1)!; // length > 0

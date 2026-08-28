@@ -1,6 +1,6 @@
 import { it, expect, vi, beforeEach } from 'vitest';
 import { assert } from './assert.js';
-import { AssertionError } from 'node:assert/strict';
+import { ExitShutdownError } from './Exit.js';
 import { logger } from './logger.js';
 
 vi.spyOn(logger, 'fatal');
@@ -13,19 +13,19 @@ it('does nothing when the condition is true', () => {
   expect(() => assert(true)).not.toThrow();
 });
 
-it('throws an AssertionError when the condition is false', () => {
-  expect(() => assert(false)).toThrow(new AssertionError({ message: 'Assertion failed' }));
+it('throws an ExitShutdownError when the condition is false', () => {
+  expect(() => assert(false)).toThrow(ExitShutdownError);
 });
 
-it('throws an AssertionError with a custom message when the condition is false', () => {
-  expect(() => assert(false, 'test')).toThrow(new AssertionError({ message: 'test' }));
+it('throws an ExitShutdownError with a custom message when the condition is false', () => {
+  expect(() => assert(false, 'test')).toThrow(ExitShutdownError);
 });
 
 it('logs the error when the condition is false as fatal', () => {
-  expect(() => assert(false, 'test')).toThrow(new AssertionError({ message: 'test' }));
+  expect(() => assert(false, 'test')).toThrow(ExitShutdownError);
   expect(logger.fatal).toHaveBeenCalledWith({
     source: 'assert',
     message: 'test',
-    error: new AssertionError({ message: 'test' })
+    error: expect.any(Error) as Error
   });
 });
