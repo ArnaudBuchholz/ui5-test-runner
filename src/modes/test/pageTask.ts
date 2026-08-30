@@ -269,16 +269,11 @@ export const makePageTask = (configuration: Configuration) => {
       try {
         while (!isTimedOut && !this.stopRequested) {
           try {
-<<<<<<< HEAD
-            await pause(context.loopDelay);
+            await Process.sleep(context.loopDelay);
             if (screenshot) {
               await handlePendingScreenshot(page, pageId);
             }
             if (await shouldStopBasedOnAgentState(context, screenshot)) {
-=======
-            await Process.sleep(context.loopDelay);
-            if (await shouldStopBasedOnAgentState(context)) {
->>>>>>> 59feed20 (refactor: adjusting coding guidelines and code)
               break;
             }
           } catch (error) {
