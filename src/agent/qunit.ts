@@ -131,12 +131,14 @@ export const qunit = () => {
     logs[testId] ??= [];
     logs[testId].push(details);
     if (state.type === 'QUnit') {
-      updateState({ currentTestId: details.testId, currentLogIndex: state.currentLogIndex + 1 });
+      updateState({ currentTestId: details.testId, currentLogIndex: logs[testId].length - 1 });
     }
     if (screenshot && state.type === 'QUnit' && state.isOpa) {
       updateState({ pendingScreenshot: true });
-      const opa5 = window.sap?.ui?.test?.Opa5 as { waitFor: (settings: object) => void } | undefined;
-      opa5?.waitFor({
+      const opa5 = window.sap?.ui?.test?.Opa5 as { prototype: { waitFor: (settings: object) => void } } | undefined;
+      opa5?.prototype.waitFor({
+        timeout: 10, // TODO: should be configurable
+        autoWait: false, // Ignore interactable constraint
         check() {
           return state.type === 'QUnit' && !state.pendingScreenshot;
         }

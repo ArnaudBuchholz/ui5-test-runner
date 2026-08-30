@@ -13,14 +13,13 @@ const screenshotTimeoutError = async (ms: number) => {
 
 export const makeScreenshotHandlers = (configuration: Configuration) => {
   const { screenshot, screenshotOnFailure, screenshotTimeout, reportDir } = configuration;
-  const screenshotsDirectory = Path.join(reportDir, 'screenshots');
 
   const takeScreenshot = async (page: IWindow, name: string): Promise<string> => {
-    await Folder.create(screenshotsDirectory);
+    await Folder.create(reportDir);
     const filename = `${name}.png`;
-    const absolutePath = Path.join(screenshotsDirectory, filename);
+    const absolutePath = Path.join(reportDir, filename);
     await Promise.race([page.screenshot(absolutePath), screenshotTimeoutError(screenshotTimeout)]);
-    return Path.join('screenshots', filename);
+    return filename;
   };
 
   const handlePendingScreenshot = async (page: IWindow, pageId: number): Promise<void> => {
@@ -30,10 +29,10 @@ export const makeScreenshotHandlers = (configuration: Configuration) => {
     const testId = agentState.currentTestId ?? String(pageId);
     const logIndex = agentState.currentLogIndex;
     try {
-      const path = await takeScreenshot(page, `${testId}-${logIndex}`);
-      logger.debug({ source: 'page', message: 'screenshot taken', pageId, data: { path } });
+      const filename = await takeScreenshot(page, `${pageId}-${testId}-${logIndex}`);
+      logger.debug({ source: 'page', message: 'screenshot taken', pageId, data: { filename } });
     } catch (error) {
-      logger.error({ source: 'page', message: 'screenshot failed', error, pageId, data: {} });
+      logger.error({ source: 'page', message: 'screenshot failed', error, pageId });
     }
     await page.eval("window['ui5-test-runner'].state.pendingScreenshot = false");
   };
@@ -53,7 +52,7 @@ export const makeScreenshotHandlers = (configuration: Configuration) => {
         }
       }
     } catch (error) {
-      logger.error({ source: 'page', message: 'failure screenshot failed', error, pageId, data: {} });
+      logger.error({ source: 'page', message: 'failure screenshot failed', error, pageId });
     }
   };
 
