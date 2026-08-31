@@ -11,9 +11,6 @@ import { SUITE_SEPARATOR } from './suites.js';
 const REPORT_ID = 'report-id' as const;
 const REPORT_GENERATED_BY = 'test' as const;
 
-// Silence console logs
-vi.spyOn(console, 'log').mockImplementation(() => {});
-
 it('has an empty initial state', () => {
   const controller = new ReportController();
   expect(controller.state).toStrictEqual<State>({
