@@ -22,7 +22,41 @@ function renderBreadcrumbs(test: TestAndBreadcrumbs): string {
   return `<ui5-breadcrumbs>${items}</ui5-breadcrumbs>`;
 }
 
-function renderTestDetails(test: TestAndBreadcrumbs): string {
+function renderQUnitLogs(logs: unknown[]): string {
+  const rows = logs
+    .map((entry) => {
+      const log = entry as { result?: boolean; message?: string; actual?: unknown; expected?: unknown };
+      const icon = log.result ? '✓' : '✗';
+      const iconClass = log.result ? 'qunit-log-pass' : 'qunit-log-fail';
+      const message = log.message ? escapeHtml(log.message) : '—';
+      const extra =
+        !log.result && (log.actual !== undefined || log.expected !== undefined)
+          ? ` <span class="qunit-log-values">[actual: <code>${escapeHtml(String(log.actual))}</code> expected: <code>${escapeHtml(String(log.expected))}</code>]</span>`
+          : '';
+      return `<div class="qunit-log-row"><span class="${iconClass}">${icon}</span> ${message}${extra}</div>`;
+    })
+    .join('');
+  return rows;
+}
+
+function renderAttachments(
+  attachments: { name: string; contentType: string; path: string }[],
+  rowIndex: number
+): string {
+  return attachments
+    .map((att, index) => {
+      if (att.contentType === 'image/png') {
+        return `<div class="attachment-item">
+  <div class="attachment-caption">${escapeHtml(att.name)}</div>
+  <img class="attachment-thumb" data-src="${escapeHtml(att.path)}" data-row="${rowIndex}" data-att="${index}" alt="${escapeHtml(att.name)}" title="${escapeHtml(att.path)}" />
+</div>`;
+      }
+      return `<div class="attachment-item"><a href="${escapeHtml(att.path)}" target="_blank">${escapeHtml(att.name)}</a></div>`;
+    })
+    .join('');
+}
+
+function renderTestDetails(test: TestAndBreadcrumbs, rowIndex: number): string {
   const rows: string[] = [
     `<div class="test-detail-row"><span class="test-detail-label">Duration</span><span>${formatDuration(test.duration)}</span></div>`
   ];
@@ -35,6 +69,41 @@ function renderTestDetails(test: TestAndBreadcrumbs): string {
     rows.push(
       `<div class="test-detail-row"><span class="test-detail-label">Stack</span><pre class="test-trace">${escapeHtml(test.trace)}</pre></div>`
     );
+  }
+  if (test.status === 'failed' && test.extra) {
+    const { actual, expected } = test.extra as { actual?: unknown; expected?: unknown };
+    if (actual !== undefined) {
+      rows.push(
+        `<div class="test-detail-row"><span class="test-detail-label">Actual</span><code class="test-value">${escapeHtml(String(actual))}</code></div>`
+      );
+    }
+    if (expected !== undefined) {
+      rows.push(
+        `<div class="test-detail-row"><span class="test-detail-label">Expected</span><code class="test-value">${escapeHtml(String(expected))}</code></div>`
+      );
+    }
+    const qunitLogs = (test.extra as { QUnitLogs?: unknown[] }).QUnitLogs;
+    if (qunitLogs && qunitLogs.length > 0) {
+      rows.push(`<div class="test-detail-row test-detail-row--block">
+  <span class="test-detail-label">Assertions</span>
+  <div class="qunit-logs-collapsible">
+    <button class="qunit-logs-toggle" data-row="${rowIndex}">[&gt;] Assertions (${qunitLogs.length})</button>
+    <div class="qunit-logs-body" style="display:none">${renderQUnitLogs(qunitLogs)}</div>
+  </div>
+</div>`);
+    }
+  }
+  if (test.screenshot) {
+    rows.push(`<div class="test-detail-row">
+  <span class="test-detail-label">Screenshot</span>
+  <img class="attachment-thumb" data-src="${escapeHtml(test.screenshot)}" data-row="${rowIndex}" data-att="screenshot" alt="failure screenshot" title="${escapeHtml(test.screenshot)}" />
+</div>`);
+  }
+  if (test.attachments && test.attachments.length > 0) {
+    rows.push(`<div class="test-detail-row test-detail-row--block">
+  <span class="test-detail-label">Attachments</span>
+  <div class="attachments-list">${renderAttachments(test.attachments, rowIndex)}</div>
+</div>`);
   }
   return rows.join('');
 }
@@ -79,7 +148,7 @@ export function renderTestListBody(state: State, settings: Settings): string {
   const testRows = displayedTests
     .map((test, index) => {
       const breadcrumbs = renderBreadcrumbs(test);
-      const details = renderTestDetails(test);
+      const details = renderTestDetails(test, index);
       return `<div class="test-row" data-key="${index}">
   <div class="test-row-header" data-index="${index}">
     <ui5-button class="test-toggle-btn" design="Transparent" data-index="${index}">[&gt;]</ui5-button>
