@@ -301,3 +301,163 @@ If you had to write just one thing to make the knowledge base dramatically more 
 5. A compatibility table (Node.js versions, UI5 versions, OS)
 
 Without that page, an LLM answering a first-timer's question either fabricates context or gives a technically accurate but context-free answer that doesn't help the person decide whether to adopt the tool.
+
+# Now that we have identified the gaps, can you propose me a plan to cover them all in a reasonable way so that : 1) I am not overwhelm by the amount of work 2) I prioritize the most important items 3) I do small changes to the docs/ part in a meaninfull way
+
+Here's a phased plan in 7 waves. Each wave is independently shippable — you can stop after any of them and the knowledge base is better than before. Waves are ordered by ROI: the earlier the wave, the more damage it prevents per hour of work.
+
+A key observation before the plan: **a significant amount of the missing content already exists** — in the ADRs, the DCOM deck, or the analysis we've done in this conversation. Many waves are about extracting and reformatting, not writing from scratch.
+
+---
+
+## Wave 1 — Fix broken windows
+**Effort: ~2h | Type: edits only, no new files**
+
+These are inconsistencies that cause an LLM to give confidently wrong answers today. No new content needed — just corrections to existing files.
+
+| File | Change |
+|---|---|
+| `types/browser.md` | Add all 5 adapters: `puppeteer`, `playwright`, `jsdom`, `selenium-webdriver`, `webdriverio` (currently only lists `puppeteer`) |
+| `warnings.md` | Add a one-sentence remediation step to each of the 13 warning codes (e.g. "If you see COVMIS, verify that `window.__coverage__` is set by your instrumentation setup — see `coverage.md`") |
+| `demo.md` + `tipsNtricks.md` | Remove or annotate references to options removed in v6: `--report-generator`, `--capabilities`, `--coverage-proxy`, `--disable-ui5`, `--screenshot-on-failure`, `--cache` |
+| `mapping_v1_v2.md` | Add a header note: *"Several options in this table were subsequently removed in v2/v6. See the migration guide for the current state."* |
+| `modes/remote.md` | Replace the 1-line stub with: *"See [testing.md](../testing.md) for the current remote mode documentation. This page will be expanded in a future revision."* — stops the LLM dead-ending here |
+| `coverage.md` → Legacy mode section | Expand from one sentence to a paragraph: instrumentation happens at startup, source files under `webapp/` are transformed before serving, `--coverage-temp-dir` stores intermediate JSON, `--coverage-report-dir` gets the final report |
+
+**Why first:** These are the only changes that actively prevent wrong answers. Everything else adds missing information; these fix misinformation.
+
+---
+
+## Wave 2 — The welcome mat
+**Effort: ~3h | Type: 1 new file**
+
+Create `introduction.md`. This single file answers every newcomer question and is the most valuable addition to the whole knowledge base.
+
+Sections to include:
+1. **What it is** — 2-paragraph pitch: a test orchestrator that sits above your existing QUnit/OPA5 test suite and runs it in parallel across real browsers, without requiring changes to the tests
+2. **Why not just use…** — a short comparison table: Karma (deprecated, no parallel, no TS support), plain Playwright/Puppeteer (no QUnit awareness, you'd need to write orchestration yourself), `@ui5/cli test` (what the relationship is)
+3. **The three modes** — legacy (runner serves the app), remote (app is already running), batch (multiple projects in one run) — 3 sentences each with a when-to-use note
+4. **Compatibility** — a simple table: Node.js ≥ 18, UI5 ≥ 1.x, OS (Linux/macOS/Windows), supported test frameworks (QUnit, OPA5)
+5. **Quickstart** — literally 4 commands: install → start your app → run the runner → open the report
+
+**Why second:** This is the "what is it?" question. Every user asks it first. It also gives the LLM the context it needs to answer almost every downstream question correctly.
+
+---
+
+## Wave 3 — Fill the voids
+**Effort: ~3h | Type: edits to existing files**
+
+Fill the stub files that are actively registered as topics but deliver zero content.
+
+| File | Action |
+|---|---|
+| `debug.md` | Write a proper troubleshooting guide (see below) |
+| `v2.md` | Either: fill the 3 empty sections ("Improved reporting", "Improved tracing", "More browsers") in 1 paragraph each — or add a note redirecting to `v6.md` (Wave 4) and remove the stubs |
+
+For `debug.md`, the content structure writes itself from what we know:
+1. **Inspect the browser** — `--browser-visible`, `--debug-keep-browser-open`
+2. **Understand what the runner is doing** — `--debug-log reserve`, reading the progress page
+3. **Read trace files** — `--log <file>`, `--log-dump`, `--log-filter` pipeline
+4. **Common failure patterns** — per warning code, with resolution steps (cross-link to `warnings.md`)
+5. **CI-specific issues** — headless flags, IPv6 (`127.0.0.1` vs `localhost`), timeout tuning
+
+Most of this content is directly extractable from `tipsNtricks.md`, `warnings.md`, and ADR-0005.
+
+---
+
+## Wave 4 — Tell the v6 story
+**Effort: ~3h | Type: 2 new files**
+
+Create `v6.md` and `migration_v5_v6.md`. The content for both largely exists — it just needs assembling.
+
+**`v6.md`** ("What's new in v6"):
+- Architecture changes: TypeScript rewrite, poll model vs POST model, single browser + multiple tabs, no probing phase
+- Performance numbers (from DCOM deck): OpenUI5 31K tests — v5: 36 min → v6: 23 min (4× parallel, work machine)
+- New features: CTRF reports, unified tracing, MCP mode, new npm security controls
+- What's deferred: remote coverage, JUnit output (explicitly state "not in v6")
+- What's removed: screenshot system, probing, watch mode, legacy report generator
+
+**`migration_v5_v6.md`**:
+Most of this is already done from our earlier analysis. Structure it as:
+1. Removed options table (the ~25 removed flags)
+2. Changed defaults table (browser name syntax, ci auto-detect, startTimeout, coverageSettings)
+3. Behavior changes (--end exit code authority, --start placeholder syntax, npm --ignore-scripts default)
+4. A migration checklist (audit config, update browser value, check --end script, etc.)
+
+**Why these two together:** They're complementary — `v6.md` answers "what changed and why", `migration_v5_v6.md` answers "what do I need to update". Both are largely assembly jobs from existing material.
+
+---
+
+## Wave 5 — Operate with confidence
+**Effort: ~4h | Type: 2 new files**
+
+These two files unlock the CI/CD use case, which is how most teams actually run the tool.
+
+**`report-output.md`** ("Understanding the report output"):
+- The files generated in `report/`: `report.json` (CTRF), `report.html`, `traces-*.logz`, per-page subfolders
+- The CTRF JSON structure: `results.summary` (passed/failed/skipped/duration), `results.tests[]` (name, status, duration, message), `results.tool`, `results.environment`
+- How to use `report.json` in CI: jq snippets for pass/fail count, parsing with Node.js
+- Explicit statement: **no JUnit XML in v6** — if your CI requires JUnit, use a CTRF-to-JUnit converter (link to ctrf.io tooling)
+- The log viewer: `--log report/traces-*.logz` to open interactively
+
+**`ci.md`** ("CI/CD integration"):
+- Exit codes: 0 (all tests passed), 1 (tests failed or runner error), 130 (SIGINT), 143 (SIGTERM)
+- GitHub Actions: a minimal YAML example (Node setup → install → run → upload `report/` as artifact)
+- Azure DevOps: equivalent pipeline snippet
+- Key CI flags: `--ci` (auto-detected but good to be explicit), `--output-interval 30000`, `--fail-fast`
+- `--end` as a result gate: how to use it to post results to an external system
+
+Content for both files is mostly extractable from ADR-0004, ADR-0010, and the options docs.
+
+---
+
+## Wave 6 — Decision support
+**Effort: ~3h | Type: 1 new file + targeted edits**
+
+**`choosing.md`** ("Choosing your setup"):
+This replaces three separate "which X should I use?" questions with one short reference.
+1. **Mode selection**: a 3-row table (legacy / remote / batch) with "use when", "requires", "not suitable for"
+2. **Browser adapter selection**: a matrix of the 5 adapters × capabilities (screenshots, scripts, traces, headless, Docker-friendly, recommended for CI)
+3. **Coverage strategy**: local (legacy mode) vs. none-yet (remote mode) with a note on what's coming
+
+**Targeted edits:**
+- `modes/batch.md`: add a `punyexpr` quick reference section for `--if` (operators, available variables: `process.env.*`, `NODE_MAJOR_VERSION`; 3 concrete examples)
+- `options/splitOpa.md`: add a prose section explaining what QUnit modules it splits on, added in v4.5.0, and the parallel speedup benefit
+- `testing.md`: add a note that `modes/remote.md` will eventually replace it; clarify the `--testsuite` option interaction
+
+---
+
+## Wave 7 — Contributor onboarding
+**Effort: ~4h | Type: 2 new files**
+
+**`CONTRIBUTING.md`**:
+1. Prerequisites (Node.js ≥ 18, npm)
+2. Dev setup: `git clone` → `npm install` → `make options` (or `npm run build:options`)
+3. Project structure: a directory tree with one-line purpose per folder (`src/platform/`, `src/browsers/`, `src/agent/`, `src/modes/`, `src/configuration/`, `src/ui/`, `src/reports/`, `src/types/`, `build/`, `docs/`)
+4. Build: `make options` must run first; Vite builds the UI bundles; `tsc` compiles everything
+5. Testing: `npm test` (Vitest); `*.spec.ts` co-located with source; `src/platform/mock.ts` imported in specs
+6. Key rules: always use `src/platform/` (never raw Node.js APIs), logging conventions from ADR-0005, generated files must not be edited
+7. How to add an option: the `docs/options/ → make options` workflow
+8. PR expectations: brief note on scope and testing requirements
+
+**`punyexpr.md`**:
+A short standalone reference (half a page) for the expression language used in `--if` and `--log-filter`. Syntax: property access, comparison operators, logical operators, string methods. Available variables in `--if` context (`process.env.*`, `NODE_MAJOR_VERSION`). 5 concrete examples. This document unblocks both the batch user and the trace filtering user.
+
+---
+
+## Summary
+
+| Wave | New files | Edited files | Effort | Unlocks |
+|---|---|---|---|---|
+| 1 — Fix broken windows | 0 | 6 | ~2h | Correct answers for existing questions |
+| 2 — Welcome mat | 1 | 0 | ~3h | All newcomer questions |
+| 3 — Fill the voids | 0 | 2 | ~3h | Troubleshooting & v2 context |
+| 4 — Tell the v6 story | 2 | 0 | ~3h | Migration & "what's new" questions |
+| 5 — Operate with confidence | 2 | 0 | ~4h | CI/CD integration questions |
+| 6 — Decision support | 1 | 3 | ~3h | Comparison & choice questions |
+| 7 — Contributor onboarding | 2 | 0 | ~4h | All contributor questions |
+| **Total** | **8** | **11** | **~22h** | |
+
+After **Wave 2** (~5h total), the knowledge base handles the most frequent questions. After **Wave 5** (~15h total), it handles the full user journey end-to-end. Waves 6–7 are high value but can wait for a second pass.
+
+The one thing left intentionally out of this plan is enriching individual option pages with examples — that's a long tail of ~30 pages, each needing 2–3 minutes of work. It's worth doing but better treated as a continuous background task ("every time you touch an option, add one example") rather than a dedicated wave.
