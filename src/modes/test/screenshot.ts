@@ -12,7 +12,7 @@ const screenshotTimeoutError = async (ms: number) => {
 };
 
 export const makeScreenshotHandlers = (configuration: Configuration) => {
-  const { screenshot, screenshotOnFailure, screenshotTimeout, reportDir } = configuration;
+  const { screenshotOnFailure, screenshotTimeout, reportDir } = configuration;
 
   const takeScreenshot = async (page: IWindow, filename: string): Promise<string> => {
     await Folder.create(reportDir);
@@ -21,10 +21,7 @@ export const makeScreenshotHandlers = (configuration: Configuration) => {
     return filename;
   };
 
-  // TODO: this is fetching again the agent state, we might find a way to do it in one shot
-  const handlePendingScreenshot = async (page: IWindow, pageId: number): Promise<void> => {
-    if (!screenshot) return;
-    const agentState = (await page.eval("window['ui5-test-runner'].state")) as AgentState;
+  const handlePendingScreenshot = async (page: IWindow, agentState: AgentState, pageId: number): Promise<void> => {
     if (agentState.type !== 'QUnit' || !agentState.pendingScreenshot) return;
     const filename = agentState.pendingScreenshot;
     try {

@@ -106,8 +106,11 @@ const shouldUncaughtErrorsFail = (context: PageContext, errors: IError[]): boole
   return false;
 };
 
-const shouldStopBasedOnAgentState = async (context: PageContext, isScreenshotEnabled: boolean): Promise<boolean> => {
-  const agentState = (await context.page.eval("window['ui5-test-runner'].state")) as AgentState;
+const shouldStopBasedOnAgentState = (
+  context: PageContext,
+  isScreenshotEnabled: boolean,
+  agentState: AgentState
+): boolean => {
   logger.debug({
     source: 'page',
     message: agentStateMessage(agentState),
@@ -270,10 +273,11 @@ export const makePageTask = (configuration: Configuration) => {
         while (!isTimedOut && !this.stopRequested) {
           try {
             await Process.sleep(context.loopDelay);
+            const agentState = (await context.page.eval("window['ui5-test-runner'].state")) as AgentState;
             if (screenshot) {
-              await handlePendingScreenshot(page, pageId);
+              await handlePendingScreenshot(page, agentState, pageId);
             }
-            if (await shouldStopBasedOnAgentState(context, screenshot)) {
+            if (shouldStopBasedOnAgentState(context, screenshot, agentState)) {
               break;
             }
           } catch (error) {
