@@ -228,7 +228,7 @@ describe('screenshot (OPA)', () => {
   const PAGE_ID = 1;
   const waitFor = vi.fn();
 
-  beforeEach(async () => {
+  beforeEach(() => {
     vi.mocked(getConfig).mockReturnValue({ ...DEFAULT_CONFIG, screenshot: true, pageId: PAGE_ID });
     class Opa5 {}
     Object.assign(Opa5.prototype, { waitFor });
@@ -251,18 +251,26 @@ describe('screenshot (OPA)', () => {
 
   const expectPath = expect.stringMatching(/^1-[a-f0-9]+-\d\.png$/) as string;
 
-  it('attaches screenshots to the test result via attachments[]', async () => {
+  it('attaches screenshots to the test result via attachments[], using the log message as name', async () => {
     QUnit.module('Journey1');
     QUnit.test('step1', (assert) => {
-      assert.ok(true);
-      assert.ok(true);
+      assert.ok(true, 'first step');
+      assert.ok(false);
     });
 
     const results = await execQunit();
 
     const test = results.tests[0]!;
     expect(test.attachments).toHaveLength(2);
-    expect(test.attachments![0] as object).toMatchObject({ contentType: 'image/png', path: expectPath });
-    expect(test.attachments![1] as object).toMatchObject({ contentType: 'image/png', path: expectPath });
+    expect(test.attachments![0] as object).toMatchObject({
+      name: 'first step',
+      contentType: 'image/png',
+      path: expectPath
+    });
+    expect(test.attachments![1] as object).toMatchObject({
+      name: expect.stringMatching(/failed/) as string, // good enough
+      contentType: 'image/png',
+      path: expectPath
+    });
   });
 });

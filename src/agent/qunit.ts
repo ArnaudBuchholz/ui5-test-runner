@@ -198,8 +198,12 @@ export const qunit = () => {
     const testId = getTestId(details.testId);
     const screenshots = screenshotsByTestId[testId];
     if (screenshots !== undefined && screenshots.length > 0) {
-      // TODO: the name should contain the log message (makes more sense)
-      test.attachments = screenshots.map((name) => ({ name, contentType: 'image/png', path: name }));
+      const testLogs = logs[testId];
+      test.attachments = screenshots.map((path, index) => ({
+        name: testLogs?.[index]?.message ?? 'no message',
+        contentType: 'image/png',
+        path
+      }));
     }
     report.test(test);
     updateState({
