@@ -17,6 +17,7 @@ This directory documents significant architectural decisions made in the `ui5-te
 | [0009](./0009-coverage-architecture.md) | Coverage Architecture | Accepted | Instrument UI5 source files via nyc subprocess, intercept dynamic module loading in-browser, collect per-page coverage data, then merge and report with optional threshold-as-CTRF-failure integration |
 | [0010](./0010-graceful-shutdown.md) | Graceful Shutdown | Accepted | LIFO async task registry with SIGINT handler, `ExitShutdownError` for post-shutdown safety, and handle leak detection |
 | [0011](./0011-mcp.md) | MCP Mode | Accepted | GitHub-hosted KB fetched on demand with git tree SHA for cheap update detection; async execution tools (`run`/`getStatus`/`cancel`) with IPC-based snapshots; ephemeral artifacts in `os.tmpdir()` |
+| [0012](./0012-screenshot-capture-and-attachment.md) | Screenshot Capture and Attachment | Accepted | Agent owns screenshot filenames (built from pageId+testId+logIndex), signals the runner via `pendingScreenshot: string | false`, and attaches per-assertion screenshots to `CTRFTest.attachments[]` in `testDone` |
 
 ## Quick Navigation
 
@@ -31,6 +32,7 @@ This directory documents significant architectural decisions made in the `ui5-te
 - **When modifying `src/modes/test/coverage/`, `src/agent/ui5Coverage.ts`, or `src/Npm.ts`** → See [ADR-0009](./0009-coverage-architecture.md)
 - **When modifying `src/platform/Exit.ts` or shutdown/SIGINT handling** → See [ADR-0010](./0010-graceful-shutdown.md)
 - **When modifying `src/modes/mcp/`, the knowledge base fetch strategy, or MCP execution tools** → See [ADR-0011](./0011-mcp.md)
+- **When modifying `src/modes/test/screenshot.ts`, screenshot naming, or per-assertion screenshot attachment** → See [ADR-0012](./0012-screenshot-capture-and-attachment.md)
 
 ## Cross-Cutting Concerns
 
