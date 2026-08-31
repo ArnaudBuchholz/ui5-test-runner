@@ -20,7 +20,6 @@ const QUNIT_IN_PROGRESS = {
   executed: 3,
   errors: 0,
   total: 10,
-  currentLogIndex: 0,
   pendingScreenshot: false
 } satisfies AgentState;
 const QUNIT_DONE = {
@@ -30,7 +29,6 @@ const QUNIT_DONE = {
   executed: 10,
   errors: 0,
   total: 10,
-  currentLogIndex: 0,
   pendingScreenshot: false
 } satisfies AgentState;
 const OPA_IN_PROGRESS = {
@@ -40,7 +38,6 @@ const OPA_IN_PROGRESS = {
   executed: 1,
   errors: 0,
   total: 5,
-  currentLogIndex: 0,
   pendingScreenshot: false
 } satisfies AgentState;
 

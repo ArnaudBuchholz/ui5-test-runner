@@ -14,22 +14,21 @@ const screenshotTimeoutError = async (ms: number) => {
 export const makeScreenshotHandlers = (configuration: Configuration) => {
   const { screenshot, screenshotOnFailure, screenshotTimeout, reportDir } = configuration;
 
-  const takeScreenshot = async (page: IWindow, name: string): Promise<string> => {
+  const takeScreenshot = async (page: IWindow, filename: string): Promise<string> => {
     await Folder.create(reportDir);
-    const filename = `${name}.png`;
     const absolutePath = Path.join(reportDir, filename);
     await Promise.race([page.screenshot(absolutePath), screenshotTimeoutError(screenshotTimeout)]);
     return filename;
   };
 
+  // TODO: this is fetching again the agent state, we might find a way to do it in one shot
   const handlePendingScreenshot = async (page: IWindow, pageId: number): Promise<void> => {
     if (!screenshot) return;
     const agentState = (await page.eval("window['ui5-test-runner'].state")) as AgentState;
     if (agentState.type !== 'QUnit' || !agentState.pendingScreenshot) return;
-    const testId = agentState.currentTestId ?? String(pageId);
-    const logIndex = agentState.currentLogIndex;
+    const filename = agentState.pendingScreenshot;
     try {
-      const filename = await takeScreenshot(page, `${pageId}-${testId}-${logIndex}`);
+      await takeScreenshot(page, filename);
       logger.debug({ source: 'page', message: 'screenshot taken', pageId, data: { filename } });
     } catch (error) {
       logger.error({ source: 'page', message: 'screenshot failed', error, pageId });
@@ -44,11 +43,11 @@ export const makeScreenshotHandlers = (configuration: Configuration) => {
   ): Promise<void> => {
     if (!screenshotOnFailure || testResults.tests.every((t) => t.status !== 'failed')) return;
     try {
-      const path = await takeScreenshot(page, `${pageId}-failure`);
-      logger.debug({ source: 'page', message: 'failure screenshot taken', pageId, data: { path } });
+      const filename = await takeScreenshot(page, `${pageId}-failure.png`);
+      logger.debug({ source: 'page', message: 'failure screenshot taken', pageId, data: { path: filename } });
       for (const test of testResults.tests) {
         if (test.status === 'failed') {
-          test.screenshot = path;
+          test.screenshot = filename;
         }
       }
     } catch (error) {

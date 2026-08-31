@@ -236,7 +236,7 @@ export const makePageTask = (configuration: Configuration) => {
     let context: PageContext | undefined;
     try {
       const agentSource = await getAgentSource();
-      const browserConfig = getBrowserConfigScript();
+      const browserConfig = getBrowserConfigScript(pageId);
       const scripts = [browserConfig, agentSource];
       const browser = getBrowser();
       page = await browser.newWindow({

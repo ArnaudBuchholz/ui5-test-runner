@@ -32,11 +32,7 @@ export type AgentState = {
       errors: number;
       /** Total number of tests */
       total: number;
-      /** Test ID of the most recent QUnit.log event */
-      currentTestId?: string;
-      /** Number of QUnit.log events fired so far (used for screenshot naming) */
-      currentLogIndex: number;
-      /** True when a screenshot has been requested and not yet acknowledged by the runner */
-      pendingScreenshot: boolean;
+      /** Filename requested by the agent for the next screenshot, or false when none pending */
+      pendingScreenshot: string | false;
     }
 );
