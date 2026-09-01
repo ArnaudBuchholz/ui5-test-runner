@@ -13,7 +13,8 @@ try {
       'report-uncovered': coverageReportUncovered,
       'junit-xml-report': junitXmlReport,
       failed,
-      summary
+      summary,
+      htmlReport
     },
     positionals
   } = parseArgs({
@@ -42,6 +43,10 @@ try {
       summary: {
         type: 'string',
         default: ''
+      },
+      htmlReport: {
+        type: 'boolean',
+        default: true
       }
     }
   });
@@ -109,8 +114,8 @@ try {
     );
   }
 
-  if (true /* checking HTML report errors */) {
-    console.log('checking HTML report errors...');
+  if (htmlReport) {
+    console.log('YES !!!');
     const browser = await puppeteer.launch();
     const page = await browser.newPage();
     let htmlReportHasErrors = false;

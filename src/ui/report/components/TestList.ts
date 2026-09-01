@@ -28,7 +28,7 @@ function renderQUnitLogs(logs: unknown[]): string {
       const log = entry as { result?: boolean; message?: string; actual?: unknown; expected?: unknown };
       const icon = log.result ? '✓' : '✗';
       const iconClass = log.result ? 'qunit-log-pass' : 'qunit-log-fail';
-      const message = log.message ? escapeHtml(log.message) : '—';
+      const message = log.message === undefined ? '—' : escapeHtml(log.message);
       const extra =
         !log.result && (log.actual !== undefined || log.expected !== undefined)
           ? ` <span class="qunit-log-values">[actual: <code>${escapeHtml(String(log.actual))}</code> expected: <code>${escapeHtml(String(log.expected))}</code>]</span>`
