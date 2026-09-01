@@ -1,7 +1,8 @@
 import type { State } from '../../../reports/ui/types.js';
 import type { CommonTestReport } from '../../../types/CommonTestReportFormat.js';
 import { formatDuration } from '../utils/format.js';
-import { formatHostLabel, type HostInfo } from '../../../utils/shared/host.js';
+import { formatHostLabel } from '../../../utils/shared/host.js';
+import type { HostInfo } from '../../../utils/shared/host.js';
 
 function escapeHtml(s: string): string {
   return s.replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;').replaceAll('"', '&quot;');
@@ -40,7 +41,10 @@ export function renderSummary(state: State): string {
   const rawCpus = report.results.environment?.extra?.['cpus'] as HostInfo['cpus'] | undefined;
   const osLabel = machine
     ? escapeHtml(formatHostLabel({ machine, cpus: rawCpus ?? [] }))
-    : (report.results.environment?.osPlatform ? escapeHtml(report.results.environment.osPlatform) : 'N/A');
+    : // eslint-disable-next-line sonarjs/no-nested-conditional
+      report.results.environment?.osPlatform
+      ? escapeHtml(report.results.environment.osPlatform)
+      : 'N/A';
 
   const otherCount = summary.pending + summary.other;
   const otherTag = otherCount > 0 ? `<ui5-tag design="None">${otherCount} other</ui5-tag>` : '';

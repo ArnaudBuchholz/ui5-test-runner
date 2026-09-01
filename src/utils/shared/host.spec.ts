@@ -38,8 +38,8 @@ describe('formatHostLabel', () => {
   });
 
   it('joins multiple distinct models with comma', () => {
-    expect(
-      formatHostLabel({ machine: 'x64', cpus: [{ model: 'x86' }, { model: 'x86' }, { model: 'GPU' }] })
-    ).toBe('x64 / 2x x86, GPU');
+    expect(formatHostLabel({ machine: 'x64', cpus: [{ model: 'x86' }, { model: 'x86' }, { model: 'GPU' }] })).toBe(
+      'x64 / 2x x86, GPU'
+    );
   });
 });
