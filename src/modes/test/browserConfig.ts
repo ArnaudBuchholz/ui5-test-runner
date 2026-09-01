@@ -17,7 +17,7 @@ export const initBrowserConfig = (configuration: Configuration): void => {
   _browserConfigScript = `(function(){window['${UI5_TEST_RUNNER}']=window['${UI5_TEST_RUNNER}']||{};window['${UI5_TEST_RUNNER}'].config=${JSON.stringify(payload)};})();`;
 };
 
-export const getBrowserConfigScript = (): string => {
+export const getBrowserConfigScript = (pageId: number): string => {
   assert(_browserConfigScript !== undefined, 'browserConfig not initialized');
-  return _browserConfigScript;
+  return _browserConfigScript + `(function(){window['${UI5_TEST_RUNNER}'].config.pageId=${pageId};})();`;
 };

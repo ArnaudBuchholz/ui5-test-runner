@@ -32,5 +32,7 @@ export type AgentState = {
       errors: number;
       /** Total number of tests */
       total: number;
+      /** Filename requested by the agent for the next screenshot, or false when none pending */
+      pendingScreenshot: string | false;
     }
 );

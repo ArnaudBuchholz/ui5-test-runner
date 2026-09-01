@@ -9,7 +9,6 @@ import { ServerResponse, ClientRequest } from 'node:http';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Undocumented API
 vi.spyOn(process as any, '_getActiveHandles').mockReturnValue([]);
-vi.spyOn(console, 'log').mockImplementation(() => {});
 vi.spyOn(Exit, 'shutdown');
 
 it('offers a wrapper for process.exitCode', () => {

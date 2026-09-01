@@ -7,6 +7,7 @@ import type { State } from '../../reports/ui/types.js';
 import { renderSummary } from './components/Summary.js';
 import { renderFilterBar, renderSuitePopoverContent } from './components/FilterBar.js';
 import { renderTestList, renderTestListBody } from './components/TestList.js';
+import { renderConfiguration } from './components/Configuration.js';
 import { debounce } from '../lib/utils/debounce.js';
 import { readHash, writeHash } from './utils/hash.js';
 import type { CommonTestReport } from '../../types/CommonTestReportFormat.js';
@@ -78,6 +79,7 @@ fileInput.addEventListener('change', async () => {
 function renderDisplayMode(): string {
   return (
     renderSummary(controller.state) +
+    renderConfiguration(controller.state) +
     renderFilterBar(controller.state, controller.settings) +
     renderTestList(controller.state, controller.settings)
   );
@@ -210,6 +212,34 @@ function attachSortEvents(): void {
   });
 }
 
+function loadImages(details: HTMLElement): void {
+  details.querySelectorAll<HTMLImageElement>('img.attachment-thumb[data-src]').forEach((img) => {
+    if (img.src && img.src !== window.location.href) {
+      return;
+    }
+
+    img.src = img.dataset['src'] ?? '';
+    img.addEventListener(
+      'error',
+      () => {
+        img.removeAttribute('src');
+        img.classList.add('attachment-thumb--error');
+        img.title = `Unavailable: ${img.dataset['src'] ?? ''}`;
+      },
+      { once: true }
+    );
+    img.addEventListener('click', () => {
+      window.open(img.dataset['src'], '_blank');
+    });
+  });
+}
+
+function unloadImages(details: HTMLElement): void {
+  details.querySelectorAll<HTMLImageElement>('img.attachment-thumb').forEach((img) => {
+    img.removeAttribute('src');
+  });
+}
+
 function toggleTestRow(testRows: Element, index: string): void {
   const details = asHtml(testRows.querySelector(`.test-row-details[data-index="${CSS.escape(index)}"]`));
   if (!details) return;
@@ -217,6 +247,11 @@ function toggleTestRow(testRows: Element, index: string): void {
   const isOpen = details.style.display !== 'none';
   details.style.display = isOpen ? 'none' : 'block';
   if (toggleButton) toggleButton.textContent = isOpen ? '[>]' : '[V]';
+  if (isOpen) {
+    unloadImages(details);
+  } else {
+    loadImages(details);
+  }
 }
 
 function attachTestRowsEvents(): void {
@@ -230,6 +265,20 @@ function attachTestRowsEvents(): void {
     if (toggleButton) {
       event.stopPropagation();
       toggleTestRow(testRows, toggleButton.dataset['index'] ?? '');
+      return;
+    }
+
+    const qunitToggle = asHtml(target.closest('.qunit-logs-toggle'));
+    if (qunitToggle) {
+      event.stopPropagation();
+      const body = asHtml(qunitToggle.nextElementSibling);
+      if (body) {
+        const isOpen = body.style.display !== 'none';
+        body.style.display = isOpen ? 'none' : 'block';
+        qunitToggle.textContent = isOpen
+          ? qunitToggle.textContent.replace('[V]', '[>]')
+          : qunitToggle.textContent.replace('[>]', '[V]');
+      }
       return;
     }
 

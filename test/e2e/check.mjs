@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import { readFile, stat } from 'node:fs/promises';
 import { join } from 'node:path';
 import { loadReport } from '../report.mjs';
+import puppeteer from 'puppeteer';
 
 try {
   const {
@@ -12,7 +13,8 @@ try {
       'report-uncovered': coverageReportUncovered,
       'junit-xml-report': junitXmlReport,
       failed,
-      summary
+      summary,
+      htmlReport
     },
     positionals
   } = parseArgs({
@@ -41,6 +43,10 @@ try {
       summary: {
         type: 'string',
         default: ''
+      },
+      htmlReport: {
+        type: 'boolean',
+        default: true
       }
     }
   });
@@ -106,6 +112,31 @@ try {
       true,
       'junit XML report exists'
     );
+  }
+
+  if (htmlReport) {
+    console.log('YES !!!');
+    const browser = await puppeteer.launch();
+    const page = await browser.newPage();
+    let htmlReportHasErrors = false;
+
+    page.on('requestfailed', (request) => {
+      console.log('request failed:', request.url());
+      htmlReportHasErrors = true;
+    });
+    page.on('console', (msg) => {
+      if (msg.type() === 'error') {
+        console.log('console.error:', msg.text());
+        htmlReportHasErrors = true;
+      }
+    });
+    page.on('pageerror', (err) => {
+      htmlReportHasErrors = true;
+      console.log('Uncaught error:', err);
+    });
+    await page.goto('file://' + join(reportDir, 'report.html'));
+    await browser.close();
+    assert.strictEqual(htmlReportHasErrors, false, 'HTML report has no errors');
   }
 } catch (error) {
   console.error(error.message);

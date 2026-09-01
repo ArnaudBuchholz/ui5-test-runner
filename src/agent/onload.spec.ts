@@ -18,10 +18,6 @@ import './onload.js';
 
 const DETECTION_TIMEOUT = 5000;
 
-// Mute console outputs
-vi.spyOn(console, 'debug').mockImplementation(() => {});
-vi.spyOn(console, 'error').mockImplementation(() => {});
-
 declare global {
   interface Window {
     jsUnitTestSuite: new () => JsUnitTestSuite;

@@ -1,6 +1,7 @@
 import { Host } from './Host.js';
 import { logger } from './logger.js';
 import { version } from './version.js';
+import { countCpuModels } from '../utils/shared/host.js';
 
 export const logEnvironnement = async () => {
   const runnerVersion = await version();
@@ -9,19 +10,11 @@ export const logEnvironnement = async () => {
     source: 'job',
     message: `${runnerVersion} / Node.js ${Host.nodeVersion} / ${now.toISOString()} (${now.getTimezoneOffset()})`
   });
-  const cpus: { [key in string]?: number } = {};
-  for (const { model } of Host.cpus()) {
-    if (cpus[model]) {
-      ++cpus[model];
-    } else {
-      cpus[model] = 1;
-    }
-  }
-  for (const [model, count] of Object.entries(cpus)) {
-    if (count === 1) {
-      logger.info({ source: 'job', message: `${Host.machine()} / ${model}` });
-    } else {
-      logger.info({ source: 'job', message: `${Host.machine()} / ${count}x ${model}` });
-    }
+  const machine = Host.machine();
+  for (const { model, count } of countCpuModels(Host.cpus())) {
+    logger.info({
+      source: 'job',
+      message: count === 1 ? `${machine} / ${model}` : `${machine} / ${count}x ${model}`
+    });
   }
 };

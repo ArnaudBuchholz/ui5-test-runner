@@ -5,5 +5,7 @@ export type Configuration = {
   agentNoTestsTimeout: number;
   browser: string;
   parallel: number;
+  pageId: number;
+  screenshot: boolean;
   splitOpa: boolean;
 };

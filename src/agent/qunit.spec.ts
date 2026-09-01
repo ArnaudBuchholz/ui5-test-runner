@@ -1,4 +1,4 @@
-import { it, expect, beforeAll, beforeEach, vi } from 'vitest';
+import { it, expect, beforeAll, beforeEach, describe, vi } from 'vitest';
 import { qunit } from './qunit.js';
 import { report } from './report.js';
 import { state } from './state.js';
@@ -13,7 +13,10 @@ const DEFAULT_CONFIG = {
   agentDetectionMaxInterval: 1000,
   agentNoTestsTimeout: 5000,
   browser: '',
-  parallel: 1
+  pageId: 1,
+  parallel: 1,
+  screenshot: false,
+  splitOpa: false
 } as Configuration;
 
 const id = expect.any(String) as string;
@@ -31,7 +34,6 @@ beforeAll(() => {
 });
 
 beforeEach(async () => {
-  vi.mocked(getConfig).mockReturnValue(DEFAULT_CONFIG);
   report.reset();
   Object.assign(state, { done: false, type: undefined });
   delete window.QUnit;
@@ -39,10 +41,11 @@ beforeEach(async () => {
   vi.resetModules();
   const QUnit = await import('qunit');
   window.QUnit = QUnit;
-  qunit();
+  vi.mocked(getConfig).mockReturnValue(DEFAULT_CONFIG);
 });
 
 const execQunit = async () => {
+  qunit();
   QUnit.start();
   window.dispatchEvent(new Event('load'));
   await vi.waitFor(() => expect(state.done).toBe(true));
@@ -196,9 +199,7 @@ it('splits OPA page by module when splitOpa is enabled', async () => {
   QUnit.module('Journey2');
   QUnit.test('step2', (assert) => assert.ok(true));
 
-  QUnit.start();
-  window.dispatchEvent(new Event('load'));
-  await vi.waitFor(() => expect(state.done).toBe(true));
+  await execQunit();
 
   expect(state).toMatchObject({
     done: true,
@@ -221,4 +222,55 @@ it('does not split when moduleId is already in URL (already a split page)', asyn
 
   expect(state.type).toBe('QUnit');
   expect(results.summary.tests).toBe(2);
+});
+
+describe('screenshot (OPA)', () => {
+  const PAGE_ID = 1;
+  const waitFor = vi.fn();
+
+  beforeEach(() => {
+    vi.mocked(getConfig).mockReturnValue({ ...DEFAULT_CONFIG, screenshot: true, pageId: PAGE_ID });
+    class Opa5 {}
+    Object.assign(Opa5.prototype, { waitFor });
+    window.sap = { ui: { test: { Opa5 } } };
+  });
+
+  it('sets pendingScreenshot to the expected filename on OPA QUnit.log', async () => {
+    let capturedPendingScreenshot: string | false = false;
+    QUnit.module('Journey1');
+    QUnit.test('step1', (assert) => {
+      assert.ok(true);
+      expect.assert(state.type === 'QUnit');
+      capturedPendingScreenshot = state.pendingScreenshot;
+    });
+
+    await execQunit();
+
+    expect(capturedPendingScreenshot).toMatch(/^1-[a-f0-9]+-0\.png$/);
+  });
+
+  const expectPath = expect.stringMatching(/^1-[a-f0-9]+-\d\.png$/) as string;
+
+  it('attaches screenshots to the test result via attachments[], using the log message as name', async () => {
+    QUnit.module('Journey1');
+    QUnit.test('step1', (assert) => {
+      assert.ok(true, 'first step');
+      assert.ok(false);
+    });
+
+    const results = await execQunit();
+
+    const test = results.tests[0]!;
+    expect(test.attachments).toHaveLength(2);
+    expect(test.attachments![0] as object).toMatchObject({
+      name: 'first step',
+      contentType: 'image/png',
+      path: expectPath
+    });
+    expect(test.attachments![1] as object).toMatchObject({
+      name: expect.stringMatching(/failed/) as string, // good enough
+      contentType: 'image/png',
+      path: expectPath
+    });
+  });
 });

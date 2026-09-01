@@ -1,4 +1,4 @@
-import { logger, Exit, Process, assert } from '../platform/index.js';
+import { logger, Exit, Process } from '../platform/index.js';
 import type { BrowserCapabilities, BrowserSettings, IBrowser } from './IBrowser.js';
 import type { launch as launchFunction, Browser, Page, ConsoleMessageType } from 'puppeteer';
 import { Npm } from '../Npm.js';
@@ -146,8 +146,8 @@ export const factory = async (configuration: Configuration): Promise<IBrowser> =
         async eval(script: string) {
           return await page?.evaluate(script);
         },
-        screenshot(/* path: string */) {
-          assert(false, 'Not implemented');
+        async screenshot(path: string) {
+          await page?.screenshot({ path });
         },
         async close() {
           try {

@@ -5,6 +5,7 @@ const exclude = [...configDefaults.exclude, 'src/**/*.js', 'src/**/*.test.ts', '
 
 export default defineConfig({
   test: {
+    onConsoleLog: () => false,
     exclude,
     coverage: {
       include: ['src/**/*.ts'],

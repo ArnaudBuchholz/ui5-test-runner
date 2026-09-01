@@ -57,10 +57,11 @@ const countTotalTests = () => {
 };
 
 export const qunit = () => {
-  const { agentNoTestsTimeout } = getConfig();
+  const { agentNoTestsTimeout, screenshot, pageId } = getConfig();
   let executed = 0;
   let errors = 0;
   const logs: { [key in string]: QUnitLogDetails[] } = {};
+  const screenshotsByTestId: { [key in string]: string[] } = {};
 
   let doneTimeout: ReturnType<typeof setTimeout> | undefined;
 
@@ -78,7 +79,8 @@ export const qunit = () => {
     isOpa: false,
     executed,
     total: 0,
-    errors
+    errors,
+    pendingScreenshot: false
   });
 
   QUnit.begin((details) => {
@@ -128,6 +130,21 @@ export const qunit = () => {
     const testId = getTestId(details.testId);
     logs[testId] ??= [];
     logs[testId].push(details);
+    if (screenshot && state.type === 'QUnit' && state.isOpa) {
+      const logIndex = logs[testId].length - 1;
+      const filename = `${pageId}-${testId}-${logIndex}.png`;
+      screenshotsByTestId[testId] ??= [];
+      screenshotsByTestId[testId].push(filename);
+      updateState({ pendingScreenshot: filename });
+      const opa5 = window.sap?.ui?.test?.Opa5 as { prototype: { waitFor: (settings: object) => void } } | undefined;
+      opa5?.prototype.waitFor({
+        timeout: 10, // TODO: should be configurable
+        autoWait: false, // Ignore interactable constraint
+        check() {
+          return state.type === 'QUnit' && !state.pendingScreenshot;
+        }
+      });
+    }
   });
 
   const getErrorDetails = (test: CTRFTest, details: QUnitTestDoneDetails) => {
@@ -157,7 +174,7 @@ export const qunit = () => {
 
   QUnit.testDone((details: QUnitTestDoneDetails) => {
     log(
-      `QUnit.log({testId: ${details.testId}, passed: ${details.passed}, failed: ${details.failed}, name: "${details.name}", module: "${details.module}}")`
+      `QUnit.testDone({testId: ${details.testId}, passed: ${details.passed}, failed: ${details.failed}, name: "${details.name}", module: "${details.module}}")`
     );
     if (isSuiteDone()) return;
     let status: CommonTestStatus = 'passed';
@@ -178,12 +195,23 @@ export const qunit = () => {
       status = 'pending';
     }
     test.status = status;
+    const testId = getTestId(details.testId);
+    const screenshots = screenshotsByTestId[testId];
+    if (screenshots !== undefined && screenshots.length > 0) {
+      const testLogs = logs[testId];
+      test.attachments = screenshots.map((path, index) => ({
+        name: testLogs?.[index]?.message ?? 'no message',
+        contentType: 'image/png',
+        path
+      }));
+    }
     report.test(test);
     updateState({
       executed: ++executed,
       errors
     });
-    delete logs[getTestId(details.testId)];
+    delete logs[testId];
+    delete screenshotsByTestId[testId];
   });
 
   const done = () => {

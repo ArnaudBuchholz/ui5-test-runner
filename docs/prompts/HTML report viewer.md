@@ -95,6 +95,8 @@ The UI should be split into 3 parts :
       * `duration`
       * `message` (if set) rendered as plain text
       * `trace` (if set) rendered as a call stack using monospace font
+      * `screenshot` (if set) — see **Screenshots and attachments**
+      * `attachments[]` (if set and non-empty) — see **Screenshots and attachments**
   * Rows use the array index as their stable `data-key`.
 
 The page title should be "UI5 Test Runner Report".
@@ -122,6 +124,9 @@ The page title should be "UI5 Test Runner Report".
 │ "Date"             "Report ID"     "Tool"                "Duration"   │
 │ 1/1/2026 5:40      0123            ui5-test-runner@6     1m 0s        │ <- Tool displays report.generatedBy; Date displays report.timestamp formatted with browser locale (N/A if absent); Report ID displays full value of reportId
 │                                                                       │
+│ "Browser"          "OS"                                               │
+│ Chrome 124         arm64 / 8x Apple M2                                │ <- Browser: environment.extra.browserName + environment.extra.browserVersion (N/A if absent); OS: synthesized from environment.extra.machine and environment.extra.cpus (e.g. "arm64 / 8x Apple M2"); falls back to environment.osPlatform; N/A if all absent. Multiple distinct CPU models are joined with ", ". Count is omitted when 1.
+│                                                                       │
 │ "Tests (Qunit@1.2.3)"                                                 | <- QUnit@1.2.3 is report.results.tool.name + @ + report.results.tool.version; if version is absent, omit the @version part
 │ 3 total ((+ 1 passed)) ((- 1 failed)) ((1 skipped))                   │
 └───────────────────────────────────────────────────────────────────────┘
@@ -148,6 +153,11 @@ The page title should be "UI5 Test Runner Report".
 | Duration     100ms                                                    │
 | Message      Expected true to be false                                │
 | Stack        at test.js:42                                            │
+| Actual       false                                                    │  <- test.extra.actual; shown only on failed tests, when set
+| Expected     true                                                     │  <- test.extra.expected; shown only on failed tests, when set
+| [>] Assertions (3)                                                    │  <- test.extra.QUnitLogs[]; collapsible, collapsed by default
+| Screenshot   [img]                                                    │  <- test.screenshot (failure screenshot, image/png)
+| Attachments  first step [img]  second step [img]                      │  <- test.attachments[] thumbnails, labelled by attachment.name
 ├───────────────────────────────────────────────────────────────────────┤
 
 (end of page)
@@ -219,6 +229,39 @@ When the user reloads the page, filters and sorting criteria should be kept: the
 Proposed schema is : `#suite=&status=&q=&sort=&sort-order=`
 
 On load, if the hash contains filter/sort values, the view parses them and sends a **single** `controller.interaction({ filterOnSuiteUid, filterOnStatus, search, sortBy, sortAscending })` call before the first render.
+
+### Assertion detail (QUnitLogs)
+
+When a failed test has `test.extra.actual` or `test.extra.expected` set, render them as two labelled rows — **"Actual"** and **"Expected"** — in monospace font, immediately after the `trace` row. Both rows are only shown when the test status is `failed`.
+
+When `test.extra.QUnitLogs` is set and non-empty, render a collapsible **"Assertions"** section (collapsed by default) below the Actual/Expected rows. The header shows the total assertion count (e.g. `Assertions (3)`). When expanded, each entry is rendered as a row with:
+
+- A pass/fail icon (e.g. ✓ / ✗) based on `log.result`
+- The `log.message` as text (or a dash if empty)
+- For failed entries (`log.result === false`): `log.actual` and `log.expected` in monospace, shown inline or on a second line
+
+The `QUnitLogs` collapsible uses the same `[>]/[V]` toggle pattern as the test row itself — a plain `<div>` toggled by a button, not a `<ui5-panel>`.
+
+### Screenshots and attachments
+
+Two distinct fields on a test can carry image files:
+
+- **`test.screenshot`** — a single failure screenshot (filename string, always `image/png`), set on all failed tests when the `screenshotOnFailure` option is enabled.
+- **`test.attachments[]`** — an array of per-assertion screenshots captured during OPA test execution. Each entry has `name` (the assertion message, used as a label), `contentType` (always `image/png` for screenshots), and `path` (filename).
+
+Both `path` and `test.screenshot` are filenames relative to the HTML page itself.
+
+#### Rendering
+
+Each image is rendered as a thumbnail. Images are loaded **on demand only** — do not preload or set `src` until the containing test row is expanded by the user. When the row is collapsed, the `src` attribute should be removed to free memory.
+
+When an image file does not exist (the request returns a non-2xx status or the `error` event fires), replace the thumbnail with a placeholder indicating the image is unavailable (e.g. a broken-image icon or greyed box with the filename as tooltip).
+
+Clicking a thumbnail opens the full-size image in a new browser tab (`window.open(path)`).
+
+`test.screenshot` is rendered under a **"Screenshot"** label. `test.attachments[]` is rendered under an **"Attachments"** label, with each thumbnail preceded by its `name` as a caption. Only `image/png` attachments are rendered as thumbnails; other `contentType` values are rendered as plain text links (`<a href="path" target="_blank">name</a>`).
+
+Neither section is shown when the field is absent or empty.
 
 ## TODO (out of scope — do not implement)
 

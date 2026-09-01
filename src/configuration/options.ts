@@ -371,6 +371,28 @@ export const options = [
     default: 'report'
   },
   {
+    name: 'screenshot',
+    type: 'boolean',
+    browserExposed: true,
+    batchForwarded: true,
+    description: 'take a screenshot after every OPA assertion',
+    default: false
+  },
+  {
+    name: 'screenshotOnFailure',
+    type: 'boolean',
+    batchForwarded: true,
+    description: 'take a screenshot when a test fails',
+    default: true
+  },
+  {
+    name: 'screenshotTimeout',
+    type: 'timeout',
+    batchForwarded: true,
+    description: 'maximum time allowed to take a screenshot',
+    default: 5000
+  },
+  {
     name: 'serveOnly',
     short: 's',
     type: 'boolean',
@@ -455,6 +477,9 @@ export const defaults = {
   outputInterval: 30_000,
   parallel: 2,
   reportDir: 'report',
+  screenshot: false,
+  screenshotOnFailure: true,
+  screenshotTimeout: 5000,
   startTimeout: 30_000,
   startWaitMethod: 'GET',
   testsuite: 'test/testsuite.qunit.html',
