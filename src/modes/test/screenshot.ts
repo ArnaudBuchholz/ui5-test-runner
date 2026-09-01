@@ -42,11 +42,14 @@ export const makeScreenshotHandlers = (configuration: Configuration) => {
     try {
       const filename = await takeScreenshot(page, `${pageId}-failure.png`);
       logger.debug({ source: 'page', message: 'failure screenshot taken', pageId, data: { path: filename } });
-      for (const test of testResults.tests) {
-        if (test.status === 'failed') {
-          test.screenshot = filename;
-        }
-      }
+      testResults.tests.push({
+        name: 'failure screenshot',
+        status: 'other',
+        duration: 0,
+        attachments: [{ name: 'failure screenshot', contentType: 'image/png', path: filename }]
+      });
+      testResults.summary.tests += 1;
+      testResults.summary.other += 1;
     } catch (error) {
       logger.error({ source: 'page', message: 'failure screenshot failed', error, pageId });
     }

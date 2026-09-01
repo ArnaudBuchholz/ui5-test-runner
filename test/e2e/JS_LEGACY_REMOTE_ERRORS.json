@@ -3,5 +3,5 @@
   "batchLabel": "Legacy JS Sample showing QUnit errors",
   "cwd": "../sample.js",
   "url": ["http://localhost:0/test/unit/unitTests.qunit.errors.html"],
-  "end": "RUNNER_EXIT_CODE={{exitCode}} NODE_OPTIONS= node ../e2e/check.mjs {{reportDir}} --pages 1 --failed --summary 1,9,10"
+  "end": "RUNNER_EXIT_CODE={{exitCode}} NODE_OPTIONS= node ../e2e/check.mjs {{reportDir}} --pages 1 --failed --summary 1,9,11"
 }

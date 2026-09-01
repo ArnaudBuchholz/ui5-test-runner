@@ -112,14 +112,29 @@ describe('handleFailureScreenshot', () => {
     expect(page.screenshot).not.toHaveBeenCalled();
   });
 
-  it('takes a failure screenshot and sets test.screenshot on failed tests', async () => {
+  it('takes a failure screenshot and does not modify existing test entries', async () => {
     const { handleFailureScreenshot } = makeScreenshotHandlers(BASE_CONFIG);
     const page = makePage();
     const results = createTestResults({ tests: [{ status: 'failed' }, { status: 'passed' }] });
     await handleFailureScreenshot(page, PAGE_ID, results);
     expect(page.screenshot).toHaveBeenCalledWith(Path.join(REPORT_DIR, `${PAGE_ID}-failure.png`));
-    expect(results.tests[0]!.screenshot).toBe(`${PAGE_ID}-failure.png`);
+    expect(results.tests[0]!.screenshot).toBeUndefined();
     expect(results.tests[1]!.screenshot).toBeUndefined();
+  });
+
+  it('adds a synthetic other-status test with the screenshot as attachment', async () => {
+    const FILENAME = `${PAGE_ID}-failure.png`;
+    const { handleFailureScreenshot } = makeScreenshotHandlers(BASE_CONFIG);
+    const page = makePage();
+    const results = createTestResults({ tests: [{ status: 'failed' }] });
+    await handleFailureScreenshot(page, PAGE_ID, results);
+    const synthetic = results.tests.find((t) => t.name === 'failure screenshot');
+    expect(synthetic).toBeDefined();
+    expect(synthetic!.status).toBe('other');
+    expect(synthetic!.screenshot).toBeUndefined();
+    expect(synthetic!.attachments).toEqual([{ name: 'failure screenshot', contentType: 'image/png', path: FILENAME }]);
+    expect(results.summary.tests).toBe(2);
+    expect(results.summary.other).toBe(1);
   });
 
   it('logs error when failure screenshot throws', async () => {
