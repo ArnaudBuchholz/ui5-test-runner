@@ -1,6 +1,6 @@
 {
-  "batchId": "JS_LEGACY",
-  "batchLabel": "Legacy JS Sample",
+  "batchId": "JS_LEGACY_SCREENSHOT",
+  "batchLabel": "Legacy JS Sample with screenshots",
   "cwd": "../sample.js",
   "screenshot": true,
   "end": "RUNNER_EXIT_CODE={{exitCode}} NODE_OPTIONS= node ../e2e/check.mjs {{reportDir}} --pages 2"
