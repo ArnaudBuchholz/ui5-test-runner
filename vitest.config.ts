@@ -15,6 +15,7 @@ export default defineConfig({
         'dist/**',
         'eslint.*.mjs',
         'vite.config.mjs',
+        'src/**/*.d.ts',
         'src/**/*.spec.ts',
         'src/**/index.ts',
         // Use absolute paths so picomatch's `contains` option doesn't match src/modes/test/
