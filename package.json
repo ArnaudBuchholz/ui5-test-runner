@@ -59,7 +59,7 @@
     "test:report": "node ./src/defaults/report.js ./test/report && reserve --config ./test/report/reserve.json",
     "test:text-report": "node ./src/defaults/text-report.js ./test/report",
     "build:doc": "node build/doc",
-    "build": "make precli",
+    "build": "make precli -B",
     "clean": "npm uninstall -g ui5-test-runner puppeteer nyc selenium-webdriver playwright webdriverio jsdom",
     "update": "ncu -i --format group",
     "semantic-release": "semantic-release"

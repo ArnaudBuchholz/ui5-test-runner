@@ -115,7 +115,6 @@ try {
   }
 
   if (htmlReport) {
-    console.log('YES !!!');
     const browser = await puppeteer.launch();
     const page = await browser.newPage();
     let htmlReportHasErrors = false;
