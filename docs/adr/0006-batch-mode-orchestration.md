@@ -65,10 +65,9 @@ Options that make sense to propagate from the parent CLI invocation to every chi
 
 ### `UI5TR_BATCH_MODE` Environment Flag
 
-The parent injects `UI5TR_BATCH_MODE=1` into every child's environment. This flag has two effects:
+The parent injects `UI5TR_BATCH_MODE=1` into every child's environment. This flag has one effect:
 
-1. **`outputInterval` override**: `ConfigurationValidator` forces `outputInterval` to 1 000 ms (instead of the default 30 000 ms) so the child's static logger flushes progress frequently enough for the parent to relay it in real time
-2. **IPC gate**: `sendToParentProcess()` (`src/sendToParentProcess.ts`) calls `Process.sendToParent()` only when `UI5TR_BATCH_MODE` is set; in a standalone run the call is a no-op, keeping the same code paths safe in both contexts
+- **IPC gate**: `sendToParentProcess()` (`src/sendToParentProcess.ts`) calls `Process.sendToParent()` only when `UI5TR_BATCH_MODE` is set; in a standalone run the call is a no-op, keeping the same code paths safe in both contexts
 
 ### `--if` Evaluated in the Child
 
@@ -115,4 +114,3 @@ This follows the CTRF format used throughout the project and allows CI tools to 
 - **`src/sendToParentProcess.ts`** — guarded `process.send` wrapper; no-op when `UI5TR_BATCH_MODE` is absent
 - **`src/platform/Process.ts`** — `Process.spawn()` with `SpawnOptionsExtended.onMessage` for IPC; `IProcess` interface
 - **`src/configuration/options.ts`** — generated option registry; `batchForwarded: true` on forwarded options
-- **`src/configuration/ConfigurationValidator.ts`** — detects batch mode; applies `outputInterval` override when `UI5TR_BATCH_MODE=1`

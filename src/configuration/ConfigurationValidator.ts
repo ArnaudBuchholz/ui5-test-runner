@@ -181,9 +181,6 @@ export const ConfigurationValidator = {
     if (!Object.hasOwn(withDefaults, 'sources')) {
       Object.assign(withDefaults, { sources: {} });
     }
-    if (Host.env['UI5TR_BATCH_MODE']) {
-      Object.assign(withDefaults, { outputInterval: 1000 });
-    }
     const merged = await this.merge(withDefaults, explicitKeys, depth);
     if (depth === 0) {
       await finalizeConfiguration(merged);
