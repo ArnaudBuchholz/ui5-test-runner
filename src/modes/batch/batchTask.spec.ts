@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { Process, Host } from '../../platform/index.js';
+import { Process, Host, logger } from '../../platform/index.js';
 import type { IProcess } from '../../platform/index.js';
 import type { Configuration } from '../../configuration/Configuration.js';
 import type { IBatchItem } from './BatchItem.js';
@@ -107,5 +107,47 @@ describe('task()', () => {
     void batchTask(makeConfig(), item, START_TIME);
     getOnMessage()({ type: 'skip' });
     expect(item.skipped).toBe(true);
+  });
+
+  it('skips the item when the global timeout has already elapsed', async () => {
+    const config = { ...makeConfig(), globalTimeout: 1 } as unknown as Configuration;
+    const item = makeItem();
+    const result = await batchTask(config, item, 0);
+    expect(Process.spawn).not.toHaveBeenCalled();
+    expect(result.skipped).toBe(true);
+  });
+
+  it('updates logger on progress IPC message', () => {
+    vi.mocked(Process.spawn).mockReturnValue(makeProcess());
+    void batchTask(makeConfig(), makeItem(), START_TIME);
+    getOnMessage()({ type: 'progress', count: 3, total: 10 });
+    expect(logger.info).toHaveBeenCalledWith(
+      expect.objectContaining({ source: 'progress', data: expect.objectContaining({ value: 3, max: 10 }) as unknown })
+    );
+  });
+
+  it('kills the child process and sets timedOut when the batch timeout elapses', async () => {
+    vi.useFakeTimers();
+    const { promise: closed, resolve: resolveClose } = Promise.withResolvers<void>();
+    const kill = vi.fn().mockImplementation(() => {
+      resolveClose();
+      return Promise.resolve();
+    });
+    const neverProcess: IProcess = { pid: 99, stdout: '', stderr: '', closed, code: undefined, kill };
+    vi.mocked(Process.spawn).mockReturnValue(neverProcess);
+    const item = makeItem();
+    const config = { ...makeConfig(), batchTimeout: 50 } as unknown as Configuration;
+    const taskPromise = batchTask(config, item, START_TIME);
+    await vi.advanceTimersByTimeAsync(50);
+    await taskPromise;
+    expect(item.timedOut).toBe(true);
+    expect(kill).toHaveBeenCalled();
+    vi.useRealTimers();
+  });
+
+  it('logs an error when the child process exits with a non-zero status code', async () => {
+    vi.mocked(Process.spawn).mockReturnValue(makeProcess(1));
+    await batchTask(makeConfig(), makeItem(), START_TIME);
+    expect(logger.error).toHaveBeenCalled();
   });
 });

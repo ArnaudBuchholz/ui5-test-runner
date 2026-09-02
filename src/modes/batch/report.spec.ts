@@ -117,4 +117,10 @@ describe('buildBatchReport()', () => {
     expect(report.results.tests).toHaveLength(0);
     expect(report.results.summary.tests).toBe(0);
   });
+
+  it('uses fallback timestamps when start and end are undefined', async () => {
+    const report = await buildBatchReport([makeItem({ start: undefined, end: undefined })], NO_CONFIGURATION);
+    expect(report.results.summary.duration).toBe(0);
+    expect(report.results.tests[0]!.duration).toBe(0);
+  });
 });

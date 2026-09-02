@@ -95,4 +95,32 @@ describe('log viewer application', () => {
     expect(response.statusCode).toBe(200);
     expect(abortController.abort).toHaveBeenCalled();
   });
+
+  it('returns the library code', async () => {
+    const response = await server.request('GET', '/lib.js');
+    await response.waitForFinish();
+    expect(response.statusCode).toBe(200);
+    expect(response.headers['content-type']).toBe('application/javascript');
+    // eslint-disable-next-line @typescript-eslint/no-base-to-string -- The way REserve provides response body
+    expect(response.toString()).toStrictEqual('code');
+  });
+});
+
+describe('/all endpoint', () => {
+  const LOG_ENTRY = { source: 'test', level: 'info', message: 'hello' };
+
+  beforeEach(() => {
+    vi.mocked(storage.fetch).mockReturnValue([LOG_ENTRY]);
+  });
+
+  it('streams all logs as a JSON array', async () => {
+    const response = await server.request('GET', '/all');
+    await response.waitForFinish();
+    expect(response.statusCode).toBe(200);
+    expect(response.headers['content-type']).toBe('application/json');
+    // eslint-disable-next-line @typescript-eslint/no-base-to-string -- The way REserve provides response body
+    const body = JSON.parse(response.toString()) as unknown[];
+    expect(Array.isArray(body)).toBe(true);
+    expect(body).toHaveLength(147);
+  });
 });
