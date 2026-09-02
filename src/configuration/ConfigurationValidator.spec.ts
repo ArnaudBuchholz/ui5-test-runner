@@ -158,6 +158,18 @@ describe('mode', () => {
     expect(ConfigurationValidator.computeMode(config({ version: true }))).toBe(Modes.version);
   });
 
+  it('sets to dumpConfig when dumpConfig is used', () => {
+    expect(ConfigurationValidator.computeMode(config({ dumpConfig: true }))).toBe(Modes.dumpConfig);
+  });
+
+  it('sets to mcp when mcp is used', () => {
+    expect(ConfigurationValidator.computeMode(config({ mcp: true }))).toBe(Modes.mcp);
+  });
+
+  it('sets to batch when batch is used', () => {
+    expect(ConfigurationValidator.computeMode(config({ batch: ['/some/batch.json'] }))).toBe(Modes.batch);
+  });
+
   it('sets to legacy otherwise', () => {
     expect(ConfigurationValidator.computeMode(config({}))).toBe(Modes.legacy);
   });
