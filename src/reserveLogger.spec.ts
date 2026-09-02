@@ -32,7 +32,11 @@ it('logs debug and info on ready', () => {
   const { server, emit } = makeServer();
   logReserve(server);
   emit('ready', { url: 'http://localhost:1234' });
-  expect(logger.debug).toHaveBeenCalledWith({ source: 'reserve', message: 'ready', data: { url: 'http://localhost:1234' } });
+  expect(logger.debug).toHaveBeenCalledWith({
+    source: 'reserve',
+    message: 'ready',
+    data: { url: 'http://localhost:1234' }
+  });
   expect(logger.info).toHaveBeenCalledWith({ source: 'server', message: 'Server listening on: http://localhost:1234' });
 });
 
