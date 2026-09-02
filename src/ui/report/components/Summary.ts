@@ -41,7 +41,7 @@ export function renderSummary(state: State): string {
   const rawCpus = report.results.environment?.extra?.['cpus'] as HostInfo['cpus'] | undefined;
   const osLabel = machine
     ? escapeHtml(formatHostLabel({ machine, cpus: rawCpus ?? [] }))
-    : // eslint-disable-next-line sonarjs/no-nested-conditional
+    : // eslint-disable-next-line sonarjs/no-nested-conditional, unicorn/no-nested-ternary
       report.results.environment?.osPlatform
       ? escapeHtml(report.results.environment.osPlatform)
       : 'N/A';
