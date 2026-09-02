@@ -7,4 +7,5 @@ export type Configuration = {
   parallel: number;
   screenshot: boolean;
   splitOpa: boolean;
+  pageId: number;
 };

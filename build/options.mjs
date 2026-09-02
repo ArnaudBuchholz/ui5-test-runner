@@ -165,7 +165,7 @@ export const defaults = {`);
       agentConfig.push(`  ${name}: ${type};`);
     }
   }
-  agentConfig.push('};');
+  agentConfig.push('  pageId: number;', '};');
 
   await writeFile('./src/agent/Configuration.ts', agentConfig.join('\n'));
 
