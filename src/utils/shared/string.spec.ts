@@ -21,6 +21,10 @@ describe('split', () => {
   it('can go beyond the string length', () => {
     expect(split('Hello World !', 5, 1, 5, 5, 5)).toStrictEqual(['Hello', ' ', 'World', ' !', '']);
   });
+
+  it('appends the trailing remainder when lengths do not exhaust the string', () => {
+    expect(split('abcde', 2)).toStrictEqual(['ab', 'cde']);
+  });
 });
 
 describe('formatDuration', () => {

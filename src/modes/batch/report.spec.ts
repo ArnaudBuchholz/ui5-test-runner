@@ -123,4 +123,14 @@ describe('buildBatchReport()', () => {
     expect(report.results.summary.duration).toBe(0);
     expect(report.results.tests[0]!.duration).toBe(0);
   });
+
+  it('adds a message field when item has timedOut set', async () => {
+    const report = await buildBatchReport([makeItem({ timedOut: true, statusCode: 1 })], NO_CONFIGURATION);
+    expect(report.results.tests[0]!.message).toBe('Batch item timed out, check the logs');
+  });
+
+  it('does not add a message field for non-timed-out items', async () => {
+    const report = await buildBatchReport([makeItem({ statusCode: 0 })], NO_CONFIGURATION);
+    expect(report.results.tests[0]!.message).toBeUndefined();
+  });
 });

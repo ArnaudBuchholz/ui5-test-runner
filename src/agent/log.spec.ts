@@ -3,6 +3,8 @@ import { agentLogPrefix } from '../types/AgentState.js';
 
 const debug = vi.spyOn(console, 'debug');
 debug.mockImplementation(() => {});
+const warn = vi.spyOn(console, 'warn');
+warn.mockImplementation(() => {});
 const error = vi.spyOn(console, 'error');
 error.mockImplementation(() => {});
 
@@ -11,6 +13,11 @@ const { log } = await import('./log.js');
 it('logs using a special syntax', () => {
   log('test');
   expect(debug).toHaveBeenCalledWith(`${agentLogPrefix}test`);
+});
+
+it('enables logging of warnings', () => {
+  log.warn('something unexpected');
+  expect(warn).toHaveBeenCalledWith(`${agentLogPrefix}something unexpected`);
 });
 
 it('enables logging of errors', () => {

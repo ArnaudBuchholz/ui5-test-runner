@@ -31,6 +31,19 @@ it('allocates a default suite (empty)', () => {
   expect(buildSuites(toTests([[]]))).toStrictEqual([NO_SUITE]);
 });
 
+it('adds NO_SUITE only once when multiple tests lack a suite', () => {
+  expect(
+    buildSuites(
+      createTestResults({
+        tests: [
+          { suite: undefined, status: 'passed' },
+          { suite: undefined, status: 'failed' }
+        ]
+      }).tests
+    )
+  ).toStrictEqual([NO_SUITE]);
+});
+
 it('returns the suite', () => {
   expect(buildSuites(toTests([['test']]))).toStrictEqual<Suite[]>([
     {
