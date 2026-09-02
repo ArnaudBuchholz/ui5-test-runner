@@ -1,14 +1,19 @@
 import { it, expect, vi, beforeEach } from 'vitest';
-import { EventEmitter } from 'node:events';
 import { logger } from './platform/index.js';
 import { logReserve } from './reserveLogger.js';
 import type { Server } from 'reserve';
 
 const makeServer = () => {
-  const emitter = new EventEmitter();
+  const listeners = new Map<string, (event: object) => void>();
+  const server: Server = {
+    on: (eventName: string, listener: (event: object) => void) => {
+      listeners.set(eventName, listener);
+      return server;
+    }
+  } as unknown as Server;
   return {
-    server: emitter as unknown as Server,
-    emit: (eventName: string, data: object = {}) => emitter.emit(eventName, { eventName, ...data })
+    server,
+    emit: (eventName: string, data: object = {}) => listeners.get(eventName)?.({ eventName, ...data })
   };
 };
 
