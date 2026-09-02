@@ -65,3 +65,5 @@ docs/.obsidian/
 !.claude/skills/
 !.claude/skills/**
 
+# Worktrees
+.worktrees
