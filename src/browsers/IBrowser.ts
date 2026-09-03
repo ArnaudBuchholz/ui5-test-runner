@@ -20,7 +20,7 @@ export type BrowserCapabilities = {
 
 export type WindowSettings = {
   pageId: number;
-  scripts: string[];
+  scripts: readonly string[];
   url: string;
 };
 
