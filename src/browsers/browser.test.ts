@@ -116,8 +116,79 @@ export const testBrowser = ({ name, failedSetupTestCases }: TTestBrowserArgument
       it.skip('registers an async task');
       it.skip('stops the browser on shutdown');
 
-      it.skip('captures console logs');
-      it.skip('captures agent logs');
+      describe('console', () => {
+        it('captures console.log as info', async () => {
+          await browser.newWindow({ pageId: 0, scripts: [], url: `${BASE_URL}console-log.html` });
+          expect(logger.info).toHaveBeenCalledWith({
+            source: 'browser/console',
+            message: 'Hello World !',
+            pageId: 0,
+            data: { type: 'log' }
+          });
+        });
+
+        it('captures console.warn as warn', async () => {
+          await browser.newWindow({ pageId: 0, scripts: [], url: `${BASE_URL}console-warn.html` });
+          expect(logger.warn).toHaveBeenCalledWith({
+            source: 'browser/console',
+            message: 'Hello World !',
+            pageId: 0,
+            data: { type: 'warn' }
+          });
+        });
+
+        it('captures console.error as error', async () => {
+          await browser.newWindow({ pageId: 0, scripts: [], url: `${BASE_URL}console-error.html` });
+          expect(logger.error).toHaveBeenCalledWith({
+            source: 'browser/console',
+            message: 'Hello World !',
+            pageId: 0,
+            data: { type: 'error' }
+          });
+        });
+
+        it('captures console.debug as debug', async () => {
+          await browser.newWindow({ pageId: 0, scripts: [], url: `${BASE_URL}console-debug.html` });
+          expect(logger.debug).toHaveBeenCalledWith({
+            source: 'browser/console',
+            message: 'Hello World !',
+            pageId: 0,
+            data: { type: 'debug' }
+          });
+        });
+      });
+
+      describe('agent', () => {
+        it('captures agent logs as debug with browser/agent source', async () => {
+          await browser.newWindow({ pageId: 0, scripts: [], url: `${BASE_URL}agent-log.html` });
+          expect(logger.debug).toHaveBeenCalledWith({
+            source: 'browser/agent',
+            message: 'Hello World !',
+            pageId: 0,
+            data: { type: 'debug' }
+          });
+        });
+
+        it('captures agent warns as warn with browser/agent source', async () => {
+          await browser.newWindow({ pageId: 0, scripts: [], url: `${BASE_URL}agent-warn.html` });
+          expect(logger.warn).toHaveBeenCalledWith({
+            source: 'browser/agent',
+            message: 'Hello World !',
+            pageId: 0,
+            data: { type: 'warn' }
+          });
+        });
+
+        it('captures agent errors as error with browser/agent source', async () => {
+          await browser.newWindow({ pageId: 0, scripts: [], url: `${BASE_URL}agent-error.html` });
+          expect(logger.error).toHaveBeenCalledWith({
+            source: 'browser/agent',
+            message: 'Hello World !',
+            pageId: 0,
+            data: { type: 'error' }
+          });
+        });
+      });
       it.skip('captures network logs');
 
       it.skip('enables eval');
