@@ -110,6 +110,18 @@ export const testBrowser = ({ name, failedSetupTestCases }: TTestBrowserArgument
         await window.close();
         expect(logger.debug).toHaveBeenCalledWith({ source: name, message: 'window closed', pageId: 0 });
       });
+
+
+      it.skip('supports multiple windows');
+      it.skip('registers an async task');
+      it.skip('stops the browser on shutdown');
+
+      it.skip('captures console logs');
+      it.skip('captures agent logs');
+      it.skip('captures network logs');
+
+      it.skip('enables eval');
+      it.skip('enables screenshots');
     });
   });
 };
