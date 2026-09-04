@@ -43,9 +43,7 @@ jobs:
       with:
         node-version-file: .nvmrc
         cache: 'npm'
-    - run: |
-          SEM_REL_VERSION=$(node -e "process.stdout.write(require('./package.json').devDependencies['semantic-release'])")
-          npm install --prefix ./sr semantic-release@$SEM_REL_VERSION --no-save
+    - run: npm install --prefix ./sr semantic-release@25 @semantic-release/changelog@6 @semantic-release/git@10 --no-save
     - uses: actions/download-artifact@v7
       with:
         name: dist
@@ -54,7 +52,7 @@ jobs:
           mv package.json package0.json
           jq 'del(.scripts,.devDependencies)' package0.json > package.json
           rm package0.json
-          npx --y --prefix ./sr --no semantic-release@25
+          npx --prefix ./sr --no semantic-release
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         npm_config_package_lock: false
