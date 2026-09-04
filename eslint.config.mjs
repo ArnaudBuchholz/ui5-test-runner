@@ -30,7 +30,7 @@ export default [
   },
   // Need to disable this rule because tests are built with an external function
   {
-    files: ['src/configuration/validators/**.ts', 'src/**/*.test.ts'],
+    files: ['src/configuration/validators/**.spec.ts', 'src/**/*.test.ts', 'src/browsers/**.spec.ts'],
     rules: {
       'sonarjs/no-empty-test-file': 'off'
     }
@@ -76,9 +76,9 @@ export default [
       'unicorn/prefer-top-level-await': 'off'
     }
   },
-  // Be less stricts on spec files
+  // Be less stricts on test files
   {
-    files: ['**/*.spec.ts'],
+    files: ['**/*.spec.ts', '**/*.test.ts'],
     rules: {
       // unbound methods in spec files are common due to mocking
       '@typescript-eslint/unbound-method': 'off',
