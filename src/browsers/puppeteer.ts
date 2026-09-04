@@ -8,8 +8,13 @@ import type { LogSource } from '../platform/logger/types.js';
 import type { Configuration } from '../configuration/Configuration.js';
 
 export const factory = async (configuration: Configuration): Promise<IBrowser> => {
-  const puppeteer = await Npm.import(configuration, 'puppeteer');
-  const { launch } = puppeteer as { launch: typeof launchFunction };
+  let launch: typeof launchFunction;
+  try {
+    const puppeteer = await Npm.import(configuration, 'puppeteer');
+    launch = (puppeteer as { launch: typeof launchFunction }).launch;
+  } catch (error) {
+    logger.fatal({ source: 'puppeteer', message: 'Unable to initialize', error, data: configuration });
+  }
   let browser: Browser | undefined;
   const abortController = new AbortController();
   const { signal } = abortController;

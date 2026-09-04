@@ -1,4 +1,6 @@
 import { describe } from 'vitest';
-import { testIBrowser } from './browser.test.js';
+import { testBrowser } from './browser.test.js';
 
-describe('generic', () => testIBrowser('puppeteer'));
+describe('generic', () => testBrowser({
+  name: 'puppeteer',
+}));
