@@ -1,11 +1,9 @@
 import { logger, Exit, Process } from '../platform/index.js';
 import type { BrowserCapabilities, BrowserSettings, IBrowser } from './IBrowser.js';
-import type { launch as launchFunction, Browser, Page, ConsoleMessageType } from 'puppeteer';
+import type { launch as launchFunction, Browser, Page } from 'puppeteer';
 import { Npm } from '../Npm.js';
-import type { ILogger } from '../platform/logger/ILogger.js';
-import { agentLogPrefix } from '../types/AgentState.js';
-import type { LogSource } from '../platform/logger/types.js';
 import type { Configuration } from '../configuration/Configuration.js';
+import { handleConsoleMessage } from './consoleMessage.js';
 
 export const factory = async (configuration: Configuration): Promise<IBrowser> => {
   let launch: typeof launchFunction;
@@ -109,27 +107,7 @@ export const factory = async (configuration: Configuration): Promise<IBrowser> =
       }
       page
         ?.on('console', (message) => {
-          const LOG_TYPES: { [key in ConsoleMessageType]?: keyof ILogger } = {
-            error: 'error',
-            warn: 'warn',
-            assert: 'warn',
-            debug: 'debug'
-          } as const;
-          const logType = LOG_TYPES[message.type()] ?? 'info';
-          let source: LogSource;
-          let messageText = message.text();
-          if (messageText.startsWith(agentLogPrefix)) {
-            source = 'browser/agent';
-            messageText = messageText.slice(agentLogPrefix.length);
-          } else {
-            source = 'browser/console';
-          }
-          logger[logType]({
-            source,
-            message: messageText,
-            pageId,
-            data: { type: message.type() }
-          });
+          handleConsoleMessage(message.type(), message.text(), pageId);
         })
         ?.on('response', (response) => {
           const request = response.request();
