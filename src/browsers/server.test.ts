@@ -3,12 +3,14 @@ import type { Server } from 'reserve';
 
 let server: Server;
 
-export async function setup () {
+export async function setup() {
   server = serve({
     port: 0,
-    mappings: [{
-      status: 404
-    }]
+    mappings: [
+      {
+        status: 404
+      }
+    ]
   });
   const { promise, resolve } = Promise.withResolvers<void>();
   server.on('ready', ({ url }) => {
@@ -18,6 +20,6 @@ export async function setup () {
   return promise;
 }
 
-export async function teardown () {
+export async function teardown() {
   await server.close();
 }
