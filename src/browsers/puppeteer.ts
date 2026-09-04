@@ -77,16 +77,24 @@ export const factory = async (configuration: Configuration): Promise<IBrowser> =
     async setup(settings) {
       logger.debug({ source: 'puppeteer', message: 'setup', data: settings });
       try {
-        return await launchAndInstallIfNeeded(settings);
+        const capabilities = await launchAndInstallIfNeeded(settings);
+        logger.debug({ source: 'puppeteer', message: 'setup completed', data: capabilities });
+        return capabilities;
       } catch (error) {
-        logger.error({ source: 'puppeteer', message: 'setup failed', error });
         task[Symbol.dispose]();
+        logger.fatal({
+          source: 'puppeteer',
+          message: 'Unable to setup',
+          error,
+          data: { factory: configuration, settings }
+        });
         throw error;
       }
     },
 
     async newWindow(settings) {
-      logger.debug({ source: 'puppeteer', message: 'newWindow', data: settings });
+      const { pageId } = settings;
+      logger.debug({ source: 'puppeteer', message: 'newWindow', pageId, data: settings });
       let page: Page | undefined;
       if (++openedPages === 1) {
         const pages = await browser?.pages(true);
@@ -99,7 +107,6 @@ export const factory = async (configuration: Configuration): Promise<IBrowser> =
       for (const script of settings.scripts) {
         await page?.evaluateOnNewDocument(script);
       }
-      const { pageId } = settings;
       page
         ?.on('console', (message) => {
           const LOG_TYPES: { [key in ConsoleMessageType]?: keyof ILogger } = {
@@ -146,7 +153,7 @@ export const factory = async (configuration: Configuration): Promise<IBrowser> =
           });
         });
       await page?.goto(settings.url);
-      logger.debug({ source: 'puppeteer', message: 'newWindow completed', data: settings });
+      logger.debug({ source: 'puppeteer', message: 'newWindow completed', pageId, data: settings });
       return {
         async eval(script: string) {
           return await page?.evaluate(script);
@@ -157,6 +164,7 @@ export const factory = async (configuration: Configuration): Promise<IBrowser> =
         async close() {
           try {
             await page?.close();
+            logger.debug({ source: 'puppeteer', message: 'window closed', pageId });
           } catch (error) {
             logger.error({ source: 'puppeteer', message: 'page.close failed', error });
           }
