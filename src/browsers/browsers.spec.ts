@@ -1,10 +1,15 @@
+import { vi, beforeAll, afterAll } from 'vitest';
+import { testBrowser } from './browser.test.js';
+import { Npm } from '../Npm.js';
 import { serve } from 'reserve';
 import type { Server } from 'reserve';
 import { agentLogPrefix } from '../types/AgentState.js';
 
+const mockNpmImport = vi.spyOn(Npm, 'import');
+
 let server: Server;
 
-export async function setup() {
+beforeAll(() => {
   server = serve({
     port: 0,
     mappings: [
@@ -68,8 +73,22 @@ export async function setup() {
     resolve();
   });
   return promise;
-}
+});
 
-export async function teardown() {
-  await server.close();
-}
+afterAll(() => server.close());
+
+testBrowser({
+  name: 'puppeteer',
+  failedSetupTestCases: [
+    {
+      label: 'launch fails',
+      setup: () => {
+        mockNpmImport.mockResolvedValueOnce({
+          launch() {
+            throw new Error('Failed');
+          }
+        });
+      }
+    }
+  ]
+});
