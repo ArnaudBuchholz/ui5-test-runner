@@ -268,6 +268,7 @@ export const testBrowser = ({ name, failedSetupTestCases }: TTestBrowserArgument
           });
         });
 
+        it.skip('enables initialization script kept after loading the page');
         it.skip('enables eval');
         it.skip('enables screenshots');
       });
