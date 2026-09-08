@@ -31,7 +31,6 @@ export default defineConfig({
         exclude: [ ...exclude, 'src/agent/**', 'src/ui/**', 'src/**/ui/**' ],
         name: { label: 'cli', color: 'green' },
         environment: 'node',
-        globalSetup: [ 'src/browsers/server.test.ts' ],
         setupFiles: [ 'src/platform/mock.ts' ]
       }
     }, {
