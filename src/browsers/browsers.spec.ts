@@ -63,6 +63,28 @@ beforeAll(() => {
         ]
       },
       {
+        match: '/network.html',
+        custom: () => [
+          `<html>
+            <script src="hello.js"></script>
+            <script src="not_found.js"></script>
+            <script src="server_error.js"></script>
+          </html>`,
+          { headers: { 'content-type': 'text/html; charset=UTF-8' } }
+        ]
+      },
+      {
+        match: '/hello.js',
+        custom: () => [
+          `console.log('Hello World !')`,
+          { headers: { 'content-type': 'text/javascript; charset=UTF-8' } }
+        ]
+      },
+      {
+        match: '/server_error.js',
+        status: 500
+      },
+      {
         status: 404
       }
     ]

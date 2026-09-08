@@ -193,7 +193,80 @@ export const testBrowser = ({ name, failedSetupTestCases }: TTestBrowserArgument
             });
           });
         });
-        it.skip('captures network logs');
+
+        describe('network logs', () => {
+          beforeEach(() => browser.newWindow({ pageId: 0, scripts: [], url: `${BASE_URL}network.html` }));
+
+          it('2xx', () => {
+            expect(logger.info).toHaveBeenCalledWith({
+              source: 'browser/network',
+              message: `${BASE_URL}hello.js`,
+              pageId: 0,
+              data: {
+                request: {
+                  method: 'GET',
+                  headers: expect.objectContaining({
+                    'user-agent': expect.any(String) as string
+                  }) as object
+                },
+                response: {
+                  status: 200,
+                  headers: expect.objectContaining({
+                    'content-type': 'text/javascript; charset=UTF-8'
+                  }) as object
+                }
+              }
+            });
+          });
+
+          it('4xx', () => {
+            expect(logger.warn).toHaveBeenCalledWith({
+              source: 'browser/network',
+              message: `${BASE_URL}not_found.js`,
+              pageId: 0,
+              data: {
+                request: {
+                  method: 'GET',
+                  headers: expect.objectContaining({
+                    'user-agent': expect.any(String) as string
+                  }) as object
+                },
+                response: {
+                  status: 404,
+                  headers: expect.objectContaining({
+                    // Not found
+                    'content-length': '9',
+                    'content-type': 'text/plain'
+                  }) as object
+                }
+              }
+            });
+          });
+
+          it('5xx', () => {
+            expect(logger.error).toHaveBeenCalledWith({
+              source: 'browser/network',
+              message: `${BASE_URL}server_error.js`,
+              pageId: 0,
+              data: {
+                request: {
+                  method: 'GET',
+                  headers: expect.objectContaining({
+                    'user-agent': expect.any(String) as string
+                  }) as object
+                },
+                response: {
+                  status: 500,
+                  headers: expect.objectContaining({
+                    // Internal Server Error
+                    'content-length': '21',
+                    'content-type': 'text/plain'
+                  }) as object
+                }
+              }
+            });
+          });
+        });
 
         it.skip('enables eval');
         it.skip('enables screenshots');
