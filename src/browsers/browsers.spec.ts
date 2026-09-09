@@ -4,12 +4,19 @@ import { Npm } from '../Npm.js';
 import { serve } from 'reserve';
 import type { Server } from 'reserve';
 import { agentLogPrefix } from '../types/AgentState.js';
+// Need to import native APIs to enable testing
+import { rmdir, mkdir } from 'node:fs/promises';
+import { __sourcesRoot, Path } from '../platform/index.js';
 
 const mockNpmImport = vi.spyOn(Npm, 'import');
 
 let server: Server;
 
-beforeAll(() => {
+beforeAll(async () => {
+  const temporaryPath = Path.join(__sourcesRoot, `../tmp`);
+  await rmdir(temporaryPath, { recursive: true });
+  await mkdir(temporaryPath, { recursive: true });
+
   server = serve({
     port: 0,
     mappings: [
@@ -78,6 +85,13 @@ beforeAll(() => {
         custom: () => [
           `console.log('Hello World !')`,
           { headers: { 'content-type': 'text/javascript; charset=UTF-8' } }
+        ]
+      },
+      {
+        match: '/page.html',
+        custom: () => [
+          `<html><h1>Hello World !</h1></html>`,
+          { headers: { 'content-type': 'text/html; charset=UTF-8' } }
         ]
       },
       {
