@@ -1,7 +1,7 @@
 import { defineConfig, configDefaults } from 'vitest/config';
 import { resolve } from 'node:path';
 
-const exclude = [...configDefaults.exclude, 'src/**/*.js', 'src/**/*.test.ts', 'dist/**', 'test/**', 'e2e/**', '.claude/**'];
+const exclude = [...configDefaults.exclude, 'src/**/*.js', 'src/**/*.test.ts', 'dist/**', 'test/**', 'e2e/**', '.claude/**', '.worktrees/**'];
 
 export default defineConfig({
   test: {

@@ -13,8 +13,7 @@ export const isIfEvaluatedAsTrue = async ({ if: condition }: Configuration): Pro
   }
 
   const [nodeMajorVersion] = Host.version.slice(1).split('.', 1);
-  const runnerFullName = await version();
-  const [runnerName, runnerVersion] = runnerFullName.split('@', 2);
+  const { name: runnerName, version: runnerVersion } = await version();
 
   return !!(punyexpr(condition) as (context: Record<string, unknown>) => unknown)({
     ...Host.env,

@@ -10,6 +10,6 @@ vi.mocked(FileSystem.readFile).mockResolvedValue(
   })
 );
 
-it('returns project version', async () => {
-  await expect(version()).resolves.toStrictEqual('ui5-test-runner@1.2.3');
+it('returns project name and version', async () => {
+  await expect(version()).resolves.toStrictEqual({ name: 'ui5-test-runner', version: '1.2.3' });
 });

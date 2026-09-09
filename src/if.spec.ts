@@ -12,7 +12,7 @@ const makeConfig = (condition?: string): Configuration => ({ if: condition }) as
 
 beforeEach(() => {
   vi.clearAllMocks();
-  vi.mocked(version).mockResolvedValue('ui5-test-runner@6.0.0');
+  vi.mocked(version).mockResolvedValue({ name: 'ui5-test-runner', version: '6.0.0' });
   Object.assign(Host, { version: 'v24.18.0', env: {} });
 });
 
