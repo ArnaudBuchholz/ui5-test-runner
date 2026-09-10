@@ -5,7 +5,7 @@ import { serve } from 'reserve';
 import type { Server } from 'reserve';
 import { agentLogPrefix } from '../types/AgentState.js';
 // Need to import native APIs to enable testing
-import { rmdir, mkdir } from 'node:fs/promises';
+import { rm, mkdir } from 'node:fs/promises';
 import { __sourcesRoot, Path } from '../platform/index.js';
 
 const mockNpmImport = vi.spyOn(Npm, 'import');
@@ -16,7 +16,7 @@ let closedPages: number[] = [];
 beforeAll(async () => {
   const temporaryPath = Path.join(__sourcesRoot, `../tmp/browsers`);
   try {
-    await rmdir(temporaryPath, { recursive: true });
+    await rm(temporaryPath, { recursive: true });
   } catch {
     // ignore
   }
