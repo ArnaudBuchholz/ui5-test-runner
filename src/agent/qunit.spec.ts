@@ -42,6 +42,7 @@ beforeEach(async () => {
   const QUnit = await import('qunit');
   window.QUnit = QUnit;
   vi.mocked(getConfig).mockReturnValue(DEFAULT_CONFIG);
+  vi.stubGlobal('location', new URL('http://localhost/test/opa.html'));
 });
 
 const execQunit = async () => {
@@ -192,7 +193,6 @@ it('documents pending tests (QUnit.todo)', async () => {
 it('splits OPA page by module when splitOpa is enabled', async () => {
   vi.mocked(getConfig).mockReturnValue({ ...DEFAULT_CONFIG, splitOpa: true });
   window.sap = { ui: { test: { Opa5: class {} } } };
-  vi.stubGlobal('location', new URL('http://localhost/test/opa.html'));
 
   QUnit.module('Journey1');
   QUnit.test('step1', (assert) => assert.ok(true));
@@ -222,6 +222,118 @@ it('does not split when moduleId is already in URL (already a split page)', asyn
 
   expect(state.type).toBe('QUnit');
   expect(results.summary.tests).toBe(2);
+});
+
+it('returns 0 for total when moduleId in URL matches no registered module', async () => {
+  vi.stubGlobal('location', new URL('http://localhost/test/opa.html?moduleId=nonexistent'));
+  QUnit.module('Journey1');
+  QUnit.test('step1', (assert) => assert.ok(true));
+
+  await execQunit();
+
+  expect(state).toMatchObject({ type: 'QUnit', total: 0 });
+});
+
+it('counts only the matching module tests when moduleId is in URL', async () => {
+  QUnit.module('Journey1');
+  QUnit.test('step1', (assert) => assert.ok(true));
+  QUnit.module('Journey2');
+  QUnit.test('step2', (assert) => assert.ok(true));
+  QUnit.test('step3', (assert) => assert.ok(true));
+
+  const modules = (QUnit.config as unknown as { modules: { name: string; moduleId: string }[] }).modules;
+  const journey1Id = modules.find((m) => m.name === 'Journey1')!.moduleId;
+  vi.stubGlobal('location', new URL(`http://localhost/test/opa.html?moduleId=${journey1Id}`));
+
+  await execQunit();
+
+  expect(state).toMatchObject({ type: 'QUnit', total: 1 });
+});
+
+type QUnitCallbacks = {
+  testDone: ((d: object) => void)[];
+  log: ((d: object) => void)[];
+  done: ((d: object) => void)[];
+  moduleStart: ((d: object) => void)[];
+};
+const qunitCallbacks = () => (QUnit.config as unknown as { callbacks: QUnitCallbacks }).callbacks;
+
+it('sets message to "No logs" when a failed test has no log entries', () => {
+  QUnit.module('suite1');
+  QUnit.test('test1', () => {});
+
+  qunit();
+
+  qunitCallbacks().testDone.at(-1)!({
+    testId: 'ghost-id',
+    name: 'ghost',
+    module: 'suite1',
+    passed: 0,
+    failed: 1,
+    skipped: false,
+    todo: false,
+    runtime: 0,
+    assertions: []
+  });
+
+  const ghostTest = report.results.tests.find((t) => t.name === 'ghost');
+  expect(ghostTest?.message).toBe('No logs');
+});
+
+it('sets message to "No error log" when a failed test has only passing log entries', () => {
+  QUnit.module('suite1');
+  QUnit.test('test1', () => {});
+
+  qunit();
+
+  // Push a passing log entry for 'ghost-id'
+  qunitCallbacks().log.at(-1)!({ testId: 'ghost-id', result: true, name: 'ok', module: 'suite1' });
+
+  // Then fire testDone with failed > 0 — testLogs exists but all results are true
+  qunitCallbacks().testDone.at(-1)!({
+    testId: 'ghost-id',
+    name: 'ghost',
+    module: 'suite1',
+    passed: 0,
+    failed: 1,
+    skipped: false,
+    todo: false,
+    runtime: 0,
+    assertions: []
+  });
+
+  const ghostTest = report.results.tests.find((t) => t.name === 'ghost');
+  expect(ghostTest?.message).toBe('No error log');
+});
+
+it('delays done and then completes when QUnit fires with no tests recorded', async () => {
+  vi.useFakeTimers({ shouldAdvanceTime: true });
+  vi.mocked(getConfig).mockReturnValue({ ...DEFAULT_CONFIG, agentNoTestsTimeout: 100 });
+
+  qunit();
+
+  // Directly invoke the registered QUnit.done callback with 0 tests
+  qunitCallbacks().done.at(-1)!({ passed: 0, failed: 0, total: 0, runtime: 0 });
+
+  expect(state.done).toBe(false);
+  await vi.advanceTimersByTimeAsync(100);
+  expect(state.done).toBe(true);
+  vi.useRealTimers();
+});
+
+it('updates total in moduleStart when new tests are added dynamically', () => {
+  QUnit.module('suite1');
+  QUnit.test('test1', (assert) => assert.ok(true));
+
+  qunit();
+
+  // state.total is 1 after begin; add another test so countTotalTests() returns 2
+  QUnit.module('suite2');
+  QUnit.test('test2', (assert) => assert.ok(true));
+
+  qunitCallbacks().moduleStart.at(-1)!({ name: 'suite2', tests: [] });
+
+  expect(state).toMatchObject({ type: 'QUnit', total: 2 });
 });
 
 describe('screenshot (OPA)', () => {
@@ -272,5 +384,24 @@ describe('screenshot (OPA)', () => {
       contentType: 'image/png',
       path: expectPath
     });
+  });
+
+  it('waitFor check returns true once pendingScreenshot is cleared', async () => {
+    QUnit.module('Journey1');
+    QUnit.test('step1', (assert) => assert.ok(true));
+
+    let capturedCheck: (() => boolean) | undefined;
+    waitFor.mockImplementation((settings: { check: () => boolean }) => {
+      capturedCheck = settings.check;
+    });
+
+    await execQunit();
+
+    expect.assert(capturedCheck !== undefined);
+    expect.assert(state.type === 'QUnit');
+    state.pendingScreenshot = 'some.png';
+    expect(capturedCheck()).toBe(false);
+    state.pendingScreenshot = false;
+    expect(capturedCheck()).toBe(true);
   });
 });

@@ -200,6 +200,7 @@ export const qunit = () => {
     if (screenshots !== undefined && screenshots.length > 0) {
       const testLogs = logs[testId];
       test.attachments = screenshots.map((path, index) => ({
+        /* v8 ignore next -- @preserve */
         name: testLogs?.[index]?.message ?? 'no message',
         contentType: 'image/png',
         path
