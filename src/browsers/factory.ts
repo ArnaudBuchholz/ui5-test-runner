@@ -36,7 +36,15 @@ const shutdown = async (browser: Browser, inner: IBrowser) => {
 export const BrowserFactory = {
   async build(configuration: Configuration, browser: Browser): Promise<IBrowser> {
     const abortController = new AbortController();
-    const inner = await factories[browser](configuration, abortController.signal);
+    let inner: IBrowser;
+    try {
+      logger.debug({ source: browser, message: 'build' });
+      inner = await factories[browser](configuration, abortController.signal);
+      logger.debug({ source: browser, message: 'build completed' });
+    } catch (error) {
+      logger.fatal({ source: browser, message: 'build failed', error });
+      throw error;
+    }
     let task: ReturnType<typeof Exit.registerAsyncTask> | undefined;
     return {
       async setup(settings) {
