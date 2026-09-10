@@ -11,6 +11,7 @@ import { __sourcesRoot, Path } from '../platform/index.js';
 const mockNpmImport = vi.spyOn(Npm, 'import');
 
 let server: Server;
+let closedPages: number[] = [];
 
 beforeAll(async () => {
   const temporaryPath = Path.join(__sourcesRoot, `../tmp/browsers`);
@@ -101,6 +102,33 @@ beforeAll(async () => {
       {
         match: '/server_error.js',
         status: 500
+      },
+      {
+        match: '/track-close.html',
+        custom: () => [
+          `<html><script>
+            const pageId = new URLSearchParams(location.search).get('pageId');
+            const close = () => navigator.sendBeacon('/closed?pageId=' + pageId);
+            document.addEventListener('visibilitychange', () => document.visibilityState === 'hidden' && close());
+            window.addEventListener('pagehide', event => !event.persisted && close());
+          </script></html>`,
+          { headers: { 'content-type': 'text/html; charset=UTF-8' } }
+        ]
+      },
+      {
+        match: '/closed',
+        custom: (request) => {
+          const url = new URL(request.url ?? '', 'https://x');
+          if (request.method === 'POST') {
+            closedPages.push(Number(url.searchParams.get('pageId')));
+            return ['', { statusCode: 204 }];
+          }
+          if (request.method === 'DELETE') {
+            closedPages = [];
+            return ['', { statusCode: 204 }];
+          }
+          return [JSON.stringify(closedPages), { headers: { 'content-type': 'application/json' } }];
+        }
       },
       {
         status: 404
