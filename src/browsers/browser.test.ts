@@ -269,7 +269,7 @@ export const testBrowser = ({ name, failedSetupTestCases }: TTestBrowserArgument
             scripts: [`window.addEventListener('load', () => { console.log('loaded') })`],
             url: `${BASE_URL}page.html`
           });
-          const path = Path.join(__sourcesRoot, `../tmp/${name}.png`);
+          const path = Path.join(__sourcesRoot, `../tmp/browsers/${name}.png`);
           await window.screenshot(path);
           const pathStat = await stat(path);
           expect(pathStat.size).toBeGreaterThan(0);
