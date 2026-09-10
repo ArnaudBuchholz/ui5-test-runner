@@ -1,17 +1,15 @@
 import { logger, Process, assert } from '../platform/index.js';
 import type { BrowserCapabilities, BrowserSettings, IBrowser } from './IBrowser.js';
-import type { BrowserType, Browser, Page, ConsoleMessage } from 'playwright';
+import type { BrowserType, Browser, Page } from 'playwright';
 import { Npm } from '../Npm.js';
-import type { ILogger } from '../platform/logger/ILogger.js';
-import { agentLogPrefix } from '../types/AgentState.js';
-import type { LogSource } from '../platform/logger/types.js';
 import type { Configuration } from '../configuration/Configuration.js';
+import { handleConsoleMessage } from './consoleMessage.js';
 
 export const factory = async (configuration: Configuration, signal: AbortSignal): Promise<IBrowser> => {
   const playwright = await Npm.import(configuration, 'playwright');
   const { chromium } = playwright as { chromium: BrowserType };
   let browser: Browser | undefined;
-  let openedPages = 0;
+  const pages = new Set<Page>();
 
   const launchAndInstallIfNeeded = async (settings: BrowserSettings): Promise<BrowserCapabilities> => {
     logger.debug({ source: 'playwright', message: 'launching browser' });
@@ -58,40 +56,21 @@ export const factory = async (configuration: Configuration, signal: AbortSignal)
 
     async newWindow(settings) {
       let page: Page | undefined;
-      if (++openedPages === 1) {
-        const pages = browser?.contexts()[0]?.pages();
-        page = pages?.[0] ?? (await browser?.newPage());
+      if (pages.size === 0) {
+        const existingPages = browser?.contexts()[0]?.pages();
+        page = existingPages?.[0] ?? (await browser?.newPage());
       } else {
         page = await browser?.newPage();
       }
       assert(page !== undefined);
+      pages.add(page);
       for (const script of settings.scripts) {
         await page.addInitScript(script);
       }
       const { pageId } = settings;
       page
-        .on('console', (message: ConsoleMessage) => {
-          const LOG_TYPES: { [key: string]: keyof ILogger } = {
-            error: 'error',
-            warn: 'warn',
-            assert: 'warn',
-            debug: 'debug'
-          } as const;
-          const logType = LOG_TYPES[message.type()] ?? 'info';
-          let source: LogSource;
-          let messageText = message.text();
-          if (messageText.startsWith(agentLogPrefix)) {
-            source = 'browser/agent';
-            messageText = messageText.slice(agentLogPrefix.length);
-          } else {
-            source = 'browser/console';
-          }
-          logger[logType]({
-            source,
-            message: messageText,
-            pageId,
-            data: { type: message.type() }
-          });
+        .on('console', (message) => {
+          handleConsoleMessage(message.type(), message.text(), pageId);
         })
         .on('response', (response) => {
           const request = response.request();
@@ -123,12 +102,15 @@ export const factory = async (configuration: Configuration, signal: AbortSignal)
           await page.screenshot({ path });
         },
         async close() {
+          pages.delete(page);
+          await page.goto('about:blank');
           await page.close();
         }
       };
     },
 
     async shutdown() {
+      await Promise.all([...pages].map((page) => page.goto('about:blank').catch(() => undefined)));
       await browser?.close();
     }
   };
