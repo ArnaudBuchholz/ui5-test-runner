@@ -108,7 +108,8 @@ beforeAll(async () => {
         custom: () => [
           `<html><script>
             const pageId = new URLSearchParams(location.search).get('pageId');
-            const close = () => navigator.sendBeacon('/closed?pageId=' + pageId);
+            let closed = false;
+            const close = () => { if (!closed) { closed = true; navigator.sendBeacon('/closed?pageId=' + pageId); } };
             document.addEventListener('visibilitychange', () => document.visibilityState === 'hidden' && close());
             window.addEventListener('pagehide', event => !event.persisted && close());
           </script></html>`,
@@ -154,6 +155,24 @@ testBrowser({
         mockNpmImport.mockResolvedValueOnce({
           launch() {
             throw new Error('Failed');
+          }
+        });
+      }
+    }
+  ]
+});
+
+testBrowser({
+  name: 'playwright',
+  failedSetupTestCases: [
+    {
+      label: 'launch fails',
+      setup: () => {
+        mockNpmImport.mockResolvedValueOnce({
+          chromium: {
+            launch() {
+              throw new Error('Failed');
+            }
           }
         });
       }
