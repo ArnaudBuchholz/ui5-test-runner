@@ -129,6 +129,7 @@
     "vite": "^8.2.2",
     "vite-plugin-css-injected-by-js": "^5.0.2",
     "vitest": "^4.1.11",
+    "webdriverio": "^9.31.6",
     "yaml": "^2.9.0"
   }
 }
