@@ -13,8 +13,12 @@ const mockNpmImport = vi.spyOn(Npm, 'import');
 let server: Server;
 
 beforeAll(async () => {
-  const temporaryPath = Path.join(__sourcesRoot, `../tmp`);
-  await rmdir(temporaryPath, { recursive: true });
+  const temporaryPath = Path.join(__sourcesRoot, `../tmp/browsers`);
+  try {
+    await rmdir(temporaryPath, { recursive: true });
+  } catch {
+    // ignore
+  }
   await mkdir(temporaryPath, { recursive: true });
 
   server = serve({
