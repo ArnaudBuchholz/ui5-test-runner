@@ -129,12 +129,7 @@ export const factory = async (configuration: Configuration, signal: AbortSignal)
     },
 
     async shutdown() {
-      logger.debug({ source: 'playwright', message: 'shutdown' });
-      try {
-        await browser?.close();
-      } catch (error) {
-        logger.error({ source: 'playwright', message: 'browser.close failed', error });
-      }
+      await browser?.close();
     }
   };
 };
