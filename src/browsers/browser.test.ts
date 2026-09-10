@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach, afterEach, beforeAll } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach, afterAll, beforeAll } from 'vitest';
 import { BrowserFactory } from './factory.js';
 import type { Browser } from './factory.js';
 import type { IBrowser, IWindow } from './IBrowser.js';
@@ -95,6 +95,28 @@ export const testBrowser = ({ name, failedSetupTestCases }: TTestBrowserArgument
         };
 
         beforeEach(() => resetClosedPages());
+
+        describe('shutdown', () => {
+          beforeEach(async () => {
+            await resetClosedPages();
+            await openWindow(1);
+            await openWindow(2);
+            await openWindow(3);
+          });
+
+          afterAll(async () => {
+            const closed = await getClosedPages();
+            expect(closed).toHaveLength(3);
+            expect(closed).toContain(1);
+            expect(closed).toContain(2);
+            expect(closed).toContain(3);
+          });
+
+          // Weird but want to benefit from afterEach that shutdowns browser
+          it('closes all open pages', () => {
+            expect(browser).toBeDefined();
+          });
+        });
 
         it.each(['o1 o2 o3 c1 c2 c3', 'o1 o2 o3 c3 c2 c1', 'o1 o2 c1 o3 c3 c2', 'o1 o2 o3 c2 c1 c3'])(
           '%s',
