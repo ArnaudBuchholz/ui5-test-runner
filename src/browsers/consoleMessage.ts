@@ -11,7 +11,8 @@ const LOG_TYPES: { [key: string]: keyof ILogger } = {
 } as const;
 
 export const handleConsoleMessage = (type: string, text: string, pageId: number): void => {
-  const logType = LOG_TYPES[type] ?? 'info';
+  const normalizedType = type === 'warning' ? 'warn' : type;
+  const logType = LOG_TYPES[normalizedType] ?? 'info';
   let source: LogSource;
   let message: string;
   if (text.startsWith(agentLogPrefix)) {
@@ -21,5 +22,5 @@ export const handleConsoleMessage = (type: string, text: string, pageId: number)
     source = 'browser/console';
     message = text;
   }
-  logger[logType]({ source, message, pageId, data: { type } });
+  logger[logType]({ source, message, pageId, data: { type: normalizedType } });
 };
