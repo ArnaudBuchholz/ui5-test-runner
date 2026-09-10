@@ -6,13 +6,8 @@ import type { Configuration } from '../configuration/Configuration.js';
 import { handleConsoleMessage } from './consoleMessage.js';
 
 export const factory = async (configuration: Configuration, signal: AbortSignal): Promise<IBrowser> => {
-  let launch: typeof launchFunction;
-  try {
-    const puppeteer = await Npm.import(configuration, 'puppeteer');
-    launch = (puppeteer as { launch: typeof launchFunction }).launch;
-  } catch (error) {
-    logger.fatal({ source: 'puppeteer', message: 'Unable to initialize', error, data: configuration });
-  }
+  const puppeteer = await Npm.import(configuration, 'puppeteer');
+  const launch = (puppeteer as { launch: typeof launchFunction }).launch;
   let browser: Browser | undefined;
   let openedPages = 0;
 
@@ -120,13 +115,7 @@ export const factory = async (configuration: Configuration, signal: AbortSignal)
     },
 
     async shutdown() {
-      logger.debug({ source: 'puppeteer', message: 'shutdown' });
-      try {
-        await browser?.close();
-      } catch (error) {
-        logger.error({ source: 'puppeteer', message: 'browser.close failed', error });
-      }
-      // TODO close any remaining pages
+      await browser?.close();
     }
   };
 };
