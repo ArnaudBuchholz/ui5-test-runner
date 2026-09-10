@@ -19,6 +19,20 @@ const factories: { [key in Browser]: (configuration: Configuration, signal: Abor
 
 let _instanceCount = 0;
 
+const shutdown = async (browser: Browser, inner: IBrowser) => {
+  logger.debug({ source: browser, message: 'shutdown' });
+  try {
+    await inner.shutdown();
+    logger.debug({ source: browser, message: 'shutdown completed' });
+  } catch (error) {
+    logger.warn({
+      source: browser,
+      message: 'shutdown failed',
+      error
+    });
+  }
+};
+
 export const BrowserFactory = {
   async build(configuration: Configuration, browser: Browser): Promise<IBrowser> {
     const abortController = new AbortController();
@@ -30,7 +44,7 @@ export const BrowserFactory = {
           name: `${browser}#${++_instanceCount}`,
           async stop() {
             abortController.abort();
-            await inner.shutdown();
+            await shutdown(browser, inner);
           }
         });
         logger.debug({ source: browser, message: 'setup', data: settings });
@@ -43,8 +57,7 @@ export const BrowserFactory = {
           logger.fatal({
             source: browser,
             message: 'setup failed',
-            error,
-            data: { factory: configuration, settings }
+            error
           });
           throw error; // unreachable: logger.fatal throws
         }
@@ -54,33 +67,21 @@ export const BrowserFactory = {
         logger.debug({ source: browser, message: 'newWindow', pageId, data: settings });
         try {
           const innerWindow = await inner.newWindow(settings);
-          logger.debug({ source: browser, message: 'newWindow completed', pageId, data: settings });
+          logger.debug({ source: browser, message: 'newWindow completed', pageId });
           return wrapWindow(innerWindow, browser, pageId);
         } catch (error) {
           logger.fatal({
             source: browser,
             message: 'newWindow failed',
-            error,
-            data: { factory: configuration, settings }
+            error
           });
           throw error; // unreachable: logger.fatal throws
         }
       },
       async shutdown() {
-        logger.debug({ source: browser, message: 'shutdown' });
-        try {
-          await inner.shutdown();
-          logger.debug({ source: browser, message: 'shutdown completed' });
-        } catch (error) {
-          logger.warn({
-            source: browser,
-            message: 'shutdown failed',
-            error
-          });
-        } finally {
-          task?.[Symbol.dispose]();
-        }
-    }
+        await shutdown(browser, inner);
+        task?.[Symbol.dispose]();
+      }
     };
   }
 };
@@ -90,10 +91,10 @@ const wrapWindow = (innerWindow: IWindow, source: Browser, pageId: number): IWin
     logger.debug({ source, message: 'eval', pageId, data: { script } });
     try {
       const result = await innerWindow.eval(script);
-      logger.debug({ source, message: 'eval completed', pageId, data: { script } });
+      logger.debug({ source, message: 'eval completed', pageId, data: { result } });
       return result;
     } catch (error) {
-      logger.error({ source, message: 'eval failed', pageId, error, data: { script } });
+      logger.error({ source, message: 'eval failed', pageId, error });
       throw error;
     }
   },
@@ -108,12 +109,12 @@ const wrapWindow = (innerWindow: IWindow, source: Browser, pageId: number): IWin
     }
   },
   async close() {
-    logger.debug({ source, message: 'window closing', pageId });
+    logger.debug({ source, message: 'window close', pageId });
     try {
       await innerWindow.close();
+      logger.debug({ source, message: 'window closed', pageId });
     } catch (error) {
-      logger.error({ source, message: 'page.close failed', error });
+      logger.error({ source, message: 'window close failed', error });
     }
-    logger.debug({ source, message: 'window closed', pageId });
   }
 });

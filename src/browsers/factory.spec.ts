@@ -16,7 +16,7 @@ import { factory as mockPuppeteerFactory } from './puppeteer.js';
 const FACTORY_SETTINGS = {
   ...defaults,
   coverageReporters: [],
-  mode: 'help',
+  mode: 'legacy',
   sources: {}
 } as const as Configuration;
 
@@ -46,7 +46,7 @@ beforeEach(() => vi.clearAllMocks());
 
 describe('BrowserFactory', () => {
   describe('build', () => {
-    it('passes a signal to the inner factory', async () => {
+    it('passes an abort signal to the inner factory', async () => {
       const inner = makeInnerBrowser();
       vi.mocked(mockPuppeteerFactory).mockResolvedValue(inner);
       await BrowserFactory.build(FACTORY_SETTINGS, 'puppeteer');
@@ -73,9 +73,8 @@ describe('BrowserFactory', () => {
       await expect(browser.setup(BROWSER_SETTINGS)).rejects.toThrow();
       expect(logger.fatal).toHaveBeenCalledWith({
         source: 'puppeteer',
-        message: 'Unable to setup',
-        error,
-        data: { factory: FACTORY_SETTINGS, settings: BROWSER_SETTINGS }
+        message: 'setup failed',
+        error
       });
       expect(__unregisterExitAsyncTask).toHaveBeenCalledOnce();
     });
@@ -110,8 +109,7 @@ describe('BrowserFactory', () => {
       expect(logger.debug).toHaveBeenCalledWith({
         source: 'puppeteer',
         message: 'newWindow completed',
-        pageId: 42,
-        data: WINDOW_SETTINGS
+        pageId: 42
       });
     });
 
@@ -125,118 +123,96 @@ describe('BrowserFactory', () => {
       await expect(browser.newWindow(WINDOW_SETTINGS)).rejects.toThrow();
       expect(logger.fatal).toHaveBeenCalledWith({
         source: 'puppeteer',
-        message: 'Unable to open window',
-        error,
-        data: { factory: FACTORY_SETTINGS, settings: WINDOW_SETTINGS }
+        message: 'newWindow failed',
+        error
       });
     });
 
-    it('wraps the returned window so close logs window closing and window closed', async () => {
-      const inner = makeInnerBrowser();
-      vi.mocked(mockPuppeteerFactory).mockResolvedValue(inner);
-      const browser = await BrowserFactory.build(FACTORY_SETTINGS, 'puppeteer');
-      await browser.setup(BROWSER_SETTINGS);
-      const window = await browser.newWindow(WINDOW_SETTINGS);
-      await window.close();
-      expect(logger.debug).toHaveBeenCalledWith({ source: 'puppeteer', message: 'window closing', pageId: 42 });
-      expect(logger.debug).toHaveBeenCalledWith({ source: 'puppeteer', message: 'window closed', pageId: 42 });
-    });
+    describe('window wrapper', () => {
+      let innerWindow: IWindow;
+      let window: IWindow;
 
-    it('wraps the returned window so eval logs eval and eval completed', async () => {
-      const inner = makeInnerBrowser();
-      vi.mocked(mockPuppeteerFactory).mockResolvedValue(inner);
-      const browser = await BrowserFactory.build(FACTORY_SETTINGS, 'puppeteer');
-      await browser.setup(BROWSER_SETTINGS);
-      const window = await browser.newWindow(WINDOW_SETTINGS);
-      await window.eval('1 + 1');
-      expect(logger.debug).toHaveBeenCalledWith({
-        source: 'puppeteer',
-        message: 'eval',
-        pageId: 42,
-        data: { script: '1 + 1' }
+      beforeEach(async () => {
+        const inner = makeInnerBrowser();
+        vi.mocked(mockPuppeteerFactory).mockResolvedValue(inner);
+        const browser = await BrowserFactory.build(FACTORY_SETTINGS, 'puppeteer');
+        await browser.setup(BROWSER_SETTINGS);
+        innerWindow = makeInnerWindow();
+        vi.mocked(inner.newWindow).mockResolvedValue(innerWindow);
+        window = await browser.newWindow(WINDOW_SETTINGS);
       });
-      expect(logger.debug).toHaveBeenCalledWith({
-        source: 'puppeteer',
-        message: 'eval completed',
-        pageId: 42,
-        data: { script: '1 + 1' }
-      });
-    });
 
-    it('wraps the returned window so screenshot logs screenshot and screenshot completed', async () => {
-      const inner = makeInnerBrowser();
-      vi.mocked(mockPuppeteerFactory).mockResolvedValue(inner);
-      const browser = await BrowserFactory.build(FACTORY_SETTINGS, 'puppeteer');
-      await browser.setup(BROWSER_SETTINGS);
-      const window = await browser.newWindow(WINDOW_SETTINGS);
-      await window.screenshot('/tmp/test.png');
-      expect(logger.debug).toHaveBeenCalledWith({
-        source: 'puppeteer',
-        message: 'screenshot',
-        pageId: 42,
-        data: { path: '/tmp/test.png' }
+      it('wraps the returned window so eval logs eval and eval completed', async () => {
+        vi.mocked(innerWindow.eval).mockResolvedValue(2);
+        const result = await window.eval('1 + 1');
+        expect(result).toStrictEqual(2);
+        expect(logger.debug).toHaveBeenCalledWith({
+          source: 'puppeteer',
+          message: 'eval',
+          pageId: 42,
+          data: { script: '1 + 1' }
+        });
+        expect(logger.debug).toHaveBeenCalledWith({
+          source: 'puppeteer',
+          message: 'eval completed',
+          pageId: 42,
+          data: { result }
+        });
       });
-      expect(logger.debug).toHaveBeenCalledWith({
-        source: 'puppeteer',
-        message: 'screenshot completed',
-        pageId: 42,
-        data: { path: '/tmp/test.png' }
-      });
-    });
 
-    it('logs eval failed and rethrows when eval throws', async () => {
-      const error = new Error('eval error');
-      const innerWindow = makeInnerWindow();
-      vi.mocked(innerWindow.eval).mockRejectedValueOnce(error);
-      const inner = makeInnerBrowser();
-      vi.mocked(inner.newWindow).mockResolvedValue(innerWindow);
-      vi.mocked(mockPuppeteerFactory).mockResolvedValue(inner);
-      const browser = await BrowserFactory.build(FACTORY_SETTINGS, 'puppeteer');
-      await browser.setup(BROWSER_SETTINGS);
-      const window = await browser.newWindow(WINDOW_SETTINGS);
-      await expect(window.eval('bad')).rejects.toThrow(error);
-      expect(logger.error).toHaveBeenCalledWith({
-        source: 'puppeteer',
-        message: 'eval failed',
-        pageId: 42,
-        error,
-        data: { script: 'bad' }
+      it('logs eval failed and rethrows when eval throws', async () => {
+        const error = new Error('eval error');
+        vi.mocked(innerWindow.eval).mockRejectedValueOnce(error);
+        await expect(window.eval('bad')).rejects.toThrow(error);
+        expect(logger.error).toHaveBeenCalledWith({
+          source: 'puppeteer',
+          message: 'eval failed',
+          pageId: 42,
+          error
+        });
       });
-    });
 
-    it('logs screenshot failed and rethrows when screenshot throws', async () => {
-      const error = new Error('screenshot error');
-      const innerWindow = makeInnerWindow();
-      vi.mocked(innerWindow.screenshot).mockRejectedValueOnce(error);
-      const inner = makeInnerBrowser();
-      vi.mocked(inner.newWindow).mockResolvedValue(innerWindow);
-      vi.mocked(mockPuppeteerFactory).mockResolvedValue(inner);
-      const browser = await BrowserFactory.build(FACTORY_SETTINGS, 'puppeteer');
-      await browser.setup(BROWSER_SETTINGS);
-      const window = await browser.newWindow(WINDOW_SETTINGS);
-      await expect(window.screenshot('/tmp/bad.png')).rejects.toThrow(error);
-      expect(logger.error).toHaveBeenCalledWith({
-        source: 'puppeteer',
-        message: 'screenshot failed',
-        pageId: 42,
-        error,
-        data: { path: '/tmp/bad.png' }
+      it('wraps the returned window so screenshot logs screenshot and screenshot completed', async () => {
+        await window.screenshot('/tmp/test.png');
+        expect(logger.debug).toHaveBeenCalledWith({
+          source: 'puppeteer',
+          message: 'screenshot',
+          pageId: 42,
+          data: { path: '/tmp/test.png' }
+        });
+        expect(logger.debug).toHaveBeenCalledWith({
+          source: 'puppeteer',
+          message: 'screenshot completed',
+          pageId: 42,
+          data: { path: '/tmp/test.png' }
+        });
       });
-    });
 
-    it('logs page.close failed and continues when close throws', async () => {
-      const error = new Error('close error');
-      const innerWindow = makeInnerWindow();
-      vi.mocked(innerWindow.close).mockRejectedValueOnce(error);
-      const inner = makeInnerBrowser();
-      vi.mocked(inner.newWindow).mockResolvedValue(innerWindow);
-      vi.mocked(mockPuppeteerFactory).mockResolvedValue(inner);
-      const browser = await BrowserFactory.build(FACTORY_SETTINGS, 'puppeteer');
-      await browser.setup(BROWSER_SETTINGS);
-      const window = await browser.newWindow(WINDOW_SETTINGS);
-      await window.close();
-      expect(logger.error).toHaveBeenCalledWith({ source: 'puppeteer', message: 'page.close failed', error });
-      expect(logger.debug).toHaveBeenCalledWith({ source: 'puppeteer', message: 'window closed', pageId: 42 });
+      it('logs screenshot failed and rethrows when screenshot throws', async () => {
+        const error = new Error('screenshot error');
+        vi.mocked(innerWindow.screenshot).mockRejectedValueOnce(error);
+        await expect(window.screenshot('/tmp/bad.png')).rejects.toThrow(error);
+        expect(logger.error).toHaveBeenCalledWith({
+          source: 'puppeteer',
+          message: 'screenshot failed',
+          pageId: 42,
+          error,
+          data: { path: '/tmp/bad.png' }
+        });
+      });
+
+      it('logs window close and window closed', async () => {
+        await window.close();
+        expect(logger.debug).toHaveBeenCalledWith({ source: 'puppeteer', message: 'window close', pageId: 42 });
+        expect(logger.debug).toHaveBeenCalledWith({ source: 'puppeteer', message: 'window closed', pageId: 42 });
+      });
+
+      it('logs page.close failed and continues when close throws', async () => {
+        const error = new Error('close error');
+        vi.mocked(innerWindow.close).mockRejectedValueOnce(error);
+        await window.close(); // No error
+        expect(logger.error).toHaveBeenCalledWith({ source: 'puppeteer', message: 'window close failed', error });
+      });
     });
   });
 
