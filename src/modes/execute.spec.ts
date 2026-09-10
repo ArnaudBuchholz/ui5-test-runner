@@ -13,7 +13,7 @@ const HELP_CONFIGURATION = { mode: Modes.help } as unknown as Configuration;
 beforeEach(() => {
   vi.clearAllMocks();
   vi.mocked(Exit.shutdown).mockResolvedValue(undefined);
-  vi.mocked(help).mockReturnValue(undefined);
+  vi.mocked(help).mockResolvedValue(undefined);
 });
 
 it('calls the mode function and then shuts down', async () => {
