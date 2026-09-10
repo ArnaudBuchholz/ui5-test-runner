@@ -1,4 +1,4 @@
-import { logger, Exit, Process, assert } from '../platform/index.js';
+import { logger, Process, assert } from '../platform/index.js';
 import type { BrowserCapabilities, BrowserSettings, IBrowser } from './IBrowser.js';
 import type { BrowserType, Browser, Page, ConsoleMessage } from 'playwright';
 import { Npm } from '../Npm.js';
@@ -7,19 +7,10 @@ import { agentLogPrefix } from '../types/AgentState.js';
 import type { LogSource } from '../platform/logger/types.js';
 import type { Configuration } from '../configuration/Configuration.js';
 
-export const factory = async (configuration: Configuration): Promise<IBrowser> => {
+export const factory = async (configuration: Configuration, signal: AbortSignal): Promise<IBrowser> => {
   const playwright = await Npm.import(configuration, 'playwright');
   const { chromium } = playwright as { chromium: BrowserType };
   let browser: Browser | undefined;
-  const abortController = new AbortController();
-  const { signal } = abortController;
-  const task = Exit.registerAsyncTask({
-    name: 'playwright',
-    async stop() {
-      abortController.abort();
-      await browser?.close();
-    }
-  });
   let openedPages = 0;
 
   const launchAndInstallIfNeeded = async (settings: BrowserSettings): Promise<BrowserCapabilities> => {
@@ -53,7 +44,6 @@ export const factory = async (configuration: Configuration): Promise<IBrowser> =
         throw error;
       }
     }
-    logger.debug({ source: 'playwright', message: 'setup completed' });
     return {
       screenshotFormat: '.png',
       browserName: browser.browserType().name(),
@@ -63,18 +53,10 @@ export const factory = async (configuration: Configuration): Promise<IBrowser> =
 
   return {
     async setup(settings) {
-      logger.debug({ source: 'playwright', message: 'setup', data: settings });
-      try {
-        return await launchAndInstallIfNeeded(settings);
-      } catch (error) {
-        logger.error({ source: 'playwright', message: 'setup failed', error });
-        task[Symbol.dispose]();
-        throw error;
-      }
+      return await launchAndInstallIfNeeded(settings);
     },
 
     async newWindow(settings) {
-      logger.debug({ source: 'playwright', message: 'newWindow', data: settings });
       let page: Page | undefined;
       if (++openedPages === 1) {
         const pages = browser?.contexts()[0]?.pages();
@@ -133,7 +115,6 @@ export const factory = async (configuration: Configuration): Promise<IBrowser> =
           });
         });
       await page.goto(settings.url);
-      logger.debug({ source: 'playwright', message: 'newWindow completed', data: settings });
       return {
         async eval(script: string) {
           return await page?.evaluate(script);
@@ -142,11 +123,7 @@ export const factory = async (configuration: Configuration): Promise<IBrowser> =
           await page.screenshot({ path });
         },
         async close() {
-          try {
-            await page.close();
-          } catch (error) {
-            logger.error({ source: 'playwright', message: 'page.close failed', error });
-          }
+          await page.close();
         }
       };
     },
@@ -158,7 +135,6 @@ export const factory = async (configuration: Configuration): Promise<IBrowser> =
       } catch (error) {
         logger.error({ source: 'playwright', message: 'browser.close failed', error });
       }
-      task[Symbol.dispose]();
     }
   };
 };

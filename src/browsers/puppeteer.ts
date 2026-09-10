@@ -1,11 +1,11 @@
-import { logger, Exit, Process } from '../platform/index.js';
+import { logger, Process } from '../platform/index.js';
 import type { BrowserCapabilities, BrowserSettings, IBrowser } from './IBrowser.js';
 import type { launch as launchFunction, Browser, Page } from 'puppeteer';
 import { Npm } from '../Npm.js';
 import type { Configuration } from '../configuration/Configuration.js';
 import { handleConsoleMessage } from './consoleMessage.js';
 
-export const factory = async (configuration: Configuration): Promise<IBrowser> => {
+export const factory = async (configuration: Configuration, signal: AbortSignal): Promise<IBrowser> => {
   let launch: typeof launchFunction;
   try {
     const puppeteer = await Npm.import(configuration, 'puppeteer');
@@ -14,15 +14,6 @@ export const factory = async (configuration: Configuration): Promise<IBrowser> =
     logger.fatal({ source: 'puppeteer', message: 'Unable to initialize', error, data: configuration });
   }
   let browser: Browser | undefined;
-  const abortController = new AbortController();
-  const { signal } = abortController;
-  const task = Exit.registerAsyncTask({
-    name: 'puppeteer',
-    async stop() {
-      abortController.abort();
-      await browser?.close();
-    }
-  });
   let openedPages = 0;
 
   const launchAndInstallIfNeeded = async (settings: BrowserSettings): Promise<BrowserCapabilities> => {
@@ -63,7 +54,6 @@ export const factory = async (configuration: Configuration): Promise<IBrowser> =
         throw error;
       }
     }
-    logger.debug({ source: 'puppeteer', message: 'setup completed' });
     return {
       screenshotFormat: '.png',
       browserName: 'chrome',
@@ -73,26 +63,11 @@ export const factory = async (configuration: Configuration): Promise<IBrowser> =
 
   return {
     async setup(settings) {
-      logger.debug({ source: 'puppeteer', message: 'setup', data: settings });
-      try {
-        const capabilities = await launchAndInstallIfNeeded(settings);
-        logger.debug({ source: 'puppeteer', message: 'setup completed', data: capabilities });
-        return capabilities;
-      } catch (error) {
-        task[Symbol.dispose]();
-        logger.fatal({
-          source: 'puppeteer',
-          message: 'Unable to setup',
-          error,
-          data: { factory: configuration, settings }
-        });
-        throw error;
-      }
+      return await launchAndInstallIfNeeded(settings);
     },
 
     async newWindow(settings) {
       const { pageId } = settings;
-      logger.debug({ source: 'puppeteer', message: 'newWindow', pageId, data: settings });
       let page: Page | undefined;
       if (++openedPages === 1) {
         const pages = await browser?.pages(true);
@@ -131,7 +106,6 @@ export const factory = async (configuration: Configuration): Promise<IBrowser> =
           });
         });
       await page?.goto(settings.url);
-      logger.debug({ source: 'puppeteer', message: 'newWindow completed', pageId, data: settings });
       return {
         async eval(script: string) {
           return await page?.evaluate(script);
@@ -140,12 +114,7 @@ export const factory = async (configuration: Configuration): Promise<IBrowser> =
           await page?.screenshot({ path });
         },
         async close() {
-          try {
-            await page?.close();
-            logger.debug({ source: 'puppeteer', message: 'window closed', pageId });
-          } catch (error) {
-            logger.error({ source: 'puppeteer', message: 'page.close failed', error });
-          }
+          await page?.close();
         }
       };
     },
@@ -158,7 +127,6 @@ export const factory = async (configuration: Configuration): Promise<IBrowser> =
         logger.error({ source: 'puppeteer', message: 'browser.close failed', error });
       }
       // TODO close any remaining pages
-      task[Symbol.dispose]();
     }
   };
 };
