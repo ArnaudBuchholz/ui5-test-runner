@@ -115,12 +115,11 @@ export const testBrowser = ({ name, failedSetupTestCases }: TTestBrowserArgument
             url: BASE_URL
           });
           await window.close();
+          expect(logger.debug).toHaveBeenCalledWith({ source: name, message: 'window closing', pageId: 0 });
           expect(logger.debug).toHaveBeenCalledWith({ source: name, message: 'window closed', pageId: 0 });
         });
 
         it.skip('supports multiple windows');
-        it.skip('registers an async task');
-        it.skip('stops the browser on shutdown');
 
         describe('console', () => {
           it('captures console.log as info', async () => {
@@ -316,6 +315,18 @@ export const testBrowser = ({ name, failedSetupTestCases }: TTestBrowserArgument
             const value = await window.eval(`document.querySelector('h1').innerText`);
             expect(value).toStrictEqual('Hello World !');
           });
+          expect(logger.debug).toHaveBeenCalledWith({
+            source: name,
+            message: 'eval',
+            pageId: 0,
+            data: { script: `document.querySelector('h1').innerText` }
+          });
+          expect(logger.debug).toHaveBeenCalledWith({
+            source: name,
+            message: 'eval completed',
+            pageId: 0,
+            data: { script: `document.querySelector('h1').innerText` }
+          });
         });
 
         it('enables screenshots', async () => {
@@ -328,6 +339,18 @@ export const testBrowser = ({ name, failedSetupTestCases }: TTestBrowserArgument
           await window.screenshot(path);
           const pathStat = await stat(path);
           expect(pathStat.size).toBeGreaterThan(0);
+          expect(logger.debug).toHaveBeenCalledWith({
+            source: name,
+            message: 'screenshot',
+            pageId: 0,
+            data: { path }
+          });
+          expect(logger.debug).toHaveBeenCalledWith({
+            source: name,
+            message: 'screenshot completed',
+            pageId: 0,
+            data: { path }
+          });
         });
       });
     });
