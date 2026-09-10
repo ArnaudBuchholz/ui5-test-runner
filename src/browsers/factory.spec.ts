@@ -52,6 +52,21 @@ describe('BrowserFactory', () => {
       await BrowserFactory.build(FACTORY_SETTINGS, 'puppeteer');
       expect(mockPuppeteerFactory).toHaveBeenCalledWith(FACTORY_SETTINGS, expect.any(AbortSignal) as AbortSignal);
     });
+
+    it('logs fatal and rethrows when the inner factory rejects', async () => {
+      const error = new Error('factory init failed');
+      vi.mocked(mockPuppeteerFactory).mockRejectedValueOnce(error);
+      await expect(BrowserFactory.build(FACTORY_SETTINGS, 'puppeteer')).rejects.toThrow();
+      expect(logger.fatal).toHaveBeenCalledWith({ source: 'puppeteer', message: 'build failed', error });
+    });
+
+    it('logs build and build completed', async () => {
+      const inner = makeInnerBrowser();
+      vi.mocked(mockPuppeteerFactory).mockResolvedValue(inner);
+      await BrowserFactory.build(FACTORY_SETTINGS, 'puppeteer');
+      expect(logger.debug).toHaveBeenCalledWith({ source: 'puppeteer', message: 'build' });
+      expect(logger.debug).toHaveBeenCalledWith({ source: 'puppeteer', message: 'build completed' });
+    });
   });
 
   describe('setup', () => {
@@ -225,6 +240,17 @@ describe('BrowserFactory', () => {
       await browser.shutdown();
       expect(inner.shutdown).toHaveBeenCalledOnce();
       expect(__unregisterExitAsyncTask).toHaveBeenCalledOnce();
+    });
+
+    it('logs warn and continues when inner shutdown fails', async () => {
+      const error = new Error('shutdown failed');
+      const inner = makeInnerBrowser();
+      vi.mocked(inner.shutdown).mockRejectedValueOnce(error);
+      vi.mocked(mockPuppeteerFactory).mockResolvedValue(inner);
+      const browser = await BrowserFactory.build(FACTORY_SETTINGS, 'puppeteer');
+      await browser.setup(BROWSER_SETTINGS);
+      await browser.shutdown(); // no throw
+      expect(logger.warn).toHaveBeenCalledWith({ source: 'puppeteer', message: 'shutdown failed', error });
     });
 
     it('aborts the signal and calls inner shutdown when Exit fires stop', async () => {
