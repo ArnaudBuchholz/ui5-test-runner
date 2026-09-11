@@ -308,17 +308,20 @@ it('sets message to "No error log" when a failed test has only passing log entri
 
 it('delays done and then completes when QUnit fires with no tests recorded', async () => {
   vi.useFakeTimers({ shouldAdvanceTime: true });
-  vi.mocked(getConfig).mockReturnValue({ ...DEFAULT_CONFIG, agentNoTestsTimeout: 100 });
+  try {
+    vi.mocked(getConfig).mockReturnValue({ ...DEFAULT_CONFIG, agentNoTestsTimeout: 100 });
 
-  qunit();
+    qunit();
 
-  // Directly invoke the registered QUnit.done callback with 0 tests
-  qunitCallbacks().done.at(-1)!({ passed: 0, failed: 0, total: 0, runtime: 0 });
+    // Directly invoke the registered QUnit.done callback with 0 tests
+    qunitCallbacks().done.at(-1)!({ passed: 0, failed: 0, total: 0, runtime: 0 });
 
-  expect(state.done).toBe(false);
-  await vi.advanceTimersByTimeAsync(100);
-  expect(state.done).toBe(true);
-  vi.useRealTimers();
+    expect(state.done).toBe(false);
+    await vi.advanceTimersByTimeAsync(100);
+    expect(state.done).toBe(true);
+  } finally {
+    vi.useRealTimers();
+  }
 });
 
 it('updates total in moduleStart when new tests are added dynamically', () => {

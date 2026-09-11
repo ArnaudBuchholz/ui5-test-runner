@@ -46,7 +46,7 @@ const isSuiteDone = () => state.done && state.type === 'suite';
 const countTotalTests = () => {
   const { modules } = QUnit.config as QUnitConfigWithModules;
   const moduleId = new URL(window.location.href).searchParams.get('moduleId');
-  if (moduleId) {
+  if (moduleId !== null) {
     return modules.find((m) => m.moduleId === moduleId)?.tests.length ?? 0;
   }
   let total = 0;
