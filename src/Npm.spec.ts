@@ -556,3 +556,17 @@ describe('import', () => {
     ).rejects.toThrow(ExitShutdownError);
   });
 });
+
+describe('getCliPath', () => {
+  it('returns the resolved npm-cli.js path', async () => {
+    const path = await Npm.getCliPath();
+    expect(path).toBe('/usr/local/lib/node_modules/npm/bin/npm-cli.js');
+  });
+});
+
+describe('dynamicImport', () => {
+  it('resolves a real module specifier', async () => {
+    const module_ = await Npm['dynamicImport']('node:path');
+    expect(module_).toBeDefined();
+  });
+});
