@@ -10,7 +10,9 @@ import { __sourcesRoot, Path } from '../platform/index.js';
 
 const mockNpmImport = vi.spyOn(Npm, 'import');
 
-let server: Server;
+const BROWSERS_TEST = process.env['BROWSERS_TEST'] ?? '';
+
+let server: Server | undefined;
 let closedPages: number[] = [];
 
 beforeAll(async () => {
@@ -139,43 +141,70 @@ beforeAll(async () => {
   const { promise, resolve } = Promise.withResolvers<void>();
   server.on('ready', ({ port }) => {
     process.env['BROWSERS_SERVER_URL'] = `http://localhost:${port}/`;
-    resolve();
+    if (BROWSERS_TEST === 'SERVER_ONLY') {
+      // Block forever — the server stays up for BROWSER_ONLY runs
+      console.log(process.env['BROWSERS_SERVER_URL']);
+    } else {
+      resolve();
+    }
   });
   return promise;
-});
+}, 0);
 
-afterAll(() => server.close());
+afterAll(() => server?.close());
 
-testBrowser({
-  name: 'puppeteer',
-  failedSetupTestCases: [
-    {
-      label: 'launch fails',
-      setup: () => {
-        mockNpmImport.mockResolvedValueOnce({
-          launch() {
-            throw new Error('Failed');
-          }
-        });
-      }
-    }
-  ]
-});
-
-testBrowser({
-  name: 'playwright',
-  failedSetupTestCases: [
-    {
-      label: 'launch fails',
-      setup: () => {
-        mockNpmImport.mockResolvedValueOnce({
-          chromium: {
+if (BROWSERS_TEST === 'puppeteer' || BROWSERS_TEST === '') {
+  testBrowser({
+    name: 'puppeteer',
+    failedSetupTestCases: [
+      {
+        label: 'launch fails',
+        setup: () => {
+          mockNpmImport.mockResolvedValueOnce({
             launch() {
               throw new Error('Failed');
             }
-          }
-        });
+          });
+        }
       }
-    }
-  ]
-});
+    ]
+  });
+}
+
+if (BROWSERS_TEST === 'playwright' || BROWSERS_TEST === '') {
+  testBrowser({
+    name: 'playwright',
+    failedSetupTestCases: [
+      {
+        label: 'launch fails',
+        setup: () => {
+          mockNpmImport.mockResolvedValueOnce({
+            chromium: {
+              launch() {
+                throw new Error('Failed');
+              }
+            }
+          });
+        }
+      }
+    ]
+  });
+}
+
+if (BROWSERS_TEST === 'webdriverio' || BROWSERS_TEST === '') {
+  testBrowser({
+    name: 'webdriverio',
+    failedSetupTestCases: [
+      {
+        label: 'launch fails',
+        setup: () => {
+          mockNpmImport.mockResolvedValueOnce({
+            async remote() {
+              throw new Error('Failed');
+            }
+          });
+        }
+      }
+    ]
+  });
+}
