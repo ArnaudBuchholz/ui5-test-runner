@@ -199,8 +199,45 @@ if (BROWSERS_TEST === 'webdriverio' || BROWSERS_TEST === '') {
         label: 'launch fails',
         setup: () => {
           mockNpmImport.mockResolvedValueOnce({
-            async remote() {
-              throw new Error('Failed');
+            remote() {
+              return Promise.reject(new Error('Failed'));
+            }
+          });
+        }
+      }
+    ]
+  });
+}
+
+if (BROWSERS_TEST === 'selenium-webdriver' || BROWSERS_TEST === '') {
+  testBrowser({
+    name: 'selenium-webdriver',
+    failedSetupTestCases: [
+      {
+        label: 'launch fails',
+        setup: () => {
+          mockNpmImport.mockResolvedValueOnce({
+            Builder: class {
+              forBrowser() {
+                return this;
+              }
+              setChromeOptions() {
+                return this;
+              }
+              build() {
+                throw new Error('Failed');
+              }
+            },
+            Browser: { CHROME: 'chrome' }
+          });
+          mockNpmImport.mockResolvedValueOnce({
+            Options: class {
+              addArguments() {
+                return this;
+              }
+              enableBidi() {
+                return this;
+              }
             }
           });
         }

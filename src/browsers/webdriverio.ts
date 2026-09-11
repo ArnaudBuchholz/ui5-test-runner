@@ -55,30 +55,31 @@ export const factory = async (configuration: Configuration): Promise<IBrowser> =
         }
       });
       browser.on('log.entryAdded', (entry) => {
-        const e = entry as { type?: string; method?: string; text?: string | null; source?: { context?: string } };
-        if (e.type === 'console') {
-          const pageId = (e.source?.context !== undefined ? contextToPageId.get(e.source.context) : undefined) ?? -1;
-          handleConsoleMessage(e.method ?? 'log', e.text ?? '', pageId);
+        const event = entry as { type?: string; method?: string; text?: string | null; source?: { context?: string } };
+        if (event.type === 'console') {
+          const pageId =
+            (event.source?.context === undefined ? undefined : contextToPageId.get(event.source.context)) ?? -1;
+          handleConsoleMessage(event.method ?? 'log', event.text ?? '', pageId);
         }
       });
       await browser.sessionSubscribe({ events: ['network.responseStarted'] });
-      browser.on('network.responseStarted', (event) => {
-        const e = event as {
+      browser.on('network.responseStarted', (entry) => {
+        const event = entry as {
           context: string | null;
           request: { url: string; method: string; headers: WdioHeader[] };
           response: { status: number; headers: WdioHeader[] };
         };
-        const pageId = (e.context !== null ? contextToPageId.get(e.context) : undefined) ?? -1;
-        const statusType = Math.floor(e.response.status / 100);
+        const pageId = (event.context === null ? undefined : contextToPageId.get(event.context)) ?? -1;
+        const statusType = Math.floor(event.response.status / 100);
         const LOG_TYPES = [null, null, null, null, 'warn', 'error'] as const;
         const logType = LOG_TYPES[statusType] ?? 'info';
         logger[logType]({
           source: 'browser/network',
-          message: e.request.url,
+          message: event.request.url,
           pageId,
           data: {
-            request: { method: e.request.method, headers: headersToObject(e.request.headers) },
-            response: { status: e.response.status, headers: headersToObject(e.response.headers) }
+            request: { method: event.request.method, headers: headersToObject(event.request.headers) },
+            response: { status: event.response.status, headers: headersToObject(event.response.headers) }
           }
         });
       });
@@ -121,8 +122,8 @@ export const factory = async (configuration: Configuration): Promise<IBrowser> =
         }
         await browser!.browsingContextNavigate({ context, url, wait: 'interactive' });
         const handles = await browser!.getWindowHandles();
-        const prevHandles = new Set(openHandles);
-        handle = handles.find((h) => !prevHandles.has(h)) ?? context;
+        const previousHandles = new Set(openHandles);
+        handle = handles.find((h) => !previousHandles.has(h)) ?? context;
         openHandles.add(handle);
       }
 
@@ -146,9 +147,13 @@ export const factory = async (configuration: Configuration): Promise<IBrowser> =
 
     async shutdown() {
       await Promise.all(
-        [...contextToPageId.keys()].map((context) =>
-          browser!.browsingContextClose({ context }).catch(() => undefined)
-        )
+        contextToPageId.keys().map(async (context) => {
+          try {
+            await browser!.browsingContextClose({ context });
+          } catch {
+            // ignore
+          }
+        })
       );
       await new Promise((resolve) => setTimeout(resolve, 200));
       await browser?.deleteSession();

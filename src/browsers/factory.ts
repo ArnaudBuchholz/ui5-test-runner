@@ -3,19 +3,16 @@ import type { IBrowser, IWindow } from './IBrowser.js';
 import { factory as puppeteerFactory } from './puppeteer.js';
 import { factory as playwrightFactory } from './playwright.js';
 import { factory as webdriverioFactory } from './webdriverio.js';
-import { assert, Exit, logger } from '../platform/index.js';
+import { factory as seleniumWebdriverFactory } from './seleniumWebdriver.js';
+import { Exit, logger } from '../platform/index.js';
 
 export type Browser = 'puppeteer' | 'playwright' | 'webdriverio' | 'selenium-webdriver';
-
-const notImplemented = () => {
-  assert(false, 'Not implemented');
-};
 
 const factories: { [key in Browser]: (configuration: Configuration, signal: AbortSignal) => Promise<IBrowser> } = {
   puppeteer: puppeteerFactory,
   playwright: playwrightFactory,
   webdriverio: webdriverioFactory,
-  'selenium-webdriver': notImplemented
+  'selenium-webdriver': seleniumWebdriverFactory
 };
 
 let _instanceCount = 0;
