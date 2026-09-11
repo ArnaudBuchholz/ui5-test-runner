@@ -1,5 +1,7 @@
 // inspired from ui5/resources/sap/ui/qunit/qunit-coverage-istanbul-dbg.js
 
+export {};
+
 function appendUrlParameter(url: string) {
   const urlObject = new URL(url, document.baseURI);
   urlObject.searchParams.set('instrument', 'true');
