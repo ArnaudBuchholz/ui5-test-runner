@@ -110,7 +110,15 @@ export const factory = async (configuration: Configuration, signal: AbortSignal)
     },
 
     async shutdown() {
-      await Promise.all([...pages].map((page) => page.goto('about:blank').catch(() => undefined)));
+      await Promise.all(
+        pages.values().map(async (page) => {
+          try {
+            await page.goto('about:blank');
+          } catch {
+            /* ignore */
+          }
+        })
+      );
       await browser?.close();
     }
   };
