@@ -10,7 +10,10 @@ import { sendToParentProcess } from './sendToParentProcess.js';
 try {
   const { name: cliName } = await version();
   const indexOfCli = Host.argv.findIndex((value) => /[\\/]cli(\.[tj]s)?$/.exec(value) || value.endsWith(cliName));
-  const configuration = await CommandLine.buildConfigurationFrom(Host.cwd(), Host.argv.slice(indexOfCli + 1));
+  const configuration = await CommandLine.buildConfigurationFrom(
+    Host.cwd(),
+    indexOfCli === -1 ? [] : Host.argv.slice(indexOfCli + 1)
+  );
   if (await isIfEvaluatedAsTrue(configuration)) {
     await execute(configuration);
   } else {
