@@ -2,6 +2,7 @@ import type { Configuration } from '../configuration/Configuration.js';
 import type { IBrowser, IWindow } from './IBrowser.js';
 import { factory as puppeteerFactory } from './puppeteer.js';
 import { factory as playwrightFactory } from './playwright.js';
+import { factory as webdriverioFactory } from './webdriverio.js';
 import { assert, Exit, logger } from '../platform/index.js';
 
 export type Browser = 'puppeteer' | 'playwright' | 'webdriverio' | 'selenium-webdriver';
@@ -13,7 +14,7 @@ const notImplemented = () => {
 const factories: { [key in Browser]: (configuration: Configuration, signal: AbortSignal) => Promise<IBrowser> } = {
   puppeteer: puppeteerFactory,
   playwright: playwrightFactory,
-  webdriverio: notImplemented,
+  webdriverio: webdriverioFactory,
   'selenium-webdriver': notImplemented
 };
 
