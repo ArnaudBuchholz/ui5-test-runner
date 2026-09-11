@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { Host } from './platform/index.js';
-import { isIfEvaluatedAsTrue } from './if.js';
+import { isIfEvaluatedAsTrue, isImplemented } from './if.js';
 import type { Configuration } from './configuration/Configuration.js';
 
 vi.mock('./platform/mock.js');
@@ -77,5 +77,20 @@ describe('isIfEvaluatedAsTrue()', () => {
       const shouldExecute = await isIfEvaluatedAsTrue(makeConfig('""'));
       expect(shouldExecute).toBe(false);
     });
+  });
+});
+
+describe('isImplemented()', () => {
+  it('returns true for a known option name', () => {
+    expect(isImplemented('cwd')).toBe(true);
+  });
+
+  it('returns false for an unknown option name', () => {
+    expect(isImplemented('not-a-real-option')).toBe(false);
+  });
+
+  it('is accessible via the implemented context variable in --if expressions', async () => {
+    const shouldExecute = await isIfEvaluatedAsTrue(makeConfig('implemented("cwd") === true'));
+    expect(shouldExecute).toBe(true);
   });
 });
