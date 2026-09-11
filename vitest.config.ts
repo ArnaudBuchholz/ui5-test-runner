@@ -22,7 +22,23 @@ export default defineConfig({
         resolve('test') + '/**',
         resolve('e2e') + '/**',
         // Generated
-        'src/configuration/validations.ts'
+        'src/configuration/validations.ts',
+        // AI-generated UI code — tested but excluded from coverage
+        'src/ui/**',
+        // Type-only files (no runtime code)
+        'src/agent/Configuration.ts',
+        'src/browsers/IBrowser.ts',
+        'src/configuration/Configuration.ts',
+        'src/configuration/Option.ts',
+        'src/configuration/validators/OptionValidator.ts',
+        'src/modes/batch/BatchItem.ts',
+        'src/modes/log/ui/types.ts',
+        'src/modes/ModeFunction.ts',
+        'src/modes/test/PageContext.ts',
+        'src/platform/logger/ILogger.ts',
+        'src/types/IError.ts',
+        'src/types/IUserInterfaceController.ts',
+        'src/types/typeUtilities.ts'
       ]
     },
     projects: [{
