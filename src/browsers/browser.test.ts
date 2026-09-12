@@ -33,7 +33,14 @@ export const testBrowser = ({ name, failedSetupTestCases }: TTestBrowserArgument
   });
 
   describe(name, () => {
-    let browser: IBrowser;
+    const getClosedPages = async (): Promise<number[]> => {
+      const response = await fetch(`${BASE_URL}closed`);
+      return response.json() as Promise<number[]>;
+    };
+
+    const resetClosedPages = async (): Promise<void> => {
+      await fetch(`${BASE_URL}closed`, { method: 'DELETE' });
+    };
 
     if (failedSetupTestCases) {
       describe('setup failures', () => {
@@ -46,7 +53,38 @@ export const testBrowser = ({ name, failedSetupTestCases }: TTestBrowserArgument
       });
     }
 
+    describe('shutdown', () => {
+      let shutdownBrowser: IBrowser;
+
+      beforeEach(async () => {
+        vi.clearAllMocks();
+        await resetClosedPages();
+        shutdownBrowser = await BrowserFactory.build(FACTORY_SETTINGS, name);
+        await shutdownBrowser.setup(BROWSER_SETTINGS);
+        await shutdownBrowser.newWindow({ pageId: 1, scripts: [], url: `${BASE_URL}track-close.html?pageId=1` });
+        await shutdownBrowser.newWindow({ pageId: 2, scripts: [], url: `${BASE_URL}track-close.html?pageId=2` });
+        await shutdownBrowser.newWindow({ pageId: 3, scripts: [], url: `${BASE_URL}track-close.html?pageId=3` });
+      });
+
+      afterEach(() => shutdownBrowser.shutdown());
+
+      afterAll(async () => {
+        const closed = await getClosedPages();
+        expect(closed).toHaveLength(3);
+        expect(closed).toContain(1);
+        expect(closed).toContain(2);
+        expect(closed).toContain(3);
+      });
+
+      // Weird but want to benefit from afterEach that shutdowns browser
+      it('closes all open pages', () => {
+        expect(shutdownBrowser).toBeDefined();
+      });
+    });
+
     describe('setup succeeds', () => {
+      let browser: IBrowser;
+
       beforeAll(async () => {
         vi.clearAllMocks();
         browser = await BrowserFactory.build(FACTORY_SETTINGS, name);
@@ -81,14 +119,18 @@ export const testBrowser = ({ name, failedSetupTestCases }: TTestBrowserArgument
         return { window: w, pageId };
       };
 
-      const getClosedPages = async (): Promise<number[]> => {
-        const response = await fetch(`${BASE_URL}closed`);
-        return response.json() as Promise<number[]>;
-      };
+      it('throws when built twice without shutdown', async () => {
+        await expect(BrowserFactory.build(FACTORY_SETTINGS, name)).rejects.toThrow();
+      });
 
-      const resetClosedPages = async (): Promise<void> => {
-        await fetch(`${BASE_URL}closed`, { method: 'DELETE' });
-      };
+      it('allows building again after shutdown', async () => {
+        await browser.shutdown();
+        const second = await BrowserFactory.build(FACTORY_SETTINGS, name);
+        await second.setup(BROWSER_SETTINGS);
+        await second.shutdown();
+        browser = await BrowserFactory.build(FACTORY_SETTINGS, name);
+        await browser.setup(BROWSER_SETTINGS);
+      });
 
       it('enables creating a window', async () => {
         const { window } = await openWindow({
@@ -100,35 +142,6 @@ export const testBrowser = ({ name, failedSetupTestCases }: TTestBrowserArgument
 
       describe('supports multiple windows', () => {
         beforeEach(() => resetClosedPages());
-
-        describe('shutdown', () => {
-          let shutdownBrowser: IBrowser;
-
-          beforeEach(async () => {
-            vi.clearAllMocks();
-            await resetClosedPages();
-            shutdownBrowser = await BrowserFactory.build(FACTORY_SETTINGS, name);
-            await shutdownBrowser.setup(BROWSER_SETTINGS);
-            await shutdownBrowser.newWindow({ pageId: 1, scripts: [], url: `${BASE_URL}track-close.html?pageId=1` });
-            await shutdownBrowser.newWindow({ pageId: 2, scripts: [], url: `${BASE_URL}track-close.html?pageId=2` });
-            await shutdownBrowser.newWindow({ pageId: 3, scripts: [], url: `${BASE_URL}track-close.html?pageId=3` });
-          });
-
-          afterEach(() => shutdownBrowser.shutdown());
-
-          afterAll(async () => {
-            const closed = await getClosedPages();
-            expect(closed).toHaveLength(3);
-            expect(closed).toContain(1);
-            expect(closed).toContain(2);
-            expect(closed).toContain(3);
-          });
-
-          // Weird but want to benefit from afterEach that shutdowns browser
-          it('closes all open pages', () => {
-            expect(shutdownBrowser).toBeDefined();
-          });
-        });
 
         const runSequence = async (sequence: string) => {
           const windows = new Map<number, IWindow>();
