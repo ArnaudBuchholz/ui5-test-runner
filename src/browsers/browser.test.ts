@@ -40,19 +40,46 @@ export const testBrowser = ({ name, failedSetupTestCases }: TTestBrowserArgument
         for (const { label, setup } of failedSetupTestCases)
           it(`fails with fatal when ${label}`, async () => {
             await setup();
-            const browser = await BrowserFactory.build(FACTORY_SETTINGS, name);
-            await expect(browser.setup(BROWSER_SETTINGS)).rejects.toThrow();
+            const newBrowser = await BrowserFactory.build(FACTORY_SETTINGS, name);
+            await expect(newBrowser.setup(BROWSER_SETTINGS)).rejects.toThrow();
           });
       });
     }
 
     describe('setup succeeds', () => {
-      beforeEach(async () => {
+      beforeAll(async () => {
+        vi.clearAllMocks();
         browser = await BrowserFactory.build(FACTORY_SETTINGS, name);
         await browser.setup(BROWSER_SETTINGS);
+      }, 0);
+
+      afterAll(() => browser.shutdown());
+
+      let testWindows: IWindow[] = [];
+      let nextPageId = 0;
+
+      beforeEach(() => {
+        testWindows = [];
       });
 
-      afterEach(() => browser.shutdown());
+      afterEach(async () => {
+        for (const w of testWindows) {
+          try {
+            await w.close();
+          } catch {
+            // ignore
+          }
+        }
+      });
+
+      const openWindow = async (
+        settings: Omit<Parameters<IBrowser['newWindow']>[0], 'pageId'>
+      ): Promise<{ window: IWindow; pageId: number }> => {
+        const pageId = nextPageId++;
+        const w = await browser.newWindow({ ...settings, pageId });
+        testWindows.push(w);
+        return { window: w, pageId };
+      };
 
       const getClosedPages = async (): Promise<number[]> => {
         const response = await fetch(`${BASE_URL}closed`);
@@ -64,45 +91,30 @@ export const testBrowser = ({ name, failedSetupTestCases }: TTestBrowserArgument
       };
 
       it('enables creating a window', async () => {
-        const settings = {
-          pageId: 0,
+        const { window } = await openWindow({
           scripts: [],
           url: BASE_URL
-        } as const;
-        const window = await browser.newWindow(settings);
+        });
         expect(window).toBeDefined();
       });
 
       describe('supports multiple windows', () => {
-        const openWindow = (pageId: number) =>
-          browser.newWindow({ pageId, scripts: [], url: `${BASE_URL}track-close.html?pageId=${pageId}` });
-
-        const runSequence = async (sequence: string) => {
-          const windows = new Map<number, IWindow>();
-          const expected: number[] = [];
-          for (const token of sequence.split(' ')) {
-            const pageId = Number(token.slice(1));
-            if (token.startsWith('o')) {
-              windows.set(pageId, await openWindow(pageId));
-            } else {
-              const window = windows.get(pageId) as IWindow;
-              await window.close();
-              expected.push(pageId);
-              const snapshot = [...expected];
-              await vi.waitFor(async () => expect(await getClosedPages()).toStrictEqual(snapshot));
-            }
-          }
-        };
-
         beforeEach(() => resetClosedPages());
 
         describe('shutdown', () => {
+          let shutdownBrowser: IBrowser;
+
           beforeEach(async () => {
+            vi.clearAllMocks();
             await resetClosedPages();
-            await openWindow(1);
-            await openWindow(2);
-            await openWindow(3);
+            shutdownBrowser = await BrowserFactory.build(FACTORY_SETTINGS, name);
+            await shutdownBrowser.setup(BROWSER_SETTINGS);
+            await shutdownBrowser.newWindow({ pageId: 1, scripts: [], url: `${BASE_URL}track-close.html?pageId=1` });
+            await shutdownBrowser.newWindow({ pageId: 2, scripts: [], url: `${BASE_URL}track-close.html?pageId=2` });
+            await shutdownBrowser.newWindow({ pageId: 3, scripts: [], url: `${BASE_URL}track-close.html?pageId=3` });
           });
+
+          afterEach(() => shutdownBrowser.shutdown());
 
           afterAll(async () => {
             const closed = await getClosedPages();
@@ -114,9 +126,32 @@ export const testBrowser = ({ name, failedSetupTestCases }: TTestBrowserArgument
 
           // Weird but want to benefit from afterEach that shutdowns browser
           it('closes all open pages', () => {
-            expect(browser).toBeDefined();
+            expect(shutdownBrowser).toBeDefined();
           });
         });
+
+        const runSequence = async (sequence: string) => {
+          const windows = new Map<number, IWindow>();
+          const slotToPageId = new Map<number, number>();
+          const expected: number[] = [];
+          for (const token of sequence.split(' ')) {
+            const slotId = Number(token.slice(1));
+            if (token.startsWith('o')) {
+              const pageId = nextPageId++;
+              windows.set(
+                slotId,
+                await browser.newWindow({ pageId, scripts: [], url: `${BASE_URL}track-close.html?pageId=${pageId}` })
+              );
+              slotToPageId.set(slotId, pageId);
+            } else {
+              const window = windows.get(slotId) as IWindow;
+              await window.close();
+              expected.push(slotToPageId.get(slotId)!);
+              const snapshot = [...expected];
+              await vi.waitFor(async () => expect(await getClosedPages()).toStrictEqual(snapshot));
+            }
+          }
+        };
 
         it.each(['o1 o2 o3 c1 c2 c3', 'o1 o2 o3 c3 c2 c1', 'o1 o2 c1 o3 c3 c2', 'o1 o2 o3 c2 c1 c3'])(
           '%s',
@@ -126,48 +161,48 @@ export const testBrowser = ({ name, failedSetupTestCases }: TTestBrowserArgument
 
       describe('console', () => {
         it('captures console.log as info', async () => {
-          await browser.newWindow({ pageId: 0, scripts: [], url: `${BASE_URL}console-log.html` });
+          const { pageId } = await openWindow({ scripts: [], url: `${BASE_URL}console-log.html` });
           await vi.waitFor(() =>
             expect(logger.info).toHaveBeenCalledWith({
               source: 'browser/console',
               message: 'Hello World !',
-              pageId: 0,
+              pageId,
               data: { type: 'log' }
             })
           );
         });
 
         it('captures console.warn as warn', async () => {
-          await browser.newWindow({ pageId: 0, scripts: [], url: `${BASE_URL}console-warn.html` });
+          const { pageId } = await openWindow({ scripts: [], url: `${BASE_URL}console-warn.html` });
           await vi.waitFor(() =>
             expect(logger.warn).toHaveBeenCalledWith({
               source: 'browser/console',
               message: 'Hello World !',
-              pageId: 0,
+              pageId,
               data: { type: 'warn' }
             })
           );
         });
 
         it('captures console.error as error', async () => {
-          await browser.newWindow({ pageId: 0, scripts: [], url: `${BASE_URL}console-error.html` });
+          const { pageId } = await openWindow({ scripts: [], url: `${BASE_URL}console-error.html` });
           await vi.waitFor(() =>
             expect(logger.error).toHaveBeenCalledWith({
               source: 'browser/console',
               message: 'Hello World !',
-              pageId: 0,
+              pageId,
               data: { type: 'error' }
             })
           );
         });
 
         it('captures console.debug as debug', async () => {
-          await browser.newWindow({ pageId: 0, scripts: [], url: `${BASE_URL}console-debug.html` });
+          const { pageId } = await openWindow({ scripts: [], url: `${BASE_URL}console-debug.html` });
           await vi.waitFor(() =>
             expect(logger.debug).toHaveBeenCalledWith({
               source: 'browser/console',
               message: 'Hello World !',
-              pageId: 0,
+              pageId,
               data: { type: 'debug' }
             })
           );
@@ -176,36 +211,36 @@ export const testBrowser = ({ name, failedSetupTestCases }: TTestBrowserArgument
 
       describe('agent', () => {
         it('captures agent logs as debug with browser/agent source', async () => {
-          await browser.newWindow({ pageId: 0, scripts: [], url: `${BASE_URL}agent-log.html` });
+          const { pageId } = await openWindow({ scripts: [], url: `${BASE_URL}agent-log.html` });
           await vi.waitFor(() =>
             expect(logger.debug).toHaveBeenCalledWith({
               source: 'browser/agent',
               message: 'Hello World !',
-              pageId: 0,
+              pageId,
               data: { type: 'debug' }
             })
           );
         });
 
         it('captures agent warns as warn with browser/agent source', async () => {
-          await browser.newWindow({ pageId: 0, scripts: [], url: `${BASE_URL}agent-warn.html` });
+          const { pageId } = await openWindow({ scripts: [], url: `${BASE_URL}agent-warn.html` });
           await vi.waitFor(() =>
             expect(logger.warn).toHaveBeenCalledWith({
               source: 'browser/agent',
               message: 'Hello World !',
-              pageId: 0,
+              pageId,
               data: { type: 'warn' }
             })
           );
         });
 
         it('captures agent errors as error with browser/agent source', async () => {
-          await browser.newWindow({ pageId: 0, scripts: [], url: `${BASE_URL}agent-error.html` });
+          const { pageId } = await openWindow({ scripts: [], url: `${BASE_URL}agent-error.html` });
           await vi.waitFor(() =>
             expect(logger.error).toHaveBeenCalledWith({
               source: 'browser/agent',
               message: 'Hello World !',
-              pageId: 0,
+              pageId,
               data: { type: 'error' }
             })
           );
@@ -213,14 +248,17 @@ export const testBrowser = ({ name, failedSetupTestCases }: TTestBrowserArgument
       });
 
       describe('network logs', () => {
-        beforeEach(() => browser.newWindow({ pageId: 0, scripts: [], url: `${BASE_URL}network.html` }));
+        let networkPageId: number;
+        beforeEach(async () => {
+          ({ pageId: networkPageId } = await openWindow({ scripts: [], url: `${BASE_URL}network.html` }));
+        });
 
         it('2xx', async () => {
           await vi.waitFor(() =>
             expect(logger.info).toHaveBeenCalledWith({
               source: 'browser/network',
               message: `${BASE_URL}hello.js`,
-              pageId: 0,
+              pageId: networkPageId,
               data: {
                 request: {
                   method: 'GET',
@@ -244,7 +282,7 @@ export const testBrowser = ({ name, failedSetupTestCases }: TTestBrowserArgument
             expect(logger.warn).toHaveBeenCalledWith({
               source: 'browser/network',
               message: `${BASE_URL}not_found.js`,
-              pageId: 0,
+              pageId: networkPageId,
               data: {
                 request: {
                   method: 'GET',
@@ -270,7 +308,7 @@ export const testBrowser = ({ name, failedSetupTestCases }: TTestBrowserArgument
             expect(logger.error).toHaveBeenCalledWith({
               source: 'browser/network',
               message: `${BASE_URL}server_error.js`,
-              pageId: 0,
+              pageId: networkPageId,
               data: {
                 request: {
                   method: 'GET',
@@ -293,8 +331,7 @@ export const testBrowser = ({ name, failedSetupTestCases }: TTestBrowserArgument
       });
 
       it('enables initialization script kept after loading the page', async () => {
-        await browser.newWindow({
-          pageId: 0,
+        const { pageId } = await openWindow({
           scripts: [`window.addEventListener('load', () => { console.log('loaded') })`],
           url: `${BASE_URL}page.html`
         });
@@ -302,15 +339,14 @@ export const testBrowser = ({ name, failedSetupTestCases }: TTestBrowserArgument
           expect(logger.info).toHaveBeenCalledWith({
             source: 'browser/console',
             message: 'loaded',
-            pageId: 0,
+            pageId,
             data: { type: 'log' }
           })
         );
       });
 
       it('enables eval', async () => {
-        const window = await browser.newWindow({
-          pageId: 0,
+        const { window } = await openWindow({
           scripts: [`window.addEventListener('load', () => { console.log('loaded') })`],
           url: `${BASE_URL}page.html`
         });
@@ -321,8 +357,7 @@ export const testBrowser = ({ name, failedSetupTestCases }: TTestBrowserArgument
       });
 
       it('enables screenshots', async () => {
-        const window = await browser.newWindow({
-          pageId: 0,
+        const { window } = await openWindow({
           scripts: [`window.addEventListener('load', () => { console.log('loaded') })`],
           url: `${BASE_URL}page.html`
         });
