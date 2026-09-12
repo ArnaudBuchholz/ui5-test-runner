@@ -32,18 +32,21 @@ export const factory = async (configuration: Configuration): Promise<IBrowser> =
     Options: typeof Options;
   };
 
-  const LogInspector = (await Npm.import(
-    configuration,
-    'selenium-webdriver/bidi/logInspector'
-  )) as typeof getLogInspectorInstance;
-  const BrowsingContext = (await Npm.import(
-    configuration,
-    'selenium-webdriver/bidi/browsingContext'
-  )) as typeof getBrowsingContextInstance;
-  const ScriptManager = (await Npm.import(
-    configuration,
-    'selenium-webdriver/bidi/scriptManager'
-  )) as typeof getScriptManagerInstance;
+  const LogInspector = (
+    (await Npm.import(configuration, 'selenium-webdriver/bidi/logInspector')) as {
+      default: typeof getLogInspectorInstance;
+    }
+  ).default;
+  const BrowsingContext = (
+    (await Npm.import(configuration, 'selenium-webdriver/bidi/browsingContext')) as {
+      default: typeof getBrowsingContextInstance;
+    }
+  ).default;
+  const ScriptManager = (
+    (await Npm.import(configuration, 'selenium-webdriver/bidi/scriptManager')) as {
+      default: typeof getScriptManagerInstance;
+    }
+  ).default;
   const { CreateContextParameters: CreateContextParametersClass } = (await Npm.import(
     configuration,
     'selenium-webdriver/bidi/createContextParameters'
@@ -155,6 +158,10 @@ export const factory = async (configuration: Configuration): Promise<IBrowser> =
         },
         async close() {
           contextToPageId.delete(context);
+          if (contextToPageId.size === 0) {
+            // Keep the BiDi session alive: open a blank keeper tab before closing the last real one
+            await BrowsingContext(driver!, { type: 'tab' });
+          }
           const bc = await BrowsingContext(driver!, { browsingContextId: context });
           await bc.close();
         }

@@ -139,7 +139,11 @@ export const factory = async (configuration: Configuration): Promise<IBrowser> =
         },
         async close() {
           contextToPageId.delete(context);
-          openHandles.delete(handle);
+          if (contextToPageId.size === 0) {
+            // Keep the session alive: open a blank keeper tab before closing the last real one
+            const { context: keeperContext } = await browser!.browsingContextCreate({ type: 'tab', background: true });
+            openHandles.add(keeperContext);
+          }
           await browser!.browsingContextClose({ context });
         }
       };
