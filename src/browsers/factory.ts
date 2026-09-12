@@ -16,6 +16,7 @@ const factories: { [key in Browser]: (configuration: Configuration, signal: Abor
 };
 
 let _instanceCount = 0;
+const _activeInstances = new Set<Browser>();
 
 const shutdown = async (browser: Browser, inner: IBrowser) => {
   logger.debug({ source: browser, message: 'shutdown' });
@@ -33,6 +34,10 @@ const shutdown = async (browser: Browser, inner: IBrowser) => {
 
 export const BrowserFactory = {
   async build(configuration: Configuration, browser: Browser): Promise<IBrowser> {
+    if (_activeInstances.has(browser)) {
+      logger.fatal({ source: browser, message: 'build failed: already has an active instance' });
+    }
+    _activeInstances.add(browser);
     const abortController = new AbortController();
     let inner: IBrowser;
     try {
@@ -40,6 +45,7 @@ export const BrowserFactory = {
       inner = await factories[browser](configuration, abortController.signal);
       logger.debug({ source: browser, message: 'build completed' });
     } catch (error) {
+      _activeInstances.delete(browser);
       logger.fatal({ source: browser, message: 'build failed', error });
       throw error;
     }
@@ -60,6 +66,7 @@ export const BrowserFactory = {
           return capabilities;
         } catch (error) {
           task[Symbol.dispose]();
+          _activeInstances.delete(browser);
           logger.fatal({
             source: browser,
             message: 'setup failed',
@@ -87,6 +94,7 @@ export const BrowserFactory = {
       async shutdown() {
         await shutdown(browser, inner);
         task?.[Symbol.dispose]();
+        _activeInstances.delete(browser);
       }
     };
   }

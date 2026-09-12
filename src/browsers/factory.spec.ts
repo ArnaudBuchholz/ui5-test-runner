@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { BrowserFactory } from './factory.js';
 import type { IBrowser, IWindow, BrowserCapabilities } from './IBrowser.js';
 import { defaults } from '../configuration/options.js';
@@ -45,11 +45,21 @@ const makeInnerBrowser = (): IBrowser => ({
 beforeEach(() => vi.clearAllMocks());
 
 describe('BrowserFactory', () => {
+  let browser: IBrowser | undefined;
+
+  afterEach(async () => {
+    try {
+      await browser?.shutdown();
+    } finally {
+      browser = undefined;
+    }
+  });
+
   describe('build', () => {
     it('passes an abort signal to the inner factory', async () => {
       const inner = makeInnerBrowser();
       vi.mocked(mockPuppeteerFactory).mockResolvedValue(inner);
-      await BrowserFactory.build(FACTORY_SETTINGS, 'puppeteer');
+      browser = await BrowserFactory.build(FACTORY_SETTINGS, 'puppeteer');
       expect(mockPuppeteerFactory).toHaveBeenCalledWith(FACTORY_SETTINGS, expect.any(AbortSignal) as AbortSignal);
     });
 
@@ -63,7 +73,7 @@ describe('BrowserFactory', () => {
     it('logs build and build completed', async () => {
       const inner = makeInnerBrowser();
       vi.mocked(mockPuppeteerFactory).mockResolvedValue(inner);
-      await BrowserFactory.build(FACTORY_SETTINGS, 'puppeteer');
+      browser = await BrowserFactory.build(FACTORY_SETTINGS, 'puppeteer');
       expect(logger.debug).toHaveBeenCalledWith({ source: 'puppeteer', message: 'build' });
       expect(logger.debug).toHaveBeenCalledWith({ source: 'puppeteer', message: 'build completed' });
     });
@@ -73,7 +83,7 @@ describe('BrowserFactory', () => {
     it('registers an async task named after the browser with an incrementing index', async () => {
       const inner = makeInnerBrowser();
       vi.mocked(mockPuppeteerFactory).mockResolvedValue(inner);
-      const browser = await BrowserFactory.build(FACTORY_SETTINGS, 'puppeteer');
+      browser = await BrowserFactory.build(FACTORY_SETTINGS, 'puppeteer');
       await browser.setup(BROWSER_SETTINGS);
       expect(Exit.registerAsyncTask).toHaveBeenCalledOnce();
       expect(__lastRegisteredExitAsyncTask.name).toMatch(/^puppeteer#\d+$/);
@@ -84,7 +94,7 @@ describe('BrowserFactory', () => {
       const inner = makeInnerBrowser();
       vi.mocked(inner.setup).mockRejectedValueOnce(error);
       vi.mocked(mockPuppeteerFactory).mockResolvedValue(inner);
-      const browser = await BrowserFactory.build(FACTORY_SETTINGS, 'puppeteer');
+      browser = await BrowserFactory.build(FACTORY_SETTINGS, 'puppeteer');
       await expect(browser.setup(BROWSER_SETTINGS)).rejects.toThrow();
       expect(logger.fatal).toHaveBeenCalledWith({
         source: 'puppeteer',
@@ -97,7 +107,7 @@ describe('BrowserFactory', () => {
     it('logs setup and setup completed', async () => {
       const inner = makeInnerBrowser();
       vi.mocked(mockPuppeteerFactory).mockResolvedValue(inner);
-      const browser = await BrowserFactory.build(FACTORY_SETTINGS, 'puppeteer');
+      browser = await BrowserFactory.build(FACTORY_SETTINGS, 'puppeteer');
       await browser.setup(BROWSER_SETTINGS);
       expect(logger.debug).toHaveBeenCalledWith({ source: 'puppeteer', message: 'setup', data: BROWSER_SETTINGS });
       expect(logger.debug).toHaveBeenCalledWith({
@@ -112,7 +122,7 @@ describe('BrowserFactory', () => {
     it('logs newWindow and newWindow completed', async () => {
       const inner = makeInnerBrowser();
       vi.mocked(mockPuppeteerFactory).mockResolvedValue(inner);
-      const browser = await BrowserFactory.build(FACTORY_SETTINGS, 'puppeteer');
+      browser = await BrowserFactory.build(FACTORY_SETTINGS, 'puppeteer');
       await browser.setup(BROWSER_SETTINGS);
       await browser.newWindow(WINDOW_SETTINGS);
       expect(logger.debug).toHaveBeenCalledWith({
@@ -133,7 +143,7 @@ describe('BrowserFactory', () => {
       const inner = makeInnerBrowser();
       vi.mocked(inner.newWindow).mockRejectedValueOnce(error);
       vi.mocked(mockPuppeteerFactory).mockResolvedValue(inner);
-      const browser = await BrowserFactory.build(FACTORY_SETTINGS, 'puppeteer');
+      browser = await BrowserFactory.build(FACTORY_SETTINGS, 'puppeteer');
       await browser.setup(BROWSER_SETTINGS);
       await expect(browser.newWindow(WINDOW_SETTINGS)).rejects.toThrow();
       expect(logger.fatal).toHaveBeenCalledWith({
@@ -150,7 +160,7 @@ describe('BrowserFactory', () => {
       beforeEach(async () => {
         const inner = makeInnerBrowser();
         vi.mocked(mockPuppeteerFactory).mockResolvedValue(inner);
-        const browser = await BrowserFactory.build(FACTORY_SETTINGS, 'puppeteer');
+        browser = await BrowserFactory.build(FACTORY_SETTINGS, 'puppeteer');
         await browser.setup(BROWSER_SETTINGS);
         innerWindow = makeInnerWindow();
         vi.mocked(inner.newWindow).mockResolvedValue(innerWindow);
@@ -235,9 +245,10 @@ describe('BrowserFactory', () => {
     it('calls inner shutdown and disposes the task', async () => {
       const inner = makeInnerBrowser();
       vi.mocked(mockPuppeteerFactory).mockResolvedValue(inner);
-      const browser = await BrowserFactory.build(FACTORY_SETTINGS, 'puppeteer');
+      browser = await BrowserFactory.build(FACTORY_SETTINGS, 'puppeteer');
       await browser.setup(BROWSER_SETTINGS);
       await browser.shutdown();
+      browser = undefined;
       expect(inner.shutdown).toHaveBeenCalledOnce();
       expect(__unregisterExitAsyncTask).toHaveBeenCalledOnce();
     });
@@ -247,18 +258,20 @@ describe('BrowserFactory', () => {
       const inner = makeInnerBrowser();
       vi.mocked(inner.shutdown).mockRejectedValueOnce(error);
       vi.mocked(mockPuppeteerFactory).mockResolvedValue(inner);
-      const browser = await BrowserFactory.build(FACTORY_SETTINGS, 'puppeteer');
+      browser = await BrowserFactory.build(FACTORY_SETTINGS, 'puppeteer');
       await browser.setup(BROWSER_SETTINGS);
       await browser.shutdown(); // no throw
+      browser = undefined;
       expect(logger.warn).toHaveBeenCalledWith({ source: 'puppeteer', message: 'shutdown failed', error });
     });
 
     it('aborts the signal and calls inner shutdown when Exit fires stop', async () => {
       const inner = makeInnerBrowser();
       vi.mocked(mockPuppeteerFactory).mockResolvedValue(inner);
-      const browser = await BrowserFactory.build(FACTORY_SETTINGS, 'puppeteer');
+      browser = await BrowserFactory.build(FACTORY_SETTINGS, 'puppeteer');
       await browser.setup(BROWSER_SETTINGS);
       await __lastRegisteredExitAsyncTask.stop();
+      browser = undefined;
       const [, signal] = vi.mocked(mockPuppeteerFactory).mock.calls[0]!;
       expect(signal.aborted).toBe(true);
       expect(inner.shutdown).toHaveBeenCalledOnce();
