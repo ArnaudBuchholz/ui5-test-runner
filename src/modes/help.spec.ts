@@ -6,8 +6,6 @@ import { Npm } from '../Npm.js';
 import { toKebabCase } from '../utils/shared/string.js';
 import { version } from '../platform/version.js';
 
-vi.mock(import('../platform/mock.js'));
-
 const PACKAGE_NAME = 'ui5-test-runner';
 const PACKAGE_VERSION = '1.2.3';
 

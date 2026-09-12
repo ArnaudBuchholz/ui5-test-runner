@@ -34,6 +34,9 @@ const runCli = async () => {
   await import('./cli.js');
 };
 
+const consoleLogSpy = vi.spyOn(console, 'log');
+const consoleErrorSpy = vi.spyOn(console, 'error');
+
 beforeEach(() => {
   vi.clearAllMocks();
   Exit.code = DEFAULT_EXIT_CODE;
@@ -46,12 +49,6 @@ beforeEach(() => {
 
 describe('cli', () => {
   describe('when --if condition is true', () => {
-    let consoleSpy: ReturnType<typeof vi.spyOn>;
-
-    beforeEach(() => {
-      consoleSpy = vi.spyOn(console, 'log');
-    });
-
     it('builds configuration from cwd and sliced argv', async () => {
       await runCli();
       expect(CommandLine.buildConfigurationFrom).toHaveBeenCalledWith('/test/cwd', ['--help']);
@@ -65,11 +62,12 @@ describe('cli', () => {
     it('executes the configuration', async () => {
       await runCli();
       expect(execute).toHaveBeenCalledWith(MOCK_CONFIGURATION);
+      expect(Exit.shutdown).toHaveBeenCalled();
     });
 
     it('does not log the skip message', async () => {
       await runCli();
-      expect(consoleSpy).not.toHaveBeenCalledWith(expect.stringContaining('SKIPIF'));
+      expect(consoleLogSpy).not.toHaveBeenCalledWith(expect.stringContaining('SKIPIF'));
     });
 
     it('does not send a skip message to parent process', async () => {
@@ -79,11 +77,8 @@ describe('cli', () => {
   });
 
   describe('when --if condition is false', () => {
-    let consoleSpy: ReturnType<typeof vi.spyOn>;
-
     beforeEach(() => {
       vi.mocked(isIfEvaluatedAsTrue).mockResolvedValue(false);
-      consoleSpy = vi.spyOn(console, 'log');
     });
 
     it('does not execute the configuration', async () => {
@@ -93,7 +88,7 @@ describe('cli', () => {
 
     it('logs the skip message', async () => {
       await runCli();
-      expect(consoleSpy).toHaveBeenCalledWith('⚠️ [SKIPIF] Skipping execution (--if)');
+      expect(consoleLogSpy).toHaveBeenCalledWith('⚠️ [SKIPIF] Skipping execution (--if)');
     });
 
     it('sends a skip message to parent process', async () => {
@@ -103,18 +98,13 @@ describe('cli', () => {
   });
 
   describe('when CommandLine.buildConfigurationFrom throws', () => {
-    let consoleSpy: ReturnType<typeof vi.spyOn>;
-
-    beforeEach(() => {
-      consoleSpy = vi.spyOn(console, 'error');
-    });
-
     it('logs the error and sets Exit.code to -1', async () => {
       const error = new Error('invalid option');
       vi.mocked(CommandLine.buildConfigurationFrom).mockRejectedValue(error);
       await runCli();
-      expect(consoleSpy).toHaveBeenCalledWith(error);
+      expect(consoleErrorSpy).toHaveBeenCalledWith(error);
       expect(Exit.code).toBe(-1);
+      expect(Exit.shutdown).toHaveBeenCalled();
     });
 
     it('does not execute the configuration', async () => {
@@ -125,17 +115,11 @@ describe('cli', () => {
   });
 
   describe('when execute throws', () => {
-    let consoleSpy: ReturnType<typeof vi.spyOn>;
-
-    beforeEach(() => {
-      consoleSpy = vi.spyOn(console, 'error');
-    });
-
     it('logs the error and sets Exit.code to -1', async () => {
       const error = new Error('execution failed');
       vi.mocked(execute).mockRejectedValue(error);
       await runCli();
-      expect(consoleSpy).toHaveBeenCalledWith(error);
+      expect(consoleErrorSpy).toHaveBeenCalledWith(error);
       expect(Exit.code).toBe(-1);
     });
   });
@@ -157,19 +141,6 @@ describe('cli', () => {
       Object.assign(Host, { argv: ['/usr/bin/node'] });
       await runCli();
       expect(CommandLine.buildConfigurationFrom).toHaveBeenCalledWith('/test/cwd', []);
-    });
-  });
-
-  describe('Exit.shutdown', () => {
-    it('calls Exit.shutdown in the finally block on success', async () => {
-      await runCli();
-      expect(Exit.shutdown).toHaveBeenCalled();
-    });
-
-    it('calls Exit.shutdown in the finally block on error', async () => {
-      vi.mocked(CommandLine.buildConfigurationFrom).mockRejectedValue(new Error('fail'));
-      await runCli();
-      expect(Exit.shutdown).toHaveBeenCalled();
     });
   });
 });

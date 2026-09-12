@@ -123,7 +123,6 @@ describe('test()', () => {
   describe('coverage', () => {
     it('calls instrument before Server.start when coverage is enabled', async () => {
       setupHappyPath();
-      vi.mocked(instrument).mockResolvedValue(undefined);
       vi.mocked(generateReport).mockResolvedValue(undefined);
       const order: string[] = [];
       vi.mocked(instrument).mockImplementation(() => {
@@ -140,7 +139,6 @@ describe('test()', () => {
 
     it('calls generateReport when coverage is enabled', async () => {
       setupHappyPath();
-      vi.mocked(instrument).mockResolvedValue(undefined);
       vi.mocked(generateReport).mockResolvedValue(undefined);
       await runTest(makeConfig({ coverage: true }));
       expect(generateReport).toHaveBeenCalled();
@@ -148,7 +146,6 @@ describe('test()', () => {
 
     it('merges coverage failure into report when generateReport returns a result', async () => {
       setupHappyPath();
-      vi.mocked(instrument).mockResolvedValue(undefined);
       const failureResult = { summary: { passed: 0, failed: 1, tests: 1 }, tests: [] } as never;
       vi.mocked(generateReport).mockResolvedValue(failureResult);
       const builder = vi.mocked(getReportBuilder)();
@@ -158,7 +155,6 @@ describe('test()', () => {
 
     it('does not call getReportBuilder merge for coverage when generateReport returns undefined', async () => {
       const builder = setupHappyPath();
-      vi.mocked(instrument).mockResolvedValue(undefined);
       vi.mocked(generateReport).mockResolvedValue(undefined);
       await runTest(makeConfig({ coverage: true }));
       expect(builder.merge).not.toHaveBeenCalledWith('coverage', expect.anything());

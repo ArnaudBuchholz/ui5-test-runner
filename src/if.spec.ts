@@ -3,7 +3,6 @@ import { Host } from './platform/index.js';
 import { isIfEvaluatedAsTrue, isImplemented } from './if.js';
 import type { Configuration } from './configuration/Configuration.js';
 
-vi.mock('./platform/mock.js');
 vi.mock('./platform/version.js');
 
 import { version } from './platform/version.js';

@@ -6,7 +6,18 @@ import type { Configuration } from '../../../configuration/Configuration.js';
 import { Folder } from '../../../utils/node/Folder.js';
 import { instrument } from './instrument.js';
 
-beforeEach(() => vi.clearAllMocks());
+const folderRecreateSpy = vi.spyOn(Folder, 'recreate').mockResolvedValue(undefined);
+const folderCreateSpy = vi.spyOn(Folder, 'create').mockResolvedValue(undefined);
+const npmImportSpy = vi.spyOn(Npm, 'import').mockResolvedValue(undefined);
+const npmResolveSpy = vi.spyOn(Npm, 'resolvePackageDir').mockResolvedValue('/node_modules/nyc');
+
+beforeEach(() => {
+  vi.clearAllMocks();
+  folderRecreateSpy.mockResolvedValue(undefined);
+  folderCreateSpy.mockResolvedValue(undefined);
+  npmImportSpy.mockResolvedValue(undefined);
+  npmResolveSpy.mockResolvedValue('/node_modules/nyc');
+});
 
 const COVERAGE_TEMP_DIR = '/tmp/coverage';
 const WEBAPP = '/app/webapp';
@@ -25,10 +36,6 @@ const BASE_CONFIGURATION = {
 const makeConfiguration = (overrides: object): Configuration => ({ ...BASE_CONFIGURATION, ...overrides });
 
 const setupHappyPath = () => {
-  vi.spyOn(Folder, 'recreate').mockResolvedValue(undefined);
-  vi.spyOn(Folder, 'create').mockResolvedValue(undefined);
-  vi.spyOn(Npm, 'import').mockResolvedValue(undefined);
-  vi.spyOn(Npm, 'resolvePackageDir').mockResolvedValue('/node_modules/nyc');
   vi.mocked(FileSystem.access).mockRejectedValue(new Error('not found'));
   vi.mocked(FileSystem.readdir).mockResolvedValue([]);
   vi.mocked(Path.relative).mockReturnValue('relative');
@@ -206,9 +213,6 @@ describe('instrument', () => {
     });
 
     it('skips baseline generation when settings.all is false', async () => {
-      vi.spyOn(Folder, 'recreate').mockResolvedValue(undefined);
-      vi.spyOn(Npm, 'import').mockResolvedValue(undefined);
-      vi.spyOn(Npm, 'resolvePackageDir').mockResolvedValue('/node_modules/nyc');
       vi.mocked(FileSystem.access).mockResolvedValue(undefined);
       vi.mocked(FileSystem.readFile).mockResolvedValue(JSON.stringify({ all: false }));
       vi.mocked(Path.relative).mockReturnValue('relative');

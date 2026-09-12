@@ -1,4 +1,4 @@
-import { it, expect, describe, vi } from 'vitest';
+import { it, expect, describe, vi, afterEach } from 'vitest';
 import { Command } from './Command.js';
 import type { Configuration } from './configuration/Configuration.js';
 import { Npm } from './Npm.js';
@@ -36,6 +36,10 @@ describe('Command.split', () => {
 });
 
 describe('Command.parse', () => {
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
   it('splits the command', async () => {
     await expect(Command.parse(TEST_CONFIGURATION, 'bash test')).resolves.toStrictEqual(['bash', ['test'], {}]);
   });
@@ -55,6 +59,7 @@ describe('Command.parse', () => {
 
   describe('parameter substitution', () => {
     it('replaces a parameter with its equivalent in config', async () => {
+      vi.spyOn(Npm, 'getCliPath').mockResolvedValue('npm_cli.js');
       await expect(Command.parse(TEST_CONFIGURATION, 'npm run test -- {{reportDir}}')).resolves.toStrictEqual([
         'node',
         ['npm_cli.js', 'run', 'test', '--', '/home/usr/report'],
@@ -63,6 +68,7 @@ describe('Command.parse', () => {
     });
 
     it('fails if trying to use an known a parameter', async () => {
+      vi.spyOn(Npm, 'getCliPath').mockResolvedValue('npm_cli.js');
       await expect(Command.parse(TEST_CONFIGURATION, 'npm run test -- {{reportDi}}')).rejects.toThrow(
         ExitShutdownError
       );

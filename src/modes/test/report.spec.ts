@@ -34,6 +34,17 @@ describe('initReportBuilder', () => {
     await initReportBuilder({} as never);
     expect(getReportBuilder()).toBe(fakeBuilder);
   });
+
+  it('calls buildReportBuilder with the given configuration', async () => {
+    vi.resetModules();
+    const { initReportBuilder } = await import('./report.js');
+    const { initReportBuilder: buildReportBuilderFunction } = await import('../../reports/initReportBuilder.js');
+    const fakeBuilder = { report: { results: {} } } as unknown as TestReportBuilder;
+    vi.mocked(buildReportBuilderFunction).mockResolvedValue(fakeBuilder);
+    const config = { reportDir: '/tmp/report' } as never;
+    await initReportBuilder(config);
+    expect(buildReportBuilderFunction).toHaveBeenCalledWith(config);
+  });
 });
 
 describe('setReportBrowserInfo', () => {
@@ -68,19 +79,5 @@ describe('setReportBrowserInfo', () => {
     await initReportBuilder({} as never);
     expect(() => setReportBrowserInfo(CAPABILITIES)).not.toThrow();
     expect(fakeBuilder.report.results.environment).toBeUndefined();
-  });
-});
-
-// Keep a reference to the mock import for the last describe block
-describe('initReportBuilder', () => {
-  it('calls buildReportBuilder with the given configuration', async () => {
-    vi.resetModules();
-    const { initReportBuilder } = await import('./report.js');
-    const { initReportBuilder: buildReportBuilderFunction } = await import('../../reports/initReportBuilder.js');
-    const fakeBuilder = { report: { results: {} } } as unknown as TestReportBuilder;
-    vi.mocked(buildReportBuilderFunction).mockResolvedValue(fakeBuilder);
-    const config = { reportDir: '/tmp/report' } as never;
-    await initReportBuilder(config);
-    expect(buildReportBuilderFunction).toHaveBeenCalledWith(config);
   });
 });

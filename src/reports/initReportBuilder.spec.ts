@@ -3,7 +3,6 @@ import { Host } from '../platform/index.js';
 import type { Configuration } from '../configuration/Configuration.js';
 import { initReportBuilder } from './initReportBuilder.js';
 
-vi.mock('../platform/mock.js');
 vi.mock('../utils/node/anonymize.js', () => ({ anonymize: (x: unknown) => x }));
 
 const NO_CONFIGURATION = {} as unknown as Configuration;

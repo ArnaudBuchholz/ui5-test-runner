@@ -4,7 +4,6 @@ import type { Configuration } from '../configuration/Configuration.js';
 import type { CommonTestReport } from '../types/CommonTestReportFormat.js';
 import { saveReport } from './saveReport.js';
 
-vi.mock('../platform/mock.js');
 vi.mock('./html.js');
 
 import { generateHtmlReport } from './html.js';

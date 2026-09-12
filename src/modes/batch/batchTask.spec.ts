@@ -6,8 +6,6 @@ import type { IBatchItem } from './BatchItem.js';
 import { batchTask } from './batchTask.js';
 import type { SpawnOptionsExtended } from '../../platform/Process.js';
 
-vi.mock('../../platform/mock.js');
-
 const CWD = '/test/cwd';
 const REPORT_DIR = '/test/report';
 

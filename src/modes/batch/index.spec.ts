@@ -3,7 +3,6 @@ import { logger, Exit } from '../../platform/index.js';
 import type { Configuration } from '../../configuration/Configuration.js';
 import { batch } from './index.js';
 
-vi.mock('../../platform/mock.js');
 vi.mock('./resolve.js');
 vi.mock('./batchTask.js');
 vi.mock('./report.js');

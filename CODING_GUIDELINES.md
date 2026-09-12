@@ -224,6 +224,21 @@ Framework: Vitest. `Foo.spec.ts` co-located with source; `Foo.test.ts` for share
 - Mock via `vi.mock(import('../platform/mock.js'))` — never mock `node:*` directly
 - Validator tests use `checkValidator` from `src/configuration/validators/checkValidator.test.ts`
 
+### What tests should express
+
+A test is a **claim about what the code should do**, not a record of what it currently does. This distinction matters when tests fail:
+
+- **Behavioral test**: failure points to what broke and why it matters
+- **Coverage test**: failure only reports that an output changed
+
+Concrete rules that follow from this:
+
+- **Group by scenario, not by API surface**: a `describe` block should describe a situation (`'when --if condition is false'`), not a function name (`'isIfEvaluatedAsTrue'`)
+- **Infrastructure concerns belong in scenario tests**: do not create a standalone `describe('Exit.shutdown')` block — assert that shutdown was called inside the test that describes the scenario where it should happen (happy path, error path)
+- **Avoid subset duplication**: if test B covers everything test A covers plus more, test A adds nothing — remove it
+- **Inline single-use constants**: a named constant used in exactly one test adds no clarity; inline the value. Extract constants only when the same value appears in multiple tests or when the name explains a non-obvious constraint
+- **Do not assert call counts as a proxy for behavior**: `expect(logger.info).toHaveBeenCalledTimes(3)` breaks on refactoring even when behavior is correct; assert the observable outcome instead
+
 ### Test naming — affirmative style
 
 ```typescript
@@ -242,6 +257,42 @@ Not required at top level. Nest when tests share setup or are logically grouped.
 - Setup: `vi.mocked(method).mockResolvedValue(...)`. Assertions: `expect(method).toHaveBeenCalledWith(...)` — no `vi.mocked()` wrapper in `expect`.
 - For non-platform static methods, use `vi.spyOn(Class, 'method')` rather than a full `vi.mock()` of the module.
 - Stub spawned processes as `IProcess` (from `platform/index.js`), not `InstanceType<typeof Process>`.
+
+### Spy declarations
+
+Declare spies as `const` at module or `describe` scope with their initial mock implementation. Re-apply return values in `beforeEach` after `vi.clearAllMocks()` (which resets implementations):
+
+```typescript
+const folderRecreateSpy = vi.spyOn(Folder, 'recreate').mockResolvedValue(undefined);
+
+beforeEach(() => {
+  vi.clearAllMocks();
+  folderRecreateSpy.mockResolvedValue(undefined);
+});
+```
+
+- Never use `let spy: ReturnType<typeof vi.spyOn>` — it resolves to `any` and triggers lint errors (`@typescript-eslint/no-unsafe-call`, `no-unsafe-member-access`)
+- Never add `afterEach(() => spy.mockRestore())` or `afterAll(() => spy.mockRestore())` — each spec file runs in its own Vitest worker process, so spy state never bleeds across files
+- `afterEach` restores are needed when a spy is set up inline inside a test body and subsequent tests in the same file must not see it — but the preferred solution is to move the spy to module scope as above
+- If the spy variable is never read (only used to register the spy), call `vi.spyOn(...)` bare with no assignment
+
+### Dynamic imports in tests
+
+When a module has mutable module-level state or uses `memoize`, call `vi.resetModules()` before each import to get a fresh module instance. Split the import into two lines — inline destructuring on import is hard to read:
+
+```typescript
+// ✅
+vi.resetModules();
+const agentModule = await import('./agent.js');
+const { getAgentSource } = agentModule;
+
+// ✗ — hard to read
+({ getAgentSource } = await import('./agent.js'));
+```
+
+Name the intermediate variable `<moduleName>Module` (e.g. `agentModule`, `reportModule`).
+
+Do not add `vi.resetModules()` mechanically — verify that the module actually has mutable state or memoization that requires isolation. If not, a top-level `import` is sufficient.
 
 ### Asserting no-op paths
 
@@ -307,6 +358,10 @@ Each change has a **single purpose**: **Fix** (correct behavior), **Feature** (n
 | `enum` | `as const` + derived union type |
 | Parsing logic in `CommandLine.ts` | Validator in `configuration/validators/` |
 | Global variable for shared state | `Exit.registerAsyncTask` |
+| `let spy: ReturnType<typeof vi.spyOn>` | `const spy = vi.spyOn(...)` at module/describe scope |
+| `afterEach/afterAll(() => spy.mockRestore())` | Not needed — each spec file runs in its own process |
+| `({ x } = await import('./foo.js'))` | `const fooModule = await import('./foo.js'); const { x } = fooModule;` |
+| Standalone `describe('Exit.shutdown')` | Assert shutdown inside the relevant scenario test |
 
 ## Dependencies
 

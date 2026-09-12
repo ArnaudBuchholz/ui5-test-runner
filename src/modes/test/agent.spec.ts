@@ -6,34 +6,31 @@ const AGENT_SRC = 'AGENT_SRC';
 beforeEach(() => vi.clearAllMocks());
 
 describe('getAgentSource (prod mode, memoization isolated)', () => {
-  it('returns file contents from FileSystem.readFile', async () => {
+  let getAgentSource: () => Promise<string>;
+
+  beforeEach(async () => {
     vi.resetModules();
-    const { getAgentSource } = await import('./agent.js');
+    const agentModule = await import('./agent.js');
+    getAgentSource = agentModule.getAgentSource;
     vi.mocked(FileSystem.readFile).mockResolvedValue(AGENT_SRC);
+  });
+
+  it('returns file contents from FileSystem.readFile', async () => {
     await expect(getAgentSource()).resolves.toBe(AGENT_SRC);
   });
 
   it('reads a path ending with ui/agent.js in production mode', async () => {
-    vi.resetModules();
-    const { getAgentSource } = await import('./agent.js');
-    vi.mocked(FileSystem.readFile).mockResolvedValue(AGENT_SRC);
     await getAgentSource();
     expect(FileSystem.readFile).toHaveBeenCalledWith(expect.stringContaining('ui/agent.js'), 'utf8');
   });
 
   it('does not contain dist in the production path', async () => {
-    vi.resetModules();
-    const { getAgentSource } = await import('./agent.js');
-    vi.mocked(FileSystem.readFile).mockResolvedValue(AGENT_SRC);
     await getAgentSource();
     const calledPath = vi.mocked(FileSystem.readFile).mock.calls[0]![0] as string;
     expect(calledPath).not.toContain('dist/ui');
   });
 
   it('memoizes: FileSystem.readFile is called exactly once across two calls', async () => {
-    vi.resetModules();
-    const { getAgentSource } = await import('./agent.js');
-    vi.mocked(FileSystem.readFile).mockResolvedValue(AGENT_SRC);
     await getAgentSource();
     await getAgentSource();
     expect(FileSystem.readFile).toHaveBeenCalledOnce();

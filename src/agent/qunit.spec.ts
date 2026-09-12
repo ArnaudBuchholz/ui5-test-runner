@@ -340,11 +340,10 @@ it('updates total in moduleStart when new tests are added dynamically', () => {
 });
 
 describe('screenshot (OPA)', () => {
-  const PAGE_ID = 1;
   const waitFor = vi.fn();
 
   beforeEach(() => {
-    vi.mocked(getConfig).mockReturnValue({ ...DEFAULT_CONFIG, screenshot: true, pageId: PAGE_ID });
+    vi.mocked(getConfig).mockReturnValue({ ...DEFAULT_CONFIG, screenshot: true, pageId: 1 });
     class Opa5 {}
     Object.assign(Opa5.prototype, { waitFor });
     window.sap = { ui: { test: { Opa5 } } };

@@ -5,7 +5,6 @@ import type { Configuration } from './configuration/Configuration.js';
 import { Command } from './Command.js';
 import { start } from './start.js';
 
-vi.mock('./platform/mock.js');
 vi.spyOn(Command, 'parse');
 
 const CWD = '/test/cwd';

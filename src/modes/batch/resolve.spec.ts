@@ -3,8 +3,6 @@ import { FileSystem, logger } from '../../platform/index.js';
 import type { Configuration } from '../../configuration/Configuration.js';
 import { resolve } from './resolve.js';
 
-vi.mock('../../platform/mock.js');
-
 const CWD = '/test/cwd';
 
 const config = (batch: string[]): Configuration => ({ cwd: CWD, batch, sources: {} }) as unknown as Configuration;

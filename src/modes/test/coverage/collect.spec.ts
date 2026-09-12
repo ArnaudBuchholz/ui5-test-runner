@@ -16,12 +16,6 @@ const BASE_CONFIGURATION = {
   coverageTempDir: COVERAGE_TEMP_DIR
 } as unknown as Configuration;
 
-const SOURCE_DIR_CONFIGURATION = {
-  coverage: true,
-  coverageTempDir: COVERAGE_TEMP_DIR,
-  coverageSourceDir: COVERAGE_SOURCE_DIR
-} as unknown as Configuration;
-
 const makePageContext = (overrides: Partial<PageContext> = {}): PageContext =>
   ({
     pageId: 'page1',
@@ -93,7 +87,14 @@ describe('when coverageSourceDir is set', () => {
     const data = { [relativeKey]: { path: relativeKey, s: { 0: 1 } } };
     const pageContext = makePageContext({ page: { eval: vi.fn().mockResolvedValue(data) } as never });
     vi.mocked(FileSystem.access).mockRejectedValue(new Error('No access'));
-    await collect(SOURCE_DIR_CONFIGURATION, pageContext);
+    await collect(
+      {
+        coverage: true,
+        coverageTempDir: COVERAGE_TEMP_DIR,
+        coverageSourceDir: COVERAGE_SOURCE_DIR
+      } as unknown as Configuration,
+      pageContext
+    );
     const absoluteKey = `${COVERAGE_SOURCE_DIR}/${relativeKey}`;
     const written = JSON.parse(vi.mocked(FileSystem.writeFile).mock.calls[0]![1] as string) as Record<
       string,
