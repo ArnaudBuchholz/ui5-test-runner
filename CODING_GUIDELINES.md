@@ -276,7 +276,17 @@ beforeEach(() => {
 - `afterEach` restores are needed when a spy is set up inline inside a test body and subsequent tests in the same file must not see it — but the preferred solution is to move the spy to module scope as above
 - If the spy variable is never read (only used to register the spy), call `vi.spyOn(...)` bare with no assignment
 
-### Dynamic imports in tests
+### Mutating `Host.env` in tests
+
+`vi.clearAllMocks()` does not restore plain object properties. When a test mutates `Host.env`, clean up in `afterEach`:
+
+```typescript
+afterEach(() => {
+  delete (Host.env as Record<string, string | undefined>)['MY_KEY'];
+});
+```
+
+
 
 When a module has mutable module-level state or uses `memoize`, call `vi.resetModules()` before each import to get a fresh module instance. Split the import into two lines — inline destructuring on import is hard to read:
 
@@ -360,7 +370,8 @@ Each change has a **single purpose**: **Fix** (correct behavior), **Feature** (n
 | Global variable for shared state | `Exit.registerAsyncTask` |
 | `let spy: ReturnType<typeof vi.spyOn>` | `const spy = vi.spyOn(...)` at module/describe scope |
 | `afterEach/afterAll(() => spy.mockRestore())` | Not needed — each spec file runs in its own process |
-| `({ x } = await import('./foo.js'))` | `const fooModule = await import('./foo.js'); const { x } = fooModule;` |
+| `resolvePackageDirSpy` (abbreviated spy name) | Use full word: `resolvePackageDirectorySpy` — `unicorn/name-replacements` rejects abbreviations |
+
 | Standalone `describe('Exit.shutdown')` | Assert shutdown inside the relevant scenario test |
 
 ## Dependencies

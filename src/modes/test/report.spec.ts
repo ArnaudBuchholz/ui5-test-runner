@@ -12,23 +12,30 @@ const CAPABILITIES: BrowserCapabilities = {
   screenshotFormat: 'png'
 };
 
-beforeEach(() => {
+let initReportBuilder: (config: never) => Promise<void>;
+let getReportBuilder: () => TestReportBuilder;
+let setReportBrowserInfo: (capabilities: BrowserCapabilities) => void;
+let buildReportBuilderFunction: (config: never) => Promise<TestReportBuilder>;
+
+beforeEach(async () => {
   vi.clearAllMocks();
+  vi.resetModules();
+  const reportModule = await import('./report.js');
+  initReportBuilder = reportModule.initReportBuilder;
+  getReportBuilder = reportModule.getReportBuilder;
+  setReportBrowserInfo = reportModule.setReportBrowserInfo;
+  const initReportBuilderModule = await import('../../reports/initReportBuilder.js');
+  buildReportBuilderFunction = initReportBuilderModule.initReportBuilder;
 });
 
 describe('getReportBuilder', () => {
-  it('throws when called before init', async () => {
-    vi.resetModules();
-    const { getReportBuilder } = await import('./report.js');
+  it('throws when called before init', () => {
     expect(() => getReportBuilder()).toThrow();
   });
 });
 
 describe('initReportBuilder', () => {
   it('stores the builder returned by buildReportBuilder and getReportBuilder returns it', async () => {
-    vi.resetModules();
-    const { initReportBuilder, getReportBuilder } = await import('./report.js');
-    const { initReportBuilder: buildReportBuilderFunction } = await import('../../reports/initReportBuilder.js');
     const fakeBuilder = { report: { results: { environment: { extra: {} } } } } as unknown as TestReportBuilder;
     vi.mocked(buildReportBuilderFunction).mockResolvedValue(fakeBuilder);
     await initReportBuilder({} as never);
@@ -36,9 +43,6 @@ describe('initReportBuilder', () => {
   });
 
   it('calls buildReportBuilder with the given configuration', async () => {
-    vi.resetModules();
-    const { initReportBuilder } = await import('./report.js');
-    const { initReportBuilder: buildReportBuilderFunction } = await import('../../reports/initReportBuilder.js');
     const fakeBuilder = { report: { results: {} } } as unknown as TestReportBuilder;
     vi.mocked(buildReportBuilderFunction).mockResolvedValue(fakeBuilder);
     const config = { reportDir: '/tmp/report' } as never;
@@ -49,9 +53,6 @@ describe('initReportBuilder', () => {
 
 describe('setReportBrowserInfo', () => {
   it('sets browserName and browserVersion when environment is present', async () => {
-    vi.resetModules();
-    const { initReportBuilder, getReportBuilder, setReportBrowserInfo } = await import('./report.js');
-    const { initReportBuilder: buildReportBuilderFunction } = await import('../../reports/initReportBuilder.js');
     const fakeBuilder = {
       report: { results: { environment: { extra: {} } } },
       merge: vi.fn()
@@ -66,9 +67,6 @@ describe('setReportBrowserInfo', () => {
   });
 
   it('is a no-op when environment is undefined', async () => {
-    vi.resetModules();
-    const { initReportBuilder, setReportBrowserInfo } = await import('./report.js');
-    const { initReportBuilder: buildReportBuilderFunction } = await import('../../reports/initReportBuilder.js');
     const sentinel = Symbol('unchanged');
     const fakeBuilder = {
       report: { results: { environment: undefined } },

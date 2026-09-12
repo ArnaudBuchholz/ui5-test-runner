@@ -3,7 +3,11 @@ import { FileSystem, Path, logger } from '../../../platform/index.js';
 import type { Configuration } from '../../../configuration/Configuration.js';
 import { getSettingsPath, getSettings, initSettings } from './settings.js';
 
-beforeEach(() => vi.clearAllMocks());
+beforeEach(() => {
+  vi.clearAllMocks();
+  vi.mocked(FileSystem.access).mockRejectedValue(new Error('not found'));
+  vi.mocked(Path.relative).mockReturnValue('relative-path');
+});
 
 const COVERAGE_TEMP_DIR = '/tmp/coverage';
 const COVERAGE_REPORT_DIR = '/tmp/coverage-report';
@@ -27,8 +31,6 @@ const makeConfiguration = (overrides: object): Configuration => ({ ...BASE_CONFI
 
 describe('initSettings', () => {
   it('writes .nycrc.json into <coverageTempDir>/settings/', async () => {
-    vi.mocked(FileSystem.access).mockRejectedValue(new Error('not found'));
-    vi.mocked(Path.relative).mockReturnValue('relative-path');
     const config = makeConfiguration({});
     await initSettings(config);
     const settingsPath = `${COVERAGE_TEMP_DIR}/settings/.nycrc.json`;
@@ -36,16 +38,12 @@ describe('initSettings', () => {
   });
 
   it('creates the settings directory with recursive: true', async () => {
-    vi.mocked(FileSystem.access).mockRejectedValue(new Error('not found'));
-    vi.mocked(Path.relative).mockReturnValue('relative-path');
     const config = makeConfiguration({});
     await initSettings(config);
     expect(FileSystem.mkdir).toHaveBeenCalledWith(`${COVERAGE_TEMP_DIR}/settings`, { recursive: true });
   });
 
   it('defaults all to true when coverageSettings file is missing', async () => {
-    vi.mocked(FileSystem.access).mockRejectedValue(new Error('not found'));
-    vi.mocked(Path.relative).mockReturnValue('relative-path');
     const config = makeConfiguration({});
     const { settings } = await initSettings(config);
     expect(settings.all).toBe(true);
@@ -61,54 +59,41 @@ describe('initSettings', () => {
   });
 
   it('sets sourceMap to false', async () => {
-    vi.mocked(FileSystem.access).mockRejectedValue(new Error('not found'));
-    vi.mocked(Path.relative).mockReturnValue('relative-path');
     const config = makeConfiguration({});
     const { settings } = await initSettings(config);
     expect(settings.sourceMap).toBe(false);
   });
 
   it('sets coverageGlobalScope to "window.top"', async () => {
-    vi.mocked(FileSystem.access).mockRejectedValue(new Error('not found'));
-    vi.mocked(Path.relative).mockReturnValue('relative-path');
     const config = makeConfiguration({});
     const { settings } = await initSettings(config);
     expect(settings.coverageGlobalScope).toBe('window.top');
   });
 
   it('sets coverageGlobalScopeFunc to false', async () => {
-    vi.mocked(FileSystem.access).mockRejectedValue(new Error('not found'));
-    vi.mocked(Path.relative).mockReturnValue('relative-path');
     const config = makeConfiguration({});
     const { settings } = await initSettings(config);
     expect(settings.coverageGlobalScopeFunc).toBe(false);
   });
 
   it('sets cwd to webapp when no coverageSourceDir', async () => {
-    vi.mocked(FileSystem.access).mockRejectedValue(new Error('not found'));
-    vi.mocked(Path.relative).mockReturnValue('relative-path');
     const config = makeConfiguration({});
     const { settings } = await initSettings(config);
     expect(settings.cwd).toBe(WEBAPP);
   });
 
   it('sets cwd to coverageSourceDir when provided', async () => {
-    vi.mocked(FileSystem.access).mockRejectedValue(new Error('not found'));
-    vi.mocked(Path.relative).mockReturnValue('relative-path');
     const config = makeConfiguration({ coverageSourceDir: '/remote/src' });
     const { settings } = await initSettings(config);
     expect(settings.cwd).toBe('/remote/src');
   });
 
   it('omits cwd when neither webapp nor coverageSourceDir is set', async () => {
-    vi.mocked(FileSystem.access).mockRejectedValue(new Error('not found'));
-    vi.mocked(Path.relative).mockReturnValue('relative-path');
     const { settings } = await initSettings(NO_WEBAPP_CONFIGURATION);
     expect(settings.cwd).toBeUndefined();
   });
 
   it('appends relative exclude paths for temp, report, and test report directories', async () => {
-    vi.mocked(FileSystem.access).mockRejectedValue(new Error('not found'));
     vi.mocked(Path.relative)
       .mockReturnValueOnce('../coverage')
       .mockReturnValueOnce('../coverage-report')
@@ -153,8 +138,6 @@ describe('initSettings', () => {
   });
 
   it('logs debug when no settings file is found', async () => {
-    vi.mocked(FileSystem.access).mockRejectedValue(new Error('not found'));
-    vi.mocked(Path.relative).mockReturnValue('relative');
     const config = makeConfiguration({});
     await initSettings(config);
     expect(logger.debug).toHaveBeenCalledWith(
@@ -163,8 +146,6 @@ describe('initSettings', () => {
   });
 
   it('caches the result for the same configuration object', async () => {
-    vi.mocked(FileSystem.access).mockRejectedValue(new Error('not found'));
-    vi.mocked(Path.relative).mockReturnValue('relative');
     const config = makeConfiguration({});
     const first = await initSettings(config);
     const second = await initSettings(config);
@@ -174,8 +155,6 @@ describe('initSettings', () => {
 
 describe('getSettingsPath', () => {
   it('returns the settingsPath from initSettings', async () => {
-    vi.mocked(FileSystem.access).mockRejectedValue(new Error('not found'));
-    vi.mocked(Path.relative).mockReturnValue('relative');
     const config = makeConfiguration({});
     const path = await getSettingsPath(config);
     expect(path).toBe(`${COVERAGE_TEMP_DIR}/settings/.nycrc.json`);
@@ -184,8 +163,6 @@ describe('getSettingsPath', () => {
 
 describe('getSettings', () => {
   it('returns the settings object from initSettings', async () => {
-    vi.mocked(FileSystem.access).mockRejectedValue(new Error('not found'));
-    vi.mocked(Path.relative).mockReturnValue('relative');
     const config = makeConfiguration({});
     const settings = await getSettings(config);
     expect(settings.sourceMap).toBe(false);
