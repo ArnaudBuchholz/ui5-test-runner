@@ -78,6 +78,7 @@ for (const fileName of optionsFileNames) {
     console.error(`❌ ${fileName} :\n\t` + errors.join('\n\t'));
     process.exitCode = 1;
   }
+  const defaultLabel = metadata.defaultLabel === undefined ? undefined : String(metadata.defaultLabel);
   options[name] = {
     name,
     short,
@@ -87,6 +88,7 @@ for (const fileName of optionsFileNames) {
     browserExposed: isBrowserExposed,
     batchForwarded: isBatchForwarded,
     description: summary,
+    defaultLabel,
     default: defaultValue
   };
   if (Array.isArray(metadata.validation)) {

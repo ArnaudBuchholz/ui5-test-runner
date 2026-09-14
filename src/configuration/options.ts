@@ -4,6 +4,7 @@ export const options = [
     short: 'c',
     type: 'fs-entry',
     description: 'set working directory',
+    defaultLabel: 'current working directory',
     default: process.cwd()
   },
   {
