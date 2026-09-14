@@ -129,7 +129,7 @@ export const testBrowser = ({ name, failedSetupTestCases }: TTestBrowserArgument
         await second.setup(BROWSER_SETTINGS);
         await second.shutdown();
         browser = await BrowserFactory.build(FACTORY_SETTINGS, name);
-        await browser.setup(BROWSER_SETTINGS);
+        await expect(browser.setup(BROWSER_SETTINGS)).resolves.toBeDefined();
       });
 
       it('enables creating a window', async () => {
