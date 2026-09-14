@@ -1,22 +1,35 @@
-import { boolean } from './boolean.js';
-import { checkValidator, noIntegers } from './checkValidator.test.js';
+import { lib } from './libraryMapping.js';
+import { checkValidator } from './checkValidator.test.js';
 
 checkValidator({
-  validator: boolean,
+  validator: lib,
   option: {
-    description: 'Boolean option',
-    name: 'boolean',
-    type: 'boolean'
+    description: 'Library mapping',
+    name: 'lib',
+    type: 'library-mapping',
+    multiple: true
   },
   valid: [
-    { value: true, expected: true },
-    { value: 'true', expected: true },
-    { value: 'on', expected: true },
-    { value: 1, expected: true },
-    { value: false, expected: false },
-    { value: 'false', expected: false },
-    { value: 'off', expected: false },
-    { value: 0, expected: false }
+    {
+      value: 'resources/my-lib=src/my-lib',
+      expected: { resourcesSubFolder: 'resources/my-lib', sourceFolder: 'src/my-lib' }
+    },
+    {
+      value: 'my-lib',
+      expected: { resourcesSubFolder: 'my-lib', sourceFolder: 'my-lib' }
+    },
+    {
+      value: { resourcesSubFolder: 'resources/my-lib', sourceFolder: 'src/my-lib' },
+      expected: { resourcesSubFolder: 'resources/my-lib', sourceFolder: 'src/my-lib' }
+    }
   ],
-  invalid: noIntegers.filter(({ value }) => ![0, 1].includes(value))
+  invalid: [
+    { value: 'a=b=c' },
+    { value: 123 },
+    { value: true },
+    { value: { resourcesSubFolder: 'resources/my-lib' } },
+    { value: { sourceFolder: 'src/my-lib' } },
+    { value: { resourcesSubFolder: 123, sourceFolder: 'src/my-lib' } },
+    { value: { resourcesSubFolder: 'resources/my-lib', sourceFolder: 456 } }
+  ]
 });

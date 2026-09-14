@@ -18,6 +18,10 @@ export const lib: OptionValidator<'library-mapping'> = (option, value) => {
       sourceFolder: sourceFolder ?? resourcesSubFolder
     };
   }
-  validate(value, libraryMappingSchema);
+  try {
+    validate(value, libraryMappingSchema);
+  } catch {
+    throw OptionValidationError.createInvalidValue(option);
+  }
   return value;
 };
