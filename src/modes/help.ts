@@ -42,9 +42,15 @@ const optionFlags = (option: (typeof options)[number]): string => {
   return short ? `--${kebab}, -${short}` : `--${kebab}`;
 };
 
+const TYPE_DISPLAY: Partial<Record<(typeof options)[number]['type'], string>> = {
+  'fs-entry': 'path',
+  'library-mapping': 'mapping'
+};
+
 const optionTypeLabel = (option: (typeof options)[number]): string => {
   const isMultiple = 'multiple' in option && option.multiple;
-  return isMultiple ? `<${option.type}...>` : `<${option.type}>`;
+  const display = TYPE_DISPLAY[option.type] ?? option.type;
+  return isMultiple ? `<${display}...>` : `<${display}>`;
 };
 
 export const help = async () => {
@@ -72,10 +78,21 @@ export const help = async () => {
   const descWidth = terminalWidth - descIndentWidth;
   const descIndent = ' '.repeat(descIndentWidth);
 
+  const getDefaultLabel = (option: (typeof options)[number]): string | undefined => {
+    if ('defaultLabel' in option) {
+      return option.defaultLabel;
+    }
+    if ('default' in option) {
+      return formatDefault(option.default);
+    }
+    return undefined;
+  };
+
   for (const option of options) {
     const flags = optionFlags(option);
     const typeLabel = optionTypeLabel(option);
-    const defaultPart = 'default' in option ? ` [default: ${formatDefault(option.default)}]` : '';
+    const defaultLabel = getDefaultLabel(option);
+    const defaultPart = defaultLabel === undefined ? '' : ` [default: ${defaultLabel}]`;
     const desc = wrapText(`${option.description}${defaultPart}`, descWidth, descIndent);
     console.log(`  ${flags.padEnd(col1Width)}  ${typeLabel.padEnd(col2Width)}  ${desc}`);
   }
