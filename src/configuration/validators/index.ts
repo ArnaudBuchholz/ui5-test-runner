@@ -18,7 +18,7 @@ export const validators: { [key in OptionType]: OptionValidator<key> } = {
   enumeration,
   'fs-entry': fsEntry,
   integer,
-  lib,
+  'library-mapping': lib,
   percent,
   regexp,
   string,

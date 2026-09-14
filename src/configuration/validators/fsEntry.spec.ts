@@ -1,6 +1,6 @@
 import { it, expect, vi, describe } from 'vitest';
 import { FileSystem, Host } from '../../platform/index.js';
-import { fsEntry } from './fsEntry.js';
+import { fsEntry, fsOption } from './fsEntry.js';
 import { checkValidator, noBooleans, noIntegers, noNumbers } from './checkValidator.test.js';
 import type { Configuration } from '../Configuration.js';
 import { OptionValidationError } from '../OptionValidationError.js';
@@ -110,13 +110,13 @@ describe('(no modifiers)', () => {
     it('handles: cwd is relative to Host.cwd()', async () => {
       const { cwd: option } = indexedOptions;
       vi.mocked(Host.cwd).mockReturnValue(VALID_ROOT);
-      const result = await fsEntry(option, VALID_FOLDER_NAME, {} as Configuration);
+      const result = await fsOption(option, VALID_FOLDER_NAME, {} as Configuration);
       expect(result).toStrictEqual(VALID_FOLDER_PATH);
     });
 
     it('handles: webapp may not exist', async () => {
       const { webapp: option } = indexedOptions;
-      const result = await fsEntry(option, INVALID_ACCESS_NAME, { cwd: VALID_ROOT } as Configuration);
+      const result = await fsOption(option, INVALID_ACCESS_NAME, { cwd: VALID_ROOT } as Configuration);
       expect(result).toStrictEqual('');
     });
   });
@@ -223,14 +223,14 @@ describe('file', () => {
   describe('exceptions', () => {
     it('handles: config may not exist if default', async () => {
       const { config: option } = indexedOptions;
-      const result = await fsEntry(option, 'ui5-test-runner.json', { cwd: VALID_ROOT } as Configuration);
+      const result = await fsOption(option, 'ui5-test-runner.json', { cwd: VALID_ROOT } as Configuration);
       expect(result).toStrictEqual('');
     });
 
     it('handles: config must fail otherwise', async () => {
       const { config: option } = indexedOptions;
       try {
-        await fsEntry(option, INVALID_ACCESS_NAME, { cwd: VALID_ROOT, config: INVALID_ACCESS_NAME } as Configuration);
+        await fsOption(option, INVALID_ACCESS_NAME, { cwd: VALID_ROOT, config: INVALID_ACCESS_NAME } as Configuration);
         expect.unreachable();
       } catch (error) {
         expect.assert(error instanceof OptionValidationError);

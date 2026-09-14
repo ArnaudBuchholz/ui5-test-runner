@@ -7,7 +7,7 @@ const libraryMappingSchema = {
   sourceFolder: 'string'
 } as const;
 
-export const lib: OptionValidator<'lib'> = (option, value) => {
+export const lib: OptionValidator<'library-mapping'> = (option, value) => {
   if (typeof value === 'string') {
     const [resourcesSubFolder, sourceFolder, extra] = value.split('=', 3);
     if (extra) {

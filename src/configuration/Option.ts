@@ -4,7 +4,7 @@ export type OptionType =
   | 'enumeration'
   | 'fs-entry'
   | 'integer'
-  | 'lib'
+  | 'library-mapping'
   | 'percent'
   | 'regexp'
   | 'string'
@@ -24,7 +24,7 @@ export type InferOptionType<T extends OptionType> = T extends 'boolean'
       ? number
       : T extends 'regexp'
         ? RegExp
-        : T extends 'lib'
+        : T extends 'library-mapping'
           ? LibraryMapping
           : string;
 

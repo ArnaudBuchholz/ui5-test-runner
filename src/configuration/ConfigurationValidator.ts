@@ -1,4 +1,5 @@
 import type { Configuration } from './Configuration.js';
+import type { Option, OptionType } from './Option.js';
 import { options, defaults } from './options.js';
 import { indexedOptions } from './indexedOptions.js';
 import { validators } from './validators/index.js';
@@ -32,20 +33,23 @@ const assertIfConfiguration: (value: object) => asserts value is Configuration =
   }
 };
 
+const callValidator = <T extends OptionType>(option: Option<T>, value: unknown, configuration: Configuration) =>
+  validators[option.type](option, value, configuration);
+
 const validateValue = async (option: (typeof options)[number], configuration: Configuration) => {
   const value = configuration[option.name];
   if ('multiple' in option) {
     const validatedValues = [];
     if (Array.isArray(value)) {
       for (const valueItem of value) {
-        validatedValues.push(await validators[option.type](option, valueItem, configuration));
+        validatedValues.push(await callValidator(option, valueItem, configuration));
       }
     } else {
-      validatedValues.push(await validators[option.type](option, value, configuration));
+      validatedValues.push(await callValidator(option, value, configuration));
     }
     return validatedValues;
   }
-  return await validators[option.type](option, value, configuration);
+  return await callValidator(option, value, configuration);
 };
 
 const loadConfigFile = async (configPath: string): Promise<Record<string, unknown>> => {
