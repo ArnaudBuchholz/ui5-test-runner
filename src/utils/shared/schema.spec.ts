@@ -28,17 +28,20 @@ it('validates an object respecting the schema', () => {
   ).not.toThrow();
 });
 
-it.each([{
-  name: 'John Doe',
-  age: 42
-}, {
-name: null,
-age: 42,
-address: {
-    street: 'No name',
-    city: 'Gotham',
-    zipCode: 123
-}
-}])('invalidates an object not respecting the schema (%s)', (value) => {
-  expect(() =>validate(value, userSchema)).toThrow(TypeError);
+it.each([
+  {
+    name: 'John Doe',
+    age: 42
+  },
+  {
+    name: null,
+    age: 42,
+    address: {
+      street: 'No name',
+      city: 'Gotham',
+      zipCode: 123
+    }
+  }
+])('invalidates an object not respecting the schema (%s)', (value) => {
+  expect(() => validate(value, userSchema)).toThrow(TypeError);
 });
