@@ -1,26 +1,15 @@
-import { logger, Exit, Process, assert } from '../platform/index.js';
+import { logger, Process, assert } from '../platform/index.js';
 import type { BrowserCapabilities, BrowserSettings, IBrowser } from './IBrowser.js';
-import type { BrowserType, Browser, Page, ConsoleMessage } from 'playwright';
+import type { BrowserType, Browser, Page } from 'playwright';
 import { Npm } from '../Npm.js';
-import type { ILogger } from '../platform/logger/ILogger.js';
-import { agentLogPrefix } from '../types/AgentState.js';
-import type { LogSource } from '../platform/logger/types.js';
 import type { Configuration } from '../configuration/Configuration.js';
+import { handleConsoleMessage } from './consoleMessage.js';
 
-export const factory = async (configuration: Configuration): Promise<IBrowser> => {
+export const factory = async (configuration: Configuration, signal: AbortSignal): Promise<IBrowser> => {
   const playwright = await Npm.import(configuration, 'playwright');
   const { chromium } = playwright as { chromium: BrowserType };
   let browser: Browser | undefined;
-  const abortController = new AbortController();
-  const { signal } = abortController;
-  const task = Exit.registerAsyncTask({
-    name: 'playwright',
-    async stop() {
-      abortController.abort();
-      await browser?.close();
-    }
-  });
-  let openedPages = 0;
+  const pages = new Set<Page>();
 
   const launchAndInstallIfNeeded = async (settings: BrowserSettings): Promise<BrowserCapabilities> => {
     logger.debug({ source: 'playwright', message: 'launching browser' });
@@ -53,7 +42,6 @@ export const factory = async (configuration: Configuration): Promise<IBrowser> =
         throw error;
       }
     }
-    logger.debug({ source: 'playwright', message: 'setup completed' });
     return {
       screenshotFormat: '.png',
       browserName: browser.browserType().name(),
@@ -63,53 +51,26 @@ export const factory = async (configuration: Configuration): Promise<IBrowser> =
 
   return {
     async setup(settings) {
-      logger.debug({ source: 'playwright', message: 'setup', data: settings });
-      try {
-        return await launchAndInstallIfNeeded(settings);
-      } catch (error) {
-        logger.error({ source: 'playwright', message: 'setup failed', error });
-        task[Symbol.dispose]();
-        throw error;
-      }
+      return await launchAndInstallIfNeeded(settings);
     },
 
     async newWindow(settings) {
-      logger.debug({ source: 'playwright', message: 'newWindow', data: settings });
       let page: Page | undefined;
-      if (++openedPages === 1) {
-        const pages = browser?.contexts()[0]?.pages();
-        page = pages?.[0] ?? (await browser?.newPage());
+      if (pages.size === 0) {
+        const existingPages = browser?.contexts()[0]?.pages();
+        page = existingPages?.[0] ?? (await browser?.newPage());
       } else {
         page = await browser?.newPage();
       }
       assert(page !== undefined);
+      pages.add(page);
       for (const script of settings.scripts) {
         await page.addInitScript(script);
       }
       const { pageId } = settings;
       page
-        .on('console', (message: ConsoleMessage) => {
-          const LOG_TYPES: { [key: string]: keyof ILogger } = {
-            error: 'error',
-            warn: 'warn',
-            assert: 'warn',
-            debug: 'debug'
-          } as const;
-          const logType = LOG_TYPES[message.type()] ?? 'info';
-          let source: LogSource;
-          let messageText = message.text();
-          if (messageText.startsWith(agentLogPrefix)) {
-            source = 'browser/agent';
-            messageText = messageText.slice(agentLogPrefix.length);
-          } else {
-            source = 'browser/console';
-          }
-          logger[logType]({
-            source,
-            message: messageText,
-            pageId,
-            data: { type: message.type() }
-          });
+        .on('console', (message) => {
+          handleConsoleMessage(message.type(), message.text(), pageId);
         })
         .on('response', (response) => {
           const request = response.request();
@@ -133,7 +94,6 @@ export const factory = async (configuration: Configuration): Promise<IBrowser> =
           });
         });
       await page.goto(settings.url);
-      logger.debug({ source: 'playwright', message: 'newWindow completed', data: settings });
       return {
         async eval(script: string) {
           return await page?.evaluate(script);
@@ -142,23 +102,24 @@ export const factory = async (configuration: Configuration): Promise<IBrowser> =
           await page.screenshot({ path });
         },
         async close() {
-          try {
-            await page.close();
-          } catch (error) {
-            logger.error({ source: 'playwright', message: 'page.close failed', error });
-          }
+          pages.delete(page);
+          await page.goto('about:blank');
+          await page.close();
         }
       };
     },
 
     async shutdown() {
-      logger.debug({ source: 'playwright', message: 'shutdown' });
-      try {
-        await browser?.close();
-      } catch (error) {
-        logger.error({ source: 'playwright', message: 'browser.close failed', error });
-      }
-      task[Symbol.dispose]();
+      await Promise.all(
+        pages.values().map(async (page) => {
+          try {
+            await page.goto('about:blank');
+          } catch {
+            /* ignore */
+          }
+        })
+      );
+      await browser?.close();
     }
   };
 };

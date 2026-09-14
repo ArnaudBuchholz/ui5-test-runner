@@ -2,10 +2,11 @@ import { defineConfig, configDefaults } from 'vitest/config';
 import { resolve } from 'node:path';
 
 const exclude = [...configDefaults.exclude, 'src/**/*.js', 'src/**/*.test.ts', 'dist/**', 'test/**', 'e2e/**', '.claude/**', '.worktrees/**'];
+const VITEST_CONSOLE_LOG = ['true', 'on', '1'].includes(process.env['VITEST_CONSOLE_LOG'] ?? '');
 
 export default defineConfig({
   test: {
-    onConsoleLog: () => false,
+    onConsoleLog: () => VITEST_CONSOLE_LOG,
     exclude,
     coverage: {
       include: ['src/**/*.ts'],
@@ -45,7 +46,7 @@ export default defineConfig({
       extends: true,
       test: {
         exclude: [ ...exclude, 'src/agent/**', 'src/ui/**', 'src/**/ui/**' ],
-        name: { label: 'shell', color: 'green' },
+        name: { label: 'cli', color: 'green' },
         environment: 'node',
         setupFiles: [ 'src/platform/mock.ts' ]
       }

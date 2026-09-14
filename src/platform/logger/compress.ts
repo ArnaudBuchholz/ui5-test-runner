@@ -25,7 +25,13 @@ interface IDataSlot {
     context: CompressionContext,
     attributes: InternalLogAttributes
   ): { contextLine?: string; compressed: string };
-  uncompress(context: CompressionContext, compressed: string): Partial<InternalLogAttributes>;
+  // `Partial<InternalLogAttributes>` collapses `source` to `PageLogSource | undefined` because
+  // TypeScript flattens discriminated-union members into a single field type when partializing.
+  // Override `source` explicitly to accept the full `LogSource`.
+  uncompress(
+    context: CompressionContext,
+    compressed: string
+  ): Omit<Partial<InternalLogAttributes>, 'source'> & { source?: LogSource };
 }
 
 const levelSlot: IDataSlot = {

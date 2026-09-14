@@ -1,25 +1,14 @@
-import { logger, Exit, Process } from '../platform/index.js';
+import { logger, Process } from '../platform/index.js';
 import type { BrowserCapabilities, BrowserSettings, IBrowser } from './IBrowser.js';
-import type { launch as launchFunction, Browser, Page, ConsoleMessageType } from 'puppeteer';
+import type { launch as launchFunction, Browser, Page } from 'puppeteer';
 import { Npm } from '../Npm.js';
-import type { ILogger } from '../platform/logger/ILogger.js';
-import { agentLogPrefix } from '../types/AgentState.js';
-import type { LogSource } from '../platform/logger/types.js';
 import type { Configuration } from '../configuration/Configuration.js';
+import { handleConsoleMessage } from './consoleMessage.js';
 
-export const factory = async (configuration: Configuration): Promise<IBrowser> => {
+export const factory = async (configuration: Configuration, signal: AbortSignal): Promise<IBrowser> => {
   const puppeteer = await Npm.import(configuration, 'puppeteer');
-  const { launch } = puppeteer as { launch: typeof launchFunction };
+  const launch = (puppeteer as { launch: typeof launchFunction }).launch;
   let browser: Browser | undefined;
-  const abortController = new AbortController();
-  const { signal } = abortController;
-  const task = Exit.registerAsyncTask({
-    name: 'puppeteer',
-    async stop() {
-      abortController.abort();
-      await browser?.close();
-    }
-  });
   let openedPages = 0;
 
   const launchAndInstallIfNeeded = async (settings: BrowserSettings): Promise<BrowserCapabilities> => {
@@ -60,7 +49,6 @@ export const factory = async (configuration: Configuration): Promise<IBrowser> =
         throw error;
       }
     }
-    logger.debug({ source: 'puppeteer', message: 'setup completed' });
     return {
       screenshotFormat: '.png',
       browserName: 'chrome',
@@ -70,18 +58,11 @@ export const factory = async (configuration: Configuration): Promise<IBrowser> =
 
   return {
     async setup(settings) {
-      logger.debug({ source: 'puppeteer', message: 'setup', data: settings });
-      try {
-        return await launchAndInstallIfNeeded(settings);
-      } catch (error) {
-        logger.error({ source: 'puppeteer', message: 'setup failed', error });
-        task[Symbol.dispose]();
-        throw error;
-      }
+      return await launchAndInstallIfNeeded(settings);
     },
 
     async newWindow(settings) {
-      logger.debug({ source: 'puppeteer', message: 'newWindow', data: settings });
+      const { pageId } = settings;
       let page: Page | undefined;
       if (++openedPages === 1) {
         const pages = await browser?.pages(true);
@@ -94,30 +75,9 @@ export const factory = async (configuration: Configuration): Promise<IBrowser> =
       for (const script of settings.scripts) {
         await page?.evaluateOnNewDocument(script);
       }
-      const { pageId } = settings;
       page
         ?.on('console', (message) => {
-          const LOG_TYPES: { [key in ConsoleMessageType]?: keyof ILogger } = {
-            error: 'error',
-            warn: 'warn',
-            assert: 'warn',
-            debug: 'debug'
-          } as const;
-          const logType = LOG_TYPES[message.type()] ?? 'info';
-          let source: LogSource;
-          let messageText = message.text();
-          if (messageText.startsWith(agentLogPrefix)) {
-            source = 'browser/agent';
-            messageText = messageText.slice(agentLogPrefix.length);
-          } else {
-            source = 'browser/console';
-          }
-          logger[logType]({
-            source,
-            message: messageText,
-            pageId,
-            data: { type: message.type() }
-          });
+          handleConsoleMessage(message.type(), message.text(), pageId);
         })
         ?.on('response', (response) => {
           const request = response.request();
@@ -141,7 +101,6 @@ export const factory = async (configuration: Configuration): Promise<IBrowser> =
           });
         });
       await page?.goto(settings.url);
-      logger.debug({ source: 'puppeteer', message: 'newWindow completed', data: settings });
       return {
         async eval(script: string) {
           return await page?.evaluate(script);
@@ -150,24 +109,13 @@ export const factory = async (configuration: Configuration): Promise<IBrowser> =
           await page?.screenshot({ path });
         },
         async close() {
-          try {
-            await page?.close();
-          } catch (error) {
-            logger.error({ source: 'puppeteer', message: 'page.close failed', error });
-          }
+          await page?.close();
         }
       };
     },
 
     async shutdown() {
-      logger.debug({ source: 'puppeteer', message: 'shutdown' });
-      try {
-        await browser?.close();
-      } catch (error) {
-        logger.error({ source: 'puppeteer', message: 'browser.close failed', error });
-      }
-      // TODO close any remaining pages
-      task[Symbol.dispose]();
+      await browser?.close();
     }
   };
 };

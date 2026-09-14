@@ -14,9 +14,11 @@ type GenericLogSource =
   | 'process/stderr'
   | 'playwright'
   | 'puppeteer'
+  | 'selenium-webdriver'
   | 'server'
   | 'server/unhandled'
-  | 'thread';
+  | 'thread'
+  | 'webdriverio';
 
 type PageLogSource = 'browser/agent' | 'browser/console' | 'browser/network' | 'page';
 
