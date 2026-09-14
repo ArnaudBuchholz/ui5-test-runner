@@ -5,6 +5,7 @@ import { browser } from './browser.js';
 import { enumeration } from './enumeration.js';
 import { fsEntry } from './fsEntry.js';
 import { integer } from './integer.js';
+import { lib } from './libraryMapping.js';
 import { percent } from './percent.js';
 import { regexp } from './regexp.js';
 import { string } from './string.js';
@@ -17,6 +18,7 @@ export const validators: { [key in OptionType]: OptionValidator<key> } = {
   enumeration,
   'fs-entry': fsEntry,
   integer,
+  lib,
   percent,
   regexp,
   string,

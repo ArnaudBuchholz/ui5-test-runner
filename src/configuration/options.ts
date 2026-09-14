@@ -260,6 +260,12 @@ export const options = [
     description: 'keep the server alive'
   },
   {
+    name: 'lib',
+    type: 'library-mapping',
+    multiple: true,
+    description: 'Library mapping'
+  },
+  {
     name: 'localhost',
     type: 'string',
     batchForwarded: true,

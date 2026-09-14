@@ -40,6 +40,7 @@
 |[help](options/help.md)|--help||boolean|display help|
 |[if](options/if.md)|--if||string|skip execution if the expression evaluates to falsy|
 |[keepAlive](options/keepAlive.md)|--keep-alive|-k|boolean|keep the server alive|
+|[lib](options/lib.md)|--lib||library-mapping|Library mapping|
 |[localhost](options/localhost.md)|--localhost||string|hostname for legacy URL|
 |[log](options/log.md)|--log||fs-entry|read and dump log file using jsonl format|
 |[logDump](options/logDump.md)|--log-dump||boolean|dump all traces to stdout instead of opening a browser (requires --log)|

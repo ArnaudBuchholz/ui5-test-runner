@@ -22,7 +22,8 @@ export default [
           allowList: {
             ZLib: true,
             Configuration: true,
-            configuration: true
+            configuration: true,
+            lib: true
           }
         }
       ]

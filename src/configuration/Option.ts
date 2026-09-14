@@ -1,5 +1,20 @@
 export type OptionType =
-  'boolean' | 'browser' | 'enumeration' | 'fs-entry' | 'integer' | 'percent' | 'regexp' | 'string' | 'timeout' | 'url';
+  | 'boolean'
+  | 'browser'
+  | 'enumeration'
+  | 'fs-entry'
+  | 'integer'
+  | 'lib'
+  | 'percent'
+  | 'regexp'
+  | 'string'
+  | 'timeout'
+  | 'url';
+
+export type LibraryMapping = {
+  resourcesSubFolder: string;
+  sourceFolder: string;
+};
 
 export type InferOptionType<T extends OptionType> = T extends 'boolean'
   ? boolean
@@ -9,7 +24,9 @@ export type InferOptionType<T extends OptionType> = T extends 'boolean'
       ? number
       : T extends 'regexp'
         ? RegExp
-        : string;
+        : T extends 'lib'
+          ? LibraryMapping
+          : string;
 
 export type Option<T extends OptionType = OptionType> = {
   name: string;
