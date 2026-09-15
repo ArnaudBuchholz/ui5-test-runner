@@ -1,10 +1,10 @@
 {
-  "if": "implemented('coverage') && implemented('libs')",
+  "if": "implemented('coverage') && implemented('lib')",
   "batchId": "JS_LEGACY_COVERAGE_LIB",
   "batchLabel": "Legacy JS Sample lib with coverage",
   "cwd": "../sample.lib.js",
   "webapp": "./",
-  "libs": [
+  "lib": [
     "sap/utr/lib=src/sap/utr/lib"
   ],  
   "coverage": true,
