@@ -3,6 +3,7 @@ import type { BrowserCapabilities, BrowserSettings, IBrowser } from './IBrowser.
 import { Npm } from '../Npm.js';
 import type { Configuration } from '../configuration/Configuration.js';
 import { handleConsoleMessage } from './consoleMessage.js';
+import { handleNetworkResponse } from './networkResponse.js';
 import { writeFile } from 'node:fs/promises';
 import type { Builder, ThenableWebDriver } from 'selenium-webdriver';
 import type { Options } from 'selenium-webdriver/chrome';
@@ -88,18 +89,14 @@ export const factory = async (configuration: Configuration): Promise<IBrowser> =
       await network.responseStarted((event) => {
         if (event === null || !('response' in event)) return;
         const pageId = (event.id === null ? undefined : contextToPageId.get(event.id)) ?? -1;
-        const statusType = Math.floor(event.response.status / 100);
-        const LOG_TYPES = [null, null, null, null, 'warn', 'error'] as const;
-        const logType = LOG_TYPES[statusType] ?? 'info';
-        logger[logType]({
-          source: 'browser/network',
-          message: event.request.url,
+        handleNetworkResponse(
           pageId,
-          data: {
-            request: { method: event.request.method, headers: headersToObject(event.request.headers) },
-            response: { status: event.response.status, headers: headersToObject(event.response.headers) }
-          }
-        });
+          event.request.url,
+          event.request.method,
+          event.response.status,
+          headersToObject(event.request.headers),
+          headersToObject(event.response.headers)
+        );
       });
 
       return {

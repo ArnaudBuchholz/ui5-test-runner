@@ -3,6 +3,7 @@ import type { BrowserCapabilities, BrowserSettings, IBrowser } from './IBrowser.
 import { Npm } from '../Npm.js';
 import type { Configuration } from '../configuration/Configuration.js';
 import { handleConsoleMessage } from './consoleMessage.js';
+import { handleNetworkResponse } from './networkResponse.js';
 
 type WdioBidiHeaderValue = { type: string; value: string };
 type WdioHeader = { name: string; value: string | WdioBidiHeaderValue };
@@ -70,18 +71,14 @@ export const factory = async (configuration: Configuration): Promise<IBrowser> =
           response: { status: number; headers: WdioHeader[] };
         };
         const pageId = (event.context === null ? undefined : contextToPageId.get(event.context)) ?? -1;
-        const statusType = Math.floor(event.response.status / 100);
-        const LOG_TYPES = [null, null, null, null, 'warn', 'error'] as const;
-        const logType = LOG_TYPES[statusType] ?? 'info';
-        logger[logType]({
-          source: 'browser/network',
-          message: event.request.url,
+        handleNetworkResponse(
           pageId,
-          data: {
-            request: { method: event.request.method, headers: headersToObject(event.request.headers) },
-            response: { status: event.response.status, headers: headersToObject(event.response.headers) }
-          }
-        });
+          event.request.url,
+          event.request.method,
+          event.response.status,
+          headersToObject(event.request.headers),
+          headersToObject(event.response.headers)
+        );
       });
       return {
         screenshotFormat: '.png',

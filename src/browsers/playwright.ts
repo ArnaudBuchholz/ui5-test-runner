@@ -4,6 +4,7 @@ import type { BrowserType, Browser, Page } from 'playwright';
 import { Npm } from '../Npm.js';
 import type { Configuration } from '../configuration/Configuration.js';
 import { handleConsoleMessage } from './consoleMessage.js';
+import { handleNetworkResponse } from './networkResponse.js';
 
 export const factory = async (configuration: Configuration, signal: AbortSignal): Promise<IBrowser> => {
   const playwright = await Npm.import(configuration, 'playwright');
@@ -74,24 +75,14 @@ export const factory = async (configuration: Configuration, signal: AbortSignal)
         })
         .on('response', (response) => {
           const request = response.request();
-          const statusType = Math.floor(response.status() / 100);
-          const LOG_TYPES = [null, null, null, null, 'warn', 'error'] as const;
-          const logType = LOG_TYPES[statusType] ?? 'info';
-          logger[logType]({
-            source: 'browser/network',
-            message: request.url(),
+          handleNetworkResponse(
             pageId,
-            data: {
-              request: {
-                method: request.method(),
-                headers: request.headers()
-              },
-              response: {
-                status: response.status(),
-                headers: response.headers()
-              }
-            }
-          });
+            request.url(),
+            request.method(),
+            response.status(),
+            request.headers(),
+            response.headers()
+          );
         });
       await page.goto(settings.url);
       return {
