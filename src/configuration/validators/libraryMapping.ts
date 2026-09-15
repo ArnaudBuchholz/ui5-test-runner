@@ -1,13 +1,14 @@
 import { OptionValidationError } from '../OptionValidationError.js';
 import type { OptionValidator } from './OptionValidator.js';
 import { validate } from '../../utils/shared/schema.js';
+import { fsOption } from './fsEntry.js';
 
 const libraryMappingSchema = {
   resourcesSubFolder: 'string',
   sourceFolder: 'string'
 } as const;
 
-export const lib: OptionValidator<'library-mapping'> = (option, value) => {
+export const lib: OptionValidator<'library-mapping'> = async (option, value, configuration) => {
   if (typeof value === 'string') {
     const [resourcesSubFolder, sourceFolder, extra] = value.split('=', 3);
     if (extra) {
@@ -23,5 +24,7 @@ export const lib: OptionValidator<'library-mapping'> = (option, value) => {
   } catch {
     throw OptionValidationError.createInvalidValue(option);
   }
-  return value;
+  const { resourcesSubFolder, sourceFolder } = value as { resourcesSubFolder: string; sourceFolder: string };
+  const validatedSourceFolder = await fsOption(option, sourceFolder, configuration);
+  return { resourcesSubFolder, sourceFolder: validatedSourceFolder };
 };
