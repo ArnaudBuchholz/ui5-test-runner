@@ -66,7 +66,34 @@ The merged settings are written to `<coverageTempDir>/settings/.nycrc.json` and 
 
 ## Legacy mode
 
-In this mode, source files are directly manipulated by `ui5-test-runner`.
+In legacy mode, `ui5-test-runner` owns the full instrumentation pipeline: it rewrites source files before the tests run and substitutes them at the HTTP layer while the tests execute.
+
+### What gets instrumented
+
+At startup, `nyc instrument` copies every `.js` file from `webapp` into `<coverageTempDir>/instrumented/`, rewriting each one to accumulate hit counts in `window.__coverage__`. The `webapp` folder is therefore the instrumentation root: only files inside it are instrumented by default.
+
+When the `lib` option maps a library source folder that lives under `cwd`, that folder is instrumented into `<coverageTempDir>/instrumented/<relative-path-from-cwd>/` using the same mechanism. Library source folders outside `cwd` are not instrumented.
+
+### How the server substitutes instrumented files
+
+The runner's HTTP server uses two stacked mappings for every instrumented root:
+
+1. **Instrumented mapping** — serves the pre-instrumented copy from `<coverageTempDir>/instrumented/`. This mapping is tried first.
+2. **Source mapping** — falls back to the original source folder if the file is not found in the instrumented tree.
+
+This fallback exists because not every file that is served will have been instrumented (for example, files excluded by the `.nycrc.json` `exclude` list). A missing file in the instrumented tree causes the request to fall through to the source mapping transparently.
+
+For `webapp` the project mapping at the bottom of the server configuration already acts as the source fallback. For `lib` entries, both mappings are emitted side-by-side with the same URL pattern, instrumented first.
+
+### The `?instrument=true` signal
+
+A small browser-side agent monkey-patches the UI5 loader so that every script URL it requests gets `?instrument=true` appended. The server strips the query parameter before resolving the file path, so the same instrumented/source fallback logic applies regardless of whether the query parameter is present.
+
+### Why a file can show 0% even when instrumented
+
+When `all: true` is set in `.nycrc.json` (the default), nyc generates a zero-hit baseline for every instrumented file before any tests run. A file that is never individually fetched over HTTP during the test run will keep that 0% baseline in the final report.
+
+This commonly happens with UI5 library initializer files (e.g. `library.js`): UI5 loads them via a preload bundle fetched from the CDN rather than as individual HTTP requests, so the instrumented copy is never executed, and the file appears in the report with 0% coverage even though it was instrumented successfully.
 
 ## Remote mode
 

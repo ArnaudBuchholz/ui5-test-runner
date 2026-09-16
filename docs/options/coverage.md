@@ -10,6 +10,7 @@ tags:
 see:
   - "[[webapp]]"
   - "[[coverageSourceDir]]"
+  - "[[../coverage|Coverage guide]]"
 validation:
   - message: "at least one of webapp or coverageSourceDir must be set"
     conditions:
