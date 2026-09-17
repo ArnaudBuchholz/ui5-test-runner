@@ -1,12 +1,14 @@
 import type { Configuration } from '../configuration/Configuration.js';
-import type { IBrowser, IWindow } from './IBrowser.js';
-import { factory as puppeteerFactory } from './puppeteer.js';
-import { factory as playwrightFactory } from './playwright.js';
-import { factory as webdriverioFactory } from './webdriverio.js';
-import { factory as seleniumWebdriverFactory } from './seleniumWebdriver.js';
+import type { BrowserDriverDescriptor, IBrowser, IWindow } from './IBrowser.js';
+import { factory as puppeteerFactory, descriptor as puppeteerDescriptor } from './puppeteer.js';
+import { factory as playwrightFactory, descriptor as playwrightDescriptor } from './playwright.js';
+import { factory as webdriverioFactory, descriptor as webdriverioDescriptor } from './webdriverio.js';
+import { factory as seleniumWebdriverFactory, descriptor as seleniumWebdriverDescriptor } from './seleniumWebdriver.js';
 import { Exit, logger } from '../platform/index.js';
 
-export type Browser = 'puppeteer' | 'playwright' | 'webdriverio' | 'selenium-webdriver';
+const BROWSERS = ['puppeteer', 'playwright', 'webdriverio', 'selenium-webdriver'] as const;
+export type Browser = (typeof BROWSERS)[number];
+export const isBrowser = (value: string): value is Browser => (BROWSERS as readonly string[]).includes(value);
 
 const factories: { [key in Browser]: (configuration: Configuration, signal: AbortSignal) => Promise<IBrowser> } = {
   puppeteer: puppeteerFactory,
@@ -14,6 +16,15 @@ const factories: { [key in Browser]: (configuration: Configuration, signal: Abor
   webdriverio: webdriverioFactory,
   'selenium-webdriver': seleniumWebdriverFactory
 };
+
+const descriptors: { [key in Browser]: BrowserDriverDescriptor } = {
+  puppeteer: puppeteerDescriptor,
+  playwright: playwrightDescriptor,
+  webdriverio: webdriverioDescriptor,
+  'selenium-webdriver': seleniumWebdriverDescriptor
+};
+
+export const getDescriptor = (driver: Browser): BrowserDriverDescriptor => descriptors[driver];
 
 let _instanceCount = 0;
 const _activeInstances = new Set<Browser>();

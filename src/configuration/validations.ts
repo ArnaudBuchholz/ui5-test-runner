@@ -6,6 +6,56 @@ import { OptionValidationError } from './OptionValidationError.js';
 export const validations: Array<(configuration: Configuration) => void> = [
   (configuration) => {
     if (
+      Object.hasOwn(configuration, 'browser') &&
+      !punyexpr("(driver !== 'puppeteer' || browser === 'chrome' || browser === 'firefox')")(configuration)
+    ) {
+      throw OptionValidationError.createValidationError(
+        indexedOptions.browser,
+        'browser is not supported by puppeteer (chrome, firefox)'
+      );
+    }
+  },
+  (configuration) => {
+    if (
+      Object.hasOwn(configuration, 'browser') &&
+      !punyexpr("(driver !== 'playwright' || browser === 'chromium' || browser === 'firefox' || browser === 'webkit')")(
+        configuration
+      )
+    ) {
+      throw OptionValidationError.createValidationError(
+        indexedOptions.browser,
+        'browser is not supported by playwright (chromium, firefox, webkit)'
+      );
+    }
+  },
+  (configuration) => {
+    if (
+      Object.hasOwn(configuration, 'browser') &&
+      !punyexpr(
+        "(driver !== 'webdriverio' || browser === 'chrome' || browser === 'firefox' || browser === 'edge' || browser === 'safari')"
+      )(configuration)
+    ) {
+      throw OptionValidationError.createValidationError(
+        indexedOptions.browser,
+        'browser is not supported by webdriverio (chrome, firefox, edge, safari)'
+      );
+    }
+  },
+  (configuration) => {
+    if (
+      Object.hasOwn(configuration, 'browser') &&
+      !punyexpr(
+        "(driver !== 'selenium-webdriver' || browser === 'chrome' || browser === 'firefox' || browser === 'edge' || browser === 'safari')"
+      )(configuration)
+    ) {
+      throw OptionValidationError.createValidationError(
+        indexedOptions.browser,
+        'browser is not supported by selenium-webdriver (chrome, firefox, edge, safari)'
+      );
+    }
+  },
+  (configuration) => {
+    if (
       Object.hasOwn(configuration, 'coverage') &&
       !punyexpr("(!coverage || webapp !== '' || coverageSourceDir !== '')")(configuration)
     ) {

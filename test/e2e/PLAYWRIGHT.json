@@ -2,5 +2,5 @@
   "batchId": "PLAYWRIGHT",
   "batchLabel": "Playwright browser",
   "cwd": "../capabilities",
-  "browser": "playwright"
+  "driver": "playwright"
 }

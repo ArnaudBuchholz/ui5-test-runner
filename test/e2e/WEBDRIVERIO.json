@@ -1,8 +1,6 @@
 {
-  "if": "false && 'Not yet implemented'",
   "batchId": "WEBDRIVERIO",
   "batchLabel": "Webdriver.io browser",
   "cwd": "../capabilities",
-  "browser": "$/webdriverio.js",
-  "browserArgs": ["--unsecure"]
+  "driver": "webdriverio"
 }

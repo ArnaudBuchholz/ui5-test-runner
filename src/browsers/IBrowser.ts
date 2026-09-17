@@ -10,13 +10,20 @@ export type BrowserSettings = {
   language?: string;
   secure?: boolean;
   basicAuthentication?: { username: string; password: string };
+  browser?: string;
+  options?: Record<string, unknown>;
 };
 
 export type BrowserCapabilities = {
-  screenshotFormat: string;
   browserName: string;
   browserVersion: string;
 };
+
+export interface BrowserDriverDescriptor {
+  readonly supportedBrowsers: readonly string[];
+  readonly defaultBrowser: string;
+  readonly screenshotFormat: string;
+}
 
 export type WindowSettings = {
   pageId: number;

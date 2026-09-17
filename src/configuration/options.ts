@@ -79,11 +79,17 @@ export const options = [
   {
     name: 'browser',
     short: 'b',
-    type: 'browser',
-    browserExposed: true,
+    type: 'enumeration',
+    typeModifiers: new Set(['chrome', 'chromium', 'firefox', 'webkit', 'edge', 'safari'] as const),
     batchForwarded: true,
-    description: 'browser selection',
-    default: 'puppeteer'
+    description: 'browser selection (per driver)'
+  },
+  {
+    name: 'browserOptions',
+    type: 'json',
+    batchForwarded: true,
+    description: 'browser-specific options (JSON)',
+    default: {}
   },
   {
     name: 'browserViewportHeight',
@@ -208,6 +214,16 @@ export const options = [
     type: 'boolean',
     description: 'use local docs/ directory instead of fetching from GitHub (development only)',
     default: false
+  },
+  {
+    name: 'driver',
+    short: 'd',
+    type: 'enumeration',
+    typeModifiers: new Set(['puppeteer', 'playwright', 'webdriverio', 'selenium-webdriver'] as const),
+    browserExposed: true,
+    batchForwarded: true,
+    description: 'driver selection',
+    default: 'puppeteer'
   },
   {
     name: 'dumpConfig',
@@ -460,7 +476,7 @@ export const defaults = {
   agentDetectionMaxInterval: 1000,
   agentDetectionTimeout: 5000,
   agentNoTestsTimeout: 5000,
-  browser: 'puppeteer',
+  browserOptions: {},
   browserViewportHeight: 1080,
   browserViewportWidth: 1920,
   browserVisible: false,
@@ -477,6 +493,7 @@ export const defaults = {
   coverageTempDir: '.nyc_output',
   cwd: process.cwd(),
   debugMcpLocalDocs: false,
+  driver: 'puppeteer',
   localhost: 'localhost',
   npmAllowInstallScripts: false,
   npmInstall: 'global',

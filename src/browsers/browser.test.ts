@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach, afterAll, beforeAll } from 'vitest';
 import { BrowserFactory } from './factory.js';
 import type { Browser } from './factory.js';
-import type { IBrowser, IWindow } from './IBrowser.js';
+import type { IBrowser, IWindow, BrowserSettings } from './IBrowser.js';
 import { defaults } from '../configuration/options.js';
 import type { Configuration } from '../configuration/Configuration.js';
 import { __sourcesRoot, logger, Path } from '../platform/index.js';
@@ -10,6 +10,8 @@ import { stat } from 'node:fs/promises';
 
 type TTestBrowserArguments = {
   name: Browser;
+  label?: string;
+  browserSettings?: BrowserSettings;
   failedSetupTestCases?: {
     label: string;
     setup: () => void | Promise<void>;
@@ -18,7 +20,12 @@ type TTestBrowserArguments = {
 
 beforeEach(() => vi.clearAllMocks());
 
-export const testBrowser = ({ name, failedSetupTestCases }: TTestBrowserArguments) => {
+export const testBrowser = ({
+  name,
+  label = name,
+  browserSettings = {},
+  failedSetupTestCases
+}: TTestBrowserArguments) => {
   let BASE_URL: string;
   const FACTORY_SETTINGS = {
     ...defaults,
@@ -26,13 +33,13 @@ export const testBrowser = ({ name, failedSetupTestCases }: TTestBrowserArgument
     mode: 'help',
     sources: {}
   } as const as Configuration;
-  const BROWSER_SETTINGS = {} as const;
+  const BROWSER_SETTINGS = browserSettings;
 
   beforeAll(() => {
     BASE_URL = process.env['BROWSERS_SERVER_URL'] ?? '';
   });
 
-  describe(name, () => {
+  describe(label, () => {
     const getClosedPages = async (): Promise<number[]> => {
       const response = await fetch(`${BASE_URL}closed`);
       return response.json() as Promise<number[]>;
@@ -374,7 +381,7 @@ export const testBrowser = ({ name, failedSetupTestCases }: TTestBrowserArgument
           scripts: [`window.addEventListener('load', () => { console.log('loaded') })`],
           url: `${BASE_URL}page.html`
         });
-        const path = Path.join(__sourcesRoot, `../tmp/browsers/${name}.png`);
+        const path = Path.join(__sourcesRoot, `../tmp/browsers/${label.replaceAll(/[^a-z0-9-]/gi, '_')}.png`);
         await window.screenshot(path);
         const pathStat = await stat(path);
         expect(pathStat.size).toBeGreaterThan(0);

@@ -33,7 +33,7 @@ import { sendToParentProcess } from '../../sendToParentProcess.js';
 import { instrument, generateReport } from './coverage/index.js';
 
 const PORT = 8080;
-const CAPABILITIES = { browserName: 'chrome', browserVersion: '120', screenshotFormat: 'png' };
+const CAPABILITIES = { browserName: 'chrome', browserVersion: '120' };
 const VERSION_JSON = JSON.stringify({ libraries: [{ name: 'sap.ui.core', version: '1.120.0' }] });
 
 const makeBuilder = (summaryOverrides: object = {}) =>

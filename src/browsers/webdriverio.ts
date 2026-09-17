@@ -1,9 +1,15 @@
 import { logger } from '../platform/index.js';
-import type { BrowserCapabilities, BrowserSettings, IBrowser } from './IBrowser.js';
+import type { BrowserCapabilities, BrowserDriverDescriptor, BrowserSettings, IBrowser } from './IBrowser.js';
 import { Npm } from '../Npm.js';
 import type { Configuration } from '../configuration/Configuration.js';
 import { handleConsoleMessage } from './consoleMessage.js';
 import { handleNetworkResponse } from './networkResponse.js';
+
+export const descriptor: BrowserDriverDescriptor = {
+  supportedBrowsers: ['chrome', 'firefox', 'edge', 'safari'],
+  defaultBrowser: 'chrome',
+  screenshotFormat: '.png'
+};
 
 type WdioBidiHeaderValue = { type: string; value: string };
 type WdioHeader = { name: string; value: string | WdioBidiHeaderValue };
@@ -81,7 +87,6 @@ export const factory = async (configuration: Configuration): Promise<IBrowser> =
         );
       });
       return {
-        screenshotFormat: '.png',
         browserName: browser.capabilities.browserName ?? 'chrome',
         browserVersion: browser.capabilities.browserVersion ?? ''
       };

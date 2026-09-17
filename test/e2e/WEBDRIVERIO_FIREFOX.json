@@ -3,6 +3,6 @@
   "batchId": "WEBDRIVERIO_FIREFOX",
   "batchLabel": "Webdriver.io browser",
   "cwd": "../capabilities",
-  "browser": "$/webdriverio.js",
-  "--": ["--browser", "firefox"]
+  "driver": "webdriverio",
+  "browser": "firefox"
 }

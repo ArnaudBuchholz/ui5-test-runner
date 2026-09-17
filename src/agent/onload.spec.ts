@@ -10,7 +10,7 @@ vi.mock(import('./config.js'), () => ({
     agentDetectionInterval: 100,
     agentDetectionMaxInterval: 1000,
     agentNoTestsTimeout: 5000,
-    browser: '',
+    driver: '',
     parallel: 1
   })
 }));

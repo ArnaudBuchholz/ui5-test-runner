@@ -8,8 +8,7 @@ vi.mock('../../reports/initReportBuilder.js', () => ({
 
 const CAPABILITIES: BrowserCapabilities = {
   browserName: 'chrome',
-  browserVersion: '120',
-  screenshotFormat: 'png'
+  browserVersion: '120'
 };
 
 let initReportBuilder: (config: never) => Promise<void>;

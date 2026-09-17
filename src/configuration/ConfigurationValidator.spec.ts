@@ -137,6 +137,94 @@ describe('cross-option validation', () => {
     expect(capturedError.option).toStrictEqual(indexedOptions.startWaitMethod);
     expect(capturedError.message).toStrictEqual('invalid use of startWaitMethod: requires start and startWaitUrl');
   });
+
+  describe('browser/driver validation', () => {
+    it('passes when browser is chrome with driver puppeteer', async () => {
+      await expect(ConfigurationValidator.validate({ browser: 'chrome', driver: 'puppeteer' })).resolves.not.toThrow();
+    });
+
+    it('passes when browser is firefox with driver puppeteer', async () => {
+      await expect(ConfigurationValidator.validate({ browser: 'firefox', driver: 'puppeteer' })).resolves.not.toThrow();
+    });
+
+    it('throws when browser safari is used with driver puppeteer', async () => {
+      let capturedError: unknown;
+      try {
+        await ConfigurationValidator.validate({ browser: 'safari', driver: 'puppeteer' });
+      } catch (error) {
+        capturedError = error;
+      }
+      expect.assert(capturedError instanceof OptionValidationError);
+      expect(capturedError.option).toStrictEqual(indexedOptions.browser);
+      expect(capturedError.message).toStrictEqual(
+        'invalid use of browser: browser is not supported by puppeteer (chrome, firefox)'
+      );
+    });
+
+    it('passes when browser is chromium with driver playwright', async () => {
+      await expect(
+        ConfigurationValidator.validate({ browser: 'chromium', driver: 'playwright' })
+      ).resolves.not.toThrow();
+    });
+
+    it('throws when browser chrome is used with driver playwright', async () => {
+      let capturedError: unknown;
+      try {
+        await ConfigurationValidator.validate({ browser: 'chrome', driver: 'playwright' });
+      } catch (error) {
+        capturedError = error;
+      }
+      expect.assert(capturedError instanceof OptionValidationError);
+      expect(capturedError.option).toStrictEqual(indexedOptions.browser);
+      expect(capturedError.message).toStrictEqual(
+        'invalid use of browser: browser is not supported by playwright (chromium, firefox, webkit)'
+      );
+    });
+
+    it('passes when browser is chrome with driver webdriverio', async () => {
+      await expect(
+        ConfigurationValidator.validate({ browser: 'chrome', driver: 'webdriverio' })
+      ).resolves.not.toThrow();
+    });
+
+    it('throws when browser chromium is used with driver webdriverio', async () => {
+      let capturedError: unknown;
+      try {
+        await ConfigurationValidator.validate({ browser: 'chromium', driver: 'webdriverio' });
+      } catch (error) {
+        capturedError = error;
+      }
+      expect.assert(capturedError instanceof OptionValidationError);
+      expect(capturedError.option).toStrictEqual(indexedOptions.browser);
+      expect(capturedError.message).toStrictEqual(
+        'invalid use of browser: browser is not supported by webdriverio (chrome, firefox, edge, safari)'
+      );
+    });
+
+    it('passes when browser is chrome with driver selenium-webdriver', async () => {
+      await expect(
+        ConfigurationValidator.validate({ browser: 'chrome', driver: 'selenium-webdriver' })
+      ).resolves.not.toThrow();
+    });
+
+    it('throws when browser chromium is used with driver selenium-webdriver', async () => {
+      let capturedError: unknown;
+      try {
+        await ConfigurationValidator.validate({ browser: 'chromium', driver: 'selenium-webdriver' });
+      } catch (error) {
+        capturedError = error;
+      }
+      expect.assert(capturedError instanceof OptionValidationError);
+      expect(capturedError.option).toStrictEqual(indexedOptions.browser);
+      expect(capturedError.message).toStrictEqual(
+        'invalid use of browser: browser is not supported by selenium-webdriver (chrome, firefox, edge, safari)'
+      );
+    });
+
+    it('passes when browser is not set (driver default is used)', async () => {
+      await expect(ConfigurationValidator.validate({ driver: 'puppeteer' })).resolves.not.toThrow();
+    });
+  });
 });
 
 describe('mode', () => {

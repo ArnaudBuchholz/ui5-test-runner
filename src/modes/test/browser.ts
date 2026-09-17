@@ -1,25 +1,26 @@
-import { BrowserFactory } from '../../browsers/factory.js';
+import { BrowserFactory, getDescriptor, isBrowser } from '../../browsers/factory.js';
 import type { BrowserCapabilities, BrowserSettings, IBrowser } from '../../browsers/IBrowser.js';
 import type { Configuration } from '../../configuration/Configuration.js';
-import { Exit, assert, logger } from '../../platform/index.js';
+import { Exit, logger } from '../../platform/index.js';
 
 let _browser: IBrowser;
 let _capabilities: BrowserCapabilities;
 
 export const setupBrowser = async (configuration: Configuration): Promise<BrowserCapabilities> => {
-  assert(
-    configuration.browser === 'puppeteer' || configuration.browser === 'playwright',
-    `Unknown browser: ${configuration.browser}`
-  );
-  const browserName = configuration.browser;
-  _browser = await BrowserFactory.build(configuration, browserName);
+  const { driver } = configuration;
+  if (!isBrowser(driver)) {
+    return logger.fatal({ source: 'job', message: `Unknown driver: ${driver}` });
+  }
+  _browser = await BrowserFactory.build(configuration, driver);
   const { debugKeepBrowserOpen, browserVisible, browserViewportWidth, browserViewportHeight } = configuration;
   const settings: BrowserSettings = {
-    visible: browserVisible || debugKeepBrowserOpen, // Or there is no value to keep it
+    visible: browserVisible || debugKeepBrowserOpen,
     viewport: {
       width: browserViewportWidth,
       height: browserViewportHeight
-    }
+    },
+    browser: configuration.browser ?? getDescriptor(driver).defaultBrowser,
+    options: configuration.browserOptions
   };
   try {
     _capabilities = await _browser.setup(settings);

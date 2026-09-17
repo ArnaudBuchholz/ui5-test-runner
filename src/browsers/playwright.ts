@@ -1,10 +1,16 @@
 import { logger, Process, assert } from '../platform/index.js';
-import type { BrowserCapabilities, BrowserSettings, IBrowser } from './IBrowser.js';
+import type { BrowserCapabilities, BrowserDriverDescriptor, BrowserSettings, IBrowser } from './IBrowser.js';
 import type { BrowserType, Browser, Page } from 'playwright';
 import { Npm } from '../Npm.js';
 import type { Configuration } from '../configuration/Configuration.js';
 import { handleConsoleMessage } from './consoleMessage.js';
 import { handleNetworkResponse } from './networkResponse.js';
+
+export const descriptor: BrowserDriverDescriptor = {
+  supportedBrowsers: ['chromium', 'firefox', 'webkit'],
+  defaultBrowser: 'chromium',
+  screenshotFormat: '.png'
+};
 
 export const factory = async (configuration: Configuration, signal: AbortSignal): Promise<IBrowser> => {
   const playwright = await Npm.import(configuration, 'playwright');
@@ -44,7 +50,6 @@ export const factory = async (configuration: Configuration, signal: AbortSignal)
       }
     }
     return {
-      screenshotFormat: '.png',
       browserName: browser.browserType().name(),
       browserVersion: browser.version()
     };

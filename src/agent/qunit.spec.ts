@@ -12,7 +12,7 @@ const DEFAULT_CONFIG = {
   agentDetectionInterval: 100,
   agentDetectionMaxInterval: 1000,
   agentNoTestsTimeout: 5000,
-  browser: '',
+  driver: '',
   pageId: 1,
   parallel: 1,
   screenshot: false,

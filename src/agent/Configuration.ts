@@ -3,7 +3,7 @@ export type Configuration = {
   agentDetectionMaxInterval: number;
   agentDetectionTimeout: number;
   agentNoTestsTimeout: number;
-  browser: string;
+  driver: string;
   parallel: number;
   screenshot: boolean;
   splitOpa: boolean;

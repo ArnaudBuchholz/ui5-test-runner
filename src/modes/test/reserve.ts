@@ -26,8 +26,8 @@ export const buildREserveConfiguration = (configuration: Configuration): REserve
     ({ resourcesSubFolder, sourceFolder }) => {
       // eslint-disable-next-line security/detect-non-literal-regexp -- resourcesSubFolder is validated
       const match = new RegExp(String.raw`^/resources/${resourcesSubFolder}/(.*?)(?:\?.*)?$`);
-      const useInstrumented = configuration.coverage && sourceFolder.startsWith(configuration.cwd);
-      if (useInstrumented) {
+      const shouldUseInstrumented = configuration.coverage && sourceFolder.startsWith(configuration.cwd);
+      if (shouldUseInstrumented) {
         const instrumentedCwd = Path.join(
           configuration.coverageTempDir,
           'instrumented',

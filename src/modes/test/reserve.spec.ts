@@ -102,8 +102,8 @@ describe('buildREserveConfiguration', () => {
       } as unknown as Configuration;
       const result = buildREserveConfiguration(config);
       const mappings = result.mappings as Array<{ match?: RegExp; cwd?: string }>;
-      const LIB_MATCH = /^\/resources\/sap\/utr\/lib\/(.*?)(?:\?.*)?$/;
-      const libMappings = mappings.filter((m) => m.match?.toString() === LIB_MATCH.toString());
+      const LIB_MATCH_STRING = String.raw`/^\/resources\/sap\/utr\/lib\/(.*?)(?:\?.*)?$/`;
+      const libMappings = mappings.filter((m) => m.match?.toString() === LIB_MATCH_STRING);
       expect(libMappings).toHaveLength(2);
       expect(libMappings[0]!.cwd).toBe('/tmp/coverage/instrumented/src/sap/utr/lib');
       expect(libMappings[1]!.cwd).toBe('/project/src/sap/utr/lib');
@@ -119,8 +119,8 @@ describe('buildREserveConfiguration', () => {
       } as unknown as Configuration;
       const result = buildREserveConfiguration(config);
       const mappings = result.mappings as Array<{ match?: RegExp; cwd?: string }>;
-      const LIB_MATCH = /^\/resources\/sap\/utr\/lib\/(.*?)(?:\?.*)?$/;
-      const libMappings = mappings.filter((m) => m.match?.toString() === LIB_MATCH.toString());
+      const LIB_MATCH_STRING = String.raw`/^\/resources\/sap\/utr\/lib\/(.*?)(?:\?.*)?$/`;
+      const libMappings = mappings.filter((m) => m.match?.toString() === LIB_MATCH_STRING);
       expect(libMappings).toHaveLength(1);
       expect(libMappings[0]!.cwd).toBe('/external/src/sap/utr/lib');
     });

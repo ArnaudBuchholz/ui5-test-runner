@@ -156,6 +156,7 @@ afterAll(() => server?.close());
 if (BROWSERS_TEST === 'puppeteer' || BROWSERS_TEST === '') {
   testBrowser({
     name: 'puppeteer',
+    label: 'puppeteer + chrome (default)',
     failedSetupTestCases: [
       {
         label: 'launch fails',
@@ -171,9 +172,18 @@ if (BROWSERS_TEST === 'puppeteer' || BROWSERS_TEST === '') {
   });
 }
 
+if (BROWSERS_TEST === 'puppeteer-firefox' || BROWSERS_TEST === '') {
+  testBrowser({
+    name: 'puppeteer',
+    label: 'puppeteer + firefox',
+    browserSettings: { browser: 'firefox' }
+  });
+}
+
 if (BROWSERS_TEST === 'playwright' || BROWSERS_TEST === '') {
   testBrowser({
     name: 'playwright',
+    label: 'playwright + chromium (default)',
     failedSetupTestCases: [
       {
         label: 'launch fails',
@@ -194,6 +204,7 @@ if (BROWSERS_TEST === 'playwright' || BROWSERS_TEST === '') {
 if (BROWSERS_TEST === 'webdriverio' || BROWSERS_TEST === '') {
   testBrowser({
     name: 'webdriverio',
+    label: 'webdriverio + chrome (default)',
     failedSetupTestCases: [
       {
         label: 'launch fails',
@@ -212,6 +223,7 @@ if (BROWSERS_TEST === 'webdriverio' || BROWSERS_TEST === '') {
 if (BROWSERS_TEST === 'selenium-webdriver' || BROWSERS_TEST === '') {
   testBrowser({
     name: 'selenium-webdriver',
+    label: 'selenium-webdriver + chrome (default)',
     failedSetupTestCases: [
       {
         label: 'launch fails',

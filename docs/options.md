@@ -12,7 +12,8 @@
 |[batchId](options/batchId.md)|--batch-id||string|identifier for the batch item|
 |[batchLabel](options/batchLabel.md)|--batch-label||string|display label for the batch item|
 |[batchTimeout](options/batchTimeout.md)|--batch-timeout|-bt|timeout|fails a batch item if it takes longer than this timeout|
-|[browser](options/browser.md)|--browser|-b|browser|browser selection|
+|[browser](options/browser.md)|--browser|-b|chrome \| chromium \| firefox \| webkit \| edge \| safari|browser selection (per driver)|
+|[browserOptions](options/browserOptions.md)|--browser-options||json|browser-specific options (JSON)|
 |[browserViewportHeight](options/browserViewportHeight.md)|--browser-viewport-height|-H|integer|height of the browser viewport in pixels|
 |[browserViewportWidth](options/browserViewportWidth.md)|--browser-viewport-width|-W|integer|width of the browser viewport in pixels|
 |[browserVisible](options/browserVisible.md)|--browser-visible|-V|boolean|control if the browser should be visible during the tests|
@@ -31,6 +32,7 @@
 |[debugKeepBrowserOpen](options/debugKeepBrowserOpen.md)|--debug-keep-browser-open||boolean|keeps the browser open after the tests completed|
 |[debugLog](options/debugLog.md)|--debug-log||string|output debug logs for given sources|
 |[debugMcpLocalDocs](options/debugMcpLocalDocs.md)|--debug-mcp-local-docs||boolean|use local docs/ directory instead of fetching from GitHub (development only)|
+|[driver](options/driver.md)|--driver|-d|puppeteer \| playwright \| webdriverio \| selenium-webdriver|driver selection|
 |[dumpConfig](options/dumpConfig.md)|--dump-config||boolean|dump the resolved configuration as JSON and exit|
 |[end](options/end.md)|--end||string|command to be executed after the tests|
 |[endTimeout](options/endTimeout.md)|--end-timeout||timeout|maximum waiting time for the end command to execute|

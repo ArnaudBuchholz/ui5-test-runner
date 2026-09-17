@@ -5,15 +5,16 @@ import { logger } from '../../platform/index.js';
 import { __lastRegisteredExitAsyncTask } from '../../platform/mock.js';
 
 vi.mock('../../browsers/factory.js', () => ({
-  BrowserFactory: { build: vi.fn() }
+  BrowserFactory: { build: vi.fn() },
+  getDescriptor: vi.fn().mockReturnValue({ defaultBrowser: 'chrome', screenshotFormat: '.png', supportedBrowsers: [] }),
+  isBrowser: vi.fn().mockReturnValue(true)
 }));
 
 import { BrowserFactory } from '../../browsers/factory.js';
 
 const CAPABILITIES: BrowserCapabilities = {
   browserName: 'chrome',
-  browserVersion: '120',
-  screenshotFormat: 'png'
+  browserVersion: '120'
 };
 
 const VIEWPORT = { width: 1920, height: 1080 };
@@ -27,7 +28,8 @@ const makeBrowser = (overrides: Partial<IBrowser> = {}): IBrowser => ({
 
 const makeConfig = (overrides: Partial<Configuration> = {}): Configuration =>
   ({
-    browser: 'puppeteer',
+    driver: 'puppeteer',
+    browserOptions: {},
     browserVisible: false,
     debugKeepBrowserOpen: false,
     browserViewportWidth: VIEWPORT.width,
@@ -41,10 +43,10 @@ beforeEach(() => {
 });
 
 describe('setupBrowser', () => {
-  it('passes the browser name to BrowserFactory.build', async () => {
+  it('passes the driver name to BrowserFactory.build', async () => {
     vi.mocked(BrowserFactory.build).mockResolvedValue(makeBrowser());
     const { setupBrowser } = await import('./browser.js');
-    const config = makeConfig({ browser: 'puppeteer' });
+    const config = makeConfig({ driver: 'puppeteer' });
     await setupBrowser(config);
     expect(BrowserFactory.build).toHaveBeenCalledWith(config, 'puppeteer');
   });
@@ -79,6 +81,22 @@ describe('setupBrowser', () => {
     const { setupBrowser } = await import('./browser.js');
     const result = await setupBrowser(makeConfig());
     expect(result).toBe(CAPABILITIES);
+  });
+
+  it('resolves browser to descriptor default when browser option is not set', async () => {
+    const browser = makeBrowser();
+    vi.mocked(BrowserFactory.build).mockResolvedValue(browser);
+    const { setupBrowser } = await import('./browser.js');
+    await setupBrowser(makeConfig({ browser: undefined }));
+    expect(browser.setup).toHaveBeenCalledWith(expect.objectContaining({ browser: 'chrome' }));
+  });
+
+  it('uses explicit browser option when provided', async () => {
+    const browser = makeBrowser();
+    vi.mocked(BrowserFactory.build).mockResolvedValue(browser);
+    const { setupBrowser } = await import('./browser.js');
+    await setupBrowser(makeConfig({ browser: 'firefox' }));
+    expect(browser.setup).toHaveBeenCalledWith(expect.objectContaining({ browser: 'firefox' }));
   });
 
   describe('debugKeepBrowserOpen wrapping', () => {

@@ -2,8 +2,8 @@ import { it, describe, expect, beforeEach } from 'vitest';
 import { UI5_TEST_RUNNER } from './contants.js';
 import { patchLocalStorage } from './localStorage.js';
 
-const PARALLEL_CONFIG = { config: { browser: '', parallel: 2 }, state: { done: false, type: undefined }, results: [] };
-const SERIAL_CONFIG = { config: { browser: '', parallel: 1 }, state: { done: false, type: undefined }, results: [] };
+const PARALLEL_CONFIG = { config: { driver: '', parallel: 2 }, state: { done: false, type: undefined }, results: [] };
+const SERIAL_CONFIG = { config: { driver: '', parallel: 1 }, state: { done: false, type: undefined }, results: [] };
 
 beforeEach(() => {
   Object.defineProperty(window, 'localStorage', {

@@ -53,6 +53,13 @@ const optionTypeLabel = (option: (typeof options)[number]): string => {
   return isMultiple ? `<${display}...>` : `<${display}>`;
 };
 
+const optionDescription = (option: (typeof options)[number]): string => {
+  if (option.type === 'enumeration' && option.typeModifiers) {
+    return `${option.description} (${[...option.typeModifiers].join(', ')})`;
+  }
+  return option.description;
+};
+
 export const help = async () => {
   const { name, version: semver } = await version();
   console.log(`${name}@${semver}`);
@@ -93,7 +100,7 @@ export const help = async () => {
     const typeLabel = optionTypeLabel(option);
     const defaultLabel = getDefaultLabel(option);
     const defaultPart = defaultLabel === undefined ? '' : ` [default: ${defaultLabel}]`;
-    const desc = wrapText(`${option.description}${defaultPart}`, descWidth, descIndent);
+    const desc = wrapText(`${optionDescription(option)}${defaultPart}`, descWidth, descIndent);
     console.log(`  ${flags.padEnd(col1Width)}  ${typeLabel.padEnd(col2Width)}  ${desc}`);
   }
 

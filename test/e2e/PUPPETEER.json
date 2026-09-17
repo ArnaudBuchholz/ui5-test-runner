@@ -2,5 +2,5 @@
   "batchId": "PUPPETEER",
   "batchLabel": "Puppeteer browser",
   "cwd": "../capabilities",
-  "browser": "puppeteer"
+  "driver": "puppeteer"
 }

@@ -82,6 +82,17 @@ describe('task()', () => {
     expect(parameters).not.toContain('--report-dir');
   });
 
+  it('serializes json-typed options with JSON.stringify when CLI-sourced', () => {
+    const browserOptions = { args: ['--disable-gpu'] };
+    const config = { ...makeConfig({ browserOptions: 'cli' }), browserOptions } as unknown as Configuration;
+    vi.mocked(Process.spawn).mockReturnValue(makeProcess());
+    void batchTask(config, makeItem(), START_TIME);
+    const [, parameters] = vi.mocked(Process.spawn).mock.calls[0]!;
+    const flagIndex = parameters.indexOf('--browser-options');
+    expect.assert(flagIndex !== -1);
+    expect(parameters[flagIndex + 1]).toStrictEqual(JSON.stringify(browserOptions));
+  });
+
   it('returns the documented batchItem when the batch completes', async () => {
     vi.mocked(Process.spawn).mockReturnValue(makeProcess(0));
     const item = makeItem();

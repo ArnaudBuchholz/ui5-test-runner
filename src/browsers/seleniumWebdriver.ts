@@ -1,5 +1,5 @@
 import { logger } from '../platform/index.js';
-import type { BrowserCapabilities, BrowserSettings, IBrowser } from './IBrowser.js';
+import type { BrowserCapabilities, BrowserDriverDescriptor, BrowserSettings, IBrowser } from './IBrowser.js';
 import { Npm } from '../Npm.js';
 import type { Configuration } from '../configuration/Configuration.js';
 import { handleConsoleMessage } from './consoleMessage.js';
@@ -12,6 +12,12 @@ import type getBrowsingContextInstance from 'selenium-webdriver/bidi/browsingCon
 import type getScriptManagerInstance from 'selenium-webdriver/bidi/scriptManager';
 import type CreateContextParameters from 'selenium-webdriver/bidi/createContextParameters';
 import type { Header } from 'selenium-webdriver/bidi/networkTypes';
+
+export const descriptor: BrowserDriverDescriptor = {
+  supportedBrowsers: ['chrome', 'firefox', 'edge', 'safari'],
+  defaultBrowser: 'chrome',
+  screenshotFormat: '.png'
+};
 
 type NetworkEvent = {
   id: string | null;
@@ -100,7 +106,6 @@ export const factory = async (configuration: Configuration): Promise<IBrowser> =
       });
 
       return {
-        screenshotFormat: '.png',
         browserName: (caps.get('browserName') as string | undefined) ?? 'chrome',
         browserVersion: (caps.get('browserVersion') as string | undefined) ?? ''
       };

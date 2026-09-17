@@ -59,7 +59,7 @@ Adopt a **Parallel Browser Agents Architecture**:
 ### Key Components
 
 **Browser Abstraction Layer (`src/browsers/`)**
-- Unified interface supporting Puppeteer and Playwright (WebDriverIO and Selenium WebDriver are registered but not yet implemented)
+- Unified interface supporting Puppeteer, Playwright, WebDriverIO, and Selenium WebDriver
 - Handles browser lifecycle (launch, close)
 - Exposes methods for navigation, script injection, code evaluation
 - Abstracts browser-specific differences via `IBrowser` / `IWindow` interfaces
@@ -103,10 +103,12 @@ Adopt a **Parallel Browser Agents Architecture**:
 
 ## Related Files & Modules
 - **Browser Abstraction**: `src/browsers/`
-  - Interface: `src/browsers/IBrowser.ts`
+  - Interfaces: `src/browsers/IBrowser.ts` (`IBrowser`, `IWindow`, `BrowserSettings`, `BrowserCapabilities`, `BrowserDriverDescriptor`)
   - Puppeteer implementation: `src/browsers/puppeteer.ts`
   - Playwright implementation: `src/browsers/playwright.ts`
-  - Factory: `src/browsers/factory.ts`
+  - WebDriverIO implementation: `src/browsers/webdriverio.ts`
+  - Selenium WebDriver implementation: `src/browsers/seleniumWebdriver.ts`
+  - Factory + descriptor registry: `src/browsers/factory.ts` (`BrowserFactory`, `getDescriptor`)
 - **Agent Code**: `src/agent/`
   - Framework detection and QUnit hooks
   - Result collection via `AgentTestResultsBuilder`
@@ -130,7 +132,8 @@ Adopt a **Parallel Browser Agents Architecture**:
 
 Key configuration parameters:
 - `parallel`: Number of concurrent page tasks (default: **2**)
-- `browser`: Which browser driver to use (`puppeteer` (default) or `playwright`)
+- `driver`: Which automation driver to use (`puppeteer` (default), `playwright`, `webdriverio`, `selenium-webdriver`)
+- `browser`: Which actual browser to launch (default: driver's default; see ADR-0013)
 - `pageTimeout`: Fail a page if it takes longer than this duration
 - `globalTimeout`: Fail remaining pages if the total run exceeds this duration
 - `failFast`: Stop the whole execution after the first failing page

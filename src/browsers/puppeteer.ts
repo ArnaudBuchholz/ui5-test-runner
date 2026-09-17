@@ -1,10 +1,16 @@
 import { logger, Process } from '../platform/index.js';
-import type { BrowserCapabilities, BrowserSettings, IBrowser } from './IBrowser.js';
+import type { BrowserCapabilities, BrowserDriverDescriptor, BrowserSettings, IBrowser } from './IBrowser.js';
 import type { launch as launchFunction, Browser, Page } from 'puppeteer';
 import { Npm } from '../Npm.js';
 import type { Configuration } from '../configuration/Configuration.js';
 import { handleConsoleMessage } from './consoleMessage.js';
 import { handleNetworkResponse } from './networkResponse.js';
+
+export const descriptor: BrowserDriverDescriptor = {
+  supportedBrowsers: ['chrome', 'firefox'],
+  defaultBrowser: 'chrome',
+  screenshotFormat: '.png'
+};
 
 export const factory = async (configuration: Configuration, signal: AbortSignal): Promise<IBrowser> => {
   const puppeteer = await Npm.import(configuration, 'puppeteer');
@@ -13,35 +19,41 @@ export const factory = async (configuration: Configuration, signal: AbortSignal)
   let openedPages = 0;
 
   const launchAndInstallIfNeeded = async (settings: BrowserSettings): Promise<BrowserCapabilities> => {
+    const target = settings.browser ?? 'chrome';
     // TODO maximize should not be set when viewport is set
     const arguments_: string[] = ['--start-maximized'];
     if (settings.viewport) {
       arguments_.push(`--window-size=${settings.viewport.width},${settings.viewport.height}`);
     }
+    const rawArguments = settings.options?.['args'];
+    const extraArguments = Array.isArray(rawArguments)
+      ? rawArguments.filter((a): a is string => typeof a === 'string')
+      : [];
     const launchOptions: Parameters<typeof launch>[0] = {
+      browser: target as 'chrome' | 'firefox',
       headless: !settings.visible,
       defaultViewport: null,
       handleSIGINT: false,
       signal,
-      args: arguments_
+      args: [...arguments_, ...extraArguments]
     };
     logger.debug({ source: 'puppeteer', message: 'launching browser' });
     try {
       browser = await launch(launchOptions);
     } catch (error) {
-      if (error instanceof Error && error.message.startsWith('Could not find Chrome')) {
+      if (error instanceof Error && error.message.startsWith('Could not find')) {
         // TODO: is there a way to monitor the progress ?
         // YES: using https://pptr.dev/browsers-api/browsers.installoptions
         logger.info({
           source: 'progress',
-          message: 'Installing chrome (puppeteer)',
+          message: `Installing ${target} (puppeteer)`,
           pageId: undefined,
           data: {
             value: 1,
             max: 0
           }
         });
-        await Process.spawn('npx', 'puppeteer browsers install chrome'.split(' '), {
+        await Process.spawn('npx', `puppeteer browsers install ${target}`.split(' '), {
           shell: true,
           signal
         }).closed;
@@ -51,8 +63,7 @@ export const factory = async (configuration: Configuration, signal: AbortSignal)
       }
     }
     return {
-      screenshotFormat: '.png',
-      browserName: 'chrome',
+      browserName: target,
       browserVersion: await browser.version()
     };
   };

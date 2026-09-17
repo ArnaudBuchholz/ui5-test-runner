@@ -158,6 +158,7 @@ export const defaults = {`);
       const type = {
         boolean: 'boolean',
         browser: 'string',
+        enumeration: 'string',
         integer: 'number',
         timeout: 'number'
       }[option.type];
@@ -199,8 +200,10 @@ export const defaults = {`);
   const toKebabCase = (name) => name.replaceAll(/[A-Z]/g, (letter) => `-${letter.toLowerCase()}`);
   for (const name of sortedOptionNames) {
     const option = options[name];
+    const typeDisplay =
+      option.type === 'enumeration' && option.typeModifiers ? option.typeModifiers.join(String.raw` \| `) : option.type;
     optionsMarkdown.push(
-      `|[${option.name}](options/${option.name}.md)|--${toKebabCase(option.name)}|${option.short ? '-' + option.short : ''}|${option.type}|${option.description}|`
+      `|[${option.name}](options/${option.name}.md)|--${toKebabCase(option.name)}|${option.short ? '-' + option.short : ''}|${typeDisplay}|${option.description}|`
     );
   }
 

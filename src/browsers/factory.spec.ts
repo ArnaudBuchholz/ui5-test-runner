@@ -8,7 +8,12 @@ import { logger } from '../platform/index.js';
 import { __unregisterExitAsyncTask, __lastRegisteredExitAsyncTask } from '../platform/mock.js';
 
 vi.mock(import('./puppeteer.js'), () => ({
-  factory: vi.fn()
+  factory: vi.fn(),
+  descriptor: {
+    supportedBrowsers: ['chrome', 'firefox'],
+    defaultBrowser: 'chrome',
+    screenshotFormat: '.png'
+  }
 }));
 
 import { factory as mockPuppeteerFactory } from './puppeteer.js';
@@ -25,7 +30,6 @@ const BROWSER_SETTINGS = {} as const;
 const WINDOW_SETTINGS = { pageId: 42, scripts: [], url: 'https://example.com' } as const;
 
 const CAPABILITIES: BrowserCapabilities = {
-  screenshotFormat: '.png',
   browserName: 'mock',
   browserVersion: '1.0'
 };
