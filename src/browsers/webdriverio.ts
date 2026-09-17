@@ -1,4 +1,4 @@
-import { logger } from '../platform/index.js';
+import { logger, Path } from '../platform/index.js';
 import type { BrowserCapabilities, BrowserDriverDescriptor, BrowserSettings, IBrowser } from './IBrowser.js';
 import { Npm } from '../Npm.js';
 import type { Configuration } from '../configuration/Configuration.js';
@@ -44,10 +44,10 @@ export const factory = async (configuration: Configuration): Promise<IBrowser> =
   const contextToPageId = new Map<string, number>();
   const openHandles = new Set<string>();
   let windowsOpened = 0;
-
   return {
     async setup(settings: BrowserSettings): Promise<BrowserCapabilities> {
       logger.debug({ source: 'webdriverio', message: 'launching browser' });
+      process.env['WDIO_LOG_PATH'] = Path.join(configuration.reportDir, 'wdio.log');
       browser = await remote({
         capabilities: {
           browserName: 'chrome',
@@ -163,6 +163,7 @@ export const factory = async (configuration: Configuration): Promise<IBrowser> =
       );
       await new Promise((resolve) => setTimeout(resolve, 200));
       await browser?.deleteSession();
+      delete process.env['WDIO_LOG_PATH'];
     }
   };
 };
