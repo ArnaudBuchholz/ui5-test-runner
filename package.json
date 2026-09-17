@@ -101,7 +101,7 @@
     "@ui5/webcomponents-fiori": "^2.26.0",
     "@vitest/coverage-v8": "^4.1.11",
     "babel-plugin-istanbul": "^8.0.0",
-    "baseline-browser-mapping": "^2.11.22",
+    "baseline-browser-mapping": "^2.11.23",
     "dotenv": "^17.4.2",
     "dpdm": "^4.3.0",
     "eslint": "^10.10.0",
@@ -131,7 +131,7 @@
     "vite": "^8.3.0",
     "vite-plugin-css-injected-by-js": "^5.0.2",
     "vitest": "^4.1.11",
-    "webdriverio": "^9.31.7",
+    "webdriverio": "^9.31.9",
     "yaml": "^2.9.1"
   }
 }
