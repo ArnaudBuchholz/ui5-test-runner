@@ -1,0 +1,7 @@
+{
+  "batchId": "JS_LEGACY_LIB_RESOURCES",
+  "batchLabel": "Legacy JS Sample lib with resources",
+  "cwd": "../sample.lib.resources.js",
+  "testsuite": "test/testsuite.qunit.html",
+  "end": "RUNNER_EXIT_CODE={{exitCode}} NODE_OPTIONS= node ../e2e/check.mjs {{reportDir}} --pages 1"
+}

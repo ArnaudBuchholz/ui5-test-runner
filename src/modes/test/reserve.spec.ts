@@ -38,19 +38,33 @@ describe('buildREserveConfiguration', () => {
     coverageTempDir: '/tmp/coverage'
   } as unknown as Configuration;
 
+  describe('local resources mapping', () => {
+    it('adds a file mapping for resources from webapp before the ui5 proxy', () => {
+      const config = { ...BASE_CONFIG, ui5: 'https://ui5.sap.com' } as unknown as Configuration;
+      const result = buildREserveConfiguration(config);
+      const mappings = result.mappings as Array<{ cwd?: string; file?: string; url?: string }>;
+      const localResourcesIndex = mappings.findIndex((mapping) => mapping.cwd === '/webapp' && mapping.file === '$1');
+      const ui5ProxyIndex = mappings.findIndex(({ url }) => url?.startsWith('https://ui5.sap.com'));
+      expect(localResourcesIndex).toBeGreaterThanOrEqual(0);
+      expect(localResourcesIndex).toBeLessThan(ui5ProxyIndex);
+    });
+  });
+
   describe('ui5 URL trailing slash', () => {
     it('appends $1 directly when ui5 has no trailing slash', () => {
       const config = { ...BASE_CONFIG, ui5: 'https://ui5.sap.com' } as unknown as Configuration;
       const result = buildREserveConfiguration(config);
-      const urlMapping = result.mappings[0] as { url: string };
-      expect(urlMapping.url).toBe('https://ui5.sap.com/$1');
+      const mappings = result.mappings as Array<{ url?: string }>;
+      const urlMapping = mappings.find(({ url }) => url?.startsWith('https://'));
+      expect(urlMapping?.url).toBe('https://ui5.sap.com/$1');
     });
 
     it('produces the same url mapping when ui5 already has a trailing slash', () => {
       const config = { ...BASE_CONFIG, ui5: 'https://ui5.sap.com/' } as unknown as Configuration;
       const result = buildREserveConfiguration(config);
-      const urlMapping = result.mappings[0] as { url: string };
-      expect(urlMapping.url).toBe('https://ui5.sap.com/$1');
+      const mappings = result.mappings as Array<{ url?: string }>;
+      const urlMapping = mappings.find(({ url }) => url?.startsWith('https://'));
+      expect(urlMapping?.url).toBe('https://ui5.sap.com/$1');
     });
   });
 

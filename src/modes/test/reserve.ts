@@ -3,7 +3,7 @@ import type { Configuration as REserveConfiguration } from 'reserve';
 import type { Configuration } from '../../configuration/Configuration.js';
 
 export const buildREserveConfiguration = (configuration: Configuration): REserveConfiguration => {
-  const match = /\/((?:test-)?resources\/.*)/; // Captured value never starts with /
+  const resourcesMatch = /\/((?:test-)?resources\/.*)/; // Captured value never starts with /
   let { ui5 } = configuration;
   if (!ui5.endsWith('/')) {
     ui5 += '/';
@@ -48,7 +48,13 @@ export const buildREserveConfiguration = (configuration: Configuration): REserve
       ...libMappings,
       {
         method: 'GET,HEAD',
-        match,
+        match: resourcesMatch,
+        cwd: webapp,
+        file: '$1'
+      },
+      {
+        method: 'GET,HEAD',
+        match: resourcesMatch,
         url: ui5Mapping,
         'ignore-unverifiable-certificate': true
       },
