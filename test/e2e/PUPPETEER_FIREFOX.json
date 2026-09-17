@@ -1,0 +1,7 @@
+{
+  "batchId": "PUPPETEER_FIREFOX",
+  "batchLabel": "Puppeteer firefox",
+  "cwd": "../capabilities",
+  "driver": "puppeteer",
+  "browser": "firefox"
+}
