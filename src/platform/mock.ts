@@ -89,11 +89,12 @@ vi.mock(import('./Module.js'), async (importActual) => mockStaticMethodsOfExport
 
 const logger = {
   start: vi.fn(() => Promise.resolve()),
-  debug: vi.fn(),
-  info: vi.fn(),
-  warn: vi.fn(),
-  error: vi.fn(),
-  fatal: vi.fn().mockImplementation(() => {
+  debug: vi.fn().mockImplementation((attributes) => console.debug(attributes)),
+  info: vi.fn().mockImplementation((attributes) => console.log(attributes)),
+  warn: vi.fn().mockImplementation((attributes) => console.warn(attributes)),
+  error: vi.fn().mockImplementation((attributes) => console.error(attributes)),
+  fatal: vi.fn().mockImplementation((attributes) => {
+    console.error(attributes);
     throw new _ExitShutdownError();
   }) as unknown as ILoggerService['fatal'],
   stop: vi.fn()
