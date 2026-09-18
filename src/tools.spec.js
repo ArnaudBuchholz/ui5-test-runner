@@ -15,6 +15,13 @@ describe('src/tools', () => {
       const id2 = filename(baseUrl + '#param2')
       expect(id1).toBe(id2)
     })
+
+    it('contains only alphanumerical chars (#191)', () => {
+      for(let port = 0; port < 100000; ++port) {
+        const id = filename(baseUrl.replace('8085', port.toString()) + '?param1')
+        expect(id).toMatch(/^[0-9a-z]*$/i)
+      }
+    })
   })
 
   describe('noop', () => {

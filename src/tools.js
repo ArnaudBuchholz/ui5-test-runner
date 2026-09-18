@@ -19,8 +19,8 @@ const filename = url => {
   hash.update(stripUrlHash(url))
   return hash.digest('base64')
     .replace(/=/g, '')
-    .replace(/\+/g, '_')
-    .replace(/\//g, '$')
+    .replace(/\+/g, '00')
+    .replace(/\//g, '99')
 }
 
 const cleanDir = async dir => {
