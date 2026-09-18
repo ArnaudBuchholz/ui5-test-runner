@@ -20,24 +20,27 @@ Create a **Platform Abstraction Layer** (`src/platform/`) that wraps Node.js API
 
 ```
 src/platform/
-├── assert.ts       (Custom assert using logger before throwing)
-├── constants.ts    (__sourcesRoot, __developmentMode)
-├── environment.ts  (logEnvironment utility)
-├── Exit.ts         (Async-task lifecycle + SIGINT handler)
-├── FileSystem.ts   (fs/promises + fs stream wrappers)
-├── Host.ts         (OS / process metadata: cpus, cwd, env, pid, platform, …)
-├── Http.ts         (fetch-based HTTP client with logging + abort)
-├── Module.ts       (createRequire, findPackageJSON)
-├── Path.ts         (path module wrappers)
-├── Process.ts      (child_process spawn wrapper + IProcess interface)
-├── Terminal.ts     (stdout/stdin TTY helpers + ANSI escape constants)
-├── Thread.ts       (worker_threads: Worker, BroadcastChannel, threadId)
-├── Url.ts          (pathToFileURL)
-├── ZLib.ts         (gzipSync, deflateRawSync, inflateRawSync)
-├── logger/         (Worker-based structured logging subsystem)
-├── version.ts      (reads package.json for version string)
-├── mock.ts         (vi.mock() stubs for all modules — imported in tests)
-└── index.ts        (re-exports all of the above)
+├── assert.ts          (Custom assert using logger before throwing)
+├── constants.ts       (__sourcesRoot, __developmentMode)
+├── Crypto.ts          (hashing helpers)
+├── environment.ts     (logEnvironment utility)
+├── Exit.ts            (Async-task lifecycle + SIGINT handler)
+├── FileSystem.ts      (fs/promises + fs stream wrappers)
+├── Host.ts            (OS / process metadata: cpus, cwd, env, pid, platform, …)
+├── Http.ts            (fetch-based HTTP client with logging + abort)
+├── Module.ts          (createRequire, findPackageJSON)
+├── Path.ts            (path module wrappers)
+├── Process.ts         (child_process spawn wrapper + IProcess interface)
+├── Terminal.ts        (stdout/stdin TTY helpers + ANSI escape constants)
+├── Thread.ts          (worker_threads: Worker, BroadcastChannel, threadId)
+├── Url.ts             (pathToFileURL)
+├── ZLib.ts            (gzipSync, deflateRawSync, inflateRawSync)
+├── logger.ts          (Worker-based structured logging facade — re-exported)
+├── logger/            (Worker-based structured logging subsystem — see ADR-0005)
+├── version.ts         (reads package.json for version string — imported directly, not re-exported)
+├── workerBootstrap.ts (worker entry-point bootstrap — imported directly, not re-exported)
+├── mock.ts            (vi.mock() stubs for all modules — imported in tests, not re-exported)
+└── index.ts           (re-exports the modules above, except version.ts, workerBootstrap.ts, and mock.ts)
 ```
 
 Each module is a **static class** (or a plain object/function for modules like `Http`, `logger`, `assert`). There is no aggregate `IPlatform` interface and no dependency-injection pattern. The single exception is `IProcess`, which is an interface exported from `Process.ts` and used as a return type for `Process.spawn` to allow test doubles.
@@ -66,7 +69,7 @@ Mocking is centralised in `mock.ts`, which uses Vitest's `vi.mock()` to replace 
 - **Usage**: Throughout `src/cli.ts`, `src/configuration/`, `src/reports/`, `src/modes/`, `src/start.ts`, `src/end.ts`
 - **Tests**: Selected platform modules have `.spec.ts` files (`Exit.spec.ts`, `Http.spec.ts`, `Process.spec.ts`, `Terminal.spec.ts`, `Thread.spec.ts`); thin wrappers are intentionally untested (noted in `platform/README.md`)
 - **Mock helper**: `src/platform/mock.ts` — import this file in a test setup or at the top of a spec to activate all platform mocks
-- **Entry Point**: `src/platform/index.ts` re-exports every module by name; there is no singleton platform instance
+- **Entry Point**: `src/platform/index.ts` re-exports the modules by name (with the exception of `version.ts`, `workerBootstrap.ts`, and `mock.ts`, which are imported directly); there is no singleton platform instance
 
 ## Example Usage
 

@@ -50,14 +50,15 @@ Each batch item is executed as an **independent child process** — a full invoc
 
 ### IPC as a Signal Channel
 
-`Process.spawn()` opens an IPC stdio channel when `onMessage` is provided. Only two message types cross this channel:
+`Process.spawn()` opens an IPC stdio channel when `onMessage` is provided. Three message types cross this channel, but only two drive parent orchestration:
 
 | Message | Direction | Purpose |
 |---|---|---|
 | `{ type: 'progress', count: number, total: number }` | child → parent | Relay test-page progress to parent's terminal output |
 | `{ type: 'skip' }` | child → parent | Signal that `--if` evaluated to false; item should be marked skipped |
+| `{ type: 'done', passed: number, failed: number, tests: number }` | child → parent | Sent at the end of a normal test run with aggregate counts |
 
-All test data (assertions, timings, errors) stays in each child's own `<reportDir>/<id>/` subtree. The IPC channel carries no test results.
+The parent's `onMessage` handler (`batchTask.ts`) branches only on `progress` and `skip`; the `done` message is currently ignored by the parent (the authoritative per-item outcome is the child's exit code plus its on-disk report). All detailed test data (assertions, timings, errors) stays in each child's own `<reportDir>/<id>/` subtree — the IPC channel carries only these summary signals, never per-assertion results.
 
 ### Declarative Option Forwarding
 
@@ -71,7 +72,7 @@ The parent injects `UI5TR_BATCH_MODE=1` into every child's environment. This fla
 
 ### `--if` Evaluated in the Child
 
-`evaluateIf(configuration)` (`src/if.ts`) is called inside `cli.ts` before `execute()`. It evaluates the `--if` expression using `punyexpr` against a context built from the child's own environment variables plus helpers (`UI5TR_NAME`, `NODE_MAJOR_VERSION`, `compareVersions`, `implemented`). If the expression is falsy, the child immediately calls `sendToParentProcess({ type: 'skip' })` and exits without running any tests. The parent's `onMessage` handler sets `batchItem.skipped = true`.
+`isIfEvaluatedAsTrue(configuration)` (`src/if.ts`) is called inside `cli.ts` before `execute()`. It evaluates the `--if` expression using `punyexpr` against a context built from the child's own environment variables plus helpers (`UI5TR_NAME`, `UI5TR_VERSION`, `NODE_MAJOR_VERSION`, `compareVersions`, `implemented`). If the expression is falsy, the child immediately calls `sendToParentProcess({ type: 'skip' })` and exits without running any tests. The parent's `onMessage` handler sets `batchItem.skipped = true`.
 
 Evaluating `--if` in the child rather than the parent ensures the expression has access to that project's specific environment, and keeps the skip logic co-located with the runner that would otherwise execute.
 
@@ -108,9 +109,9 @@ This follows the CTRF format used throughout the project and allows CI tools to 
 - **`src/modes/batch/index.ts`** — `batch()` orchestrator: resolves items, runs `start`, calls `parallelize`, writes aggregate report
 - **`src/modes/batch/batchTask.ts`** — spawns one child process, wires IPC `onMessage` handler, records timing
 - **`src/modes/batch/resolve.ts`** — discovers `IBatchItem[]` from `--batch` glob/path specs
-- **`src/modes/batch/BatchItem.ts`** — `IBatchItem` interface: `path`, `id`, `label`, `args`, `start`, `end`, `statusCode`, `skipped`
+- **`src/modes/batch/BatchItem.ts`** — `IBatchItem` interface: `path`, `id`, `label`, `args`, `start`, `end`, `statusCode`, `skipped`, `timedOut`
 - **`src/modes/batch/report.ts`** — builds aggregate CTRF report from completed `IBatchItem[]`
-- **`src/if.ts`** — `evaluateIf()`: punyexpr evaluation of `--if` expression in child context
+- **`src/if.ts`** — `isIfEvaluatedAsTrue()`: punyexpr evaluation of `--if` expression in child context
 - **`src/sendToParentProcess.ts`** — guarded `process.send` wrapper; no-op when `UI5TR_BATCH_MODE` is absent
 - **`src/platform/Process.ts`** — `Process.spawn()` with `SpawnOptionsExtended.onMessage` for IPC; `IProcess` interface
 - **`src/configuration/options.ts`** — generated option registry; `batchForwarded: true` on forwarded options

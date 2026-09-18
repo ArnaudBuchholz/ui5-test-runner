@@ -60,8 +60,8 @@ Adopt a **Parallel Browser Agents Architecture**:
 
 **Browser Abstraction Layer (`src/browsers/`)**
 - Unified interface supporting Puppeteer, Playwright, WebDriverIO, and Selenium WebDriver
-- Handles browser lifecycle (launch, close)
-- Exposes methods for navigation, script injection, code evaluation
+- `IBrowser` handles the browser lifecycle: `setup(settings)` (launch + report capabilities), `newWindow(settings)` (open a page with its agent scripts and target URL), and `shutdown()`
+- `IWindow` exposes per-page operations: `eval(script)` (code evaluation), `screenshot(path)`, and `close()`. Agent script injection is not a method — scripts are passed via `WindowSettings.scripts` at `newWindow`, and navigation happens via `WindowSettings.url`
 - Abstracts browser-specific differences via `IBrowser` / `IWindow` interfaces
 
 **In-Browser Agent (`src/agent/`)**
@@ -103,7 +103,7 @@ Adopt a **Parallel Browser Agents Architecture**:
 
 ## Related Files & Modules
 - **Browser Abstraction**: `src/browsers/`
-  - Interfaces: `src/browsers/IBrowser.ts` (`IBrowser`, `IWindow`, `BrowserSettings`, `BrowserCapabilities`, `BrowserDriverDescriptor`)
+  - Interfaces: `src/browsers/IBrowser.ts` (`IBrowser`, `IWindow`, `BrowserSettings`, `WindowSettings`, `BrowserCapabilities`, `BrowserDriverDescriptor`)
   - Puppeteer implementation: `src/browsers/puppeteer.ts`
   - Playwright implementation: `src/browsers/playwright.ts`
   - WebDriverIO implementation: `src/browsers/webdriverio.ts`

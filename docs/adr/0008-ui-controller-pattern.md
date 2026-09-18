@@ -97,7 +97,7 @@ The view receives only changed fields; it re-renders only what changed.
 
 ### Action Dispatch
 
-`Actions` is a string union (e.g. `'refresh_now'` | `'export'`). When `interaction({ action: 'refresh_now' })` is called, `_onInteraction` receives the action name and calls `this[action]()`. The `Actions` type therefore must exactly match method names on the subclass. This is a naming convention enforced by the TypeScript type system at the call site.
+`Actions` is a string union (e.g. `'refresh_now'` | `'export'`). The base class `interaction()` forwards the action name to the subclass's `_onInteraction(diff, action?)`; the subclass then dispatches by calling `this[action]()` (see `ReportController._onInteraction` and `LogViewerController._onInteraction`). The `Actions` type therefore must exactly match method names on the subclass. This is a naming convention enforced by the TypeScript type system at the call site.
 
 ### Auto-Refresh (`LogViewerController`)
 
@@ -108,10 +108,6 @@ The view receives only changed fields; it re-renders only what changed.
 - When `autorefresh` or `autorefreshInterval` changes in `_onInteraction`: stop the current interval and restart with the new value
 
 The `refresh_now` action builds a query object (`from`/`to` for absolute range, `from = Date.now() - relativeTimerange` for relative), fetches `GET /query?...` from the REserve server, and calls `_update({ logs, metrics })` on success or `_update({ errorMessage })` on failure.
-
-### Debug Traces
-
-`AbstractUserInterfaceController` emits `console.log` traces unconditionally on every `connect`, `_update`, and `interaction` call (prefixed with `🎮🔛`, `🎮⏩`, `🎮⏪`). These are production code — they aid debugging of the bidirectional controller-UI communication in browser devtools. Test files suppress them with `vi.spyOn(console, 'log').mockImplementation(() => {})`.
 
 ### Build System
 
@@ -179,19 +175,17 @@ const current = controller.state.value  // race: _onInteraction may be async
 - ✅ **Auto-refresh is self-contained**: interval management lives entirely in the controller; the view has no timer state
 
 ### Negative/Trade-offs
-- ❌ **Action dispatch is stringly-typed at runtime**: `this[action]()` is checked by TypeScript at the call site but not at runtime; a misspelled action silently does nothing
-- ❌ **Unconditional debug traces**: `console.log` calls fire in production browser sessions; they cannot be disabled without a build-time flag
+- ❌ **Action dispatch is stringly-typed at runtime**: `this[action]()` in each subclass is checked by TypeScript at the call site but not at runtime; a misspelled action silently does nothing
 - ❌ **No cancellation for in-flight fetches**: `refresh_now` does not cancel a previous in-flight fetch; rapid interactions can produce out-of-order updates
 
 ### Mitigation
 - TypeScript's string literal union type for `Actions` catches misspellings at compile time
-- The `🎮` prefix makes traces easy to filter out in browser devtools
 - The `_update()` diff pruning means a stale fetch response that matches current state produces no re-render
 
 ## Related Modules
 
 - **`IUserInterfaceController`** — interface contract: `state`, `settings`, `connect`, `interaction`, `UIEvent` type
-- **`AbstractUserInterfaceController`** — abstract base class: `_update`, `_onConnect` hook, `_onInteraction` abstract method, debug traces
+- **`AbstractUserInterfaceController`** — abstract base class: `_update` diff-and-notify, `_onConnect` hook, `_onInteraction` abstract method (subclasses dispatch actions via `this[action]()`)
 - **`ReportController`** — concrete controller: suite tree building, filter/sort, export action
 - **`LogViewerController`** — concrete controller: `setInterval` auto-refresh, `/query` fetch, timerange logic
 - **`LogViewerController` types** — `LogViewerState`, `LogViewerSettings`, `LogViewerActions`; enumerable auto-refresh and time-range option arrays surfaced via `settings`

@@ -29,7 +29,7 @@ Every log call emits a structured `InternalLogAttributes` record:
 | `source` | `LogSource` | Logical origin of the event (see *Sources* below) |
 | `message` | `string` | Human-readable description of the event |
 | `processId` | `number` | OS PID of the emitting process |
-| `threadId` | `number` | Worker thread ID; `-1` when no thread context |
+| `threadId` | `number` | Worker thread ID; `0` for records emitted on behalf of a child process (i.e. when `processId` is supplied), otherwise `Thread.threadId` |
 | `isMainThread` | `boolean` | Whether the record comes from the main Node.js thread |
 | `pageId?` | `number` | 0-based index of the browser page, set for page-scoped sources |
 | `data?` | `object` | Source-specific structured payload (see *Sources* below) |
@@ -63,15 +63,18 @@ This format supports live tailing: `LogReader` polls `stat()` every 500 ms for n
 
 | Source | `pageId`? | `data` shape | When to use |
 |---|---|---|---|
+| `assert` | no | — (requires `error`) | A failed runtime assertion (`Platform.assert`); always carries a serialised `error` |
 | `browser` | no | — | Browser process lifecycle: launch, close, crash |
 | `browser/agent` | required | — | Events from the in-page QUnit/OPA agent injected by the runner |
 | `browser/console` | required | `{ type: ConsoleMessageType }` | `console.*` calls inside the test page |
-| `browser/network` | required | `{ request: { method, headers }, response: { status, headers } }` | Network requests made by the test page |
+| `browser/network` | required | untyped `data` (only `pageId` is enforced) | Network requests made by the test page |
+| `coverage` | no | — | Code-coverage instrumentation / collection / reporting (see ADR-0009) |
 | `exit` | no | — | Graceful shutdown lifecycle |
 | `exit/handle` | no | — | Signal handler (SIGINT etc.) |
 | `http` | no | `{ requestId, init?, status?, headers? }` | HTTP requests made by the runner itself (not the browser) |
 | `job` | no | — | Test job scheduling, queue management |
 | `logger` | no | — | Logger internal events (startup, worker ready) |
+| `mcp` | no | — | MCP mode events (see ADR-0011) |
 | `metric` | no | `{ cpu, mem, elu }` | Periodic resource usage snapshot (every 1000 ms) |
 | `npm` | no | — | `npm` subprocess lifecycle |
 | `page` | required | — | Page-level lifecycle events (navigation, ready, timeout) |
@@ -83,9 +86,13 @@ This format supports live tailing: `LogReader` polls `stat()` every 500 ms for n
 | `progress` (page) | required | `{ value, max, errors, type, remove? }` | Per-page progress update |
 | `puppeteer` | no | — | Puppeteer browser driver events |
 | `reserve` | no | `Omit<ServerEvent, 'eventName'\|'reason'>` | REserve HTTP server request/response events |
+| `selenium-webdriver` | no | — | Selenium WebDriver browser driver events |
 | `server` | no | — | Embedded HTTP server lifecycle |
 | `server/unhandled` | no | — | Unhandled requests to the embedded server |
 | `thread` | no | — | Worker thread lifecycle |
+| `webdriverio` | no | — | WebDriverIO browser driver events |
+
+Note: only `assert`, `http`, `metric`, `progress`, and `reserve` have a `data`/`error` shape enforced by the `LogAttributes` union in `types.ts`; the shapes listed for other sources (e.g. `browser/console`, `browser/network`) are conventions the emitters follow, not type-checked contracts.
 
 **Page-scoped sources** (`browser/agent`, `browser/console`, `browser/network`, `page`, `progress` with a pageId) **must always include `pageId`**. Without it, records cannot be associated with a specific test page and are useless for per-page troubleshooting.
 

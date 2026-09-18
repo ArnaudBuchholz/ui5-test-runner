@@ -21,7 +21,7 @@ The agent constructs the filename for each screenshot directly in the `QUnit.log
 filename = `${pageId}-${testId}-${logIndex}.png`
 ```
 
-`pageId` is per-window (not a CLI option), so it is injected into the agent config via a small per-page script prepended to the script list in `pageTask.ts` before the agent source. The agent reads it via `getConfig().pageId`.
+`pageId` is per-window (not a CLI option), so it is injected into the agent config alongside the browser-exposed options: `initBrowserConfig(configuration)` builds the base config script once, and `getBrowserConfigScript(pageId)` (called per page in `pageTask.ts`) appends a small statement that sets `window['ui5-test-runner'].config.pageId`. The agent reads it via `getConfig().pageId`.
 
 `AgentState.pendingScreenshot` changes from `boolean` to `string | false`:
 - `string` — the agent-supplied filename the runner should write
@@ -34,7 +34,12 @@ The runner (`handlePendingScreenshot`) becomes a dumb writer: it reads the filen
 CTRF provides `CTRFTest.attachments[]` for multiple artifacts. The agent accumulates screenshot filenames per test in a `screenshotsByTestId` map (same lifecycle as the existing `logs` map, drained and deleted in `QUnit.testDone`):
 
 ```typescript
-test.attachments = screenshots.map((name) => ({ name, contentType: 'image/png', path: name }));
+// name is the assertion's log message (falling back to 'no message'); path is the agent-built filename
+test.attachments = screenshots.map((path, index) => ({
+  name: testLogs?.[index]?.message ?? 'no message',
+  contentType: 'image/png',
+  path
+}));
 ```
 
 This keeps the report granularity at the test level while correctly associating N per-assertion screenshots with their test.
@@ -94,13 +99,13 @@ QUnit.testDone fires (after all assertions and waitFors complete)
 ### Mitigation
 - Write failures are logged at `error` level with full context; the trace file provides more detail
 - Non-OPA behavior is unchanged — the `state.isOpa` guard preserves existing semantics
-- The `getPageIdScript` helper is clearly separate from the options-based `initBrowserConfig`; its role is documented in this ADR
+- The `pageId` assignment appended by `getBrowserConfigScript(pageId)` is clearly separate from the options-based payload built by `initBrowserConfig`; its role is documented in this ADR
 
 ## Related Files & Modules
 - **Agent state type**: `src/types/AgentState.ts` — `pendingScreenshot: string | false`
 - **Agent config type**: `src/agent/Configuration.ts` — `pageId: number`
 - **Agent QUnit hooks**: `src/agent/qunit.ts` — filename construction, `screenshotsByTestId`, `testDone` attachments
-- **pageId injection**: `src/modes/test/browserConfig.ts` — `getPageIdScript(pageId)`, `initBrowserConfig`
-- **Page orchestration**: `src/modes/test/pageTask.ts` — prepends `pageIdScript` to the scripts list
+- **pageId injection**: `src/modes/test/browserConfig.ts` — `initBrowserConfig(configuration)` (builds base config script), `getBrowserConfigScript(pageId)` (appends the `pageId` assignment)
+- **Page orchestration**: `src/modes/test/pageTask.ts` — calls `getBrowserConfigScript(pageId)` to build the per-page config script
 - **Runner screenshot handlers**: `src/modes/test/screenshot.ts` — `handlePendingScreenshot` (dumb writer), `handleFailureScreenshot` (unchanged)
 - **Specs**: `src/agent/qunit.spec.ts`, `src/modes/test/screenshot.spec.ts`, `src/modes/test/browserConfig.spec.ts`
