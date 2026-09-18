@@ -17,7 +17,7 @@ function checkType ({ method, validValues, invalidValues }) {
     })
     invalidValues.forEach(invalidValue => {
       it(`rejects ${JSON.stringify(invalidValue)}`, () => {
-        expect(() => method(invalidValue)).toThrowError(InvalidArgumentError)
+        expect(() => method(invalidValue)).toThrow(InvalidArgumentError)
       })
     })
   })

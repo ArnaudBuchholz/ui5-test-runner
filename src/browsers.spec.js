@@ -104,7 +104,7 @@ describe('src/browser', () => {
           childProcess.close(-1)
         }
       })
-      await expect(probe(job)).rejects.toThrowError(UTRError.BROWSER_PROBE_FAILED('-1'))
+      await expect(probe(job)).rejects.toThrow(UTRError.BROWSER_PROBE_FAILED('-1'))
     })
 
     describe('dependent modules', () => {
@@ -221,7 +221,7 @@ describe('src/browser', () => {
             }
           }
         })
-        await expect(probe(job)).rejects.toThrowError(UTRError.BROWSER_PROBE_FAILED('-1'))
+        await expect(probe(job)).rejects.toThrow(UTRError.BROWSER_PROBE_FAILED('-1'))
       })
     })
   })
@@ -674,7 +674,7 @@ describe('src/browser', () => {
         })
         const started = start(job, '/test.html')
         await ready
-        await expect(screenshot(job, '/test.html', 'screenshot')).rejects.toThrowError(UTRError.BROWSER_SCREENSHOT_NOT_SUPPORTED())
+        await expect(screenshot(job, '/test.html', 'screenshot')).rejects.toThrow(UTRError.BROWSER_SCREENSHOT_NOT_SUPPORTED())
         stop(job, '/test.html')
         await started
       })
@@ -748,7 +748,7 @@ describe('src/browser', () => {
         },
         close: false
       })
-      await expect(start(job, '/test.html')).rejects.toThrowError()
+      await expect(start(job, '/test.html')).rejects.toThrow()
       const consoleFilename = join(job.reportDir, filename('/test.html'), 'console.jsonl')
       const consoleContent = (await readFile(consoleFilename)).toString()
       expect(consoleContent.split('\n').length).toStrictEqual(2)
