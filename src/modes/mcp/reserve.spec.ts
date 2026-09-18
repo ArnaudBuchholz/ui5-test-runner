@@ -2,7 +2,7 @@ import { describe, it, expect, beforeAll, beforeEach, vi } from 'vitest';
 import { mock } from 'reserve';
 import type { Configuration } from '../../configuration/Configuration.js';
 import { buildREserveConfiguration } from './reserve.js';
-import { FileSystem, Process } from '../../platform/index.js';
+import { Crypto, FileSystem, Process } from '../../platform/index.js';
 
 const CONFIGURATION = { port: 3000 } as unknown as Configuration;
 
@@ -18,7 +18,10 @@ beforeAll(async () => {
   await promise;
 });
 
-beforeEach(() => vi.clearAllMocks());
+beforeEach(() => {
+  vi.clearAllMocks();
+  vi.mocked(Crypto.sha256hex).mockReturnValue('abcdef1234567890');
+});
 
 const ID = 1;
 
@@ -68,7 +71,7 @@ describe('tools/list', () => {
 
 describe('tools/call list_topics', () => {
   it('returns the root index content', async () => {
-    vi.mocked(FileSystem.readFile).mockResolvedValue('- [[options]]\n- [[coverage]]');
+    vi.mocked(FileSystem.readFile).mockResolvedValue('- [options](./options.md)\n- [coverage](./coverage.md)');
     const response = await post(server, {
       jsonrpc: '2.0',
       id: ID,
@@ -78,14 +81,14 @@ describe('tools/call list_topics', () => {
     await response.waitForFinish();
     // eslint-disable-next-line @typescript-eslint/no-base-to-string -- REserve response body
     const body = JSON.parse(response.toString()) as { result: { content: Array<{ text: string }> } };
-    expect(body.result.content[0]!.text).toContain('[[options]]');
-    expect(body.result.content[0]!.text).toContain('[[coverage]]');
+    expect(body.result.content[0]!.text).toContain('[options](./options.md)');
+    expect(body.result.content[0]!.text).toContain('[coverage](./coverage.md)');
   });
 });
 
 describe('tools/call get_topic', () => {
-  it('returns file content for a known topic', async () => {
-    vi.mocked(FileSystem.readFile).mockResolvedValue('# Installation\nSome content with [[options]]');
+  it('rewrites relative links with folder hash', async () => {
+    vi.mocked(FileSystem.readFile).mockResolvedValue('# Installation\nSee [options](./options.md) for details');
     const response = await post(server, {
       jsonrpc: '2.0',
       id: ID,
@@ -95,7 +98,7 @@ describe('tools/call get_topic', () => {
     await response.waitForFinish();
     // eslint-disable-next-line @typescript-eslint/no-base-to-string -- REserve response body
     const body = JSON.parse(response.toString()) as { result: { content: Array<{ text: string }> } };
-    expect(body.result.content[0]!.text).toContain('[[options]]');
+    expect(body.result.content[0]!.text).toContain('./options.md?abcdef');
   });
 
   it('strips [[ ]] brackets from topic name', async () => {

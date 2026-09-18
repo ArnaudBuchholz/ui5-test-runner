@@ -1,7 +1,7 @@
 ---
-"#type": "[[option]]"
+"#type": option
 short: so
-type: "[[boolean]]"
+type: boolean
 summary: split OPA tests by QUnit module, creating one test page per module
 batchForwarded: yes
 browserExposed: yes

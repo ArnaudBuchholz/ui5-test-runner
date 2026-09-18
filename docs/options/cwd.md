@@ -1,7 +1,7 @@
 ---
-"#type": "[[option]]"
+"#type": option
 short: c
-type: "[[fs-entry]]"
+type: fs-entry
 summary: set working directory
 default: process.cwd()
 defaultLabel: current working directory

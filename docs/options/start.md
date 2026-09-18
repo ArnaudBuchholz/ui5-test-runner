@@ -1,6 +1,6 @@
 ---
-"#type": "[[option]]"
-type: "[[string]]"
+"#type": option
+type: string
 summary: command to be executed before the tests
 tags:
   - legacy

@@ -1,7 +1,7 @@
 ---
-"#type": "[[option]]"
+"#type": option
 short: pt
-type: "[[timeout]]"
+type: timeout
 summary: fails a page if it takes longer than this timeout
 batchForwarded: yes
 tags:

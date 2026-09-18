@@ -1,6 +1,6 @@
 ---
-"#type": "[[option]]"
-type: "[[percent]]"
+"#type": option
+type: percent
 short: ccs
 summary: minimum statement coverage threshold (0 = no check)
 default: "0"

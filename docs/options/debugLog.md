@@ -1,6 +1,6 @@
 ---
-"#type": "[[option]]"
-type: "[[string]]"
+"#type": option
+type: string
 multiple: yes
 summary: output debug logs for given sources
 ---

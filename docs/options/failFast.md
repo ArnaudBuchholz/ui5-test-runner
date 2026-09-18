@@ -1,7 +1,7 @@
 ---
-"#type": "[[option]]"
+"#type": option
 short: f
-type: "[[boolean]]"
+type: boolean
 summary: stop the whole execution after the first failing page
 batchForwarded: yes
 tags:

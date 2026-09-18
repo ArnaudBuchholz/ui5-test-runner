@@ -1,6 +1,6 @@
 ---
-"#type": "[[option]]"
-type: "[[string]]"
+"#type": option
+type: string
 summary: HTTP method used when polling the startWaitUrl
 default: "'GET'"
 tags:

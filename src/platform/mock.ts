@@ -37,6 +37,8 @@ const mockStaticMethodsOfExports = <T extends object>(actual: T): T => {
   return mocked;
 };
 
+vi.mock(import('./Crypto.js'), async (importActual) => mockStaticMethodsOfExports(await importActual()));
+
 vi.mock(import('./constants.js'), async (importActual) => {
   const mocked = await importActual();
   return {

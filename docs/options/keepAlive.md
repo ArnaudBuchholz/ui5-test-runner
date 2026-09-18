@@ -1,7 +1,7 @@
 ---
-"#type": "[[option]]"
+"#type": option
 short: k
-type: "[[boolean]]"
+type: boolean
 summary: keep the server alive
 tags:
   - legacy

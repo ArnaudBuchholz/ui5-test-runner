@@ -1,6 +1,6 @@
 ---
-"#type": "[[option]]"
-type: "[[boolean]]"
+"#type": option
+type: boolean
 summary: display help
 tags:
   - mode

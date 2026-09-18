@@ -1,6 +1,6 @@
 ---
-"#type": "[[option]]"
-type: "[[integer]]"
+"#type": option
+type: integer
 summary: port to use
 tags:
   - legacy

@@ -1,6 +1,6 @@
 ---
-"#type": "[[option]]"
-type: "[[boolean]]"
+"#type": option
+type: boolean
 summary: use local docs/ directory instead of fetching from GitHub (development only)
 default: "false"
 see:

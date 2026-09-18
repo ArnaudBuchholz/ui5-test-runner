@@ -1,6 +1,6 @@
 ---
-"#type": "[[option]]"
-type: "[[boolean]]"
+"#type": option
+type: boolean
 summary: prevent any NPM install
 batchForwarded: yes
 tags:

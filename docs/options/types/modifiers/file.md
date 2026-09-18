@@ -1,5 +1,5 @@
 ---
 types:
-  - "[[fs-entry]]"
+  - fs-entry
 ---
-By default, an [[fs-entry]] option points to a folder. This modifier indicates that it should point to a file.
+By default, an [fs-entry](../fs-entry.md) option points to a folder. This modifier indicates that it should point to a file.

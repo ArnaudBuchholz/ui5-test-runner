@@ -1,6 +1,6 @@
 ---
-"#type": "[[option]]"
-type: "[[boolean]]"
+"#type": option
+type: boolean
 summary: dump the resolved configuration as JSON and exit
 tags:
   - mode

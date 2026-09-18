@@ -1,7 +1,7 @@
 ---
-"#type": "[[option]]"
+"#type": option
 short: pf
-type: "[[regexp]]"
+type: regexp
 summary: filter pages to execute
 batchForwarded: yes
 ---

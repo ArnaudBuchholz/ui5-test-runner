@@ -1,6 +1,6 @@
 ---
-"#type": "[[option]]"
-type: "[[timeout]]"
+"#type": option
+type: timeout
 summary: maximum waiting time for the start command to become ready
 default: 30000
 tags:

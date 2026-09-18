@@ -42,7 +42,7 @@ for (const fileName of optionsFileNames) {
     continue;
   }
   const metadata = parseYaml(rawFrontmatter);
-  if (metadata['#type'] !== '[[option]]') {
+  if (metadata['#type'] !== 'option') {
     continue;
   }
   const name = fileName.split('.md', 1)[0];
@@ -51,8 +51,7 @@ for (const fileName of optionsFileNames) {
   if (checkIfDuplicate(name, short)) {
     errors.push(`duplicate name / short detected: ${name} ${short ?? ''}`);
   }
-  // eslint-disable-next-line sonarjs/super-linear-regex -- optional prefix is bounded by [^\]] so catastrophic backtracking cannot occur
-  const [, type] = (metadata.type ?? '').match(/\[\[(?:[^\\\]]+\|)?([^\]]*)\]\]/) ?? [];
+  const type = metadata.type === undefined ? undefined : String(metadata.type);
   if (!type || !types.includes(type)) {
     errors.push(`Unknown type ${metadata.type}`);
   }
@@ -66,13 +65,7 @@ for (const fileName of optionsFileNames) {
   }
   let typeModifiers;
   if (Array.isArray(metadata.typeModifiers)) {
-    typeModifiers = metadata.typeModifiers
-      .map((entry) => {
-        // eslint-disable-next-line sonarjs/super-linear-regex -- optional prefix is bounded by [^\]] so catastrophic backtracking cannot occur
-        const [, modifier] = entry.match(/\[\[(?:[^\\\]]+\|)?([^\]]*)\]\]/) ?? [];
-        return modifier;
-      })
-      .filter(Boolean);
+    typeModifiers = metadata.typeModifiers.map(String).filter(Boolean);
   }
   if (errors.length > 0) {
     console.error(`❌ ${fileName} :\n\t` + errors.join('\n\t'));

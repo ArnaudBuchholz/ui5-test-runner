@@ -1,6 +1,6 @@
 ---
-"#type": "[[option]]"
-type: "[[string]]"
+"#type": option
+type: string
 short: cr
 multiple: yes
 summary: istanbul-lib-report reporters to use

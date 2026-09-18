@@ -1,6 +1,6 @@
 ---
-"#type": "[[option]]"
-type: "[[string]]"
+"#type": option
+type: string
 summary: skip execution if the expression evaluates to falsy
 tags:
   - batch

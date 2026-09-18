@@ -1,6 +1,6 @@
 ---
-"#type": "[[option]]"
-type: "[[string]]"
+"#type": option
+type: string
 summary: npm install strategy for missing packages
 default: "'global'"
 see:

@@ -1,7 +1,7 @@
 ---
-"#type": "[[option]]"
+"#type": option
 short: u
-type: "[[options/types/url|url]]"
+type: url
 multiple: yes
 summary: URL of the page to test
 tags:

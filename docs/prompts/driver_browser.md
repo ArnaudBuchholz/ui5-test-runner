@@ -174,7 +174,7 @@ export interface BrowserDriverDescriptor {
 ## Step 4 — Doc-driven option changes, then `make options`
 
 **4a. Rename `browser` → `driver`.** `docs/options/browser.md` →
-`docs/options/driver.md`: `short: d`, keep `type: "[[options/types/browser|browser]]"`
+`docs/options/driver.md`: `short: d`, keep `type: browser`
 (this type validates the *driver* name incl. `$/foo.js`), `batchForwarded`,
 `browserExposed`, `default: "'puppeteer'"`. Do NOT rename the `browser` **type**
 or `validators/browser.ts`.
@@ -182,18 +182,18 @@ or `validators/browser.ts`.
 **4b. New `docs/options/browser.md`** (actual browser):
 ```yaml
 ---
-"#type": "[[option]]"
+"#type": option
 short: b
-type: "[[options/types/enumeration|enumeration]]"
+type: enumeration
 summary: browser selection (per driver)
 batchForwarded: yes
 typeModifiers:
-  - "[[chrome]]"
-  - "[[chromium]]"
-  - "[[firefox]]"
-  - "[[webkit]]"
-  - "[[edge]]"
-  - "[[safari]]"
+  - chrome
+  - chromium
+  - firefox
+  - webkit
+  - edge
+  - safari
 validation:
   - message: "browser is not supported by the selected driver"
     conditions:
@@ -209,8 +209,8 @@ matrix in sync with each `descriptor.supportedBrowsers`.
 **4c. New `docs/options/browserOptions.md`:**
 ```yaml
 ---
-"#type": "[[option]]"
-type: "[[options/types/json|json]]"
+"#type": option
+type: json
 summary: browser-specific options (JSON)
 default: "'{}'"
 batchForwarded: yes

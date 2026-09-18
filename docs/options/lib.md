@@ -1,6 +1,6 @@
 ---
-"#type": "[[option]]"
-type: "[[options/types/library-mapping|library-mapping]]"
+"#type": option
+type: library-mapping
 multiple: yes
 summary: Library mapping
 tags:

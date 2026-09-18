@@ -1,7 +1,7 @@
 ---
-"#type": "[[option]]"
+"#type": option
 short: p
-type: "[[integer]]"
+type: integer
 summary: number of parallel executions
 batchForwarded: yes
 default: "2"

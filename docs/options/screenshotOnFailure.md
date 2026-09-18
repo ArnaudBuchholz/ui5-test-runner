@@ -1,6 +1,6 @@
 ---
-"#type": "[[option]]"
-type: "[[boolean]]"
+"#type": option
+type: boolean
 summary: take a screenshot when a test fails
 default: "true"
 batchForwarded: yes

@@ -27,7 +27,7 @@ Each option file (e.g. `docs/options/parallel.md`) declares:
 
 | Field | Required | Description |
 |---|---|---|
-| `#type` | **required** | Must be `[[option]]`; files without this value are silently skipped |
+| `#type` | **required** | Must be `option`; files without this value are silently skipped |
 | `type` | **required** | Validator type reference (kebab-cased filename from `src/configuration/validators/`); build fails if unknown |
 | `summary` | recommended | One-line description used as the CLI help text; omitting it leaves `description` undefined in the generated code |
 | `short` | optional | Single-character CLI alias; must be unique across all options |

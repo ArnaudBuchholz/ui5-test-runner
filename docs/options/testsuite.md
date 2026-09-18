@@ -1,6 +1,6 @@
 ---
-"#type": "[[option]]"
-type: "[[string]]"
+"#type": option
+type: string
 summary: path of the testsuite file
 default: "'test/testsuite.qunit.html'"
 tags:

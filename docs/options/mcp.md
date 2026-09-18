@@ -1,6 +1,6 @@
 ---
-"#type": "[[option]]"
-type: "[[boolean]]"
+"#type": option
+type: boolean
 summary: start an MCP server to pilot ui5-test-runner with an MCP client
 tags:
   - mode

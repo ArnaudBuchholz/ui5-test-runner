@@ -5,6 +5,8 @@ const REMOTE_KB_DIR = Path.join(__sourcesRoot, 'mcp-kb');
 
 let _knowledgeBaseDirectory: string = REMOTE_KB_DIR;
 
+export const getRoot = (): string => _knowledgeBaseDirectory;
+
 export const init = async (configuration: Configuration): Promise<void> => {
   if (configuration.debugMcpLocalDocs) {
     _knowledgeBaseDirectory = Path.join(__sourcesRoot, '../docs');

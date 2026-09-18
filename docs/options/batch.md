@@ -1,6 +1,6 @@
 ---
-"#type": "[[option]]"
-type: "[[string]]"
+"#type": option
+type: string
 summary: batch item specification (folder, config file, or regex pattern)
 multiple: yes
 tags:

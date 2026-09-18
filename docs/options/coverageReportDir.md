@@ -1,12 +1,12 @@
 ---
-"#type": "[[option]]"
-type: "[[fs-entry]]"
+"#type": option
+type: fs-entry
 short: crd
 typeModifiers:
-  - "[[overwrite]]"
+  - overwrite
 summary: directory for the final coverage report
 default: "'coverage'"
-dependsOn: "[[cwd]]"
+dependsOn: cwd
 tags:
   - coverage
   - legacy

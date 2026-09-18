@@ -1,6 +1,6 @@
 ---
-"#type": "[[option]]"
-type: "[[timeout]]"
+"#type": option
+type: timeout
 summary: maximum waiting time for the end command to execute
 tags:
   - legacy

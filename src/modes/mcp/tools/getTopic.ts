@@ -1,4 +1,41 @@
+import { Path } from '../../../platform/index.js';
 import { readFile } from '../knowledgeBase.js';
+import { hashFolder, getReverseIndex } from '../folderHash.js';
+
+const rewriteLinks = (body: string, hash: string): string =>
+  body.replaceAll(/\]\(([^)]+)\)/g, (match, target: string) => {
+    if (/^[a-z][a-z0-9+.-]*:/i.test(target) || target.startsWith('/') || target.startsWith('#')) {
+      return match;
+    }
+    if (target.includes('?')) {
+      return match;
+    }
+    const hashIndex = target.indexOf('#');
+    if (hashIndex !== -1) {
+      return `](${target.slice(0, hashIndex)}?${hash}${target.slice(hashIndex)})`;
+    }
+    return `](${target}?${hash})`;
+  });
+
+const buildCandidates = async (topic: string): Promise<string[]> => {
+  const questionIndex = topic.indexOf('?');
+  if (questionIndex === -1) {
+    return topic.includes('/') ? [`${topic}.md`] : [`${topic}.md`, `${topic}/index.md`];
+  }
+  const relativePath = topic.slice(0, questionIndex);
+  const anchorIndex = topic.indexOf('#');
+  const hash = anchorIndex === -1 ? topic.slice(questionIndex + 1) : topic.slice(questionIndex + 1, anchorIndex);
+  const reverseIndex = await getReverseIndex();
+  const folder = reverseIndex.get(hash);
+  if (folder === undefined) {
+    return [];
+  }
+  const resolved = Path.join(folder, relativePath);
+  if (resolved.startsWith('..')) {
+    return [];
+  }
+  return resolved.endsWith('.md') ? [resolved] : [`${resolved}.md`, `${resolved}/index.md`];
+};
 
 export const toolDefinitionGetTopic = {
   definition: {
@@ -14,15 +51,20 @@ export const toolDefinitionGetTopic = {
     }
   },
   handler: async (arguments_: Record<string, unknown>): Promise<string> => {
-    const topic = (arguments_['topic'] as string).replace(/^\[\[(.+)]]$/, '$1');
-    const candidates = topic.includes('/') ? [`${topic}.md`] : [`${topic}.md`, `${topic}/index.md`];
+    const rawTopic = (arguments_['topic'] as string).replace(/^\[\[(.+)]]$/, '$1');
+    const anchorStart = rawTopic.indexOf('#');
+    const anchorStripped = anchorStart === -1 ? rawTopic : rawTopic.slice(0, anchorStart);
+    const candidates = await buildCandidates(anchorStripped);
     for (const relativePath of candidates) {
       try {
-        return await readFile(relativePath);
+        const body = await readFile(relativePath);
+        const folder = Path.dirname(relativePath).replace(/^\./, '');
+        const hash = hashFolder(folder);
+        return rewriteLinks(body, hash);
       } catch {
         // try next candidate
       }
     }
-    return `Topic "${topic}" not found.`;
+    return `Topic "${rawTopic}" not found.`;
   }
 };

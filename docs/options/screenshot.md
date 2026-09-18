@@ -1,6 +1,6 @@
 ---
-"#type": "[[option]]"
-type: "[[boolean]]"
+"#type": option
+type: boolean
 summary: take a screenshot after every OPA assertion
 default: "false"
 browserExposed: yes

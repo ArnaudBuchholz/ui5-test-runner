@@ -1,6 +1,6 @@
 ---
-"#type": "[[option]]"
-type: "[[options/types/url|url]]"
+"#type": option
+type: url
 summary: UI5 url
 default: "'https://ui5.sap.com'"
 tags:

@@ -1,13 +1,13 @@
 ---
-"#type": "[[option]]"
-type: "[[fs-entry]]"
+"#type": option
+type: fs-entry
 short: cs
 typeModifiers:
-  - "[[file]]"
-  - "[[safe-default]]"
+  - file
+  - safe-default
 summary: path to the Istanbul configuration file (.nycrc.json)
 default: "'.nycrc.json'"
-dependsOn: "[[cwd]]"
+dependsOn: cwd
 tags:
   - coverage
   - legacy

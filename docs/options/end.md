@@ -1,6 +1,6 @@
 ---
-"#type": "[[option]]"
-type: "[[string]]"
+"#type": option
+type: string
 summary: command to be executed after the tests
 tags:
   - legacy
@@ -18,6 +18,6 @@ In addition to configuration options, the following extra placeholders are avail
 |---|---|
 | `{{exitCode}}` | The runner's exit code at the time the end command is invoked |
 
-Environment variables and full command syntax are documented in [[start]].
+Environment variables and full command syntax are documented in [start](./start.md).
 
 > **Note:** The exit code of the end command overrides the runner's exit code, allowing you to enforce failure or suppress errors from the test execution.

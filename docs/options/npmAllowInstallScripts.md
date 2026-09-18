@@ -1,6 +1,6 @@
 ---
-"#type": "[[option]]"
-type: "[[boolean]]"
+"#type": option
+type: boolean
 summary: allow postinstall scripts when installing missing packages
 default: false
 batchForwarded: yes

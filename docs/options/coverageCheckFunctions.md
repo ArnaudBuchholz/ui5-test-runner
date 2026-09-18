@@ -1,6 +1,6 @@
 ---
-"#type": "[[option]]"
-type: "[[percent]]"
+"#type": option
+type: percent
 short: ccf
 summary: minimum function coverage threshold (0 = no check)
 default: "0"

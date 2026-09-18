@@ -1,6 +1,6 @@
 ---
-"#type": "[[option]]"
-type: "[[integer]]"
+"#type": option
+type: integer
 summary: minimum release age (in days) required before installing a package
 default: 3
 batchForwarded: yes

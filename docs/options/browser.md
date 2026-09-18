@@ -1,16 +1,16 @@
 ---
-"#type": "[[option]]"
+"#type": option
 short: b
-type: "[[options/types/enumeration|enumeration]]"
+type: enumeration
 summary: browser selection (per driver)
 batchForwarded: yes
 typeModifiers:
-  - "[[chrome]]"
-  - "[[chromium]]"
-  - "[[firefox]]"
-  - "[[webkit]]"
-  - "[[edge]]"
-  - "[[safari]]"
+  - chrome
+  - chromium
+  - firefox
+  - webkit
+  - edge
+  - safari
 validation:
   - message: "browser is not supported by puppeteer (chrome, firefox)"
     conditions:

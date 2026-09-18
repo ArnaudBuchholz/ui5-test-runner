@@ -1,14 +1,14 @@
 ---
-"#type": "[[option]]"
+"#type": option
 short: r
-type: "[[fs-entry]]"
+type: fs-entry
 typeModifiers:
-  - "[[overwrite]]"
+  - overwrite
 summary: directory to output test reports
 default: "'report'"
 see:
   - "[[cwd]]"
-dependsOn: "[[cwd]]"
+dependsOn: cwd
 tags:
   - legacy
   - remote

@@ -1,12 +1,12 @@
 ---
-"#type": "[[option]]"
-type: "[[fs-entry]]"
+"#type": option
+type: fs-entry
 short: ctd
 typeModifiers:
-  - "[[overwrite]]"
+  - overwrite
 summary: temporary directory for coverage data
 default: "'.nyc_output'"
-dependsOn: "[[cwd]]"
+dependsOn: cwd
 tags:
   - coverage
   - legacy

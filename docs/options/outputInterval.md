@@ -1,7 +1,7 @@
 ---
-"#type": "[[option]]"
+"#type": option
 short: oi
-type: "[[timeout]]"
+type: timeout
 summary: interval for reporting progress on non interactive output (CI/CD)
 batchForwarded: yes
 default: 30000

@@ -1,7 +1,7 @@
 ---
-"#type": "[[option]]"
+"#type": option
 short: pp
-type: "[[string]]"
+type: string
 summary: add parameters to page URL
 batchForwarded: yes
 ---
