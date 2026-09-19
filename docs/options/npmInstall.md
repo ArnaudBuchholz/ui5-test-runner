@@ -4,8 +4,8 @@ type: string
 summary: npm install strategy for missing packages
 default: "'global'"
 see:
-  - "[[noNpmInstall]]"
-  - "[[npmInstallPrefix]]"
+  - noNpmInstall
+  - npmInstallPrefix
 tags:
   - npm
 ---

@@ -4,7 +4,7 @@ type: boolean
 summary: use local docs/ directory instead of fetching from GitHub (development only)
 default: "false"
 see:
-  - "[[mcp]]"
+  - mcp
 validation:
   - message: "this option requires --mcp"
     conditions:

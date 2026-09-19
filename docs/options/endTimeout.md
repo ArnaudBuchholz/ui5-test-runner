@@ -7,5 +7,5 @@ tags:
   - remote
   - batch
 see:
-  - "[[end]]"
+  - end
 ---

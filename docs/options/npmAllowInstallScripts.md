@@ -5,8 +5,8 @@ summary: allow postinstall scripts when installing missing packages
 default: false
 batchForwarded: yes
 see:
-  - "[[npmInstall]]"
-  - "[[noNpmInstall]]"
+  - npmInstall
+  - noNpmInstall
 tags:
   - npm
   - security

@@ -8,9 +8,8 @@ tags:
   - legacy
   - remote
 see:
-  - "[[webapp]]"
-  - "[[coverageSourceDir]]"
-  - "[[../coverage|Coverage guide]]"
+  - webapp
+  - coverageSourceDir
 validation:
   - message: "at least one of webapp or coverageSourceDir must be set"
     conditions:

@@ -9,6 +9,6 @@ tags:
   - remote
   - batch
 see:
-  - "[[reportDir]]"
+  - reportDir
 ---
 By default, the runner detects when executed in an interactive output. It then renders dynamic progress bars while generating a static output in the [reportDir](./reportDir.md) folder. When executed in a pipeline, the output matches the static one. This option controls this behavior.

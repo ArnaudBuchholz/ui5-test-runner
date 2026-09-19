@@ -6,7 +6,7 @@ summary: interval for reporting progress on non interactive output (CI/CD)
 batchForwarded: yes
 default: 30000
 see:
-  - "[[ci]]"
+  - ci
 tags:
   - legacy
   - remote

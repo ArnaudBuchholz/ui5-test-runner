@@ -7,9 +7,9 @@ tags:
   - remote
   - batch
 see:
-  - "[[start]]"
-  - "[[startWaitMethod]]"
-  - "[[startTimeout]]"
+  - start
+  - startWaitMethod
+  - startTimeout
 validation:
   - message: "requires start"
     conditions:

@@ -8,8 +8,8 @@ tags:
   - remote
   - batch
 see:
-  - "[[start]]"
-  - "[[startWaitUrl]]"
+  - start
+  - startWaitUrl
 validation:
   - message: "requires start and startWaitUrl"
     conditions:

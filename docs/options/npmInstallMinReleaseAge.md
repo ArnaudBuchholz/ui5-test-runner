@@ -5,8 +5,8 @@ summary: minimum release age (in days) required before installing a package
 default: 3
 batchForwarded: yes
 see:
-  - "[[npmInstall]]"
-  - "[[noNpmInstall]]"
+  - npmInstall
+  - noNpmInstall
 tags:
   - npm
   - security

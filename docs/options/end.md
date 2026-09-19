@@ -7,7 +7,7 @@ tags:
   - remote
   - batch
 see:
-  - "[[cwd]]"
+  - cwd
 ---
 
 The command string accepts `{{optionName}}` placeholders, which are expanded at runtime using the value of the corresponding configuration option (e.g. `cwd`, `reportDir`). The command executes with `cwd` as its working directory.

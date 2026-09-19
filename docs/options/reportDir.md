@@ -7,7 +7,7 @@ typeModifiers:
 summary: directory to output test reports
 default: "'report'"
 see:
-  - "[[cwd]]"
+  - cwd
 dependsOn: cwd
 tags:
   - legacy
