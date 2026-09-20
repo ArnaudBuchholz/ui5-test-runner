@@ -242,6 +242,8 @@ describe('BrowserFactory', () => {
         await window.close(); // No error
         expect(logger.error).toHaveBeenCalledWith({ source: 'puppeteer', message: 'window close failed', error });
       });
+
+      // TODO: add tests to check what happens when the window is already closed
     });
   });
 

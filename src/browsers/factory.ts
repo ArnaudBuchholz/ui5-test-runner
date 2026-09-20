@@ -127,37 +127,52 @@ export const BrowserFactory = {
   }
 };
 
-const wrapWindow = (innerWindow: IWindow, source: Browser, pageId: number, onClosed: () => void): IWindow => ({
-  async eval(script) {
-    logger.debug({ source, message: 'eval', pageId, data: { script } });
-    try {
-      const result = await innerWindow.eval(script);
-      logger.debug({ source, message: 'eval completed', pageId, data: { result } });
-      return result;
-    } catch (error) {
-      logger.error({ source, message: 'eval failed', pageId, error });
-      throw error;
-    }
-  },
-  async screenshot(path) {
-    logger.debug({ source, message: 'screenshot', pageId, data: { path } });
-    try {
-      await innerWindow.screenshot(path);
-      logger.debug({ source, message: 'screenshot completed', pageId, data: { path } });
-    } catch (error) {
-      logger.error({ source, message: 'screenshot failed', pageId, error, data: { path } });
-      throw error;
-    }
-  },
-  async close() {
-    logger.debug({ source, message: 'window close', pageId });
-    try {
-      await innerWindow.close();
-      logger.debug({ source, message: 'window closed', pageId });
-    } catch (error) {
-      logger.error({ source, message: 'window close failed', error });
-    } finally {
-      onClosed();
+const wrapWindow = (innerWindow: IWindow, source: Browser, pageId: number, onClosed: () => void): IWindow => {
+  let closed = false;
+
+  return {
+    async eval(script) {
+      logger.debug({ source, message: 'eval', pageId, data: { script } });
+      try {
+        if (closed) {
+          throw new Error('window closed');
+        }
+        const result = await innerWindow.eval(script);
+        logger.debug({ source, message: 'eval completed', pageId, data: { result } });
+        return result;
+      } catch (error) {
+        logger.error({ source, message: 'eval failed', pageId, error });
+        throw error;
+      }
+    },
+    async screenshot(path) {
+      logger.debug({ source, message: 'screenshot', pageId, data: { path } });
+      try {
+        if (closed) {
+          throw new Error('window closed');
+        }
+        await innerWindow.screenshot(path);
+        logger.debug({ source, message: 'screenshot completed', pageId, data: { path } });
+      } catch (error) {
+        logger.error({ source, message: 'screenshot failed', pageId, error, data: { path } });
+        throw error;
+      }
+    },
+    async close() {
+      if (closed) {
+        logger.warn({ source, message: 'closing an already closed window, ignored', pageId });
+        return;
+      }
+      closed = true;
+      logger.debug({ source, message: 'window close', pageId });
+      try {
+        await innerWindow.close();
+        logger.debug({ source, message: 'window closed', pageId });
+      } catch (error) {
+        logger.error({ source, message: 'window close failed', error });
+      } finally {
+        onClosed();
+      }
     }
   }
-});
+};
