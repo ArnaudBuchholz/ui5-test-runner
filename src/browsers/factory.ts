@@ -128,13 +128,13 @@ export const BrowserFactory = {
 };
 
 const wrapWindow = (innerWindow: IWindow, source: Browser, pageId: number, onClosed: () => void): IWindow => {
-  let closed = false;
+  let isClosed = false;
 
   return {
     async eval(script) {
       logger.debug({ source, message: 'eval', pageId, data: { script } });
       try {
-        if (closed) {
+        if (isClosed) {
           throw new Error('window closed');
         }
         const result = await innerWindow.eval(script);
@@ -148,7 +148,7 @@ const wrapWindow = (innerWindow: IWindow, source: Browser, pageId: number, onClo
     async screenshot(path) {
       logger.debug({ source, message: 'screenshot', pageId, data: { path } });
       try {
-        if (closed) {
+        if (isClosed) {
           throw new Error('window closed');
         }
         await innerWindow.screenshot(path);
@@ -159,11 +159,11 @@ const wrapWindow = (innerWindow: IWindow, source: Browser, pageId: number, onClo
       }
     },
     async close() {
-      if (closed) {
+      if (isClosed) {
         logger.warn({ source, message: 'closing an already closed window, ignored', pageId });
         return;
       }
-      closed = true;
+      isClosed = true;
       logger.debug({ source, message: 'window close', pageId });
       try {
         await innerWindow.close();
@@ -174,5 +174,5 @@ const wrapWindow = (innerWindow: IWindow, source: Browser, pageId: number, onClo
         onClosed();
       }
     }
-  }
+  };
 };
