@@ -16,7 +16,7 @@ export const factory = async (configuration: Configuration, signal: AbortSignal)
   const puppeteer = await Npm.import(configuration, 'puppeteer');
   const launch = (puppeteer as { launch: typeof launchFunction }).launch;
   let browser: Browser | undefined;
-  let openedPages = 0;
+  let isFirstWindow = true;
 
   const launchAndInstallIfNeeded = async (settings: BrowserSettings): Promise<BrowserCapabilities> => {
     const target = settings.browser ?? 'chrome';
@@ -76,7 +76,8 @@ export const factory = async (configuration: Configuration, signal: AbortSignal)
     async newWindow(settings) {
       const { pageId } = settings;
       let page: Page | undefined;
-      if (++openedPages === 1) {
+      if (isFirstWindow) {
+        isFirstWindow = false;
         const pages = await browser?.pages(true);
         page = pages?.[0];
       } else {

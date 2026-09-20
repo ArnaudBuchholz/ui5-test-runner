@@ -60,6 +60,18 @@ export const BrowserFactory = {
       logger.fatal({ source: browser, message: 'build failed', error });
       throw error;
     }
+    const _openWindows = new Set<IWindow>();
+    const closeAllWindows = async () => {
+      await Promise.all(
+        [..._openWindows].map(async (w) => {
+          try {
+            await w.close();
+          } catch {
+            /* ignore */
+          }
+        })
+      );
+    };
     let task: ReturnType<typeof Exit.registerAsyncTask> | undefined;
     return {
       async setup(settings) {
@@ -67,6 +79,7 @@ export const BrowserFactory = {
           name: `${browser}#${++_instanceCount}`,
           async stop() {
             abortController.abort();
+            await closeAllWindows();
             await shutdown(browser, inner);
           }
         });
@@ -92,7 +105,9 @@ export const BrowserFactory = {
         try {
           const innerWindow = await inner.newWindow(settings);
           logger.debug({ source: browser, message: 'newWindow completed', pageId });
-          return wrapWindow(innerWindow, browser, pageId);
+          const wrapped = wrapWindow(innerWindow, browser, pageId, () => _openWindows.delete(wrapped));
+          _openWindows.add(wrapped);
+          return wrapped;
         } catch (error) {
           logger.fatal({
             source: browser,
@@ -103,6 +118,7 @@ export const BrowserFactory = {
         }
       },
       async shutdown() {
+        await closeAllWindows();
         await shutdown(browser, inner);
         task?.[Symbol.dispose]();
         _activeInstances.delete(browser);
@@ -111,7 +127,7 @@ export const BrowserFactory = {
   }
 };
 
-const wrapWindow = (innerWindow: IWindow, source: Browser, pageId: number): IWindow => ({
+const wrapWindow = (innerWindow: IWindow, source: Browser, pageId: number, onClosed: () => void): IWindow => ({
   async eval(script) {
     logger.debug({ source, message: 'eval', pageId, data: { script } });
     try {
@@ -140,6 +156,8 @@ const wrapWindow = (innerWindow: IWindow, source: Browser, pageId: number): IWin
       logger.debug({ source, message: 'window closed', pageId });
     } catch (error) {
       logger.error({ source, message: 'window close failed', error });
+    } finally {
+      onClosed();
     }
   }
 });

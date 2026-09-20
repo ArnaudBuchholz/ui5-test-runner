@@ -269,15 +269,66 @@ describe('BrowserFactory', () => {
       expect(logger.warn).toHaveBeenCalledWith({ source: 'puppeteer', message: 'shutdown failed', error });
     });
 
-    it('aborts the signal and calls inner shutdown when Exit fires stop', async () => {
+    it('closes all open windows before shutting down the inner browser', async () => {
       const inner = makeInnerBrowser();
+      const innerWindow1 = makeInnerWindow();
+      const innerWindow2 = makeInnerWindow();
+      vi.mocked(inner.newWindow).mockResolvedValueOnce(innerWindow1).mockResolvedValueOnce(innerWindow2);
       vi.mocked(mockPuppeteerFactory).mockResolvedValue(inner);
       browser = await BrowserFactory.build(FACTORY_SETTINGS, 'puppeteer');
       await browser.setup(BROWSER_SETTINGS);
+      await browser.newWindow(WINDOW_SETTINGS);
+      await browser.newWindow({ ...WINDOW_SETTINGS, pageId: 43 });
+      await browser.shutdown();
+      browser = undefined;
+      expect(innerWindow1.close).toHaveBeenCalledOnce();
+      expect(innerWindow2.close).toHaveBeenCalledOnce();
+    });
+
+    it('swallows window close errors during shutdown', async () => {
+      const inner = makeInnerBrowser();
+      const innerWindow = makeInnerWindow();
+      vi.mocked(innerWindow.close).mockRejectedValueOnce(new Error('close error'));
+      vi.mocked(inner.newWindow).mockResolvedValue(innerWindow);
+      vi.mocked(mockPuppeteerFactory).mockResolvedValue(inner);
+      browser = await BrowserFactory.build(FACTORY_SETTINGS, 'puppeteer');
+      await browser.setup(BROWSER_SETTINGS);
+      await browser.newWindow(WINDOW_SETTINGS);
+      await expect(browser.shutdown()).resolves.toBeUndefined();
+      browser = undefined;
+    });
+
+    it('does not close a window that was already explicitly closed', async () => {
+      const inner = makeInnerBrowser();
+      const innerWindow1 = makeInnerWindow();
+      const innerWindow2 = makeInnerWindow();
+      vi.mocked(inner.newWindow).mockResolvedValueOnce(innerWindow1).mockResolvedValueOnce(innerWindow2);
+      vi.mocked(mockPuppeteerFactory).mockResolvedValue(inner);
+      browser = await BrowserFactory.build(FACTORY_SETTINGS, 'puppeteer');
+      await browser.setup(BROWSER_SETTINGS);
+      const window1 = await browser.newWindow(WINDOW_SETTINGS);
+      await browser.newWindow({ ...WINDOW_SETTINGS, pageId: 43 });
+      await window1.close();
+      vi.clearAllMocks();
+      await browser.shutdown();
+      browser = undefined;
+      expect(innerWindow1.close).not.toHaveBeenCalled();
+      expect(innerWindow2.close).toHaveBeenCalledOnce();
+    });
+
+    it('aborts the signal, closes all open windows, and calls inner shutdown when Exit fires stop', async () => {
+      const inner = makeInnerBrowser();
+      const innerWindow = makeInnerWindow();
+      vi.mocked(inner.newWindow).mockResolvedValue(innerWindow);
+      vi.mocked(mockPuppeteerFactory).mockResolvedValue(inner);
+      browser = await BrowserFactory.build(FACTORY_SETTINGS, 'puppeteer');
+      await browser.setup(BROWSER_SETTINGS);
+      await browser.newWindow(WINDOW_SETTINGS);
       await __lastRegisteredExitAsyncTask.stop();
       browser = undefined;
       const [, signal] = vi.mocked(mockPuppeteerFactory).mock.calls[0]!;
       expect(signal.aborted).toBe(true);
+      expect(innerWindow.close).toHaveBeenCalledOnce();
       expect(inner.shutdown).toHaveBeenCalledOnce();
     });
   });

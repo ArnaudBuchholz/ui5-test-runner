@@ -65,7 +65,7 @@ export const factory = async (configuration: Configuration): Promise<IBrowser> =
 
   let driver: ThenableWebDriver | undefined;
   const contextToPageId = new Map<string, number>();
-  let windowsOpened = 0;
+  let isFirstWindow = true;
 
   return {
     async setup(settings: BrowserSettings): Promise<BrowserCapabilities> {
@@ -113,8 +113,8 @@ export const factory = async (configuration: Configuration): Promise<IBrowser> =
 
     async newWindow(settings) {
       const { pageId, scripts, url } = settings;
-      const isFirst = windowsOpened === 0;
-      windowsOpened++;
+      const isFirst = isFirstWindow;
+      isFirstWindow = false;
 
       let context: string;
 
@@ -171,16 +171,6 @@ export const factory = async (configuration: Configuration): Promise<IBrowser> =
     },
 
     async shutdown() {
-      await Promise.all(
-        contextToPageId.keys().map(async (context) => {
-          try {
-            const bc = await BrowsingContext(driver!, { browsingContextId: context });
-            await bc.close();
-          } catch {
-            // ignore
-          }
-        })
-      );
       await new Promise((resolve) => setTimeout(resolve, 200));
       await driver?.quit();
     }

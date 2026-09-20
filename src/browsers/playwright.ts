@@ -16,7 +16,7 @@ export const factory = async (configuration: Configuration, signal: AbortSignal)
   const playwright = await Npm.import(configuration, 'playwright');
   const { chromium } = playwright as { chromium: BrowserType };
   let browser: Browser | undefined;
-  const pages = new Set<Page>();
+  let isFirstWindow = true;
 
   const launchAndInstallIfNeeded = async (settings: BrowserSettings): Promise<BrowserCapabilities> => {
     logger.debug({ source: 'playwright', message: 'launching browser' });
@@ -62,14 +62,14 @@ export const factory = async (configuration: Configuration, signal: AbortSignal)
 
     async newWindow(settings) {
       let page: Page | undefined;
-      if (pages.size === 0) {
+      if (isFirstWindow) {
+        isFirstWindow = false;
         const existingPages = browser?.contexts()[0]?.pages();
         page = existingPages?.[0] ?? (await browser?.newPage());
       } else {
         page = await browser?.newPage();
       }
       assert(page !== undefined);
-      pages.add(page);
       for (const script of settings.scripts) {
         await page.addInitScript(script);
       }
@@ -98,7 +98,6 @@ export const factory = async (configuration: Configuration, signal: AbortSignal)
           await page.screenshot({ path });
         },
         async close() {
-          pages.delete(page);
           await page.goto('about:blank');
           await page.close();
         }
@@ -106,15 +105,6 @@ export const factory = async (configuration: Configuration, signal: AbortSignal)
     },
 
     async shutdown() {
-      await Promise.all(
-        pages.values().map(async (page) => {
-          try {
-            await page.goto('about:blank');
-          } catch {
-            /* ignore */
-          }
-        })
-      );
       await browser?.close();
     }
   };

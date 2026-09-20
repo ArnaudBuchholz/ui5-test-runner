@@ -42,8 +42,7 @@ export const factory = async (configuration: Configuration): Promise<IBrowser> =
   const { remote } = webdriverio as { remote: (options: unknown) => Promise<WdioBrowser> };
   let browser: WdioBrowser | undefined;
   const contextToPageId = new Map<string, number>();
-  const openHandles = new Set<string>();
-  let windowsOpened = 0;
+  let isFirstWindow = true;
   return {
     async setup(settings: BrowserSettings): Promise<BrowserCapabilities> {
       logger.debug({ source: 'webdriverio', message: 'launching browser' });
@@ -94,8 +93,8 @@ export const factory = async (configuration: Configuration): Promise<IBrowser> =
 
     async newWindow(settings) {
       const { pageId, scripts, url } = settings;
-      const isFirst = windowsOpened === 0;
-      windowsOpened++;
+      const isFirst = isFirstWindow;
+      isFirstWindow = false;
 
       let handle: string;
       let context: string;
@@ -104,7 +103,6 @@ export const factory = async (configuration: Configuration): Promise<IBrowser> =
         handle = await browser!.getWindowHandle();
         context = handle;
         contextToPageId.set(context, pageId);
-        openHandles.add(handle);
         for (const script of scripts) {
           await browser!.scriptAddPreloadScript({
             functionDeclaration: `() => { ${script} }`,
@@ -113,6 +111,7 @@ export const factory = async (configuration: Configuration): Promise<IBrowser> =
         }
         await browser!.url(url);
       } else {
+        const handlesBefore = new Set(await browser!.getWindowHandles());
         const { context: newContext } = await browser!.browsingContextCreate({ type: 'tab', background: true });
         context = newContext;
         contextToPageId.set(context, pageId);
@@ -124,9 +123,7 @@ export const factory = async (configuration: Configuration): Promise<IBrowser> =
         }
         await browser!.browsingContextNavigate({ context, url, wait: 'interactive' });
         const handles = await browser!.getWindowHandles();
-        const previousHandles = new Set(openHandles);
-        handle = handles.find((h) => !previousHandles.has(h)) ?? context;
-        openHandles.add(handle);
+        handle = handles.find((h) => !handlesBefore.has(h)) ?? context;
       }
 
       const switchTo = () => browser!.switchToWindow(handle);
@@ -143,8 +140,7 @@ export const factory = async (configuration: Configuration): Promise<IBrowser> =
           contextToPageId.delete(context);
           if (contextToPageId.size === 0) {
             // Keep the session alive: open a blank keeper tab before closing the last real one
-            const { context: keeperContext } = await browser!.browsingContextCreate({ type: 'tab', background: true });
-            openHandles.add(keeperContext);
+            await browser!.browsingContextCreate({ type: 'tab', background: true });
           }
           await browser!.browsingContextClose({ context });
         }
@@ -152,15 +148,6 @@ export const factory = async (configuration: Configuration): Promise<IBrowser> =
     },
 
     async shutdown() {
-      await Promise.all(
-        contextToPageId.keys().map(async (context) => {
-          try {
-            await browser!.browsingContextClose({ context });
-          } catch {
-            // ignore
-          }
-        })
-      );
       await new Promise((resolve) => setTimeout(resolve, 200));
       await browser?.deleteSession();
       delete process.env['WDIO_LOG_PATH'];
