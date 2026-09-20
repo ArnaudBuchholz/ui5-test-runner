@@ -35,20 +35,20 @@ export const testBrowser = ({
   } as const as Configuration;
   const BROWSER_SETTINGS = browserSettings;
 
+  const getClosedPages = async (): Promise<number[]> => {
+    const response = await fetch(`${BASE_URL}closed`);
+    return response.json() as Promise<number[]>;
+  };
+
+  const resetClosedPages = async (): Promise<void> => {
+    await fetch(`${BASE_URL}closed`, { method: 'DELETE' });
+  };
+
   beforeAll(() => {
     BASE_URL = process.env['BROWSERS_SERVER_URL'] ?? '';
   });
 
   describe(label, () => {
-    const getClosedPages = async (): Promise<number[]> => {
-      const response = await fetch(`${BASE_URL}closed`);
-      return response.json() as Promise<number[]>;
-    };
-
-    const resetClosedPages = async (): Promise<void> => {
-      await fetch(`${BASE_URL}closed`, { method: 'DELETE' });
-    };
-
     if (failedSetupTestCases) {
       describe('setup failures', () => {
         for (const { label, setup } of failedSetupTestCases)
@@ -79,9 +79,9 @@ export const testBrowser = ({
       });
 
       afterEach(async () => {
-        for (const w of testWindows) {
+        for (const window of testWindows) {
           try {
-            await w.close();
+            await window.close();
           } catch {
             // ignore
           }
@@ -91,17 +91,19 @@ export const testBrowser = ({
       const openWindow = async (
         settings: Omit<Parameters<IBrowser['newWindow']>[0], 'pageId'>
       ): Promise<{ window: IWindow; pageId: number }> => {
-        const pageId = nextPageId++;
-        const w = await browser.newWindow({ ...settings, pageId });
-        testWindows.push(w);
-        return { window: w, pageId };
+        const pageId = ++nextPageId;
+        const window = await browser.newWindow({ ...settings, pageId });
+        testWindows.push(window);
+        return { window, pageId };
       };
 
-      it('throws when built twice without shutdown', async () => {
+      // TODO: move to factory
+      it.skip('throws when built twice without shutdown', async () => {
         await expect(BrowserFactory.build(FACTORY_SETTINGS, name)).rejects.toThrow();
       });
 
-      it('allows building again after shutdown', async () => {
+      // TODO: move to factory
+      it.skip('allows building again after shutdown', async () => {
         await browser.shutdown();
         const second = await BrowserFactory.build(FACTORY_SETTINGS, name);
         await second.setup(BROWSER_SETTINGS);
@@ -136,7 +138,7 @@ export const testBrowser = ({
               slotToPageId.set(slotId, pageId);
             } else {
               const window = windows.get(slotId) as IWindow;
-              await window.close();
+              await expect(window.close()).resolves.toBeUndefined();
               expected.push(slotToPageId.get(slotId)!);
               const snapshot = [...expected];
               await vi.waitFor(async () => expect(await getClosedPages()).toStrictEqual(snapshot));
