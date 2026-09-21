@@ -42,7 +42,6 @@ export const factory = async (configuration: Configuration): Promise<IBrowser> =
   const { remote } = webdriverio as { remote: (options: unknown) => Promise<WdioBrowser> };
   let browser: WdioBrowser | undefined;
   const contextToPageId = new Map<string, number>();
-  let isFirstWindow = true;
   return {
     async setup(settings: BrowserSettings): Promise<BrowserCapabilities> {
       logger.debug({ source: 'webdriverio', message: 'launching browser' });
@@ -93,40 +92,17 @@ export const factory = async (configuration: Configuration): Promise<IBrowser> =
 
     async newWindow(settings) {
       const { pageId, scripts, url } = settings;
-      const isFirst = isFirstWindow;
-      isFirstWindow = false;
-
-      let handle: string;
-      let context: string;
-
-      if (isFirst) {
-        handle = await browser!.getWindowHandle();
-        context = handle;
-        contextToPageId.set(context, pageId);
-        for (const script of scripts) {
-          await browser!.scriptAddPreloadScript({
-            functionDeclaration: `() => { ${script} }`,
-            contexts: [context]
-          });
-        }
-        await browser!.url(url);
-      } else {
-        const handlesBefore = new Set(await browser!.getWindowHandles());
-        const { context: newContext } = await browser!.browsingContextCreate({ type: 'tab', background: true });
-        context = newContext;
-        contextToPageId.set(context, pageId);
-        for (const script of scripts) {
-          await browser!.scriptAddPreloadScript({
-            functionDeclaration: `() => { ${script} }`,
-            contexts: [context]
-          });
-        }
-        await browser!.browsingContextNavigate({ context, url, wait: 'interactive' });
-        const handles = await browser!.getWindowHandles();
-        handle = handles.find((h) => !handlesBefore.has(h)) ?? context;
+      const { context } = await browser!.browsingContextCreate({ type: 'tab', background: true });
+      contextToPageId.set(context, pageId);
+      for (const script of scripts) {
+        await browser!.scriptAddPreloadScript({
+          functionDeclaration: `() => { ${script} }`,
+          contexts: [context]
+        });
       }
+      await browser!.browsingContextNavigate({ context, url, wait: 'interactive' });
 
-      const switchTo = () => browser!.switchToWindow(handle);
+      const switchTo = () => browser!.switchToWindow(context);
       return {
         async eval(script: string) {
           await switchTo();
@@ -138,10 +114,6 @@ export const factory = async (configuration: Configuration): Promise<IBrowser> =
         },
         async close() {
           contextToPageId.delete(context);
-          if (contextToPageId.size === 0) {
-            // Keep the session alive: open a blank keeper tab before closing the last real one
-            await browser!.browsingContextCreate({ type: 'tab', background: true });
-          }
           await browser!.browsingContextClose({ context });
         }
       };
