@@ -72,14 +72,10 @@ export class Npm {
     return import(specifier);
   }
 
-  private static tryResolvePackageDir(
-    configuration: Configuration,
-    moduleName: string,
-    nodeModulesPath: string
-  ): string | undefined {
+  private static tryResolvePackageDir(moduleName: string, nodeModulesPath: string): string | undefined {
     try {
-      const require = Module.createRequire(Url.pathToFileURL(Path.join(configuration.cwd, 'package.json')).href);
-      return Path.dirname(require.resolve(`${moduleName}/package.json`, { paths: [nodeModulesPath] }));
+      const packageJsonPath = Module.findPackageJSON(moduleName, `${nodeModulesPath}/`);
+      return packageJsonPath === undefined ? undefined : Path.dirname(packageJsonPath);
     } catch {
       return undefined;
     }
@@ -179,20 +175,19 @@ export class Npm {
   static async resolvePackageDir(configuration: Configuration, moduleName: string): Promise<string> {
     const { local, global: globalRoot } = await getRoots();
 
-    const fromLocal = this.tryResolvePackageDir(configuration, moduleName, local);
+    const fromLocal = this.tryResolvePackageDir(moduleName, local);
     if (fromLocal) return fromLocal;
 
-    const fromGlobal = this.tryResolvePackageDir(configuration, moduleName, globalRoot);
+    const fromGlobal = this.tryResolvePackageDir(moduleName, globalRoot);
     if (fromGlobal) return fromGlobal;
 
     if (configuration.alternateNpmPath) {
-      const fromAlternate = this.tryResolvePackageDir(configuration, moduleName, configuration.alternateNpmPath);
+      const fromAlternate = this.tryResolvePackageDir(moduleName, configuration.alternateNpmPath);
       if (fromAlternate) return fromAlternate;
     }
 
     if (configuration.npmInstallPrefix) {
       const fromPrefix = this.tryResolvePackageDir(
-        configuration,
         moduleName,
         Path.join(configuration.npmInstallPrefix, 'node_modules')
       );
