@@ -4,6 +4,7 @@ import { Npm } from '../Npm.js';
 import type { Configuration } from '../configuration/Configuration.js';
 import { handleConsoleMessage } from './consoleMessage.js';
 import { handleNetworkResponse } from './networkResponse.js';
+import { getExtraChromeArguments } from './chromeArguments.js';
 import { writeFile } from 'node:fs/promises';
 import type { Builder, ThenableWebDriver } from 'selenium-webdriver';
 import type { Options } from 'selenium-webdriver/chrome';
@@ -78,6 +79,7 @@ export const factory = async (configuration: Configuration): Promise<IBrowser> =
       if (settings.viewport) {
         options.addArguments(`--window-size=${settings.viewport.width},${settings.viewport.height}`);
       }
+      options.addArguments(...getExtraChromeArguments());
       options.enableBidi();
 
       driver = new SeleniumBuilder().forBrowser(Browser.CHROME).setChromeOptions(options).build();

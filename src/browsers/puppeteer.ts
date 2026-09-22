@@ -5,6 +5,7 @@ import { Npm } from '../Npm.js';
 import type { Configuration } from '../configuration/Configuration.js';
 import { handleConsoleMessage } from './consoleMessage.js';
 import { handleNetworkResponse } from './networkResponse.js';
+import { getExtraChromeArguments } from './chromeArguments.js';
 
 export const descriptor: BrowserDriverDescriptor = {
   supportedBrowsers: ['chrome', 'firefox'],
@@ -34,7 +35,7 @@ export const factory = async (configuration: Configuration, signal: AbortSignal)
       defaultViewport: null,
       handleSIGINT: false,
       signal,
-      args: [...arguments_, ...extraArguments]
+      args: [...arguments_, ...extraArguments, ...(target === 'chrome' ? getExtraChromeArguments() : [])]
     };
     logger.debug({ source: 'puppeteer', message: 'launching browser' });
     try {

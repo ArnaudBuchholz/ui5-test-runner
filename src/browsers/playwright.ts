@@ -5,6 +5,7 @@ import { Npm } from '../Npm.js';
 import type { Configuration } from '../configuration/Configuration.js';
 import { handleConsoleMessage } from './consoleMessage.js';
 import { handleNetworkResponse } from './networkResponse.js';
+import { getExtraChromeArguments } from './chromeArguments.js';
 
 export const descriptor: BrowserDriverDescriptor = {
   supportedBrowsers: ['chromium', 'firefox', 'webkit'],
@@ -24,7 +25,8 @@ export const factory = async (configuration: Configuration, signal: AbortSignal)
       // TODO define args for chrome
       browser = await chromium.launch({
         headless: !settings.visible,
-        handleSIGINT: false
+        handleSIGINT: false,
+        args: getExtraChromeArguments()
       });
     } catch (error) {
       if (error instanceof Error && error.message.includes('Executable doesn')) {
@@ -43,7 +45,8 @@ export const factory = async (configuration: Configuration, signal: AbortSignal)
         }).closed;
         browser = await chromium.launch({
           headless: !settings.visible,
-          handleSIGINT: false
+          handleSIGINT: false,
+          args: getExtraChromeArguments()
         });
       } else {
         throw error;

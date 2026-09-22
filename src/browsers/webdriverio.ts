@@ -4,6 +4,7 @@ import { Npm } from '../Npm.js';
 import type { Configuration } from '../configuration/Configuration.js';
 import { handleConsoleMessage } from './consoleMessage.js';
 import { handleNetworkResponse } from './networkResponse.js';
+import { getExtraChromeArguments } from './chromeArguments.js';
 
 export const descriptor: BrowserDriverDescriptor = {
   supportedBrowsers: ['chrome', 'firefox', 'edge', 'safari'],
@@ -54,7 +55,8 @@ export const factory = async (configuration: Configuration): Promise<IBrowser> =
             args: [
               ...(settings.visible ? [] : ['--headless']),
               '--start-maximized',
-              ...(settings.viewport ? [`--window-size=${settings.viewport.width},${settings.viewport.height}`] : [])
+              ...(settings.viewport ? [`--window-size=${settings.viewport.width},${settings.viewport.height}`] : []),
+              ...getExtraChromeArguments()
             ]
           }
         }
