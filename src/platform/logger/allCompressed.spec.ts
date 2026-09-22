@@ -19,7 +19,7 @@ vi.hoisted(() => {
   vi.setSystemTime(new Date('2025-10-30T21:56:00.000Z'));
 });
 
-vi.spyOn(ZLib, 'deflateRawSync').mockReturnValue(Buffer.from('compressed'));
+vi.mocked(ZLib.deflateRawSync).mockReturnValue(Buffer.from('compressed'));
 
 beforeAll(() => {
   Object.assign(Thread, { isMainThread: false }); // This worker is not in the main thread

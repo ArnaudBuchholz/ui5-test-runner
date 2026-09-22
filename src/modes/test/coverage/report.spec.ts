@@ -5,8 +5,6 @@ import type { Configuration } from '../../../configuration/Configuration.js';
 import { Folder } from '../../../utils/node/Folder.js';
 import { generateReport } from './report.js';
 
-beforeEach(() => vi.clearAllMocks());
-
 const COVERAGE_TEMP_DIR = '/tmp/coverage';
 const COVERAGE_REPORT_DIR = '/tmp/coverage-report';
 const NYC_BIN = '/node_modules/nyc/bin/nyc.js';
@@ -38,15 +36,18 @@ const setupHappyPath = () => {
   vi.mocked(Process.spawn).mockReturnValue(makeProcess(0));
 };
 
+beforeEach(() => {
+  vi.clearAllMocks();
+  setupHappyPath();
+});
+
 describe('generateReport', () => {
   it('recreates coverageReportDir', async () => {
-    setupHappyPath();
     await generateReport(BASE_CONFIGURATION);
     expect(Folder.recreate).toHaveBeenCalledWith(COVERAGE_REPORT_DIR);
   });
 
   it('logs that report generation is starting', async () => {
-    setupHappyPath();
     await generateReport(BASE_CONFIGURATION);
     expect(logger.info).toHaveBeenCalledWith(
       expect.objectContaining({ source: 'coverage', message: 'Generating coverage report...' })
@@ -54,7 +55,6 @@ describe('generateReport', () => {
   });
 
   it('runs nyc merge on coverageTempDir', async () => {
-    setupHappyPath();
     await generateReport(BASE_CONFIGURATION);
     expect(Process.spawn).toHaveBeenCalledWith(
       'node',
@@ -64,13 +64,11 @@ describe('generateReport', () => {
   });
 
   it('throws when nyc merge exits with non-zero code', async () => {
-    setupHappyPath();
     vi.mocked(Process.spawn).mockReturnValueOnce(makeProcess(1));
     await expect(generateReport(BASE_CONFIGURATION)).rejects.toThrow('nyc merge failed with code 1');
   });
 
   it('runs nyc report with the merged directory', async () => {
-    setupHappyPath();
     await generateReport(BASE_CONFIGURATION);
     expect(Process.spawn).toHaveBeenCalledWith(
       'node',
@@ -80,7 +78,6 @@ describe('generateReport', () => {
   });
 
   it('always includes text reporter', async () => {
-    setupHappyPath();
     await generateReport(BASE_CONFIGURATION);
     const reportCall = vi
       .mocked(Process.spawn)
@@ -89,7 +86,6 @@ describe('generateReport', () => {
   });
 
   it('does not duplicate text reporter when already in coverageReporters', async () => {
-    setupHappyPath();
     const config = makeConfiguration({ coverageReporters: ['text', 'html'] });
     await generateReport(config);
     const reportCall = vi
@@ -101,7 +97,6 @@ describe('generateReport', () => {
   });
 
   it('includes custom reporters alongside text', async () => {
-    setupHappyPath();
     const config = makeConfiguration({ coverageReporters: ['html', 'lcov'] });
     await generateReport(config);
     const reportCall = vi
@@ -112,12 +107,10 @@ describe('generateReport', () => {
   });
 
   it('returns undefined on success', async () => {
-    setupHappyPath();
     await expect(generateReport(BASE_CONFIGURATION)).resolves.toBeUndefined();
   });
 
   it('logs report complete on success', async () => {
-    setupHappyPath();
     await generateReport(BASE_CONFIGURATION);
     expect(logger.info).toHaveBeenCalledWith(
       expect.objectContaining({ source: 'coverage', message: 'Coverage report complete' })
@@ -126,7 +119,6 @@ describe('generateReport', () => {
 
   describe('when thresholds are set', () => {
     it('passes --check-coverage flag to nyc report', async () => {
-      setupHappyPath();
       const config = makeConfiguration({ coverageCheckLines: 80 });
       await generateReport(config);
       const reportCall = vi
@@ -136,7 +128,6 @@ describe('generateReport', () => {
     });
 
     it('passes all four threshold flags even when only one is non-zero', async () => {
-      setupHappyPath();
       const config = makeConfiguration({ coverageCheckLines: 80 });
       await generateReport(config);
       const reportCall = vi
@@ -150,7 +141,6 @@ describe('generateReport', () => {
     });
 
     it('returns a failed test result when nyc report exits non-zero with thresholds', async () => {
-      setupHappyPath();
       vi.mocked(Process.spawn)
         .mockReturnValueOnce(makeProcess(0)) // merge
         .mockReturnValueOnce(makeProcess(1)); // report
@@ -163,7 +153,6 @@ describe('generateReport', () => {
     });
 
     it('logs error with threshold details when coverage check fails', async () => {
-      setupHappyPath();
       vi.mocked(Process.spawn).mockReturnValueOnce(makeProcess(0)).mockReturnValueOnce(makeProcess(1));
       const config = makeConfiguration({ coverageCheckLines: 80 });
       await generateReport(config);
@@ -176,7 +165,6 @@ describe('generateReport', () => {
     });
 
     it('sets tool name to "nyc" in the failed result', async () => {
-      setupHappyPath();
       vi.mocked(Process.spawn).mockReturnValueOnce(makeProcess(0)).mockReturnValueOnce(makeProcess(1));
       const config = makeConfiguration({ coverageCheckLines: 80 });
       const result = await generateReport(config);
@@ -186,7 +174,6 @@ describe('generateReport', () => {
 
   describe('when no thresholds are set', () => {
     it('throws when nyc report exits with non-zero code', async () => {
-      setupHappyPath();
       vi.mocked(Process.spawn)
         .mockReturnValueOnce(makeProcess(0)) // merge
         .mockReturnValueOnce(makeProcess(1)); // report
@@ -194,7 +181,6 @@ describe('generateReport', () => {
     });
 
     it('does not pass --check-coverage flag', async () => {
-      setupHappyPath();
       await generateReport(BASE_CONFIGURATION);
       const reportCall = vi
         .mocked(Process.spawn)
@@ -204,7 +190,6 @@ describe('generateReport', () => {
   });
 
   it('passes NODE_OPTIONS="" in env to prevent interference with nyc report', async () => {
-    setupHappyPath();
     Object.assign(Host.env, {
       NODE_OPTIONS: '--node-options'
     });

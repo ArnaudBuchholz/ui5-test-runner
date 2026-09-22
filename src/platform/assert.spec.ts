@@ -3,8 +3,6 @@ import { assert } from './assert.js';
 import { ExitShutdownError } from './Exit.js';
 import { logger } from './logger.js';
 
-vi.spyOn(logger, 'fatal');
-
 beforeEach(() => {
   vi.clearAllMocks();
 });

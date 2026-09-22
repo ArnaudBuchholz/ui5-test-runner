@@ -221,8 +221,17 @@ Framework: Vitest. `Foo.spec.ts` co-located with source; `Foo.test.ts` for share
 - Only **logic** is unit tested; UI rendering is not tested
 - Tests must be small and fast with a **single clear expectation** — split if more needed
 - Cover happy path and all edge cases; **coverage: 100 %**
-- Mock via `vi.mock(import('../platform/mock.js'))` — never mock `node:*` directly
+- Platform exports are auto-mocked by `src/platform/mock.ts` (a global Vitest `setupFiles` entry) — never `vi.mock` it in a spec, and never mock `node:*` directly
 - Validator tests use `checkValidator` from `src/configuration/validators/checkValidator.test.ts`
+
+### Test projects and the platform mock
+
+`vitest.config.ts` defines three projects, and which one a spec runs in decides whether platform exports are mocked:
+
+- **`cli`** (`environment: node`) — every spec **except** those under `src/agent/**`, `src/ui/**`, `src/**/ui/**`. It loads `src/platform/mock.ts` as a global `setupFiles` entry, so all platform exports (`FileSystem`, `Http`, `Process`, `logger`, `Path`, …) are already `vi.fn()` — never `vi.mock` `mock.ts` and never `vi.spyOn` a platform member in these specs.
+- **`agent`** (`src/agent/**`, jsdom) and **UIs** (`src/ui/**`, `src/**/ui/**`, jsdom) — these run in a browser-like environment **without** the global platform mock. Specs here mock what they need themselves (browser globals, `node:*` where unavoidable); a `vi.mock`/`vi.spyOn` that would be redundant in a `cli` spec is legitimate here.
+
+Console output is suppressed in tests by default via `onConsoleLog` (see `vitest.config.ts`); set `VITEST_CONSOLE_LOG=1` (or `true`/`on`) to see it.
 
 ### What tests should express
 
@@ -250,13 +259,16 @@ it('throws when the input is missing')
 
 Not required at top level. Nest when tests share setup or are logically grouped. Max **5 levels**. Scope `beforeEach` inside the relevant `describe` rather than repeating setup in every test.
 
+Exception: a setup helper that takes per-test arguments or returns a value the test uses (e.g. `setupHappyPath(overrides)` returning the builder it created) is intentionally called per-test — do not hoist it into `beforeEach`. Hoist only helpers that take no arguments and whose return value is unused; tests can still override individual mocks afterward.
+
 ### Mocking
 
 - Prefer DI via factory functions over module-level mocking. Use `vi.mock()` at module level when DI isn't applicable.
-- `src/platform/mock.ts` mocks all platform exports as `vi.fn()`. Never add `vi.spyOn()` in spec files for platform modules.
+- `src/platform/mock.ts` is a global Vitest `setupFiles` entry (for the `cli` project) that mocks all platform exports as `vi.fn()`. Never `vi.mock` it in a spec, and never add `vi.spyOn()` for a platform module — the mock is already in place.
 - Setup: `vi.mocked(method).mockResolvedValue(...)`. Assertions: `expect(method).toHaveBeenCalledWith(...)` — no `vi.mocked()` wrapper in `expect`.
 - For non-platform static methods, use `vi.spyOn(Class, 'method')` rather than a full `vi.mock()` of the module.
 - Stub spawned processes as `IProcess` (from `platform/index.js`), not `InstanceType<typeof Process>`.
+- A `console.*` spy needs no `.mockImplementation(() => {})` to silence output — `onConsoleLog` already suppresses it (see *Test projects and the platform mock* above). Spy with a bare `vi.spyOn(console, 'log')` so it only records calls. (Only short-lived modes — `help`, `version`, `dumpConfig` — write to `console.*`; everything else uses the platform logger.)
 
 ### Spy declarations
 
