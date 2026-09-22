@@ -61,11 +61,12 @@ export const factory = async (configuration: Configuration): Promise<IBrowser> =
       });
       browser.on('log.entryAdded', (entry) => {
         const event = entry as { type?: string; method?: string; text?: string | null; source?: { context?: string } };
-        if (event.type === 'console') {
-          const pageId =
-            (event.source?.context === undefined ? undefined : contextToPageId.get(event.source.context)) ?? -1;
-          handleConsoleMessage(event.method ?? 'log', event.text ?? '', pageId);
+        if (event.type !== 'console') {
+          return;
         }
+        const pageId =
+          (event.source?.context === undefined ? undefined : contextToPageId.get(event.source.context)) ?? -1;
+        handleConsoleMessage(event.method ?? 'log', event.text ?? '', pageId);
       });
       await browser.sessionSubscribe({ events: ['network.responseStarted'] });
       browser.on('network.responseStarted', (entry) => {

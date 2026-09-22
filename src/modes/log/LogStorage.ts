@@ -42,13 +42,9 @@ export class LogStorage implements ILogStorage {
         ...log,
         level: LOG_LEVELS[log.level],
         // eslint-disable-next-line @typescript-eslint/no-explicit-any -- handle all possible situations
-        [punyexpr.propertyOf]: (value: any, property: string) => {
-          if (value === undefined) {
-            return;
-          }
+        [punyexpr.propertyOf]: (value: any, property: string) =>
           // eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-member-access -- handle all possible situations
-          return value[property];
-        }
+          value && value[property]
       });
   }
 
@@ -89,9 +85,8 @@ export class LogStorage implements ILogStorage {
     const cappedLimit = Math.min(limit, MAX_LIMIT);
     const hasRange = from !== 0 || to !== Number.MAX_SAFE_INTEGER;
     const hasFilter = filter !== '';
-    if (!hasRange && !hasFilter) {
-      return this._logs.slice(skip, skip + Math.max(cappedLimit, 0));
-    }
-    return this.#fetch({ from, to, filter, skip, limit, cappedLimit, hasRange, hasFilter });
+    return !hasRange && !hasFilter
+      ? this._logs.slice(skip, skip + Math.max(cappedLimit, 0))
+      : this.#fetch({ from, to, filter, skip, limit, cappedLimit, hasRange, hasFilter });
   }
 }

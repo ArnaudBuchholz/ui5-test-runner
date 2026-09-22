@@ -207,11 +207,13 @@ function attachEvents(): void {
   statusButton?.addEventListener('click', (event) => {
     const popover = document.querySelector('#metricsPopover');
     const content = document.querySelector('#metricsPopoverContent');
-    if (popover && content) {
-      content.innerHTML = renderMetricsContent();
-      asUI5(popover)['opener'] = event.currentTarget;
-      asUI5(popover)['open'] = true;
+    if (!(popover && content)) {
+      return;
     }
+
+    content.innerHTML = renderMetricsContent();
+    asUI5(popover)['opener'] = event.currentTarget;
+    asUI5(popover)['open'] = true;
   });
 
   const thead = document.querySelector('#logTable thead');
@@ -246,10 +248,12 @@ function renderApp(): void {
 
 function rerenderToolbar(): void {
   const toolbar = document.querySelector('#toolbar');
-  if (toolbar) {
-    toolbar.innerHTML = renderToolbar(controller.state, controller.settings);
-    attachToolbarEvents();
+  if (!toolbar) {
+    return;
   }
+
+  toolbar.innerHTML = renderToolbar(controller.state, controller.settings);
+  attachToolbarEvents();
 }
 
 function updateMetrics(): void {
@@ -269,12 +273,14 @@ function attachTbodyClickEvent(tbody: Element): void {
     if (!log) return;
     const popover = document.querySelector('#logDetailsPopover');
     const content = document.querySelector('#logDetailsPopoverContent');
-    if (popover && content) {
-      content.innerHTML = renderLogDetails(log);
-      attachFilterButtonEvents(content);
-      asUI5(popover)['opener'] = row;
-      asUI5(popover)['open'] = true;
+    if (!(popover && content)) {
+      return;
     }
+
+    content.innerHTML = renderLogDetails(log);
+    attachFilterButtonEvents(content);
+    asUI5(popover)['opener'] = row;
+    asUI5(popover)['open'] = true;
   });
 }
 
@@ -332,11 +338,12 @@ function update(changed: Partial<State>): void {
   if ('errorMessage' in changed) {
     updateErrorMessage();
   }
-  if ('filter' in changed) {
-    const filterInput = document.querySelector('#filterInput');
-    if (filterInput && document.activeElement !== filterInput) {
-      (filterInput as unknown as HTMLInputElement).value = controller.state.filter;
-    }
+  if (!('filter' in changed)) {
+    return;
+  }
+  const filterInput = document.querySelector('#filterInput');
+  if (filterInput && document.activeElement !== filterInput) {
+    (filterInput as unknown as HTMLInputElement).value = controller.state.filter;
   }
 }
 

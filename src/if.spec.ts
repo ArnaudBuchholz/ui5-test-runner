@@ -2,9 +2,6 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { Host } from './platform/index.js';
 import { isIfEvaluatedAsTrue, isImplemented } from './if.js';
 import type { Configuration } from './configuration/Configuration.js';
-
-vi.mock('./platform/version.js');
-
 import { version } from './platform/version.js';
 
 const makeConfig = (condition?: string): Configuration => ({ if: condition }) as Configuration;

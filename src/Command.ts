@@ -9,10 +9,9 @@ export const Command = {
     return command
       .matchAll(QUOTED_AND_UNQUOTED_TOKENS)
       .map(([value]) => {
-        if ((value.startsWith("'") && value.endsWith("'")) || (value.startsWith('"') && value.endsWith('"'))) {
-          return value.slice(1, -1);
-        }
-        return value;
+        return (value.startsWith("'") && value.endsWith("'")) || (value.startsWith('"') && value.endsWith('"'))
+          ? value.slice(1, -1)
+          : value;
       })
       .toArray();
   },

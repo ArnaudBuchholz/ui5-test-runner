@@ -103,10 +103,12 @@ it('exports the report by downloading it', () => {
     click: vi.fn()
   };
   const spy = vi.spyOn(document, 'createElement').mockReturnValue(mock as unknown as HTMLElement);
+  const createObjectURL = vi.spyOn(URL, 'createObjectURL').mockReturnValue('blob:report');
   controller.interaction({ action: 'export' });
   expect(spy).toHaveBeenCalledOnce();
   expect(spy).toHaveBeenCalledWith('a');
-  expect(mock.setAttribute).toHaveBeenCalledWith('href', expect.any(String) as string);
+  expect(createObjectURL).toHaveBeenCalledWith(expect.any(Blob) as Blob);
+  expect(mock.setAttribute).toHaveBeenCalledWith('href', 'blob:report');
   expect(mock.setAttribute).toHaveBeenCalledWith('download', 'report.json');
   expect(mock.click).toHaveBeenCalledOnce();
 });

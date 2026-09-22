@@ -31,10 +31,7 @@ export function levelName(level: LogLevel): string {
 }
 
 export function formatTimestamp(epoch: number): string {
-  if (!epoch) {
-    return '—';
-  }
-  return new Date(epoch).toLocaleString();
+  return epoch ? new Date(epoch).toLocaleString() : '—';
 }
 
 export function epochToDateTimePickerValue(epoch: number): string {

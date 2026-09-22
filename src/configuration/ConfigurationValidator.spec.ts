@@ -452,13 +452,12 @@ describe('merge (config file loading)', () => {
   describe('recursive merging', () => {
     it('propagates keys from a nested config file to the top level', async () => {
       const NESTED_CONFIG_PATH = '/project/nested/ui5-test-runner.json' as const;
-      vi.mocked(FileSystem.readFile).mockImplementation((path) => {
-        if (path === CONFIG_FILE_PATH) {
-          return Promise.resolve(JSON.stringify({ config: NESTED_CONFIG_PATH }) as never);
-        }
-        // nested file sets pageTimeout
-        return Promise.resolve(JSON.stringify({ pageTimeout: 99_000 }) as never);
-      });
+      // nested file sets pageTimeout
+      vi.mocked(FileSystem.readFile).mockImplementation((path) =>
+        Promise.resolve(
+          JSON.stringify(path === CONFIG_FILE_PATH ? { config: NESTED_CONFIG_PATH } : { pageTimeout: 99_000 })
+        )
+      );
       const result = await ConfigurationValidator.validate({ config: CONFIG_FILE_PATH });
       expect(result.pageTimeout).toStrictEqual(99_000);
     });
@@ -466,10 +465,9 @@ describe('merge (config file loading)', () => {
     it('CLI value wins over a key from a nested config file', async () => {
       const NESTED_CONFIG_PATH = '/project/nested/ui5-test-runner.json' as const;
       vi.mocked(FileSystem.readFile).mockImplementation((path) => {
-        if (path === CONFIG_FILE_PATH) {
-          return Promise.resolve(JSON.stringify({ config: NESTED_CONFIG_PATH }) as never);
-        }
-        return Promise.resolve(JSON.stringify({ pageTimeout: 99_000 }) as never);
+        return path === CONFIG_FILE_PATH
+          ? Promise.resolve(JSON.stringify({ config: NESTED_CONFIG_PATH }) as never)
+          : Promise.resolve(JSON.stringify({ pageTimeout: 99_000 }) as never);
       });
       const result = await ConfigurationValidator.validate({ config: CONFIG_FILE_PATH, pageTimeout: 30_000 });
       expect(result.pageTimeout).toStrictEqual(30_000);
@@ -478,10 +476,9 @@ describe('merge (config file loading)', () => {
     it('parent config file value wins over a nested config file value', async () => {
       const NESTED_CONFIG_PATH = '/project/nested/ui5-test-runner.json' as const;
       vi.mocked(FileSystem.readFile).mockImplementation((path) => {
-        if (path === CONFIG_FILE_PATH) {
-          return Promise.resolve(JSON.stringify({ pageTimeout: 55_000, config: NESTED_CONFIG_PATH }) as never);
-        }
-        return Promise.resolve(JSON.stringify({ pageTimeout: 99_000 }) as never);
+        return path === CONFIG_FILE_PATH
+          ? Promise.resolve(JSON.stringify({ pageTimeout: 55_000, config: NESTED_CONFIG_PATH }) as never)
+          : Promise.resolve(JSON.stringify({ pageTimeout: 99_000 }) as never);
       });
       const result = await ConfigurationValidator.validate({ config: CONFIG_FILE_PATH });
       expect(result.pageTimeout).toStrictEqual(55_000);

@@ -42,15 +42,17 @@ export const batch = async (configuration: Configuration): Promise<void> => {
           ++failed;
           ++completed;
         }
-        if (lastLoggedCompleted !== completed) {
-          lastLoggedCompleted = completed;
-          logger.info({
-            source: 'progress',
-            message: 'Executing batch items',
-            pageId: undefined,
-            data: { value: completed, max: items.length }
-          });
+        if (lastLoggedCompleted === completed) {
+          return;
         }
+
+        lastLoggedCompleted = completed;
+        logger.info({
+          source: 'progress',
+          message: 'Executing batch items',
+          pageId: undefined,
+          data: { value: completed, max: items.length }
+        });
       }
     });
   } finally {

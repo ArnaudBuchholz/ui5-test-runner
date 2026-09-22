@@ -11,10 +11,9 @@ const rewriteLinks = (body: string, hash: string): string =>
       return match;
     }
     const hashIndex = target.indexOf('#');
-    if (hashIndex !== -1) {
-      return `](${target.slice(0, hashIndex)}?${hash}${target.slice(hashIndex)})`;
-    }
-    return `](${target}?${hash})`;
+    return hashIndex === -1
+      ? `](${target}?${hash})`
+      : `](${target.slice(0, hashIndex)}?${hash}${target.slice(hashIndex)})`;
   });
 
 const buildCandidates = async (topic: string): Promise<string[]> => {

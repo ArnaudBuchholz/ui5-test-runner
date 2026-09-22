@@ -42,11 +42,9 @@ export class TestReportBuilder {
     for (const test of testResults.tests) {
       const resolvedTest = {
         ...test,
-        suite: [...suites, ...(test.suite ?? [])] as [string, ...string[]]
+        suite: [...suites, ...(test.suite ?? [])] as [string, ...string[]],
+        ...((extra || test.extra) && { extra: { ...test.extra, ...extra } })
       };
-      if (extra || test.extra) {
-        resolvedTest.extra = { ...test.extra, ...extra };
-      }
       results.tests.push(resolvedTest);
     }
     for (const summaryField of SUMMARY_FIELDS) {

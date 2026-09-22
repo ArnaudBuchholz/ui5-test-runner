@@ -17,13 +17,12 @@ vi.mocked(FileSystem.access).mockImplementation((path) => {
 });
 
 vi.mocked(FileSystem.stat).mockImplementation((path) => {
-  if ([VALID_FOLDER_PATH, VALID_ABS_FOLDER_PATH].includes(path.toString())) {
-    return Promise.resolve({
-      isDirectory: () => true,
-      isFile: () => false
-    } as Awaited<ReturnType<typeof FileSystem.stat>>);
-  }
-  return Promise.reject(new Error('stat error'));
+  return [VALID_FOLDER_PATH, VALID_ABS_FOLDER_PATH].includes(path.toString())
+    ? Promise.resolve({
+        isDirectory: () => true,
+        isFile: () => false
+      } as Awaited<ReturnType<typeof FileSystem.stat>>)
+    : Promise.reject(new Error('stat error'));
 });
 
 checkValidator({

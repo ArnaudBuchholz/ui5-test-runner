@@ -5,7 +5,7 @@ import type { Configuration } from '../configuration/Configuration.js';
 const NO_CONFIGURATION = {} as Configuration;
 
 it('logs the configuration as formatted JSON', () => {
-  const log = vi.spyOn(console, 'log').mockImplementation(() => {});
+  const log = vi.spyOn(console, 'log');
   dumpConfig(NO_CONFIGURATION);
   expect(log).toHaveBeenCalledWith(JSON.stringify(NO_CONFIGURATION, null, 2));
   log.mockRestore();

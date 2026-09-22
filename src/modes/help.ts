@@ -7,10 +7,7 @@ import { toKebabCase } from '../utils/shared/string.js';
 const FALLBACK_WIDTH = 80;
 
 const formatDefault = (value: unknown): string => {
-  if (Array.isArray(value)) {
-    return value.join(', ');
-  }
-  return String(value);
+  return Array.isArray(value) ? value.join(', ') : String(value);
 };
 
 const wrapText = (text: string, width: number, indent: string): string => {
@@ -54,10 +51,9 @@ const optionTypeLabel = (option: (typeof options)[number]): string => {
 };
 
 const optionDescription = (option: (typeof options)[number]): string => {
-  if (option.type === 'enumeration' && option.typeModifiers) {
-    return `${option.description} (${[...option.typeModifiers].join(', ')})`;
-  }
-  return option.description;
+  return option.type === 'enumeration' && option.typeModifiers
+    ? `${option.description} (${[...option.typeModifiers].join(', ')})`
+    : option.description;
 };
 
 export const help = async () => {
@@ -89,10 +85,7 @@ export const help = async () => {
     if ('defaultLabel' in option) {
       return option.defaultLabel;
     }
-    if ('default' in option) {
-      return formatDefault(option.default);
-    }
-    return undefined;
+    return 'default' in option ? formatDefault(option.default) : undefined;
   };
 
   for (const option of options) {

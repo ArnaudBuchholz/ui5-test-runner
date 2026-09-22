@@ -73,11 +73,14 @@ export const batchTask = async (
 
   batchItem.start = new Date();
 
-  const parameters: string[] = [...buildRunnerCommand(), ...batchItem.args];
-  if (configuration.sources['reportDir'] === 'cli') {
-    parameters.push('--report-dir', Path.join(configuration.reportDir, batchItem.id));
-  }
-  parameters.push(...buildForwardedParameters(configuration));
+  const parameters: string[] = [
+    ...buildRunnerCommand(),
+    ...batchItem.args,
+    ...(configuration.sources['reportDir'] === 'cli'
+      ? ['--report-dir', Path.join(configuration.reportDir, batchItem.id)]
+      : []),
+    ...buildForwardedParameters(configuration)
+  ];
   const childProcess = Process.spawn('node', parameters, {
     env: { ...Host.env, UI5TR_BATCH_MODE: '1' },
     windowsHide: true,

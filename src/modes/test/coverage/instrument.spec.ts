@@ -11,14 +11,6 @@ const folderCreateSpy = vi.spyOn(Folder, 'create').mockResolvedValue(undefined);
 const npmImportSpy = vi.spyOn(Npm, 'import').mockResolvedValue(undefined);
 const npmResolveSpy = vi.spyOn(Npm, 'resolvePackageDir').mockResolvedValue('/node_modules/nyc');
 
-beforeEach(() => {
-  vi.clearAllMocks();
-  folderRecreateSpy.mockResolvedValue(undefined);
-  folderCreateSpy.mockResolvedValue(undefined);
-  npmImportSpy.mockResolvedValue(undefined);
-  npmResolveSpy.mockResolvedValue('/node_modules/nyc');
-});
-
 const COVERAGE_TEMP_DIR = '/tmp/coverage';
 const WEBAPP = '/app/webapp';
 const NYC_BIN = '/node_modules/nyc/bin/nyc.js';
@@ -42,10 +34,17 @@ const setupHappyPath = () => {
   vi.mocked(Process.spawn).mockReturnValue(makeProcess(0));
 };
 
+beforeEach(() => {
+  vi.clearAllMocks();
+  folderRecreateSpy.mockResolvedValue(undefined);
+  folderCreateSpy.mockResolvedValue(undefined);
+  npmImportSpy.mockResolvedValue(undefined);
+  npmResolveSpy.mockResolvedValue('/node_modules/nyc');
+  setupHappyPath();
+});
+
 describe('instrument', () => {
   it('recreates coverageTempDir before doing anything else', async () => {
-    setupHappyPath();
-    vi.mocked(Process.spawn).mockReturnValue(makeProcess(0));
     const config = makeConfiguration({});
     await instrument(config);
     expect(Folder.recreate).toHaveBeenCalledWith(COVERAGE_TEMP_DIR);
@@ -53,7 +52,6 @@ describe('instrument', () => {
 
   describe('when coverageSourceDir is set', () => {
     it('logs that local instrumentation is skipped', async () => {
-      setupHappyPath();
       const config = makeConfiguration({ coverageSourceDir: '/remote/src' });
       await instrument(config);
       expect(logger.info).toHaveBeenCalledWith(
@@ -65,7 +63,6 @@ describe('instrument', () => {
     });
 
     it('does not spawn nyc instrument', async () => {
-      setupHappyPath();
       const config = makeConfiguration({ coverageSourceDir: '/remote/src' });
       await instrument(config);
       expect(Process.spawn).not.toHaveBeenCalledWith(
@@ -78,7 +75,6 @@ describe('instrument', () => {
 
   describe('when webapp is not set', () => {
     it('logs that instrumentation is skipped', async () => {
-      setupHappyPath();
       const config = makeConfiguration({ webapp: undefined });
       await instrument(config);
       expect(logger.info).toHaveBeenCalledWith(
@@ -90,7 +86,6 @@ describe('instrument', () => {
     });
 
     it('does not spawn any process', async () => {
-      setupHappyPath();
       const config = makeConfiguration({ webapp: undefined });
       await instrument(config);
       expect(Process.spawn).not.toHaveBeenCalled();
@@ -99,7 +94,6 @@ describe('instrument', () => {
 
   describe('with webapp and no coverageSourceDir', () => {
     it('logs that instrumentation is starting', async () => {
-      setupHappyPath();
       const config = makeConfiguration({});
       await instrument(config);
       expect(logger.info).toHaveBeenCalledWith(
@@ -108,7 +102,6 @@ describe('instrument', () => {
     });
 
     it('spawns nyc instrument with correct arguments', async () => {
-      setupHappyPath();
       const config = makeConfiguration({});
       await instrument(config);
       expect(Process.spawn).toHaveBeenCalledWith(
@@ -127,14 +120,12 @@ describe('instrument', () => {
     });
 
     it('throws when nyc instrument exits with non-zero code', async () => {
-      setupHappyPath();
       vi.mocked(Process.spawn).mockReturnValueOnce(makeProcess(1));
       const config = makeConfiguration({});
       await expect(instrument(config)).rejects.toThrow(ExitShutdownError);
     });
 
     it('logs instrumentation complete on success', async () => {
-      setupHappyPath();
       const config = makeConfiguration({});
       await instrument(config);
       expect(logger.info).toHaveBeenCalledWith(
@@ -145,7 +136,6 @@ describe('instrument', () => {
 
   describe('generateBaseline', () => {
     it('spawns nyc with --temp-dir to generate baseline', async () => {
-      setupHappyPath();
       const config = makeConfiguration({});
       await instrument(config);
       expect(Process.spawn).toHaveBeenCalledWith(
@@ -156,7 +146,6 @@ describe('instrument', () => {
     });
 
     it('throws when baseline generation exits with non-zero code', async () => {
-      setupHappyPath();
       vi.mocked(Process.spawn)
         .mockReturnValueOnce(makeProcess(0)) // instrument
         .mockReturnValueOnce(makeProcess(2)); // baseline
@@ -165,7 +154,6 @@ describe('instrument', () => {
     });
 
     it('moves baseline files larger than 5 bytes to coverageTempDir', async () => {
-      setupHappyPath();
       const fakeEntry = { isFile: () => true, name: 'abc.json' } as unknown as Awaited<
         ReturnType<typeof FileSystem.readdir>
       >[number];
@@ -180,7 +168,6 @@ describe('instrument', () => {
     });
 
     it('skips baseline files with size <= 5 bytes', async () => {
-      setupHappyPath();
       const fakeEntry = { isFile: () => true, name: 'empty.json' } as unknown as Awaited<
         ReturnType<typeof FileSystem.readdir>
       >[number];
@@ -192,7 +179,6 @@ describe('instrument', () => {
     });
 
     it('names subsequent baseline files with an index suffix', async () => {
-      setupHappyPath();
       const makeEntry = (name: string) =>
         ({ isFile: () => true, name }) as unknown as Awaited<ReturnType<typeof FileSystem.readdir>>[number];
       vi.mocked(FileSystem.readdir).mockResolvedValue([makeEntry('a.json'), makeEntry('b.json')]);
@@ -206,7 +192,6 @@ describe('instrument', () => {
     });
 
     it('removes the baseline temp directory after moving files', async () => {
-      setupHappyPath();
       const config = makeConfiguration({});
       await instrument(config);
       expect(FileSystem.rm).toHaveBeenCalledWith(`${COVERAGE_TEMP_DIR}/baseline`, { recursive: true });
@@ -215,8 +200,6 @@ describe('instrument', () => {
     it('skips baseline generation when settings.all is false', async () => {
       vi.mocked(FileSystem.access).mockResolvedValue(undefined);
       vi.mocked(FileSystem.readFile).mockResolvedValue(JSON.stringify({ all: false }));
-      vi.mocked(Path.relative).mockReturnValue('relative');
-      vi.mocked(Process.spawn).mockReturnValue(makeProcess(0));
       const config = makeConfiguration({});
       await instrument(config);
       // only instrument spawn, no baseline spawn

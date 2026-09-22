@@ -40,15 +40,17 @@ const waitForStart = async (configuration: Configuration, startProcess: IProcess
     } catch {
       lastStatus = 'Unreachable';
     }
-    if (!isTimedOut && startProcess.code === undefined) {
-      logger.info({
-        source: 'progress',
-        message: `Waiting for start URL to be reachable (${numberOfAttempts}:${lastStatus})`,
-        pageId: undefined,
-        data: { value: 0, max: 0 }
-      });
-      await new Promise((resolve) => setTimeout(resolve, POLL_INTERVAL));
+    if (isTimedOut || startProcess.code !== undefined) {
+      continue;
     }
+
+    logger.info({
+      source: 'progress',
+      message: `Waiting for start URL to be reachable (${numberOfAttempts}:${lastStatus})`,
+      pageId: undefined,
+      data: { value: 0, max: 0 }
+    });
+    await new Promise((resolve) => setTimeout(resolve, POLL_INTERVAL));
   }
   if (startProcess.code === undefined) {
     await startProcess.kill();

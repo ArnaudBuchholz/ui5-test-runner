@@ -132,16 +132,17 @@ export const ConfigurationValidator = {
     const { forcedKeys, configFileKeys, configFileObject } = extractConfigEntries(parsed, configDirectory);
     const fileConfig = await this.validate(configFileObject, depth + 1);
     for (const [key, value] of Object.entries(fileConfig)) {
-      if (key === 'mode' || key === 'config') {
+      if (
+        key === 'mode' ||
+        key === 'config' ||
+        (key === 'cwd' && !configFileKeys.has('cwd')) ||
+        (!forcedKeys.has(key) && explicitKeys.has(key))
+      ) {
         continue;
       }
-      if (key === 'cwd' && !configFileKeys.has('cwd')) {
-        continue;
-      }
-      if (forcedKeys.has(key) || !explicitKeys.has(key)) {
-        Object.assign(configuration, { [key]: value });
-        configuration.sources[key] = 'config';
-      }
+
+      Object.assign(configuration, { [key]: value });
+      configuration.sources[key] = 'config';
     }
     return configuration;
   },
@@ -165,10 +166,7 @@ export const ConfigurationValidator = {
     if (configuration.log) {
       return Modes.log;
     }
-    if (configuration.url) {
-      return Modes.remote;
-    }
-    return Modes.legacy;
+    return configuration.url ? Modes.remote : Modes.legacy;
   },
 
   async validate(configuration: object, depth = 0): Promise<Configuration> {

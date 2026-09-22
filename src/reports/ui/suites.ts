@@ -48,24 +48,25 @@ export const buildSuites = (tests: CTRFTest[]): Suite[] => {
   };
   for (const test of tests) {
     const { suite: suiteArray } = test;
-    if (isValidSuite(suiteArray, root.suites)) {
-      let parent = root;
-      const suitePath = [];
-      for (const element of suiteArray) {
-        const suiteId = element;
-        suitePath.push(suiteId);
-        const suiteUid = suitePath.join(SUITE_SEPARATOR);
-        let suite = findSuite(parent.suites, suiteUid);
-        if (!suite) {
-          suite = {
-            uid: suiteUid,
-            label: /^https?:/.test(suiteId) ? extractUrlLabel(suiteId) : suiteId,
-            suites: []
-          };
-          parent.suites.push(suite);
-        }
-        parent = suite;
+    if (!isValidSuite(suiteArray, root.suites)) {
+      continue;
+    }
+    let parent = root;
+    const suitePath = [];
+    for (const element of suiteArray) {
+      const suiteId = element;
+      suitePath.push(suiteId);
+      const suiteUid = suitePath.join(SUITE_SEPARATOR);
+      let suite = findSuite(parent.suites, suiteUid);
+      if (!suite) {
+        suite = {
+          uid: suiteUid,
+          label: /^https?:/.test(suiteId) ? extractUrlLabel(suiteId) : suiteId,
+          suites: []
+        };
+        parent.suites.push(suite);
       }
+      parent = suite;
     }
   }
   return root.suites;

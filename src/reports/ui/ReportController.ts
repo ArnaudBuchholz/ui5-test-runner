@@ -70,10 +70,7 @@ export class ReportController extends AbstractUserInterfaceController<Settings, 
       if (sortBy === 'name') {
         return test1.name.localeCompare(test2.name);
       }
-      if (sortBy === 'duration') {
-        return test1.duration - test2.duration;
-      }
-      return 0;
+      return sortBy === 'duration' ? test1.duration - test2.duration : 0;
     });
     if (!sortAscending) {
       results.reverse();

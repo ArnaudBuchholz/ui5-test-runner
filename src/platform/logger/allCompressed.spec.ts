@@ -1,4 +1,4 @@
-import { it, expect, vi, beforeAll } from 'vitest';
+import { it, expect, vi, beforeEach } from 'vitest';
 import { Host, Thread, ZLib } from '../index.js';
 import { MAX_BUFFER_COUNT, workerMain } from './allCompressed.js';
 import type { LogMessage } from './types.js';
@@ -19,14 +19,17 @@ vi.hoisted(() => {
   vi.setSystemTime(new Date('2025-10-30T21:56:00.000Z'));
 });
 
-vi.spyOn(ZLib, 'deflateRawSync').mockReturnValue(Buffer.from('compressed'));
+// clearMocks wipes call history before each test, so (re)create the worker and grab
+// the broadcast channel in beforeEach: this records the startup calls after the clear
+// and gives every test a fresh worker closure (buffer, timers, write promise).
+let channel: ReturnType<typeof Thread.createBroadcastChannel>;
 
-beforeAll(() => {
+beforeEach(() => {
+  vi.mocked(ZLib.deflateRawSync).mockReturnValue(Buffer.from('compressed'));
   Object.assign(Thread, { isMainThread: false }); // This worker is not in the main thread
   workerMain({ configuration: { reportDir: './tmp' } } as { configuration: Configuration });
+  channel = Thread.createBroadcastChannel('logger');
 });
-
-const channel = Thread.createBroadcastChannel('logger');
 
 it('opens a broadcast channel to communicate with the logger instances', () => {
   expect(Thread.createBroadcastChannel).toHaveBeenCalledTimes(2);

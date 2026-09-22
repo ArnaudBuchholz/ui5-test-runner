@@ -9,11 +9,10 @@ import { version } from '../platform/version.js';
 const PACKAGE_NAME = 'ui5-test-runner';
 const PACKAGE_VERSION = '1.2.3';
 
-const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
+const consoleSpy = vi.spyOn(console, 'log');
 
 beforeEach(() => {
   vi.clearAllMocks();
-  consoleSpy.mockImplementation(() => {});
   vi.mocked(version).mockResolvedValue({ name: PACKAGE_NAME, version: PACKAGE_VERSION });
   vi.spyOn(Npm, 'getLatestVersion').mockResolvedValue(PACKAGE_VERSION);
 });
@@ -24,7 +23,6 @@ it('outputs version header', async () => {
 });
 
 it('outputs update notice when a newer version is available', async () => {
-  vi.mocked(version).mockResolvedValue({ name: PACKAGE_NAME, version: PACKAGE_VERSION });
   vi.spyOn(Npm, 'getLatestVersion').mockResolvedValue('2.0.0');
   await help();
   expect(consoleSpy).toHaveBeenCalledWith(`Latest version of ${PACKAGE_NAME} is 2.0.0`);
