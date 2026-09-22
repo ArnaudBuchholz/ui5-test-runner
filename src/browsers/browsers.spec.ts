@@ -1,4 +1,4 @@
-import { vi, beforeAll, afterAll } from 'vitest';
+import { vi, beforeAll, afterAll, describe, it, expect } from 'vitest';
 import { testBrowser } from './browser.test.js';
 import { Npm } from '../Npm.js';
 import { serve } from 'reserve';
@@ -6,11 +6,20 @@ import type { Server } from 'reserve';
 import { agentLogPrefix } from '../types/AgentState.js';
 // Need to import native APIs to enable testing
 import { rm, mkdir } from 'node:fs/promises';
+import { platform, release } from 'node:os';
 import { __sourcesRoot, Path } from '../platform/index.js';
 
 const mockNpmImport = vi.spyOn(Npm, 'import');
 
 const BROWSERS_TEST = process.env['BROWSERS_TEST'] ?? '';
+
+// Firefox (155) cannot resolve a --profile path in headless mode on macOS 26+
+// (Darwin >= 27): unlike GUI mode it has no default-profile fallback, so it
+// aborts with "Could not find profile folder". Puppeteer always runs headless,
+// so puppeteer + firefox cannot be launched there. Skip it on that environment.
+const DARWIN_MAJOR_WITHOUT_HEADLESS_FIREFOX_PROFILE = 27;
+const canRunPuppeteerFirefox =
+  platform() !== 'darwin' || Number(release().split('.', 1)[0]) < DARWIN_MAJOR_WITHOUT_HEADLESS_FIREFOX_PROFILE;
 
 let server: Server | undefined;
 let closedPages: number[] = [];
@@ -173,11 +182,22 @@ if (BROWSERS_TEST === 'puppeteer' || BROWSERS_TEST === '') {
 }
 
 if (BROWSERS_TEST === 'puppeteer-firefox' || BROWSERS_TEST === '') {
-  testBrowser({
-    name: 'puppeteer',
-    label: 'puppeteer + firefox',
-    browserSettings: { browser: 'firefox' }
-  });
+  if (canRunPuppeteerFirefox) {
+    testBrowser({
+      name: 'puppeteer',
+      label: 'puppeteer + firefox',
+      browserSettings: { browser: 'firefox' }
+    });
+  } else {
+    // headless Firefox cannot load a --profile path on macOS 26+ (Darwin >= 27),
+    // so puppeteer + firefox is unsupported there. Register a suite documenting the
+    // skip so the file always has a runnable test (vitest rejects empty test files).
+    describe('puppeteer + firefox', () => {
+      it('is not supported on macOS 26+ (Darwin >= 27): headless Firefox cannot load a --profile path', () => {
+        expect(canRunPuppeteerFirefox).toBe(false);
+      });
+    });
+  }
 }
 
 if (BROWSERS_TEST === 'playwright' || BROWSERS_TEST === '') {
