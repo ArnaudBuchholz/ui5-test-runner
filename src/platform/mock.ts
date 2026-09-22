@@ -4,6 +4,7 @@ import type { BroadcastChannel, Worker } from 'node:worker_threads';
 import { basename, extname, join, relative } from 'node:path';
 import { setTimeout } from 'node:timers/promises';
 import type { ILoggerService } from './logger/ILogger.js';
+import type { LogAttributes } from './logger/types.js';
 import type { IAsyncTask, ExitShutdownError as ExitShutdownErrorType } from './Exit.js';
 import type { Terminal } from './Terminal.js';
 import { options, defaults } from '../configuration/options.js';
@@ -152,9 +153,14 @@ const logger = {
   info: vi.fn().mockImplementation((attributes) => console.log(attributes)),
   warn: vi.fn().mockImplementation((attributes) => console.warn(attributes)),
   error: vi.fn().mockImplementation((attributes) => console.error(attributes)),
-  fatal: vi.fn().mockImplementation((attributes) => {
+  fatal: vi.fn().mockImplementation((attributes: LogAttributes) => {
     console.error(attributes);
-    throw new _ExitShutdownError();
+    const error = new _ExitShutdownError();
+    error.message = `logger.fatal [${attributes.source}] ${attributes.message}`;
+    if (attributes.error !== undefined) {
+      error.cause = attributes.error;
+    }
+    throw error;
   }) as unknown as ILoggerService['fatal'],
   stop: vi.fn()
 } satisfies ILoggerService;
