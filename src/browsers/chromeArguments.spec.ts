@@ -1,10 +1,10 @@
-import { it, expect, afterEach } from 'vitest';
+import { it, expect, beforeEach } from 'vitest';
 import { Host } from '../platform/index.js';
 import { getExtraChromeArguments } from './chromeArguments.js';
 
 const ENV_KEY = 'UI5TR_CHROME_ARGS';
 
-afterEach(() => {
+beforeEach(() => {
   delete (Host.env as Record<string, string | undefined>)[ENV_KEY];
 });
 
