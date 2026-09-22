@@ -15,6 +15,44 @@ assert.ok(options[0].name === 'cwd');
 Object.assign(options[0], { default: MOCK_CWD });
 Object.assign(defaults, { cwd: MOCK_CWD });
 
+interface UnmockHandle {
+  restore(): void;
+  [Symbol.dispose](): void;
+}
+
+type Members = Record<string, unknown>;
+
+const _registry = new WeakMap<object, { real: Members; mocked: Members }>();
+
+const functionMembers = (object: object): Members => {
+  const out: Members = {};
+  for (const key of Object.getOwnPropertyNames(object)) {
+    if (typeof (object as Members)[key] === 'function') {
+      out[key] = (object as Members)[key];
+    }
+  }
+  return out;
+};
+
+// Called at mock time: registers the real vs mocked function members for a given export.
+// `mocked` is the vi.fn()-filled object specs import; `real` is the genuine original.
+const registerUnmock = <T extends object>(mocked: T, real: T): void => {
+  _registry.set(mocked, { real: functionMembers(real), mocked: functionMembers(mocked) });
+};
+
+// Swap in the real implementation for a mocked platform export.
+// Returns a handle with restore() and [Symbol.dispose]() to flip back to mocked state.
+// Non-transitive: only this object's own statics are affected; logger, Exit, etc. stay mocked.
+export const unmock = (target: object): UnmockHandle => {
+  const entry = _registry.get(target);
+  assert.ok(entry, 'unmock: object was not registered as a mocked platform export');
+  Object.assign(target, entry.real);
+  const restore = () => {
+    Object.assign(target, entry.mocked);
+  };
+  return { restore, [Symbol.dispose]: restore };
+};
+
 const mockMethods = (object: Record<string, unknown>, members: string[]) => {
   for (const member of members) {
     if (typeof object[member] === 'function') {
@@ -37,7 +75,12 @@ const mockStaticMethodsOfExports = <T extends object>(actual: T): T => {
   return mocked;
 };
 
-vi.mock(import('./Crypto.js'), async (importActual) => mockStaticMethodsOfExports(await importActual()));
+vi.mock(import('./Crypto.js'), async (importActual) => {
+  const actual = await importActual();
+  const mocked = mockStaticMethodsOfExports(actual);
+  registerUnmock(mocked.Crypto, actual.Crypto);
+  return mocked;
+});
 
 vi.mock(import('./constants.js'), async (importActual) => {
   const mocked = await importActual();
@@ -65,7 +108,8 @@ vi.mock(import('./Exit.js'), async (importActual) => {
 });
 
 vi.mock(import('./FileSystem.js'), async (importActual) => {
-  const mocked = mockStaticMethodsOfExports(await importActual());
+  const actual = await importActual();
+  const mocked = mockStaticMethodsOfExports(actual);
   const { FileSystem } = mocked;
   const writeStream = {
     write: vi.fn().mockImplementation((_: unknown, callback: () => void) => callback()),
@@ -74,20 +118,33 @@ vi.mock(import('./FileSystem.js'), async (importActual) => {
   vi.mocked(FileSystem.createWriteStream).mockReturnValue(writeStream);
   const readStream = {} as ReadStream;
   vi.mocked(FileSystem.createReadStream).mockReturnValue(readStream);
+  registerUnmock(FileSystem, actual.FileSystem);
   return mocked;
 });
 
 vi.mock(import('./Host.js'), async (importActual) => {
-  const mocked = mockStaticMethodsOfExports(await importActual());
+  const actual = await importActual();
+  const mocked = mockStaticMethodsOfExports(actual);
   const { Host } = mocked;
   vi.mocked(Host.cpus).mockReturnValue([]);
   vi.mocked(Host.cwd).mockReturnValue(MOCK_CWD);
+  registerUnmock(Host, actual.Host);
   return mocked;
 });
 
-vi.mock(import('./Http.js'), async (importActual) => mockStaticMethodsOfExports(await importActual()));
+vi.mock(import('./Http.js'), async (importActual) => {
+  const actual = await importActual();
+  const mocked = mockStaticMethodsOfExports(actual);
+  registerUnmock(mocked.Http, actual.Http);
+  return mocked;
+});
 
-vi.mock(import('./Module.js'), async (importActual) => mockStaticMethodsOfExports(await importActual()));
+vi.mock(import('./Module.js'), async (importActual) => {
+  const actual = await importActual();
+  const mocked = mockStaticMethodsOfExports(actual);
+  registerUnmock(mocked.Module, actual.Module);
+  return mocked;
+});
 
 const logger = {
   start: vi.fn(() => Promise.resolve()),
@@ -105,7 +162,8 @@ const logger = {
 vi.mock(import('./logger.js'), () => ({ logger }));
 
 vi.mock(import('./Path.js'), async (importActual) => {
-  const mocked = mockStaticMethodsOfExports(await importActual());
+  const actual = await importActual();
+  const mocked = mockStaticMethodsOfExports(actual);
   const { Path } = mocked;
   // Normalize to unix-like file system
   vi.mocked(Path.basename).mockImplementation((path) => basename(path));
@@ -114,13 +172,16 @@ vi.mock(import('./Path.js'), async (importActual) => {
   vi.mocked(Path.isAbsolute).mockImplementation((path) => path.startsWith('/') || path.startsWith('~/'));
   vi.mocked(Path.join).mockImplementation((...arguments_: string[]) => join(...arguments_).replaceAll('\\', '/'));
   vi.mocked(Path.relative).mockImplementation((from, to) => relative(from, to).replaceAll('\\', '/'));
+  registerUnmock(Path, actual.Path);
   return mocked;
 });
 
 vi.mock(import('./Process.js'), async (importActual) => {
-  const mocked = mockStaticMethodsOfExports(await importActual());
+  const actual = await importActual();
+  const mocked = mockStaticMethodsOfExports(actual);
   const { Process } = mocked;
   vi.mocked(Process.sleep).mockImplementation((ms) => setTimeout(ms));
+  registerUnmock(Process, actual.Process);
   return mocked;
 });
 
@@ -166,6 +227,16 @@ vi.mock(import('./version.js'), () => ({
   version: vi.fn().mockResolvedValue({ name: 'ui5-test-runner', version: '1.2.3' })
 }));
 
-vi.mock(import('./ZLib.js'), async (importActual) => mockStaticMethodsOfExports(await importActual()));
+vi.mock(import('./ZLib.js'), async (importActual) => {
+  const actual = await importActual();
+  const mocked = mockStaticMethodsOfExports(actual);
+  registerUnmock(mocked.ZLib, actual.ZLib);
+  return mocked;
+});
 
-vi.mock(import('./Url.js'), async (importActual) => mockStaticMethodsOfExports(await importActual()));
+vi.mock(import('./Url.js'), async (importActual) => {
+  const actual = await importActual();
+  const mocked = mockStaticMethodsOfExports(actual);
+  registerUnmock(mocked.Url, actual.Url);
+  return mocked;
+});
