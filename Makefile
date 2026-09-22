@@ -29,3 +29,12 @@ dist/cli.js: src/**
 	npm run build:cli
 
 precli: agent lib html-report log-viewer options cli
+
+tmp/browsers/.installed:
+	mkdir -p tmp/browsers
+	npx puppeteer browsers install chrome
+	npx puppeteer browsers install firefox
+	npx playwright install chromium
+	touch tmp/browsers/.installed
+
+browsers: tmp/browsers/.installed
