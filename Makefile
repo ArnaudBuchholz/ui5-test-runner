@@ -31,6 +31,7 @@ dist/cli.js: src/**
 precli: agent lib html-report log-viewer options cli
 
 tmp/browsers/.installed:
+	mkdir -p report
 	mkdir -p tmp/browsers
 	npx puppeteer browsers install chrome
 	npx puppeteer browsers install firefox
