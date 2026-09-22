@@ -1,6 +1,7 @@
 name: Node.js CI
 
 on:
+  workflow_dispatch:
   push:
     paths-ignore:
       - 'docs/**'
@@ -21,7 +22,7 @@ jobs:
     - run: npm ci
     - run: npm test
       env:
-        UTR5_CHROME_ARGS: --no-sandbox
+        UI5TR_CHROME_ARGS: --no-sandbox
     - name: Archive E2E results (on failure)
       uses: actions/upload-artifact@v7
       if: failure()
