@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeAll } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { logger } from './logger.js';
 import { workerMain } from './workerBootstrap.test.js';
 
@@ -9,8 +9,7 @@ vi.mock(import('node:worker_threads'), () => ({
 }));
 
 describe('when workerMain succeeds', () => {
-  beforeAll(async () => {
-    vi.clearAllMocks();
+  beforeEach(async () => {
     workerMain.mockResolvedValue(undefined);
     vi.resetModules();
     vi.doMock('./workerBootstrap.test.js', () => ({ workerMain }));
@@ -37,9 +36,12 @@ describe('when workerMain succeeds', () => {
 
 describe('when workerMain throws', () => {
   const error = new Error('worker error');
+  // logger.fatal is mocked in mock.ts to throw ExitShutdownError; capture it so the
+  // no-op override below (needed so main()'s catch does not throw) can be restored
+  // and does not leak into other spec files now that clearMocks only clears history.
+  const originalFatal = vi.mocked(logger.fatal).getMockImplementation();
 
-  beforeAll(async () => {
-    vi.clearAllMocks();
+  beforeEach(async () => {
     workerMain.mockRejectedValue(error);
     vi.mocked(logger.fatal).mockImplementation((() => {}) as unknown as typeof logger.fatal);
     vi.resetModules();
@@ -50,6 +52,10 @@ describe('when workerMain throws', () => {
         expect.objectContaining({ message: expect.stringContaining('Main completed') as string })
       )
     );
+  });
+
+  afterEach(() => {
+    vi.mocked(logger.fatal).mockImplementation(originalFatal!);
   });
 
   it('logs fatal with the error', () => {

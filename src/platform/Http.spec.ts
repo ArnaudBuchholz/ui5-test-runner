@@ -11,7 +11,8 @@ const RESPONSE_TEXT = 'responseText';
 const abortController = {
   abort: vi.fn(),
   signal: {
-    addEventListener: vi.fn()
+    addEventListener: vi.fn(),
+    removeEventListener: vi.fn()
   } as unknown as AbortSignal
 };
 globalThis.AbortController = vi.fn(function () {
