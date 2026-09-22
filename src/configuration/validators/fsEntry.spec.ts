@@ -30,10 +30,7 @@ vi.mocked(FileSystem.access).mockImplementation((path) => {
   if (path === READ_ONLY_PATH) {
     return Promise.reject(readOnlyAccessError);
   }
-  if (path === NOT_EXISTING_PATH) {
-    return Promise.reject(notExistAccessError);
-  }
-  return Promise.reject(invalidAccess);
+  return path === NOT_EXISTING_PATH ? Promise.reject(notExistAccessError) : Promise.reject(invalidAccess);
 });
 
 vi.mocked(FileSystem.stat).mockImplementation((path) => {
@@ -43,13 +40,12 @@ vi.mocked(FileSystem.stat).mockImplementation((path) => {
       isFile: () => false
     } as Awaited<ReturnType<typeof FileSystem.stat>>);
   }
-  if (path === VALID_FILE_PATH) {
-    return Promise.resolve({
-      isDirectory: () => false,
-      isFile: () => true
-    } as Awaited<ReturnType<typeof FileSystem.stat>>);
-  }
-  return Promise.reject(invalidStat);
+  return path === VALID_FILE_PATH
+    ? Promise.resolve({
+        isDirectory: () => false,
+        isFile: () => true
+      } as Awaited<ReturnType<typeof FileSystem.stat>>)
+    : Promise.reject(invalidStat);
 });
 
 const FS_OPTION = {

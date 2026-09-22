@@ -6,8 +6,5 @@ export function buildFilterExpression(
 ): string {
   const formatted = typeof value === 'string' ? `"${value}"` : String(value);
   const expression = `${field} ${op} ${formatted}`;
-  if (!existingFilter) {
-    return expression;
-  }
-  return `${existingFilter} && ${expression}`;
+  return existingFilter ? `${existingFilter} && ${expression}` : expression;
 }

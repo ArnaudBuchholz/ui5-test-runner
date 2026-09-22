@@ -76,17 +76,19 @@ export const test = async (configuration: Configuration) => {
         } else if (event.type === 'completed') {
           ++completed;
         }
-        if (lastLoggedCompleted !== completed || lastLoggedMax !== urls.length) {
-          lastLoggedCompleted = completed;
-          lastLoggedMax = urls.length;
-          logger.info({
-            source: 'progress',
-            message: 'Executing pages',
-            pageId: undefined,
-            data: { value: completed, max: urls.length }
-          });
-          sendToParentProcess({ type: 'progress', count: completed, total: urls.length });
+        if (lastLoggedCompleted === completed && lastLoggedMax === urls.length) {
+          return;
         }
+
+        lastLoggedCompleted = completed;
+        lastLoggedMax = urls.length;
+        logger.info({
+          source: 'progress',
+          message: 'Executing pages',
+          pageId: undefined,
+          data: { value: completed, max: urls.length }
+        });
+        sendToParentProcess({ type: 'progress', count: completed, total: urls.length });
       }
     });
     getReportBuilder().finalize();

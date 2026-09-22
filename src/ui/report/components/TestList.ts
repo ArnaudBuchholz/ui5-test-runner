@@ -9,8 +9,9 @@ function escapeHtml(s: string): string {
 function statusTag(status: string): string {
   if (status === 'passed') return `<ui5-tag design="Positive">passed</ui5-tag>`;
   if (status === 'failed') return `<ui5-tag design="Negative">failed</ui5-tag>`;
-  if (status === 'skipped') return `<ui5-tag design="Neutral">skipped</ui5-tag>`;
-  return `<ui5-tag design="None">${escapeHtml(status)}</ui5-tag>`;
+  return status === 'skipped'
+    ? `<ui5-tag design="Neutral">skipped</ui5-tag>`
+    : `<ui5-tag design="None">${escapeHtml(status)}</ui5-tag>`;
 }
 
 function renderBreadcrumbs(test: TestAndBreadcrumbs): string {
@@ -53,31 +54,26 @@ function renderAttachments(
 ): string {
   return attachments
     .map((att, index) => {
-      if (att.contentType === 'image/png') {
-        return `<div class="attachment-item">
+      return att.contentType === 'image/png'
+        ? `<div class="attachment-item">
   <div class="attachment-caption">${escapeHtml(att.name)}</div>
   <img class="attachment-thumb" data-src="${escapeHtml(att.path)}" data-row="${rowIndex}" data-att="${index}" alt="${escapeHtml(att.name)}" title="${escapeHtml(att.path)}" />
-</div>`;
-      }
-      return `<div class="attachment-item"><a href="${escapeHtml(att.path)}" target="_blank">${escapeHtml(att.name)}</a></div>`;
+</div>`
+        : `<div class="attachment-item"><a href="${escapeHtml(att.path)}" target="_blank">${escapeHtml(att.name)}</a></div>`;
     })
     .join('');
 }
 
 function renderTestDetails(test: TestAndBreadcrumbs, rowIndex: number): string {
   const rows: string[] = [
-    `<div class="test-detail-row"><span class="test-detail-label">Duration</span><span>${formatDuration(test.duration)}</span></div>`
+    `<div class="test-detail-row"><span class="test-detail-label">Duration</span><span>${formatDuration(test.duration)}</span></div>`,
+    test.message
+      ? `<div class="test-detail-row"><span class="test-detail-label">Message</span><span>${escapeHtml(test.message)}</span></div>`
+      : '',
+    test.trace
+      ? `<div class="test-detail-row"><span class="test-detail-label">Stack</span><pre class="test-trace">${escapeHtml(test.trace)}</pre></div>`
+      : ''
   ];
-  if (test.message) {
-    rows.push(
-      `<div class="test-detail-row"><span class="test-detail-label">Message</span><span>${escapeHtml(test.message)}</span></div>`
-    );
-  }
-  if (test.trace) {
-    rows.push(
-      `<div class="test-detail-row"><span class="test-detail-label">Stack</span><pre class="test-trace">${escapeHtml(test.trace)}</pre></div>`
-    );
-  }
   if (test.status === 'failed' && test.extra) {
     const { actual, expected } = test.extra as { actual?: unknown; expected?: unknown };
     if (actual !== undefined) {

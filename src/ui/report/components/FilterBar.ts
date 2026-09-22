@@ -9,8 +9,7 @@ function flattenSuites(suites: Suite[]): Suite[] {
 }
 
 function suiteLabelFor(suites: Suite[], uid: string): string {
-  if (!uid) return 'All suites';
-  return flattenSuites(suites).find((s) => s.uid === uid)?.label ?? 'Unknown suite';
+  return uid ? (flattenSuites(suites).find((s) => s.uid === uid)?.label ?? 'Unknown suite') : 'All suites';
 }
 
 function renderSuiteItems(suites: Suite[], currentUid: string, depth: number): string {

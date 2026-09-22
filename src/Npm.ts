@@ -58,13 +58,12 @@ const buildInstallPlan = (strategy: string, moduleName: string, options: Install
   if (strategy === 'global') {
     return { installArguments: ['install', '-g', ...extraFlags, moduleName], reimportPath: globalRoot };
   }
-  if (strategy === 'prefix') {
-    return {
-      installArguments: ['install', '--prefix', prefix, '--no-save', ...extraFlags, moduleName],
-      reimportPath: Path.join(prefix, 'node_modules')
-    };
-  }
-  return { installArguments: ['install', '--no-save', ...extraFlags, moduleName], reimportPath: undefined };
+  return strategy === 'prefix'
+    ? {
+        installArguments: ['install', '--prefix', prefix, '--no-save', ...extraFlags, moduleName],
+        reimportPath: Path.join(prefix, 'node_modules')
+      }
+    : { installArguments: ['install', '--no-save', ...extraFlags, moduleName], reimportPath: undefined };
 };
 
 export class Npm {

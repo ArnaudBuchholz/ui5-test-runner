@@ -21,10 +21,9 @@ export const factory = async (configuration: Configuration, signal: AbortSignal)
   const launchAndInstallIfNeeded = async (settings: BrowserSettings): Promise<BrowserCapabilities> => {
     const target = settings.browser ?? 'chrome';
     // TODO maximize should not be set when viewport is set
-    const arguments_: string[] = ['--start-maximized'];
-    if (settings.viewport) {
-      arguments_.push(`--window-size=${settings.viewport.width},${settings.viewport.height}`);
-    }
+    const arguments_ = [
+      settings.viewport ? `--window-size=${settings.viewport.width},${settings.viewport.height}` : '--start-maximized'
+    ];
     const rawArguments = settings.options?.['args'];
     const extraArguments = Array.isArray(rawArguments)
       ? rawArguments.filter((a): a is string => typeof a === 'string')

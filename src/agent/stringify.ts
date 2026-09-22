@@ -50,16 +50,15 @@ export const stringify = (data: unknown): string => {
           return { 'circular:ref': id };
         }
         stringified[id] = true;
-        if (Array.isArray(value)) {
-          return {
-            'circular:id': id,
-            'circular:array': [...(value as unknown[])]
-          };
-        }
-        return {
-          'circular:id': id,
-          ...value
-        };
+        return Array.isArray(value)
+          ? {
+              'circular:id': id,
+              'circular:array': [...(value as unknown[])]
+            }
+          : {
+              'circular:id': id,
+              ...value
+            };
       }
     }
     return value;

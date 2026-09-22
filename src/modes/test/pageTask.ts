@@ -28,8 +28,7 @@ export const agentStateMessage = (agentState: AgentState): string => {
     const progress = `${agentState.executed}/${agentState.total}`;
     return agentState.done ? `agent state: ${kind} done ${progress}` : `agent state: ${kind} ${progress}`;
   }
-  if (agentState.type === 'unknown') return 'agent state: unknown';
-  return 'agent state: loading';
+  return agentState.type === 'unknown' ? 'agent state: unknown' : 'agent state: loading';
 };
 
 const reportQunitProgress = (
@@ -40,22 +39,24 @@ const reportQunitProgress = (
   if (!isScreenshotEnabled && agentState.isOpa) {
     context.loopDelay = 1000; // No need to stress out, they are slower
   }
-  if (agentState.total > 0) {
-    const { executed, total, errors } = agentState;
-    if (executed !== context.lastExecuted || total !== context.lastTotal) {
-      const type = agentState.isOpa ? 'opa' : 'qunit';
-      context.lastExecuted = executed;
-      context.lastTotal = total;
-      context.errors = errors;
-      context.type = type;
-      logger.info({
-        source: 'progress',
-        message: context.url,
-        pageId: context.pageId,
-        data: { max: agentState.total, value: agentState.executed, type, errors }
-      });
-    }
+  if (agentState.total <= 0) {
+    return;
   }
+  const { executed, total, errors } = agentState;
+  if (executed === context.lastExecuted && total === context.lastTotal) {
+    return;
+  }
+  const type = agentState.isOpa ? 'opa' : 'qunit';
+  context.lastExecuted = executed;
+  context.lastTotal = total;
+  context.errors = errors;
+  context.type = type;
+  logger.info({
+    source: 'progress',
+    message: context.url,
+    pageId: context.pageId,
+    data: { max: agentState.total, value: agentState.executed, type, errors }
+  });
 };
 
 export const reportError = (url: string, message: string) => {

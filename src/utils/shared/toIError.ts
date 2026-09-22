@@ -7,13 +7,10 @@ export const toIError = (error?: unknown): IError => {
   const attributes: IError = {
     name: error.name,
     message: error.message,
-    stack: error.stack
+    stack: error.stack,
+    // eslint-disable-next-line unicorn/consistent-conditional-object-spread -- fails with typescript error, no time to qualify
+    ...(error.cause ? { cause: toIError(error.cause) } : {}),
+    ...(error instanceof AggregateError && { errors: error.errors.map((item) => toIError(item)) })
   };
-  if (error.cause) {
-    attributes.cause = toIError(error.cause);
-  }
-  if (error instanceof AggregateError) {
-    attributes.errors = error.errors.map((item) => toIError(item));
-  }
   return attributes;
 };

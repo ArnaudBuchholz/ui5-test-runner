@@ -147,19 +147,20 @@ export const defaults = {`);
   const agentConfig = ['export type Configuration = {'];
   for (const name of sortedOptionNames) {
     const option = options[name];
-    if (option.browserExposed) {
-      const type = {
-        boolean: 'boolean',
-        browser: 'string',
-        enumeration: 'string',
-        integer: 'number',
-        timeout: 'number'
-      }[option.type];
-      if (!type) {
-        throw new Error(`Missing TypeScript type mapping for ${option.type}`);
-      }
-      agentConfig.push(`  ${name}: ${type};`);
+    if (!option.browserExposed) {
+      continue;
     }
+    const type = {
+      boolean: 'boolean',
+      browser: 'string',
+      enumeration: 'string',
+      integer: 'number',
+      timeout: 'number'
+    }[option.type];
+    if (!type) {
+      throw new Error(`Missing TypeScript type mapping for ${option.type}`);
+    }
+    agentConfig.push(`  ${name}: ${type};`);
   }
   agentConfig.push('  pageId: number;', '};');
 

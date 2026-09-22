@@ -25,17 +25,15 @@ function renderDataFields(data: object, prefix = 'data'): string {
         return value
           .map((item, index) => {
             const itemField = `${field}[${index}]`;
-            if (typeof item === 'object' && item !== null) {
-              return renderDataFields(item as object, itemField);
-            }
-            return detailRow(itemField, escapeHtml(String(item)), filterButtons(itemField, item));
+            return typeof item === 'object' && item !== null
+              ? renderDataFields(item as object, itemField)
+              : detailRow(itemField, escapeHtml(String(item)), filterButtons(itemField, item));
           })
           .join('');
       }
-      if (typeof value === 'object' && value !== null) {
-        return renderDataFields(value as object, field);
-      }
-      return detailRow(field, escapeHtml(String(value)), filterButtons(field, value));
+      return typeof value === 'object' && value !== null
+        ? renderDataFields(value as object, field)
+        : detailRow(field, escapeHtml(String(value)), filterButtons(field, value));
     })
     .join('');
 }

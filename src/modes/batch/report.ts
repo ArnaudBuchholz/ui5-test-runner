@@ -8,10 +8,7 @@ const itemStatus = (item: IBatchItem): CommonTestStatus => {
   if (item.skipped) {
     return 'skipped';
   }
-  if (item.timedOut || item.statusCode !== 0) {
-    return 'failed';
-  }
-  return 'passed';
+  return item.timedOut || item.statusCode !== 0 ? 'failed' : 'passed';
 };
 
 export const buildBatchReport = async (

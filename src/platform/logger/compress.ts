@@ -90,13 +90,15 @@ const pageIdSlot: IDataSlot = {
 const messageAndExtraSlot: IDataSlot = {
   width: 0,
   compress(_, { message, data, error }) {
-    const parts = [message.replaceAll(/\r?\n/g, '\r')];
-    if (data || error) {
-      parts.push(
-        JSON_VALUE_SEP,
-        JSON.stringify([data ?? 0, error ?? 0]).replaceAll(/"(\w+)":/g, (_, name) => `${name}${JSON_VALUE_SEP}`)
-      );
-    }
+    const parts = [
+      message.replaceAll(/\r?\n/g, '\r'),
+      ...(data || error
+        ? [
+            JSON_VALUE_SEP,
+            JSON.stringify([data ?? 0, error ?? 0]).replaceAll(/"(\w+)":/g, (_, name) => `${name}${JSON_VALUE_SEP}`)
+          ]
+        : [])
+    ];
     return { compressed: parts.join('') }; // Might return empty
   },
   uncompress(_, compressed) {

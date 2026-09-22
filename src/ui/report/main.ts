@@ -145,10 +145,12 @@ function attachFilterBarEvents(): void {
   suiteButton?.addEventListener('click', (event) => {
     updateSuitePopover();
     const popover = document.querySelector('#suitePopover');
-    if (popover) {
-      asUI5(popover)['opener'] = event.currentTarget;
-      asUI5(popover)['open'] = true;
+    if (!popover) {
+      return;
     }
+
+    asUI5(popover)['opener'] = event.currentTarget;
+    asUI5(popover)['open'] = true;
   });
 
   const suiteContent = document.querySelector('#suitePopoverContent');

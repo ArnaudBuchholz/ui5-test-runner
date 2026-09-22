@@ -56,11 +56,9 @@ export class LogViewerController extends AbstractUserInterfaceController<Setting
       absoluteTimerangeFrom: metrics.minTimestamp,
       absoluteTimerangeTo: now,
       metrics,
-      logs
+      logs,
+      ...(metrics.minTimestamp <= now - FIVE_MINUTES && { timerangeType: 'absolute' })
     };
-    if (metrics.minTimestamp <= now - FIVE_MINUTES) {
-      stateDiff.timerangeType = 'absolute';
-    }
     this._update(stateDiff);
   }
 

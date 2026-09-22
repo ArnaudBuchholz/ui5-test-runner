@@ -203,13 +203,13 @@ export abstract class BaseLoggerOutput {
     if (!this.renderAttributes(attributes)) {
       return;
     }
-
     const rendered = this.render(attributes);
-    if (rendered) {
-      const raw = Terminal.stripVTControlCharacters(rendered);
-      this.addTextToLoggerOutput(rendered, raw);
-      this.addToReport(raw);
+    if (!rendered) {
+      return;
     }
+    const raw = Terminal.stripVTControlCharacters(rendered);
+    this.addTextToLoggerOutput(rendered, raw);
+    this.addToReport(raw);
   }
 
   abstract terminalResized(width: number): void;

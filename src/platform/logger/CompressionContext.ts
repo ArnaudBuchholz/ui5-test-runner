@@ -85,15 +85,14 @@ export class CompressionContext {
       array: this._processes,
       value,
       compress: ({ processId, threadId, isMainThread }: ProcessContext) => {
-        if (threadId === -1) {
-          return [CONTEXT_PROCESS_ID, CompressionContext.compressNumber(processId, MAX_DWORD_DIGITS)];
-        }
-        return [
-          CONTEXT_PROCESS_ID,
-          CompressionContext.compressNumber(processId, MAX_DWORD_DIGITS),
-          CompressionContext.compressNumber(threadId, MAX_DWORD_DIGITS),
-          isMainThread ? '!' : ''
-        ];
+        return threadId === -1
+          ? [CONTEXT_PROCESS_ID, CompressionContext.compressNumber(processId, MAX_DWORD_DIGITS)]
+          : [
+              CONTEXT_PROCESS_ID,
+              CompressionContext.compressNumber(processId, MAX_DWORD_DIGITS),
+              CompressionContext.compressNumber(threadId, MAX_DWORD_DIGITS),
+              isMainThread ? '!' : ''
+            ];
       }
     });
   }

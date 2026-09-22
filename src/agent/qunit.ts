@@ -126,25 +126,28 @@ export const qunit = () => {
     log(
       `QUnit.log({testId: ${details.testId}, result: ${details.result}, name: "${details.name}", module: "${details.module}}")`
     );
-    if (isSuiteDone()) return;
+    if (isSuiteDone()) {
+      return;
+    }
     const testId = getTestId(details.testId);
     logs[testId] ??= [];
     logs[testId].push(details);
-    if (screenshot && state.type === 'QUnit' && state.isOpa) {
-      const logIndex = logs[testId].length - 1;
-      const filename = `${pageId}-${testId}-${logIndex}.png`;
-      screenshotsByTestId[testId] ??= [];
-      screenshotsByTestId[testId].push(filename);
-      updateState({ pendingScreenshot: filename });
-      const opa5 = window.sap?.ui?.test?.Opa5 as { prototype: { waitFor: (settings: object) => void } } | undefined;
-      opa5?.prototype.waitFor({
-        timeout: 10, // TODO: should be configurable
-        autoWait: false, // Ignore interactable constraint
-        check() {
-          return state.type === 'QUnit' && !state.pendingScreenshot;
-        }
-      });
+    if (!screenshot || state.type !== 'QUnit' || !state.isOpa) {
+      return;
     }
+    const logIndex = logs[testId].length - 1;
+    const filename = `${pageId}-${testId}-${logIndex}.png`;
+    screenshotsByTestId[testId] ??= [];
+    screenshotsByTestId[testId].push(filename);
+    updateState({ pendingScreenshot: filename });
+    const opa5 = window.sap?.ui?.test?.Opa5 as { prototype: { waitFor: (settings: object) => void } } | undefined;
+    opa5?.prototype.waitFor({
+      timeout: 10, // TODO: should be configurable
+      autoWait: false, // Ignore interactable constraint
+      check() {
+        return state.type === 'QUnit' && !state.pendingScreenshot;
+      }
+    });
   });
 
   const getErrorDetails = (test: CTRFTest, details: QUnitTestDoneDetails) => {

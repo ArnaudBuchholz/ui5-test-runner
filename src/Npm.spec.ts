@@ -84,7 +84,11 @@ vi.mocked(Process.spawn).mockImplementation((command, arguments_) => {
   if (command === 'npm') {
     return makeProcess('npm@10.0.0 /usr/local/lib/node_modules/npm');
   }
-  return makeProcess((arguments_ ?? []).includes('--global') ? '/global/root' : '/local/root');
+  // eslint-disable-next-line unicorn/prefer-ternary -- or code becomes undreadable
+  if (arguments_ && arguments_.includes('--global')) {
+    return makeProcess('/global/root');
+  }
+  return makeProcess('/local/root');
 });
 
 beforeEach(() => {
@@ -96,7 +100,6 @@ beforeEach(() => {
 
 describe('getNpmCliPath', () => {
   it('returns the npm-cli.js path on success', async () => {
-    vi.mocked(Process.spawn).mockImplementationOnce(() => makeProcess('npm@10.2.0 /usr/local/lib/node_modules/npm'));
     await expect(getNpmCliPath()).resolves.toBe('/usr/local/lib/node_modules/npm/bin/npm-cli.js');
   });
 
@@ -348,12 +351,6 @@ describe('import', () => {
   });
 
   it('installs locally with --no-save and --ignore-scripts when npmInstall is local and module is missing', async () => {
-    vi.mocked(Process.spawn).mockImplementation((command, arguments_) => {
-      if (command === 'npm') {
-        return makeProcess('npm@10.0.0 /usr/local/lib/node_modules/npm');
-      }
-      return makeProcess((arguments_ ?? []).includes('--global') ? '/global/root' : '/local/root');
-    });
     await expect(TestNpm.import(LOCAL_INSTALL_CONFIGURATION, 'non-existent-module-xyz-abc')).rejects.toThrow();
     expect(Process.spawn).toHaveBeenCalledWith(
       'node',
@@ -363,12 +360,6 @@ describe('import', () => {
   });
 
   it('installs globally with -g and --ignore-scripts when npmInstall is global and module is missing', async () => {
-    vi.mocked(Process.spawn).mockImplementation((command, arguments_) => {
-      if (command === 'npm') {
-        return makeProcess('npm@10.0.0 /usr/local/lib/node_modules/npm');
-      }
-      return makeProcess((arguments_ ?? []).includes('--global') ? '/global/root' : '/local/root');
-    });
     await expect(TestNpm.import(GLOBAL_INSTALL_CONFIGURATION, 'non-existent-module-xyz-abc')).rejects.toThrow();
     expect(Process.spawn).toHaveBeenCalledWith(
       'node',
@@ -378,12 +369,6 @@ describe('import', () => {
   });
 
   it('installs with --prefix and --ignore-scripts when npmInstall is prefix and module is missing', async () => {
-    vi.mocked(Process.spawn).mockImplementation((command, arguments_) => {
-      if (command === 'npm') {
-        return makeProcess('npm@10.0.0 /usr/local/lib/node_modules/npm');
-      }
-      return makeProcess((arguments_ ?? []).includes('--global') ? '/global/root' : '/local/root');
-    });
     await expect(TestNpm.import(PREFIX_INSTALL_CONFIGURATION, 'non-existent-module-xyz-abc')).rejects.toThrow();
     expect(Process.spawn).toHaveBeenCalledWith(
       'node',
@@ -400,12 +385,6 @@ describe('import', () => {
   });
 
   it('installs locally without --ignore-scripts when npmAllowInstallScripts is true', async () => {
-    vi.mocked(Process.spawn).mockImplementation((command, arguments_) => {
-      if (command === 'npm') {
-        return makeProcess('npm@10.0.0 /usr/local/lib/node_modules/npm');
-      }
-      return makeProcess((arguments_ ?? []).includes('--global') ? '/global/root' : '/local/root');
-    });
     await expect(TestNpm.import(LOCAL_ALLOW_SCRIPTS_CONFIGURATION, 'non-existent-module-xyz-abc')).rejects.toThrow();
     const spawnArguments = vi
       .mocked(Process.spawn)
@@ -414,12 +393,6 @@ describe('import', () => {
   });
 
   it('installs globally without --ignore-scripts when npmAllowInstallScripts is true', async () => {
-    vi.mocked(Process.spawn).mockImplementation((command, arguments_) => {
-      if (command === 'npm') {
-        return makeProcess('npm@10.0.0 /usr/local/lib/node_modules/npm');
-      }
-      return makeProcess((arguments_ ?? []).includes('--global') ? '/global/root' : '/local/root');
-    });
     await expect(TestNpm.import(GLOBAL_ALLOW_SCRIPTS_CONFIGURATION, 'non-existent-module-xyz-abc')).rejects.toThrow();
     const spawnArguments = vi
       .mocked(Process.spawn)
@@ -428,12 +401,6 @@ describe('import', () => {
   });
 
   it('installs with --prefix without --ignore-scripts when npmAllowInstallScripts is true', async () => {
-    vi.mocked(Process.spawn).mockImplementation((command, arguments_) => {
-      if (command === 'npm') {
-        return makeProcess('npm@10.0.0 /usr/local/lib/node_modules/npm');
-      }
-      return makeProcess((arguments_ ?? []).includes('--global') ? '/global/root' : '/local/root');
-    });
     await expect(TestNpm.import(PREFIX_ALLOW_SCRIPTS_CONFIGURATION, 'non-existent-module-xyz-abc')).rejects.toThrow();
     const spawnArguments = vi
       .mocked(Process.spawn)
@@ -442,12 +409,6 @@ describe('import', () => {
   });
 
   it('installs locally with --min-release-age=3 when npmInstallMinReleaseAge is 3', async () => {
-    vi.mocked(Process.spawn).mockImplementation((command, arguments_) => {
-      if (command === 'npm') {
-        return makeProcess('npm@10.0.0 /usr/local/lib/node_modules/npm');
-      }
-      return makeProcess((arguments_ ?? []).includes('--global') ? '/global/root' : '/local/root');
-    });
     await expect(TestNpm.import(LOCAL_MIN_RELEASE_AGE_CONFIGURATION, 'non-existent-module-xyz-abc')).rejects.toThrow();
     expect(Process.spawn).toHaveBeenCalledWith(
       'node',
@@ -463,12 +424,6 @@ describe('import', () => {
   });
 
   it('installs globally with --min-release-age=3 when npmInstallMinReleaseAge is 3', async () => {
-    vi.mocked(Process.spawn).mockImplementation((command, arguments_) => {
-      if (command === 'npm') {
-        return makeProcess('npm@10.0.0 /usr/local/lib/node_modules/npm');
-      }
-      return makeProcess((arguments_ ?? []).includes('--global') ? '/global/root' : '/local/root');
-    });
     await expect(TestNpm.import(GLOBAL_MIN_RELEASE_AGE_CONFIGURATION, 'non-existent-module-xyz-abc')).rejects.toThrow();
     expect(Process.spawn).toHaveBeenCalledWith(
       'node',
@@ -484,12 +439,6 @@ describe('import', () => {
   });
 
   it('installs with --prefix and --min-release-age=3 when npmInstallMinReleaseAge is 3', async () => {
-    vi.mocked(Process.spawn).mockImplementation((command, arguments_) => {
-      if (command === 'npm') {
-        return makeProcess('npm@10.0.0 /usr/local/lib/node_modules/npm');
-      }
-      return makeProcess((arguments_ ?? []).includes('--global') ? '/global/root' : '/local/root');
-    });
     await expect(TestNpm.import(PREFIX_MIN_RELEASE_AGE_CONFIGURATION, 'non-existent-module-xyz-abc')).rejects.toThrow();
     expect(Process.spawn).toHaveBeenCalledWith(
       'node',
@@ -519,12 +468,6 @@ describe('import', () => {
       .mockReturnValueOnce({ href: `file://${CWD}/package.json` } as URL)
       .mockReturnValueOnce({ href: `file://${CWD}/package.json` } as URL)
       .mockReturnValueOnce({ href: 'file:///global/root/some-module/index.js' } as URL);
-    vi.mocked(Process.spawn).mockImplementation((command, arguments_) => {
-      if (command === 'npm') {
-        return makeProcess('npm@10.0.0 /usr/local/lib/node_modules/npm');
-      }
-      return makeProcess((arguments_ ?? []).includes('--global') ? '/global/root' : '/local/root');
-    });
     const result = await TestNpm.import(GLOBAL_INSTALL_CONFIGURATION, 'some-module');
     expect(result).toBe(FAKE_MODULE);
   });

@@ -74,10 +74,9 @@ const unknownHandleDescriptor = (_handle: Handle) => 'unknown';
 
 const describeHandle = (handle: Handle) => {
   const className = (handle && handle.constructor && handle.constructor.name) as string | undefined;
-  if (className) {
-    return { className, label: (handleDescriptors[className] ?? unknownHandleDescriptor)(handle) };
-  }
-  return { className: 'unknown', label: unknownHandleDescriptor(handle) };
+  return className
+    ? { className, label: (handleDescriptors[className] ?? unknownHandleDescriptor)(handle) }
+    : { className: 'unknown', label: unknownHandleDescriptor(handle) };
 };
 
 export class Exit {

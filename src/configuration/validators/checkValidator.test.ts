@@ -38,10 +38,7 @@ const stringify = (value: unknown) => {
   if (value === Number.NEGATIVE_INFINITY) {
     return '-∞';
   }
-  if (value instanceof RegExp) {
-    return value.toString();
-  }
-  return JSON.stringify(value);
+  return value instanceof RegExp ? value.toString() : JSON.stringify(value);
 };
 
 export const checkValidator = <T extends OptionType>({
