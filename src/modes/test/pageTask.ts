@@ -239,6 +239,7 @@ export const makePageTask = (configuration: Configuration) => {
     let page: IWindow | undefined;
     let context: PageContext | undefined;
     try {
+      const pageTimeoutMs = getPageTimeout(configuration, startTime);
       const agentSource = await getAgentSource();
       const browserConfig = getBrowserConfigScript(pageId);
       const scripts = [browserConfig, agentSource];
@@ -261,7 +262,6 @@ export const makePageTask = (configuration: Configuration) => {
         isSuite: false,
         lastUncaughtErrorsCount: 0
       };
-      const pageTimeoutMs = getPageTimeout(configuration, startTime);
       let isTimedOut = false;
       let pageTimeoutHandle: ReturnType<typeof setTimeout> | undefined;
       if (pageTimeoutMs > 0) {
