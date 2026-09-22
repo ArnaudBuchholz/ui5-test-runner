@@ -115,7 +115,8 @@ try {
   }
 
   if (htmlReport) {
-    const browser = await puppeteer.launch();
+    // --no-sandbox is safe here: browser only opens a local file:// URL to verify the HTML report
+    const browser = await puppeteer.launch({ args: ['--no-sandbox'] });
     const page = await browser.newPage();
     let htmlReportHasErrors = false;
 
