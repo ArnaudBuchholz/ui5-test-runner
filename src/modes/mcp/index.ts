@@ -4,8 +4,10 @@ import { serve } from 'reserve';
 import { buildREserveConfiguration } from './reserve.js';
 import { init } from './knowledgeBase.js';
 import { logReserve } from '../../reserveLogger.js';
+import { Folder } from '../../utils/node/Folder.js';
 
 export const mcp = async (configuration: Configuration): Promise<void> => {
+  await Folder.create(configuration.reportDir);
   await logger.start(configuration);
   await init(configuration);
   const { promise, resolve } = Promise.withResolvers<void>();
