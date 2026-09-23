@@ -2,6 +2,8 @@ import type { Configuration as REserveConfiguration } from 'reserve';
 import { body } from 'reserve';
 import type { Configuration } from '../../configuration/Configuration.js';
 import { TOOLS } from './tools/index.js';
+import { FileSystem } from '../../platform/FileSystem.js';
+import { Path } from '../../platform/Path.js';
 
 const SERVER_INFO = {
   name: 'ui5-test-runner',
@@ -114,6 +116,41 @@ export const buildREserveConfiguration = (configuration: Configuration): REserve
         response.writeHead(HTTP_OK, { 'Content-Type': 'application/json' });
         response.end(JSON.stringify(result));
       }
+    },
+    {
+      method: 'GET',
+      match: '/([^?]*)',
+      custom: async ({ url }, _response, path) => {
+        const filePath = Path.join('docs', path || 'index.md');
+        const fileName = Path.basename(path || 'index.md');
+        try {
+          await FileSystem.access(filePath, FileSystem.constants.R_OK);
+        } catch {
+          return 404;
+        }
+        if (url?.endsWith('?raw')) {
+          const content = await FileSystem.readFile(filePath, 'utf8');
+          return [content, { headers: { 'content-type': 'text/markdown' } }];
+        }
+        return [
+          `<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+<script>
+  fetch('${fileName}?raw')
+    .then(response => response.text())
+    .then(content => {
+      document.body.innerHTML = marked.parse(content);
+    })
+</script>`,
+          {
+            headers: {
+              'content-type': 'text/html'
+            }
+          }
+        ];
+      }
+    },
+    {
+      status: 404
     }
   ]
 });
