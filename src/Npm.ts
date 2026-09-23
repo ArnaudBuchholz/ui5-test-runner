@@ -1,4 +1,5 @@
 import type { Configuration } from './configuration/Configuration.js';
+import type { IProcess } from './platform/index.js';
 import { assert, logger, FileSystem, Http, Module, Path, Process, Url } from './platform/index.js';
 import { memoize } from './utils/shared/memoize.js';
 
@@ -20,22 +21,36 @@ const memoizedNpmCliPath = memoize(getNpmCliPath);
 const npm = async (...arguments_: string[]) => {
   const npmCliPath = await memoizedNpmCliPath();
   return Process.spawn('node', [npmCliPath, ...arguments_], {
-    detached: true // TODO: better ?
+    // detached ⇒ child is a process-group leader so Process.kill() can reap npm's install
+    // subtree via kill(-pid) on POSIX (see Process.kill). Required, not optional.
+    detached: true
   });
+};
+
+const validateRoot = async (proc: IProcess, label: string): Promise<string> => {
+  if (proc.code !== 0) {
+    logger.fatal({ source: 'npm', message: `npm root ${label} failed with code ${proc.code}` });
+  }
+  const value = proc.stdout.trim();
+  if (value === '' || !Path.isAbsolute(value)) {
+    logger.fatal({ source: 'npm', message: `npm root ${label} returned an invalid path: "${value}"` });
+  }
+  try {
+    await FileSystem.access(value, FileSystem.constants.R_OK);
+  } catch {
+    logger.fatal({ source: 'npm', message: `npm root ${label} directory is not accessible: "${value}"` });
+  }
+  return value;
 };
 
 const getRoots = memoize(async () => {
   const localRootProcess = await npm('root');
   const globalRootProcess = await npm('root', '--global');
   await Promise.all([localRootProcess.closed, globalRootProcess.closed]);
-  // TODO check codes and stdout format
-  const local = localRootProcess.stdout.trim();
-  const global = globalRootProcess.stdout.trim();
+  const local = await validateRoot(localRootProcess, '(local)');
+  const global = await validateRoot(globalRootProcess, '(global)');
   logger.debug({ source: 'npm', message: 'Roots', data: { local, global } });
-  return {
-    local: localRootProcess.stdout.trim(),
-    global: globalRootProcess.stdout.trim()
-  };
+  return { local, global };
 });
 
 type InstallPlan = {
@@ -86,8 +101,9 @@ export class Npm {
     nodeModulesPath: string
   ): Promise<unknown> {
     try {
-      // TODO: check if package.json is required here
-      const require = Module.createRequire(Url.pathToFileURL(Path.join(configuration.cwd, 'package.json')).href);
+      // The base only anchors resolution; require.resolve uses the explicit `paths` below, so a
+      // directory URL under cwd is sufficient (no package.json needs to exist here).
+      const require = Module.createRequire(`${Url.pathToFileURL(configuration.cwd).href}/`);
       const resolved = require.resolve(moduleName, { paths: [nodeModulesPath] });
       return await this.dynamicImport(Url.pathToFileURL(resolved).href);
     } catch {

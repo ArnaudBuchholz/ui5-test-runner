@@ -158,7 +158,6 @@ export class Exit {
       const task = this._asyncTasks.at(-1)!; // length > 0
       try {
         logger?.[logLevel]({ source: 'exit', message: `Stopping ${task.name}...` });
-        // TODO: can we wait for task to be unregistered ?
         await task.stop();
         logger?.[logLevel]({ source: 'exit', message: `${task.name} stopped.` });
       } catch (error) {

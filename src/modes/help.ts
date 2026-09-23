@@ -50,11 +50,10 @@ const optionTypeLabel = (option: (typeof options)[number]): string => {
   return isMultiple ? `<${display}...>` : `<${display}>`;
 };
 
-const optionDescription = (option: (typeof options)[number]): string => {
-  return option.type === 'enumeration' && option.typeModifiers
-    ? `${option.description} (${[...option.typeModifiers].join(', ')})`
-    : option.description;
-};
+const optionDescription = (option: (typeof options)[number]): string =>
+  !('typeModifiers' in option) || !option.typeModifiers
+    ? option.description
+    : `${option.description} (${[...option.typeModifiers].join(', ')})`;
 
 export const help = async () => {
   const { name, version: semver } = await version();

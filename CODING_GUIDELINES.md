@@ -153,9 +153,11 @@ Import via `'../platform/index.js'`.
 | `info` | Normal user-visible progress |
 | `warn` | Unexpected but recoverable |
 | `error` | Failure in one operation; execution continues |
-| `fatal` | Unrecoverable — program will exit |
+| `fatal` | Unrecoverable — `logger.fatal` **stops the command**: it calls `Exit.shutdown()` (on the main thread; posts a shutdown message from worker threads) and throws `ExitShutdownError`. It never returns (`fatal(): never`) |
 
 Every call requires `source` and `message`. Pass errors in the `error` field — never interpolate into `message`. `logger.error` auto-downgrades to `debug` for `ExitShutdownError`.
+
+Because `logger.fatal` stops the command, only call it for genuinely unrecoverable conditions. For an external operation that failed but should propagate through the normal error flow, `throw new Error` instead (see **Assertion**).
 
 ## Configuration system (`src/configuration/`)
 
@@ -200,7 +202,7 @@ When wrapping a caught error, always pass `cause`:
 throw new Error(`Unable to fetch latest version of ${moduleName}`, { cause: error });
 ```
 
-**Never use** `console.assert` or bare `throw new Error` for invariants — `assert` provides consistent formatting and integrates with the platform shutdown flow.
+**Never use** `console.assert` or bare `throw new Error` for invariants — `assert` provides consistent formatting and integrates with the platform shutdown flow: a failed `assert` calls `logger.fatal` (which **stops the command** via `Exit.shutdown()` and throws — see **Logger**). This is why `assert` is reserved for invariants: it terminates the process, so it must not be used for runtime failures that should propagate through normal error handling.
 
 ## Comments
 

@@ -84,7 +84,6 @@ export const log = async (configuration: Configuration) => {
         console.log('Use CTRL+C to exit');
       });
   });
-  // TODO: pass the abort signal here
   for await (const item of LogReader.read(logFileName, abortSignal)) {
     if (isStopped) {
       break;

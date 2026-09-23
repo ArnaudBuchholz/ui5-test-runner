@@ -299,6 +299,25 @@ describe('makePageTask', () => {
     expect(logger.error).toHaveBeenCalledWith(expect.objectContaining({ message: 'An error occurred' }));
   });
 
+  it('reports a failed result and logs error when browser.newWindow throws', async () => {
+    const builder = makeBuilder();
+    vi.mocked(getReportBuilder).mockReturnValue(builder as unknown as TestReportBuilder);
+    vi.mocked(Http.fetch).mockResolvedValue({ ok: true, status: 200 } as Response);
+    vi.mocked(getBrowser).mockReturnValue({
+      newWindow: vi.fn().mockRejectedValue(new Error('launch failed'))
+    } as never);
+    await runTask();
+    expect(logger.error).toHaveBeenCalledWith(
+      expect.objectContaining({ message: 'Unexpected error while running page' })
+    );
+    expect(builder.merge).toHaveBeenCalledWith(
+      PAGE_URL,
+      expect.objectContaining({
+        summary: expect.objectContaining({ failed: 1 }) as unknown
+      })
+    );
+  });
+
   it('calls handlePendingScreenshot when screenshot is enabled', async () => {
     setupHappyPath([QUNIT_IN_PROGRESS, QUNIT_DONE, HAPPY_RESULTS]);
     const screenshotHandlers = {

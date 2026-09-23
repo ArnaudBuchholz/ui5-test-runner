@@ -75,8 +75,8 @@ const PREFIX_MIN_RELEASE_AGE_CONFIGURATION = {
 const ALTERNATE_NPM_PATH_CONFIGURATION = { cwd: CWD, alternateNpmPath: '/alternate/path' } as unknown as Configuration;
 const NPM_INSTALL_PREFIX_CONFIGURATION = { cwd: CWD, npmInstallPrefix: '/prefix/path' } as unknown as Configuration;
 
-const makeProcess = (stdout: string) =>
-  ({ stdout, closed: Promise.resolve() }) as unknown as InstanceType<typeof Process>;
+const makeProcess = (stdout: string, code = 0) =>
+  ({ stdout, code, closed: Promise.resolve() }) as unknown as InstanceType<typeof Process>;
 
 // Set up Process.spawn before tests run so the memoized getNpmCliPath and getRoots
 // resolve correctly on their first (and only) invocation.

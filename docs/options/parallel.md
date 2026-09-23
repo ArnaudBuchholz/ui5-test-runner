@@ -2,6 +2,9 @@
 "#type": option
 short: p
 type: integer
+typeModifiers:
+  - positive
+  - non-zero
 summary: number of parallel executions
 batchForwarded: yes
 default: "2"

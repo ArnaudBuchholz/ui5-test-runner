@@ -49,6 +49,13 @@ export const options = [
     default: 5000
   },
   {
+    name: 'agentScreenshotTimeout',
+    type: 'timeout',
+    browserExposed: true,
+    description: 'maximum time OPA waits for a pending screenshot before continuing',
+    default: 10_000
+  },
+  {
     name: 'alternateNpmPath',
     type: 'fs-entry',
     batchForwarded: true,
@@ -95,6 +102,7 @@ export const options = [
     name: 'browserViewportHeight',
     short: 'H',
     type: 'integer',
+    typeModifiers: new Set(['positive', 'non-zero'] as const),
     description: 'height of the browser viewport in pixels',
     default: 1080
   },
@@ -102,6 +110,7 @@ export const options = [
     name: 'browserViewportWidth',
     short: 'W',
     type: 'integer',
+    typeModifiers: new Set(['positive', 'non-zero'] as const),
     description: 'width of the browser viewport in pixels',
     default: 1920
   },
@@ -283,13 +292,6 @@ export const options = [
     description: 'Library mapping'
   },
   {
-    name: 'localhost',
-    type: 'string',
-    batchForwarded: true,
-    description: 'hostname for legacy URL',
-    default: 'localhost'
-  },
-  {
     name: 'log',
     type: 'fs-entry',
     typeModifiers: new Set(['file'] as const),
@@ -333,6 +335,7 @@ export const options = [
   {
     name: 'npmInstallMinReleaseAge',
     type: 'integer',
+    typeModifiers: new Set(['positive'] as const),
     batchForwarded: true,
     description: 'minimum release age (in days) required before installing a package',
     default: 3
@@ -375,6 +378,7 @@ export const options = [
     name: 'parallel',
     short: 'p',
     type: 'integer',
+    typeModifiers: new Set(['positive', 'non-zero'] as const),
     browserExposed: true,
     batchForwarded: true,
     description: 'number of parallel executions',
@@ -383,6 +387,7 @@ export const options = [
   {
     name: 'port',
     type: 'integer',
+    typeModifiers: new Set(['positive'] as const),
     description: 'port to use'
   },
   {
@@ -476,6 +481,7 @@ export const defaults = {
   agentDetectionMaxInterval: 1000,
   agentDetectionTimeout: 5000,
   agentNoTestsTimeout: 5000,
+  agentScreenshotTimeout: 10_000,
   browserOptions: {},
   browserViewportHeight: 1080,
   browserViewportWidth: 1920,
@@ -494,7 +500,6 @@ export const defaults = {
   cwd: process.cwd(),
   debugMcpLocalDocs: false,
   driver: 'puppeteer',
-  localhost: 'localhost',
   npmAllowInstallScripts: false,
   npmInstall: 'global',
   npmInstallMinReleaseAge: 3,

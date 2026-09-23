@@ -1,4 +1,4 @@
-import { logger, logEnvironnement, Exit, Http } from '../../platform/index.js';
+import { logger, logEnvironnement, Exit } from '../../platform/index.js';
 import type { Configuration } from '../../configuration/Configuration.js';
 import { defaults } from '../../configuration/options.js';
 import { parallelize } from '../../utils/shared/parallelize.js';
@@ -33,15 +33,6 @@ export const test = async (configuration: Configuration) => {
     }
     const port = await Server.start(configuration);
 
-    // TODO: only when local is being used
-    const version = JSON.parse(await Http.getAsText(`http://localhost:${port}/resources/sap-ui-version.json`)) as {
-      libraries: { name: string; version: string }[];
-    };
-    const { version: coreVersion } = version.libraries.find(({ name }: { name: string }) => name === 'sap.ui.core') ?? {
-      version: 'unknown'
-    };
-    logger.info({ source: 'job', message: `UI5 version used by the local server: ${coreVersion}` });
-
     if (configuration.serveOnly) {
       const { promise, resolve } = Promise.withResolvers<void>();
       Exit.registerAsyncTask({
@@ -58,6 +49,7 @@ export const test = async (configuration: Configuration) => {
     }
 
     const urls = configuration.url.map((url) => url.replace(':0/', () => `:${port}/`));
+
     const capabilities = await setupBrowser(configuration);
     setReportBrowserInfo(capabilities);
     isBrowserStarted = true;
