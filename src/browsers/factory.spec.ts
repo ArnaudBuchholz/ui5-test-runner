@@ -81,6 +81,29 @@ describe('BrowserFactory', () => {
       expect(logger.debug).toHaveBeenCalledWith({ source: 'puppeteer', message: 'build' });
       expect(logger.debug).toHaveBeenCalledWith({ source: 'puppeteer', message: 'build completed' });
     });
+
+    it('logs fatal and throws when built twice without shutdown', async () => {
+      const inner = makeInnerBrowser();
+      vi.mocked(mockPuppeteerFactory).mockResolvedValue(inner);
+      browser = await BrowserFactory.build(FACTORY_SETTINGS, 'puppeteer');
+      await expect(BrowserFactory.build(FACTORY_SETTINGS, 'puppeteer')).rejects.toThrow();
+      expect(logger.fatal).toHaveBeenCalledWith({
+        source: 'puppeteer',
+        message: 'build failed: already has an active instance'
+      });
+    });
+
+    it('allows building again after shutdown', async () => {
+      const inner = makeInnerBrowser();
+      vi.mocked(mockPuppeteerFactory).mockResolvedValue(inner);
+      browser = await BrowserFactory.build(FACTORY_SETTINGS, 'puppeteer');
+      await browser.setup(BROWSER_SETTINGS);
+      await browser.shutdown();
+      browser = undefined;
+      const second = await BrowserFactory.build(FACTORY_SETTINGS, 'puppeteer');
+      await expect(second.setup(BROWSER_SETTINGS)).resolves.toBeDefined();
+      await second.shutdown();
+    });
   });
 
   describe('setup', () => {
@@ -243,7 +266,40 @@ describe('BrowserFactory', () => {
         expect(logger.error).toHaveBeenCalledWith({ source: 'puppeteer', message: 'window close failed', error });
       });
 
-      // TODO: add tests to check what happens when the window is already closed
+      it('logs warn and skips inner close when close is called on an already closed window', async () => {
+        await window.close();
+        vi.clearAllMocks();
+        await window.close();
+        expect(logger.warn).toHaveBeenCalledWith({
+          source: 'puppeteer',
+          message: 'closing an already closed window, ignored',
+          pageId: 42
+        });
+        expect(innerWindow.close).not.toHaveBeenCalled();
+      });
+
+      it('logs error and throws when eval is called on an already closed window', async () => {
+        await window.close();
+        await expect(window.eval('1 + 1')).rejects.toThrow('window closed');
+        expect(logger.error).toHaveBeenCalledWith({
+          source: 'puppeteer',
+          message: 'eval failed',
+          pageId: 42,
+          error: expect.any(Error) as Error
+        });
+      });
+
+      it('logs error and throws when screenshot is called on an already closed window', async () => {
+        await window.close();
+        await expect(window.screenshot('/tmp/test.png')).rejects.toThrow('window closed');
+        expect(logger.error).toHaveBeenCalledWith({
+          source: 'puppeteer',
+          message: 'screenshot failed',
+          pageId: 42,
+          error: expect.any(Error) as Error,
+          data: { path: '/tmp/test.png' }
+        });
+      });
     });
   });
 

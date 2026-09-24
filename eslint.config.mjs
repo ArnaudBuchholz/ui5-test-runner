@@ -63,14 +63,12 @@ export default [
       'unicorn/no-this-outside-of-class': 'off'
     }
   },
-  // TODO implement a regexp validator
   {
     files: ['src/configuration/validators/regexp.ts'],
     rules: {
       'security/detect-non-literal-regexp': 'off'
     }
   },
-  // TODO may disappear
   {
     files: ['src/cli.ts'],
     rules: {
