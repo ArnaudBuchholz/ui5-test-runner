@@ -1,8 +1,8 @@
-import { describe, it, expect, beforeAll } from 'vitest';
+import { describe, it, expect, beforeAll, vi } from 'vitest';
 import { mock } from 'reserve';
 import type { Configuration } from '../../configuration/Configuration.js';
 import { buildREserveConfiguration } from './reserve.js';
-import { logger } from '../../platform/logger.js';
+import { logger, FileSystem } from '../../platform/index.js';
 
 const UNHANDLED_URL = '/not-found.js';
 
@@ -14,6 +14,7 @@ const CONFIGURATION = {
 let server: ReturnType<typeof mock>;
 
 beforeAll(async () => {
+  vi.mocked(FileSystem.stat).mockRejectedValue(new Error('ENOENT'));
   server = mock(await buildREserveConfiguration(CONFIGURATION));
   const { promise, resolve, reject } = Promise.withResolvers<void>();
   server.on('ready', () => resolve()).on('error', (error: unknown) => reject(error));
@@ -39,7 +40,8 @@ describe('buildREserveConfiguration', () => {
   } as unknown as Configuration;
 
   describe('local resources mapping', () => {
-    it('adds a file mapping for resources from webapp before the ui5 proxy', async () => {
+    it('adds a file mapping for resources from webapp before the ui5 proxy when resources folder exists', async () => {
+      vi.mocked(FileSystem.stat).mockResolvedValueOnce({} as Awaited<ReturnType<typeof FileSystem.stat>>);
       const config = { ...BASE_CONFIG, ui5: 'https://ui5.sap.com' } as unknown as Configuration;
       const result = await buildREserveConfiguration(config);
       const mappings = result.mappings as Array<{ cwd?: string; file?: string; url?: string }>;
@@ -47,6 +49,18 @@ describe('buildREserveConfiguration', () => {
       const ui5ProxyIndex = mappings.findIndex(({ url }) => url?.startsWith('https://ui5.sap.com'));
       expect(localResourcesIndex).toBeGreaterThanOrEqual(0);
       expect(localResourcesIndex).toBeLessThan(ui5ProxyIndex);
+    });
+
+    it('omits the webapp resources mapping when neither resources nor test-resources folder exists', async () => {
+      vi.mocked(FileSystem.stat).mockRejectedValue(new Error('ENOENT'));
+      const config = { ...BASE_CONFIG, ui5: 'https://ui5.sap.com' } as unknown as Configuration;
+      const result = await buildREserveConfiguration(config);
+      const mappings = result.mappings as Array<{ cwd?: string; file?: string; match?: RegExp }>;
+      const resourcesMatch = /\/((?:test-)?resources\/.*)/;
+      const webappResourcesMapping = mappings.find(
+        (m) => m.cwd === '/webapp' && m.match?.toString() === resourcesMatch.toString()
+      );
+      expect(webappResourcesMapping).toBeUndefined();
     });
   });
 

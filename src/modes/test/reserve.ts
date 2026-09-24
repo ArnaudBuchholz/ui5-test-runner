@@ -1,10 +1,17 @@
-import { logger, Path } from '../../platform/index.js';
-import { version } from '../../platform/version.js';
+import { FileSystem, logger, Path } from '../../platform/index.js';
 import type { Configuration as REserveConfiguration } from 'reserve';
 import type { Configuration } from '../../configuration/Configuration.js';
 
+const hasFolder = async (path: string): Promise<boolean> => {
+  try {
+    await FileSystem.stat(path);
+    return true;
+  } catch {
+    return false;
+  }
+};
+
 export const buildREserveConfiguration = async (configuration: Configuration): Promise<REserveConfiguration> => {
-  const { name } = await version();
   const resourcesMatch = /\/((?:test-)?resources\/.*)/; // Captured value never starts with /
   let { ui5 } = configuration;
   if (!ui5.endsWith('/')) {
@@ -44,21 +51,25 @@ export const buildREserveConfiguration = async (configuration: Configuration): P
     }
   );
 
+  const isWebappHasResources =
+    (await hasFolder(Path.join(webapp, 'resources'))) || (await hasFolder(Path.join(webapp, 'test-resources')));
+
+  const webappResourcesMappings: REserveConfiguration['mappings'] = isWebappHasResources
+    ? [
+        {
+          method: 'GET,HEAD',
+          match: resourcesMatch,
+          cwd: webapp,
+          file: '$1'
+        }
+      ]
+    : [];
+
   return {
     port: configuration.port ?? 0,
     mappings: [
-      {
-        custom: (_request, response) => {
-          response.setHeader('x-served-by', name);
-        }
-      },
       ...libMappings,
-      {
-        method: 'GET,HEAD',
-        match: resourcesMatch,
-        cwd: webapp,
-        file: '$1'
-      },
+      ...webappResourcesMappings,
       {
         method: 'GET,HEAD',
         match: resourcesMatch,
@@ -74,10 +85,10 @@ export const buildREserveConfiguration = async (configuration: Configuration): P
         // static: !configuration.watch && !configuration.debugDevMode
       },
       {
-        custom: (request) => logger.warn({ source: 'server/unhandled', message: request.url! })
-      },
-      {
-        status: 404
+        custom: (request) => {
+          logger.warn({ source: 'server/unhandled', message: request.url! });
+          return 404;
+        }
       }
     ]
   };

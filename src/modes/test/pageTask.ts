@@ -1,6 +1,5 @@
 import type { IParallelizeContext } from '../../utils/shared/parallelize.js';
 import { assert, Http, logger, Process } from '../../platform/index.js';
-import { version } from '../../platform/version.js';
 import { getAgentSource } from './agent.js';
 import { getBrowser } from './browser.js';
 import type { AgentState } from '../../types/AgentState.js';
@@ -227,25 +226,27 @@ const runPollingLoop = async (
 export const makePageTask = (configuration: Configuration) => {
   const { screenshot } = configuration;
   const { handlePendingScreenshot, handleFailureScreenshot } = makeScreenshotHandlers(configuration);
-  let isUi5VersionLogged = false;
+  const ui5VersionByOrigin = new Map<string, string>();
 
-  const logUi5VersionOnce = async (probeUrl: string, probeResponse: Response) => {
-    if (isUi5VersionLogged) {
+  const logUi5VersionOnce = async (probeUrl: string) => {
+    const origin = new URL(probeUrl).origin;
+    if (ui5VersionByOrigin.has(origin)) {
       return;
     }
-    const { name: packageName } = await version();
-    if (probeResponse.headers?.get('x-served-by') !== packageName) {
-      return;
-    }
-    isUi5VersionLogged = true;
+    ui5VersionByOrigin.set(origin, ''); // marks origin as seen before the async call, preventing concurrent retries
     const versionUrl = new URL('/resources/sap-ui-version.json', probeUrl).href;
-    const ui5Version = JSON.parse(await Http.getAsText(versionUrl)) as {
-      libraries: { name: string; version: string }[];
-    };
-    const { version: coreVersion } = ui5Version.libraries.find(({ name }) => name === 'sap.ui.core') ?? {
-      version: 'unknown'
-    };
-    logger.info({ source: 'job', message: `UI5 version used by the local server: ${coreVersion}` });
+    try {
+      const ui5Version = JSON.parse(await Http.getAsText(versionUrl)) as {
+        libraries: { name: string; version: string }[];
+      };
+      const { version: coreVersion } = ui5Version.libraries.find(({ name }) => name === 'sap.ui.core') ?? {
+        version: 'unknown'
+      };
+      ui5VersionByOrigin.set(origin, coreVersion);
+      logger.info({ source: 'job', message: `UI5 version ${coreVersion} (from ${origin})` });
+    } catch {
+      // origin already flagged above — no retry will occur
+    }
   };
 
   return async function (this: IParallelizeContext, url: string, _index: number, urls: string[]) {
@@ -265,8 +266,8 @@ export const makePageTask = (configuration: Configuration) => {
       return;
     }
 
-    const probeResponse = await tryToFetchThePageFirst(url, pageId);
-    await logUi5VersionOnce(url, probeResponse);
+    await tryToFetchThePageFirst(url, pageId);
+    await logUi5VersionOnce(url);
 
     const { promise: taskStopped, resolve: setTaskAsStopped } = Promise.withResolvers<void>();
     const stopController = new AbortController();
