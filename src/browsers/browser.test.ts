@@ -97,21 +97,6 @@ export const testBrowser = ({
         return { window, pageId };
       };
 
-      // TODO: move to factory
-      it.skip('throws when built twice without shutdown', async () => {
-        await expect(BrowserFactory.build(FACTORY_SETTINGS, name)).rejects.toThrow();
-      });
-
-      // TODO: move to factory
-      it.skip('allows building again after shutdown', async () => {
-        await browser.shutdown();
-        const second = await BrowserFactory.build(FACTORY_SETTINGS, name);
-        await second.setup(BROWSER_SETTINGS);
-        await second.shutdown();
-        browser = await BrowserFactory.build(FACTORY_SETTINGS, name);
-        await expect(browser.setup(BROWSER_SETTINGS)).resolves.toBeDefined();
-      });
-
       it('enables creating a window', async () => {
         const { window } = await openWindow({
           scripts: [],

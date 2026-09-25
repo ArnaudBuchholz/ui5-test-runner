@@ -7,6 +7,7 @@
 |[agentDetectionMaxInterval](options/agentDetectionMaxInterval.md)|--agent-detection-max-interval||timeout|maximum polling interval when detecting a test framework after page load|
 |[agentDetectionTimeout](options/agentDetectionTimeout.md)|--agent-detection-timeout||timeout|maximum time to wait for a test framework to be detected after page load|
 |[agentNoTestsTimeout](options/agentNoTestsTimeout.md)|--agent-no-tests-timeout||timeout|time to wait after QUnit.done fires with no tests before declaring the page done|
+|[agentScreenshotTimeout](options/agentScreenshotTimeout.md)|--agent-screenshot-timeout||timeout|maximum time OPA waits for a pending screenshot before continuing|
 |[alternateNpmPath](options/alternateNpmPath.md)|--alternate-npm-path||fs-entry|alternate NPM package path|
 |[batch](options/batch.md)|--batch||string|batch item specification (folder, config file, or regex pattern)|
 |[batchId](options/batchId.md)|--batch-id||string|identifier for the batch item|
@@ -43,7 +44,6 @@
 |[if](options/if.md)|--if||string|skip execution if the expression evaluates to falsy|
 |[keepAlive](options/keepAlive.md)|--keep-alive|-k|boolean|keep the server alive|
 |[lib](options/lib.md)|--lib||library-mapping|Library mapping|
-|[localhost](options/localhost.md)|--localhost||string|hostname for legacy URL|
 |[log](options/log.md)|--log||fs-entry|read and dump log file using jsonl format|
 |[logDump](options/logDump.md)|--log-dump||boolean|dump all traces to stdout instead of opening a browser (requires --log)|
 |[logFilter](options/logFilter.md)|--log-filter|-lf|string|JavaScript expression (using punyexpr) to filter logs for dumping with --log-dump|

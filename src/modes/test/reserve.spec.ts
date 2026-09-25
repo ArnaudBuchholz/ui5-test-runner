@@ -1,8 +1,8 @@
-import { describe, it, expect, beforeAll } from 'vitest';
+import { describe, it, expect, beforeAll, vi } from 'vitest';
 import { mock } from 'reserve';
 import type { Configuration } from '../../configuration/Configuration.js';
 import { buildREserveConfiguration } from './reserve.js';
-import { logger } from '../../platform/logger.js';
+import { logger, FileSystem } from '../../platform/index.js';
 
 const UNHANDLED_URL = '/not-found.js';
 
@@ -14,7 +14,8 @@ const CONFIGURATION = {
 let server: ReturnType<typeof mock>;
 
 beforeAll(async () => {
-  server = mock(buildREserveConfiguration(CONFIGURATION));
+  vi.mocked(FileSystem.stat).mockRejectedValue(new Error('ENOENT'));
+  server = mock(await buildREserveConfiguration(CONFIGURATION));
   const { promise, resolve, reject } = Promise.withResolvers<void>();
   server.on('ready', () => resolve()).on('error', (error: unknown) => reject(error));
   await promise;
@@ -39,29 +40,42 @@ describe('buildREserveConfiguration', () => {
   } as unknown as Configuration;
 
   describe('local resources mapping', () => {
-    it('adds a file mapping for resources from webapp before the ui5 proxy', () => {
+    it('adds a file mapping for resources from webapp before the ui5 proxy when resources folder exists', async () => {
+      vi.mocked(FileSystem.stat).mockResolvedValueOnce({} as Awaited<ReturnType<typeof FileSystem.stat>>);
       const config = { ...BASE_CONFIG, ui5: 'https://ui5.sap.com' } as unknown as Configuration;
-      const result = buildREserveConfiguration(config);
+      const result = await buildREserveConfiguration(config);
       const mappings = result.mappings as Array<{ cwd?: string; file?: string; url?: string }>;
       const localResourcesIndex = mappings.findIndex((mapping) => mapping.cwd === '/webapp' && mapping.file === '$1');
       const ui5ProxyIndex = mappings.findIndex(({ url }) => url?.startsWith('https://ui5.sap.com'));
       expect(localResourcesIndex).toBeGreaterThanOrEqual(0);
       expect(localResourcesIndex).toBeLessThan(ui5ProxyIndex);
     });
+
+    it('omits the webapp resources mapping when neither resources nor test-resources folder exists', async () => {
+      vi.mocked(FileSystem.stat).mockRejectedValue(new Error('ENOENT'));
+      const config = { ...BASE_CONFIG, ui5: 'https://ui5.sap.com' } as unknown as Configuration;
+      const result = await buildREserveConfiguration(config);
+      const mappings = result.mappings as Array<{ cwd?: string; file?: string; match?: RegExp }>;
+      const resourcesMatch = /\/((?:test-)?resources\/.*)/;
+      const webappResourcesMapping = mappings.find(
+        (m) => m.cwd === '/webapp' && m.match?.toString() === resourcesMatch.toString()
+      );
+      expect(webappResourcesMapping).toBeUndefined();
+    });
   });
 
   describe('ui5 URL trailing slash', () => {
-    it('appends $1 directly when ui5 has no trailing slash', () => {
+    it('appends $1 directly when ui5 has no trailing slash', async () => {
       const config = { ...BASE_CONFIG, ui5: 'https://ui5.sap.com' } as unknown as Configuration;
-      const result = buildREserveConfiguration(config);
+      const result = await buildREserveConfiguration(config);
       const mappings = result.mappings as Array<{ url?: string }>;
       const urlMapping = mappings.find(({ url }) => url?.startsWith('https://'));
       expect(urlMapping?.url).toBe('https://ui5.sap.com/$1');
     });
 
-    it('produces the same url mapping when ui5 already has a trailing slash', () => {
+    it('produces the same url mapping when ui5 already has a trailing slash', async () => {
       const config = { ...BASE_CONFIG, ui5: 'https://ui5.sap.com/' } as unknown as Configuration;
-      const result = buildREserveConfiguration(config);
+      const result = await buildREserveConfiguration(config);
       const mappings = result.mappings as Array<{ url?: string }>;
       const urlMapping = mappings.find(({ url }) => url?.startsWith('https://'));
       expect(urlMapping?.url).toBe('https://ui5.sap.com/$1');
@@ -69,13 +83,13 @@ describe('buildREserveConfiguration', () => {
   });
 
   describe('webapp trailing slash', () => {
-    it('strips trailing slash so REserve can serve files correctly', () => {
+    it('strips trailing slash so REserve can serve files correctly', async () => {
       const config = {
         ...BASE_CONFIG,
         ui5: 'https://ui5.sap.com/',
         webapp: '/the/webapp/'
       } as unknown as Configuration;
-      const result = buildREserveConfiguration(config);
+      const result = await buildREserveConfiguration(config);
       const mappings = result.mappings as Array<{ cwd?: string }>;
       const projectMapping = mappings.find((m) => m.cwd === '/the/webapp');
       expect(projectMapping).toBeDefined();
@@ -83,7 +97,7 @@ describe('buildREserveConfiguration', () => {
   });
 
   describe('lib mappings', () => {
-    it('adds a file mapping per lib entry before the project mapping', () => {
+    it('adds a file mapping per lib entry before the project mapping', async () => {
       const config = {
         ...BASE_CONFIG,
         cwd: '/project',
@@ -93,7 +107,7 @@ describe('buildREserveConfiguration', () => {
           { resourcesSubFolder: 'sap/other', sourceFolder: '/project/src/other' }
         ]
       } as unknown as Configuration;
-      const result = buildREserveConfiguration(config);
+      const result = await buildREserveConfiguration(config);
       const mappings = result.mappings as Array<{ match?: RegExp; cwd?: string; file?: string }>;
       const libMappings = mappings.filter((m) => m.cwd?.startsWith('/project/src/'));
       expect(libMappings).toHaveLength(2);
@@ -106,7 +120,7 @@ describe('buildREserveConfiguration', () => {
       expect(libMappings[1]!.cwd).toBe('/project/src/other');
     });
 
-    it('serves lib files from instrumented folder first, then source folder, when coverage is enabled and sourceFolder is under cwd', () => {
+    it('serves lib files from instrumented folder first, then source folder, when coverage is enabled and sourceFolder is under cwd', async () => {
       const config = {
         ...BASE_CONFIG,
         cwd: '/project',
@@ -114,7 +128,7 @@ describe('buildREserveConfiguration', () => {
         coverage: true,
         lib: [{ resourcesSubFolder: 'sap/utr/lib', sourceFolder: '/project/src/sap/utr/lib' }]
       } as unknown as Configuration;
-      const result = buildREserveConfiguration(config);
+      const result = await buildREserveConfiguration(config);
       const mappings = result.mappings as Array<{ match?: RegExp; cwd?: string }>;
       const LIB_MATCH_STRING = String.raw`/^\/resources\/sap\/utr\/lib\/(.*?)(?:\?.*)?$/`;
       const libMappings = mappings.filter((m) => m.match?.toString() === LIB_MATCH_STRING);
@@ -123,7 +137,7 @@ describe('buildREserveConfiguration', () => {
       expect(libMappings[1]!.cwd).toBe('/project/src/sap/utr/lib');
     });
 
-    it('serves lib files from the original folder when coverage is enabled but sourceFolder is outside cwd', () => {
+    it('serves lib files from the original folder when coverage is enabled but sourceFolder is outside cwd', async () => {
       const config = {
         ...BASE_CONFIG,
         cwd: '/project',
@@ -131,7 +145,7 @@ describe('buildREserveConfiguration', () => {
         coverage: true,
         lib: [{ resourcesSubFolder: 'sap/utr/lib', sourceFolder: '/external/src/sap/utr/lib' }]
       } as unknown as Configuration;
-      const result = buildREserveConfiguration(config);
+      const result = await buildREserveConfiguration(config);
       const mappings = result.mappings as Array<{ match?: RegExp; cwd?: string }>;
       const LIB_MATCH_STRING = String.raw`/^\/resources\/sap\/utr\/lib\/(.*?)(?:\?.*)?$/`;
       const libMappings = mappings.filter((m) => m.match?.toString() === LIB_MATCH_STRING);
@@ -139,9 +153,9 @@ describe('buildREserveConfiguration', () => {
       expect(libMappings[0]!.cwd).toBe('/external/src/sap/utr/lib');
     });
 
-    it('adds no lib mappings when lib is undefined', () => {
+    it('adds no lib mappings when lib is undefined', async () => {
       const config = { ...BASE_CONFIG, cwd: '/project', ui5: 'https://ui5.sap.com/' } as unknown as Configuration;
-      const result = buildREserveConfiguration(config);
+      const result = await buildREserveConfiguration(config);
       const mappings = result.mappings as Array<{ cwd?: string }>;
       const libMappings = mappings.filter((m) => m.cwd?.startsWith('/project/src/'));
       expect(libMappings).toHaveLength(0);
@@ -149,18 +163,18 @@ describe('buildREserveConfiguration', () => {
   });
 
   describe('coverage mappings', () => {
-    it('includes an instrumented cwd mapping when coverage is true', () => {
+    it('includes an instrumented cwd mapping when coverage is true', async () => {
       const config = { ...BASE_CONFIG, ui5: 'https://ui5.sap.com/', coverage: true } as unknown as Configuration;
-      const result = buildREserveConfiguration(config);
+      const result = await buildREserveConfiguration(config);
       const mappings = result.mappings as Array<{ cwd?: string; file?: string }>;
       const coverageMapping = mappings.find((m) => m.cwd?.endsWith('instrumented'));
       expect(coverageMapping).toBeDefined();
       expect(coverageMapping!.file).toBe('$1');
     });
 
-    it('does not include an instrumented cwd mapping when coverage is false', () => {
+    it('does not include an instrumented cwd mapping when coverage is false', async () => {
       const config = { ...BASE_CONFIG, ui5: 'https://ui5.sap.com/', coverage: false } as unknown as Configuration;
-      const result = buildREserveConfiguration(config);
+      const result = await buildREserveConfiguration(config);
       const mappings = result.mappings as Array<{ cwd?: string }>;
       const coverageMapping = mappings.find((m) => m.cwd?.endsWith('instrumented'));
       expect(coverageMapping).toBeUndefined();

@@ -36,6 +36,7 @@ dist/
 # generated during tests
 tmp/
 e2e/
+e2e.*/
 !test/e2e/
 report/
 test/**/report/

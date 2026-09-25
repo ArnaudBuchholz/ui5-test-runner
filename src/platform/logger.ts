@@ -14,7 +14,10 @@ import { toIError } from '../utils/shared/toIError.js';
 
 const startedAt = Date.now();
 
-// TODO understand why channel does not appear as a problem as it might be used before being defined
+// `channel` is assigned in start(): workers call start() at module load (below); on the main
+// thread every bare `channel.` access is reachable only after logger.start() -> start(), and the
+// eager log() path buffers until isReady (set by the ready message, which start() wires up). So it
+// is never read before assignment.
 let channel: ReturnType<typeof Thread.createBroadcastChannel>;
 let loggerWorker: ReturnType<typeof Thread.createWorker> | undefined;
 let consoleWorker: ReturnType<typeof Thread.createWorker> | undefined;

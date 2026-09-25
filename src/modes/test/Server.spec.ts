@@ -154,7 +154,7 @@ describe('workerMain', () => {
       throw new Error('skip');
     });
     const { workerMain } = await import('./Server.js');
-    workerMain(CONFIGURATION);
+    await workerMain(CONFIGURATION);
     expect(Thread.createBroadcastChannel).toHaveBeenCalledWith('server');
     expect(logger.debug).toHaveBeenCalledWith(expect.objectContaining({ message: 'Starting server...' }));
   });
@@ -163,7 +163,7 @@ describe('workerMain', () => {
     const srv = makeReserveServer();
     vi.mocked(serve as unknown as ReturnType<typeof vi.fn>).mockReturnValue(srv);
     const { workerMain } = await import('./Server.js');
-    workerMain(CONFIGURATION);
+    await workerMain(CONFIGURATION);
     const channel = getChannel();
     srv.__emit('ready', { port: PORT });
     expect(channel.postMessage).toHaveBeenCalledWith({ command: 'ready', port: PORT });
@@ -173,7 +173,7 @@ describe('workerMain', () => {
     const srv = makeReserveServer();
     vi.mocked(serve as unknown as ReturnType<typeof vi.fn>).mockReturnValue(srv);
     const { workerMain } = await import('./Server.js');
-    workerMain(CONFIGURATION);
+    await workerMain(CONFIGURATION);
     const channel = getChannel();
     srv.__emit('error');
     expect(channel.postMessage).toHaveBeenCalledWith({ command: 'error' });
@@ -183,7 +183,7 @@ describe('workerMain', () => {
     const srv = makeReserveServer();
     vi.mocked(serve as unknown as ReturnType<typeof vi.fn>).mockReturnValue(srv);
     const { workerMain } = await import('./Server.js');
-    workerMain(CONFIGURATION);
+    await workerMain(CONFIGURATION);
     const channel = getChannel();
     // Drive terminate (the echo from postMessage is handled differently in workerMain - it checks command === 'terminate')
     channel.onmessage({ data: { command: 'terminate' } } as never);
@@ -199,7 +199,7 @@ describe('workerMain', () => {
       throw new Error('bad config');
     });
     const { workerMain } = await import('./Server.js');
-    workerMain(CONFIGURATION);
+    await workerMain(CONFIGURATION);
     const channel = getChannel();
     expect(logger.error).toHaveBeenCalledWith(
       expect.objectContaining({ message: 'An error occurred while configuring' })

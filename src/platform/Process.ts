@@ -189,11 +189,23 @@ export class Process implements IProcess {
         await promise;
       } else {
         try {
-          // First try to kill process tree
+          // Requires the child to be a process-group leader (spawned with detached:true),
+          // so the whole subtree is reaped. See Npm.ts / start.ts / coverage spawns.
           process.kill(-this.pid);
         } catch {
-          // Otherwise, kill the process only
-          process.kill(this.pid);
+          // Group kill failed: either the child was NOT detached (subtree may be orphaned)
+          // or the group is already gone (normal race). Fall back to killing the pid only.
+          logger.warn({
+            source: 'process',
+            processId: this.pid,
+            message:
+              'group kill failed; killing pid only — if this process spawned children, they may be orphaned (was it spawned with detached:true?)'
+          });
+          try {
+            process.kill(this.pid);
+          } catch {
+            // already dead
+          }
         }
       }
       logger.debug({

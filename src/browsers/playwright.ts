@@ -1,6 +1,6 @@
 import { logger, Process, assert } from '../platform/index.js';
 import type { BrowserCapabilities, BrowserDriverDescriptor, BrowserSettings, IBrowser } from './IBrowser.js';
-import type { BrowserType, Browser, Page } from 'playwright';
+import type { BrowserType, Browser, BrowserContext } from 'playwright';
 import { Npm } from '../Npm.js';
 import type { Configuration } from '../configuration/Configuration.js';
 import { handleConsoleMessage } from './consoleMessage.js';
@@ -17,12 +17,12 @@ export const factory = async (configuration: Configuration, signal: AbortSignal)
   const playwright = await Npm.import(configuration, 'playwright');
   const { chromium } = playwright as { chromium: BrowserType };
   let browser: Browser | undefined;
+  let context: BrowserContext | undefined;
   let isFirstWindow = true;
 
   const launchAndInstallIfNeeded = async (settings: BrowserSettings): Promise<BrowserCapabilities> => {
     logger.debug({ source: 'playwright', message: 'launching browser' });
     try {
-      // TODO define args for chrome
       browser = await chromium.launch({
         headless: !settings.visible,
         handleSIGINT: false,
@@ -52,6 +52,9 @@ export const factory = async (configuration: Configuration, signal: AbortSignal)
         throw error;
       }
     }
+    context = await browser.newContext({
+      viewport: settings.viewport ?? null // null = no fixed viewport (use window size)
+    });
     return {
       browserName: browser.browserType().name(),
       browserVersion: browser.version()
@@ -64,13 +67,13 @@ export const factory = async (configuration: Configuration, signal: AbortSignal)
     },
 
     async newWindow(settings) {
-      let page: Page | undefined;
+      let page;
       if (isFirstWindow) {
         isFirstWindow = false;
-        const existingPages = browser?.contexts()[0]?.pages();
-        page = existingPages?.[0] ?? (await browser?.newPage());
+        const existingPages = context?.pages();
+        page = existingPages?.[0] ?? (await context?.newPage());
       } else {
-        page = await browser?.newPage();
+        page = await context?.newPage();
       }
       assert(page !== undefined);
       for (const script of settings.scripts) {

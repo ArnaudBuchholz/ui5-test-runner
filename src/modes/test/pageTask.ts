@@ -154,12 +154,13 @@ const shouldStopBasedOnAgentState = (
   return false;
 };
 
-const tryToFetchThePageFirst = async (url: string, pageId: number) => {
+const tryToFetchThePageFirst = async (url: string, pageId: number): Promise<Response> => {
   try {
     const response = await Http.fetch(url);
     if (!response.ok) {
       throw new Error(`Unexpected status code ${response.status}`);
     }
+    return response;
   } catch (error) {
     logger.info({
       source: 'progress',
@@ -200,9 +201,53 @@ const mergeTestResults = (
   getReportBuilder().merge(url, testResults, { pageId });
 };
 
+const runPollingLoop = async (
+  context: PageContext,
+  handlePendingScreenshot: ((page: IWindow, agentState: AgentState, pageId: number) => Promise<void>) | false,
+  signal: AbortSignal
+): Promise<void> => {
+  while (!signal.aborted) {
+    try {
+      await Process.sleep(context.loopDelay);
+      const agentState = (await context.page.eval("window['ui5-test-runner'].state")) as AgentState;
+      if (handlePendingScreenshot) {
+        await handlePendingScreenshot(context.page, agentState, context.pageId);
+      }
+      if (shouldStopBasedOnAgentState(context, handlePendingScreenshot !== false, agentState)) {
+        break;
+      }
+    } catch (error) {
+      logger.error({ source: 'page', message: 'An error occurred', error, pageId: context.pageId, data: {} });
+      break;
+    }
+  }
+};
+
 export const makePageTask = (configuration: Configuration) => {
   const { screenshot } = configuration;
   const { handlePendingScreenshot, handleFailureScreenshot } = makeScreenshotHandlers(configuration);
+  const ui5VersionByOrigin = new Map<string, string>();
+
+  const logUi5VersionOnce = async (probeUrl: string) => {
+    const origin = new URL(probeUrl).origin;
+    if (ui5VersionByOrigin.has(origin)) {
+      return;
+    }
+    ui5VersionByOrigin.set(origin, ''); // marks origin as seen before the async call, preventing concurrent retries
+    const versionUrl = new URL('/resources/sap-ui-version.json', probeUrl).href;
+    try {
+      const ui5Version = JSON.parse(await Http.getAsText(versionUrl)) as {
+        libraries: { name: string; version: string }[];
+      };
+      const { version: coreVersion } = ui5Version.libraries.find(({ name }) => name === 'sap.ui.core') ?? {
+        version: 'unknown'
+      };
+      ui5VersionByOrigin.set(origin, coreVersion);
+      logger.info({ source: 'job', message: `UI5 version ${coreVersion} (from ${origin})` });
+    } catch {
+      // origin already flagged above — no retry will occur
+    }
+  };
 
   return async function (this: IParallelizeContext, url: string, _index: number, urls: string[]) {
     const pageId = ++lastPageId;
@@ -222,11 +267,14 @@ export const makePageTask = (configuration: Configuration) => {
     }
 
     await tryToFetchThePageFirst(url, pageId);
+    await logUi5VersionOnce(url);
 
     const { promise: taskStopped, resolve: setTaskAsStopped } = Promise.withResolvers<void>();
+    const stopController = new AbortController();
     using _ = Exit.registerAsyncTask({
       name: url,
       stop: async () => {
+        stopController.abort();
         try {
           this.stop(new ExitShutdownError()); // throws
         } catch {
@@ -262,30 +310,20 @@ export const makePageTask = (configuration: Configuration) => {
         isSuite: false,
         lastUncaughtErrorsCount: 0
       };
-      let isTimedOut = false;
+      const pageTimeoutController = new AbortController();
       let pageTimeoutHandle: ReturnType<typeof setTimeout> | undefined;
       if (pageTimeoutMs > 0) {
         pageTimeoutHandle = setTimeout(() => {
           logger.warn({ source: 'page', message: 'Page timed out', pageId, data: { url } });
-          isTimedOut = true;
+          pageTimeoutController.abort();
         }, pageTimeoutMs);
       }
       try {
-        while (!isTimedOut && !this.stopRequested) {
-          try {
-            await Process.sleep(context.loopDelay);
-            const agentState = (await context.page.eval("window['ui5-test-runner'].state")) as AgentState;
-            if (screenshot) {
-              await handlePendingScreenshot(page, agentState, pageId);
-            }
-            if (shouldStopBasedOnAgentState(context, screenshot, agentState)) {
-              break;
-            }
-          } catch (error) {
-            logger.error({ source: 'page', message: 'An error occurred', error, pageId, data: {} });
-            break;
-          }
-        }
+        await runPollingLoop(
+          context,
+          screenshot && handlePendingScreenshot,
+          AbortSignal.any([pageTimeoutController.signal, stopController.signal])
+        );
       } finally {
         if (pageTimeoutHandle !== undefined) {
           clearTimeout(pageTimeoutHandle);
@@ -295,10 +333,12 @@ export const makePageTask = (configuration: Configuration) => {
       await handleFailureScreenshot(page, pageId, testResults);
       await collectCoverage(configuration, context);
       mergeTestResults(url, pageId, context, testResults);
-      if (isTimedOut) {
+      if (pageTimeoutController.signal.aborted) {
         reportError(url, 'Page timed out');
       }
-      // TODO: add a catch block and document the problem in the test report
+    } catch (error) {
+      logger.error({ source: 'page', message: 'Unexpected error while running page', error, pageId, data: {} });
+      reportError(url, 'An unexpected error occurred');
     } finally {
       if (context !== undefined) {
         logger.info({
@@ -314,11 +354,13 @@ export const makePageTask = (configuration: Configuration) => {
           }
         });
       }
-      try {
-        logger.debug({ source: 'page', message: 'closing page', pageId });
-        await page?.close();
-      } catch (error) {
-        logger.error({ source: 'page', message: 'page.close failed', error, pageId, data: {} });
+      if (page) {
+        try {
+          logger.debug({ source: 'page', message: 'closing page', pageId });
+          await page.close();
+        } catch (error) {
+          logger.error({ source: 'page', message: 'page.close failed', error, pageId, data: {} });
+        }
       }
       setTaskAsStopped();
     }

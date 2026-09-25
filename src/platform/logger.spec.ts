@@ -12,8 +12,8 @@ const expectAnyString = expect.any(String) as string;
 const expectAnyNumber = expect.any(Number) as number;
 const cwd = '~/test';
 
-// TODO: the main thread waits for the two outputs to be ready *before* sending the logs
-// TODO: the other threads do not wait (because started from the main thread)
+// Main thread tests prime the channel with stdout+stderr ready before sending logs;
+// worker tests skip this because the main-thread logger is already running.
 
 beforeEach(() => {
   vi.clearAllMocks();

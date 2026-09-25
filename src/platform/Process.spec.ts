@@ -331,18 +331,30 @@ describe('kill', () => {
       await killed;
     });
 
-    it('logs failure to kill', async () => {
-      const error = new Error('KO');
-      vi.mocked(process.kill).mockImplementation(() => {
-        throw error;
+    it('logs a warn when group kill fails and falls back to pid-only kill', async () => {
+      vi.mocked(process.kill).mockImplementationOnce(() => {
+        throw new Error('ESRCH');
       });
       await childProcess.kill();
-      expect(logger.debug).toHaveBeenCalledWith({
-        source: 'process',
-        processId: childProcess.pid,
-        message: 'unable to kill',
-        error
+      expect(logger.warn).toHaveBeenCalledWith(
+        expect.objectContaining({
+          source: 'process',
+          processId: childProcess.pid,
+          message: expect.stringContaining('group kill failed') as string
+        })
+      );
+      expect(process.kill).toHaveBeenCalledWith(childProcess.pid);
+    });
+
+    it('logs warn and swallows when both group kill and pid kill throw', async () => {
+      vi.mocked(process.kill).mockImplementation(() => {
+        throw new Error('ESRCH');
       });
+      await childProcess.kill();
+      expect(logger.warn).toHaveBeenCalledWith(
+        expect.objectContaining({ source: 'process', message: expect.stringContaining('group kill failed') as string })
+      );
+      expect(logger.debug).not.toHaveBeenCalledWith(expect.objectContaining({ message: 'unable to kill' }));
     });
   });
 });

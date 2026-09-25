@@ -57,7 +57,7 @@ const countTotalTests = () => {
 };
 
 export const qunit = () => {
-  const { agentNoTestsTimeout, screenshot, pageId } = getConfig();
+  const { agentNoTestsTimeout, agentScreenshotTimeout, screenshot, pageId } = getConfig();
   let executed = 0;
   let errors = 0;
   const logs: { [key in string]: QUnitLogDetails[] } = {};
@@ -142,7 +142,10 @@ export const qunit = () => {
     updateState({ pendingScreenshot: filename });
     const opa5 = window.sap?.ui?.test?.Opa5 as { prototype: { waitFor: (settings: object) => void } } | undefined;
     opa5?.prototype.waitFor({
-      timeout: 10, // TODO: should be configurable
+      // agentScreenshotTimeout is ms; OPA waitFor.timeout is seconds. ceil + 1 guard second
+      // so OPA's own timeout never fires before the ms budget elapses.
+      timeout: Math.ceil(agentScreenshotTimeout / 1000) + 1,
+      pollingInterval: 50, // react quickly once the pending screenshot clears (default 400ms)
       autoWait: false, // Ignore interactable constraint
       check() {
         return state.type === 'QUnit' && !state.pendingScreenshot;

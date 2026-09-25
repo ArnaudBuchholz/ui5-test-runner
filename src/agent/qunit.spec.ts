@@ -12,6 +12,7 @@ const DEFAULT_CONFIG = {
   agentDetectionInterval: 100,
   agentDetectionMaxInterval: 1000,
   agentNoTestsTimeout: 5000,
+  agentScreenshotTimeout: 10_000,
   driver: '',
   pageId: 1,
   parallel: 1,
@@ -405,5 +406,20 @@ describe('screenshot (OPA)', () => {
     expect(capturedCheck()).toBe(false);
     state.pendingScreenshot = false;
     expect(capturedCheck()).toBe(true);
+  });
+
+  it('calls waitFor with timeout derived from agentScreenshotTimeout and pollingInterval 50', async () => {
+    vi.mocked(getConfig).mockReturnValue({
+      ...DEFAULT_CONFIG,
+      screenshot: true,
+      pageId: 1,
+      agentScreenshotTimeout: 10_000
+    });
+    QUnit.module('Journey1');
+    QUnit.test('step1', (assert) => assert.ok(true));
+    await execQunit();
+    expect(waitFor).toHaveBeenCalledWith(
+      expect.objectContaining({ timeout: Math.ceil(10_000 / 1000) + 1, pollingInterval: 50 })
+    );
   });
 });

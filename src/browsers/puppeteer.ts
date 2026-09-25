@@ -21,7 +21,6 @@ export const factory = async (configuration: Configuration, signal: AbortSignal)
 
   const launchAndInstallIfNeeded = async (settings: BrowserSettings): Promise<BrowserCapabilities> => {
     const target = settings.browser ?? 'chrome';
-    // TODO maximize should not be set when viewport is set
     const arguments_ = [
       settings.viewport ? `--window-size=${settings.viewport.width},${settings.viewport.height}` : '--start-maximized'
     ];
@@ -42,8 +41,6 @@ export const factory = async (configuration: Configuration, signal: AbortSignal)
       browser = await launch(launchOptions);
     } catch (error) {
       if (error instanceof Error && error.message.startsWith('Could not find')) {
-        // TODO: is there a way to monitor the progress ?
-        // YES: using https://pptr.dev/browsers-api/browsers.installoptions
         logger.info({
           source: 'progress',
           message: `Installing ${target} (puppeteer)`,

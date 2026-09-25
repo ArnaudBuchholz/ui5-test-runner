@@ -73,7 +73,7 @@ export const Server = {
   }
 };
 
-export const workerMain = (configuration: Configuration) => {
+export const workerMain = async (configuration: Configuration) => {
   logger.debug({ source: 'server', message: 'Starting server...' });
   _channel = Thread.createBroadcastChannel('server');
 
@@ -95,7 +95,7 @@ export const workerMain = (configuration: Configuration) => {
   };
 
   try {
-    reserveServer = serve(buildREserveConfiguration(configuration));
+    reserveServer = serve(await buildREserveConfiguration(configuration));
   } catch (error) {
     logger.error({ source: 'server', message: 'An error occurred while configuring', error });
     _channel.postMessage({
