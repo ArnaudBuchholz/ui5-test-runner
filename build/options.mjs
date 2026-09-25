@@ -4,6 +4,24 @@ import { parse as parseYaml } from 'yaml';
 
 const OPTIONS_FOLDER = 'docs/options';
 
+// Types allowed for batchForwarded: forwarding re-serializes the value to a CLI string and the child
+// re-parses it, so only types that round-trip back to a valid CLI argument qualify. library-mapping
+// (and any object type) is excluded — it stringifies to `[object Object]`. fs-entry and regexp are
+// borderline (fs-entry loses relative paths; regexp round-trips only incidentally), so don't add new
+// types without settling their serialization. Multiple-valued options are rejected regardless of type.
+const BATCH_FORWARDABLE_TYPES = new Set([
+  'boolean',
+  'enumeration',
+  'fs-entry',
+  'integer',
+  'json',
+  'percent',
+  'regexp',
+  'string',
+  'timeout',
+  'url'
+]);
+
 const types = [];
 const options = {};
 const defaults = {};
@@ -60,6 +78,14 @@ for (const fileName of optionsFileNames) {
   const isMultiple = metadata.multiple === 'yes' || metadata.multiple === true;
   const isBrowserExposed = metadata.browserExposed === 'yes' || metadata.browserExposed === true;
   const isBatchForwarded = metadata.batchForwarded === 'yes' || metadata.batchForwarded === true;
+  if (isBatchForwarded) {
+    if (isMultiple) {
+      errors.push(`batchForwarded is not allowed on a multiple option (${name})`);
+    }
+    if (type && !BATCH_FORWARDABLE_TYPES.has(type)) {
+      errors.push(`batchForwarded is not allowed on type '${type}' (${name})`);
+    }
+  }
   if (defaultValue) {
     defaults[name] = defaultValue;
   }
