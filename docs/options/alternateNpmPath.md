@@ -3,6 +3,8 @@
 title: alternateNpmPath
 type: fs-entry
 summary: alternate NPM package path
+keywords:
+  - npm
 batchForwarded: yes
 dependsOn: cwd
 ---

@@ -71,3 +71,6 @@ docs/.obsidian/
 
 # sabik
 sabik_report/
+
+# knowledge base index (generated on demand, not committed — ADR-0011)
+kb-index.json
