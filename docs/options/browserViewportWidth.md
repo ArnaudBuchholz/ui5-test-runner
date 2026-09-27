@@ -1,5 +1,6 @@
 ---
 "#type": option
+title: browserViewportWidth
 short: W
 type: integer
 typeModifiers:
@@ -7,7 +8,7 @@ typeModifiers:
   - non-zero
 summary: width of the browser viewport in pixels
 default: "1920"
-tags:
+keywords:
   - legacy
   - remote
   - batch

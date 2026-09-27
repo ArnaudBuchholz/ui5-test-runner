@@ -1,11 +1,13 @@
 ---
 "#type": option
+title: endTimeout
 type: timeout
 summary: maximum waiting time for the end command to execute
-tags:
+keywords:
   - legacy
   - remote
   - batch
-see:
-  - end
+relations:
+  see-also:
+    - options/end
 ---

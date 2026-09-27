@@ -1,10 +1,11 @@
 ---
 "#type": option
+title: screenshotOnFailure
 type: boolean
 summary: take a screenshot when a test fails
 default: "true"
 batchForwarded: yes
-tags:
+keywords:
   - legacy
   - remote
   - batch

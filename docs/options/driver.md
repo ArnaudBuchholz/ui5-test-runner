@@ -1,5 +1,6 @@
 ---
 "#type": option
+title: driver
 short: d
 type: enumeration
 summary: driver selection

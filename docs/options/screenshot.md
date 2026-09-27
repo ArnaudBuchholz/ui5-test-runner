@@ -1,11 +1,12 @@
 ---
 "#type": option
+title: screenshot
 type: boolean
 summary: take a screenshot after every OPA assertion
 default: "false"
 browserExposed: yes
 batchForwarded: yes
-tags:
+keywords:
   - legacy
   - remote
   - batch

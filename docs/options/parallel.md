@@ -1,5 +1,6 @@
 ---
 "#type": option
+title: parallel
 short: p
 type: integer
 typeModifiers:
@@ -9,7 +10,7 @@ summary: number of parallel executions
 batchForwarded: yes
 default: "2"
 browserExposed: yes
-tags:
+keywords:
   - legacy
   - remote
   - batch

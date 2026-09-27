@@ -1,10 +1,11 @@
 ---
 "#type": option
+title: coverageCheckLines
 type: percent
 short: ccl
 summary: minimum line coverage threshold (0 = no check)
 default: "0"
-tags:
+keywords:
   - coverage
   - legacy
   - remote

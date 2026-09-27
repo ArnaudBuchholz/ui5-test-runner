@@ -1,15 +1,17 @@
 ---
 "#type": option
+title: start
 type: string
 summary: command to be executed before the tests
-tags:
+keywords:
   - legacy
   - remote
   - batch
-see:
-  - cwd
-  - startWaitUrl
-  - startTimeout
+relations:
+  see-also:
+    - options/cwd
+    - options/startWaitUrl
+    - options/startTimeout
 ---
 
 The command string accepts `{{optionName}}` placeholders, which are expanded at runtime using the value of the corresponding configuration option (e.g. `cwd`, `reportDir`). The command executes with `cwd` as its working directory.

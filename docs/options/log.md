@@ -1,11 +1,12 @@
 ---
 "#type": option
+title: log
 type: fs-entry
 typeModifiers:
   - file
 summary: read and dump log file using jsonl format
 dependsOn: cwd
-tags:
+keywords:
   - debug
   - mode
 validation:

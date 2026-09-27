@@ -1,12 +1,13 @@
 ---
 "#type": option
+title: webapp
 type: fs-entry
 typeModifiers:
   - safe-default
 summary: base folder of the UI5 application
 default: "'webapp'"
 dependsOn: cwd
-tags:
+keywords:
   - legacy
   - remote
 ---

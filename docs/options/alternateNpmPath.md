@@ -1,5 +1,6 @@
 ---
 "#type": option
+title: alternateNpmPath
 type: fs-entry
 summary: alternate NPM package path
 batchForwarded: yes

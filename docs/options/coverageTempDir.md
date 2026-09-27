@@ -1,5 +1,6 @@
 ---
 "#type": option
+title: coverageTempDir
 type: fs-entry
 short: ctd
 typeModifiers:
@@ -7,7 +8,7 @@ typeModifiers:
 summary: temporary directory for coverage data
 default: "'.nyc_output'"
 dependsOn: cwd
-tags:
+keywords:
   - coverage
   - legacy
   - remote

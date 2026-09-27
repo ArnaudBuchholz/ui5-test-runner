@@ -1,5 +1,6 @@
 ---
 "#type": option
+title: pageParams
 short: pp
 type: string
 summary: add parameters to page URL

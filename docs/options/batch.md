@@ -1,9 +1,10 @@
 ---
 "#type": option
+title: batch
 type: string
 summary: batch item specification (folder, config file, or regex pattern)
 multiple: yes
-tags:
+keywords:
   - batch
 ---
 Each value selects one or more test projects to run as independent child processes. Accepted formats:

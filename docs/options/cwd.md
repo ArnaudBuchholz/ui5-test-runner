@@ -1,11 +1,12 @@
 ---
 "#type": option
+title: cwd
 short: c
 type: fs-entry
 summary: set working directory
 default: process.cwd()
 defaultLabel: current working directory
-tags:
+keywords:
   - "#legacy"
   - "#remote"
   - "#capabilities"

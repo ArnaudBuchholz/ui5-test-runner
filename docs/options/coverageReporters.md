@@ -1,11 +1,12 @@
 ---
 "#type": option
+title: coverageReporters
 type: string
 short: cr
 multiple: yes
 summary: istanbul-lib-report reporters to use
 default: "['lcov', 'cobertura']"
-tags:
+keywords:
   - coverage
   - legacy
   - remote

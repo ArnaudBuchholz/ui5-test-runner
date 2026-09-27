@@ -1,14 +1,16 @@
 ---
 "#type": option
+title: outputInterval
 short: oi
 type: timeout
 summary: interval for reporting progress on non interactive output (CI/CD)
 batchForwarded: yes
 default: 30000
-see:
-  - ci
-tags:
+keywords:
   - legacy
   - remote
   - batch
+relations:
+  see-also:
+    - options/ci
 ---

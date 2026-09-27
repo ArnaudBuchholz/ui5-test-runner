@@ -1,5 +1,6 @@
 ---
 "#type": option
+title: config
 type: fs-entry
 typeModifiers:
   - file
@@ -7,7 +8,7 @@ typeModifiers:
 summary: read options from a configuration file
 default: "'ui5-test-runner.json'"
 dependsOn: cwd
-tags:
+keywords:
   - legacy
   - remote
 ---

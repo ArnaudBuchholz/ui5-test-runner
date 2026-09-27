@@ -1,5 +1,6 @@
 ---
 "#type": option
+title: coverageReportDir
 type: fs-entry
 short: crd
 typeModifiers:
@@ -7,7 +8,7 @@ typeModifiers:
 summary: directory for the final coverage report
 default: "'coverage'"
 dependsOn: cwd
-tags:
+keywords:
   - coverage
   - legacy
   - remote

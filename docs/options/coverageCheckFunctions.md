@@ -1,10 +1,11 @@
 ---
 "#type": option
+title: coverageCheckFunctions
 type: percent
 short: ccf
 summary: minimum function coverage threshold (0 = no check)
 default: "0"
-tags:
+keywords:
   - coverage
   - legacy
   - remote

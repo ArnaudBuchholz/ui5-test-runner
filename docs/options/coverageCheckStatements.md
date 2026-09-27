@@ -1,10 +1,11 @@
 ---
 "#type": option
+title: coverageCheckStatements
 type: percent
 short: ccs
 summary: minimum statement coverage threshold (0 = no check)
 default: "0"
-tags:
+keywords:
   - coverage
   - legacy
   - remote

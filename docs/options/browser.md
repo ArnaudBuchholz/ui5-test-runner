@@ -1,5 +1,6 @@
 ---
 "#type": option
+title: browser
 short: b
 type: enumeration
 summary: browser selection (per driver)

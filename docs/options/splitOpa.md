@@ -1,11 +1,12 @@
 ---
 "#type": option
+title: splitOpa
 short: so
 type: boolean
 summary: split OPA tests by QUnit module, creating one test page per module
 batchForwarded: yes
 browserExposed: yes
-tags:
+keywords:
   - legacy
   - remote
   - batch

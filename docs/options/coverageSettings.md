@@ -1,5 +1,6 @@
 ---
 "#type": option
+title: coverageSettings
 type: fs-entry
 short: cs
 typeModifiers:
@@ -8,7 +9,7 @@ typeModifiers:
 summary: path to the Istanbul configuration file (.nycrc.json)
 default: "'.nycrc.json'"
 dependsOn: cwd
-tags:
+keywords:
   - coverage
   - legacy
   - remote

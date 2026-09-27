@@ -1,9 +1,10 @@
 ---
 "#type": option
+title: lib
 type: library-mapping
 multiple: yes
 summary: Library mapping
-tags:
+keywords:
   - legacy
   - remote
 ---
