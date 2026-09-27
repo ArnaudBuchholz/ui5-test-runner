@@ -1,5 +1,9 @@
 ---
-types:
-  - fs-entry
+"#type": concept
+title: file type modifier
+summary: 
+relations:
+  affects:
+    - fs-entry
 ---
-By default, an [fs-entry](../fs-entry.md) option points to a folder. This modifier indicates that it should point to a file.
+This modifier indicates that an `fs-entry` option is expected to point to a file.
