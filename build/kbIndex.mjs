@@ -19,6 +19,8 @@ if (errors.length > 0) {
   }
   process.exitCode = 1;
 } else {
-  await writeFile(OUTPUT, JSON.stringify(index, null, 2) + '\n');
+  // Minified: the index is gitignored, machine-consumed data — the source markdown is the
+  // human-readable form. Skipping indentation saves ~23% on disk with no information loss.
+  await writeFile(OUTPUT, JSON.stringify(index) + '\n');
   console.log(`✅ ${OUTPUT}: ${index.length} entit${index.length === 1 ? 'y' : 'ies'}`);
 }

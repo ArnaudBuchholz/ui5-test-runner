@@ -24,7 +24,10 @@ export const deriveId = (documentationRelativePath) => {
   return withoutExtension.replace(/\/index$/, '');
 };
 
-const sha256 = (content) => createHash('sha256').update(content).digest('hex');
+// A 16-hex-char (64-bit) sha prefix is ample to detect content changes across a doc set of this size
+// and keeps the generated index compact; it is a cache/change-detection key, not a security digest.
+const SHA_LENGTH = 16;
+const sha256 = (content) => createHash('sha256').update(content).digest('hex').slice(0, SHA_LENGTH);
 
 // Recursively collect all .md paths under `directory`, relative to `directory`.
 const collectMarkdown = async (directory) => {
