@@ -1,0 +1,5 @@
+- [ ] Clarify the use of keywords
+- [ ] batch should not be used when batchForwarded is present (or should it)
+- [ ] Breaking changes of v6
+- [ ] Report generators substitution
+- [ ] Dependencies management (can be part of your project)

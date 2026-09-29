@@ -7,4 +7,4 @@ batchForwarded: yes
 keywords:
   - npm
 ---
-Execution may fail if a dependency is missing.
+Prevent any package installation, execution *may* fail if a dependency is missing.

@@ -11,4 +11,4 @@ keywords:
   - batch
   - agent
 ---
-When enabled, a screenshot is captured after every OPA assertion and saved in the report directory. Enabling this option keeps the polling interval fast regardless of the OPA detection setting.
+When enabled, a screenshot is captured after every OPA assertion and saved in the report directory. Enabling this option keeps the agent polling interval fast regardless of the OPA detection setting.

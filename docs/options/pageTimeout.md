@@ -8,5 +8,5 @@ batchForwarded: yes
 keywords:
   - legacy
   - remote
-  - "#batch"
+  - batch
 ---
