@@ -1,9 +1,13 @@
 ---
 "#type": concept
-title: file type modifier
-summary: 
+title: file modifier
+summary: Modifier indicating that an fs-entry option must point to a file rather than a folder.
+keywords:
+  - file
+  - modifier
+  - fs-entry
 relations:
   affects:
-    - fs-entry
+    - options/types/fs-entry
 ---
-This modifier indicates that an `fs-entry` option is expected to point to a file.
+This modifier indicates that an [`fs-entry`](../fs-entry.md) option is expected to point to a **file**.

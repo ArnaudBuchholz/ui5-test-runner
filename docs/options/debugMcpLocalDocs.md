@@ -6,7 +6,6 @@ summary: use local docs/ directory instead of fetching from GitHub (development 
 keywords:
   - "#debug"
   - mcp
-default: "false"
 validation:
   - message: "this option requires --mcp"
     conditions:

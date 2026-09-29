@@ -97,7 +97,9 @@ const switchOptionFromToken = (
   if (argument.startsWith('--')) {
     return { option: switchOption(configuration, currentOption, argument.slice(2)) };
   }
-  return argument.startsWith('-') ? { option: switchOption(configuration, currentOption, argument.slice(1)) } : undefined;
+  return argument.startsWith('-')
+    ? { option: switchOption(configuration, currentOption, argument.slice(1)) }
+    : undefined;
 };
 
 const traverseArguments = (configuration: CommandLineConfiguration, argv: string[]) => {

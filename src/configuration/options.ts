@@ -118,8 +118,7 @@ export const options = [
     name: 'browserVisible',
     short: 'V',
     type: 'boolean',
-    description: 'control if the browser should be visible during the tests',
-    default: false
+    description: 'control if the browser should be visible during the tests'
   },
   {
     name: 'ci',
@@ -138,8 +137,7 @@ export const options = [
   {
     name: 'coverage',
     type: 'boolean',
-    description: 'enable code coverage',
-    default: false
+    description: 'enable code coverage'
   },
   {
     name: 'coverageCheckBranches',
@@ -221,8 +219,7 @@ export const options = [
   {
     name: 'debugMcpLocalDocs',
     type: 'boolean',
-    description: 'use local docs/ directory instead of fetching from GitHub (development only)',
-    default: false
+    description: 'use local docs/ directory instead of fetching from GitHub (development only)'
   },
   {
     name: 'driver',
@@ -323,8 +320,7 @@ export const options = [
     name: 'npmAllowInstallScripts',
     type: 'boolean',
     batchForwarded: true,
-    description: 'allow postinstall scripts when installing missing packages',
-    default: false
+    description: 'allow postinstall scripts when installing missing packages'
   },
   {
     name: 'npmInstall',
@@ -403,8 +399,7 @@ export const options = [
     type: 'boolean',
     browserExposed: true,
     batchForwarded: true,
-    description: 'take a screenshot after every OPA assertion',
-    default: false
+    description: 'take a screenshot after every OPA assertion'
   },
   {
     name: 'screenshotOnFailure',
@@ -485,10 +480,8 @@ export const defaults = {
   browserOptions: {},
   browserViewportHeight: 1080,
   browserViewportWidth: 1920,
-  browserVisible: false,
   ci: !process.stdout.isTTY,
   config: 'ui5-test-runner.json',
-  coverage: false,
   coverageCheckBranches: 0,
   coverageCheckFunctions: 0,
   coverageCheckLines: 0,
@@ -498,15 +491,12 @@ export const defaults = {
   coverageSettings: '.nycrc.json',
   coverageTempDir: '.nyc_output',
   cwd: process.cwd(),
-  debugMcpLocalDocs: false,
   driver: 'puppeteer',
-  npmAllowInstallScripts: false,
   npmInstall: 'global',
   npmInstallMinReleaseAge: 3,
   outputInterval: 30_000,
   parallel: 2,
   reportDir: 'report',
-  screenshot: false,
   screenshotOnFailure: true,
   screenshotTimeout: 5000,
   startTimeout: 30_000,

@@ -167,7 +167,7 @@ export class Npm {
     const { installArguments, reimportPath } = buildInstallPlan(strategy, moduleName, {
       globalRoot,
       prefix: configuration.npmInstallPrefix ?? '',
-      allowScripts: configuration.npmAllowInstallScripts,
+      allowScripts: !!configuration.npmAllowInstallScripts,
       minReleaseAge: configuration.npmInstallMinReleaseAge
     });
 

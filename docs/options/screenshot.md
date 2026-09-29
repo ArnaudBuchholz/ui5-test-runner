@@ -3,7 +3,6 @@
 title: screenshot
 type: boolean
 summary: take a screenshot after every OPA assertion
-default: "false"
 browserExposed: yes
 batchForwarded: yes
 keywords:

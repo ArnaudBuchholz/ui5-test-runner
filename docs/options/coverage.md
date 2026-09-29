@@ -3,7 +3,6 @@
 title: coverage
 type: boolean
 summary: enable code coverage
-default: "false"
 keywords:
   - coverage
   - legacy
