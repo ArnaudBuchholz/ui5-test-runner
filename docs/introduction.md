@@ -61,7 +61,7 @@ This mode imposes the fewest constraints: the runner does not need access to you
 
 Code coverage is also available in remote mode when your application server pre-instruments the source files — for example using `@ui5/middleware-code-coverage` with `@ui5/cli`.
 
-→ [Testing a running application](testing.md) — remote mode options, coverage configuration, and usage examples.
+→ [Testing a running application](modes/remote.md) — remote mode options, coverage configuration, and usage examples.
 
 ### Legacy mode — serve and test in one step
 
@@ -141,7 +141,7 @@ When the run finishes, the report is available at `report/report.html` in your c
 ### Running tests
 
 - [Command line usage](usage.md) — complete options reference and configuration file format
-- [Testing a running application](testing.md) — remote mode in depth, including coverage setup
+- [Testing a running application](modes/remote.md) — remote mode in depth, including coverage setup
 - [Legacy mode](modes/legacy.md) — when the runner serves the application itself
 - [Batch mode](modes/batch.md) — running multiple projects in one invocation
 
