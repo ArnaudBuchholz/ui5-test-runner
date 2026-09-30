@@ -73,3 +73,8 @@ In order to better organize and control the exeuction of batch items, multiple m
 One result per batch item
 
 > 🧠TODO anything missing ?
+
+## Design rationale
+
+The one-child-process-per-item orchestration and the IPC progress/skip signalling
+are motivated in [ADR-0006: Batch Mode Orchestration](../adr/0006-batch-mode-orchestration.md).

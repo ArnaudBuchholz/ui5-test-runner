@@ -47,6 +47,8 @@ When you run ui5-test-runner it:
 
 Nothing in your test files needs to change. The runner works with your existing QUnit and OPA5 pages as-is.
 
+> The dedicated-browser-context-per-page design that makes this reliable at scale is motivated in [ADR-0002: Parallel Browser Agents Architecture](adr/0002-parallel-browser-agents.md).
+
 ## The three modes
 
 ### Remote mode — test an already-running application

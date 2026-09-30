@@ -247,3 +247,7 @@ There are several requirements :
 * Once all projects are executed and coverage files copied, execute `npx nyc merge <MERGE_COVERAGE_FOLDER> <MERGE_COVERAGE_FOLDER>/overall/coverage.json`
 
 * Then, execute `npx nyc report --reporter=lcov --reporter=cobertura --temp-dir <MERGE_COVERAGE_FOLDER>/overall --report-dir <MERGE_COVERAGE_FOLDER>/coverage --nycrc-path <NYC_CONFIG_FILE>`
+
+## Design rationale
+
+How instrumentation, per-page collection, merging, and threshold enforcement fit together is motivated in [ADR-0009: Coverage Architecture](adr/0009-coverage-architecture.md).

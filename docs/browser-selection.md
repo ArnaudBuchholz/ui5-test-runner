@@ -70,3 +70,7 @@ Each driver module exports a `descriptor: BrowserDriverDescriptor` with:
 ## Future work
 
 Real browser selection for `playwright`, `webdriverio`, and `selenium-webdriver` — tracked per driver in `docs/browsers/<driver>.md`.
+
+## Design rationale
+
+The driver/browser split, the generic `json` option type, and the per-driver browser validation are motivated in [ADR-0013: Browser Selection Architecture](adr/0013-browser-selection.md).
