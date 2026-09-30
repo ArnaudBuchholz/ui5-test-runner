@@ -6,10 +6,14 @@ summary: forces CI mode (no interactive output)
 batchForwarded: yes
 default: "!process.stdout.isTTY"
 keywords:
-  - legacy
-  - remote
-  - batch
+  - cicd
+  - pipeline
+  - noninteractive
 relations:
+  affects:
+    - modes/legacy
+    - modes/remote
+    - modes/batch
   see-also:
     - options/reportDir
 ---

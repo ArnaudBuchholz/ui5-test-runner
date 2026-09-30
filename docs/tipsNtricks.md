@@ -1,3 +1,28 @@
+---
+"#type": task
+title: Tips & tricks
+summary: Practical tips for troubleshooting, performance tuning, and IDE integration
+keywords:
+  - tips
+  - tricks
+  - performance
+  - troubleshooting
+  - ide
+  - parallelism
+relations:
+  requires:
+    - options/parallel
+    - options/pageFilter
+    - options/browserVisible
+    - options/debugKeepBrowserOpen
+    - options/splitOpa
+    - options/screenshotOnFailure
+    - options/pageParams
+    - options/browser
+  see-also:
+    - debug
+---
+
 ## Tips & tricks
 
 ### 🐞 Troubleshooting

@@ -1,8 +1,18 @@
+---
+"#type": mode
+title: Batch mode
+summary: execute more than one test project in a single run
+keywords:
+  - batch
+  - multi-project
+  - parallel
+---
+
 # Batch mode
 
 ## Overview
 
-With version `5.5.0`, `ui5-test-runer` can execute more than one test project in a single run.
+Since version `5.5.0`, `ui5-test-runer` can execute more than one test project in a single run.
 
 This mode is activated when the `--batch` parameter is used :
 

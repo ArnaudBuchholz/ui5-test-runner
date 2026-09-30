@@ -1,3 +1,21 @@
+---
+"#type": task
+title: Mapping v1 settings to v2
+summary: Migration guide mapping v1 option syntax to v2/v5 CLI flags and configuration keys
+keywords:
+  - migration
+  - mapping
+  - v1
+  - v2
+  - upgrade
+  - options
+relations:
+  breaking-in:
+    - v2
+  see-also:
+    - usage
+---
+
 # Mapping v1 settings to v2
 
 * v1 syntax is `-<exampleOption>:<value>`, configuration file keys are identical

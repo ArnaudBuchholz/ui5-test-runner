@@ -5,7 +5,11 @@ type: string
 summary: path of the testsuite file
 default: "'test/testsuite.qunit.html'"
 keywords:
-  - legacy
+  - suite
+  - qunit
+relations:
+  affects:
+    - modes/legacy
 ---
 Relative URL of the UI5 testsuite file, resolved against the served
 [webapp](./webapp.md).

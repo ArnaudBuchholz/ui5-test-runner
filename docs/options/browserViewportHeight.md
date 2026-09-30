@@ -9,7 +9,10 @@ typeModifiers:
 summary: height of the browser viewport in pixels
 default: "1080"
 keywords:
-  - legacy
-  - remote
-  - batch
+  - viewport
+  - resolution
+relations:
+  affects:
+    - modes/legacy
+    - modes/remote
 ---

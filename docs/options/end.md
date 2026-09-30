@@ -4,10 +4,13 @@ title: end
 type: string
 summary: command to be executed after the tests
 keywords:
-  - legacy
-  - remote
-  - batch
+  - hook
+  - teardown
+  - command
 relations:
+  affects:
+    - modes/legacy
+    - modes/remote
   see-also:
     - options/cwd
 ---

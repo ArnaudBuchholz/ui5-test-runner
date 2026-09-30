@@ -1,3 +1,22 @@
+---
+"#type": task
+title: Testing a running application
+summary: Step-by-step guide to test an already-served UI5 application in remote mode
+keywords:
+  - remote
+  - testing
+  - url
+  - running-application
+  - step-by-step
+relations:
+  requires:
+    - options/url
+    - options/port
+  see-also:
+    - modes/remote
+    - coverage
+---
+
 # Testing a "remote" application
 
 ## Overview

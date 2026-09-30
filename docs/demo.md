@@ -1,3 +1,27 @@
+---
+"#type": task
+title: How to demo
+summary: Guided demo walking through legacy, remote, and capabilities modes with a sample UI5 app
+keywords:
+  - demo
+  - walkthrough
+  - legacy
+  - remote
+  - capabilities
+relations:
+  requires:
+    - options/port
+    - options/serveOnly
+    - options/ui5
+    - options/coverage
+    - options/parallel
+    - options/keepAlive
+    - options/url
+  see-also:
+    - modes/legacy
+    - modes/remote
+---
+
 # 🖥️ How to demo
 
 > ⓘ The repository `training-ui5con18-opa` contains a sample UI5 application with qUnit and OPA tests. The project was modified to support many execution modes, including [online](https://arnaudbuchholz.github.io/training-ui5con18-opa/webapp/), local with `@ui5/cli` or with a standalone web server (`reserve`).

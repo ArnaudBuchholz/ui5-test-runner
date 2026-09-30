@@ -5,6 +5,10 @@ short: k
 type: boolean
 summary: keep the server alive
 keywords:
-  - legacy
-  - remote
+  - server
+  - persist
+relations:
+  affects:
+    - modes/legacy
+    - modes/remote
 ---

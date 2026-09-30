@@ -3,15 +3,18 @@
 title: startWaitUrl
 type: url
 summary: URL to poll after the start command is executed
-keywords:
-  - legacy
-  - remote
-  - batch
 validation:
   - message: "requires start"
     conditions:
       - "start !== undefined"
+keywords:
+  - poll
+  - healthcheck
+  - ready
 relations:
+  affects:
+    - modes/legacy
+    - modes/remote
   see-also:
     - options/start
     - options/startWaitMethod

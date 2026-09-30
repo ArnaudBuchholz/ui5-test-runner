@@ -1,3 +1,21 @@
+---
+"#type": concept
+title: Options reference
+summary: Current (v6) reference table of all options with CLI flags, shortcuts, and value types
+keywords:
+  - options
+  - reference
+  - cli
+  - flags
+  - v6
+  - current
+relations:
+  breaking-in:
+    - v6
+  supersedes:
+    - usage
+---
+
 |Option|CLI arg|CLI shorcut|Type|Description|
 |---|---|---|---|---|
 |[cwd](options/cwd.md)|--cwd|-c|fs-entry|set working directory|

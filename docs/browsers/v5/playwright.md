@@ -1,3 +1,21 @@
+---
+"#type": concept
+title: playwright (v5)
+summary: "v5: legacy Playwright browser instantiation command ($/playwright.js). Kept for migration; see the v6 playwright driver for the current model"
+keywords:
+  - playwright
+  - chromium
+  - firefox
+  - webkit
+  - driver
+relations:
+  breaking-in:
+    - v6
+  see-also:
+    - browsers/v5/browser
+    - browsers/v6/playwright
+---
+
 # playwright
 
 ## Capabilities

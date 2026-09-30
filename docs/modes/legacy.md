@@ -1,3 +1,13 @@
+---
+"#type": mode
+title: Legacy mode
+summary: serve the application from an inner web server and test it
+keywords:
+  - legacy
+  - serve
+  - webapp
+---
+
 # Serving and testing the application *(a.k.a. legacy mode)*
 
 ## Overview

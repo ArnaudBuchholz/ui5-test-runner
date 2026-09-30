@@ -1,3 +1,28 @@
+---
+"#type": concept
+title: Coverage extraction
+summary: How ui5-test-runner instruments code and produces coverage reports in legacy and remote mode
+keywords:
+  - coverage
+  - nyc
+  - istanbul
+  - instrumentation
+  - code-coverage
+relations:
+  see-also:
+    - options/coverage
+    - options/coverageSettings
+    - options/coverageTempDir
+    - options/coverageReportDir
+    - options/coverageSourceDir
+    - options/lib
+    - options/webapp
+    - options/url
+  affects:
+    - modes/legacy
+    - modes/remote
+---
+
 # Coverage extraction
 
 ## Overview

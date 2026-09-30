@@ -5,6 +5,11 @@ type: boolean
 short: s
 summary: serve only
 keywords:
-  - legacy
+  - serve
+  - server
+  - webapp
+relations:
+  affects:
+    - modes/legacy
 ---
 Use this option to leverage the internal web server of the runner and access the application. No tests are executed.

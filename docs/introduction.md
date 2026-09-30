@@ -1,3 +1,24 @@
+---
+"#type": concept
+title: Introduction
+summary: "Overview of ui5-test-runner: what it is, the problem it solves, its three modes, and how to get started"
+keywords:
+  - introduction
+  - overview
+  - getting-started
+  - ui5
+  - qunit
+  - opa5
+relations:
+  see-also:
+    - modes/legacy
+    - modes/remote
+    - modes/batch
+    - usage
+    - coverage
+    - browsers/v6/browser
+---
+
 # Introduction
 
 ## What is ui5-test-runner?
@@ -77,18 +98,18 @@ No changes to your test files are required in either case.
 
 ## Browser support
 
-The automation library is configurable. ui5-test-runner ships with built-in adapters for the most common browser automation libraries:
+The automation library is configurable. ui5-test-runner ships with built-in drivers for the most common browser automation libraries:
 
-| Adapter | Browsers |
+| Driver | Browsers |
 |---|---|
 | `puppeteer` *(default)* | Chrome, Firefox |
-| `playwright` | Chrome, Firefox, WebKit |
-| `selenium-webdriver` | Chrome, Firefox, Edge |
-| `webdriverio` | Chrome, Firefox |
+| `playwright` | Chromium *(Firefox, WebKit planned)* |
+| `selenium-webdriver` | Chrome *(Firefox, Edge, Safari planned)* |
+| `webdriverio` | Chrome *(Firefox, Edge, Safari planned)* |
 
-The default is `puppeteer`. Switch with `--browser playwright` or the equivalent key in your configuration file.
+The default is `puppeteer`. Switch with `--driver playwright` or the equivalent key in your configuration file.
 
-→ [Browser adapters](browsers/browser.md) — full comparison of adapter capabilities, setup instructions, and selection guidance.
+→ [Drivers and browsers](browsers/v6/browser.md) — full comparison of driver capabilities, setup instructions, and selection guidance.
 
 ## Quickstart
 
@@ -126,8 +147,8 @@ When the run finishes, the report is available at `report/report.html` in your c
 
 ### Browsers
 
-- [Browser adapters](browsers/browser.md) — how to select and configure an automation library
-- [Puppeteer](browsers/puppeteer.md) · [Playwright](browsers/playwright.md) · [Selenium WebDriver](browsers/selenium-webdriver.md) · [WebdriverIO](browsers/webdriverio.md) · [jsdom](browsers/jsdom.md)
+- [Drivers and browsers](browsers/v6/browser.md) — how to select and configure an automation library
+- [Puppeteer](browsers/v6/puppeteer.md) · [Playwright](browsers/v6/playwright.md) · [Selenium WebDriver](browsers/v6/selenium-webdriver.md) · [WebdriverIO](browsers/v6/webdriverio.md)
 
 ### Results and coverage
 

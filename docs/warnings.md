@@ -1,3 +1,26 @@
+---
+"#type": concept
+title: Warnings
+summary: Reference table of runner warning codes and how to resolve each one
+keywords:
+  - warnings
+  - warning-codes
+  - PKGVRS
+  - COVMIS
+  - diagnostics
+relations:
+  see-also:
+    - options/cwd
+    - options/alternateNpmPath
+    - options/coverage
+    - options/url
+    - options/if
+    - coverage
+  affects:
+    - modes/legacy
+    - modes/batch
+---
+
 # ⚠️ Warnings
 
 | Code | Reason |

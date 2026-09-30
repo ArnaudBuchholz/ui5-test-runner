@@ -24,15 +24,13 @@ A self-sufficient test runner for UI5 applications enabling parallel execution o
 * [⚠️ Warnings](warnings.md)
 * [Tips & tricks](tipsNtricks.md)
 * [How to demo](demo.md)
-* [Browser instantiation command](browsers/browser.md)
+* [Drivers and browsers](browsers/v6/browser.md)
 
-|Automation Library|Browser(s)|Screenshots|Scripts|Traces|
+|Driver|Browser(s)|Screenshots|Scripts|Traces|
 |-|-|-|-|-|
-|[puppeteer](puppeteer.md)|`chrome`, `firefox`|✔️|✔️1️⃣|✔️|
-|[jsdom](jsdom.md)|*(none)*|❌|✔️|✔️|
-|[playwright](playwright.md)|`chrome`, `firefox`, `webkit`|✔️|✔️|✔️|
-|[selenium-webdriver](selenium-webdriver.md)|`chrome`, `firefox`, `edge`|✔️|✔️1️⃣|✔️1️⃣|
-|[webdriver.io](webdriverio.md)|`chrome`, `firefox`|✔️|✔️|✔️|
-|1️⃣ `chrome`|
+|[puppeteer](browsers/v6/puppeteer.md)|`chrome`, `firefox`|✔️|✔️|✔️|
+|[playwright](browsers/v6/playwright.md)|`chromium` *(firefox, webkit planned)*|✔️|✔️|✔️|
+|[webdriver.io](browsers/v6/webdriverio.md)|`chrome` *(firefox, edge, safari planned)*|✔️|✔️|✔️|
+|[selenium-webdriver](browsers/v6/selenium-webdriver.md)|`chrome` *(firefox, edge, safari planned)*|✔️|✔️|✔️|
 
 * [Mapping v1 settings to v2](mapping_v1_v2.md)

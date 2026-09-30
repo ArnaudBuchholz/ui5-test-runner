@@ -8,7 +8,7 @@ summary: read and dump log file using jsonl format
 dependsOn: cwd
 keywords:
   - debug
-  - mode
+  - trace
 validation:
   - message: "this option cannot be combined with other mode options"
     conditions:

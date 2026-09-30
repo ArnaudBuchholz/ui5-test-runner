@@ -5,8 +5,11 @@ type: library-mapping
 multiple: yes
 summary: Library mapping
 keywords:
-  - legacy
-  - remote
+  - library
+  - mapping
+relations:
+  affects:
+    - modes/legacy
 ---
 Declares a [library-mapping](./types/library-mapping.md), serving a UI5 resources sub-folder from a local source folder instead of fetching it remotely.
 

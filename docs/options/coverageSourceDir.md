@@ -7,8 +7,11 @@ typeModifiers:
 summary: directory containing the source files used for coverage reporting
 dependsOn: cwd
 keywords:
-  - remote
+  - coverage
+  - source
 relations:
+  affects:
+    - modes/remote
   see-also:
     - options/webapp
     - options/coverageSettings

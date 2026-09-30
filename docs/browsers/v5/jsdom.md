@@ -1,3 +1,20 @@
+---
+"#type": concept
+title: jsdom (v5)
+summary: "v5: legacy jsdom browser instantiation command ($/jsdom.js). Not supported in v6 — kept for migration reference only"
+keywords:
+  - jsdom
+  - headless
+  - node
+  - driver
+relations:
+  breaking-in:
+    - v6
+  see-also:
+    - browsers/v5/browser
+    - browsers/v6/browser
+---
+
 # jsdom
 
 ## Capabilities

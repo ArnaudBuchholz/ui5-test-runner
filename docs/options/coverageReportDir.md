@@ -10,7 +10,9 @@ default: "'coverage'"
 dependsOn: cwd
 keywords:
   - coverage
-  - legacy
-  - remote
+relations:
+  affects:
+    - modes/legacy
+    - modes/remote
 ---
 Receives the final HTML, LCOV, and Cobertura output produced by istanbul-lib-report. The directory is wiped before each new report is written.

@@ -7,8 +7,13 @@ summary: set working directory
 default: process.cwd()
 defaultLabel: current working directory
 keywords:
-  - legacy
-  - remote
+  - directory
+  - folder
+  - chdir
+relations:
+  affects:
+    - modes/legacy
+    - modes/remote
 ---
 This option gives the information about the current working directory. Many other options depend on it.
 

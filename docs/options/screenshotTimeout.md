@@ -6,7 +6,11 @@ summary: maximum time allowed to take a screenshot
 default: "5000"
 batchForwarded: yes
 keywords:
-  - legacy
-  - remote
-  - batch
+  - screenshot
+  - timeout
+relations:
+  affects:
+    - modes/legacy
+    - modes/remote
+    - modes/batch
 ---

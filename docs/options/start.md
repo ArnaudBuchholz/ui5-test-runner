@@ -4,10 +4,13 @@ title: start
 type: string
 summary: command to be executed before the tests
 keywords:
-  - legacy
-  - remote
-  - batch
+  - hook
+  - setup
+  - command
 relations:
+  affects:
+    - modes/legacy
+    - modes/remote
   see-also:
     - options/cwd
     - options/startWaitUrl

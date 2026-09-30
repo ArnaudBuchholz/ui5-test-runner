@@ -6,7 +6,10 @@ type: timeout
 summary: fails a page if it takes longer than this timeout
 batchForwarded: yes
 keywords:
-  - legacy
-  - remote
-  - batch
+  - timeout
+relations:
+  affects:
+    - modes/legacy
+    - modes/remote
+    - modes/batch
 ---

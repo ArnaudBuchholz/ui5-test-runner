@@ -6,7 +6,11 @@ typeModifiers:
   - positive
 summary: port to use
 keywords:
-  - legacy
+  - server
+  - http
+relations:
+  affects:
+    - modes/legacy
 ---
 Sets the port the local server listens on.
 

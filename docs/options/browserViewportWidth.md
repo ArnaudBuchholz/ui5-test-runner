@@ -9,7 +9,10 @@ typeModifiers:
 summary: width of the browser viewport in pixels
 default: "1920"
 keywords:
-  - legacy
-  - remote
-  - batch
+  - viewport
+  - resolution
+relations:
+  affects:
+    - modes/legacy
+    - modes/remote
 ---

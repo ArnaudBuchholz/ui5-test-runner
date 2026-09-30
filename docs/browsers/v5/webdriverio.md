@@ -1,3 +1,21 @@
+---
+"#type": concept
+title: webdriver.io (v5)
+summary: "v5: legacy WebdriverIO browser instantiation command ($/webdriverio.js). Kept for migration; see the v6 webdriver.io driver for the current model"
+keywords:
+  - webdriverio
+  - webdriver
+  - chrome
+  - firefox
+  - driver
+relations:
+  breaking-in:
+    - v6
+  see-also:
+    - browsers/v5/browser
+    - browsers/v6/webdriverio
+---
+
 # webdriver.io
 
 ## Capabilities

@@ -5,13 +5,16 @@ type: boolean
 summary: enable code coverage
 keywords:
   - coverage
-  - legacy
-  - remote
+  - nyc
+  - istanbul
 validation:
   - message: "at least one of webapp or coverageSourceDir must be set"
     conditions:
       - "!coverage || webapp !== '' || coverageSourceDir !== ''"
 relations:
+  affects:
+    - modes/legacy
+    - modes/remote
   see-also:
     - options/webapp
     - options/coverageSourceDir

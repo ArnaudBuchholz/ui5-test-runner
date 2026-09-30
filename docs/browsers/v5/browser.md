@@ -1,3 +1,26 @@
+---
+"#type": concept
+title: Browser instantiation command (v5)
+summary: "v5: the legacy fork-based contract a browser instantiation command implements (probing, executing, screenshots, stopping). Superseded in v6 by in-process drivers"
+keywords:
+  - browser
+  - instantiation
+  - driver
+  - probe
+  - capabilities
+  - fork
+relations:
+  breaking-in:
+    - v6
+  see-also:
+    - browsers/v6/browser
+    - browsers/v5/puppeteer
+    - browsers/v5/playwright
+    - browsers/v5/selenium-webdriver
+    - browsers/v5/webdriverio
+    - browsers/v5/jsdom
+---
+
 # Browser instantiation command
 
 ## Overview

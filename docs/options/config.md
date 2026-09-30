@@ -9,8 +9,13 @@ summary: read options from a configuration file
 default: "'ui5-test-runner.json'"
 dependsOn: cwd
 keywords:
-  - legacy
-  - remote
+  - options
+  - json
+  - file
+relations:
+  affects:
+    - modes/legacy
+    - modes/remote
 ---
 The configuration file is a JSON object whose property names match option names in lowerCamelCase. It is applied **before** command-line parameters, so CLI values override the file.
 

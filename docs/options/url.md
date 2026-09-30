@@ -6,5 +6,10 @@ type: url
 multiple: yes
 summary: URL of the page to test
 keywords:
-  - remote
+  - page
+  - endpoint
+  - address
+relations:
+  affects:
+    - modes/remote
 ---

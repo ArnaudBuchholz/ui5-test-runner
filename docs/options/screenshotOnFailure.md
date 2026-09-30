@@ -6,8 +6,12 @@ summary: take a screenshot when a test fails
 default: "true"
 batchForwarded: yes
 keywords:
-  - legacy
-  - remote
-  - batch
+  - screenshot
+  - failure
+relations:
+  affects:
+    - modes/legacy
+    - modes/remote
+    - modes/batch
 ---
 The screenshot is captured before the page is closed, so the failed state is preserved.

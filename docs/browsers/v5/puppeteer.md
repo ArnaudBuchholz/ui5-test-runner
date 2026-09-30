@@ -1,3 +1,21 @@
+---
+"#type": concept
+title: puppeteer (v5)
+summary: "v5: legacy Puppeteer browser instantiation command ($/puppeteer.js). Kept for migration; see the v6 puppeteer driver for the current model"
+keywords:
+  - puppeteer
+  - chrome
+  - firefox
+  - driver
+  - browser
+relations:
+  breaking-in:
+    - v6
+  see-also:
+    - browsers/v5/browser
+    - browsers/v6/puppeteer
+---
+
 # puppeteer
 
 ## Capabilities

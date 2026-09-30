@@ -1,4 +1,23 @@
-﻿# Command line usage
+---
+"#type": concept
+title: Command line usage
+summary: Version 5 command-line options reference and configuration file format, kept for migration
+keywords:
+  - usage
+  - cli
+  - options
+  - command-line
+  - reference
+  - v5
+relations:
+  breaking-in:
+    - v6
+  see-also:
+    - mapping_v1_v2
+    - options
+---
+
+# Command line usage
 
 Use `ui5-test-runner --help` to display the list of options. The mapping between v1 options and v2 can be found [here](mapping_v1_v2.md).
 

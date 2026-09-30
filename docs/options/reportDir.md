@@ -9,9 +9,13 @@ summary: directory to output test reports
 default: "'report'"
 dependsOn: cwd
 keywords:
-  - legacy
-  - remote
+  - report
+  - output
+  - directory
 relations:
+  affects:
+    - modes/legacy
+    - modes/remote
   see-also:
     - options/cwd
 ---

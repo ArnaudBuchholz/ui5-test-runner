@@ -1,3 +1,22 @@
+---
+"#type": concept
+title: Browser Selection Design
+summary: How --driver and --browser separate the automation library from the launched browser, and which combinations are valid
+keywords:
+  - browser
+  - driver
+  - puppeteer
+  - playwright
+  - browser-selection
+  - automation
+relations:
+  see-also:
+    - options/driver
+    - options/browser
+    - options/browserOptions
+    - browsers/v6/browser
+---
+
 # Browser Selection Design
 
 ## Overview

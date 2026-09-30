@@ -6,8 +6,13 @@ type: boolean
 summary: stop the whole execution after the first failing page
 batchForwarded: yes
 keywords:
-  - legacy
-  - remote
-  - batch
+  - bail
+  - abort
+  - stop
+relations:
+  affects:
+    - modes/legacy
+    - modes/remote
+    - modes/batch
 ---
 This option does not ripple across batch instances.
