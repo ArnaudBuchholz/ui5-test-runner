@@ -156,13 +156,13 @@ describe('checkIfLatestVersion', () => {
     expect(logger.warn).not.toHaveBeenCalled();
   });
 
-  it('warns with [PKGVRS] when a newer version is available', async () => {
+  it('warns when a newer version is available', async () => {
     mockResolveLocal();
     vi.mocked(FileSystem.readFile).mockResolvedValue(JSON.stringify({ version: '1.0.0' }));
     vi.mocked(Http.getAsText).mockResolvedValue(JSON.stringify({ version: '2.0.0' }));
     await Npm.checkIfLatestVersion(NO_CONFIGURATION, 'some-module');
     expect(logger.warn).toHaveBeenCalledWith(
-      expect.objectContaining({ message: expect.stringContaining('[PKGVRS]') as string })
+      expect.objectContaining({ message: expect.stringContaining('Latest version') as string })
     );
   });
 

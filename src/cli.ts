@@ -17,7 +17,7 @@ try {
   if (await isIfEvaluatedAsTrue(configuration)) {
     await execute(configuration);
   } else {
-    console.log('⚠️ [SKIPIF] Skipping execution (--if)');
+    console.log('/!\\ Skipping execution (--if)');
     sendToParentProcess({ type: 'skip' });
   }
 } catch (error) {

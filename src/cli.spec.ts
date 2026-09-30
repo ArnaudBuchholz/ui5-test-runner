@@ -67,7 +67,7 @@ describe('cli', () => {
 
     it('does not log the skip message', async () => {
       await runCli();
-      expect(consoleLogSpy).not.toHaveBeenCalledWith(expect.stringContaining('SKIPIF'));
+      expect(consoleLogSpy).not.toHaveBeenCalledWith(expect.stringContaining('Skipping execution'));
     });
 
     it('does not send a skip message to parent process', async () => {
@@ -88,7 +88,7 @@ describe('cli', () => {
 
     it('logs the skip message', async () => {
       await runCli();
-      expect(consoleLogSpy).toHaveBeenCalledWith('⚠️ [SKIPIF] Skipping execution (--if)');
+      expect(consoleLogSpy).toHaveBeenCalledWith('/!\\ Skipping execution (--if)');
     });
 
     it('sends a skip message to parent process', async () => {

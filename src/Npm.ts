@@ -234,7 +234,7 @@ export class Npm {
       logger.info({ source: 'npm', message: `Installed version of ${moduleName} is ${installedVersion}` });
       const latestVersion = await this.getLatestVersion(moduleName);
       if (latestVersion !== installedVersion) {
-        logger.warn({ source: 'npm', message: `[PKGVRS] Latest version of ${moduleName} is ${latestVersion}` });
+        logger.warn({ source: 'npm', message: `Latest version of ${moduleName} is ${latestVersion}` });
       }
     } catch (error) {
       logger.error({ source: 'npm', message: 'Failed in checkIfLatestVersion', error });
