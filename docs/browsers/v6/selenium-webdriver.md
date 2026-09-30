@@ -17,7 +17,7 @@ relations:
     - browser-selection
 ---
 
-# selenium-webdriver driver
+# `selenium-webdriver` driver
 
 Select with `--driver selenium-webdriver`. The
 [selenium-webdriver](https://www.npmjs.com/package/selenium-webdriver) library is

@@ -17,7 +17,7 @@ relations:
     - browser-selection
 ---
 
-# playwright driver
+# `playwright` driver
 
 Select with `--driver playwright`. The
 [playwright](https://www.npmjs.com/package/playwright) library is loaded

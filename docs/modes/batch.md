@@ -12,12 +12,14 @@ keywords:
 
 ## Overview
 
-Since version `5.5.0`, `ui5-test-runer` can execute more than one test project in a single run.
+Since version `5.5.0`, `ui5-test-runer` can execute more than one test project in a single run. 
 
-This mode is activated when the `--batch` parameter is used :
+This mode is activated when the [`--batch`](../options/batch.md) parameter is used :
 
 * The initial command is called the *main* command
 * Each executed test is named a *batch item*
+
+> 🧠TODO we might merge the ## `--batch` parameter section with the batch.md description. It is not worth repeating it here.
 
 ## `--batch` parameter 
 
@@ -39,11 +41,6 @@ Once all the values are processed, `ui5-test-runner` starts the execution of all
 
 ## Execution
 
-Unlike the normal execution flow where the runner ensures :
-
-* the parallel execution of several pages (QUnit or OPA),
-* the generation of a single report.
-
 The batch mode implies the parallel execution of **multiple batch items**.
 
 > ⚠️ Assuming the defaut value for `--parallel` is 2, it means that 2 batch items are executed in parallel which, themselves, execute 2 test pages in parallel. That makes a **total of 4 browsers** executed in parallel.
@@ -51,25 +48,28 @@ The batch mode implies the parallel execution of **multiple batch items**.
 Each individual item execution generates its own report information (including coverage). Also, the main output is slightly different.
 
 ```batch
-✔️  Legacy JS Sample (JS_LEGACY)
-✔️  JSDOM browser (JSDOM)
-✔️  Legacy JS Sample with coverage (JS_LEGACY_COVERAGE)
-✔️  Legacy JS Sample with junit XML report (JS_LEGACY_JUNIT_REPORT)
-[░░░░░░░░░░]   0% Legacy JS Sample (no script injection) (JS_LEGACY_NO_SCRIPT)
-[-starting-]      Legacy JS Sample accessed using --url (JS_LEGACY_REMOTE)
-⠹ Running batch items...
+   00:08 succeeded Legacy JS Sample with batch timeout (JS_LEGACY_BATCH_TIMEOUT)
+   00:14 succeeded Legacy JS Sample (JS_LEGACY)
+   00:17 succeeded Legacy JS Sample with coverage (JS_LEGACY_COVERAGE)
+   00:22 succeeded Legacy JS Sample lib with coverage (JS_LEGACY_COVERAGE_LIB)
+   [##########]100% Legacy JS Sample with coverage threshold failure (JS_LEGACY_COVERAGE_FAIL)
+   [###-------] 33% Legacy JS Sample with global timeout (JS_LEGACY_GLOBAL_TIMEOUT)
+[/][#---------] 10% Executing batch items
 ```
 
-> Example of batch output
+In order to better organize and control the exeuction of batch items, multiple mechanisms exist :
 
-New parameters and behaviors are introduced to control the execution :
+* some options are configured to be forwarded from the main command to the batch item, they are tagged with `batchForwarded: yes`
 
-* `--report-dir`: when used in the main command, all batch items report folders are overridden to generate a folder under the main `--report-dir` :
+> 🧠TODO check the following statement
+* the batch item report dir is the main command one concatenated with the batch id (see [--batch-id])
 
-* `--batch-id`: if provided in a configuration file, this conditions the sub folder name used under the overridden `--report-dir` *(otherwise a hash is computed based on the batch item folder / file path)*.
-
-* `--batch-label`: if provided in a configuration file, the label is used in the main command output *(otherwise the folder / file path is being used)*.
-
+> 🧠TODO here again I don't see the value of repeating the description, it should be merged with if.md and only refer that this option can be used to control execution
 * `--if`: if provided in a configuration file, it conditions the execution of the batch item. The expression can test any environment variable (for instance: `--if "ALL_TESTS === 'true'"`) or use the Node.js' major version (`--if "NODE_MAJOR_VERSION >= 20"`).
 
-* Some parameters are forwarded to the batch item execution when specified in the main command, check the list of options and look for the batchForwarded setting.
+## Report format
+
+> 🧠TODO elaborate
+One result per batch item
+
+> 🧠TODO anything missing ?

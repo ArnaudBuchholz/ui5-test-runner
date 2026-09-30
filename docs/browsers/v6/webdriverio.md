@@ -17,7 +17,7 @@ relations:
     - browser-selection
 ---
 
-# webdriver.io driver
+# `webdriver.io` driver
 
 Select with `--driver webdriverio`. The
 [webdriverio](https://www.npmjs.com/package/webdriverio) library is loaded

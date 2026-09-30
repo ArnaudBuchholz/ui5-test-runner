@@ -17,7 +17,7 @@ relations:
     - browser-selection
 ---
 
-# puppeteer driver
+# `puppeteer` driver
 
 Select with `--driver puppeteer` (this is the **default driver**). The
 [puppeteer](https://www.npmjs.com/package/puppeteer) library is loaded in-process

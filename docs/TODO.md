@@ -1,5 +1,11 @@
+- [ ] Should we include ADR documents in the knowledge base ?
+- [ ] Is there a way to create the equivalent of a skill in the knowledge base (how to create options, how to troubleshoot)
 - [ ] Clarify the use of keywords
+- [ ] Should we normalize markdown files so that they all have a title and a CR after ---
+- [ ] check if we should refer options with their name (cwd) or their cli equivalent (--cwd)
 - [ ] batch should not be used when batchForwarded is present (or should it)
 - [ ] Breaking changes of v6
+- [ ] Report format (CTRF, what it contains, screenshots and errors)
 - [ ] Report generators substitution
 - [ ] Dependencies management (can be part of your project)
+- [ ] Normalize NOTES
