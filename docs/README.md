@@ -4,9 +4,7 @@
 
 A self-sufficient test runner for UI5 applications enabling parallel execution of tests.
 
-* Serve the application with `@ui5/cli`, then run : <br/> `ui5-test-runner --port 8081 --url http://localhost:8080/test/testsuite.qunit.html`,
-
-* Follow the progress of the tests using [`http://localhost:8081/_/progress.html`](http://localhost:8081/_/progress.html),
+* Serve the application with `@ui5/cli`, then run : <br/> `ui5-test-runner --url http://localhost:8080/test/testsuite.qunit.html`,
 
 * Report is generated in the `report/` folder.
 
@@ -19,9 +17,8 @@ A self-sufficient test runner for UI5 applications enabling parallel execution o
 * [Command line usage](usage.md)
 * [Testing a "remote" application](modes/remote.md)
 * [Coverage extraction](coverage.md)
-* [Serving and testing the application *(a.k.a. legacy mode)*](legacy.md)
-* [🆕5.5.0 Batch mode](modes/batch.md)
-* [⚠️ Warnings](warnings.md)
+* [Serving and testing the application *(a.k.a. legacy mode)*](modes/legacy.md)
+* [Batch mode](modes/batch.md)
 * [Tips & tricks](tipsNtricks.md)
 * [How to demo](demo.md)
 * [Drivers and browsers](browsers/v6/browser.md)
@@ -34,3 +31,4 @@ A self-sufficient test runner for UI5 applications enabling parallel execution o
 |[selenium-webdriver](browsers/v6/selenium-webdriver.md)|`chrome` *(firefox, edge, safari planned)*|✔️|✔️|✔️|
 
 * [Mapping v1 settings to v2](mapping_v1_v2.md)
+* [V6 breaking changes](v6_breaking_changes.md)

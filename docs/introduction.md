@@ -154,7 +154,6 @@ When the run finishes, the report is available at `report/report.html` in your c
 
 - [Code coverage](coverage.md) — extracting coverage in both legacy and remote mode
 - [Report output](report-output.md) — report structure, the CTRF format, and CI integration
-- [Warnings reference](warnings.md) — what each warning code means and how to resolve it
 
 ### Operations
 

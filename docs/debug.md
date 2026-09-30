@@ -20,7 +20,6 @@ relations:
     - options/parallel
   see-also:
     - tipsNtricks
-    - warnings
     - coverage
 ---
 
@@ -70,17 +69,11 @@ Every run records structured traces. To inspect them:
   [`--log-filter`](./options/logFilter.md), a `punyexpr` expression evaluated
   against each log entry.
 
-## Warnings
-
-If the run prints a warning code (for example `PKGVRS`, `COVMIS`, or `BATCHM`),
-look it up in the [Warnings reference](./warnings.md) for what it means and how
-to resolve it.
-
 ## Coverage looks wrong
 
 Zero-percent files, missing files, or an aggregate that seems off are usually
 explained by how instrumentation works — see [Coverage extraction](./coverage.md)
-for the forced overrides and the `SKPNYC` / `COVMIS` / `COVALL` cases.
+for the forced overrides and the remote-coverage cases.
 
 ## Using the troubleshooting workflow
 
