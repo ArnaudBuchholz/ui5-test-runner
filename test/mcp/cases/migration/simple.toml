@@ -1,0 +1,15 @@
+[user]
+question="""
+How do I migrate to ui5-test-runner 6 ?
+"""
+
+[files]
+"package.json" = """
+...scripts: 'test": "ui5-test-runner --coverage"
+...ui5-test-runner: 5
+"""
+
+
+[expected]
+v6 = "It should propose to update the package to version 6"
+command = "It should explain that the command is compatible and does not require migration"
