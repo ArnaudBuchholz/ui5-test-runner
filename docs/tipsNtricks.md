@@ -23,9 +23,9 @@ relations:
     - debug
 ---
 
-## Tips & tricks
+# Tips & tricks
 
-### 🐞 Troubleshooting
+## 🐞 Troubleshooting
 
 > When the tests are *timing out* or generate *unexpected* results, the following options might help to gather more information.
 
@@ -35,7 +35,7 @@ relations:
 
 * When the browser is visible, use the option `--debug-keep-browser-open` to prevent the browser closing when the tests are completed: it gives access to the console log and the network traces.
 
-### ⛑ Problems
+## ⛑ Problems
 
 * Since version 17, node prefers IP v6 over IP v4. This may **prevent** the process to properly connect to `localhost`. Either prefer url with `http://127.0.0.1` or use the environment variable `NODE_OPTIONS=--dns-result-order=ipv4first`.
 
@@ -47,13 +47,13 @@ relations:
 
 * For language testing, it is recommended to use `--page-params` with `sap-ui-language=DE` (for instance).
 
-### 👟 Performances
+## 👟 Performances
 
 * The runner takes a screenshot for **every** OPA assertion (`Opa5.assert.ok`) : disabling screenshots will speed up the tests. Yet, if a test fails, a screenshot is captured after the error (unless using `--screenshot-on-failure false`).
 
 * To benefit from **parallelization**, use the option `--split-opa` (available from version `4.5.0`) : it automatically splits the OPA journeys into different test pages.
 
-### ✍ IDEs
+## ✍ IDEs
 
 * `ui5-test-runner` runs in [Business Application Studio](https://www.sap.com/products/technology-platform/business-application-studio.html) provided the instance is created with the `Headless Testing Framework` extension. Then configure the runner to use the `webdriverio` browser combined with the `firefox` setting. For instance : `ui5-test-runner --browser $/webdriverio.js -- --browser firefox`.
 

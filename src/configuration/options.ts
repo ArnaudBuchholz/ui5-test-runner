@@ -454,6 +454,7 @@ export const options = [
   {
     name: 'ui5',
     type: 'url',
+    batchForwarded: true,
     description: 'UI5 url',
     default: 'https://ui5.sap.com'
   },

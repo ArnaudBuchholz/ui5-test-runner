@@ -14,6 +14,8 @@ relations:
     - usage
 ---
 
+# Options reference
+
 |Option|CLI arg|CLI shorcut|Type|Description|
 |---|---|---|---|---|
 |[cwd](options/cwd.md)|--cwd|-c|fs-entry|set working directory|

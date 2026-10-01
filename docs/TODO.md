@@ -1,5 +1,5 @@
 - [X] Should we include ADR documents in the knowledge base ? modified ADR0011 to explain why (but created links to ADRs where 'usefull')
-- [ ] Is there a way to create the equivalent of a skill in the knowledge base (how to create options, how to troubleshoot)
+- [X] Is there a way to create the equivalent of a skill in the knowledge base (how to create options, how to troubleshoot). SAME as above, not the same target. We forget about it for now.
 - [ ] Clarify the use of keywords
 - [ ] Should we normalize markdown files so that they all have a title and a CR after ---
 - [ ] check if we should refer options with their name (cwd) or their cli equivalent (--cwd)
