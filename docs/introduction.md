@@ -14,7 +14,7 @@ relations:
     - modes/legacy
     - modes/remote
     - modes/batch
-    - usage
+    - options
     - coverage
     - browsers/v6/browser
 ---
@@ -42,7 +42,7 @@ When you run ui5-test-runner it:
 1. Discovers the list of test pages from your QUnit test suite definition
 2. Opens a configurable number of browser tabs in parallel (controlled by `--parallel`, default: `2`)
 3. Injects a lightweight agent into each tab to detect the test framework and collect results
-4. Polls each tab until its tests complete, then frees that slot for the next pending page
+4. Monitors each tab until its tests complete, then frees that slot for the next pending page
 5. Assembles all results into a consolidated report
 
 Nothing in your test files needs to change. The runner works with your existing QUnit and OPA5 pages as-is.

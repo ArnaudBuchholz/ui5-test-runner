@@ -11,7 +11,7 @@ keywords:
   - current
 relations:
   supersedes:
-    - usage
+    - v5_options
 ---
 
 # Options reference

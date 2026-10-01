@@ -13,13 +13,12 @@ relations:
   breaking-in:
     - v6
   see-also:
-    - mapping_v1_v2
     - options
 ---
 
 # Command line usage
 
-Use `ui5-test-runner --help` to display the list of options. The mapping between v1 options and v2 can be found [here](mapping_v1_v2.md).
+Use `ui5-test-runner --help` to display the list of options.
 
 Check additional information below.
 

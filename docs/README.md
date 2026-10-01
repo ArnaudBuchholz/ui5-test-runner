@@ -30,5 +30,4 @@ A self-sufficient test runner for UI5 applications enabling parallel execution o
 |[webdriver.io](browsers/v6/webdriverio.md)|`chrome` *(firefox, edge, safari planned)*|✔️|✔️|✔️|
 |[selenium-webdriver](browsers/v6/selenium-webdriver.md)|`chrome` *(firefox, edge, safari planned)*|✔️|✔️|✔️|
 
-* [Mapping v1 settings to v2](mapping_v1_v2.md)
 * [V6 breaking changes](v6_breaking_changes.md)
