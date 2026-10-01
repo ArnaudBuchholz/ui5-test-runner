@@ -10,8 +10,6 @@ keywords:
   - v6
   - current
 relations:
-  breaking-in:
-    - v6
   supersedes:
     - usage
 ---
