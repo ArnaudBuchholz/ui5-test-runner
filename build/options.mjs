@@ -228,8 +228,11 @@ export const defaults = {`);
 
   // Preserve the hand-authored KB frontmatter (this file is a `concept` entity) and
   // emit an H1 title, rather than clobbering them with the generated table alone.
-  const optionsDocPath = './docs/options.md';
-  const existingOptionsDoc = await readFile(optionsDocPath, 'utf8').catch(() => '');
-  const [, optionsFrontmatter] = existingOptionsDoc.match(/^(---\n[\s\S]*?\n---\n)/) ?? [];
-  await writeFile(optionsDocPath, `${optionsFrontmatter ?? ''}\n# Options reference\n\n${optionsMarkdown.join('\n')}\n`);
+  const optionsDocumentPath = './docs/options.md';
+  const existingOptionsDocument = await readFile(optionsDocumentPath, 'utf8');
+  const [, optionsFrontmatter] = existingOptionsDocument.match(/^(---\n[\s\S]*?\n---\n)/) ?? [];
+  await writeFile(
+    optionsDocumentPath,
+    `${optionsFrontmatter ?? ''}\n# Options reference\n\n${optionsMarkdown.join('\n')}\n`
+  );
 }
