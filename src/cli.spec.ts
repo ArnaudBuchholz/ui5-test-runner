@@ -88,7 +88,7 @@ describe('cli', () => {
 
     it('logs the skip message', async () => {
       await runCli();
-      expect(consoleLogSpy).toHaveBeenCalledWith('/!\\ Skipping execution (--if)');
+      expect(consoleLogSpy).toHaveBeenCalledWith(String.raw`/!\ Skipping execution (--if)`);
     });
 
     it('sends a skip message to parent process', async () => {
