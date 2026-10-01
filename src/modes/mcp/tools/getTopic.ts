@@ -1,69 +1,54 @@
-import { Path } from '../../../platform/index.js';
-import { readFile } from '../knowledgeBase.js';
-import { hashFolder, getReverseIndex } from '../folderHash.js';
+import { getIndex } from '../knowledgeBase.js';
+import type { IEntity, IKnowledgeBaseIndex } from '../kbIndex.js';
 
-const rewriteLinks = (body: string, hash: string): string =>
-  body.replaceAll(/\]\(([^)]+)\)/g, (match, target: string) => {
-    if (/^[a-z][a-z0-9+.-]*:/i.test(target) || target.startsWith('/') || target.startsWith('#')) {
-      return match;
+// Build the "Related topics" section from an entity's forward id-relation edges and the reverse edges
+// pointing at it. Each related id appears once (forward label wins). `breaking-in` is omitted: its
+// values are version tokens, not entity ids. Returns '' when there is nothing to relate.
+const buildRelatedTopics = (entity: IEntity, index: IKnowledgeBaseIndex): string => {
+  const seen = new Set<string>();
+  const lines: string[] = [];
+  const add = (id: string, relation: string): void => {
+    if (seen.has(id) || id === entity.id) {
+      return;
     }
-    if (target.includes('?')) {
-      return match;
+    seen.add(id);
+    const related = index.getEntity(id);
+    const title = related === undefined ? id : `${id} — ${related.title}`;
+    lines.push(`- ${title} (${relation})`);
+  };
+  for (const [relation, targets] of Object.entries(entity.relations)) {
+    if (relation === 'breaking-in') {
+      continue;
     }
-    const hashIndex = target.indexOf('#');
-    return hashIndex === -1
-      ? `](${target}?${hash})`
-      : `](${target.slice(0, hashIndex)}?${hash}${target.slice(hashIndex)})`;
-  });
-
-const buildCandidates = async (topic: string): Promise<string[]> => {
-  const questionIndex = topic.indexOf('?');
-  if (questionIndex === -1) {
-    return topic.includes('/') ? [`${topic}.md`] : [`${topic}.md`, `${topic}/index.md`];
+    for (const target of targets) {
+      add(target, relation);
+    }
   }
-  const relativePath = topic.slice(0, questionIndex);
-  const anchorIndex = topic.indexOf('#');
-  const hash = anchorIndex === -1 ? topic.slice(questionIndex + 1) : topic.slice(questionIndex + 1, anchorIndex);
-  const reverseIndex = await getReverseIndex();
-  const folder = reverseIndex.get(hash);
-  if (folder === undefined) {
-    return [];
+  for (const { id, relation } of index.getReverseRelations(entity.id)) {
+    add(id, `${relation} ←`);
   }
-  const resolved = Path.join(folder, relativePath);
-  if (resolved.startsWith('..')) {
-    return [];
-  }
-  return resolved.endsWith('.md') ? [resolved] : [`${resolved}.md`, `${resolved}/index.md`];
+  return lines.length === 0 ? '' : `\n\n## Related topics\n\n${lines.join('\n')}\n`;
 };
 
 export const toolDefinitionGetTopic = {
   definition: {
     name: 'get_topic',
     description:
-      'Get documentation for a topic. Text enclosed in [[double brackets]] are cross-references — call this tool again with the name inside the brackets to retrieve linked documentation.',
+      'Get the documentation for an entity by its id (as returned by list_topics, e.g. "options/coverage"). Returns the markdown plus a "Related topics" section listing linked entities to retrieve next.',
     inputSchema: {
       type: 'object',
       properties: {
-        topic: { type: 'string', description: 'Topic name as returned by list_topics' }
+        id: { type: 'string', description: 'Entity id as returned by list_topics' }
       },
-      required: ['topic']
+      required: ['id']
     }
   },
-  handler: async (arguments_: Record<string, unknown>): Promise<string> => {
-    const rawTopic = (arguments_['topic'] as string).replace(/^\[\[(.+)]]$/, '$1');
-    const anchorStart = rawTopic.indexOf('#');
-    const anchorStripped = anchorStart === -1 ? rawTopic : rawTopic.slice(0, anchorStart);
-    const candidates = await buildCandidates(anchorStripped);
-    for (const relativePath of candidates) {
-      try {
-        const body = await readFile(relativePath);
-        const folder = Path.dirname(relativePath).replace(/^\./, '');
-        const hash = hashFolder(folder);
-        return rewriteLinks(body, hash);
-      } catch {
-        // try next candidate
-      }
-    }
-    return `Topic "${rawTopic}" not found.`;
+  handler: (arguments_: Record<string, unknown>): Promise<string> => {
+    const id = arguments_['id'] as string;
+    const index = getIndex();
+    const entity = index.getEntity(id);
+    const text =
+      entity === undefined ? `No topic found for id "${id}".` : entity.body + buildRelatedTopics(entity, index);
+    return Promise.resolve(text);
   }
 };

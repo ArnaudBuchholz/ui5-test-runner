@@ -2,7 +2,9 @@ import { describe, it, expect, beforeAll, beforeEach, vi } from 'vitest';
 import { mock } from 'reserve';
 import type { Configuration } from '../../configuration/Configuration.js';
 import { buildREserveConfiguration } from './reserve.js';
-import { Crypto, FileSystem, Process } from '../../platform/index.js';
+import { Process } from '../../platform/index.js';
+import * as knowledgeBase from './knowledgeBase.js';
+import type { IEntity, IKnowledgeBaseIndex } from './kbIndex.js';
 
 const CONFIGURATION = { port: 3000 } as unknown as Configuration;
 
@@ -20,8 +22,29 @@ beforeAll(async () => {
 
 beforeEach(() => {
   vi.clearAllMocks();
-  vi.mocked(Crypto.sha256hex).mockReturnValue('abcdef1234567890');
 });
+
+const ENTITY: IEntity = {
+  id: 'options/coverage',
+  '#type': 'option',
+  title: 'coverage',
+  summary: 'enable code coverage',
+  keywords: [],
+  relations: {},
+  sha: '0',
+  path: 'options/coverage.md',
+  body: '# Coverage'
+};
+
+const stubIndex = (overrides: Partial<IKnowledgeBaseIndex> = {}): void => {
+  const index: IKnowledgeBaseIndex = {
+    catalog: [{ id: ENTITY.id, '#type': ENTITY['#type'], title: ENTITY.title, summary: ENTITY.summary, relations: {} }],
+    getEntity: (id) => (id === ENTITY.id ? ENTITY : undefined),
+    getReverseRelations: () => [],
+    ...overrides
+  };
+  vi.spyOn(knowledgeBase, 'getIndex').mockReturnValue(index);
+};
 
 const ID = 1;
 
@@ -70,8 +93,8 @@ describe('tools/list', () => {
 });
 
 describe('tools/call list_topics', () => {
-  it('returns the root index content', async () => {
-    vi.mocked(FileSystem.readFile).mockResolvedValue('- [options](./options.md)\n- [coverage](./coverage.md)');
+  it('returns the catalog as JSON', async () => {
+    stubIndex();
     const response = await post(server, {
       jsonrpc: '2.0',
       id: ID,
@@ -81,52 +104,38 @@ describe('tools/call list_topics', () => {
     await response.waitForFinish();
     // eslint-disable-next-line @typescript-eslint/no-base-to-string -- REserve response body
     const body = JSON.parse(response.toString()) as { result: { content: Array<{ text: string }> } };
-    expect(body.result.content[0]!.text).toContain('[options](./options.md)');
-    expect(body.result.content[0]!.text).toContain('[coverage](./coverage.md)');
+    const catalog = JSON.parse(body.result.content[0]!.text) as Array<{ id: string }>;
+    expect(catalog[0]!.id).toBe('options/coverage');
   });
 });
 
 describe('tools/call get_topic', () => {
-  it('rewrites relative links with folder hash', async () => {
-    vi.mocked(FileSystem.readFile).mockResolvedValue('# Installation\nSee [options](./options.md) for details');
+  it('returns the entity body for a known id', async () => {
+    stubIndex();
     const response = await post(server, {
       jsonrpc: '2.0',
       id: ID,
       method: 'tools/call',
-      params: { name: 'get_topic', arguments: { topic: 'installation' } }
+      params: { name: 'get_topic', arguments: { id: 'options/coverage' } }
     });
     await response.waitForFinish();
     // eslint-disable-next-line @typescript-eslint/no-base-to-string -- REserve response body
     const body = JSON.parse(response.toString()) as { result: { content: Array<{ text: string }> } };
-    expect(body.result.content[0]!.text).toContain('./options.md?abcdef');
+    expect(body.result.content[0]!.text).toContain('# Coverage');
   });
 
-  it('strips [[ ]] brackets from topic name', async () => {
-    vi.mocked(FileSystem.readFile).mockResolvedValue('# Installation\nSome content');
+  it('returns a not-found message for an unknown id', async () => {
+    stubIndex();
     const response = await post(server, {
       jsonrpc: '2.0',
       id: ID,
       method: 'tools/call',
-      params: { name: 'get_topic', arguments: { topic: '[[installation]]' } }
+      params: { name: 'get_topic', arguments: { id: 'does/not/exist' } }
     });
     await response.waitForFinish();
     // eslint-disable-next-line @typescript-eslint/no-base-to-string -- REserve response body
     const body = JSON.parse(response.toString()) as { result: { content: Array<{ text: string }> } };
-    expect(body.result.content[0]!.text).toContain('# Installation');
-  });
-
-  it('returns not found message for unknown topic', async () => {
-    vi.mocked(FileSystem.readFile).mockRejectedValue(new Error('ENOENT'));
-    const response = await post(server, {
-      jsonrpc: '2.0',
-      id: ID,
-      method: 'tools/call',
-      params: { name: 'get_topic', arguments: { topic: 'unknown' } }
-    });
-    await response.waitForFinish();
-    // eslint-disable-next-line @typescript-eslint/no-base-to-string -- REserve response body
-    const body = JSON.parse(response.toString()) as { result: { content: Array<{ text: string }> } };
-    expect(body.result.content[0]!.text).toContain('"unknown" not found');
+    expect(body.result.content[0]!.text).toContain('No topic found for id "does/not/exist"');
   });
 });
 
@@ -170,7 +179,9 @@ describe('tools/call unknown tool', () => {
 
 describe('tools/call failing tool', () => {
   it('returns isError result with error message', async () => {
-    vi.mocked(FileSystem.readFile).mockRejectedValue(new Error('disk failure'));
+    vi.spyOn(knowledgeBase, 'getIndex').mockImplementation(() => {
+      throw new Error('disk failure');
+    });
     const response = await post(server, {
       jsonrpc: '2.0',
       id: ID,
