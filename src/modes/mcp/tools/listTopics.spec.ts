@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import type { ICatalogEntry, IKnowledgeBaseIndex } from '../kbIndex.js';
+import type { ICatalogEntry, IKnowledgeBaseIndex } from '../knowledgeBase.js';
 
 const setupCatalog = async (
   catalog: ICatalogEntry[]

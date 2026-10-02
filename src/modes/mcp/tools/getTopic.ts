@@ -1,5 +1,5 @@
 import { getIndex } from '../knowledgeBase.js';
-import type { IEntity, IKnowledgeBaseIndex } from '../kbIndex.js';
+import type { IEntity, IKnowledgeBaseIndex } from '../knowledgeBase.js';
 
 // Build the "Related topics" section from an entity's forward id-relation edges and the reverse edges
 // pointing at it. Each related id appears once (forward label wins). `breaking-in` is omitted: its

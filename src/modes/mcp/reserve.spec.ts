@@ -2,9 +2,9 @@ import { describe, it, expect, beforeAll, beforeEach, vi } from 'vitest';
 import { mock } from 'reserve';
 import type { Configuration } from '../../configuration/Configuration.js';
 import { buildREserveConfiguration } from './reserve.js';
-import { Process } from '../../platform/index.js';
+import { Crypto } from '../../platform/index.js';
 import * as knowledgeBase from './knowledgeBase.js';
-import type { IEntity, IKnowledgeBaseIndex } from './kbIndex.js';
+import type { IEntity, IKnowledgeBaseIndex } from './knowledgeBase.js';
 
 const CONFIGURATION = { port: 3000 } as unknown as Configuration;
 
@@ -22,6 +22,7 @@ beforeAll(async () => {
 
 beforeEach(() => {
   vi.clearAllMocks();
+  vi.mocked(Crypto.randomUUID).mockReturnValue('11111111-1111-1111-1111-111111111111');
 });
 
 const ENTITY: IEntity = {
@@ -77,10 +78,80 @@ describe('initialize', () => {
     expect(body.result.serverInfo.name).toBe('ui5-test-runner');
     expect(body.result.capabilities).toHaveProperty('tools');
   });
+
+  it('echoes a supported protocol version requested by the client', async () => {
+    const response = await post(server, {
+      jsonrpc: '2.0',
+      id: ID,
+      method: 'initialize',
+      params: { protocolVersion: '2025-06-18' }
+    });
+    await response.waitForFinish();
+    // eslint-disable-next-line @typescript-eslint/no-base-to-string -- REserve response body
+    const body = JSON.parse(response.toString()) as { result: { protocolVersion: string } };
+    expect(body.result.protocolVersion).toBe('2025-06-18');
+  });
+
+  it('negotiates down to the newest supported version when the client asks for an unknown one', async () => {
+    const response = await post(server, {
+      jsonrpc: '2.0',
+      id: ID,
+      method: 'initialize',
+      params: { protocolVersion: '1999-01-01' }
+    });
+    await response.waitForFinish();
+    // eslint-disable-next-line @typescript-eslint/no-base-to-string -- REserve response body
+    const body = JSON.parse(response.toString()) as { result: { protocolVersion: string } };
+    expect(body.result.protocolVersion).toBe('2025-06-18');
+  });
+
+  it('assigns an Mcp-Session-Id header', async () => {
+    const response = await post(server, { jsonrpc: '2.0', id: ID, method: 'initialize', params: {} });
+    await response.waitForFinish();
+    expect(response.headers['mcp-session-id']).toBe('11111111-1111-1111-1111-111111111111');
+  });
+});
+
+describe('notification', () => {
+  it('returns 202 Accepted with no body for an id-less message', async () => {
+    const response = await post(server, { jsonrpc: '2.0', method: 'notifications/initialized' });
+    await response.waitForFinish();
+    expect(response.statusCode).toBe(202);
+  });
+});
+
+describe('ping', () => {
+  it('returns an empty result', async () => {
+    const response = await post(server, { jsonrpc: '2.0', id: ID, method: 'ping' });
+    await response.waitForFinish();
+    // eslint-disable-next-line @typescript-eslint/no-base-to-string -- REserve response body
+    const body = JSON.parse(response.toString()) as { result: object };
+    expect(body.result).toStrictEqual({});
+  });
+});
+
+describe('resources/list', () => {
+  it('returns an empty list', async () => {
+    const response = await post(server, { jsonrpc: '2.0', id: ID, method: 'resources/list' });
+    await response.waitForFinish();
+    // eslint-disable-next-line @typescript-eslint/no-base-to-string -- REserve response body
+    const body = JSON.parse(response.toString()) as { result: { resources: unknown[] } };
+    expect(body.result.resources).toStrictEqual([]);
+  });
+});
+
+describe('prompts/list', () => {
+  it('returns an empty list', async () => {
+    const response = await post(server, { jsonrpc: '2.0', id: ID, method: 'prompts/list' });
+    await response.waitForFinish();
+    // eslint-disable-next-line @typescript-eslint/no-base-to-string -- REserve response body
+    const body = JSON.parse(response.toString()) as { result: { prompts: unknown[] } };
+    expect(body.result.prompts).toStrictEqual([]);
+  });
 });
 
 describe('tools/list', () => {
-  it('returns the three tools', async () => {
+  it('returns the two tools', async () => {
     const response = await post(server, { jsonrpc: '2.0', id: ID, method: 'tools/list' });
     await response.waitForFinish();
     // eslint-disable-next-line @typescript-eslint/no-base-to-string -- REserve response body
@@ -88,7 +159,6 @@ describe('tools/list', () => {
     const names = body.result.tools.map((t) => t.name);
     expect(names).toContain('list_topics');
     expect(names).toContain('get_topic');
-    expect(names).toContain('run');
   });
 });
 
@@ -139,29 +209,6 @@ describe('tools/call get_topic', () => {
   });
 });
 
-describe('tools/call run', () => {
-  it('returns stdout, stderr and exit code', async () => {
-    const MOCK_PROCESS = {
-      closed: Promise.resolve(),
-      stdout: 'Tests passed\n',
-      stderr: '',
-      code: 0
-    };
-    vi.mocked(Process.spawn).mockReturnValue(MOCK_PROCESS as never);
-    const response = await post(server, {
-      jsonrpc: '2.0',
-      id: ID,
-      method: 'tools/call',
-      params: { name: 'run', arguments: { args: ['--help'] } }
-    });
-    await response.waitForFinish();
-    // eslint-disable-next-line @typescript-eslint/no-base-to-string -- REserve response body
-    const body = JSON.parse(response.toString()) as { result: { content: Array<{ text: string }> } };
-    expect(body.result.content[0]!.text).toContain('Exit code: 0');
-    expect(body.result.content[0]!.text).toContain('Tests passed');
-  });
-});
-
 describe('tools/call unknown tool', () => {
   it('returns method not found error', async () => {
     const response = await post(server, {
@@ -174,6 +221,21 @@ describe('tools/call unknown tool', () => {
     // eslint-disable-next-line @typescript-eslint/no-base-to-string -- REserve response body
     const body = JSON.parse(response.toString()) as { error: { code: number } };
     expect(body.error.code).toBe(-32_601);
+  });
+});
+
+describe('tools/call with malformed params', () => {
+  it('returns an invalid-params error', async () => {
+    const response = await post(server, {
+      jsonrpc: '2.0',
+      id: ID,
+      method: 'tools/call',
+      params: { name: 'list_topics' }
+    });
+    await response.waitForFinish();
+    // eslint-disable-next-line @typescript-eslint/no-base-to-string -- REserve response body
+    const body = JSON.parse(response.toString()) as { error: { code: number } };
+    expect(body.error.code).toBe(-32_602);
   });
 });
 

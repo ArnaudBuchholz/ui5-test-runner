@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import type { IEntity, IKnowledgeBaseIndex, IReverseRelation } from '../kbIndex.js';
+import type { IEntity, IKnowledgeBaseIndex, IReverseRelation } from '../knowledgeBase.js';
 
 const entity = (overrides: Partial<IEntity>): IEntity => ({
   id: 'a',
