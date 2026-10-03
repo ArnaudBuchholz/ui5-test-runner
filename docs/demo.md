@@ -95,7 +95,6 @@ relations:
 > ⓘ Performance is impacted by a variety of factors, augmenting the number of workers does not guarantee faster execution.
 
 * Run `ui5-test-runner --port 8081 --parallel 4`
-* Follow the progress of the tests using [`http://localhost:8081/_/progress.html`](http://localhost:8081/_/progress.html)
 
 ### Code coverage
 
