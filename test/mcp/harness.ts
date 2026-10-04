@@ -1,10 +1,11 @@
+import 'dotenv/config';
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import OpenAI from 'openai';
 import { loadProvider } from './provider.js';
 import { loadMcpTools, type McpTool } from './mcpClient.js';
 import { loadTestCase, buildUserMessage } from './testCase.js';
-import { judge } from './judge.js';
+// import { judge } from './judge.js';
 
 function parseArgs(argv: string[]): { mcpUrl: string; casePath: string } {
   const mcpIndex = argv.indexOf('--mcp');
@@ -63,6 +64,15 @@ const openaiTools: OpenAI.Chat.ChatCompletionTool[] = tools.map((tool) => ({
 
 const client = new OpenAI({ apiKey: provider.apiKey, baseURL: provider.baseURL });
 const history: OpenAI.Chat.ChatCompletionMessageParam[] = [
+  { role: 'system', content: `You are helping a user discover a tool named ui5-test-runner.
+
+You must structure you answer in two parts :
+1) First you answer the user question
+2) You insert --- and then you enumerate only the topics you explored and the reason why. Build a table like :
+|topic|reason|
+|-----|------|
+|topic_name|reason|
+`},
   { role: 'user', content: buildUserMessage(testCase) }
 ];
 
@@ -112,6 +122,7 @@ while (true) {
 
 console.log(gray(`\n[tokens] input: ${totalInputTokens}, output: ${totalOutputTokens}`));
 
+/*
 const criteria = Object.keys(testCase.expected);
 if (criteria.length > 0) {
   console.log(`\n${yellow('Evaluation:')} ${criteria.length} criteria`);
@@ -125,3 +136,4 @@ if (criteria.length > 0) {
     process.exit(1);
   }
 }
+*/
