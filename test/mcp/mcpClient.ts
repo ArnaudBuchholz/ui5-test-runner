@@ -6,7 +6,7 @@ export interface McpTool {
 }
 
 interface McpJsonRpcResponse {
-  result?: Record<string, unknown>;
+  result?: any;
   error?: { message: string };
 }
 
@@ -92,8 +92,8 @@ export async function loadMcpTools(serverUrl: string): Promise<McpTool[]> {
         if (!content?.length) {
           return '';
         }
-        if (content[0].type === 'text' && content[0].text !== undefined) {
-          return content[0].text;
+        if (content[0]!.type === 'text' && content[0]!.text !== undefined) {
+          return content[0]!.text;
         }
         return JSON.stringify(content);
       }
