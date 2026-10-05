@@ -1,5 +1,6 @@
-import OpenAI from 'openai';
+import { join } from 'node:path';
 import { loadProvider } from './provider.js';
+import { Harness, makeTracer } from './Harness.js';
 
 export interface CriterionVerdict {
   name: string;
@@ -13,7 +14,7 @@ export interface JudgeResult {
   passed: boolean;
 }
 
-const JUDGE_ENV_VAR = 'JUDGE_OPENAI_CONFIG';
+export const JUDGE_ENV_VAR = 'JUDGE_OPENAI_CONFIG';
 
 const SYSTEM_PROMPT = `You are a strict evaluator. You are given a user question, an
 assistant's answer, and a set of named criteria the answer is expected to satisfy. For
@@ -60,20 +61,17 @@ function parseVerdicts(content: string, expected: Record<string, string>): Crite
 export async function judge(
   question: string,
   answer: string,
-  expected: Record<string, string>
+  expected: Record<string, string>,
+  traceDir: string
 ): Promise<JudgeResult> {
   const provider = loadProvider(JUDGE_ENV_VAR);
-  const client = new OpenAI({ apiKey: provider.apiKey, baseURL: provider.baseURL });
+  const harness = new Harness({ provider, trace: makeTracer(join(traceDir, 'judge')) });
 
-  const response = await client.chat.completions.create({
-    model: provider.model,
-    messages: [
-      { role: 'system', content: SYSTEM_PROMPT },
-      { role: 'user', content: buildUserPrompt(question, answer, expected) }
-    ]
-  });
+  const content = await harness.ask([
+    { role: 'system', content: SYSTEM_PROMPT },
+    { role: 'user', content: buildUserPrompt(question, answer, expected) }
+  ]);
 
-  const content = response.choices[0]?.message.content ?? '';
   const verdicts = parseVerdicts(content, expected);
   return { verdicts, passed: verdicts.every((v) => v.pass) };
 }
