@@ -5,7 +5,8 @@ import { logger } from '../../src/platform/index.js';
 import { ConfigurationValidator } from '../../src/configuration/ConfigurationValidator.js';
 import { initReportBuilder } from '../../src/reports/initReportBuilder.js';
 import { saveReport } from '../../src/reports/saveReport.js';
-import { createTestResults, type CTRFTest } from '../../src/types/CommonTestReportFormat.js';
+import { createTestResults  } from '../../src/types/CommonTestReportFormat.js';
+import type {CTRFTest} from '../../src/types/CommonTestReportFormat.js';
 import { Folder } from '../../src/utils/node/Folder.js';
 import { loadProvider } from './provider.js';
 import { runQuery } from './query.js';
@@ -15,34 +16,33 @@ import type { Emit } from './Harness.js';
 
 const CASES_DIR = join('test', 'mcp', 'cases');
 
-function parseArgs(argv: string[]): { mcpUrl: string; casePaths: string[] } {
+function parseArguments(argv: string[]): { mcpUrl: string; casePaths: string[] } {
   const mcpIndex = argv.indexOf('--mcp');
-  const mcpUrl = mcpIndex !== -1 ? argv[mcpIndex + 1] : undefined;
+  const mcpUrl = mcpIndex === -1 ? undefined : argv[mcpIndex + 1];
   if (!mcpUrl) {
-    console.error('Usage: test:mcp --mcp <url> [case.toml ...]');
-    process.exit(1);
+    throw new Error('Usage: test:mcp --mcp <url> [case.toml ...]');
   }
-  const explicit = argv.filter((arg, index) => arg.endsWith('.toml') && index !== mcpIndex + 1);
-  const casePaths = explicit.length > 0 ? explicit : globSync(join(CASES_DIR, '**', '*.toml')).sort();
+  const explicit = argv.filter((argument, index) => argument.endsWith('.toml') && index !== mcpIndex + 1);
+  const casePaths =
+    explicit.length > 0 ? explicit : globSync(join(CASES_DIR, '**', '*.toml')).toSorted((a, b) => a.localeCompare(b));
   if (casePaths.length === 0) {
-    console.error(`No test cases found under ${CASES_DIR}`);
-    process.exit(1);
+    throw new Error(`No test cases found under ${CASES_DIR}`);
   }
   return { mcpUrl, casePaths };
 }
 
 // Derives a filesystem-safe suite name from a case path (relative to the cases dir).
 function caseNameOf(casePath: string): string {
-  return relative(CASES_DIR, casePath).replace(/[/\\]/g, '-').replace(/\.toml$/, '');
+  return relative(CASES_DIR, casePath).replaceAll(/[/\\]/g, '-').replace(/\.toml$/, '');
 }
 
-const { mcpUrl, casePaths } = parseArgs(process.argv.slice(2));
-const judging = process.env[JUDGE_ENV_VAR] !== undefined;
+const { mcpUrl, casePaths } = parseArguments(process.argv.slice(2));
+const isJudging = process.env[JUDGE_ENV_VAR] !== undefined;
 
-// Validate providers up front, before the logger pipeline starts: a bad env var calls
-// process.exit(1) inside loadProvider, and this keeps that exit from skipping logger.stop().
+// Validate providers up front, before the logger pipeline starts: a bad env var throws
+// inside loadProvider, and failing here keeps a later throw from racing logger.stop().
 loadProvider();
-if (judging) {
+if (isJudging) {
   loadProvider(JUDGE_ENV_VAR);
 }
 
@@ -52,14 +52,14 @@ await Folder.create(configuration.reportDir);
 await logger.start(configuration);
 
 const tests: CTRFTest[] = [];
-let anyFailed = false;
+let isAnyFailed = false;
 let queryInputTokens = 0;
 let queryOutputTokens = 0;
 let judgeInputTokens = 0;
 let judgeOutputTokens = 0;
 
 try {
-  logger.info({ source: 'job', message: `MCP harness ${mcpUrl} — ${casePaths.length} case(s), judge ${judging ? 'enabled' : 'disabled'}` });
+  logger.info({ source: 'job', message: `MCP harness ${mcpUrl} — ${casePaths.length} case(s), judge ${isJudging ? 'enabled' : 'disabled'}` });
   logger.info({ source: 'progress', pageId: undefined, message: 'Running cases', data: { value: 0, max: casePaths.length } });
 
   for (let caseIndex = 0; caseIndex < casePaths.length; caseIndex++) {
@@ -74,7 +74,7 @@ try {
 
     logger.info({ source: 'progress', pageId: caseIndex, message: caseName, data: { value: 0, max: 1, errors: 0, type: 'unknown' } });
 
-    let caseFailed = false;
+    let isCaseFailed = false;
 
     try {
       const { finalAnswer, inputTokens: queryIn, outputTokens: queryOut } = await runQuery(mcpUrl, testCase, emit);
@@ -83,10 +83,9 @@ try {
       logger.info({ source: 'mcp', pageId: caseIndex, message: `${caseName}: answer`, data: { answer: finalAnswer, tokens: { input: queryIn, output: queryOut } } });
 
       const criteria = Object.keys(testCase.expected);
-      let judgeIn = 0;
-      let judgeOut = 0;
-
-      if (judging && criteria.length > 0) {
+      if (isJudging && criteria.length > 0) {
+        let judgeIn = 0;
+        let judgeOut = 0;
         const result = await judge(testCase.question, finalAnswer, testCase.expected, emit);
         judgeIn = result.inputTokens;
         judgeOut = result.outputTokens;
@@ -113,8 +112,8 @@ try {
         }
 
         if (!result.passed) {
-          anyFailed = true;
-          caseFailed = true;
+          isAnyFailed = true;
+          isCaseFailed = true;
         }
       } else {
         tests.push({
@@ -131,14 +130,14 @@ try {
       }
     } catch (error) {
       // A case that fails to run (MCP unreachable, judge error…) is recorded and the run continues.
-      anyFailed = true;
-      caseFailed = true;
+      isAnyFailed = true;
+      isCaseFailed = true;
       const message = error instanceof Error ? error.message : String(error);
       tests.push({ name: caseName, status: 'failed', duration: Date.now() - started, message, suite: [caseName] });
       logger.error({ source: 'mcp', pageId: caseIndex, message: `${caseName}: run failed`, error });
     }
 
-    logger.info({ source: 'progress', pageId: caseIndex, message: caseName, data: { value: 1, max: 1, errors: caseFailed ? 1 : 0, type: 'unknown' } });
+    logger.info({ source: 'progress', pageId: caseIndex, message: caseName, data: { value: 1, max: 1, errors: isCaseFailed ? 1 : 0, type: 'unknown' } });
     logger.info({ source: 'progress', pageId: undefined, message: 'Running cases', data: { value: caseIndex + 1, max: casePaths.length } });
   }
 
@@ -150,7 +149,7 @@ try {
   builder.report.extra = {
     ...builder.report.extra,
     mcpUrl,
-    judging,
+    judging: isJudging,
     tokens: {
       input: queryInputTokens + judgeInputTokens,
       output: queryOutputTokens + judgeOutputTokens,
@@ -161,9 +160,9 @@ try {
 
   builder.finalize();
   await saveReport(configuration, builder.report);
-  logger.info({ source: 'job', message: `Done — ${tests.length} test(s), ${anyFailed ? 'some failed' : 'all passed'}` });
+  logger.info({ source: 'job', message: `Done — ${tests.length} test(s), ${isAnyFailed ? 'some failed' : 'all passed'}` });
 } finally {
   await logger.stop();
 }
 
-process.exitCode = anyFailed ? 1 : 0;
+process.exitCode = isAnyFailed ? 1 : 0;

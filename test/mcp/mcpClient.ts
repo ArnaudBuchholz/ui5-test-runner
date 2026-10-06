@@ -2,18 +2,18 @@ export interface McpTool {
   name: string;
   description: string;
   parameters: Record<string, { type: 'string'; description: string }>;
-  execute: (args: Record<string, unknown>) => Promise<string>;
+  execute: (arguments_: Record<string, unknown>) => Promise<string>;
 }
 
 interface McpJsonRpcResponse {
-  result?: any;
+  result?: unknown;
   error?: { message: string };
 }
 
 async function mcpPost(
   url: string,
   method: string,
-  params: Record<string, unknown>,
+  parameters: Record<string, unknown>,
   sessionId?: string
 ): Promise<McpJsonRpcResponse> {
   const headers: Record<string, string> = {
@@ -23,15 +23,15 @@ async function mcpPost(
   if (sessionId) {
     headers['Mcp-Session-Id'] = sessionId;
   }
-  const res = await fetch(url, {
+  const response = await fetch(url, {
     method: 'POST',
     headers,
-    body: JSON.stringify({ jsonrpc: '2.0', id: 1, method, params })
+    body: JSON.stringify({ jsonrpc: '2.0', id: 1, method, params: parameters })
   });
-  if (!res.ok) {
-    throw new Error(`MCP server returned HTTP ${res.status}`);
+  if (!response.ok) {
+    throw new Error(`MCP server returned HTTP ${response.status}`);
   }
-  const text = await res.text();
+  const text = await response.text();
   // Streamable HTTP may return SSE — extract the first data line if so
   const line = text.startsWith('data:')
     ? (text.split('\n').find((l) => l.startsWith('data:'))?.slice(5).trim() ?? text)
@@ -41,7 +41,7 @@ async function mcpPost(
 
 export async function loadMcpTools(serverUrl: string): Promise<McpTool[]> {
   // 1. Initialize — get the (optional) session id
-  const initRes = await fetch(serverUrl, {
+  const initResponse = await fetch(serverUrl, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', Accept: 'application/json, text/event-stream' },
     body: JSON.stringify({
@@ -55,17 +55,17 @@ export async function loadMcpTools(serverUrl: string): Promise<McpTool[]> {
       }
     })
   });
-  if (!initRes.ok) {
-    throw new Error(`MCP initialize failed: HTTP ${initRes.status}`);
+  if (!initResponse.ok) {
+    throw new Error(`MCP initialize failed: HTTP ${initResponse.status}`);
   }
-  const sessionId = initRes.headers.get('Mcp-Session-Id') ?? undefined;
+  const sessionId = initResponse.headers.get('Mcp-Session-Id') ?? undefined;
 
   // 2. List tools
-  const listRes = await mcpPost(serverUrl, 'tools/list', {}, sessionId);
-  if (listRes.error) {
-    throw new Error(`MCP tools/list error: ${listRes.error.message}`);
+  const listResponse = await mcpPost(serverUrl, 'tools/list', {}, sessionId);
+  if (listResponse.error) {
+    throw new Error(`MCP tools/list error: ${listResponse.error.message}`);
   }
-  const rawTools = (listRes.result?.tools ?? []) as Array<{
+  const rawTools = ((listResponse.result as { tools?: unknown } | undefined)?.tools ?? []) as Array<{
     name: string;
     description?: string;
     inputSchema?: { properties?: Record<string, { type?: string; description?: string }> };
@@ -73,9 +73,9 @@ export async function loadMcpTools(serverUrl: string): Promise<McpTool[]> {
 
   // 3. Map to McpTool
   return rawTools.map((tool) => {
-    const rawProps = tool.inputSchema?.properties ?? {};
+    const rawProperties = tool.inputSchema?.properties ?? {};
     const parameters: McpTool['parameters'] = {};
-    for (const [key, value] of Object.entries(rawProps)) {
+    for (const [key, value] of Object.entries(rawProperties)) {
       parameters[key] = { type: 'string', description: value.description ?? '' };
     }
 
@@ -83,19 +83,18 @@ export async function loadMcpTools(serverUrl: string): Promise<McpTool[]> {
       name: tool.name,
       description: tool.description ?? '',
       parameters,
-      execute: async (args: Record<string, unknown>): Promise<string> => {
-        const callRes = await mcpPost(serverUrl, 'tools/call', { name: tool.name, arguments: args }, sessionId);
-        if (callRes.error) {
-          return `Error: ${callRes.error.message}`;
+      execute: async (arguments_: Record<string, unknown>): Promise<string> => {
+        const callResponse = await mcpPost(serverUrl, 'tools/call', { name: tool.name, arguments: arguments_ }, sessionId);
+        if (callResponse.error) {
+          return `Error: ${callResponse.error.message}`;
         }
-        const content = callRes.result?.content as Array<{ type: string; text?: string }> | undefined;
+        const content = (callResponse.result as { content?: unknown } | undefined)?.content as
+          | Array<{ type: string; text?: string }>
+          | undefined;
         if (!content?.length) {
           return '';
         }
-        if (content[0]!.type === 'text' && content[0]!.text !== undefined) {
-          return content[0]!.text;
-        }
-        return JSON.stringify(content);
+        return content[0]!.type === 'text' && content[0]!.text !== undefined ? content[0]!.text : JSON.stringify(content);
       }
     };
   });

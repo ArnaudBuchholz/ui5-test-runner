@@ -1,7 +1,9 @@
 import { loadProvider } from './provider.js';
 import { loadMcpTools } from './mcpClient.js';
-import { Harness, type Emit } from './Harness.js';
-import { buildUserMessage, type TestCase } from './testCase.js';
+import { Harness  } from './Harness.js';
+import type {Emit} from './Harness.js';
+import { buildUserMessage  } from './testCase.js';
+import type {TestCase} from './testCase.js';
 
 export interface QueryResult {
   finalAnswer: string;

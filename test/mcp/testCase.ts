@@ -29,7 +29,7 @@ export function loadTestCase(path: string): TestCase {
 export function buildUserMessage(testCase: TestCase): string {
   const parts = [testCase.question.trim()];
   for (const [name, content] of Object.entries(testCase.files)) {
-    parts.push(`\n\`\`\`${name}\n${String(content).trim()}\n\`\`\``);
+    parts.push(`\n\`\`\`${name}\n${content.trim()}\n\`\`\``);
   }
   return parts.join('\n');
 }

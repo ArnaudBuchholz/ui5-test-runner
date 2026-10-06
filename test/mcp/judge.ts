@@ -1,5 +1,6 @@
 import { loadProvider } from './provider.js';
-import { Harness, type Emit } from './Harness.js';
+import { Harness  } from './Harness.js';
+import type {Emit} from './Harness.js';
 
 export interface CriterionVerdict {
   name: string;
@@ -42,12 +43,13 @@ interface RawVerdict {
 }
 
 function parseVerdicts(content: string, expected: Record<string, string>): CriterionVerdict[] {
-  // The model may wrap JSON in a ```json fence — extract the first {...} block.
-  const match = content.match(/\{[\s\S]*\}/);
-  if (!match) {
+  // The model may wrap JSON in a ```json fence — extract the first {...last} block.
+  const start = content.indexOf('{');
+  const end = content.lastIndexOf('}');
+  if (start === -1 || end <= start) {
     throw new Error(`Judge did not return JSON: ${content}`);
   }
-  const parsed = JSON.parse(match[0]) as Record<string, RawVerdict>;
+  const parsed = JSON.parse(content.slice(start, end + 1)) as Record<string, RawVerdict>;
   return Object.entries(expected).map(([name, criterion]) => {
     const raw = parsed[name];
     return {

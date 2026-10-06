@@ -60,12 +60,26 @@ export class Harness {
     return this.toolByName.size;
   }
 
-  private async executeTool(name: string, args: Record<string, unknown>): Promise<string> {
+  private async executeTool(name: string, arguments_: Record<string, unknown>): Promise<string> {
     const tool = this.toolByName.get(name);
-    if (!tool) {
-      return `Error: unknown tool "${name}"`;
+    return tool ? tool.execute(arguments_) : `Error: unknown tool "${name}"`;
+  }
+
+  // Resolves every function tool call in the assistant message, emitting each and appending
+  // its result to the history as a `tool` message.
+  private async resolveToolCalls(
+    history: OpenAI.Chat.ChatCompletionMessageParam[],
+    toolCalls: OpenAI.Chat.ChatCompletionMessageToolCall[]
+  ): Promise<void> {
+    for (const call of toolCalls) {
+      if (call.type !== 'function') {
+        continue;
+      }
+      const arguments_ = JSON.parse(call.function.arguments) as Record<string, unknown>;
+      const result = await this.executeTool(call.function.name, arguments_);
+      this.emit({ kind: 'tool', data: { name: call.function.name, arguments: call.function.arguments, result } });
+      history.push({ role: 'tool', tool_call_id: call.id, content: result });
     }
-    return tool.execute(args);
   }
 
   /**
@@ -81,7 +95,7 @@ export class Harness {
       const request = {
         model: this.provider.model,
         messages: history,
-        ...(this.openaiTools.length > 0 ? { tools: this.openaiTools } : {})
+        ...((this.openaiTools.length > 0) && { tools: this.openaiTools })
       };
       this.emit({ kind: 'request', data: request });
       const response = await this.client.chat.completions.create(request);
@@ -97,18 +111,10 @@ export class Harness {
       if (!choice) {
         return '';
       }
-      history.push(choice.message as OpenAI.Chat.ChatCompletionMessageParam);
+      history.push(choice.message);
 
       if (choice.finish_reason === 'tool_calls' && choice.message.tool_calls) {
-        for (const call of choice.message.tool_calls) {
-          if (call.type !== 'function') {
-            continue;
-          }
-          const args = JSON.parse(call.function.arguments) as Record<string, unknown>;
-          const result = await this.executeTool(call.function.name, args);
-          this.emit({ kind: 'tool', data: { name: call.function.name, arguments: call.function.arguments, result } });
-          history.push({ role: 'tool', tool_call_id: call.id, content: result });
-        }
+        await this.resolveToolCalls(history, choice.message.tool_calls);
         continue;
       }
 
