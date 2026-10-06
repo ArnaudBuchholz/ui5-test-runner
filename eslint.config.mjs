@@ -3,7 +3,7 @@ import globals from 'globals';
 
 export default [
   {
-    ignores: ['test/**/*.*']
+    ignores: ['test/**/*.*', '!test/mcp/**']
   },
   ...base,
   {
