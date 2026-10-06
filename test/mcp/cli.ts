@@ -46,10 +46,11 @@ if (judging) {
   loadProvider(JUDGE_ENV_VAR);
 }
 
-// `ci: true` is mandatory: the interactive output path calls process.stdin.setRawMode(true),
-// which throws on a non-TTY (piped shell / CI). The static output still reports progress as
-// periodic text and writes report/output.txt.
-const configuration = await ConfigurationValidator.validate({ reportDir: 'report', ci: true, outputInterval: 2000 });
+// `ci` is left to its default (`!process.stdout.isTTY`): animated progress bars on an
+// interactive terminal, and the static text output (which also writes report/output.txt)
+// everywhere else — crucially avoiding the interactive path's process.stdin.setRawMode(true),
+// which throws on a non-TTY (piped shell / CI).
+const configuration = await ConfigurationValidator.validate({ reportDir: 'report', outputInterval: 2000 });
 const builder = await initReportBuilder(configuration);
 await Folder.create(configuration.reportDir);
 await logger.start(configuration);
