@@ -37,7 +37,7 @@ function caseNameOf(casePath: string): string {
 }
 
 const { mcpUrl, casePaths } = parseArgs(process.argv.slice(2));
-const judging = process.env['JUDGE'] !== undefined;
+const judging = process.env[JUDGE_ENV_VAR] !== undefined;
 
 // Validate providers up front, before the logger pipeline starts: a bad env var calls
 // process.exit(1) inside loadProvider, and this keeps that exit from skipping logger.stop().
@@ -66,17 +66,17 @@ try {
   logger.info({ source: 'job', message: `MCP harness ${mcpUrl} — ${casePaths.length} case(s), judge ${judging ? 'enabled' : 'disabled'}` });
   logger.info({ source: 'progress', pageId: undefined, message: 'Running cases', data: { value: 0, max: casePaths.length } });
 
-  for (let i = 0; i < casePaths.length; i++) {
-    const casePath = casePaths[i]!;
+  for (let caseIndex = 0; caseIndex < casePaths.length; caseIndex++) {
+    const casePath = casePaths[caseIndex]!;
     const caseName = caseNameOf(casePath);
     const testCase = loadTestCase(casePath);
     const started = Date.now();
 
     // Requests/responses/tool calls go to the trace file only (debug), tagged with the case index.
     const emit: Emit = (event) =>
-      logger.debug({ source: 'mcp', pageId: i, message: `${caseName}: ${event.kind}`, data: { kind: event.kind, payload: event.data } });
+      logger.debug({ source: 'mcp', pageId: caseIndex, message: `${caseName}: ${event.kind}`, data: { kind: event.kind, payload: event.data } });
 
-    logger.info({ source: 'progress', pageId: i, message: caseName, data: { value: 0, max: 1, errors: 0, type: 'unknown' } });
+    logger.info({ source: 'progress', pageId: caseIndex, message: caseName, data: { value: 0, max: 1, errors: 0, type: 'unknown' } });
 
     let caseFailed = false;
 
@@ -84,7 +84,7 @@ try {
       const { finalAnswer, inputTokens: queryIn, outputTokens: queryOut } = await runQuery(mcpUrl, testCase, emit);
       qIn += queryIn;
       qOut += queryOut;
-      logger.info({ source: 'mcp', pageId: i, message: `${caseName}: answer`, data: { answer: finalAnswer, tokens: { input: queryIn, output: queryOut } } });
+      logger.info({ source: 'mcp', pageId: caseIndex, message: `${caseName}: answer`, data: { answer: finalAnswer, tokens: { input: queryIn, output: queryOut } } });
 
       const criteria = Object.keys(testCase.expected);
       let judgeIn = 0;
@@ -113,7 +113,7 @@ try {
             suite: [caseName],
             extra: { criterion: verdict.criterion, answer: finalAnswer, tokens }
           });
-          logger.info({ source: 'mcp', pageId: i, message: `${verdict.pass ? 'PASS' : 'FAIL'} ${caseName}/${verdict.name}`, data: { rationale: verdict.rationale } });
+          logger.info({ source: 'mcp', pageId: caseIndex, message: `${verdict.pass ? 'PASS' : 'FAIL'} ${caseName}/${verdict.name}`, data: { rationale: verdict.rationale } });
         }
 
         if (!result.passed) {
@@ -139,11 +139,11 @@ try {
       caseFailed = true;
       const message = error instanceof Error ? error.message : String(error);
       tests.push({ name: caseName, status: 'failed', duration: Date.now() - started, message, suite: [caseName] });
-      logger.error({ source: 'mcp', pageId: i, message: `${caseName}: run failed`, error });
+      logger.error({ source: 'mcp', pageId: caseIndex, message: `${caseName}: run failed`, error });
     }
 
-    logger.info({ source: 'progress', pageId: i, message: caseName, data: { value: 1, max: 1, errors: caseFailed ? 1 : 0, type: 'unknown' } });
-    logger.info({ source: 'progress', pageId: undefined, message: 'Running cases', data: { value: i + 1, max: casePaths.length } });
+    logger.info({ source: 'progress', pageId: caseIndex, message: caseName, data: { value: 1, max: 1, errors: caseFailed ? 1 : 0, type: 'unknown' } });
+    logger.info({ source: 'progress', pageId: undefined, message: 'Running cases', data: { value: caseIndex + 1, max: casePaths.length } });
   }
 
   const results = createTestResults({ tool: builder.report.results.tool, tests });
