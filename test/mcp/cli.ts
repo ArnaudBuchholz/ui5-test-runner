@@ -46,21 +46,17 @@ if (judging) {
   loadProvider(JUDGE_ENV_VAR);
 }
 
-// `ci` is left to its default (`!process.stdout.isTTY`): animated progress bars on an
-// interactive terminal, and the static text output (which also writes report/output.txt)
-// everywhere else — crucially avoiding the interactive path's process.stdin.setRawMode(true),
-// which throws on a non-TTY (piped shell / CI).
-const configuration = await ConfigurationValidator.validate({ reportDir: 'report', noBanner: true, outputInterval: 2000 });
+const configuration = await ConfigurationValidator.validate({ reportDir: 'report', noBanner: true });
 const builder = await initReportBuilder(configuration);
 await Folder.create(configuration.reportDir);
 await logger.start(configuration);
 
 const tests: CTRFTest[] = [];
 let anyFailed = false;
-let qIn = 0;
-let qOut = 0;
-let jIn = 0;
-let jOut = 0;
+let queryInputTokens = 0;
+let queryOutputTokens = 0;
+let judgeInputTokens = 0;
+let judgeOutputTokens = 0;
 
 try {
   logger.info({ source: 'job', message: `MCP harness ${mcpUrl} — ${casePaths.length} case(s), judge ${judging ? 'enabled' : 'disabled'}` });
@@ -82,8 +78,8 @@ try {
 
     try {
       const { finalAnswer, inputTokens: queryIn, outputTokens: queryOut } = await runQuery(mcpUrl, testCase, emit);
-      qIn += queryIn;
-      qOut += queryOut;
+      queryInputTokens += queryIn;
+      queryOutputTokens += queryOut;
       logger.info({ source: 'mcp', pageId: caseIndex, message: `${caseName}: answer`, data: { answer: finalAnswer, tokens: { input: queryIn, output: queryOut } } });
 
       const criteria = Object.keys(testCase.expected);
@@ -94,8 +90,8 @@ try {
         const result = await judge(testCase.question, finalAnswer, testCase.expected, emit);
         judgeIn = result.inputTokens;
         judgeOut = result.outputTokens;
-        jIn += judgeIn;
-        jOut += judgeOut;
+        judgeInputTokens += judgeIn;
+        judgeOutputTokens += judgeOut;
 
         const tokens = {
           input: queryIn + judgeIn,
@@ -156,10 +152,10 @@ try {
     mcpUrl,
     judging,
     tokens: {
-      input: qIn + jIn,
-      output: qOut + jOut,
-      query: { input: qIn, output: qOut },
-      judge: { input: jIn, output: jOut }
+      input: queryInputTokens + judgeInputTokens,
+      output: queryOutputTokens + judgeOutputTokens,
+      query: { input: queryInputTokens, output: queryOutputTokens },
+      judge: { input: judgeInputTokens, output: judgeOutputTokens }
     }
   };
 
