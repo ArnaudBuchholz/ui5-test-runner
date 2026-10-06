@@ -1,37 +1,29 @@
 import OpenAI from 'openai';
+import { logger } from '../../src/platform/index.js';
 import type { ProviderConfig } from './provider.js';
 import type { McpTool } from './mcpClient.js';
-
-/**
- * A single observable event from the conversation loop. The caller decides what to do with it
- * (log it, trace it, ignore it) — the Harness only emits.
- */
-export interface HarnessEvent {
-  kind: 'request' | 'response' | 'tool';
-  data: unknown;
-}
-
-export type Emit = (event: HarnessEvent) => void;
 
 export interface HarnessOptions {
   provider: ProviderConfig;
   tools?: McpTool[];
-  emit?: Emit;
+  // Case index used to tag trace records so each case's requests/responses/tool calls land on
+  // its own progress lane.
+  pageId: number;
 }
 
 /**
  * A generic conversation engine over an OpenAI-compatible endpoint. It owns the client,
  * drives the (optionally tool-calling) agentic loop and monitors token usage. It knows
  * nothing about prompts or test cases — the provider, tools and prompts are all supplied
- * by the caller, at construction or per `ask`. Observable events (requests, responses, tool
- * calls) are surfaced through the injected `emit` callback; the Harness itself writes nothing.
+ * by the caller, at construction or per `ask`. Requests, responses and tool calls are
+ * written to the trace file (debug level) under the `mcp` source, tagged with `pageId`.
  */
 export class Harness {
   private readonly provider: ProviderConfig;
   private readonly client: OpenAI;
   private readonly toolByName: Map<string, McpTool>;
   private readonly openaiTools: OpenAI.Chat.ChatCompletionTool[];
-  private readonly emit: Emit;
+  private readonly pageId: number;
 
   inputTokens = 0;
   outputTokens = 0;
@@ -49,7 +41,7 @@ export class Harness {
         parameters: { type: 'object', properties: tool.parameters }
       }
     }));
-    this.emit = options.emit ?? (() => {});
+    this.pageId = options.pageId;
   }
 
   get model(): string {
@@ -60,12 +52,16 @@ export class Harness {
     return this.toolByName.size;
   }
 
+  private trace(kind: 'request' | 'response' | 'tool', data: unknown): void {
+    logger.debug({ source: 'mcp', pageId: this.pageId, message: kind, data: { kind, payload: data } });
+  }
+
   private async executeTool(name: string, arguments_: Record<string, unknown>): Promise<string> {
     const tool = this.toolByName.get(name);
     return tool ? tool.execute(arguments_) : `Error: unknown tool "${name}"`;
   }
 
-  // Resolves every function tool call in the assistant message, emitting each and appending
+  // Resolves every function tool call in the assistant message, tracing each and appending
   // its result to the history as a `tool` message.
   private async resolveToolCalls(
     history: OpenAI.Chat.ChatCompletionMessageParam[],
@@ -77,7 +73,7 @@ export class Harness {
       }
       const arguments_ = JSON.parse(call.function.arguments) as Record<string, unknown>;
       const result = await this.executeTool(call.function.name, arguments_);
-      this.emit({ kind: 'tool', data: { name: call.function.name, arguments: call.function.arguments, result } });
+      this.trace('tool', { name: call.function.name, arguments: call.function.arguments, result });
       history.push({ role: 'tool', tool_call_id: call.id, content: result });
     }
   }
@@ -97,9 +93,9 @@ export class Harness {
         messages: history,
         ...((this.openaiTools.length > 0) && { tools: this.openaiTools })
       };
-      this.emit({ kind: 'request', data: request });
+      this.trace('request', request);
       const response = await this.client.chat.completions.create(request);
-      this.emit({ kind: 'response', data: response });
+      this.trace('response', response);
 
       const usage = response.usage;
       if (usage) {

@@ -1,6 +1,5 @@
 import { loadProvider } from './provider.js';
 import { Harness  } from './Harness.js';
-import type {Emit} from './Harness.js';
 
 export interface CriterionVerdict {
   name: string;
@@ -65,10 +64,10 @@ export async function judge(
   question: string,
   answer: string,
   expected: Record<string, string>,
-  emit: Emit
+  pageId: number
 ): Promise<JudgeResult> {
   const provider = loadProvider(JUDGE_ENV_VAR);
-  const harness = new Harness({ provider, emit });
+  const harness = new Harness({ provider, pageId });
 
   const content = await harness.ask([
     { role: 'system', content: SYSTEM_PROMPT },

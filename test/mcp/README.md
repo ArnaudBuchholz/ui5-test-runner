@@ -47,8 +47,14 @@ missing or not valid JSON. Judging is opt-in: it only runs when the `JUDGE` env 
    ```
    npm run test:mcp -- --mcp http://localhost:3000/mcp test/mcp/cases/demo.toml
    npm run test:mcp -- --mcp http://localhost:3000/mcp          # all cases
+   npm run test:mcp -- --mcp http://localhost:3000/mcp -p 4     # all cases, 4 at a time
    JUDGE=1 npm run test:mcp -- --mcp http://localhost:3000/mcp   # all cases, graded
    ```
+
+   Cases run in parallel; `--parallel`/`-p` sets how many at a time (default 2). Apart from
+   `--mcp <url>` and the case `.toml` paths, every argument is parsed by the main runner's
+   command line, so any runner option works and behaves identically — e.g. `-r <dir>` to change
+   the report directory, `--debug-log <sources>` for extra traces, `--no-banner`, etc.
 
 Each run drives the main runner's logging + report pipeline and writes everything to
 `report/`:

@@ -1,7 +1,6 @@
 import { loadProvider } from './provider.js';
 import { loadMcpTools } from './mcpClient.js';
 import { Harness  } from './Harness.js';
-import type {Emit} from './Harness.js';
 import { buildUserMessage  } from './testCase.js';
 import type {TestCase} from './testCase.js';
 
@@ -24,13 +23,13 @@ You must structure you answer in two parts :
 /**
  * Runs a single test case against the MCP server: builds a harness on the model under test
  * wired to the MCP tools, feeds it the question (and any files) and returns the final answer
- * with the token tally. Observable events (requests, responses, tool calls) are surfaced
- * through `emit`; this function writes nothing itself.
+ * with the token tally. The harness traces its requests, responses and tool calls under the
+ * `mcp` source, tagged with `pageId` (the case index).
  */
-export async function runQuery(mcpUrl: string, testCase: TestCase, emit: Emit): Promise<QueryResult> {
+export async function runQuery(mcpUrl: string, testCase: TestCase, pageId: number): Promise<QueryResult> {
   const provider = loadProvider();
   const tools = await loadMcpTools(mcpUrl);
-  const harness = new Harness({ provider, tools, emit });
+  const harness = new Harness({ provider, tools, pageId });
 
   const finalAnswer = await harness.ask([
     { role: 'system', content: SYSTEM_PROMPT },
