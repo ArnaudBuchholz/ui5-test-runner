@@ -41,8 +41,7 @@
     }
 
     QUnit.begin(function (details) {
-      details.isOpa = isOpa()
-      return post('QUnit/begin', details)
+      return post('QUnit/begin', extend(details))
     })
 
     QUnit.testStart(function (details) {
