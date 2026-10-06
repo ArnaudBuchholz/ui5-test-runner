@@ -50,7 +50,7 @@ if (judging) {
 // interactive terminal, and the static text output (which also writes report/output.txt)
 // everywhere else — crucially avoiding the interactive path's process.stdin.setRawMode(true),
 // which throws on a non-TTY (piped shell / CI).
-const configuration = await ConfigurationValidator.validate({ reportDir: 'report', outputInterval: 2000 });
+const configuration = await ConfigurationValidator.validate({ reportDir: 'report', noBanner: true, outputInterval: 2000 });
 const builder = await initReportBuilder(configuration);
 await Folder.create(configuration.reportDir);
 await logger.start(configuration);

@@ -22,7 +22,9 @@ export const test = async (configuration: Configuration) => {
   await logger.start(configuration);
   logger.debug({ source: 'job', message: 'Configuration', data: { defaults, configuration } });
 
-  await logEnvironnement();
+  if (!configuration.noBanner) {
+    await logEnvironnement();
+  }
   await getAgentSource();
 
   let isBrowserStarted = false;

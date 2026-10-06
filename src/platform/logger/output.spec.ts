@@ -38,6 +38,15 @@ it('displays an initial message', () => {
   expect(addTextToLoggerOutput).toHaveBeenCalled();
 });
 
+it('does not display the banner when noBanner is set', () => {
+  vi.clearAllMocks();
+  workerMain({
+    configuration: { cwd: './tmp', reportDir: './tmp', noBanner: true } as Configuration,
+    startedAt: Date.now()
+  });
+  expect(addTextToLoggerOutput).not.toHaveBeenCalled();
+});
+
 it('forwards log attributes to the loggerOutput after the sort window', () => {
   const channel = Thread.createBroadcastChannel('logger');
   const logMessage: LogMessage = {

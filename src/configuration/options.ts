@@ -311,6 +311,11 @@ export const options = [
     description: 'start an MCP server to pilot ui5-test-runner with an MCP client'
   },
   {
+    name: 'noBanner',
+    type: 'boolean',
+    description: 'do not display the startup banner (logo) and environment information'
+  },
+  {
     name: 'noNpmInstall',
     type: 'boolean',
     batchForwarded: true,
