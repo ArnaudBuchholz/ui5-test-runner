@@ -1,47 +1,37 @@
 import OpenAI from 'openai';
-import { mkdirSync, writeFileSync } from 'node:fs';
-import { join } from 'node:path';
 import type { ProviderConfig } from './provider.js';
 import type { McpTool } from './mcpClient.js';
 
-export type Tracer = (label: string, payload: unknown) => void;
-
-// Builds a trace writer that serializes each payload to a numbered JSON file in `traceDir`.
-export function makeTracer(traceDir: string): Tracer {
-  mkdirSync(traceDir, { recursive: true });
-  let traceIndex = 0;
-  return (label, payload) => {
-    const n = String(traceIndex++).padStart(3, '0');
-    writeFileSync(join(traceDir, `${n}-${label}.json`), JSON.stringify(payload, null, 2));
-  };
+/**
+ * A single observable event from the conversation loop. The caller decides what to do with it
+ * (log it, trace it, ignore it) — the Harness only emits.
+ */
+export interface HarnessEvent {
+  kind: 'request' | 'response' | 'tool';
+  data: unknown;
 }
 
-export interface ToolEvent {
-  name: string;
-  arguments: string;
-  result: string;
-}
+export type Emit = (event: HarnessEvent) => void;
 
 export interface HarnessOptions {
   provider: ProviderConfig;
   tools?: McpTool[];
-  trace?: Tracer;
-  onTool?: (event: ToolEvent) => void;
+  emit?: Emit;
 }
 
 /**
  * A generic conversation engine over an OpenAI-compatible endpoint. It owns the client,
  * drives the (optionally tool-calling) agentic loop and monitors token usage. It knows
  * nothing about prompts or test cases — the provider, tools and prompts are all supplied
- * by the caller, at construction or per `ask`.
+ * by the caller, at construction or per `ask`. Observable events (requests, responses, tool
+ * calls) are surfaced through the injected `emit` callback; the Harness itself writes nothing.
  */
 export class Harness {
   private readonly provider: ProviderConfig;
   private readonly client: OpenAI;
   private readonly toolByName: Map<string, McpTool>;
   private readonly openaiTools: OpenAI.Chat.ChatCompletionTool[];
-  private readonly trace: Tracer;
-  private readonly onTool?: (event: ToolEvent) => void;
+  private readonly emit: Emit;
 
   inputTokens = 0;
   outputTokens = 0;
@@ -59,8 +49,7 @@ export class Harness {
         parameters: { type: 'object', properties: tool.parameters }
       }
     }));
-    this.trace = options.trace ?? (() => {});
-    this.onTool = options.onTool;
+    this.emit = options.emit ?? (() => {});
   }
 
   get model(): string {
@@ -94,9 +83,9 @@ export class Harness {
         messages: history,
         ...(this.openaiTools.length > 0 ? { tools: this.openaiTools } : {})
       };
-      this.trace('request', request);
+      this.emit({ kind: 'request', data: request });
       const response = await this.client.chat.completions.create(request);
-      this.trace('response', response);
+      this.emit({ kind: 'response', data: response });
 
       const usage = response.usage;
       if (usage) {
@@ -112,9 +101,12 @@ export class Harness {
 
       if (choice.finish_reason === 'tool_calls' && choice.message.tool_calls) {
         for (const call of choice.message.tool_calls) {
+          if (call.type !== 'function') {
+            continue;
+          }
           const args = JSON.parse(call.function.arguments) as Record<string, unknown>;
           const result = await this.executeTool(call.function.name, args);
-          this.onTool?.({ name: call.function.name, arguments: call.function.arguments, result });
+          this.emit({ kind: 'tool', data: { name: call.function.name, arguments: call.function.arguments, result } });
           history.push({ role: 'tool', tool_call_id: call.id, content: result });
         }
         continue;

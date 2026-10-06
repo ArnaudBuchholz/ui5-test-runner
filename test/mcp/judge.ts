@@ -1,6 +1,5 @@
-import { join } from 'node:path';
 import { loadProvider } from './provider.js';
-import { Harness, makeTracer } from './Harness.js';
+import { Harness, type Emit } from './Harness.js';
 
 export interface CriterionVerdict {
   name: string;
@@ -12,6 +11,8 @@ export interface CriterionVerdict {
 export interface JudgeResult {
   verdicts: CriterionVerdict[];
   passed: boolean;
+  inputTokens: number;
+  outputTokens: number;
 }
 
 export const JUDGE_ENV_VAR = 'JUDGE_OPENAI_CONFIG';
@@ -62,10 +63,10 @@ export async function judge(
   question: string,
   answer: string,
   expected: Record<string, string>,
-  traceDir: string
+  emit: Emit
 ): Promise<JudgeResult> {
   const provider = loadProvider(JUDGE_ENV_VAR);
-  const harness = new Harness({ provider, trace: makeTracer(join(traceDir, 'judge')) });
+  const harness = new Harness({ provider, emit });
 
   const content = await harness.ask([
     { role: 'system', content: SYSTEM_PROMPT },
@@ -73,5 +74,10 @@ export async function judge(
   ]);
 
   const verdicts = parseVerdicts(content, expected);
-  return { verdicts, passed: verdicts.every((v) => v.pass) };
+  return {
+    verdicts,
+    passed: verdicts.every((v) => v.pass),
+    inputTokens: harness.inputTokens,
+    outputTokens: harness.outputTokens
+  };
 }
