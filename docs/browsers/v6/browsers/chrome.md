@@ -41,17 +41,17 @@ This is honored by **all drivers**, but only affects the Chrome/Chromium family:
 | [webdriver.io](webdriverio.md) | ✔️ into `goog:chromeOptions` |
 | [selenium-webdriver](selenium-webdriver.md) | ✔️ into Chrome `Options` |
 
-## Per-run options — `--browserOptions`
+## Per-run options — `--browser-options`
 
-The [`--browserOptions`](../../../options/browserOptions.md) option takes a JSON
+The [`--browser-options`](../../../options/browserOptions.md) option takes a JSON
 object of browser-specific settings. Today the [puppeteer](puppeteer.md) driver
 reads its `args` array as extra launch arguments:
 
 ```bash
-ui5-test-runner --driver puppeteer --browserOptions '{"args":["--disable-infobars"]}' --url http://localhost:8080/test/testsuite.qunit.html
+ui5-test-runner --driver puppeteer --browser-options '{"args":["--disable-infobars"]}' --url http://localhost:8080/test/testsuite.qunit.html
 ```
 
-`UI5TR_CHROME_ARGS` and `--browserOptions` `args` are additive — both sets of
+`UI5TR_CHROME_ARGS` and `--browser-options` `args` are additive — both sets of
 arguments are passed to the browser.
 
 ## Other browsers

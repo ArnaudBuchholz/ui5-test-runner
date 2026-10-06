@@ -32,7 +32,7 @@ and drives the browser directly.
 
 ## Particularities
 
-* Reads [`--browserOptions`](../../options/browserOptions.md) `args` as extra
+* Reads [`--browser-options`](../../options/browserOptions.md) `args` as extra
   launch arguments (the only driver that does so today).
 * If Chrome is missing, the driver installs it on demand
   (`npx puppeteer browsers install …`).
