@@ -1,0 +1,6 @@
+{
+  "batchId": "JS_REMOTE_QUNIT_V3",
+  "batchLabel": "Remote JS QUnit v3 sample",
+  "url": ["http://localhost:8080/test/unit/unitTests.qunit-v3.html"],
+  "end": "RUNNER_EXIT_CODE={{exitCode}} NODE_OPTIONS= node test/e2e/check.mjs {{reportDir}} --pages 1"
+}
