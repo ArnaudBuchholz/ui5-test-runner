@@ -1,4 +1,4 @@
-specVersion: "3.0"
+specVersion: "3.2"
 metadata:
   name: sample.js
 type: application
@@ -30,3 +30,24 @@ server:
         coverageGlobalScopeFunc: false
       excludePatterns:
         - "resources/"
+  - name: ui5-tooling-modules-middleware
+    afterMiddleware: "@ui5/middleware-code-coverage"
+---
+specVersion: '3.2'
+kind: extension
+type: project-shim
+metadata:
+  name: thirdparty
+shims:
+  configurations:
+    # QUnit has to be provided as shim because with the ui5-tooling-modules-middleware
+    # we can't load the script and CSS in the test setup html file
+    qunit:
+      specVersion: '3.2'
+      type: module
+      metadata:
+        name: qunit
+      resources:
+        configuration:
+          paths:
+            /resources/thirdparty/qunit/: ''
