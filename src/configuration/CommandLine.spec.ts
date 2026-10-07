@@ -106,6 +106,42 @@ const testCases: {
     }
   },
   {
+    label: 'treats a negative integer as a value, not an option',
+    args: ['--page-timeout', '-42'],
+    expected: {
+      pageTimeout: '-42'
+    }
+  },
+  {
+    label: 'treats a negative decimal as a value, not an option',
+    args: ['--page-timeout', '-3.5'],
+    expected: {
+      pageTimeout: '-3.5'
+    }
+  },
+  {
+    label: 'treats a leading-dot negative decimal as a value, not an option',
+    args: ['--page-timeout', '-.5'],
+    expected: {
+      pageTimeout: '-.5'
+    }
+  },
+  {
+    label: 'captures negative numbers for multiple options',
+    args: ['--url', '-1', '-2'],
+    expected: {
+      url: ['-1', '-2']
+    }
+  },
+  {
+    label: 'still treats a non-numeric dash token as an option (missing value)',
+    args: ['--page-timeout', '--url', 'a'],
+    expected: {
+      error: 'Missing value for pageTimeout',
+      option: 'pageTimeout'
+    }
+  },
+  {
     label: 'fails if a string option does not receive a value',
     args: ['--cwd', '--url', 'a'],
     expected: {

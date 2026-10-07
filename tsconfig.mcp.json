@@ -1,0 +1,10 @@
+{
+  "extends": ["./tsconfig.base.json"],
+  "include": ["test/mcp"],
+  "compilerOptions": {
+    "rootDir": ".",
+    "types": ["node"],
+    "noEmit": true,
+    "declaration": false
+  }
+}

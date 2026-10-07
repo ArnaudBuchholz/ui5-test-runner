@@ -321,7 +321,7 @@ export const makePageTask = (configuration: Configuration) => {
       try {
         await runPollingLoop(
           context,
-          screenshot && handlePendingScreenshot,
+          !!screenshot && handlePendingScreenshot,
           AbortSignal.any([pageTimeoutController.signal, stopController.signal])
         );
       } finally {

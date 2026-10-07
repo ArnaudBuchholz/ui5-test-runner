@@ -1,3 +1,24 @@
+---
+"#type": concept
+title: Introduction
+summary: "Overview of ui5-test-runner: what it is, the problem it solves, its three modes, and how to get started"
+keywords:
+  - introduction
+  - overview
+  - getting-started
+  - ui5
+  - qunit
+  - opa5
+relations:
+  see-also:
+    - modes/legacy
+    - modes/remote
+    - modes/batch
+    - options
+    - coverage
+    - browsers/v6/browser
+---
+
 # Introduction
 
 ## What is ui5-test-runner?
@@ -21,10 +42,12 @@ When you run ui5-test-runner it:
 1. Discovers the list of test pages from your QUnit test suite definition
 2. Opens a configurable number of browser tabs in parallel (controlled by `--parallel`, default: `2`)
 3. Injects a lightweight agent into each tab to detect the test framework and collect results
-4. Polls each tab until its tests complete, then frees that slot for the next pending page
+4. Monitors each tab until its tests complete, then frees that slot for the next pending page
 5. Assembles all results into a consolidated report
 
 Nothing in your test files needs to change. The runner works with your existing QUnit and OPA5 pages as-is.
+
+> The dedicated-browser-context-per-page design that makes this reliable at scale is motivated in [ADR-0002: Parallel Browser Agents Architecture](adr/0002-parallel-browser-agents.md).
 
 ## The three modes
 
@@ -40,7 +63,7 @@ This mode imposes the fewest constraints: the runner does not need access to you
 
 Code coverage is also available in remote mode when your application server pre-instruments the source files — for example using `@ui5/middleware-code-coverage` with `@ui5/cli`.
 
-→ [Testing a running application](testing.md) — remote mode options, coverage configuration, and usage examples.
+→ [Testing a running application](modes/remote.md) — remote mode options, coverage configuration, and usage examples.
 
 ### Legacy mode — serve and test in one step
 
@@ -77,18 +100,18 @@ No changes to your test files are required in either case.
 
 ## Browser support
 
-The automation library is configurable. ui5-test-runner ships with built-in adapters for the most common browser automation libraries:
+The automation library is configurable. ui5-test-runner ships with built-in drivers for the most common browser automation libraries:
 
-| Adapter | Browsers |
+| Driver | Browsers |
 |---|---|
 | `puppeteer` *(default)* | Chrome, Firefox |
-| `playwright` | Chrome, Firefox, WebKit |
-| `selenium-webdriver` | Chrome, Firefox, Edge |
-| `webdriverio` | Chrome, Firefox |
+| `playwright` | Chromium *(Firefox, WebKit planned)* |
+| `selenium-webdriver` | Chrome *(Firefox, Edge, Safari planned)* |
+| `webdriverio` | Chrome *(Firefox, Edge, Safari planned)* |
 
-The default is `puppeteer`. Switch with `--browser playwright` or the equivalent key in your configuration file.
+The default is `puppeteer`. Switch with `--driver playwright` or the equivalent key in your configuration file.
 
-→ [Browser adapters](browsers/browser.md) — full comparison of adapter capabilities, setup instructions, and selection guidance.
+→ [Drivers and browsers](browsers/v6/browser.md) — full comparison of driver capabilities, setup instructions, and selection guidance.
 
 ## Quickstart
 
@@ -120,20 +143,19 @@ When the run finishes, the report is available at `report/report.html` in your c
 ### Running tests
 
 - [Command line usage](usage.md) — complete options reference and configuration file format
-- [Testing a running application](testing.md) — remote mode in depth, including coverage setup
+- [Testing a running application](modes/remote.md) — remote mode in depth, including coverage setup
 - [Legacy mode](modes/legacy.md) — when the runner serves the application itself
 - [Batch mode](modes/batch.md) — running multiple projects in one invocation
 
 ### Browsers
 
-- [Browser adapters](browsers/browser.md) — how to select and configure an automation library
-- [Puppeteer](browsers/puppeteer.md) · [Playwright](browsers/playwright.md) · [Selenium WebDriver](browsers/selenium-webdriver.md) · [WebdriverIO](browsers/webdriverio.md) · [jsdom](browsers/jsdom.md)
+- [Drivers and browsers](browsers/v6/browser.md) — how to select and configure an automation library
+- [Puppeteer](browsers/v6/puppeteer.md) · [Playwright](browsers/v6/playwright.md) · [Selenium WebDriver](browsers/v6/selenium-webdriver.md) · [WebdriverIO](browsers/v6/webdriverio.md)
 
 ### Results and coverage
 
 - [Code coverage](coverage.md) — extracting coverage in both legacy and remote mode
 - [Report output](report-output.md) — report structure, the CTRF format, and CI integration
-- [Warnings reference](warnings.md) — what each warning code means and how to resolve it
 
 ### Operations
 

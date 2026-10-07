@@ -1,0 +1,62 @@
+---
+"#type": concept
+title: webdriver.io (v5)
+summary: "v5: legacy WebdriverIO browser instantiation command ($/webdriverio.js). Kept for migration; see the v6 webdriver.io driver for the current model"
+keywords:
+  - webdriverio
+  - webdriver
+  - chrome
+  - firefox
+  - driver
+relations:
+  breaking-in:
+    - v6
+  see-also:
+    - browsers/v5/browser
+    - browsers/v6/webdriverio
+---
+
+# webdriver.io
+
+## Capabilities
+
+| `--browser` | `$/webdriverio.js` |
+|---|---|
+| Module | [webdriverio](https://www.npmjs.com/package/webdriverio) |
+| Screenshots 2️⃣ | ✔️ `.png`
+| Scripts | ✔️ |
+| Traces 1️⃣ | ❌ |
+
+Browser selection is done by passing browser parameters. For instance :
+
+`ui5-test-runner --browser $/webdriverio.js -- --browser firefox`
+
+Supported browsers :
+
+* chrome
+* firefox
+
+## Options
+
+```text
+  --visible [flag]                Show the browser (default: false)
+  -b, --browser <name>            Browser driver (default: "chrome")
+  --binary <binary>               Binary path
+  -w, --viewport-width <width>    Viewport width (default: 1920)
+  -h, --viewport-height <height>  Viewport height (default: 1080)
+  -l, --language <lang...>        Language(s) (see rfc5646) (default:
+                                  ["en-US"])
+  -u, --unsecure                  Disable security features (default: false)
+```
+
+For `chrome` browser, it is possible to provide extra parameters using `--` separator inside browser arguments.
+
+For instance :
+
+* `ui5-test-runner --url http://localhost:8080/testsuite.qunit.html --browser $/webdriverio.js -- --unsecure -- --disable-infobars`
+* or *(equivalent)* `ui5-test-runner --url http://localhost:8080/testsuite.qunit.html --browser $/webdriverio.js --browser-args --unsecure --browser-args -- --browser-args --disable-infobars`
+
+## Implementation notes
+
+* 1️⃣ Traces are not yet implemented
+* 2️⃣ Version `v9.6.x` of `webdriver.io` has problems with screenshot, see [#117](https://github.com/ArnaudBuchholz/ui5-test-runner/issues/117)

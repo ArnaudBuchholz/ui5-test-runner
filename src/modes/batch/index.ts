@@ -16,7 +16,9 @@ export const batch = async (configuration: Configuration): Promise<void> => {
   await Folder.create(configuration.reportDir);
   await logger.start(configuration);
   logger.debug({ source: 'job', message: 'Configuration', data: { defaults, configuration } });
-  await logEnvironnement();
+  if (!configuration.noBanner) {
+    await logEnvironnement();
+  }
   logger.info({ source: 'progress', message: 'Resolving batch items', pageId: undefined, data: { value: 0, max: 0 } });
   const items = await resolve(configuration);
   if (items.length === 0) {

@@ -1,3 +1,13 @@
+---
+"#type": mode
+title: Legacy mode
+summary: serve the application from an inner web server and test it
+keywords:
+  - legacy
+  - serve
+  - webapp
+---
+
 # Serving and testing the application *(a.k.a. legacy mode)*
 
 ## Overview
@@ -6,9 +16,8 @@
 The application files are delivered through its inner **web server**.
 
 This mode offers unique capabilities such as selecting which UI5 version to use or mapping custom libraries.
-* Mapping of libraries
 
-**NOTE** : `ui5-test-runner` can serve the application without testing it with the option `--serve-only`.
+**NOTE** : `ui5-test-runner` can serve the application without testing it with the option [`--serve-only`](../options/serveOnly.md).
 
 ## Step by step
 
@@ -42,17 +51,14 @@ This mode offers unique capabilities such as selecting which UI5 version to use 
 
 `ui5-test-runner --port 8081 --libs my/namespace/feature/lib/=../my.namespace.feature.project.lib/src/my/namespace/feature/lib/`
 
-The list of options is available using `ui5-test-runner --help` but to explain the command :
-* `--port 8081` : uses the fixed http port `8081`
-
-* `--libs my/namespace/feature/lib/=../my.namespace.feature.project.lib/src/my/namespace/feature/lib/` : maps the library path (access to URL `/resources/my/namespace/feature/lib/library.js` will be mapped to the file path `../my.namespace.feature.project.lib/src/my/namespace/feature/lib/library.js`)
-
 You may also use :
 * `--ui5 https://ui5.sap.com/1.109.0/` : uses a specific version of UI5
 
 * `--coverage` : code coverage measurement
 
 * `--parallel` : to increase the number of parallel execution *(default is 2)*
+
+> 🧠TODO this part is common to all three modes and should probably be isolated in another document
 
 **After** the tests are executed :
 

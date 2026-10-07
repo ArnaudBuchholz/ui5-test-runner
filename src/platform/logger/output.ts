@@ -78,8 +78,10 @@ export const workerMain = ({ configuration, startedAt }: { configuration: Config
     )
     .join('\n');
 
-  loggerOutput.addToReport(rawLogo + '\n');
-  loggerOutput.addTextToLoggerOutput(logo + '\u{1B}[0m\n', rawLogo + '\n');
+  if (!configuration.noBanner) {
+    loggerOutput.addToReport(rawLogo + '\n');
+    loggerOutput.addTextToLoggerOutput(logo + '\u{1B}[0m\n', rawLogo + '\n');
+  }
 
   channel.postMessage({
     command: 'ready',

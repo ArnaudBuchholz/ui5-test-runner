@@ -1,12 +1,15 @@
 ---
 "#type": option
+title: coverageCheckFunctions
 type: percent
 short: ccf
 summary: minimum function coverage threshold (0 = no check)
 default: "0"
-tags:
+keywords:
   - coverage
-  - legacy
-  - remote
+relations:
+  affects:
+    - modes/legacy
+    - modes/remote
 ---
 If greater than 0, the runner fails when function coverage falls below this percentage.

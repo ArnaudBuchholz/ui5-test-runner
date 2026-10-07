@@ -1,151 +1,98 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { FileSystem, Crypto, Path } from '../../../platform/index.js';
+import type { IEntity, IKnowledgeBaseIndex, IReverseRelation } from '../knowledgeBase.js';
 
-const HASH_OPTIONS = 'abcdef';
-const HASH_OPTIONS_TYPES = 'bbbbbb';
-const HASH_ROOT = 'cccccc';
-
-const DEFAULT_FOLDERS: Record<string, string[]> = { '.': [] };
-const DEFAULT_HASH_MAP: Record<string, string> = { '': HASH_ROOT };
-
-const setupHashMocks = async (
-  folders: Record<string, string[]> = DEFAULT_FOLDERS,
-  hashMap: Record<string, string> = DEFAULT_HASH_MAP
-) => {
-  vi.resetModules();
-  const knowledgeBase = await import('../knowledgeBase.js');
-  vi.spyOn(knowledgeBase, 'getRoot').mockReturnValue('/kb');
-  vi.spyOn(knowledgeBase, 'readdir').mockImplementation((directory) =>
-    Promise.resolve(folders[directory === '.' ? '.' : directory] ?? [])
-  );
-  vi.mocked(FileSystem.stat).mockImplementation((p) => {
-    const pathString = String(p);
-    const allSubFolders = Object.keys(folders).flatMap((parent) =>
-      (folders[parent] ?? []).map((child) => (parent === '.' ? child : `${parent}/${child}`))
-    );
-    const isDirectory = allSubFolders.some((f) => pathString.endsWith(`/${f}`) || pathString === `/kb/${f}`);
-    return Promise.resolve({ isDirectory: () => isDirectory } as never);
-  });
-  vi.mocked(Crypto.sha256hex).mockImplementation((input) => {
-    const known = hashMap[input];
-    return known === undefined ? `${input}_hash_xxxx` : `${known}xxxx`;
-  });
-};
-
-describe('get_topic link rewriting', () => {
-  beforeEach(() => {
-    vi.clearAllMocks();
-  });
-
-  it('appends folder hash to relative .md links', async () => {
-    await setupHashMocks();
-    vi.mocked(FileSystem.readFile).mockResolvedValue('See [options](./options.md) for more');
-    const { toolDefinitionGetTopic } = await import('./getTopic.js');
-    const result = await toolDefinitionGetTopic.handler({ topic: 'installation' });
-    expect(result).toContain(`./options.md?${HASH_ROOT}`);
-  });
-
-  it('does not rewrite absolute URL links', async () => {
-    await setupHashMocks();
-    vi.mocked(FileSystem.readFile).mockResolvedValue('[site](https://example.com)');
-    const { toolDefinitionGetTopic } = await import('./getTopic.js');
-    const result = await toolDefinitionGetTopic.handler({ topic: 'installation' });
-    expect(result).toContain('(https://example.com)');
-    expect(result).not.toContain(`?${HASH_ROOT}`);
-  });
-
-  it('does not rewrite anchor-only links', async () => {
-    await setupHashMocks();
-    vi.mocked(FileSystem.readFile).mockResolvedValue('[section](#my-section)');
-    const { toolDefinitionGetTopic } = await import('./getTopic.js');
-    const result = await toolDefinitionGetTopic.handler({ topic: 'installation' });
-    expect(result).toContain('(#my-section)');
-    expect(result).not.toContain(`?${HASH_ROOT}`);
-  });
-
-  it('preserves #anchor when appending hash', async () => {
-    await setupHashMocks();
-    vi.mocked(FileSystem.readFile).mockResolvedValue('[ref](./page.md#section)');
-    const { toolDefinitionGetTopic } = await import('./getTopic.js');
-    const result = await toolDefinitionGetTopic.handler({ topic: 'installation' });
-    expect(result).toContain(`./page.md?${HASH_ROOT}#section`);
-  });
-
-  it('does not double-rewrite links that already have a query', async () => {
-    await setupHashMocks();
-    vi.mocked(FileSystem.readFile).mockResolvedValue('[ref](./page.md?existing)');
-    const { toolDefinitionGetTopic } = await import('./getTopic.js');
-    const result = await toolDefinitionGetTopic.handler({ topic: 'installation' });
-    expect(result).toContain('./page.md?existing');
-    expect(result).not.toContain(`?${HASH_ROOT}`);
-  });
-
-  it('uses subfolder hash when serving a doc in a subdirectory', async () => {
-    await setupHashMocks({ '.': ['options'], options: [] }, { '': HASH_ROOT, options: HASH_OPTIONS });
-    vi.mocked(FileSystem.readFile).mockResolvedValue('See [failFast](./failFast.md)');
-    const { toolDefinitionGetTopic } = await import('./getTopic.js');
-    const result = await toolDefinitionGetTopic.handler({ topic: 'options/webapp' });
-    expect(result).toContain(`./failFast.md?${HASH_OPTIONS}`);
-  });
+const entity = (overrides: Partial<IEntity>): IEntity => ({
+  id: 'a',
+  '#type': 'concept',
+  title: 'A',
+  summary: 's',
+  keywords: [],
+  relations: {},
+  sha: '0',
+  path: 'a.md',
+  body: '# A',
+  ...overrides
 });
 
-describe('get_topic hash-based resolution', () => {
+const setupIndex = async (
+  entities: IEntity[],
+  reverse: Record<string, IReverseRelation[]> = {}
+): Promise<(arguments_: Record<string, unknown>) => Promise<string>> => {
+  vi.resetModules();
+  const byId = new Map(entities.map((item) => [item.id, item]));
+  const index: IKnowledgeBaseIndex = {
+    catalog: [],
+    getEntity: (id) => byId.get(id),
+    getReverseRelations: (id) => reverse[id] ?? []
+  };
+  const knowledgeBase = await import('../knowledgeBase.js');
+  vi.spyOn(knowledgeBase, 'getIndex').mockReturnValue(index);
+  const topicModule = await import('./getTopic.js');
+  return topicModule.toolDefinitionGetTopic.handler;
+};
+
+describe('get_topic', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    vi.mocked(FileSystem.readFile).mockResolvedValue('content');
   });
 
-  it('resolves topic with hash to correct file', async () => {
-    await setupHashMocks({ '.': ['options'], options: [] }, { '': HASH_ROOT, options: HASH_OPTIONS });
-    const { toolDefinitionGetTopic } = await import('./getTopic.js');
-    await toolDefinitionGetTopic.handler({ topic: `./webapp.md?${HASH_OPTIONS}` });
-    expect(FileSystem.readFile).toHaveBeenCalledWith(
-      expect.stringContaining(`options${Path.join('/', 'webapp.md')}`),
-      'utf8'
+  it('returns the entity body for a known id', async () => {
+    const handler = await setupIndex([entity({ id: 'a', body: '# Heading\ntext' })]);
+    const result = await handler({ id: 'a' });
+    expect(result).toContain('# Heading\ntext');
+  });
+
+  it('returns a not-found message for an unknown id', async () => {
+    const handler = await setupIndex([entity({ id: 'a' })]);
+    const result = await handler({ id: 'missing' });
+    expect(result).toBe('No topic found for id "missing".');
+  });
+
+  it('lists forward relation edges under Related topics', async () => {
+    const handler = await setupIndex([
+      entity({ id: 'options/coverage', relations: { affects: ['modes/test'] } }),
+      entity({ id: 'modes/test', title: 'Test mode' })
+    ]);
+    const result = await handler({ id: 'options/coverage' });
+    expect(result).toContain('- modes/test — Test mode (affects)');
+  });
+
+  it('lists reverse relation edges under Related topics', async () => {
+    const handler = await setupIndex(
+      [entity({ id: 'modes/test', title: 'Test mode' }), entity({ id: 'options/coverage', title: 'Coverage' })],
+      { 'modes/test': [{ id: 'options/coverage', relation: 'affects' }] }
     );
+    const result = await handler({ id: 'modes/test' });
+    expect(result).toContain('- options/coverage — Coverage (affects ←)');
   });
 
-  it('resolves relative path traversing up to parent directory', async () => {
-    await setupHashMocks(
-      { '.': ['options'], options: ['types'] },
-      { '': HASH_ROOT, options: HASH_OPTIONS, 'options/types': HASH_OPTIONS_TYPES }
+  it('does not repeat an id present both forward and reverse', async () => {
+    const handler = await setupIndex(
+      [
+        entity({ id: 'a', title: 'A', relations: { 'see-also': ['b'] } }),
+        entity({ id: 'b', title: 'B', relations: { 'see-also': ['a'] } })
+      ],
+      { a: [{ id: 'b', relation: 'see-also' }] }
     );
-    const { toolDefinitionGetTopic } = await import('./getTopic.js');
-    await toolDefinitionGetTopic.handler({ topic: `../failFast.md?${HASH_OPTIONS_TYPES}` });
-    expect(FileSystem.readFile).toHaveBeenCalledWith(
-      expect.stringContaining(`options${Path.join('/', 'failFast.md')}`),
-      'utf8'
-    );
+    const result = await handler({ id: 'a' });
+    expect(result.match(/- b — B/g)).toHaveLength(1);
   });
 
-  it('returns not found for unknown hash', async () => {
-    await setupHashMocks({ '.': [] }, { '': HASH_ROOT });
-    const { toolDefinitionGetTopic } = await import('./getTopic.js');
-    const result = await toolDefinitionGetTopic.handler({ topic: './webapp.md?zzz999' });
-    expect(result).toContain('not found');
+  it('omits the Related topics section when the entity has no edges', async () => {
+    const handler = await setupIndex([entity({ id: 'a', body: 'plain' })]);
+    const result = await handler({ id: 'a' });
+    expect(result).toBe('plain');
   });
 
-  it('returns not found when path escapes KB root', async () => {
-    await setupHashMocks({ '.': ['options'] }, { '': HASH_ROOT, options: HASH_OPTIONS });
-    const { toolDefinitionGetTopic } = await import('./getTopic.js');
-    const result = await toolDefinitionGetTopic.handler({ topic: `../../../etc/passwd?${HASH_OPTIONS}` });
-    expect(result).toContain('not found');
+  it('omits breaking-in edges from Related topics', async () => {
+    const handler = await setupIndex([entity({ id: 'a', body: 'plain', relations: { 'breaking-in': ['v6'] } })]);
+    const result = await handler({ id: 'a' });
+    expect(result).toBe('plain');
   });
 
-  it('strips #anchor before file resolution', async () => {
-    await setupHashMocks({ '.': ['options'] }, { '': HASH_ROOT, options: HASH_OPTIONS });
-    const { toolDefinitionGetTopic } = await import('./getTopic.js');
-    await toolDefinitionGetTopic.handler({ topic: `./webapp.md?${HASH_OPTIONS}#section` });
-    expect(FileSystem.readFile).toHaveBeenCalledWith(
-      expect.stringContaining(`options${Path.join('/', 'webapp.md')}`),
-      'utf8'
-    );
-  });
-
-  it('uses legacy path for bare topic without hash', async () => {
-    await setupHashMocks({ '.': [] }, { '': HASH_ROOT });
-    const { toolDefinitionGetTopic } = await import('./getTopic.js');
-    await toolDefinitionGetTopic.handler({ topic: 'options' });
-    expect(FileSystem.readFile).toHaveBeenCalledWith(expect.stringContaining('options.md'), 'utf8');
+  it('uses the raw id when a forward edge points at an unknown entity', async () => {
+    const handler = await setupIndex([entity({ id: 'a', relations: { 'see-also': ['ghost'] } })]);
+    const result = await handler({ id: 'a' });
+    expect(result).toContain('- ghost (see-also)');
   });
 });

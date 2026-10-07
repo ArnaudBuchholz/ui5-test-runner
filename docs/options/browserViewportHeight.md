@@ -1,5 +1,6 @@
 ---
 "#type": option
+title: browserViewportHeight
 short: H
 type: integer
 typeModifiers:
@@ -7,8 +8,11 @@ typeModifiers:
   - non-zero
 summary: height of the browser viewport in pixels
 default: "1080"
-tags:
-  - legacy
-  - remote
-  - batch
+keywords:
+  - viewport
+  - resolution
+relations:
+  affects:
+    - modes/legacy
+    - modes/remote
 ---

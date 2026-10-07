@@ -1,15 +1,19 @@
 ---
 "#type": option
+title: end
 type: string
 summary: command to be executed after the tests
-tags:
-  - legacy
-  - remote
-  - batch
-see:
-  - cwd
+keywords:
+  - hook
+  - teardown
+  - command
+relations:
+  affects:
+    - modes/legacy
+    - modes/remote
+  see-also:
+    - options/cwd
 ---
-
 The command string accepts `{{optionName}}` placeholders, which are expanded at runtime using the value of the corresponding configuration option (e.g. `cwd`, `reportDir`). The command executes with `cwd` as its working directory.
 
 In addition to configuration options, the following extra placeholders are available:

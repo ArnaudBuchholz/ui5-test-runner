@@ -1,13 +1,14 @@
 ---
 "#type": option
+title: log
 type: fs-entry
 typeModifiers:
   - file
 summary: read and dump log file using jsonl format
 dependsOn: cwd
-tags:
+keywords:
   - debug
-  - mode
+  - trace
 validation:
   - message: "this option cannot be combined with other mode options"
     conditions:

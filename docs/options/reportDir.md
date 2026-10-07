@@ -1,16 +1,22 @@
 ---
 "#type": option
+title: reportDir
 short: r
 type: fs-entry
 typeModifiers:
   - overwrite
 summary: directory to output test reports
 default: "'report'"
-see:
-  - cwd
 dependsOn: cwd
-tags:
-  - legacy
-  - remote
+keywords:
+  - report
+  - output
+  - directory
+relations:
+  affects:
+    - modes/legacy
+    - modes/remote
+  see-also:
+    - options/cwd
 ---
 The `report/` folder contains test execution results.

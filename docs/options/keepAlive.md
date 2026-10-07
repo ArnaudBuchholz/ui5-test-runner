@@ -1,9 +1,14 @@
 ---
 "#type": option
+title: keepAlive
 short: k
 type: boolean
 summary: keep the server alive
-tags:
-  - legacy
-  - remote
+keywords:
+  - server
+  - persist
+relations:
+  affects:
+    - modes/legacy
+    - modes/remote
 ---

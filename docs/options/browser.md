@@ -1,8 +1,12 @@
 ---
 "#type": option
+title: browser
 short: b
 type: enumeration
 summary: browser selection (per driver)
+keywords:
+  - browser
+  - capabilities
 batchForwarded: yes
 typeModifiers:
   - chrome

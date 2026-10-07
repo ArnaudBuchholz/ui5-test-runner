@@ -1,3 +1,21 @@
+---
+"#type": concept
+title: Options reference
+summary: Current (v6) reference table of all options with CLI flags, shortcuts, and value types
+keywords:
+  - options
+  - reference
+  - cli
+  - flags
+  - v6
+  - current
+relations:
+  supersedes:
+    - v5_options
+---
+
+# Options reference
+
 |Option|CLI arg|CLI shorcut|Type|Description|
 |---|---|---|---|---|
 |[cwd](options/cwd.md)|--cwd|-c|fs-entry|set working directory|
@@ -48,6 +66,7 @@
 |[logDump](options/logDump.md)|--log-dump||boolean|dump all traces to stdout instead of opening a browser (requires --log)|
 |[logFilter](options/logFilter.md)|--log-filter|-lf|string|JavaScript expression (using punyexpr) to filter logs for dumping with --log-dump|
 |[mcp](options/mcp.md)|--mcp||boolean|start an MCP server to pilot ui5-test-runner with an MCP client|
+|[noBanner](options/noBanner.md)|--no-banner||boolean|do not display the startup banner (logo) and environment information|
 |[noNpmInstall](options/noNpmInstall.md)|--no-npm-install||boolean|prevent any NPM install|
 |[npmAllowInstallScripts](options/npmAllowInstallScripts.md)|--npm-allow-install-scripts||boolean|allow postinstall scripts when installing missing packages|
 |[npmInstall](options/npmInstall.md)|--npm-install||string|npm install strategy for missing packages|

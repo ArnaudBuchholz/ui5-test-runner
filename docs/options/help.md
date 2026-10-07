@@ -1,9 +1,11 @@
 ---
 "#type": option
+title: help
 type: boolean
 summary: display help
-tags:
-  - mode
+keywords:
+  - help
+  - usage
 validation:
   - message: "this option cannot be combined with other mode options"
     conditions:

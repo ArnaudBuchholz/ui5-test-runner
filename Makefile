@@ -23,12 +23,17 @@ options: src/configuration/options.ts
 src/configuration/options.ts: build/options.mjs docs/options/**
 	npm run build:options
 
+kb-index: kb-index.json
+
+kb-index.json: build/kbIndex.mjs build/lib/kbEntities.mjs docs/**
+	npm run build:kb-index
+
 cli: dist/cli.js
 
 dist/cli.js: src/**
 	npm run build:cli
 
-precli: agent lib html-report log-viewer options cli
+precli: agent lib html-report log-viewer options kb-index cli
 
 tmp/browsers/.installed:
 	mkdir -p report

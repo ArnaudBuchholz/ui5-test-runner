@@ -4,9 +4,7 @@
 
 A self-sufficient test runner for UI5 applications enabling parallel execution of tests.
 
-* Serve the application with `@ui5/cli`, then run : <br/> `ui5-test-runner --port 8081 --url http://localhost:8080/test/testsuite.qunit.html`,
-
-* Follow the progress of the tests using [`http://localhost:8081/_/progress.html`](http://localhost:8081/_/progress.html),
+* Serve the application with `@ui5/cli`, then run : <br/> `ui5-test-runner --url http://localhost:8080/test/testsuite.qunit.html`,
 
 * Report is generated in the `report/` folder.
 
@@ -17,22 +15,19 @@ A self-sufficient test runner for UI5 applications enabling parallel execution o
 
 ## 📖 Detailed documentation
 * [Command line usage](usage.md)
-* [Testing a "remote" application](testing.md)
+* [Testing a "remote" application](modes/remote.md)
 * [Coverage extraction](coverage.md)
-* [Serving and testing the application *(a.k.a. legacy mode)*](legacy.md)
-* [🆕5.5.0 Batch mode](modes/batch.md)
-* [⚠️ Warnings](warnings.md)
+* [Serving and testing the application *(a.k.a. legacy mode)*](modes/legacy.md)
+* [Batch mode](modes/batch.md)
 * [Tips & tricks](tipsNtricks.md)
 * [How to demo](demo.md)
-* [Browser instantiation command](browsers/browser.md)
+* [Drivers and browsers](browsers/v6/browser.md)
 
-|Automation Library|Browser(s)|Screenshots|Scripts|Traces|
+|Driver|Browser(s)|Screenshots|Scripts|Traces|
 |-|-|-|-|-|
-|[puppeteer](puppeteer.md)|`chrome`, `firefox`|✔️|✔️1️⃣|✔️|
-|[jsdom](jsdom.md)|*(none)*|❌|✔️|✔️|
-|[playwright](playwright.md)|`chrome`, `firefox`, `webkit`|✔️|✔️|✔️|
-|[selenium-webdriver](selenium-webdriver.md)|`chrome`, `firefox`, `edge`|✔️|✔️1️⃣|✔️1️⃣|
-|[webdriver.io](webdriverio.md)|`chrome`, `firefox`|✔️|✔️|✔️|
-|1️⃣ `chrome`|
+|[puppeteer](browsers/v6/puppeteer.md)|`chrome`, `firefox`|✔️|✔️|✔️|
+|[playwright](browsers/v6/playwright.md)|`chromium` *(firefox, webkit planned)*|✔️|✔️|✔️|
+|[webdriver.io](browsers/v6/webdriverio.md)|`chrome` *(firefox, edge, safari planned)*|✔️|✔️|✔️|
+|[selenium-webdriver](browsers/v6/selenium-webdriver.md)|`chrome` *(firefox, edge, safari planned)*|✔️|✔️|✔️|
 
-* [Mapping v1 settings to v2](mapping_v1_v2.md)
+* [V6 breaking changes](v6_breaking_changes.md)

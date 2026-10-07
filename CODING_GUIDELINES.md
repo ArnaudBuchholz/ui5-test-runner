@@ -173,6 +173,15 @@ Because `logger.fatal` stops the command, only call it for genuinely unrecoverab
 
 To add/change an option: edit `docs/options/` → `npm run build:options` → add validator if new type.
 
+### Referring to options in prose
+
+An option has two forms, and they are not interchangeable:
+
+- **`--kebab-case`** (`--page-filter`) is the CLI flag. Use it whenever prose documents a command-line invocation. The canonical `docs/options.md` table is authoritative for the exact spelling.
+- **`camelCase`** (`pageFilter`) is the canonical name — the config-file key, the config property, and the KB graph id (`options/pageFilter`). Use it only in those contexts. Kebab-case is rejected as a config-file key at runtime.
+
+The camelCase name is also the option's doc filename (`docs/options/pageFilter.md`), so markdown links keep the camelCase form even when the surrounding prose names the flag as `--page-filter`.
+
 ## Assertion
 
 Two distinct mechanisms exist for signalling failure — pick based on the nature of the failure:

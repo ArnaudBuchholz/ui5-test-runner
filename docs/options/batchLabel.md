@@ -1,8 +1,13 @@
 ---
 "#type": option
+title: batchLabel
 type: string
 summary: display label for the batch item
-tags:
-  - batch
+keywords:
+  - label
+  - name
+relations:
+  affects:
+    - modes/batch
 ---
 When not specified, defaults to the basename of the configuration file or folder.

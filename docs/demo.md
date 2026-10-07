@@ -1,3 +1,27 @@
+---
+"#type": task
+title: How to demo
+summary: Guided demo walking through legacy, remote, and capabilities modes with a sample UI5 app
+keywords:
+  - demo
+  - walkthrough
+  - legacy
+  - remote
+  - capabilities
+relations:
+  requires:
+    - options/port
+    - options/serveOnly
+    - options/ui5
+    - options/coverage
+    - options/parallel
+    - options/keepAlive
+    - options/url
+  see-also:
+    - modes/legacy
+    - modes/remote
+---
+
 # 🖥️ How to demo
 
 > ⓘ The repository `training-ui5con18-opa` contains a sample UI5 application with qUnit and OPA tests. The project was modified to support many execution modes, including [online](https://arnaudbuchholz.github.io/training-ui5con18-opa/webapp/), local with `@ui5/cli` or with a standalone web server (`reserve`).
@@ -25,17 +49,9 @@
 * Run `ui5-test-runner --help`, the list of available options is displayed
 * Open [`https://arnaudbuchholz.github.io/ui5-test-runner/`](https://arnaudbuchholz.github.io/ui5-test-runner/) to access complete documentation
 
-> ⓘ Some options are associated with an icon indicating in which mode it is supported :
->
-> * 💻 for **legacy** mode
-> * 🔗 for **remote** mode
-> * 🧪 for **capabilities** mode
->
-> These modes are detailed below.
-
 ## 💻 Legacy mode
 
-> ⓘ The initial version of `ui5-test-runner` was designed to serve the application **and** run tes tests.
+> ⓘ The initial version of `ui5-test-runner` was designed to serve the application **and** run the tests.
 
 ### Serving the application
 
@@ -59,7 +75,7 @@
 
 * In the debugger, go to the elements tab and expand the `<head>` tag
 
-> ⚠️ By default, [`http://localhost:8081/resources/sap-ui-core.js`](http://localhost:8081/resources/sap-ui-core.js) redirects to [`https://ui5.sap.com/resources/sap-ui-core.js`](https://ui5.sap.com/resources/sap-ui-core.js). Depending on the network settings, this may slow down the tests. The `--cache` option enables the caching of UI5 files locally to speed up the tests.
+> ⚠️ By default, [`http://localhost:8081/resources/sap-ui-core.js`](http://localhost:8081/resources/sap-ui-core.js) redirects to [`https://ui5.sap.com/resources/sap-ui-core.js`](https://ui5.sap.com/resources/sap-ui-core.js). 
 
 #### Running the qUnit and OPA tests
 
@@ -69,34 +85,16 @@
 ### Testing the application
 
 * Run `ui5-test-runner --port 8081`
-* Follow the progress of the tests using [`http://localhost:8081/_/progress.html`](http://localhost:8081/_/progress.html)
 * Open `report/output.txt`, it summarizes the tests execution
 * Open `report/report.html` in the browser, it details the tests execution
 
-> ⓘ The runner logs everything *(depending on the [instantiation command](https://arnaudbuchholz.github.io/ui5-test-runner/browser/))*. Each test page is associated to a folder which name is shown in front of the page URL in the `output.txt`. For instance, `http://localhost:8081/test/unit/unitTests.qunit.html` is associated to the folder `le6KDh_XnDk`. The folder name is a hash based on the test page URL.
-
-* Expand the folder associated to the unit tests (`le6KDh_XnDk`)
-  * `done.png` : a screenshot captured after tests completion
-  * `console.csv` : the browser console logs
-  * `network.csv` : the browser network traces
-  * `browser.json` : *(internal)* the browser instantiation file
-  * `stdout.txt` : *(internal)* the driver standard output
-  * `stderr.txt` : *(internal)* the driver error output
-* Expand the folder associated to the `TodoListJourney` journey (`9NHJd7F6A5c`)
-  * `<testid>-<elapsed>.png` : screenshots are captured for every assertion
+> ⓘ The runner logs everything: the `report/` contains a log file (extension `.log.gz`) which can be viewed using `ui5-test-runner --log <the log file path>.
 
 ### "Faster" testing
 
 > ⓘ Performance is impacted by a variety of factors, augmenting the number of workers does not guarantee faster execution.
 
 * Run `ui5-test-runner --port 8081 --parallel 4`
-* Follow the progress of the tests using [`http://localhost:8081/_/progress.html`](http://localhost:8081/_/progress.html)
-
-### Custom reporting
-
-* Run `ui5-test-runner --port 8081 --report-generator $/report.js $/junit-xml-report.js`
-* Follow the progress of the tests using [`http://localhost:8081/_/progress.html`](http://localhost:8081/_/progress.html)
-* Open `report/junit.xml`
 
 ### Code coverage
 
@@ -124,7 +122,6 @@
   * [Run Unit Tests](https://ui5.sap.com/test-resources/sap/m/demokit/orderbrowser/webapp/test/unit/unitTests.qunit.html)
   * [Run Integration Tests](https://ui5.sap.com/test-resources/sap/m/demokit/orderbrowser/webapp/test/integration/opaTests.qunit.html)
 * Run `ui5-test-runner --url https://ui5.sap.com/test-resources/sap/m/demokit/orderbrowser/webapp/test/unit/unitTests.qunit.html --url https://ui5.sap.com/test-resources/sap/m/demokit/orderbrowser/webapp/test/integration/opaTests.qunit.html`
-* Follow the progress of the tests using [`http://localhost:8081/_/progress.html`](http://localhost:8081/_/progress.html)
 
 ### UI5 tooling
 
@@ -134,7 +131,6 @@
 * Browse to [`http://localhost:8080`](http://localhost:8080)
 * Navigate to [`test/`](http://localhost:8080/test)
 * Run `ui5-test-runner --port 8081 --url http://localhost:8080/test/testsuite.qunit.html`
-* Follow the progress of the tests using [`http://localhost:8081/_/progress.html`](http://localhost:8081/_/progress.html)
 
 #### Coverage with `@ui5/middleware-code-coverage`
 
@@ -144,23 +140,9 @@
 * Open [`http://localhost:8080/component.js`](http://localhost:8080/component.js) in a new browser window
 * Open [`http://localhost:8080/component.js?instrumented=true`](http://localhost:8080/component.js?instrumented=true) in a new browser window
 * Run `ui5-test-runner --port 8081 --url http://localhost:8080/test/testsuite.qunit.html --coverage`
-* Follow the progress of the tests using [`http://localhost:8081/_/progress.html`](http://localhost:8081/_/progress.html)
 
 ### Any server
 
 * Run `npm run reserve`
 * Browse to [`http://localhost:8080`](http://localhost:8080), the application starts
 * Run `ui5-test-runner --port 8081 --url http://localhost:8080/test/testsuite.qunit.html`
-* Follow the progress of the tests using [`http://localhost:8081/_/progress.html`](http://localhost:8081/_/progress.html)
-
-#### Coverage proxy
-
-> ⓘ This feature is experimental.
-
-* Run `npm run reserve`
-* Run `ui5-test-runner --port 8081 --url http://localhost:8080/test/testsuite.qunit.html --coverage --coverage-proxy --coverage-proxy-exclude test --disable-ui5`
-
-## 🧪 Capabilities tester
-
-* Run `ui5-test-runner --capabilities`
-* Run `ui5-test-runner --capabilities --browser $/selenium-webdriver.js`

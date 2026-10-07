@@ -85,16 +85,34 @@ const handlePositional = (configuration: CommandLineConfiguration, value: string
   configuration.errors.push(OptionValidationError.createUnprocessable(positionalOption, value));
 };
 
+// Matches negative numbers (e.g. -42, -3.5, -.5) so they are treated as values, not options
+const NEGATIVE_NUMBER = /^-\d+$|^-\d*\.\d+$/;
+
+// Consumes an option token (-x or --xxx), returning the option it switches to, or undefined if not an option token
+const switchOptionFromToken = (
+  configuration: CommandLineConfiguration,
+  currentOption: Option | undefined,
+  argument: string
+): { option: Option | undefined } | undefined => {
+  if (argument.startsWith('--')) {
+    return { option: switchOption(configuration, currentOption, argument.slice(2)) };
+  }
+  return argument.startsWith('-')
+    ? { option: switchOption(configuration, currentOption, argument.slice(1)) }
+    : undefined;
+};
+
 const traverseArguments = (configuration: CommandLineConfiguration, argv: string[]) => {
   let currentOption: Option | undefined;
   for (const argument of argv) {
-    if (argument.startsWith('--')) {
-      currentOption = switchOption(configuration, currentOption, argument.slice(2));
-      continue;
-    }
-    if (argument.startsWith('-')) {
-      currentOption = switchOption(configuration, currentOption, argument.slice(1));
-      continue;
+    // A negative number feeds the option currently expecting a value rather than being parsed as an option
+    const isValueForCurrentOption = currentOption !== undefined && NEGATIVE_NUMBER.test(argument);
+    if (!isValueForCurrentOption) {
+      const switched = switchOptionFromToken(configuration, currentOption, argument);
+      if (switched) {
+        currentOption = switched.option;
+        continue;
+      }
     }
     if (currentOption === undefined) {
       handlePositional(configuration, argument);

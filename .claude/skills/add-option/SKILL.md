@@ -57,49 +57,45 @@ Ask the user for the following, one block at a time if not already provided via 
 | Field | Required | Notes |
 |---|---|---|
 | `name` | yes | camelCase, e.g. `failFast` |
+| `title` | yes | human-facing label; default to the option name verbatim, e.g. `failFast` |
 | `type` | yes | one of the built-in types listed in Step 0 |
 | `summary` | yes | short sentence, lowercase, no trailing period |
 | `short` | no | single-letter CLI shorthand |
 | `default` | no | JavaScript expression, e.g. `"'report'"`, `"2"`, `"!process.stdout.isTTY"` |
 | `multiple` | no | `yes` if the option can be repeated |
 | `typeModifiers` | no | for `fs-entry` only: `file`, `safe-default`, `overwrite` (one or more) |
-| `dependsOn` | no | wikilink to another option this one is relative to, e.g. `"[[cwd]]"` |
+| `dependsOn` | no | plain option name this one is relative to, e.g. `cwd` |
 | `browserExposed` | no | `yes` if the option value must be passed to the agent (browser context) — also adds it to `src/agent/Configuration.ts` |
-| `tags` | no | subset of: `legacy`, `remote`, `capabilities`, `batch`, `agent` |
-| `see` | no | wikilinks to related options |
+| `keywords` | no | subset of: `legacy`, `remote`, `capabilities`, `batch`, `agent` (retrieval terms; formerly `tags`) |
+| `relations.see-also` | no | related options as path-qualified ids, e.g. `options/cwd` |
 | description body | no | one or more sentences explaining behaviour; leave empty if the summary is self-explanatory |
 
 ## Step 2 — Create `docs/options/<name>.md`
 
-Use this frontmatter template (omit optional fields that have no value):
+Frontmatter uses **plain scalar values — not `[[wikilinks]]`**. Use this template (omit optional fields that have no value):
 
 ```markdown
 ---
-"#type": "[[option]]"
+"#type": option
+title: <name>
 short: <short>
-type: "[[<type>]]"
+type: <type>
 summary: <summary>
 default: "<default>"
 multiple: yes
 typeModifiers:
-  - "[[<modifier>]]"
-dependsOn: "[[<other>]]"
-tags:
-  - <tag>
-see:
-  - "[[<related>]]"
+  - <modifier>
+dependsOn: <other>
+keywords:
+  - <keyword>
+relations:
+  see-also:
+    - options/<related>
 ---
 <description body>
 ```
 
-**Important**: The filename must use lowerCamelCase (e.g. `logFilter.md`, `pageFilter.md`, `agentDetectionInterval.md`)
-
-**Type wikilink format:**
-- Simple types: `"[[boolean]]"`, `"[[string]]"`, `"[[integer]]"`, `"[[percent]]"`, `"[[timeout]]"`, `"[[url]]"`, `"[[regexp]]"`, `"[[browser]]"`
-- fs-entry: `"[[fs-entry]]"`
-
-**Modifier wikilink format:**
-- `"[[file]]"`, `"[[safe-default]]"`, `"[[overwrite]]"`
+**Important**: The filename must use lowerCamelCase (e.g. `logFilter.md`, `pageFilter.md`, `agentDetectionInterval.md`). The `id` is derived from the path (`options/<name>`) — do not add an explicit `id:`.
 
 Show the draft file content to the user and ask for confirmation before writing.
 
@@ -117,11 +113,12 @@ Once confirmed:
 ### Boolean option (no default)
 ```markdown
 ---
-"#type": "[[option]]"
+"#type": option
+title: failFast
 short: f
-type: "[[boolean]]"
+type: boolean
 summary: stop the whole execution after the first failing page
-tags:
+keywords:
   - legacy
   - remote
   - batch
@@ -131,12 +128,13 @@ tags:
 ### Integer option with default
 ```markdown
 ---
-"#type": "[[option]]"
+"#type": option
+title: parallel
 short: p
-type: "[[integer]]"
+type: integer
 summary: number of parallel executions
 default: "2"
-tags:
+keywords:
   - legacy
   - remote
   - batch
@@ -147,14 +145,15 @@ This option controls how many parallel executions can occur inside the runner.
 ### fs-entry with modifiers
 ```markdown
 ---
-"#type": "[[option]]"
-type: "[[fs-entry]]"
+"#type": option
+title: reportDir
+type: fs-entry
 typeModifiers:
-  - "[[overwrite]]"
+  - overwrite
 summary: directory to output test reports
 default: "'report'"
-dependsOn: "[[cwd]]"
-tags:
+dependsOn: cwd
+keywords:
   - legacy
   - remote
 ---
@@ -163,12 +162,13 @@ tags:
 ### URL option with multiple
 ```markdown
 ---
-"#type": "[[option]]"
+"#type": option
+title: url
 short: u
-type: "[[options/types/url|url]]"
+type: url
 multiple: yes
 summary: URL of the page to test
-tags:
+keywords:
   - "#remote"
 ---
 ```

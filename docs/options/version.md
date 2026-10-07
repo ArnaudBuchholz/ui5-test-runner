@@ -1,9 +1,10 @@
 ---
 "#type": option
+title: version
 type: boolean
 summary: display version
-tags:
-  - mode
+keywords:
+  - version
 validation:
   - message: "this option cannot be combined with other mode options"
     conditions:
