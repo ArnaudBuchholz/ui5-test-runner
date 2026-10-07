@@ -1,8 +1,8 @@
 {
-  "batchId": "JS_LEGACY_REMOTE",
-  "batchLabel": "Legacy JS Sample accessed using --url",
+  "batchId": "JS_LEGACY_REMOTE_QUNIT_V3",
+  "batchLabel": "Legacy JS Sample QUnit test with QUnit@3",
   "cwd": "../sample.js",
   "libs": ["*=webapp/resources"],
   "url": ["http://localhost:8080/test/unit/unitTests.qunit-v3.html"],
-  "end": "../e2e/check.js --qunit-pages 2"
+  "end": "../e2e/check.js --qunit-pages 1"
 }
