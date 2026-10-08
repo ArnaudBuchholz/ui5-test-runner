@@ -93,3 +93,4 @@ relations:
 |[ui5](options/ui5.md)|--ui5||url|UI5 url|
 |[url](options/url.md)|--url|-u|url|URL of the page to test|
 |[version](options/version.md)|--version||boolean|display version|
+|[watch](options/watch.md)|--watch||boolean|watch for file changes and automatically reload|

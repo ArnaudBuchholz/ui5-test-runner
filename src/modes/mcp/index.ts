@@ -1,8 +1,8 @@
 import type { Configuration } from '../../configuration/Configuration.js';
-import { Exit, logger } from '../../platform/index.js';
+import { Exit, FileSystem, logger } from '../../platform/index.js';
 import { serve } from 'reserve';
 import { buildREserveConfiguration } from './reserve.js';
-import { init } from './knowledgeBase.js';
+import { init, reindex, DOCS_DIR } from './knowledgeBase.js';
 import { logReserve } from '../../reserveLogger.js';
 import { Folder } from '../../utils/node/Folder.js';
 
@@ -10,6 +10,24 @@ export const mcp = async (configuration: Configuration): Promise<void> => {
   await Folder.create(configuration.reportDir);
   await logger.start(configuration);
   await init(configuration);
+  if (configuration.watch) {
+    let debounce: ReturnType<typeof setTimeout> | undefined;
+    const watcher = FileSystem.watch(DOCS_DIR, { recursive: true });
+    watcher.on('change', () => {
+      clearTimeout(debounce);
+      debounce = setTimeout(() => {
+        void reindex().then(() => logger.info({ source: 'mcp', message: 'knowledge base reindexed' }));
+      }, 300);
+    });
+    Exit.registerAsyncTask({
+      name: 'mcp-watcher',
+      stop: () => {
+        clearTimeout(debounce);
+        watcher.close();
+        return Promise.resolve();
+      }
+    });
+  }
   const { promise, resolve } = Promise.withResolvers<void>();
   const server = serve(buildREserveConfiguration(configuration));
   const stop = async () => {

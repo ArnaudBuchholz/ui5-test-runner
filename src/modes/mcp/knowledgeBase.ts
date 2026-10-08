@@ -2,7 +2,7 @@ import { Crypto, FileSystem, Path, __sourcesRoot, assert, logger } from '../../p
 import type { Configuration } from '../../configuration/Configuration.js';
 import { parseFrontmatter } from './frontmatter.js';
 
-const DOCS_DIR = Path.join(__sourcesRoot, '../docs');
+export const DOCS_DIR = Path.join(__sourcesRoot, '../docs');
 
 const ENTITY_TYPES = new Set(['option', 'mode', 'concept', 'task']);
 
@@ -147,8 +147,12 @@ const collectDocuments = async (): Promise<IDocument[]> => {
   );
 };
 
-export const init = async (_configuration: Configuration): Promise<void> => {
+export const reindex = async (): Promise<void> => {
   _index = buildKnowledgeBaseIndex(await collectDocuments());
+};
+
+export const init = async (_configuration: Configuration): Promise<void> => {
+  await reindex();
 };
 
 export const getIndex = (): IKnowledgeBaseIndex => {

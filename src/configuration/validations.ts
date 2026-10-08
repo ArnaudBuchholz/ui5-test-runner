@@ -149,5 +149,10 @@ export const validations: Array<(configuration: Configuration) => void> = [
         'this option cannot be combined with other mode options'
       );
     }
+  },
+  (configuration) => {
+    if (Object.hasOwn(configuration, 'watch') && !punyexpr("(!watch || mode === 'mcp')")(configuration)) {
+      throw OptionValidationError.createValidationError(indexedOptions.watch, 'this option is valid only for --mcp');
+    }
   }
 ];

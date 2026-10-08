@@ -474,6 +474,11 @@ export const options = [
     name: 'version',
     type: 'boolean',
     description: 'display version'
+  },
+  {
+    name: 'watch',
+    type: 'boolean',
+    description: 'watch for file changes and automatically reload'
   }
 ] as const;
 
