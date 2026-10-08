@@ -12,6 +12,8 @@ keywords:
 relations:
   supersedes:
     - v5_options
+  see-also:
+    - option_naming_conventions
 ---
 
 # Options reference
