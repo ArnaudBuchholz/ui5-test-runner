@@ -41,9 +41,11 @@ function parseArguments(argv: string[]): { mcpUrl: string; casePaths: string[]; 
   return { mcpUrl, casePaths, runnerArgv };
 }
 
-// Derives a filesystem-safe suite name from a case path (relative to the cases dir).
-function caseNameOf(casePath: string): string {
-  return relative(CASES_DIR, casePath).replaceAll(/[/\\]/g, '-').replace(/\.toml$/, '');
+// Derives the suite hierarchy and test name from a case path (relative to the cases dir).
+// e.g. migration/reportGenerator/cli.toml → { suite: ['migration', 'reportGenerator', 'cli'], name: 'cli' }
+function casePartsOf(casePath: string): { suite: [string, ...string[]]; name: string } {
+  const segments = relative(CASES_DIR, casePath).replace(/\.toml$/, '').split(/[/\\]/);
+  return { suite: segments as [string, ...string[]], name: segments.at(-1)! };
 }
 
 const { mcpUrl, casePaths, runnerArgv } = parseArguments(process.argv.slice(2));
@@ -84,6 +86,7 @@ let completed = 0;
 async function judgeCase(
   caseIndex: number,
   caseName: string,
+  caseSuite: [string, ...string[]],
   testCase: ReturnType<typeof loadTestCase>,
   finalAnswer: string,
   started: number,
@@ -108,7 +111,7 @@ async function judgeCase(
     duration: Date.now() - started,
     message: testCase.question,
     trace: finalAnswer,
-    suite: [caseName],
+    suite: caseSuite,
     extra: { tokens }
   });
 
@@ -117,8 +120,8 @@ async function judgeCase(
       name: verdict.name,
       status: verdict.pass ? 'passed' : 'failed',
       duration: Date.now() - started,
-      suite: [caseName],
-      extra: { expected: verdict.criterion, actual: verdict.rationale, answer: finalAnswer, tokens }
+      suite: caseSuite,
+      extra: { expected: verdict.criterion, actual: verdict.rationale, tokens }
     });
     const verdictLog = { source: 'mcp', pageId: caseIndex, message: `${caseName}: ${verdict.name} expected criteria validation` } as const;
     if (verdict.pass) {
@@ -135,7 +138,7 @@ async function judgeCase(
 }
 
 async function runTestCase(casePath: string, caseIndex: number): Promise<CaseResult> {
-  const caseName = caseNameOf(casePath);
+  const { suite: caseSuite, name: caseName } = casePartsOf(casePath);
   const testCase = loadTestCase(casePath);
   const started = Date.now();
   const result: CaseResult = { tests: [], queryInputTokens: 0, queryOutputTokens: 0, judgeInputTokens: 0, judgeOutputTokens: 0, failed: false };
@@ -152,14 +155,14 @@ async function runTestCase(casePath: string, caseIndex: number): Promise<CaseRes
     logger.info({ source: 'progress', pageId: caseIndex, message: caseName, data: { value: 1, max: 2, errors: 0, type: 'unknown' } });
 
     if (isJudging && Object.keys(testCase.expected).length > 0) {
-      await judgeCase(caseIndex, caseName, testCase, finalAnswer, started, queryIn, queryOut, result);
+      await judgeCase(caseIndex, caseName, caseSuite, testCase, finalAnswer, started, queryIn, queryOut, result);
     } else {
       result.tests.push({
         name: caseName,
         status: 'pending',
         duration: Date.now() - started,
         message: 'Answered, not judged',
-        suite: [caseName],
+        suite: caseSuite,
         extra: {
           answer: finalAnswer,
           tokens: { input: queryIn, output: queryOut, query: { input: queryIn, output: queryOut }, judge: { input: 0, output: 0 } }
@@ -170,7 +173,7 @@ async function runTestCase(casePath: string, caseIndex: number): Promise<CaseRes
     // A case that fails to run (MCP unreachable, judge error…) is recorded and the run continues.
     result.failed = true;
     const message = error instanceof Error ? error.message : String(error);
-    result.tests.push({ name: caseName, status: 'failed', duration: Date.now() - started, message, suite: [caseName] });
+    result.tests.push({ name: caseName, status: 'failed', duration: Date.now() - started, message, suite: caseSuite });
     logger.error({ source: 'mcp', pageId: caseIndex, message: `${caseName}: run failed`, error });
   }
 
