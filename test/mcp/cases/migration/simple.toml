@@ -18,3 +18,4 @@ How do I migrate to ui5-test-runner 6 ?
 [expected]
 v6 = "It should explain how to migrate the project to ui5-test-runner version 6"
 command = "It should indicate that the --coverage option still works in version 6"
+browser = "It should not talk about browser and driver selection since none is done"

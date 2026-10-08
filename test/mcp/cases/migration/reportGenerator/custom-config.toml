@@ -1,0 +1,27 @@
+[user]
+question="""
+How do I migrate to ui5-test-runner 6 ?
+"""
+
+[files]
+"package.json" = """
+{
+  "scripts": {
+    "test": "ui5-test-runner --coverage --config test.json"
+  },
+  "devDependencies": {
+    "ui5-test-runner": "^5"
+  }
+}
+"""
+
+"test.json" = """
+{
+  "reportGenerator": ["$/report.js", "$/junit-xml-report.js"]
+}
+"""
+
+[expected]
+v6 = "It should explain how to migrate the project to ui5-test-runner version 6"
+config = "it should explain that reportGenerator is no more supported"
+custom-config = "it should understand that a custom configuration file is being used (test.json)"
