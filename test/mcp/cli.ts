@@ -85,7 +85,7 @@ let completed = 0;
 
 async function judgeCase(
   caseIndex: number,
-  caseName: string,
+  caseLabel: string,
   caseSuite: [string, ...string[]],
   testCase: ReturnType<typeof loadTestCase>,
   finalAnswer: string,
@@ -125,13 +125,13 @@ async function judgeCase(
       trace: verdict.rationale,
       extra: { tokens }
     });
-    const verdictLog = { source: 'mcp', pageId: caseIndex, message: `${caseName}: ${verdict.name} expected criteria validation` } as const;
+    const verdictLog = { source: 'mcp', pageId: caseIndex, message: `${caseLabel}: ${verdict.name} expected criteria validation` } as const;
     if (verdict.pass) {
       logger.info(verdictLog);
     } else {
       logger.error(verdictLog);
     }
-    logger.debug({ source: 'mcp', pageId: caseIndex, message: `${caseName}/${verdict.name}: ${verdict.pass ? 'PASS' : 'FAIL'}`, data: { rationale: verdict.rationale } });
+    logger.debug({ source: 'mcp', pageId: caseIndex, message: `${caseLabel}/${verdict.name}: ${verdict.pass ? 'PASS' : 'FAIL'}`, data: { rationale: verdict.rationale } });
   }
 
   if (!judged.passed) {
@@ -141,6 +141,7 @@ async function judgeCase(
 
 async function runTestCase(casePath: string, caseIndex: number): Promise<CaseResult> {
   const { suite: caseSuite, name: caseName } = casePartsOf(casePath);
+  const caseLabel = caseSuite.join('/');
   const testCase = loadTestCase(casePath);
   const started = Date.now();
   const result: CaseResult = { tests: [], queryInputTokens: 0, queryOutputTokens: 0, judgeInputTokens: 0, judgeOutputTokens: 0, failed: false };
@@ -151,13 +152,13 @@ async function runTestCase(casePath: string, caseIndex: number): Promise<CaseRes
     const { finalAnswer, inputTokens: queryIn, outputTokens: queryOut } = await runQuery(mcpUrl, testCase, caseIndex);
     result.queryInputTokens = queryIn;
     result.queryOutputTokens = queryOut;
-    logger.info({ source: 'mcp', pageId: caseIndex, message: `${caseName}: answered (${queryIn} in / ${queryOut} out tokens)` });
-    logger.debug({ source: 'mcp', pageId: caseIndex, message: `${caseName}: answer`, data: { answer: finalAnswer, tokens: { input: queryIn, output: queryOut } } });
+    logger.info({ source: 'mcp', pageId: caseIndex, message: `${caseLabel}: answered (${queryIn} in / ${queryOut} out tokens)` });
+    logger.debug({ source: 'mcp', pageId: caseIndex, message: `${caseLabel}: answer`, data: { answer: finalAnswer, tokens: { input: queryIn, output: queryOut } } });
     // Answer received — case is half done (the remaining half is judging, if enabled).
     logger.info({ source: 'progress', pageId: caseIndex, message: caseName, data: { value: 1, max: 2, errors: 0, type: 'unknown' } });
 
     if (isJudging && Object.keys(testCase.expected).length > 0) {
-      await judgeCase(caseIndex, caseName, caseSuite, testCase, finalAnswer, started, queryIn, queryOut, result);
+      await judgeCase(caseIndex, caseLabel, caseSuite, testCase, finalAnswer, started, queryIn, queryOut, result);
     } else {
       result.tests.push({
         name: caseName,
@@ -176,7 +177,7 @@ async function runTestCase(casePath: string, caseIndex: number): Promise<CaseRes
     result.failed = true;
     const message = error instanceof Error ? error.message : String(error);
     result.tests.push({ name: caseName, status: 'failed', duration: Date.now() - started, message, suite: caseSuite });
-    logger.error({ source: 'mcp', pageId: caseIndex, message: `${caseName}: run failed`, error });
+    logger.error({ source: 'mcp', pageId: caseIndex, message: `${caseLabel}: run failed`, error });
   }
 
   logger.info({ source: 'progress', pageId: caseIndex, message: caseName, data: { value: 2, max: 2, errors: result.failed ? 1 : 0, type: 'unknown', remove: true } });
