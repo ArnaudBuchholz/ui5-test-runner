@@ -15,6 +15,12 @@ How do I migrate to ui5-test-runner 6 ?
 }
 """
 
+"ui5-test-runner.json" = """
+{
+  "reportGenerator": ["$/report.js", "$/junit-xml-report.js"]
+}
+"""
+
 [expected]
 v6 = "It should propose to update the package to version 6"
-command = "It should explain that the command is compatible and does not require migration"
+config = "it should explain that reportGenerator is no more supported"
