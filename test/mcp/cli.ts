@@ -102,6 +102,16 @@ async function judgeCase(
     judge: { input: judged.inputTokens, output: judged.outputTokens }
   };
 
+  result.tests.push({
+    name: '(answer)',
+    status: 'passed',
+    duration: Date.now() - started,
+    message: testCase.question,
+    trace: finalAnswer,
+    suite: [caseName],
+    extra: { tokens }
+  });
+
   for (const verdict of judged.verdicts) {
     result.tests.push({
       name: verdict.name,
