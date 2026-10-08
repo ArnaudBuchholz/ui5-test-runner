@@ -9,6 +9,9 @@ export interface HarnessOptions {
   // Case index used to tag trace records so each case's requests/responses/tool calls land on
   // its own progress lane.
   pageId: number;
+  // Optional sampling temperature. Pin it low to reduce run-to-run variance; omit to use the
+  // provider/model default.
+  temperature?: number;
 }
 
 /**
@@ -24,6 +27,7 @@ export class Harness {
   private readonly toolByName: Map<string, McpTool>;
   private readonly openaiTools: OpenAI.Chat.ChatCompletionTool[];
   private readonly pageId: number;
+  private readonly temperature?: number;
 
   inputTokens = 0;
   outputTokens = 0;
@@ -42,6 +46,7 @@ export class Harness {
       }
     }));
     this.pageId = options.pageId;
+    this.temperature = options.temperature;
   }
 
   get model(): string {
@@ -91,6 +96,7 @@ export class Harness {
       const request = {
         model: this.provider.model,
         messages: history,
+        ...(this.temperature !== undefined && { temperature: this.temperature }),
         ...((this.openaiTools.length > 0) && { tools: this.openaiTools })
       };
       this.trace('request', request);
