@@ -12,7 +12,7 @@ export interface QueryResult {
 
 const SYSTEM_PROMPT = `You are helping a user discover a tool named ui5-test-runner.
 
-You must structure you answer in two parts :
+You must structure your answer in two parts :
 1) First you answer the user question
 2) You insert --- and then you enumerate only the topics you explored and the reason why. Build a table like :
 |topic|reason|
