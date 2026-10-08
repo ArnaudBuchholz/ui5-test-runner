@@ -121,7 +121,9 @@ async function judgeCase(
       status: verdict.pass ? 'passed' : 'failed',
       duration: Date.now() - started,
       suite: caseSuite,
-      extra: { expected: verdict.criterion, actual: verdict.rationale, tokens }
+      message: verdict.criterion,
+      trace: verdict.rationale,
+      extra: { tokens }
     });
     const verdictLog = { source: 'mcp', pageId: caseIndex, message: `${caseName}: ${verdict.name} expected criteria validation` } as const;
     if (verdict.pass) {
