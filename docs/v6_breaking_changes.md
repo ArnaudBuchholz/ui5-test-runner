@@ -47,7 +47,9 @@ This feature has been removed and is replaced with the possibility to visualize 
 
 ## Browser selection
 
-In version 5, the browser was instantiated through a command script passed to `--browser` (for instance `--browser $/puppeteer.js`), and arguments were forwarded with `--browser-args` (or `browserArgs` in the configuration file).
+> **Applicability check — do this before reading further.** This section is relevant **only** if your version 5 setup explicitly selected a browser: it passed `--browser` (a command script), `--browser-args`, or set `browserArgs` in the configuration file. Determine this from the project's actual files first. If none of them are present, browser selection was never configured, the version 6 defaults apply unchanged, and **this migration topic does not concern the project — do not raise browser or driver selection at all**. Only continue below when you have confirmed the version 5 setup did select a browser.
+
+For projects that did select a browser in version 5: the browser was instantiated through a command script passed to `--browser` (for instance `--browser $/puppeteer.js`), and arguments were forwarded with `--browser-args` (or `browserArgs` in the configuration file).
 
 Version 6 splits this into two options:
 
@@ -111,7 +113,7 @@ The following version 5 UI5 mapping options have been removed:
 
 ### New defaults
 
-* coverage is disabled by default, deprecating `--no-coverage` 
+* coverage is now disabled by default, deprecating `--no-coverage`. The [`--coverage`](./options/coverage.md) option still exists and works as before — a version 5 project that relied on default coverage, or already passed `--coverage`, keeps coverage by passing `--coverage`.
 * screenshots are disabled by default, deprecating `--no-screenshot`
 
 ### Renaming
@@ -139,7 +141,7 @@ By default, a screenshot is always captured if a test fails within the page. It 
 
 ### Report generators
 
-The option `--repoort-generators` does not exist anymore. If needed, use the end command (see [`--end`](./options/end.md)).
+The report-generator mechanism has been removed. The version 5 option — the `--report-generator` CLI flag (short `-rg`), equivalently the `reportGenerator` key in a configuration file — no longer exists in version 6. A project that sets `reportGenerator` (for instance in its `ui5-test-runner.json` or a custom `--config` file) must drop it as part of the migration; if post-processing of the report is still needed, use the end command (see [`--end`](./options/end.md)).
 
 ### Report format
 
