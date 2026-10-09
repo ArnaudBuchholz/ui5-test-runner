@@ -130,7 +130,7 @@
     "stylelint-config-standard": "^40.0.0",
     "terser": "^5.51.2",
     "typescript": "^6.0.3",
-    "typescript-eslint": "^8.71.0",
+    "typescript-eslint": "^8.71.1",
     "ui5-tooling-modules": "^3.39.0",
     "ui5-tooling-transpile": "^3.13.1",
     "vite": "^8.3.2",
