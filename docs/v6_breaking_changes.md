@@ -1,3 +1,27 @@
+---
+"#type": task
+title: Version 6 breaking changes
+summary: Migrate from version 5 to version 6, covering dropped features, removed options, and new defaults
+keywords:
+  - migration
+  - breaking changes
+  - v6
+  - upgrade
+  - deprecation
+  - removed options
+relations:
+  requires:
+    - options/lib
+    - options/log
+    - options/screenshotOnFailure
+    - options/end
+    - options/coverage
+    - options/screenshot
+  see-also:
+    - v5_options
+    - report
+---
+
 # version 6 breaking changes
 
 Version 6 is a new major release and even if the best effort was made to keep backward compatibility, it comes with significant breaking changes. Use this guide as a migration guide from version 5.
