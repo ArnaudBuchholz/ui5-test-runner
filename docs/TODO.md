@@ -3,9 +3,11 @@
 - [ ] Clarify the use of keywords
 - [ ] Should we normalize markdown files so that they all have a title and a CR after ---
 - [X] check if we should refer options with their name (cwd) or their cli equivalent (--cwd)
-- [ ] batch should not be used when batchForwarded is present (or should it)
-- [ ] Breaking changes of v6
+- [ ] batch keyword should not be used when batchForwarded is present (or should it)
+- [X] Breaking changes of v6
 - [ ] Report format (CTRF, what it contains, screenshots and errors)
 - [ ] Report generators substitution
 - [ ] Dependencies management (can be part of your project)
 - [ ] Normalize NOTES
+- [ ] Extract CTRF report mapping from code
+- [ ] Automate detection of removed options
