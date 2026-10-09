@@ -16,14 +16,30 @@ import { judge, JUDGE_ENV_VAR } from './judge.js';
 
 const CASES_DIR = join('test', 'mcp', 'cases');
 
-function parseArguments(argv: string[]): { mcpUrl: string; casePaths: string[]; runnerArgv: string[] } {
+// Default number of times every case is executed, overridable with --repeat <n>. Judging is a
+// non-deterministic LLM assertion, so repeating a case surfaces flaky verdicts. When > 1, each
+// repetition is tagged in the suite hierarchy (e.g. migration/simple → migration/1/simple) so
+// runs are distinguishable in the report.
+const DEFAULT_REPEAT = 1;
+
+function parseArguments(argv: string[]): { mcpUrl: string; casePaths: string[]; repeat: number; runnerArgv: string[] } {
   const mcpIndex = argv.indexOf('--mcp');
   const mcpUrl = mcpIndex === -1 ? undefined : argv[mcpIndex + 1];
   if (!mcpUrl) {
-    throw new Error('Usage: test:mcp --mcp <url> [runner options…] [case.toml …]');
+    throw new Error('Usage: test:mcp --mcp <url> [--repeat <n>] [runner options…] [case.toml …]');
   }
-  // Tokens consumed by the harness itself: --mcp, its value, and any explicit .toml positionals.
+  // Tokens consumed by the harness itself: --mcp, its value, --repeat, its value, and any
+  // explicit .toml positionals.
   const harnessIndexes = new Set([mcpIndex, mcpIndex + 1]);
+  const repeatIndex = argv.indexOf('--repeat');
+  let repeat = DEFAULT_REPEAT;
+  if (repeatIndex !== -1) {
+    repeat = Number(argv[repeatIndex + 1]);
+    if (!Number.isSafeInteger(repeat) || repeat < 1) {
+      throw new Error(`--repeat expects a positive integer, got "${argv[repeatIndex + 1]}"`);
+    }
+    harnessIndexes.add(repeatIndex).add(repeatIndex + 1);
+  }
   const explicit: string[] = [];
   for (const [index, argument] of argv.entries()) {
     if (!argument.endsWith('.toml') || harnessIndexes.has(index)) {
@@ -38,17 +54,21 @@ function parseArguments(argv: string[]): { mcpUrl: string; casePaths: string[]; 
     throw new Error(`No test cases found under ${CASES_DIR}`);
   }
   const runnerArgv = argv.filter((_, index) => !harnessIndexes.has(index));
-  return { mcpUrl, casePaths, runnerArgv };
+  return { mcpUrl, casePaths, repeat, runnerArgv };
 }
 
 // Derives the suite hierarchy and test name from a case path (relative to the cases dir).
 // e.g. migration/reportGenerator/cli.toml → { suite: ['migration', 'reportGenerator', 'cli'], name: 'cli' }
-function casePartsOf(casePath: string): { suite: [string, ...string[]]; name: string } {
+// When repetition is provided (repeat > 1), it is inserted just before the leaf name:
+// e.g. (migration/simple.toml, 1) → { suite: ['migration', '1', 'simple'], name: 'simple' }
+function casePartsOf(casePath: string, repetition?: number): { suite: [string, ...string[]]; name: string } {
   const segments = relative(CASES_DIR, casePath).replace(/\.toml$/, '').split(/[/\\]/);
-  return { suite: segments as [string, ...string[]], name: segments.at(-1)! };
+  const name = segments.at(-1)!;
+  const suite = repetition === undefined ? segments : [...segments.slice(0, -1), String(repetition), name];
+  return { suite: suite as [string, ...string[]], name };
 }
 
-const { mcpUrl, casePaths, runnerArgv } = parseArguments(process.argv.slice(2));
+const { mcpUrl, casePaths, repeat, runnerArgv } = parseArguments(process.argv.slice(2));
 const isJudging = process.env[JUDGE_ENV_VAR] !== undefined;
 
 // Validate providers up front
@@ -80,6 +100,20 @@ interface CaseResult {
   judgeOutputTokens: number;
   failed: boolean;
 }
+
+interface TestRun {
+  casePath: string;
+  repetition?: number;
+}
+
+// Expand the case list by repeat. Each run gets a unique index (used as the log pageId), and when
+// repeating, a 1-based repetition number tagged into its suite. Order is case-major so a case's
+// repetitions sit together in the report (case A×1, A×2, …, B×1, …).
+const runs: TestRun[] = casePaths.flatMap((casePath) =>
+  repeat > 1
+    ? Array.from({ length: repeat }, (_, index) => ({ casePath, repetition: index + 1 }))
+    : [{ casePath }]
+);
 
 let completed = 0;
 
@@ -139,8 +173,8 @@ async function judgeCase(
   }
 }
 
-async function runTestCase(casePath: string, caseIndex: number): Promise<CaseResult> {
-  const { suite: caseSuite, name: caseName } = casePartsOf(casePath);
+async function runTestCase({ casePath, repetition }: TestRun, caseIndex: number): Promise<CaseResult> {
+  const { suite: caseSuite, name: caseName } = casePartsOf(casePath, repetition);
   const caseLabel = caseSuite.join('/');
   const testCase = loadTestCase(casePath);
   const started = Date.now();
@@ -181,15 +215,16 @@ async function runTestCase(casePath: string, caseIndex: number): Promise<CaseRes
   }
 
   logger.info({ source: 'progress', pageId: caseIndex, message: caseName, data: { value: 2, max: 2, errors: result.failed ? 1 : 0, type: 'unknown', remove: true } });
-  logger.info({ source: 'progress', pageId: undefined, message: 'Running cases', data: { value: ++completed, max: casePaths.length } });
+  logger.info({ source: 'progress', pageId: undefined, message: 'Running cases', data: { value: ++completed, max: runs.length } });
   return result;
 }
 
 try {
-  logger.info({ source: 'job', message: `MCP harness ${mcpUrl} — ${casePaths.length} case(s), judge ${isJudging ? 'enabled' : 'disabled'}, parallel ${configuration.parallel}` });
-  logger.info({ source: 'progress', pageId: undefined, message: 'Running cases', data: { value: 0, max: casePaths.length } });
+  const repeatNote = repeat > 1 ? ` x${repeat} (${runs.length} runs)` : '';
+  logger.info({ source: 'job', message: `MCP harness ${mcpUrl} — ${casePaths.length} case(s)${repeatNote}, judge ${isJudging ? 'enabled' : 'disabled'}, parallel ${configuration.parallel}` });
+  logger.info({ source: 'progress', pageId: undefined, message: 'Running cases', data: { value: 0, max: runs.length } });
 
-  const settled = await parallelize(runTestCase, casePaths, { parallel: configuration.parallel });
+  const settled = await parallelize(runTestCase, runs, { parallel: configuration.parallel });
 
   // Fold per-case results back in case order so the report is deterministic regardless of
   // completion order. runCase catches its own errors, so a rejection here is unexpected.
