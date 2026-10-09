@@ -17,6 +17,11 @@ relations:
     - options/end
     - options/coverage
     - options/screenshot
+    - options/driver
+    - options/browser
+    - options/browserOptions
+    - options/batchTimeout
+    - options/browserVisible
   see-also:
     - v5_options
     - report
@@ -40,6 +45,22 @@ In version 5, it was possible to open a browser and monitor the tests execution 
 
 This feature has been removed and is replaced with the possibility to visualize the traces in real time, see the [`--log`](./options/log.md) option.
 
+## Browser selection
+
+In version 5, the browser was instantiated through a command script passed to `--browser` (for instance `--browser $/puppeteer.js`), and arguments were forwarded with `--browser-args` (or `browserArgs` in the configuration file).
+
+Version 6 splits this into two options:
+
+* [`--driver`](./options/driver.md) selects the automation engine (`puppeteer`, `playwright`, `webdriverio` or `selenium-webdriver`).
+* [`--browser`](./options/browser.md) selects the browser as an enumeration (`chrome`, `chromium`, `firefox`, `webkit`, `edge` or `safari`), validated against the chosen driver.
+
+As a consequence, the following options have been removed:
+
+* `--browser` no more accepts a command script path.
+* `--browser-args` (and `browserArgs`) is replaced with [`--browser-options`](./options/browserOptions.md), accepting browser-specific options as JSON.
+* `--browser-close-timeout` (`-bt`) is removed.
+* `--browser-retry` (`-br`) is removed.
+
 ## Options
 
 ### Drop of experimental options
@@ -53,6 +74,19 @@ In version 5, some options were developped but *flagged* as experimental :
 * `--coverage-proxy-exclude`
 
 They are **not** maintained in version 6.
+
+### Removed options
+
+Beside the browser options described above, the following version 5 options have been removed with no direct replacement:
+
+* `--capabilities` : the browser capabilities tester mode no more exists.
+* `--log-server` (`-l`) : inner server traces are now part of the trace logging, see [`--log`](./options/log.md).
+* `--env` : environment variables are no more set through the runner.
+* `--offline` : use [`--no-npm-install`](./options/noNpmInstall.md) to limit NPM usage.
+* `--deep-probe` and `--probe-parallel` : the probing mechanism changed with the agent paradigm.
+* `--page-close-timeout` : page closing is no more individually timed.
+* `--watch-folder` : [`--watch`](./options/watch.md) no more accepts a companion folder option.
+* `--coverage-remote-scanner` (`-crs`) : removed together with the experimental coverage proxy.
 
 ### `--localhost`
 
@@ -68,6 +102,13 @@ By default, only one browser is created to test all pages in parallel. This gene
 
 The `--cache` and `--preload` options have been removed.
 
+### UI5 mapping
+
+The following version 5 UI5 mapping options have been removed:
+
+* `--disable-ui5` : the UI5 mapping is no more disabled this way.
+* `--mappings` : custom mappings are no more supported, use [`--lib`](./options/lib.md) for library mapping.
+
 ### New defaults
 
 * coverage is disabled by default, deprecating `--no-coverage` 
@@ -76,6 +117,13 @@ The `--cache` and `--preload` options have been removed.
 ### Renaming
 
 To maintain consistency with other multiple options (like `--url`), `--libs` is renamed to [`--lib`](./options/lib.md).
+
+### Reused short flags
+
+⚠️ Some single-letter short flags now point to a different option than in version 5. Scripts relying on them must be reviewed:
+
+* `-V` was `--version` in version 5, it is now [`--browser-visible`](./options/browserVisible.md) (`--version` has no short flag anymore).
+* `-bt` was `--browser-close-timeout` in version 5, it is now [`--batch-timeout`](./options/batchTimeout.md).
 
 ## Screenshots
 
