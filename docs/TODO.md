@@ -5,7 +5,7 @@
 - [X] check if we should refer options with their name (cwd) or their cli equivalent (--cwd)
 - [ ] batch keyword should not be used when batchForwarded is present (or should it)
 - [X] Breaking changes of v6
-- [ ] Report format (CTRF, what it contains, screenshots and errors)
+- [X] Report format (CTRF, what it contains, screenshots and errors)
 - [ ] Report generators substitution
 - [ ] Dependencies management (can be part of your project)
 - [ ] Normalize NOTES
