@@ -15,6 +15,7 @@ relations:
     - options/log
     - options/screenshotOnFailure
     - options/end
+    - options/start
     - options/coverage
     - options/screenshot
     - options/driver
@@ -83,7 +84,7 @@ Beside the browser options described above, the following version 5 options have
 
 * `--capabilities` : the browser capabilities tester mode no more exists.
 * `--log-server` (`-l`) : inner server traces are now part of the trace logging, see [`--log`](./options/log.md).
-* `--env` : environment variables are no more set through the runner.
+* `--env` : environment variables are no more set through the runner as a dedicated option. Instead, [`--start`](./options/start.md) and [`--end`](./options/end.md) both accept `KEY=value` assignments placed before the executable (e.g. `TEST_ENV=production node server.js`), which are injected into the spawned process.
 * `--offline` : use [`--no-npm-install`](./options/noNpmInstall.md) to limit NPM usage.
 * `--deep-probe` and `--probe-parallel` : the probing mechanism changed with the agent paradigm.
 * `--page-close-timeout` : page closing is no more individually timed.
