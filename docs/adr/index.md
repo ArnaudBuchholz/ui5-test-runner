@@ -19,7 +19,7 @@ This directory documents significant architectural decisions made in the `ui5-te
 | [0011](./0011-mcp.md) | MCP Mode | Accepted | Documentation-only MCP server: GitHub-hosted KB fetched on demand with git tree SHA for cheap update detection; a typed-frontmatter entity model exposed to clients through `list_topics`/`get_topic` |
 | [0012](./0012-screenshot-capture-and-attachment.md) | Screenshot Capture and Attachment | Accepted | Agent owns screenshot filenames (built from pageId+testId+logIndex), signals the runner via `pendingScreenshot: string | false`, and attaches per-assertion screenshots to `CTRFTest.attachments[]` in `testDone` |
 
-| [0013](./0013-browser-selection.md) | Browser Selection Architecture | Accepted | Split driver (automation library) and browser (actual browser) into two flags; generic `json` option type; static `BrowserDriverDescriptor`; enumeration + option-level validation for per-driver browser validity |
+| [0013](./0013-browser_selection.md) | Browser Selection Architecture | Accepted | Split driver (automation library) and browser (actual browser) into two flags; generic `json` option type; static `BrowserDriverDescriptor`; enumeration + option-level validation for per-driver browser validity |
 
 ## Quick Navigation
 
@@ -35,7 +35,7 @@ This directory documents significant architectural decisions made in the `ui5-te
 - **When modifying `src/platform/Exit.ts` or shutdown/SIGINT handling** → See [ADR-0010](./0010-graceful-shutdown.md)
 - **When modifying `src/modes/mcp/`, the knowledge base fetch strategy, or MCP execution tools** → See [ADR-0011](./0011-mcp.md)
 - **When modifying `src/modes/test/screenshot.ts`, screenshot naming, or per-assertion screenshot attachment** → See [ADR-0012](./0012-screenshot-capture-and-attachment.md)
-- **When modifying `src/browsers/`, `src/configuration/validators/`, or `docs/options/browser.md`/`driver.md`** → See [ADR-0013](./0013-browser-selection.md)
+- **When modifying `src/browsers/`, `src/configuration/validators/`, or `docs/options/browser.md`/`driver.md`** → See [ADR-0013](./0013-browser_selection.md)
 
 ## Cross-Cutting Concerns
 

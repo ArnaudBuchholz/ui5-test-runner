@@ -19,7 +19,7 @@ relations:
     - options/pageFilter
     - options/parallel
   see-also:
-    - tipsNtricks
+    - tips_n_tricks
     - coverage
 ---
 
@@ -42,7 +42,7 @@ Concurrency and volume make failures harder to read. Start by shrinking the run:
   [`--page-filter`](./options/pageFilter.md) so only the suspect page executes.
 
 If the problem disappears at `--parallel 1`, it is likely a concurrency or
-resource issue (see the performance tips in [Tips & tricks](./tipsNtricks.md)).
+resource issue (see the performance tips in [Tips & tricks](./tips_n_tricks.md)).
 
 ## See what the browser sees
 

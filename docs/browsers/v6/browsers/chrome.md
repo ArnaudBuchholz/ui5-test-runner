@@ -57,6 +57,6 @@ arguments are passed to the browser.
 ## Other browsers
 
 `firefox`, `webkit`, `edge`, and `safari` have no browser-specific options at the
-moment. See [Browser selection](../../../browser-selection.md) for which drivers
+moment. See [Browser selection](../../../browser_selection.md) for which drivers
 declare support for them, and the per-driver docs for what is actually wired
 today.

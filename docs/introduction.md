@@ -161,7 +161,7 @@ When the run finishes, the report is available at `report/report.html` in your c
 
 - [CI/CD integration](ci.md) — exit codes, GitHub Actions and Azure DevOps pipeline examples
 - [Troubleshooting](debug.md) — diagnosing common problems step by step
-- [Tips and tricks](tipsNtricks.md) — performance tuning, debugging, and IDE integration
+- [Tips and tricks](tips_n_tricks.md) — performance tuning, debugging, and IDE integration
 
 ### Migration and releases
 

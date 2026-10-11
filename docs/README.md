@@ -19,7 +19,7 @@ A self-sufficient test runner for UI5 applications enabling parallel execution o
 * [Coverage extraction](coverage.md)
 * [Serving and testing the application *(a.k.a. legacy mode)*](modes/legacy.md)
 * [Batch mode](modes/batch.md)
-* [Tips & tricks](tipsNtricks.md)
+* [Tips & tricks](tips_n_tricks.md)
 * [How to demo](demo.md)
 * [Drivers and browsers](browsers/v6/browser.md)
 

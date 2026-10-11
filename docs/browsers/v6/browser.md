@@ -13,7 +13,7 @@ relations:
     - options/driver
     - options/browser
     - options/browserOptions
-    - browser-selection
+    - browser_selection
     - browsers/v6/puppeteer
     - browsers/v6/playwright
     - browsers/v6/webdriverio
@@ -33,7 +33,7 @@ control how:
   library launches (`chrome`, `chromium`, `firefox`, `webkit`, `edge`,
   `safari`). Optional — each driver has its own default browser.
 
-See [Browser selection](../../browser-selection.md) for how the two combine and
+See [Browser selection](../../browser_selection.md) for how the two combine and
 which combinations are valid.
 
 ## In-process — no more command file
@@ -85,4 +85,4 @@ The v5 `jsdom` browser has been removed. `--driver jsdom` fails with
 ## Design rationale
 
 The two-flag driver/browser model — automation library versus concrete browser —
-is motivated in [ADR-0013: Browser Selection Architecture](../../adr/0013-browser-selection.md).
+is motivated in [ADR-0013: Browser Selection Architecture](../../adr/0013-browser_selection.md).

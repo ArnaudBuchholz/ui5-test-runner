@@ -14,7 +14,7 @@ relations:
     - options/browser
     - browsers/v6/browser
     - browsers/v6/browsers/chrome
-    - browser-selection
+    - browser_selection
 ---
 
 # `playwright` driver

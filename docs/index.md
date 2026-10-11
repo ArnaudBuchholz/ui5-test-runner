@@ -6,10 +6,10 @@ A standalone Node.js CLI that drives browsers to execute UI5 (Fiori/SAPUI5/OpenU
 
 - [Introduction](./introduction.md)
 - [Usage](./usage.md)
-- [Browser selection](./browser-selection.md)
+- [Browser selection](./browser_selection.md)
 - [Coverage](./coverage.md)
 - [Debugging](./debug.md)
-- [Tips & tricks](./tipsNtricks.md)
+- [Tips & tricks](./tips_n_tricks.md)
 
 ## Execution modes
 
