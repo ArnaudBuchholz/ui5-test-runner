@@ -6,6 +6,9 @@ keywords:
   - remote
   - url
   - running
+relations:
+  requires:
+    - options/url
 ---
 
 # Testing a running application *(a.k.a. remote mode)*
@@ -34,12 +37,8 @@ On the flip side, it does **not** enable these features :
 
 **After** the tests are executed :
 
-* The command line output will provide a summary of executed pages and the corresponding failures :
+* The command line output will provide a summary of executed pages and the corresponding failures
 
-  ![cmd_report](cmd_report_remote.png)
-
-* The detailed test report is available in the report folder
-
-  ![report](report_remote.png)
+* The detailed test report is available in the `report/` folder
 
 * The folder `report/` is created to support execution, you may add it to your project `.gitignore` to exclude it from git

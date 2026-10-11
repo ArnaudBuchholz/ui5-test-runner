@@ -1,13 +1,12 @@
 ---
 "#type": task
 title: How to demo
-summary: Guided demo walking through legacy, remote, and capabilities modes with a sample UI5 app
+summary: Guided demo walking through legacy and remote modes with a sample UI5 app
 keywords:
   - demo
   - walkthrough
   - legacy
   - remote
-  - capabilities
 relations:
   requires:
     - options/port
@@ -103,7 +102,7 @@ relations:
 * Open `coverage/lcov-report/index.html` in the browser
 * Open `coverage/lcov.info` for raw coverage information
 
-> ⓘ Thresholds can be defined to **fail** the command line if the coverage is below the expected ratio, see `--coverage-check-branches`, ` --coverage-check-functions`, `--coverage-check-lines`, `--coverage-check-statement`.
+> ⓘ Thresholds can be defined to **fail** the command line if the coverage is below the expected ratio, see `--coverage-check-branches`, ` --coverage-check-functions`, `--coverage-check-lines`, `--coverage-check-statements`.
 
 > ⓘ Coverage instrumentation is based on [`nyc`](https://www.npmjs.com/package/nyc), the process can be customized with a [configuration file](https://www.npmjs.com/package/nyc#configuration-files) and the option `--coverage-settings`.
 

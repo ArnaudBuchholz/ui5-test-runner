@@ -70,7 +70,7 @@ Code coverage is also available in remote mode when your application server pre-
 The runner acts as the web server for your application. This unlocks additional features: automatic source file instrumentation for coverage, the ability to select a specific UI5 version, and custom resource mappings.
 
 ```bash
-ui5-test-runner --port 8081 --libs mylib=src
+ui5-test-runner --port 8081 --lib mylib=src
 ```
 
 Use this mode when you do not have a separate serve step or when you need the runner to control how files are served.
@@ -127,13 +127,13 @@ ui5-test-runner --url http://localhost:8080/test/testsuite.qunit.html
 
 When the run finishes, the report is available at `report/report.html` in your current working directory.
 
-→ [Command line usage](usage.md) — all options, the configuration file format, and advanced usage.
+→ [Command line usage](options.md) — all options, the configuration file format, and advanced usage.
 
 ## Compatibility
 
 | | |
 |---|---|
-| **Node.js** | Node.js 18 or later; version 6 requires Node.js 24 |
+| **Node.js** | Node.js 24 (>=24.11.1) |
 | **UI5** | A broad range of UI5 versions is supported |
 | **Operating systems** | Linux, macOS, Windows |
 | **Test frameworks** | QUnit, OPA5 |
@@ -142,7 +142,7 @@ When the run finishes, the report is available at `report/report.html` in your c
 
 ### Running tests
 
-- [Command line usage](usage.md) — complete options reference and configuration file format
+- [Options reference](options.md) — complete options reference and configuration file format
 - [Testing a running application](modes/remote.md) — remote mode in depth, including coverage setup
 - [Legacy mode](modes/legacy.md) — when the runner serves the application itself
 - [Batch mode](modes/batch.md) — running multiple projects in one invocation
@@ -155,15 +155,13 @@ When the run finishes, the report is available at `report/report.html` in your c
 ### Results and coverage
 
 - [Code coverage](coverage.md) — extracting coverage in both legacy and remote mode
-- [Report output](report-output.md) — report structure, the CTRF format, and CI integration
+- [Report output](report.md) — report structure, the CTRF format, and CI integration
 
 ### Operations
 
-- [CI/CD integration](ci.md) — exit codes, GitHub Actions and Azure DevOps pipeline examples
 - [Troubleshooting](debug.md) — diagnosing common problems step by step
 - [Tips and tricks](tips_n_tricks.md) — performance tuning, debugging, and IDE integration
 
 ### Migration and releases
 
-- [What's new in v6](v6.md) — architecture changes, new features, and performance improvements
-- [Migrating to v6](migration_v5_v6.md) — breaking changes and updated option names
+- [Migrating to v6](v6_breaking_changes.md) — breaking changes and updated option names

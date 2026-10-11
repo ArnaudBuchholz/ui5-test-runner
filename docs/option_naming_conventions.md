@@ -1,7 +1,7 @@
 ---
 "#type": concept
 title: "Option naming conventions (READ FIRST before answering any option or migration question)"
-summary: "READ THIS FIRST before dealing with options: every option has two name surfaces — a CLI flag (kebab-case, e.g. --report-generator) and a configuration-file key (camelCase, e.g. reportGenerator) — that are the same option; explains how to translate between them and how to tell whether an option was removed between v5 and v6."
+summary: "Every ui5-test-runner option has two name surfaces — a CLI flag (kebab-case, e.g. --report-generator) and a configuration-file key (camelCase, e.g. reportGenerator) — that are the same option; explains how to translate between them and how to tell whether an option was removed between v5 and v6"
 keywords:
   - options
   - naming

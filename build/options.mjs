@@ -215,7 +215,7 @@ export const defaults = {`);
 
   await writeFile('./src/configuration/validations.ts', validationsOutput.join('\n'));
 
-  const optionsMarkdown = ['|Option|CLI arg|CLI shorcut|Type|Description|', '|---|---|---|---|---|'];
+  const optionsMarkdown = ['|Option|CLI arg|CLI shortcut|Type|Description|', '|---|---|---|---|---|'];
   const toKebabCase = (name) => name.replaceAll(/[A-Z]/g, (letter) => `-${letter.toLowerCase()}`);
   for (const name of sortedOptionNames) {
     const option = options[name];

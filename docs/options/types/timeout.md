@@ -22,6 +22,7 @@ Can be expressed using different suffixes:
 * `123sec`: number of seconds
 * `123m`: number of minutes
 * `123min`: number of minutes
+* `none`: explicitly disable the timeout (equivalent to `0`)
 
 ## Example
 

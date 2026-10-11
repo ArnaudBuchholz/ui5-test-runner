@@ -18,7 +18,7 @@ relations:
 
 # Options reference
 
-|Option|CLI arg|CLI shorcut|Type|Description|
+|Option|CLI arg|CLI shortcut|Type|Description|
 |---|---|---|---|---|
 |[cwd](options/cwd.md)|--cwd|-c|fs-entry|set working directory|
 |[webapp](options/webapp.md)|--webapp||fs-entry|base folder of the UI5 application|

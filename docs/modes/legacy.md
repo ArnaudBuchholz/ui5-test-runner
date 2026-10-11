@@ -6,6 +6,11 @@ keywords:
   - legacy
   - serve
   - webapp
+relations:
+  see-also:
+    - options/serveOnly
+    - options/lib
+    - options/ui5
 ---
 
 # Serving and testing the application *(a.k.a. legacy mode)*
@@ -49,7 +54,7 @@ This mode offers unique capabilities such as selecting which UI5 version to use 
 
 * In the project root folder, run the following command :
 
-`ui5-test-runner --port 8081 --libs my/namespace/feature/lib/=../my.namespace.feature.project.lib/src/my/namespace/feature/lib/`
+`ui5-test-runner --port 8081 --lib my/namespace/feature/lib/=../my.namespace.feature.project.lib/src/my/namespace/feature/lib/`
 
 You may also use :
 * `--ui5 https://ui5.sap.com/1.109.0/` : uses a specific version of UI5
@@ -62,17 +67,11 @@ You may also use :
 
 **After** the tests are executed :
 
-* The command line output will provide a summary of executed pages and the corresponding failures :
+* The command line output will provide a summary of executed pages and the corresponding failures
 
-  ![cmd_report](cmd_report.png)
+* The detailed test report is available in the `report/` folder
 
-* The detailed test report is available in the report folder
-
-  ![report](report.png)
-
-* The coverage report is available from http://localhost:8081/_/coverage/lcov-report/index.html
-
-  ![coverage](coverage.png)
+* The coverage report is available in the `coverage/` folder (default path, configurable with `--coverage-report-dir`)
 
 
 * Some folders are created to support execution, you may add them to your project `.gitignore` to exclude them from git :

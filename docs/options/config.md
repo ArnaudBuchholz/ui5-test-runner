@@ -29,11 +29,11 @@ To **force** a value that cannot be overridden by the command line, prefix the p
 }
 ```
 
-Options that accept multiple values (e.g. `--libs`) can be a single string or an array:
+Options that accept multiple values (e.g. `--lib`) can be a single string or an array:
 
 ```json
 {
-  "libs": [
+  "lib": [
     "my/namespace/lib/=../my.namespace.lib/src/my/namespace/lib/",
     "my/namespace/lib2/=../my.namespace.lib2/src/my/namespace/lib2/"
   ]

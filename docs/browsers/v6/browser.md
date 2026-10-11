@@ -85,4 +85,4 @@ The v5 `jsdom` browser has been removed. `--driver jsdom` fails with
 ## Design rationale
 
 The two-flag driver/browser model — automation library versus concrete browser —
-is motivated in [ADR-0013: Browser Selection Architecture](../../adr/0013-browser_selection.md).
+is motivated in [ADR-0013: Browser Selection Architecture](../../adr/0013-browser-selection.md).

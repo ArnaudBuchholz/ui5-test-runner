@@ -2,7 +2,7 @@
 "#type": option
 title: alternateNpmPath
 type: fs-entry
-summary: alternate NPM package path
+summary: additional path the runner searches for npm packages after the local and global locations
 keywords:
   - npm
 batchForwarded: yes

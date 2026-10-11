@@ -97,8 +97,6 @@ In legacy mode, `ui5-test-runner` owns the full instrumentation pipeline: it rew
 
 At startup, `nyc instrument` copies every `.js` file from `webapp` into `<coverageTempDir>/instrumented/`, rewriting each one to accumulate hit counts in `window.__coverage__`. The `webapp` folder is therefore the instrumentation root: only files inside it are instrumented by default.
 
-When the `lib` option maps a library source folder that lives under `cwd`, that folder is instrumented into `<coverageTempDir>/instrumented/<relative-path-from-cwd>/` using the same mechanism. Library source folders outside `cwd` are not instrumented.
-
 ### How the server substitutes instrumented files
 
 The runner's HTTP server uses two stacked mappings for every instrumented root:
@@ -108,7 +106,7 @@ The runner's HTTP server uses two stacked mappings for every instrumented root:
 
 This fallback exists because not every file that is served will have been instrumented (for example, files excluded by the `.nycrc.json` `exclude` list). A missing file in the instrumented tree causes the request to fall through to the source mapping transparently.
 
-For `webapp` the project mapping at the bottom of the server configuration already acts as the source fallback. For `lib` entries, both mappings are emitted side-by-side with the same URL pattern, instrumented first.
+For `webapp` the project mapping at the bottom of the server configuration already acts as the source fallback.
 
 ### The `?instrument=true` signal
 

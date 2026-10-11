@@ -31,7 +31,7 @@ relations:
 
 * Lower the parallelism (`--parallel 1`) and focus on the failing test page (`--page-filter`).
 
-* Use the browser option `--visible` (for instance: `ui5-test-runner -- --visible`) to display the browser while running the tests.
+* Use `--browser-visible` (for instance: `ui5-test-runner --browser-visible`) to display the browser while running the tests.
 
 * When the browser is visible, use the option `--debug-keep-browser-open` to prevent the browser closing when the tests are completed: it gives access to the console log and the network traces.
 
@@ -49,12 +49,12 @@ relations:
 
 ## 👟 Performances
 
-* The runner takes a screenshot for **every** OPA assertion (`Opa5.assert.ok`) : disabling screenshots will speed up the tests. Yet, if a test fails, a screenshot is captured after the error (unless using `--screenshot-on-failure false`).
+* Screenshots per OPA assertion are **disabled by default**. Enable them with `--screenshot` if you want a snapshot after every `Opa5.assert.ok` call. By default, a screenshot is only captured when a test fails (`--screenshot-on-failure`, which is on by default).
 
 * To benefit from **parallelization**, use the option `--split-opa` (available from version `4.5.0`) : it automatically splits the OPA journeys into different test pages.
 
 ## ✍ IDEs
 
-* `ui5-test-runner` runs in [Business Application Studio](https://www.sap.com/products/technology-platform/business-application-studio.html) provided the instance is created with the `Headless Testing Framework` extension. Then configure the runner to use the `webdriverio` browser combined with the `firefox` setting. For instance : `ui5-test-runner --browser $/webdriverio.js -- --browser firefox`.
+* `ui5-test-runner` runs in [Business Application Studio](https://www.sap.com/products/technology-platform/business-application-studio.html) provided the instance is created with the `Headless Testing Framework` extension. Then configure the runner to use the `webdriverio` driver combined with the `firefox` browser. For instance: `ui5-test-runner --driver webdriverio --browser firefox`.
 
 > ⚠️ As of March 2025, it is recommended to install `webdriverio@8` first as it works better than the latest one.
