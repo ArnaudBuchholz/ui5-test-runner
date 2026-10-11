@@ -7,7 +7,8 @@
 - [X] Breaking changes of v6
 - [X] Report format (CTRF, what it contains, screenshots and errors)
 - [ ] Report generators substitution
-- [ ] Dependencies management (can be part of your project)
+- [X] Dependencies management (can be part of your project)
 - [ ] Normalize NOTES
 - [ ] Extract CTRF report mapping from code
-- [ ] Automate detection of removed options
+- [X] Automate detection of removed options
+- [X] /doc-review
