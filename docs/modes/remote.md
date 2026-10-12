@@ -10,7 +10,6 @@ relations:
   requires:
     - options/url
 ---
-
 # Testing a running application *(a.k.a. remote mode)*
 
 Since version 2, `ui5-test-runner` can test applications that are **already** served.

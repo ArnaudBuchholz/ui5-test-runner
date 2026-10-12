@@ -22,7 +22,6 @@ relations:
     - tips_n_tricks
     - coverage
 ---
-
 # How to troubleshoot
 
 ## When to use this guide

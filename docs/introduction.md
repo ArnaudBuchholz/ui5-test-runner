@@ -18,7 +18,6 @@ relations:
     - coverage
     - browsers/v6/browser
 ---
-
 # Introduction
 
 ## What is ui5-test-runner?

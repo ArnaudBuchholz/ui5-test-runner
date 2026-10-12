@@ -26,7 +26,6 @@ relations:
     - browsers/v6/browser
     - coverage
 ---
-
 # Dependency management
 
 ## What the runner installs automatically

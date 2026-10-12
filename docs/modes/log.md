@@ -18,7 +18,6 @@ relations:
     - options/logFilter
     - debug
 ---
-
 # Log viewer mode
 
 ## Overview

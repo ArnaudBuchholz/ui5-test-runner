@@ -15,7 +15,6 @@ relations:
   see-also:
     - option_naming_conventions
 ---
-
 # Options reference
 
 |Option|CLI arg|CLI shortcut|Type|Description|

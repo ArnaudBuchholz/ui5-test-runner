@@ -20,7 +20,6 @@ relations:
     - browsers/v6/selenium-webdriver
     - browsers/v6/browsers/chrome
 ---
-
 # Drivers and browsers
 
 `ui5-test-runner` runs tests inside a real browser. Two orthogonal options

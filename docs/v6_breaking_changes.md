@@ -27,7 +27,6 @@ relations:
     - v5_options
     - report
 ---
-
 # version 6 breaking changes
 
 Version 6 is a new major release and even if the best effort was made to keep backward compatibility, it comes with significant breaking changes. Use this guide as a migration guide from version 5.

@@ -22,7 +22,6 @@ relations:
   see-also:
     - debug
 ---
-
 # Tips & tricks
 
 ## 🐞 Troubleshooting

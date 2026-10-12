@@ -19,7 +19,6 @@ relations:
     - modes/legacy
     - modes/remote
 ---
-
 # 🖥️ How to demo
 
 > ⓘ The repository `training-ui5con18-opa` contains a sample UI5 application with qUnit and OPA tests. The project was modified to support many execution modes, including [online](https://arnaudbuchholz.github.io/training-ui5con18-opa/webapp/), local with `@ui5/cli` or with a standalone web server (`reserve`).

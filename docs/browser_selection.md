@@ -16,7 +16,6 @@ relations:
     - options/browserOptions
     - browsers/v6/browser
 ---
-
 # Browser Selection Design
 
 ## Overview

@@ -22,7 +22,6 @@ relations:
     - modes/legacy
     - modes/remote
 ---
-
 # Coverage extraction
 
 ## Overview

@@ -14,7 +14,6 @@ relations:
     - browsers/v5/browser
     - browsers/v6/browser
 ---
-
 # jsdom
 
 ## Capabilities

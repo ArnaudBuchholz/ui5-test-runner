@@ -15,7 +15,6 @@ relations:
     - browsers/v6/browsers/chrome
     - browser_selection
 ---
-
 # `selenium-webdriver` driver
 
 Select with `--driver selenium-webdriver`. The

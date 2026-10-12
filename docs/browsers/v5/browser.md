@@ -20,7 +20,6 @@ relations:
     - browsers/v5/webdriverio
     - browsers/v5/jsdom
 ---
-
 # Browser instantiation command
 
 ## Overview

@@ -16,7 +16,6 @@ relations:
     - browsers/v6/browsers/chrome
     - browser_selection
 ---
-
 # `playwright` driver
 
 Select with `--driver playwright`. The

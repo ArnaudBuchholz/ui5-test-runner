@@ -10,7 +10,6 @@ relations:
   requires:
     - options/batch
 ---
-
 # Batch mode
 
 ## Overview

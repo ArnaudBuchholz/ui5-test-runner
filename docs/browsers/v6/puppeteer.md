@@ -16,7 +16,6 @@ relations:
     - browsers/v6/browsers/chrome
     - browser_selection
 ---
-
 # `puppeteer` driver
 
 Select with `--driver puppeteer` (this is the **default driver**). The

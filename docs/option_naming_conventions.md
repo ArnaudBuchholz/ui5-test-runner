@@ -22,7 +22,6 @@ relations:
     - options
     - v5_options
 ---
-
 # Option naming conventions
 
 **Read this before answering any question about an option, a configuration file, or a migration.** Every ui5-test-runner option exists under **two name surfaces**, and they refer to the *same* option:

@@ -15,7 +15,6 @@ relations:
     - browsers/v6/browser
     - browsers/v6/puppeteer
 ---
-
 # Chrome / Chromium specifics
 
 Chrome (and its Chromium variant) is the **default browser** for every driver

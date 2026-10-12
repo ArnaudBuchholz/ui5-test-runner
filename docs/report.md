@@ -16,7 +16,6 @@ relations:
     - options/coverageReporters
     - options/screenshotOnFailure
 ---
-
 # Report
 
 ## Common Test Report Format

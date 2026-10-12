@@ -15,7 +15,6 @@ relations:
     - options
     - option_naming_conventions
 ---
-
 # Command line usage
 
 Use `ui5-test-runner --help` to display the list of options.

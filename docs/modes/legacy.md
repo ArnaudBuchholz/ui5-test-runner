@@ -12,7 +12,6 @@ relations:
     - options/lib
     - options/ui5
 ---
-
 # Serving and testing the application *(a.k.a. legacy mode)*
 
 ## Overview
