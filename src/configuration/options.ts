@@ -286,7 +286,7 @@ export const options = [
     name: 'log',
     type: 'fs-entry',
     typeModifiers: new Set(['file'] as const),
-    description: 'read and dump log file using jsonl format'
+    description: 'path to a .logz trace file produced by a previous run; activates log viewer mode'
   },
   {
     name: 'logDump',

@@ -233,6 +233,6 @@ export const defaults = {`);
   const [, optionsFrontmatter] = existingOptionsDocument.match(/^(---\n[\s\S]*?\n---\n)/) ?? [];
   await writeFile(
     optionsDocumentPath,
-    `${optionsFrontmatter ?? ''}\n# Options reference\n\n${optionsMarkdown.join('\n')}\n`
+    `${optionsFrontmatter ?? ''}# Options reference\n\n${optionsMarkdown.join('\n')}\n`
   );
 }

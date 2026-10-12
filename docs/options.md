@@ -62,7 +62,7 @@ relations:
 |[help](options/help.md)|--help||boolean|display help|
 |[if](options/if.md)|--if||string|skip execution if the expression evaluates to falsy|
 |[lib](options/lib.md)|--lib||library-mapping|Library mapping|
-|[log](options/log.md)|--log||fs-entry|read and dump log file using jsonl format|
+|[log](options/log.md)|--log||fs-entry|path to a .logz trace file produced by a previous run; activates log viewer mode|
 |[logDump](options/logDump.md)|--log-dump||boolean|dump all traces to stdout instead of opening a browser (requires --log)|
 |[logFilter](options/logFilter.md)|--log-filter|-lf|string|JavaScript expression (using punyexpr) to filter logs for dumping with --log-dump|
 |[mcp](options/mcp.md)|--mcp||boolean|start an MCP server to pilot ui5-test-runner with an MCP client|
