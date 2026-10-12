@@ -10,8 +10,20 @@ relations:
   affects:
     - options/types/fs-entry
 ---
+# overwrite modifier
+
+## Syntax
+
 By default, an [fs-entry](../fs-entry.md) option points to an existing item.
 
 This modifier indicates that:
 - The item entry *may* not exist,
 - If it exists, the item will be **overwritten**.
+
+## Example
+
+The [`reportDir`](../../reportDir.md) option points to an output directory that may not yet exist:
+
+```bash
+ui5-test-runner --report-dir ./test-results
+```

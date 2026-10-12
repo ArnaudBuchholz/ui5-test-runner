@@ -10,6 +10,8 @@ keywords:
   - seconds
   - minutes
 ---
+# timeout type
+
 Represents a maximum delay.
 
 ## Syntax
@@ -26,4 +28,9 @@ Can be expressed using different suffixes:
 
 ## Example
 
-The [`agentDetectionInterval`](../agentDetectionInterval.md) option takes a timeout: `--agent-detection-interval 100` (100 milliseconds) or `--agent-detection-interval 2s` (2 seconds).
+The [`agentDetectionInterval`](../agentDetectionInterval.md) option takes a timeout:
+
+```bash
+ui5-test-runner --agent-detection-interval 100
+ui5-test-runner --agent-detection-interval 2s
+```

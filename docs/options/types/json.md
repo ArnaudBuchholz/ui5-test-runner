@@ -6,6 +6,8 @@ keywords:
   - json
   - configuration
 ---
+# json type
+
 A JSON-encoded string that is parsed into an object.
 
 ## Syntax
@@ -14,4 +16,9 @@ Any valid JSON object, provided as a string. It is parsed into an object.
 
 ## Example
 
-The [`browserOptions`](../browserOptions.md) option takes JSON: `--browser-options '{}'` for an empty object, or `--browser-options '{"headless":true}'` to pass structured options.
+The [`browserOptions`](../browserOptions.md) option takes JSON:
+
+```bash
+ui5-test-runner --browser-options '{}'
+ui5-test-runner --browser-options '{"headless":true}'
+```

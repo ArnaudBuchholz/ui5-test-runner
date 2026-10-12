@@ -5,6 +5,8 @@ summary: Option value that must be a whole number, refinable with the positive a
 keywords:
   - integer
 ---
+# integer type
+
 Any integer value, type modifiers *may* be used to restrict the list of possible values.
 
 ## Syntax
@@ -16,4 +18,9 @@ An integer value. It can be refined with modifiers:
 
 ## Example
 
-The [`browserViewportHeight`](../browserViewportHeight.md) option takes an integer: `--browser-viewport-height 1080` (or `-H 1080`).
+The [`browserViewportHeight`](../browserViewportHeight.md) option takes an integer:
+
+```bash
+ui5-test-runner --browser-viewport-height 1080
+ui5-test-runner -H 1080
+```

@@ -9,6 +9,8 @@ keywords:
   - match
   - filter
 ---
+# regexp type
+
 A [regular expression](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_expressions) used to match a value.
 
 ## Syntax
@@ -22,4 +24,8 @@ The value must not be empty, and the pattern must be a valid regular expression;
 
 ## Example
 
-The [`pageFilter`](../pageFilter.md) option uses this type to select which pages run: `--page-filter /unit/i` keeps only the pages whose name matches `unit`, case-insensitively.
+The [`pageFilter`](../pageFilter.md) option uses this type to select which pages run:
+
+```bash
+ui5-test-runner --page-filter /unit/i
+```

@@ -6,6 +6,8 @@ keywords:
   - boolean
   - flag
 ---
+# boolean type
+
 Either `true` or `false`, accepting several textual forms on the command line.
 
 ## Syntax
@@ -21,6 +23,9 @@ To explicitly set a boolean option to `false`, pass one of the false values afte
 
 ## Example
 
-Using [failFast](../failFast.md) as `ui5-test-runner --fail-fast` sets `failFast` to `true`.
+Using [failFast](../failFast.md) without a value sets it to `true`; pass a false value to force it off:
 
-To force it off, pass a false value: `ui5-test-runner --ci false`.
+```bash
+ui5-test-runner --fail-fast
+ui5-test-runner --ci false
+```

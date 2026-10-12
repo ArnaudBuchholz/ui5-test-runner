@@ -9,6 +9,8 @@ keywords:
   - path
   - filesystem
 ---
+# fs-entry type
+
 Can be either a `file` or a `folder`.
 
 ## Syntax
@@ -23,4 +25,8 @@ Most `fs-entry` options are relative to [`cwd`](../cwd.md) unless specified othe
 
 ## Example
 
-The [`log`](../log.md) option points to a file: `--log ./traces.logz`.
+The [`log`](../log.md) option points to a file:
+
+```bash
+ui5-test-runner --log ./traces.logz
+```

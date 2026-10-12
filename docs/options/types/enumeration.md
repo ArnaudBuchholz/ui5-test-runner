@@ -8,6 +8,8 @@ keywords:
   - list
   - choice
 ---
+# enumeration type
+
 A value that must be one of a predefined list of choices.
 
 ## Syntax
@@ -16,4 +18,9 @@ The value must be one of the choices declared for the option. Unlike other types
 
 ## Example
 
-The [`browser`](../browser.md) option accepts `chrome`, `chromium`, `firefox`, `webkit`, `edge` or `safari` (`--browser firefox`), and the [`driver`](../driver.md) option accepts `puppeteer`, `playwright`, `webdriverio` or `selenium-webdriver`.
+The [`browser`](../browser.md) option accepts `chrome`, `chromium`, `firefox`, `webkit`, `edge` or `safari`, and the [`driver`](../driver.md) option accepts `puppeteer`, `playwright`, `webdriverio` or `selenium-webdriver`:
+
+```bash
+ui5-test-runner --browser firefox
+ui5-test-runner --driver playwright
+```

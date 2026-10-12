@@ -8,6 +8,8 @@ keywords:
   - threshold
   - coverage
 ---
+# percent type
+
 A percentage value, expressed as a number between `0` and `100` (integer or decimal, e.g. `80` or `80.5`).
 
 ## Syntax
@@ -16,4 +18,8 @@ A number from `0` to `100`. Decimal values are accepted using the `%` suffix for
 
 ## Example
 
-The [`coverageCheckBranches`](../coverageCheckBranches.md) option takes a percentage: `--coverage-check-branches 80` requires at least 80% branch coverage.
+The [`coverageCheckBranches`](../coverageCheckBranches.md) option takes a percentage:
+
+```bash
+ui5-test-runner --coverage-check-branches 80
+```

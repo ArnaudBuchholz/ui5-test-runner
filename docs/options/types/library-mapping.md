@@ -9,6 +9,8 @@ keywords:
   - ui5
   - resources
 ---
+# library-mapping type
+
 Maps a UI5 resources sub-folder to a local source folder so that resources can be served from the file system instead of being fetched remotely.
 
 ## Syntax
@@ -26,7 +28,11 @@ Instead of the string form, the value can also be provided as an object with `re
 
 ## Example
 
-* `my/lib=./src/my/lib` — serve `my/lib` resources from the local `./src/my/lib` folder.
-* `my/lib` — shorthand for `my/lib=my/lib`.
+- `my/lib=./src/my/lib` — serve `my/lib` resources from the local `./src/my/lib` folder.
+- `my/lib` — shorthand for `my/lib=my/lib`.
 
-The [`lib`](../lib.md) option uses this type and accepts multiple mappings, so it can be repeated: `--lib my/lib=./src/my/lib --lib other/lib=./src/other`.
+The [`lib`](../lib.md) option uses this type and accepts multiple mappings:
+
+```bash
+ui5-test-runner --lib my/lib=./src/my/lib other/lib=./src/other
+```
