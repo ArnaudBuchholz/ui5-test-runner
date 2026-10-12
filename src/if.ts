@@ -19,7 +19,7 @@ export const isIfEvaluatedAsTrue = async ({ if: condition }: Configuration): Pro
     ...Host.env,
     UI5TR_NAME: runnerName,
     UI5TR_VERSION: runnerVersion,
-    NODE_VERSIOM: Host.version,
+    NODE_VERSION: Host.version,
     NODE_MAJOR_VERSION: Number(nodeMajorVersion),
     compareVersions,
     implemented: isImplemented

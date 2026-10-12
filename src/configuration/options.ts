@@ -59,7 +59,7 @@ export const options = [
     name: 'alternateNpmPath',
     type: 'fs-entry',
     batchForwarded: true,
-    description: 'alternate NPM package path'
+    description: 'additional path the runner searches for npm packages after the local and global locations'
   },
   {
     name: 'batch',
@@ -277,12 +277,6 @@ export const options = [
     description: 'skip execution if the expression evaluates to falsy'
   },
   {
-    name: 'keepAlive',
-    short: 'k',
-    type: 'boolean',
-    description: 'keep the server alive'
-  },
-  {
     name: 'lib',
     type: 'library-mapping',
     multiple: true,
@@ -424,7 +418,7 @@ export const options = [
     name: 'serveOnly',
     short: 's',
     type: 'boolean',
-    description: 'serve only'
+    description: 'start the legacy web server and serve the application without running any tests'
   },
   {
     name: 'splitOpa',

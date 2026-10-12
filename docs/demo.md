@@ -14,7 +14,6 @@ relations:
     - options/ui5
     - options/coverage
     - options/parallel
-    - options/keepAlive
     - options/url
   see-also:
     - modes/legacy
@@ -106,7 +105,7 @@ relations:
 
 > ⓘ Coverage instrumentation is based on [`nyc`](https://www.npmjs.com/package/nyc), the process can be customized with a [configuration file](https://www.npmjs.com/package/nyc#configuration-files) and the option `--coverage-settings`.
 
-* Run `ui5-test-runner --port 8081 --coverage --keep-alive`
+* Run `ui5-test-runner --port 8081 --coverage --serve-only`
 * Browse to [`http://localhost:8081/component.js`](http://localhost:8081/component.js) to see instrumentated version
 
 ## 🔗 Remote mode

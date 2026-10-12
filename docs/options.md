@@ -28,7 +28,7 @@ relations:
 |[agentDetectionTimeout](options/agentDetectionTimeout.md)|--agent-detection-timeout||timeout|maximum time to wait for a test framework to be detected after page load|
 |[agentNoTestsTimeout](options/agentNoTestsTimeout.md)|--agent-no-tests-timeout||timeout|time to wait after QUnit.done fires with no tests before declaring the page done|
 |[agentScreenshotTimeout](options/agentScreenshotTimeout.md)|--agent-screenshot-timeout||timeout|maximum time OPA waits for a pending screenshot before continuing|
-|[alternateNpmPath](options/alternateNpmPath.md)|--alternate-npm-path||fs-entry|alternate NPM package path|
+|[alternateNpmPath](options/alternateNpmPath.md)|--alternate-npm-path||fs-entry|additional path the runner searches for npm packages after the local and global locations|
 |[batch](options/batch.md)|--batch||string|batch item specification (folder, config file, or regex pattern)|
 |[batchId](options/batchId.md)|--batch-id||string|identifier for the batch item|
 |[batchLabel](options/batchLabel.md)|--batch-label||string|display label for the batch item|
@@ -62,7 +62,6 @@ relations:
 |[globalTimeout](options/globalTimeout.md)|--global-timeout|-t|timeout|limit the tests execution time, fail remaining pages if it takes longer than the timeout|
 |[help](options/help.md)|--help||boolean|display help|
 |[if](options/if.md)|--if||string|skip execution if the expression evaluates to falsy|
-|[keepAlive](options/keepAlive.md)|--keep-alive|-k|boolean|keep the server alive|
 |[lib](options/lib.md)|--lib||library-mapping|Library mapping|
 |[log](options/log.md)|--log||fs-entry|read and dump log file using jsonl format|
 |[logDump](options/logDump.md)|--log-dump||boolean|dump all traces to stdout instead of opening a browser (requires --log)|
@@ -84,7 +83,7 @@ relations:
 |[screenshot](options/screenshot.md)|--screenshot||boolean|take a screenshot after every OPA assertion|
 |[screenshotOnFailure](options/screenshotOnFailure.md)|--screenshot-on-failure||boolean|take a screenshot when a test fails|
 |[screenshotTimeout](options/screenshotTimeout.md)|--screenshot-timeout||timeout|maximum time allowed to take a screenshot|
-|[serveOnly](options/serveOnly.md)|--serve-only|-s|boolean|serve only|
+|[serveOnly](options/serveOnly.md)|--serve-only|-s|boolean|start the legacy web server and serve the application without running any tests|
 |[splitOpa](options/splitOpa.md)|--split-opa|-so|boolean|split OPA tests by QUnit module, creating one test page per module|
 |[start](options/start.md)|--start||string|command to be executed before the tests|
 |[startTimeout](options/startTimeout.md)|--start-timeout||timeout|maximum waiting time for the start command to become ready|
