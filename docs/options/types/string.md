@@ -4,8 +4,6 @@ title: string type
 summary: Option value accepting any textual value.
 keywords:
   - string
-  - text
-  - value
 ---
 Any textual value.
 

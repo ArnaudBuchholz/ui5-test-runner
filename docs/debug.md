@@ -3,7 +3,7 @@
 title: How to troubleshoot
 summary: Diagnose timeouts, unexpected failures, and missing coverage step by step
 keywords:
-  - troubleshoot
+  - troubleshooting
   - debug
   - timeout
   - logs

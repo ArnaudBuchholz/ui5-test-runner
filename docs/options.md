@@ -6,7 +6,7 @@ keywords:
   - options
   - reference
   - cli
-  - flags
+  - flag
   - v6
   - current
 relations:

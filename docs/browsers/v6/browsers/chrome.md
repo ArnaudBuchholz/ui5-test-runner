@@ -6,7 +6,7 @@ keywords:
   - chrome
   - chromium
   - arguments
-  - flags
+  - launch-arguments
   - UI5TR_CHROME_ARGS
 relations:
   see-also:

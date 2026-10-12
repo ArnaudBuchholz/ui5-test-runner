@@ -6,7 +6,6 @@ summary: command to be executed after the tests
 keywords:
   - hook
   - teardown
-  - command
 relations:
   affects:
     - modes/legacy

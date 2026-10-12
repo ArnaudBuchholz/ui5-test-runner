@@ -6,7 +6,6 @@ keywords:
   - usage
   - cli
   - options
-  - command-line
   - reference
   - v5
 relations:

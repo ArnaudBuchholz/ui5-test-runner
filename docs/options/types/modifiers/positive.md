@@ -5,7 +5,6 @@ summary: Modifier requiring an integer option value to be zero or greater.
 keywords:
   - positive
   - modifier
-  - integer
 relations:
   affects:
     - options/types/integer

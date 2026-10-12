@@ -3,7 +3,6 @@
 title: selenium-webdriver (v5)
 summary: "v5: legacy Selenium WebDriver browser instantiation command ($/selenium-webdriver.js). Kept for migration; see the v6 selenium-webdriver driver for the current model"
 keywords:
-  - selenium
   - selenium-webdriver
   - edge
   - driver

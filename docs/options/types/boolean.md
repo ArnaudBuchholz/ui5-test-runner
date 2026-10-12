@@ -5,8 +5,6 @@ summary: Option value that is either true or false, accepting several textual fo
 keywords:
   - boolean
   - flag
-  - true
-  - false
 ---
 Either `true` or `false`, accepting several textual forms on the command line.
 

@@ -7,7 +7,6 @@ batchForwarded: yes
 default: "!process.stdout.isTTY"
 keywords:
   - cicd
-  - pipeline
   - noninteractive
 relations:
   affects:

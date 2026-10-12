@@ -6,7 +6,6 @@ summary: command to be executed before the tests
 keywords:
   - hook
   - setup
-  - command
 relations:
   affects:
     - modes/legacy
