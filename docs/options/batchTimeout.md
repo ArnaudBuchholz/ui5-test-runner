@@ -10,3 +10,26 @@ relations:
   affects:
     - modes/batch
 ---
+# `--batch-timeout` / `-bt`
+
+Fails a batch item if it takes longer than this timeout.
+
+## Overview
+
+| | |
+|---|---|
+| Type | [`timeout`](types/timeout.md) |
+| Default | *none* |
+| Config key | `batchTimeout` |
+| Short flag | `-bt` |
+
+## Details
+
+When set, any batch item that exceeds this duration is forcibly terminated and marked as failed. Without this option, batch items can run indefinitely.
+
+## Example
+
+```bash
+ui5-test-runner --batch-timeout 300000
+ui5-test-runner -bt 5m
+```

@@ -13,6 +13,20 @@ relations:
   see-also:
     - options/cwd
 ---
+# `--end`
+
+Command to be executed after the tests.
+
+## Overview
+
+| | |
+|---|---|
+| Type | [`string`](types/string.md) |
+| Default | *none* |
+| Config key | `end` |
+
+## Details
+
 The command string accepts `{{optionName}}` placeholders, which are expanded at runtime using the value of the corresponding configuration option (e.g. `cwd`, `reportDir`). The command executes with `cwd` as its working directory.
 
 In addition to configuration options, the following extra placeholders are available:
@@ -24,3 +38,10 @@ In addition to configuration options, the following extra placeholders are avail
 Environment variables and full command syntax are documented in [start](./start.md).
 
 > **Note:** The exit code of the end command overrides the runner's exit code, allowing you to enforce failure or suppress errors from the test execution.
+
+## Example
+
+```bash
+ui5-test-runner --end "node scripts/cleanup.js"
+ui5-test-runner --end "echo Tests finished with exit code {{exitCode}}"
+```

@@ -13,4 +13,26 @@ relations:
   see-also:
     - options/mcp
 ---
+# `--watch`
+
+Watch for file changes and automatically reload.
+
+## Overview
+
+| | |
+|---|---|
+| Type | [`boolean`](types/boolean.md) |
+| Default | *none* |
+| Config key | `watch` |
+
+## Details
+
 When set, the runner monitors relevant files for changes and reloads automatically. Currently used by the MCP server to reindex documentation without requiring a restart.
+
+Only valid when used with `--mcp`.
+
+## Example
+
+```bash
+ui5-test-runner --mcp --watch
+```

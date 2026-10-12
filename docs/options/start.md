@@ -15,6 +15,20 @@ relations:
     - options/startWaitUrl
     - options/startTimeout
 ---
+# `--start`
+
+Command to be executed before the tests.
+
+## Overview
+
+| | |
+|---|---|
+| Type | [`string`](types/string.md) |
+| Default | *none* |
+| Config key | `start` |
+
+## Details
+
 The command string accepts `{{optionName}}` placeholders, which are expanded at runtime using the value of the corresponding configuration option (e.g. `cwd`, `reportDir`). The command executes with `cwd` as its working directory.
 
 The process is started in detached mode and will be automatically stopped after the tests complete.
@@ -42,4 +56,11 @@ DEBUG=true PORT=3000 node server.js
 
 ```
 REPORT_DIR={{reportDir}} node server.js
+```
+
+## Example
+
+```bash
+ui5-test-runner --start "node server.js" --start-wait-url http://localhost:3000/health
+ui5-test-runner --start "serve" --start-wait-url http://localhost:8080/
 ```

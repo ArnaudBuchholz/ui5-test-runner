@@ -11,6 +11,21 @@ relations:
   affects:
     - modes/batch
 ---
+# `--batch`
+
+Batch item specification (folder, config file, or regex pattern).
+
+## Overview
+
+| | |
+|---|---|
+| Type | [`string`](types/string.md) |
+| Multiple | yes |
+| Default | *none* |
+| Config key | `batch` |
+
+## Details
+
 Each value selects one or more test projects to run as independent child processes. Accepted formats:
 
 - **Folder path**: runs `--cwd <folder>`
@@ -19,4 +34,11 @@ Each value selects one or more test projects to run as independent child process
 
 Specifying at least one `--batch` value activates batch mode.
 
-> **Note:** When recursively scanning folders with a regular expression, the following file and folder names are ignored : `node_modules` and names starting with `.` (`.git`, `.claude`, ...)
+> **Note:** When recursively scanning folders with a regular expression, the following file and folder names are ignored: `node_modules` and names starting with `.` (`.git`, `.claude`, ...)
+
+## Example
+
+```bash
+ui5-test-runner --batch ./packages/app1 ./packages/app2
+ui5-test-runner --batch "^test/e2e/[\w_]*\.json"
+```

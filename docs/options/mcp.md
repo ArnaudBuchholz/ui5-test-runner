@@ -11,3 +11,24 @@ validation:
     conditions:
       - "mode === 'mcp'"
 ---
+# `--mcp`
+
+start an MCP server to pilot ui5-test-runner with an MCP client
+
+## Overview
+
+| | |
+|---|---|
+| Type | [`boolean`](types/boolean.md) |
+| Default | *none* |
+| Config key | `mcp` |
+
+## Details
+
+Starts the runner in MCP server mode, exposing tools that an MCP-compatible AI client (such as Claude) can call to run and inspect tests. Cannot be combined with other mode options.
+
+## Example
+
+```bash
+ui5-test-runner --mcp
+```

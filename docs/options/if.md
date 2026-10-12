@@ -11,6 +11,18 @@ relations:
   affects:
     - modes/batch
 ---
+# `--if`
+
+Skip execution if the expression evaluates to falsy.
+
+## Overview
+
+| | |
+|---|---|
+| Type | [`string`](types/string.md) |
+| Default | *none* |
+| Config key | `if` |
+
 The expression is evaluated using [`punyexpr`](https://www.npmjs.com/package/punyexpr). If the result is [falsy](https://developer.mozilla.org/en-US/docs/Glossary/Falsy) the runner exits immediately without running any tests.
 
 `--if` can be used both at the top-level CLI and inside batch item configuration files.

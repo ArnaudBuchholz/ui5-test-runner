@@ -11,6 +11,21 @@ relations:
   affects:
     - modes/legacy
 ---
+# `--lib`
+
+Library mapping
+
+## Overview
+
+| | |
+|---|---|
+| Type | [`library-mapping`](types/library-mapping.md) |
+| Multiple | yes |
+| Default | *none* |
+| Config key | `lib` |
+
+## Details
+
 Declares a [library-mapping](./types/library-mapping.md), serving a UI5 resources sub-folder from a local source folder instead of fetching it remotely.
 
 The value is a `resourcesSubFolder=sourceFolder` string (or just `sourceFolder`, which maps the sub-folder to itself) — see the [library-mapping](./types/library-mapping.md) type for the full syntax.
@@ -18,3 +33,10 @@ The value is a `resourcesSubFolder=sourceFolder` string (or just `sourceFolder`,
 Can be repeated to declare several mappings.
 
 When the [`webapp`](./webapp.md) folder contains a `resources` (or `test-resources`) sub-folder, its content is mapped automatically, so no explicit mapping is needed for it.
+
+## Example
+
+```bash
+ui5-test-runner --lib resources=./src/resources
+ui5-test-runner --lib resources=./src/resources test-resources=./src/test-resources
+```

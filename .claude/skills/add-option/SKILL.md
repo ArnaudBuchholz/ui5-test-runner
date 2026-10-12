@@ -92,10 +92,55 @@ relations:
   see-also:
     - options/<related>
 ---
-<description body>
 ```
 
 **Important**: The filename must use lowerCamelCase (e.g. `logFilter.md`, `pageFilter.md`, `agentDetectionInterval.md`). The `id` is derived from the path (`options/<name>`) — do not add an explicit `id:`.
+
+### Body format
+
+Every option doc must have a body following this pattern:
+
+```markdown
+# `--kebab-case-name` / `-x`
+
+<summary sentence>
+
+## Overview
+
+| | |
+|---|---|
+| Type | [`<type>`](types/<type>.md) |
+| Values | `val1` \| `val2` \| `val3` |
+| Multiple | yes |
+| Default | `<value>` or *none* |
+| Config key | `<camelCaseName>` |
+| Short flag | `-x` |
+| Propagates to batch items | yes |
+
+## <Meaningful section(s) if needed>
+
+## Example
+
+```bash
+ui5-test-runner --kebab-case-name value
+```
+```
+
+**Overview table rules:**
+- `Type` — always present; link to `types/<type>.md`
+- `Values` — only for `enumeration` type; list all accepted values separated by ` \| `
+- `Multiple` — only when `multiple: yes` in frontmatter
+- `Default` — always present; use *none* when absent
+- `Config key` — always present; the camelCase option name as used in `ui5-test-runner.json`
+- `Short flag` — only when `short:` is set in frontmatter
+- `Propagates to batch items` — only when `batchForwarded: yes` in frontmatter (do **not** add a Browser-exposed row — that is internal)
+
+**Example section rules:**
+- Show 1–2 concrete, realistic CLI invocations
+- For `multiple` options, list values space-separated after a single flag: `--flag val1 val2` (do **not** repeat the flag)
+- For `timeout` options, show both ms and suffix forms: `--page-timeout 60000` and `--page-timeout 1m`
+- For `boolean` options, show the flag alone: `--fail-fast`
+- For `enumeration` options, show the most common value
 
 Show the draft file content to the user and ask for confirmation before writing.
 
@@ -123,6 +168,25 @@ keywords:
   - remote
   - batch
 ---
+# `--fail-fast` / `-f`
+
+Stop the whole execution after the first failing page.
+
+## Overview
+
+| | |
+|---|---|
+| Type | [`boolean`](types/boolean.md) |
+| Default | *none* |
+| Config key | `failFast` |
+| Short flag | `-f` |
+| Propagates to batch items | yes |
+
+## Example
+
+```bash
+ui5-test-runner --fail-fast
+```
 ```
 
 ### Integer option with default
@@ -139,7 +203,25 @@ keywords:
   - remote
   - batch
 ---
-This option controls how many parallel executions can occur inside the runner.
+# `--parallel` / `-p`
+
+Number of parallel executions.
+
+## Overview
+
+| | |
+|---|---|
+| Type | [`integer`](types/integer.md) (positive, non-zero) |
+| Default | `2` |
+| Config key | `parallel` |
+| Short flag | `-p` |
+| Propagates to batch items | yes |
+
+## Example
+
+```bash
+ui5-test-runner --parallel 4
+```
 ```
 
 ### fs-entry with modifiers
@@ -147,6 +229,7 @@ This option controls how many parallel executions can occur inside the runner.
 ---
 "#type": option
 title: reportDir
+short: r
 type: fs-entry
 typeModifiers:
   - overwrite
@@ -157,6 +240,24 @@ keywords:
   - legacy
   - remote
 ---
+# `--report-dir` / `-r`
+
+Directory to output test reports.
+
+## Overview
+
+| | |
+|---|---|
+| Type | [`fs-entry`](types/fs-entry.md) (overwrite) |
+| Default | `'report'` |
+| Config key | `reportDir` |
+| Short flag | `-r` |
+
+## Example
+
+```bash
+ui5-test-runner --report-dir ./test-results
+```
 ```
 
 ### URL option with multiple
@@ -169,6 +270,67 @@ type: url
 multiple: yes
 summary: URL of the page to test
 keywords:
-  - "#remote"
+  - remote
 ---
+# `--url` / `-u`
+
+URL of the page to test.
+
+## Overview
+
+| | |
+|---|---|
+| Type | [`url`](types/url.md) |
+| Multiple | yes |
+| Default | *none* |
+| Config key | `url` |
+| Short flag | `-u` |
+
+## Example
+
+```bash
+ui5-test-runner --url http://localhost:8080/test/page.qunit.html
+ui5-test-runner -u http://host/test/a.qunit.html http://host/test/b.qunit.html
+```
+```
+
+### Enumeration option
+```markdown
+---
+"#type": option
+title: driver
+short: d
+type: enumeration
+typeModifiers:
+  - puppeteer
+  - playwright
+  - webdriverio
+  - selenium-webdriver
+summary: browser automation driver
+default: "'puppeteer'"
+batchForwarded: yes
+keywords:
+  - legacy
+  - remote
+---
+# `--driver` / `-d`
+
+Browser automation driver.
+
+## Overview
+
+| | |
+|---|---|
+| Type | [`enumeration`](types/enumeration.md) |
+| Values | `puppeteer` \| `playwright` \| `webdriverio` \| `selenium-webdriver` |
+| Default | `'puppeteer'` |
+| Config key | `driver` |
+| Short flag | `-d` |
+| Propagates to batch items | yes |
+
+## Example
+
+```bash
+ui5-test-runner --driver playwright
+```
 ```

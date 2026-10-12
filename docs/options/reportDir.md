@@ -19,4 +19,26 @@ relations:
   see-also:
     - options/cwd
 ---
-The `report/` folder contains test execution results.
+# `--report-dir` / `-r`
+
+directory to output test reports
+
+## Overview
+
+| | |
+|---|---|
+| Type | [`fs-entry`](types/fs-entry.md) (overwrite) |
+| Default | `'report'` |
+| Config key | `reportDir` |
+| Short flag | `-r` |
+
+## Details
+
+The report directory stores all test execution output: `report.json` (CTRF format), `report.html`, screenshots, and `.logz` trace files. The directory is cleared and recreated at the start of each run.
+
+## Example
+
+```bash
+ui5-test-runner --report-dir ./test-results
+ui5-test-runner -r ./ci-reports
+```

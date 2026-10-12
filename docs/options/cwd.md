@@ -15,5 +15,26 @@ relations:
     - modes/legacy
     - modes/remote
 ---
-This option gives the information about the current working directory. Many other options depend on it.
+# `--cwd` / `-c`
 
+Set working directory.
+
+## Overview
+
+| | |
+|---|---|
+| Type | [`fs-entry`](types/fs-entry.md) |
+| Default | current working directory |
+| Config key | `cwd` |
+| Short flag | `-c` |
+
+## Details
+
+Sets the base directory from which ui5-test-runner operates. Most other options that accept file system paths (e.g. `--config`, `--webapp`, `--report-dir`, `--coverage-report-dir`) are resolved relative to this value.
+
+## Example
+
+```bash
+ui5-test-runner --cwd /path/to/project
+ui5-test-runner -c ./my-app --url http://localhost:8080
+```

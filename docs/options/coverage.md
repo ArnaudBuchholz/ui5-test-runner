@@ -19,6 +19,27 @@ relations:
     - options/webapp
     - options/coverageSourceDir
 ---
+# `--coverage`
+
+Enable code coverage.
+
+## Overview
+
+| | |
+|---|---|
+| Type | [`boolean`](types/boolean.md) |
+| Default | *none* |
+| Config key | `coverage` |
+
+## Details
+
 When set, ui5-test-runner instruments source files, collects `window.__coverage__` data from each test page, and generates a coverage report after all pages complete.
 
 Coverage is always opt-in and must be enabled explicitly — it is never activated by default regardless of mode.
+
+## Example
+
+```bash
+ui5-test-runner --coverage
+ui5-test-runner --coverage --coverageCheckLines 80
+```
