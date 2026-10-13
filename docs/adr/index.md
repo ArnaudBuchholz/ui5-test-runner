@@ -18,8 +18,8 @@ This directory documents significant architectural decisions made in the `ui5-te
 | [0010](./0010-graceful-shutdown.md) | Graceful Shutdown | Accepted | LIFO async task registry with SIGINT handler, `ExitShutdownError` for post-shutdown safety, and handle leak detection |
 | [0011](./0011-mcp.md) | MCP Mode | Accepted | Documentation-only MCP server: GitHub-hosted KB fetched on demand with git tree SHA for cheap update detection; a typed-frontmatter entity model exposed to clients through `list_topics`/`get_topic` |
 | [0012](./0012-screenshot-capture-and-attachment.md) | Screenshot Capture and Attachment | Accepted | Agent owns screenshot filenames (built from pageId+testId+logIndex), signals the runner via `pendingScreenshot: string | false`, and attaches per-assertion screenshots to `CTRFTest.attachments[]` in `testDone` |
-
 | [0013](./0013-browser_selection.md) | Browser Selection Architecture | Accepted | Split driver (automation library) and browser (actual browser) into two flags; generic `json` option type; static `BrowserDriverDescriptor`; enumeration + option-level validation for per-driver browser validity |
+| [0014](./0014-mcp-kb-evaluation-harness.md) | MCP Knowledge-Base Evaluation Harness | Accepted | LLM-as-judge harness (`test/mcp/`) that drives the model-under-test against the live MCP server and scores answers against per-criterion verdicts; `--repeat` turns noisy pass/fail into a pass rate (0/N = real gap, mixed = noise), with `meta.skip` deferral and `--page-filter` selection |
 
 ## Quick Navigation
 
@@ -36,6 +36,7 @@ This directory documents significant architectural decisions made in the `ui5-te
 - **When modifying `src/modes/mcp/`, the knowledge base fetch strategy, or MCP execution tools** → See [ADR-0011](./0011-mcp.md)
 - **When modifying `src/modes/test/screenshot.ts`, screenshot naming, or per-assertion screenshot attachment** → See [ADR-0012](./0012-screenshot-capture-and-attachment.md)
 - **When modifying `src/browsers/`, `src/configuration/validators/`, or `docs/options/browser.md`/`driver.md`** → See [ADR-0013](./0013-browser_selection.md)
+- **When modifying `test/mcp/` or adding/tuning MCP knowledge-base evaluation cases** → See [ADR-0014](./0014-mcp-kb-evaluation-harness.md)
 
 ## Cross-Cutting Concerns
 
