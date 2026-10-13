@@ -1,0 +1,9 @@
+[user]
+question="""
+Is ui5-test-runner secure?
+"""
+
+[expected]
+paradigm = "it should explain that the version 6 agent paradigm (an agent is injected into the test page and the runner fetches its state) removed the need to relax browser security, so the old --unsecure flag is no longer required and the default is safer than v5"
+dependency = "it should raise dependency-management security: runtime auto-installation can bypass your lockfile, and pre-installing your own pinned dependencies and disabling runtime install with --no-npm-install (config key noNpmInstall) is the safer, reproducible setup"
+mitigations = "it may mention concrete safeguards such as --npm-install-min-release-age (config key npmInstallMinReleaseAge, default 3 days) and that postinstall scripts are disabled by default via --ignore-scripts"

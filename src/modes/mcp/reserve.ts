@@ -20,9 +20,11 @@ const SERVER_INFO = {
 const INSTRUCTIONS = [
   'This server is the authoritative, always-current documentation for ui5-test-runner (a tool that runs UI5 QUnit/OPA tests).',
   '',
-  'For ANY question about ui5-test-runner — its command-line options and flags, configuration keys, execution modes, coverage, reporting, migration between versions, or error messages — call `list_topics` first, then `get_topic` on the relevant entities, and base your answer only on what they return.',
+  'For ANY question about ui5-test-runner — its command-line options and flags, configuration keys, execution modes, coverage, reporting, migration between versions, or error messages — call `list_topics` first, then `get_topic` on the relevant entities, and ground your answer in what they return.',
   '',
-  'Do NOT answer such questions from prior knowledge, and never invent option names, configuration keys, or capabilities: ui5-test-runner evolves across versions and its real option names differ from what similar tools use, so an ungrounded answer is likely wrong. If the documentation does not cover something, say so rather than guessing.'
+  'Do NOT answer such questions from prior knowledge, and never invent option names, configuration keys, or capabilities: ui5-test-runner evolves across versions and its real option names differ from what similar tools use, so an ungrounded answer is likely wrong. If the documentation does not cover something, say so rather than guessing.',
+  '',
+  "Grounding does not mean exhaustiveness: answer the actual question and tailor the response to the user's project, leaving out documented topics that do not apply to their situation. Reading an entity does not oblige you to repeat everything in it."
 ].join('\n');
 
 // Protocol versions this server can speak. It echoes the client's requested version when supported,

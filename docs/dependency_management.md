@@ -25,6 +25,7 @@ relations:
     - options/alternateNpmPath
     - browsers/v6/browser
     - coverage
+    - security
 ---
 # Dependency management
 
