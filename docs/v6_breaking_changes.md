@@ -79,6 +79,7 @@ As a consequence, the following options have been removed:
 * `--browser-args` (and `browserArgs`) is replaced with [`--browser-options`](./options/browserOptions.md), accepting browser-specific options as JSON.
 * `--browser-close-timeout` (`-bt`) is removed.
 * `--browser-retry` (`-br`) is removed.
+* `--unsecure` (`-u`), typically passed through `--browser-args`/`browserArgs`, is no more needed and must be dropped — do not carry it into `--browser-options`. It existed to relax browser security (e.g. Chrome's local-network-access check) so the test page could reach the runner; with the version 6 agent paradigm the agent is injected into the page and its state is fetched by the runner, so no such relaxation is required.
 
 ## Options
 

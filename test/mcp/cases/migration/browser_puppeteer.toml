@@ -3,10 +3,6 @@ question="""
 How do I migrate to ui5-test-runner 6 ?
 """
 
-[meta]
-skip = true
-skipReason = "deferred: multi-sub-option browser case (driver, browser-args->browser-options, capabilities) stays flaky — needs multi-criterion stabilization and the criteria are wording-strict"
-
 [files]
 "package.json" = """
 {
@@ -31,4 +27,5 @@ skipReason = "deferred: multi-sub-option browser case (driver, browser-args->bro
 v6 = "It should explain how to migrate the project to ui5-test-runner version 6"
 driver = "it should explain that the browser command script is replaced by selecting the automation engine with --driver (puppeteer) and the browser with --browser"
 browser_args = "it should explain that browserArgs (--browser-args) is replaced by --browser-options"
+unsecure = "it should say that the unsecure flag is no longer needed and can be dropped"
 capabilities = "it should explain that the capabilities option is no more supported"
