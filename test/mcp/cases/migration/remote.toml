@@ -1,0 +1,26 @@
+[user]
+question="""
+How do I migrate to ui5-test-runner 6 ?
+"""
+
+[files]
+"package.json" = """
+{
+  "scripts": {
+    "test": "ui5-test-runner"
+  },
+  "devDependencies": {
+    "ui5-test-runner": "^5"
+  }
+}
+"""
+
+"ui5-test-runner.json" = """
+{
+  "url": ["http://localhost:8080/test/testsuite.qunit.html"]
+}
+"""
+
+[expected]
+v6 = "It should explain how to migrate the project to ui5-test-runner version 6"
+browser = "it should not talk about browser and driver selection since none is done"

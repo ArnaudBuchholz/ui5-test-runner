@@ -1,0 +1,34 @@
+[user]
+question="""
+How do I migrate to ui5-test-runner 6 ?
+"""
+
+[files]
+"package.json" = """
+{
+  "scripts": {
+    "test": "ui5-test-runner"
+  },
+  "devDependencies": {
+    "ui5-test-runner": "^5"
+  }
+}
+"""
+
+"ui5-test-runner.json" = """
+{
+  "libs": ["*=webapp/resources"],
+  "noScreenshot": null,
+  "coverage": true,
+  "coverageSettings": "./.nycrc.json",
+  "coverageTempDir": "report/.nyc_output",
+  "coverageReportDir": "report/coverage",
+  "coverageCheckStatements": 65
+}
+"""
+
+[expected]
+v6 = "It should explain how to migrate the project to ui5-test-runner version 6"
+coverage = "it should explain that coverage is now disabled by default and that --coverage still works to keep collecting coverage"
+lib = "it should explain that the libs option is renamed to lib"
+screenshot = "it should explain that noScreenshot is deprecated because screenshots are now disabled by default"

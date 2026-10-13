@@ -31,6 +31,20 @@ relations:
 
 Version 6 is a new major release and even if the best effort was made to keep backward compatibility, it comes with significant breaking changes. Use this guide as a migration guide from version 5.
 
+## How to migrate your configuration
+
+Migrate option by option — do not stop at a general overview. Inventory **every** option the project actually sets, across both its command line (the `ui5-test-runner` invocation in the `package.json` script, or wherever it is launched) and its configuration file (`ui5-test-runner.json`, or the file passed to `--config`). The same option may appear as a CLI flag (kebab-case, e.g. `--report-generator`) or as a configuration-file key (camelCase, e.g. `reportGenerator`) — these are the same option, so translate between the two spellings before looking it up here.
+
+Then, for each option the project sets, determine from the sections below exactly one outcome and state it, naming the option:
+
+* **still supported** — it works unchanged in version 6 (do not flag it as a problem);
+* **renamed** — it exists under a new name (give the new name, e.g. `--libs` → [`--lib`](./options/lib.md));
+* **default changed** — it still exists but its default behaviour differs (say how, e.g. coverage and screenshots are now off by default);
+* **replaced** — it is gone but another option covers the need (name the replacement, e.g. `--browser-args` → [`--browser-options`](./options/browserOptions.md));
+* **removed** — it no longer exists and has no replacement.
+
+An option the project sets that is not mentioned anywhere in this guide is **still supported** — keep it as is. A reader must be able to find each option their project currently uses in your answer.
+
 ## Drop support of old Node.js versions
 
 Version 6 depends on Node.js 24 (>=24.11.1).
@@ -47,7 +61,10 @@ This feature has been removed and is replaced with the possibility to visualize 
 
 ## Browser selection
 
-> **Applicability check — do this before reading further.** This section is relevant **only** if your version 5 setup explicitly selected a browser: it passed `--browser` (a command script), `--browser-args`, or set `browserArgs` in the configuration file. Determine this from the project's actual files first. If none of them are present, browser selection was never configured, the version 6 defaults apply unchanged, and **this migration topic does not concern the project — do not raise browser or driver selection at all**. Only continue below when you have confirmed the version 5 setup did select a browser.
+> **Applicability check — do this before reading further.** First determine, from the project's actual files, whether your version 5 setup explicitly selected a browser. It did if the project sets any of these, under either its CLI-flag spelling or its configuration-file key: `--browser` / `browser` (a command script), `--browser-args` / `browserArgs`, `--browser-retry` / `browserRetry`, or `--browser-close-timeout` / `browserCloseTimeout`. Remember a configuration file uses the camelCase key (e.g. `"browser": "$/puppeteer.js"` is the `--browser` option), so treat the presence of `browser` in `ui5-test-runner.json` exactly as `--browser` on the command line.
+>
+> * **If none of them are present**, browser selection was never configured, the version 6 defaults apply unchanged, and this migration topic does not concern the project — do not raise browser or driver selection at all, and skip the rest of this section.
+> * **If any of them are present**, the project does rely on browser selection: read the whole section below and, in your answer, address every one of those options that the project actually sets — state for each what it becomes in version 6 (renamed, replaced, or removed), naming it. Do not stop at "browser selection changed"; cover each option individually.
 
 For projects that did select a browser in version 5: the browser was instantiated through a command script passed to `--browser` (for instance `--browser $/puppeteer.js`), and arguments were forwarded with `--browser-args` (or `browserArgs` in the configuration file).
 

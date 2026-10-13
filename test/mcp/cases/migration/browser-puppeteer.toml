@@ -1,0 +1,34 @@
+[user]
+question="""
+How do I migrate to ui5-test-runner 6 ?
+"""
+
+[meta]
+skip = true
+skipReason = "deferred: multi-sub-option browser case (driver, browser-args->browser-options, capabilities) stays flaky — needs multi-criterion stabilization and the criteria are wording-strict"
+
+[files]
+"package.json" = """
+{
+  "scripts": {
+    "test": "ui5-test-runner"
+  },
+  "devDependencies": {
+    "ui5-test-runner": "^5"
+  }
+}
+"""
+
+"ui5-test-runner.json" = """
+{
+  "capabilities": null,
+  "browser": "$/puppeteer.js",
+  "browserArgs": ["--unsecure"]
+}
+"""
+
+[expected]
+v6 = "It should explain how to migrate the project to ui5-test-runner version 6"
+driver = "it should explain that the browser command script is replaced by selecting the automation engine with --driver (puppeteer) and the browser with --browser"
+browser-args = "it should explain that browserArgs (--browser-args) is replaced by --browser-options"
+capabilities = "it should explain that the capabilities option is no more supported"

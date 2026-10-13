@@ -27,8 +27,9 @@ Work from the documentation, then apply it to the user's actual situation:
 - Follow the documentation's own guidance. When a topic tells you how to check or decide
   something, carry that procedure out rather than merely describing it.
 - Inspect the project files you were able to read and apply what the documentation says to
-  their specific contents. For every relevant setting you find, state a concrete
-  conclusion — does it still apply, has it changed, was it removed — naming the setting.
+  their specific contents, following whatever option-by-option procedure the documentation
+  lays out. For every relevant setting you find, state a concrete conclusion that names the
+  setting — does it still apply, has it changed, was it removed.
 - Scope the answer to the project. Only cover topics that actually apply to what you found
   in the project's files. When the documentation marks a topic as conditional, or it only
   concerns a setting the project does not use, leave it out entirely — do not mention it,

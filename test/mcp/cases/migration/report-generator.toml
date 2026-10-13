@@ -1,0 +1,28 @@
+[user]
+question="""
+How do I migrate to ui5-test-runner 6 ?
+"""
+
+[files]
+"package.json" = """
+{
+  "scripts": {
+    "test": "ui5-test-runner"
+  },
+  "devDependencies": {
+    "ui5-test-runner": "^5"
+  }
+}
+"""
+
+"ui5-test-runner.json" = """
+{
+  "libs": ["*=webapp/resources"],
+  "reportGenerator": ["$/report.js", "$/junit-xml-report.js"]
+}
+"""
+
+[expected]
+v6 = "It should explain how to migrate the project to ui5-test-runner version 6"
+report-generator = "it should explain that reportGenerator is no more supported and suggest the end command instead"
+lib = "it should explain that the libs option is renamed to lib"
