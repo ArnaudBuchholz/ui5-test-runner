@@ -26,8 +26,8 @@ describe('isIfEvaluatedAsTrue()', () => {
       expect(shouldExecute).toBe(true);
     });
 
-    it('exposes NODE_VERSIOM (full version string)', async () => {
-      const shouldExecute = await isIfEvaluatedAsTrue(makeConfig('NODE_VERSIOM === "v24.18.0"'));
+    it('exposes NODE_VERSION (full version string)', async () => {
+      const shouldExecute = await isIfEvaluatedAsTrue(makeConfig('NODE_VERSION === "v24.18.0"'));
       expect(shouldExecute).toBe(true);
     });
 
