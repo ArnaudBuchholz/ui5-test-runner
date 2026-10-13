@@ -74,9 +74,12 @@ describe('initialize', () => {
     await response.waitForFinish();
     expect(response.statusCode).toBe(200);
     // eslint-disable-next-line @typescript-eslint/no-base-to-string -- REserve response body
-    const body = JSON.parse(response.toString()) as { result: { serverInfo: { name: string }; capabilities: object } };
+    const body = JSON.parse(response.toString()) as {
+      result: { serverInfo: { name: string }; capabilities: object; instructions: string };
+    };
     expect(body.result.serverInfo.name).toBe('ui5-test-runner');
     expect(body.result.capabilities).toHaveProperty('tools');
+    expect(body.result.instructions).toMatch(/list_topics/);
   });
 
   it('echoes a supported protocol version requested by the client', async () => {

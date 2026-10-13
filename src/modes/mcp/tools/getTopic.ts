@@ -34,7 +34,7 @@ export const toolDefinitionGetTopic = {
   definition: {
     name: 'get_topic',
     description:
-      'Get the documentation for an entity by its id (as returned by list_topics, e.g. "options/coverage"). Returns the markdown plus a "Related topics" section listing linked entities to retrieve next.',
+      'Fetch the authoritative ui5-test-runner documentation for one entity by its id (from list_topics, e.g. "options/coverage"). Use this to ground every answer about ui5-test-runner in the actual docs rather than prior knowledge. Returns the entity markdown plus a "Related topics" section listing linked entities worth retrieving next.',
     inputSchema: {
       type: 'object',
       properties: {
