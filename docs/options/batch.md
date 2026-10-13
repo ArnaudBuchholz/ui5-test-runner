@@ -32,7 +32,9 @@ Each value selects one or more test projects to run as independent child process
 - **JSON config file path**: runs `--config <file>`
 - **Regular expression**: recursively scans `--cwd` and collects matching folders and config files. The pattern is tested against the path **relative to `--cwd`** (separators normalized to `/`) and can be implicitly anchored at the start (`^`), so `^test/e2e/[\w_]*\.json` matches only entries whose path begins with `test/e2e/`.
 
-Specifying at least one `--batch` value activates batch mode.
+Specifying at least one `--batch` value activates batch mode. The option can be given multiple times (or with multiple values) to add several items.
+
+Batch items are executed in parallel according to [`--parallel`](./parallel.md). Note this **multiplies** concurrency: each batch item itself runs its own test pages in parallel, so with the default `--parallel 2` you get 2 batch items × 2 pages = up to **4 browsers** running at once. Size `--parallel` against available resources, and see [batch mode](../modes/batch.md) for the full picture.
 
 > **Note:** When recursively scanning folders with a regular expression, the following file and folder names are ignored: `node_modules` and names starting with `.` (`.git`, `.claude`, ...)
 

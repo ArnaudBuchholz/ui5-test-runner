@@ -1,0 +1,11 @@
+[user]
+question="""
+I have several UI5 projects in subfolders of my repository. How do I test them all in a single ui5-test-runner run?
+"""
+
+[expected]
+batch = "it should propose --batch (config key batch) to run more than one test project in a single run"
+inputs = "it should explain that a --batch value can be a folder, a configuration file, or a regular expression matched against folder/file paths"
+multiple = "it should indicate that --batch can be given multiple times to add several items"
+parallel = "it should explain that batch items are executed in parallel according to --parallel (config key parallel)"
+browsers = "it should convey that running batch items in parallel increases the number of concurrently open browsers (so --parallel should be sized accordingly)"

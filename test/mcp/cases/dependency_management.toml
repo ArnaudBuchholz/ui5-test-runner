@@ -1,0 +1,10 @@
+[user]
+question="""
+Does ui5-test-runner install dependencies automatically, and how do I make that safe and reproducible for a CI pipeline?
+"""
+
+[expected]
+autoinstall = "it should explain that the runner can auto-install missing dependencies at runtime, such as browser drivers, browser binaries, and coverage tooling"
+preinstall = "it should recommend pre-installing the required packages yourself (or using --no-npm-install, config key noNpmInstall) so auto-installation never occurs, as the reproducible option"
+minage = "it should recommend at least one safeguard against auto-installing unvetted packages; EITHER refusing recently published packages (--npmInstallMinReleaseAge) OR pinning exact versions via a committed lockfile is sufficient on its own — recommending the lockfile approach alone passes this criterion"
+scripts = "it may mention that install scripts (postinstall) are disabled by default via --ignore-scripts during auto-installation"

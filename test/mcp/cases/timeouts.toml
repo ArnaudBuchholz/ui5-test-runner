@@ -1,0 +1,9 @@
+[user]
+question="""
+How do I bound how long a test run can take, so a hanging page or project cannot block my pipeline forever?
+"""
+
+[expected]
+global = "it should propose --global-timeout (config key globalTimeout) to limit the whole run, failing the remaining pages once the limit is reached"
+page = "it should propose --page-timeout (config key pageTimeout) to fail an individual page that takes longer than the timeout"
+batch = "it is acceptable either to propose --batch-timeout (config key batchTimeout) for failing a slow batch item, or — since the question does not mention batch mode — to omit it; both should pass"

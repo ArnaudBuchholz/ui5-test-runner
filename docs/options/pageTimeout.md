@@ -12,6 +12,9 @@ relations:
     - modes/legacy
     - modes/remote
     - modes/batch
+  see-also:
+    - options/globalTimeout
+    - options/batchTimeout
 ---
 # `--page-timeout` / `-pt`
 
@@ -29,7 +32,7 @@ fails a page if it takes longer than this timeout
 
 ## Details
 
-Per-page timeout in milliseconds. If a page takes longer than this value it is marked as failed and closed. Distinct from `--global-timeout`, which applies to the entire run. When not set, pages run until they complete or the global timeout fires.
+Per-page timeout in milliseconds. If a page takes longer than this value it is marked as failed and closed. Distinct from [`--global-timeout`](./globalTimeout.md), which applies to the entire run, and from [`--batch-timeout`](./batchTimeout.md), which bounds a whole batch item in [batch mode](../modes/batch.md). When not set, pages run until they complete or the global timeout fires.
 
 ## Example
 

@@ -21,6 +21,8 @@ This mode is activated when the [`--batch`](../options/batch.md) parameter is us
 * The initial command is called the *main* command
 * Each executed test is named a *batch item*
 
+> ⚠️ **Resource warning — always mention this when recommending batch mode.** Batch items run in parallel *and* each batch item runs its own test pages in parallel, so the number of concurrently open browsers **multiplies**: with the default `--parallel 2` that is 2 batch items × 2 pages = up to **4 browsers at once**, and it scales with `--parallel`. Size `--parallel` against the machine's resources to avoid overloading it.
+
 > 🧠TODO we might merge the ## `--batch` parameter section with the batch.md description. It is not worth repeating it here.
 
 ## `--batch` parameter 
@@ -39,7 +41,7 @@ The `--batch` parameter accepts multiple values and supports three kind of param
 
   The regex is tested against the **path relative to `--cwd`**, with path separators normalized to `/`. A `^` anchor can be prepended, so the pattern must match from the start of the relative path. For example, `^test/e2e/[\w_]*\.json` matches `test/e2e/app.json` but not `.worktrees/branch/test/e2e/app.json`.
 
-Once all the values are processed, `ui5-test-runner` starts the execution of all identified batch items in parallel (using the value of `--parallel`).
+Once all the values are processed, `ui5-test-runner` starts the execution of all identified batch items in parallel (using the value of `--parallel`). Because each batch item itself runs its own test pages in parallel, the browser count **multiplies**: with the default `--parallel 2`, 2 batch items each running 2 pages means up to **4 browsers open at once**. Size `--parallel` against the resources of the machine, as the concurrent browser count grows with it.
 
 ## Execution
 

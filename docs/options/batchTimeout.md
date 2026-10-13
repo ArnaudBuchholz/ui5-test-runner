@@ -9,6 +9,9 @@ keywords:
 relations:
   affects:
     - modes/batch
+  see-also:
+    - options/globalTimeout
+    - options/pageTimeout
 ---
 # `--batch-timeout` / `-bt`
 

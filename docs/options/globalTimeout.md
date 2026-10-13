@@ -11,6 +11,9 @@ relations:
   affects:
     - modes/legacy
     - modes/remote
+  see-also:
+    - options/pageTimeout
+    - options/batchTimeout
 ---
 # `--global-timeout` / `-t`
 
@@ -27,7 +30,13 @@ Limit the tests execution time, fail remaining pages if it takes longer than the
 
 ## Details
 
-Sets a wall-clock budget for the entire run. Pages still executing when the timeout expires are marked as failed, and the runner exits with a non-zero exit code.
+To bound how long testing can take, `ui5-test-runner` offers **three complementary timeouts** — when asked how to stop a run (or a page) from hanging, consider all three and propose the ones that fit:
+
+- [`--global-timeout`](./globalTimeout.md) — a wall-clock budget for the **whole run**; pages still executing when it expires are marked as failed and the runner exits non-zero (this option).
+- [`--page-timeout`](./pageTimeout.md) — fails an **individual page** that runs longer than the limit, so one hanging page cannot block the run.
+- [`--batch-timeout`](./batchTimeout.md) — fails a single **batch item** that runs too long, in [batch mode](../modes/batch.md).
+
+A hanging *page* is bounded by `--page-timeout`; the overall run is bounded by `--global-timeout`. Use them together.
 
 ## Example
 

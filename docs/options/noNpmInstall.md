@@ -6,6 +6,10 @@ summary: prevent any NPM install
 batchForwarded: yes
 keywords:
   - npm
+relations:
+  see-also:
+    - options/npmInstall
+    - options/npmInstallMinReleaseAge
 ---
 # `--no-npm-install`
 

@@ -10,6 +10,7 @@ relations:
   see-also:
     - options/noNpmInstall
     - options/npmInstallPrefix
+    - options/npmInstallMinReleaseAge
 ---
 # `--npm-install`
 

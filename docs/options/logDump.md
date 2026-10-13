@@ -12,6 +12,7 @@ validation:
 relations:
   see-also:
     - options/log
+    - options/logFilter
 ---
 # `--log-dump`
 

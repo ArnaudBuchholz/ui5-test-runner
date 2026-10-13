@@ -1,0 +1,10 @@
+[user]
+question="""
+One of my test pages fails intermittently and I cannot figure out why. How should I troubleshoot it?
+"""
+
+[expected]
+isolate = "it should suggest reducing concurrency with --parallel 1 (config key parallel) and/or restricting execution with --page-filter (config key pageFilter) to isolate the suspect page"
+watch = "it should suggest watching the browser with --browser-visible (config key browserVisible) and keeping it open after the run with --debug-keep-browser-open (config key debugKeepBrowserOpen)"
+screenshot = "it should suggest capturing evidence with --screenshot-on-failure (config key screenshotOnFailure)"
+traces = "it should suggest reading the traces, e.g. dumping them with --log <file> --log-dump (config keys log, logDump)"

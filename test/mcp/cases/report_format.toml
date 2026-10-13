@@ -1,0 +1,10 @@
+[user]
+question="""
+What format is the test report produced by ui5-test-runner, and where is it written?
+"""
+
+[expected]
+ctrf = "it should explain that the report is a normalized JSON report following the CTRF (Common Test Report Format) standard"
+location = "it should state that the report is written as report.json inside the folder configured by --report-dir (config key reportDir)"
+html = "it should mention that a report.html viewer is generated alongside report.json in the same folder"
+once = "it may mention that the report is produced once, at the end of the run, after every page has completed"

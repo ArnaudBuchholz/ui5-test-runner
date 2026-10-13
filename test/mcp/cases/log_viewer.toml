@@ -1,0 +1,10 @@
+[user]
+question="""
+A test run just finished and I need to inspect the detailed traces of what happened. How do I do that?
+"""
+
+[expected]
+logz = "it should explain that every run writes a compressed trace file named traces-YYYYMMDD-HHMMSS.logz into the report directory"
+viewer = "it should propose --log <file> (config key log) to open the trace in an interactive browser-based viewer"
+dump = "it should mention --log-dump (config key logDump) to write the entries to stdout instead of opening a browser"
+filter = "it may mention --log-filter (config key logFilter), a punyexpr expression, to select a subset of entries when dumping"

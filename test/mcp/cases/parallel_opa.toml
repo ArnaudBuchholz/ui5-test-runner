@@ -1,0 +1,9 @@
+[user]
+question="""
+My OPA test suite takes a long time to run. How can I make it faster?
+"""
+
+[expected]
+parallel = "it should propose --parallel (config key parallel) to run several test pages concurrently"
+splitOpa = "it should propose --split-opa (config key splitOpa) to split the OPA suite into one test page per QUnit module"
+why = "it should explain that splitting the OPA suite into one page per module is what lets those modules run in parallel"

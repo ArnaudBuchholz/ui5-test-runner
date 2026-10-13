@@ -36,7 +36,7 @@ path to a .logz trace file produced by a previous run; activates log viewer mode
 
 Pass the path to a `traces-YYYYMMDD-HHMMSS.logz` file written to `reportDir` by a previous test run. Activates [log viewer mode](../modes/log.md).
 
-In log viewer mode the runner opens a browser to let you inspect traces interactively. Combine with [`--log-dump`](./logDump.md) to write entries as a JSON array to stdout instead.
+In log viewer mode the runner opens a browser to let you inspect traces interactively. Combine with [`--log-dump`](./logDump.md) to write entries as a JSON array to stdout instead, and with [`--log-filter`](./logFilter.md) to select a subset of entries (a punyexpr expression) when dumping.
 
 ## Example
 
