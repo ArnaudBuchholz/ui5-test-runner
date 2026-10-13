@@ -12,16 +12,6 @@ export interface QueryResult {
 
 const SYSTEM_PROMPT = `You are helping a user discover a tool named ui5-test-runner.
 
-The documentation served through the MCP tools is the single source of truth. Before you
-answer, you MUST consult it: list the available topics and read the ones relevant to the
-question. Every option, configuration key, mode, or feature you mention must come from that
-documentation — never invent option names, configuration schemas, or capabilities from your
-own general knowledge of how similar tools usually work, and never guess. If, after searching
-the documentation, you cannot find support for something, say so rather than fabricating a
-plausible answer. When the question is about a capability (for example "how do I test several
-projects at once"), find the documented feature that provides it before describing any
-configuration.
-
 The user is working inside a project. Its files are not given to you up front — you must
 probe for them with the read_file tool: read a file by its path to inspect it; the tool
 returns an error if the file does not exist. Before answering a question about an existing
@@ -68,13 +58,19 @@ You must structure your answer in two parts :
  */
 export async function runQuery(mcpUrl: string, testCase: TestCase, pageId: number): Promise<QueryResult> {
   const provider = loadProvider();
-  const tools = [...(await loadMcpTools(mcpUrl)), ...buildFileTools(testCase.files)];
+  const { tools: mcpTools, instructions } = await loadMcpTools(mcpUrl);
+  const tools = [...mcpTools, ...buildFileTools(testCase.files)];
   // Pin a low temperature: the query is a retrieval/reasoning task, not a creative one, and a
   // low temperature cuts the run-to-run variance in whether the model probes the project files.
   const harness = new Harness({ provider, tools, pageId, temperature: 0 });
 
+  // A compliant MCP client folds the server's `instructions` into the host system prompt. The
+  // harness does the same so it measures how the SERVER steers a real client — grounding guidance
+  // lives in the server instructions, not hard-coded here.
+  const systemContent = instructions ? `${instructions}\n\n${SYSTEM_PROMPT}` : SYSTEM_PROMPT;
+
   const finalAnswer = await harness.ask([
-    { role: 'system', content: SYSTEM_PROMPT },
+    { role: 'system', content: systemContent },
     { role: 'user', content: testCase.question }
   ]);
 

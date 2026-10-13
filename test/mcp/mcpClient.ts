@@ -39,8 +39,15 @@ async function mcpPost(
   return JSON.parse(line) as McpJsonRpcResponse;
 }
 
-export async function loadMcpTools(serverUrl: string): Promise<McpTool[]> {
-  // 1. Initialize — get the (optional) session id
+export interface McpConnection {
+  tools: McpTool[];
+  instructions: string;
+}
+
+export async function loadMcpTools(serverUrl: string): Promise<McpConnection> {
+  // 1. Initialize — get the (optional) session id and the server instructions. A real MCP client
+  // folds `instructions` into the host LLM's system prompt; the harness does the same (see query.ts)
+  // so it faithfully proxies how a compliant client is steered by the server.
   const initResponse = await fetch(serverUrl, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', Accept: 'application/json, text/event-stream' },
@@ -58,6 +65,11 @@ export async function loadMcpTools(serverUrl: string): Promise<McpTool[]> {
   if (!initResponse.ok) {
     throw new Error(`MCP initialize failed: HTTP ${initResponse.status}`);
   }
+  const initText = await initResponse.text();
+  const initLine = initText.startsWith('data:')
+    ? (initText.split('\n').find((l) => l.startsWith('data:'))?.slice(5).trim() ?? initText)
+    : initText;
+  const instructions = ((JSON.parse(initLine) as McpJsonRpcResponse).result as { instructions?: string } | undefined)?.instructions ?? '';
   const sessionId = initResponse.headers.get('Mcp-Session-Id') ?? undefined;
 
   // 2. List tools
@@ -72,7 +84,7 @@ export async function loadMcpTools(serverUrl: string): Promise<McpTool[]> {
   }>;
 
   // 3. Map to McpTool
-  return rawTools.map((tool) => {
+  const tools = rawTools.map((tool) => {
     const rawProperties = tool.inputSchema?.properties ?? {};
     const parameters: McpTool['parameters'] = {};
     for (const [key, value] of Object.entries(rawProperties)) {
@@ -98,4 +110,6 @@ export async function loadMcpTools(serverUrl: string): Promise<McpTool[]> {
       }
     };
   });
+
+  return { tools, instructions };
 }
