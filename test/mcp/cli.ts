@@ -180,6 +180,18 @@ async function runTestCase({ casePath, repetition }: TestRun, caseIndex: number)
   const started = Date.now();
   const result: CaseResult = { tests: [], queryInputTokens: 0, queryOutputTokens: 0, judgeInputTokens: 0, judgeOutputTokens: 0, failed: false };
 
+  // A deferred case (meta.skip = true in its .toml) is recorded as skipped and incurs no
+  // query or judge cost. Used to park a case that is not yet relevant without deleting it.
+  if (testCase.skip) {
+    const reason = testCase.skipReason ? `Skipped: ${testCase.skipReason}` : 'Skipped';
+    const skipSuffix = testCase.skipReason ? ` (${testCase.skipReason})` : '';
+    result.tests.push({ name: caseName, status: 'skipped', duration: 0, message: reason, suite: caseSuite });
+    logger.info({ source: 'mcp', pageId: caseIndex, message: `${caseLabel}: skipped${skipSuffix}` });
+    logger.info({ source: 'progress', pageId: caseIndex, message: caseName, data: { value: 2, max: 2, errors: 0, type: 'unknown', remove: true } });
+    logger.info({ source: 'progress', pageId: undefined, message: 'Running cases', data: { value: ++completed, max: runs.length } });
+    return result;
+  }
+
   logger.info({ source: 'progress', pageId: caseIndex, message: caseName, data: { value: 0, max: 2, errors: 0, type: 'unknown' } });
 
   try {
