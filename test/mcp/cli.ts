@@ -108,12 +108,11 @@ interface TestRun {
 
 // Expand the case list by repeat. Each run gets a unique index (used as the log pageId), and when
 // repeating, a 1-based repetition number tagged into its suite. Order is case-major so a case's
-// repetitions sit together in the report (case A×1, A×2, …, B×1, …).
-const runs: TestRun[] = casePaths.flatMap((casePath) =>
-  repeat > 1
-    ? Array.from({ length: repeat }, (_, index) => ({ casePath, repetition: index + 1 }))
-    : [{ casePath }]
-);
+// repetitions sit together in the report (case A×1, A×2, …, B×1, …). A deferred case (meta.skip)
+// is never repeated — its outcome is identical every time — so it contributes a single run.
+const runs: TestRun[] = casePaths.flatMap((casePath) => {
+  return repeat <= 1 || loadTestCase(casePath).skip ? [{ casePath }] : Array.from({ length: repeat }, (_, index) => ({ casePath, repetition: index + 1 }));
+});
 
 let completed = 0;
 
