@@ -1,0 +1,8 @@
+[user]
+question="""
+Can I take a screenshot during QUnit test ?
+"""
+
+[expected]
+useless = "it should mention that there is no value in QUnit screenshot"
+error = "it should tell that a screenshot is taken by default in case of error"
