@@ -1,0 +1,9 @@
+[user]
+question="""
+When I run ui5-test-runner without --url, where do the UI5 framework files (resources/ and test-resources/) come from?
+"""
+
+[expected]
+proxy = "it should explain that resources/ and test-resources/ requests are proxied to the UI5 CDN configured by --ui5 (default https://ui5.sap.com)"
+local = "it should mention that a local resources/ or test-resources/ folder inside the webapp folder is served before falling back to the UI5 CDN"
+lib = "it should mention that --lib library mappings can override a UI5 library with a local copy"

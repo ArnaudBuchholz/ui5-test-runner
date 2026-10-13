@@ -1,0 +1,9 @@
+[user]
+question="""
+In remote mode, how do I start my application server before the tests and stop it afterwards?
+"""
+
+[expected]
+start = "it should propose --start (config key start) to run a command before the tests"
+wait = "it should propose --start-wait-url (config key startWaitUrl) to poll a URL until the server is reachable before tests begin"
+end = "it may propose --end (config key end) to run a command after the tests complete"

@@ -18,6 +18,7 @@ relations:
     - options/lib
     - options/webapp
     - options/url
+    - web_server
   affects:
     - modes/legacy
     - modes/remote

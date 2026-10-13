@@ -30,6 +30,10 @@ The exact shape of the report is defined by the CTRF specification and mirrored 
 
 The report is written to `report.json` inside the folder configured by [`--report-dir`](./options/reportDir.md). It is produced once, at the very end of the run, after every page has completed. The file is pretty-printed JSON; an HTML report is generated alongside it in the same folder.
 
+### HTML report
+
+Next to `report.json`, the runner writes a self-contained `report.html` in the same folder. It is a single standalone file with the viewer's JavaScript embedded, so it can be opened directly in a browser or archived as a build artifact without any accompanying assets. It renders the same CTRF data as an interactive view of suites, tests, and attached screenshots.
+
 ## Mapping
 
 The report is assembled in two places:

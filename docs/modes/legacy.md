@@ -11,6 +11,7 @@ relations:
     - options/serveOnly
     - options/lib
     - options/ui5
+    - web_server
 ---
 # Serving and testing the application *(a.k.a. legacy mode)*
 
