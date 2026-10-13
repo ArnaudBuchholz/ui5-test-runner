@@ -17,12 +17,13 @@ How do I migrate to ui5-test-runner 6 ?
 
 "ui5-test-runner.json" = """
 {
-  "libs": ["*=webapp/resources"],
-  "splitOpa": null
+  "url": ["http://localhost:8080/test/unit/device.qunit.html"],
+  "browser": "$/puppeteer.js",
+  "browserArgs": ["--device", "no-such-device"],
+  "browserRetry": 0
 }
 """
 
 [expected]
 v6 = "It should explain how to migrate the project to ui5-test-runner version 6"
-lib = "it should explain that the libs option is renamed to lib"
-split-opa = "it should not claim that splitOpa is removed or no more supported, since it still exists in version 6"
+browser_retry = "it should explain that the browserRetry (--browser-retry) option is no more supported"

@@ -31,4 +31,4 @@ How do I migrate to ui5-test-runner 6 ?
 
 [expected]
 v6 = "It should explain how to migrate the project to ui5-test-runner version 6"
-coverage-proxy = "it should explain that the experimental coverage proxy options (coverageProxy, coverageProxyInclude, coverageProxyExclude) are no more supported"
+coverage_proxy = "it should explain that the experimental coverage proxy options (coverageProxy, coverageProxyInclude, coverageProxyExclude) are no more supported"

@@ -24,4 +24,4 @@ How do I migrate to ui5-test-runner 6 ?
 [expected]
 v6 = "It should explain how to migrate the project to ui5-test-runner version 6"
 config = "it should explain that reportGenerator is no more supported"
-custom-config = "it should understand that a custom configuration file is being used (test.json)"
+custom_config = "it should understand that a custom configuration file is being used (test.json)"
