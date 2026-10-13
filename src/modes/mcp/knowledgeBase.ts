@@ -1,6 +1,9 @@
 import { Crypto, FileSystem, Path, __sourcesRoot, assert, logger } from '../../platform/index.js';
 import type { Configuration } from '../../configuration/Configuration.js';
 import { parseFrontmatter } from './frontmatter.js';
+import { collectRemoteDocuments } from './remoteKnowledgeBase.js';
+import { isExcludedPath } from './IDocument.js';
+import type { IDocument } from './IDocument.js';
 
 export const DOCS_DIR = Path.join(__sourcesRoot, '../docs');
 
@@ -45,11 +48,6 @@ export interface IKnowledgeBaseIndex {
   readonly catalog: ICatalogEntry[];
   getEntity(id: string): IEntity | undefined;
   getReverseRelations(id: string): IReverseRelation[];
-}
-
-export interface IDocument {
-  readonly path: string;
-  readonly content: string;
 }
 
 export const deriveId = (documentationRelativePath: string): string => {
@@ -136,23 +134,27 @@ export const buildKnowledgeBaseIndex = (documents: IDocument[]): IKnowledgeBaseI
 
 let _index: IKnowledgeBaseIndex | undefined;
 
-const collectDocuments = async (): Promise<IDocument[]> => {
+const collectLocalDocuments = async (): Promise<IDocument[]> => {
   const entries = await FileSystem.readdir(DOCS_DIR, { recursive: true, withFileTypes: true });
   const markdown = entries.filter((entry) => entry.isFile() && entry.name.endsWith('.md'));
-  return Promise.all(
+  const documents = await Promise.all(
     markdown.map(async (entry) => {
       const path = Path.relative(DOCS_DIR, Path.join(entry.parentPath, entry.name));
       return { path, content: await FileSystem.readFile(Path.join(DOCS_DIR, path), 'utf8') };
     })
   );
+  return documents.filter((document) => !isExcludedPath(document.path));
 };
 
-export const reindex = async (): Promise<void> => {
-  _index = buildKnowledgeBaseIndex(await collectDocuments());
+const collectDocuments = (configuration: Configuration): Promise<IDocument[]> =>
+  configuration.debugMcpLocalDocs ? collectLocalDocuments() : collectRemoteDocuments();
+
+export const reindex = async (configuration: Configuration): Promise<void> => {
+  _index = buildKnowledgeBaseIndex(await collectDocuments(configuration));
 };
 
-export const init = async (_configuration: Configuration): Promise<void> => {
-  await reindex();
+export const init = async (configuration: Configuration): Promise<void> => {
+  await reindex(configuration);
 };
 
 export const getIndex = (): IKnowledgeBaseIndex => {

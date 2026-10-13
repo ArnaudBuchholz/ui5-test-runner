@@ -1,15 +1,14 @@
 import { it, expect, describe, beforeEach, vi } from 'vitest';
-import { FileSystem, Crypto, Path, __sourcesRoot } from '../../platform/index.js';
+import { FileSystem, Crypto, Http, Path, __sourcesRoot } from '../../platform/index.js';
 import type { Configuration } from '../../configuration/Configuration.js';
 import { buildKnowledgeBaseIndex, deriveId } from './knowledgeBase.js';
-import type { IDocument } from './knowledgeBase.js';
+import type { IDocument } from './IDocument.js';
 
 const NO_CONFIGURATION = {} as Configuration;
 const DOCS_DIR = Path.join(__sourcesRoot, '../docs');
 
 const dirent = (relativeFolder: string, name: string, isFile = true) =>
   ({ parentPath: Path.join(DOCS_DIR, relativeFolder), name, isFile: () => isFile }) as never;
-
 const entityDocument = (path: string, frontmatter: string, body = 'content'): IDocument => ({
   path,
   content: `---\n${frontmatter}\n---\n${body}`
@@ -130,9 +129,18 @@ describe('getReverseRelations', () => {
 });
 
 describe('init then getIndex', () => {
+  const TREE_RESPONSE = JSON.stringify({
+    sha: 'tree-sha-1',
+    tree: [
+      { path: 'docs/options/coverage.md', type: 'blob', sha: 'file-sha-1' },
+      { path: 'docs/logo.png', type: 'blob', sha: 'img-sha-1' }
+    ]
+  });
+  const FILE_CONTENT = '---\n"#type": option\ntitle: coverage\nsummary: s\n---\nbody';
+
   it('builds the catalog from the markdown documents under docs/', async () => {
-    vi.mocked(FileSystem.readdir).mockResolvedValue([dirent('options', 'coverage.md'), dirent('', 'logo.png', false)]);
-    vi.mocked(FileSystem.readFile).mockResolvedValue('---\n"#type": option\ntitle: coverage\nsummary: s\n---\nbody');
+    vi.mocked(FileSystem.readFile).mockRejectedValue(new Error('no cache'));
+    vi.mocked(Http.getAsText).mockResolvedValueOnce(TREE_RESPONSE).mockResolvedValueOnce(FILE_CONTENT);
     vi.resetModules();
     const knowledgeBaseModule = await import('./knowledgeBase.js');
     const { init, getIndex } = knowledgeBaseModule;
@@ -143,15 +151,15 @@ describe('init then getIndex', () => {
   });
 
   it('reads only the markdown files, skipping other entries', async () => {
-    vi.mocked(FileSystem.readdir).mockResolvedValue([dirent('', 'coverage.md'), dirent('', 'logo.png', false)]);
-    vi.mocked(FileSystem.readFile).mockResolvedValue('---\n"#type": concept\ntitle: t\nsummary: s\n---\n');
+    vi.mocked(FileSystem.readFile).mockRejectedValue(new Error('no cache'));
+    vi.mocked(Http.getAsText).mockResolvedValueOnce(TREE_RESPONSE).mockResolvedValueOnce(FILE_CONTENT);
     vi.resetModules();
     const knowledgeBaseModule = await import('./knowledgeBase.js');
     const { init } = knowledgeBaseModule;
 
     await init(NO_CONFIGURATION);
 
-    expect(FileSystem.readFile).toHaveBeenCalledTimes(1);
+    expect(Http.getAsText).toHaveBeenCalledTimes(2); // tree + one .md file, not the .png
   });
 });
 
@@ -162,5 +170,36 @@ describe('getIndex before init', () => {
     const { getIndex } = knowledgeBaseModule;
 
     expect(() => getIndex()).toThrow('knowledge base not initialized');
+  });
+});
+
+describe('init in dev mode (local filesystem)', () => {
+  it('reads docs from the local filesystem when debugMcpLocalDocs is set', async () => {
+    vi.mocked(FileSystem.readdir).mockResolvedValue([dirent('options', 'coverage.md'), dirent('', 'logo.png', false)]);
+    vi.mocked(FileSystem.readFile).mockResolvedValue('---\n"#type": option\ntitle: coverage\nsummary: s\n---\nbody');
+    vi.resetModules();
+    const knowledgeBaseModule = await import('./knowledgeBase.js');
+    const { init, getIndex } = knowledgeBaseModule;
+
+    await init({ debugMcpLocalDocs: true } as Configuration);
+
+    expect(getIndex().catalog.map((entry) => entry.id)).toStrictEqual(['options/coverage']);
+  });
+
+  it('excludes adr, decks and prompts folders', async () => {
+    vi.mocked(FileSystem.readdir).mockResolvedValue([
+      dirent('options', 'coverage.md'),
+      dirent('adr', '0001-something.md'),
+      dirent('decks', 'intro.md'),
+      dirent('prompts', 'query.md')
+    ]);
+    vi.mocked(FileSystem.readFile).mockResolvedValue('---\n"#type": option\ntitle: coverage\nsummary: s\n---\nbody');
+    vi.resetModules();
+    const knowledgeBaseModule = await import('./knowledgeBase.js');
+    const { init, getIndex } = knowledgeBaseModule;
+
+    await init({ debugMcpLocalDocs: true } as Configuration);
+
+    expect(getIndex().catalog.map((entry) => entry.id)).toStrictEqual(['options/coverage']);
   });
 });

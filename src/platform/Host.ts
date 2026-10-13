@@ -1,4 +1,4 @@
-import { machine, cpus, platform, release, version, homedir } from 'node:os';
+import { machine, cpus, platform, release, version, homedir, tmpdir } from 'node:os';
 
 export class Host {
   static readonly argv = process.argv;
@@ -6,6 +6,7 @@ export class Host {
   static readonly cpus = cpus;
   static readonly cwd = process.cwd.bind(process);
   static readonly env = process.env;
+  static readonly tmpdir = tmpdir;
   static readonly homedir = homedir;
   static readonly machine = machine;
   static readonly memoryUsage = process.memoryUsage.bind(process);

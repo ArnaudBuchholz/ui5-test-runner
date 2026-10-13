@@ -10,13 +10,13 @@ export const mcp = async (configuration: Configuration): Promise<void> => {
   await Folder.create(configuration.reportDir);
   await logger.start(configuration);
   await init(configuration);
-  if (configuration.watch) {
+  if (configuration.debugMcpLocalDocs && configuration.watch) {
     let debounce: ReturnType<typeof setTimeout> | undefined;
     const watcher = FileSystem.watch(DOCS_DIR, { recursive: true });
     watcher.on('change', () => {
       clearTimeout(debounce);
       debounce = setTimeout(() => {
-        void reindex().then(() => logger.info({ source: 'mcp', message: 'knowledge base reindexed' }));
+        void reindex(configuration).then(() => logger.info({ source: 'mcp', message: 'knowledge base reindexed' }));
       }, 300);
     });
     Exit.registerAsyncTask({

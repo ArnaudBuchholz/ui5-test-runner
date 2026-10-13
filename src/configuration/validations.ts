@@ -151,8 +151,14 @@ export const validations: Array<(configuration: Configuration) => void> = [
     }
   },
   (configuration) => {
-    if (Object.hasOwn(configuration, 'watch') && !punyexpr("(!watch || mode === 'mcp')")(configuration)) {
-      throw OptionValidationError.createValidationError(indexedOptions.watch, 'this option is valid only for --mcp');
+    if (
+      Object.hasOwn(configuration, 'watch') &&
+      !punyexpr("(!watch || (mode === 'mcp' && debugMcpLocalDocs))")(configuration)
+    ) {
+      throw OptionValidationError.createValidationError(
+        indexedOptions.watch,
+        'this option is valid only for --mcp with --debug-mcp-local-docs'
+      );
     }
   }
 ];
