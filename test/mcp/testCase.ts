@@ -5,6 +5,8 @@ export interface TestCase {
   question: string;
   files: Record<string, string>;
   expected: Record<string, string>;
+  skip: boolean;
+  skipReason?: string;
 }
 
 export function loadTestCase(path: string): TestCase {
@@ -12,6 +14,7 @@ export function loadTestCase(path: string): TestCase {
     user?: { question?: string };
     files?: Record<string, string>;
     expected?: Record<string, string>;
+    meta?: { skip?: boolean; skipReason?: string };
   };
 
   const question = parsed.user?.question?.trim();
@@ -22,7 +25,9 @@ export function loadTestCase(path: string): TestCase {
   return {
     question,
     files: parsed.files ?? {},
-    expected: parsed.expected ?? {}
+    expected: parsed.expected ?? {},
+    skip: parsed.meta?.skip === true,
+    skipReason: parsed.meta?.skipReason
   };
 }
 
