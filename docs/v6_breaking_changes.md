@@ -106,6 +106,7 @@ Beside the browser options described above, the following version 5 options have
 * `--page-close-timeout` : page closing is no more individually timed.
 * `--watch-folder` : [`--watch`](./options/watch.md) no more accepts a companion folder option.
 * `--coverage-remote-scanner` (`-crs`) : removed together with the experimental coverage proxy.
+* `--keep-alive` (`-k`) : became useless, use [`--serve-only`](./options/serveOnly.md) to keep the server running and serve the application without running tests.
 
 ### `--localhost`
 
