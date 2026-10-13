@@ -26,7 +26,7 @@ function parseArguments(argv: string[]): { mcpUrl: string; casePaths: string[]; 
   const mcpIndex = argv.indexOf('--mcp');
   const mcpUrl = mcpIndex === -1 ? undefined : argv[mcpIndex + 1];
   if (!mcpUrl) {
-    throw new Error('Usage: test:mcp --mcp <url> [--repeat <n>] [runner options…] [case.toml …]');
+    throw new Error('Usage: test:mcp --mcp <url> [--repeat <n>] [--page-filter <regexp>] [runner options…] [case.toml …]');
   }
   // Tokens consumed by the harness itself: --mcp, its value, --repeat, its value, and any
   // explicit .toml positionals.
@@ -81,6 +81,18 @@ if (isJudging) {
 // reportDir (-r), parallel (-p), debug flags and anything else behave identically to the main
 // CLI — including their defaults (reportDir defaults to 'report', parallel to 2).
 const configuration = await CommandLine.buildConfigurationFrom(process.cwd(), runnerArgv);
+
+// --page-filter / -pf (a regexp) selects which cases run: it is matched against each case path
+// relative to the cases dir (e.g. "migration/coverage"), mirroring how the runner matches it
+// against a page URL. Non-matching cases are dropped entirely.
+const pageFilter = configuration.pageFilter;
+const selectedCasePaths = pageFilter
+  ? casePaths.filter((casePath) => pageFilter.test(relative(CASES_DIR, casePath).replace(/\.toml$/, '')))
+  : casePaths;
+if (selectedCasePaths.length === 0) {
+  throw new Error(`No test cases under ${CASES_DIR} match --page-filter ${String(pageFilter)}`);
+}
+
 const builder = await initReportBuilder(configuration);
 await Folder.create(configuration.reportDir);
 await logger.start(configuration);
@@ -110,7 +122,7 @@ interface TestRun {
 // repeating, a 1-based repetition number tagged into its suite. Order is case-major so a case's
 // repetitions sit together in the report (case A×1, A×2, …, B×1, …). A deferred case (meta.skip)
 // is never repeated — its outcome is identical every time — so it contributes a single run.
-const runs: TestRun[] = casePaths.flatMap((casePath) => {
+const runs: TestRun[] = selectedCasePaths.flatMap((casePath) => {
   return repeat <= 1 || loadTestCase(casePath).skip ? [{ casePath }] : Array.from({ length: repeat }, (_, index) => ({ casePath, repetition: index + 1 }));
 });
 
@@ -232,7 +244,8 @@ async function runTestCase({ casePath, repetition }: TestRun, caseIndex: number)
 
 try {
   const repeatNote = repeat > 1 ? ` x${repeat} (${runs.length} runs)` : '';
-  logger.info({ source: 'job', message: `MCP harness ${mcpUrl} — ${casePaths.length} case(s)${repeatNote}, judge ${isJudging ? 'enabled' : 'disabled'}, parallel ${configuration.parallel}` });
+  const filterNote = pageFilter ? ` matching ${String(pageFilter)}` : '';
+  logger.info({ source: 'job', message: `MCP harness ${mcpUrl} — ${selectedCasePaths.length} case(s)${filterNote}${repeatNote}, judge ${isJudging ? 'enabled' : 'disabled'}, parallel ${configuration.parallel}` });
   logger.info({ source: 'progress', pageId: undefined, message: 'Running cases', data: { value: 0, max: runs.length } });
 
   const settled = await parallelize(runTestCase, runs, { parallel: configuration.parallel });
