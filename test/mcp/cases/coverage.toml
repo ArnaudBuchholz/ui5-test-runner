@@ -1,0 +1,8 @@
+[user]
+question="""
+I want to measure coverage and I want the command line to fail if the covered statement do not reach 80%, how do I do ?
+"""
+
+[expected]
+coverage = "it should propose to run with --coverage"
+threshold = "it should propose to use --coverage-check-statements 880 or -ccs 80"
