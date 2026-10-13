@@ -1,0 +1,8 @@
+[user]
+question="""
+How do I know if I must use legacy or remote mode ?
+"""
+
+[expected]
+ui5_cli = "it should explain that when using @ui5/cli, the remote mode (--url) must be used"
+serving = "it should explain that legacy mode has to be used when the runner must also serve the application"

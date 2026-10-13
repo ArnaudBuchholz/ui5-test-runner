@@ -20,6 +20,8 @@ This addresses the limits of the [legacy mode](./legacy.md) :
 * The application may have special requirements to be tested: this is **externalized** from the runner,
 * More than one application can be tested at the same time.
 
+> **Deciding between legacy and remote mode:** if the application is already served by another tool — in particular when you develop with [@ui5/cli](https://ui5.github.io/cli/v4/pages/CLI/) (`ui5 serve`) — you **must** use remote mode and point the runner at the running URL with [`--url`](../options/url.md). Legacy mode would try to serve the application itself, which conflicts with `@ui5/cli` already serving it. Use legacy mode only when you want `ui5-test-runner` to serve the application.
+
 On the flip side, it does **not** enable these features :
 
 * Changing the UI5 version,
