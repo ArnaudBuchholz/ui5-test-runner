@@ -49,6 +49,12 @@ function parseVerdicts(content: string, expected: Record<string, string>): Crite
     throw new Error(`Judge did not return JSON: ${content}`);
   }
   const parsed = JSON.parse(content.slice(start, end + 1)) as Record<string, RawVerdict>;
+  const missing = Object.keys(expected).filter((name) => !(name in parsed));
+  if (missing.length > 0) {
+    // The judge returned JSON but left out criteria it was asked to evaluate. Fail loudly rather
+    // than scoring them as a silent, rationale-less pass:false that looks like a real failure.
+    throw new Error(`Judge omitted verdict(s) for: ${missing.join(', ')} — got keys: ${Object.keys(parsed).join(', ') || '(none)'}`);
+  }
   return Object.entries(expected).map(([name, criterion]) => {
     const raw = parsed[name];
     return {
