@@ -64,6 +64,7 @@ export const Server = {
         }
 
         _channel.close();
+        _serverWorker?.unref();
         resolve();
       };
       await promise;
@@ -85,7 +86,7 @@ export const workerMain = async (configuration: Configuration) => {
     }
 
     logger.debug({ source: 'server', message: 'Stopping server...' });
-    void reserveServer.close().finally(() => {
+    void reserveServer.close({ force: true }).finally(() => {
       logger.debug({ source: 'server', message: 'Server stopped.' });
       _channel.postMessage({
         command: 'terminated'

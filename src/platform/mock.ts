@@ -223,7 +223,8 @@ vi.mock(import('./Thread.js'), async (importActual) => {
   const worker = eventTarget as unknown as Worker;
   Object.assign(worker, {
     on: eventTarget.addEventListener.bind(eventTarget),
-    postMessage: vi.fn()
+    postMessage: vi.fn(),
+    unref: vi.fn()
   });
   vi.mocked(Thread.createWorker).mockReturnValue(worker);
   return mocked;
