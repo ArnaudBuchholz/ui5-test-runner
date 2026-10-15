@@ -15,20 +15,20 @@ export const batch = async (configuration: Configuration): Promise<void> => {
   const batchStart = Date.now();
   await Folder.create(configuration.reportDir);
   await logger.start(configuration);
-  logger.debug({ source: 'job', message: 'Configuration', data: { defaults, configuration } });
+  logger.debug({ source: 'job', message: 'configuration', data: { defaults, configuration } });
   if (!configuration.noBanner) {
     await logEnvironnement();
   }
-  logger.info({ source: 'progress', message: 'Resolving batch items', pageId: undefined, data: { value: 0, max: 0 } });
+  logger.info({ source: 'progress', message: 'resolving batch items', pageId: undefined, data: { value: 0, max: 0 } });
   const items = await resolve(configuration);
   if (items.length === 0) {
-    logger.warn({ source: 'job', message: 'No batch items found' });
+    logger.warn({ source: 'job', message: 'no batch items found' });
     return;
   }
   logger.info({ source: 'job', message: `Found ${items.length} batch items` });
   const startProcess = await start(configuration);
   let failed = 0;
-  logger.info({ source: 'progress', message: 'Executing batch items', pageId: undefined, data: { value: 0, max: 0 } });
+  logger.info({ source: 'progress', message: 'executing batch items', pageId: undefined, data: { value: 0, max: 0 } });
   let completed = 0;
   let lastLoggedCompleted: number | undefined;
   try {
@@ -51,7 +51,7 @@ export const batch = async (configuration: Configuration): Promise<void> => {
         lastLoggedCompleted = completed;
         logger.info({
           source: 'progress',
-          message: 'Executing batch items',
+          message: 'executing batch items',
           pageId: undefined,
           data: { value: completed, max: items.length }
         });

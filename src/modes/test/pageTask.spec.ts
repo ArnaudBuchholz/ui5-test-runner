@@ -107,12 +107,12 @@ describe('reportError', () => {
   it('reports a failed test with the given message when page times out', () => {
     const merge = vi.fn();
     vi.mocked(getReportBuilder).mockReturnValue({ merge } as unknown as TestReportBuilder);
-    reportError(PAGE_URL, 'Page timed out');
+    reportError(PAGE_URL, 'page timed out');
     expect(merge).toHaveBeenCalledOnce();
     const result = (merge.mock.calls[0] as [string, CommonTestReport['results']])[1];
     expect(result.summary.tests).toStrictEqual(1);
     expect(result.summary.failed).toStrictEqual(1);
-    expect(result.tests[0]).toMatchObject({ status: 'failed', message: 'Page timed out, check the logs' });
+    expect(result.tests[0]).toMatchObject({ status: 'failed', message: 'page timed out, check the logs' });
   });
 });
 
@@ -179,7 +179,7 @@ describe('makePageTask', () => {
     vi.mocked(getBrowser).mockReturnValue(browserMock as never);
     await runTask();
     expect(logger.warn).toHaveBeenCalledWith(
-      expect.objectContaining({ message: 'Global timeout reached, skipping page' })
+      expect.objectContaining({ message: 'global timeout reached, skipping page' })
     );
     expect(builder.merge).toHaveBeenCalled();
     expect(browserMock.newWindow).not.toHaveBeenCalled();
@@ -232,7 +232,7 @@ describe('makePageTask', () => {
   it('logs error with Unable to detect page type when state type is unknown and done', async () => {
     setupHappyPath([{ done: true, type: 'unknown' } satisfies AgentState, EMPTY_RESULTS]);
     await runTask();
-    expect(logger.error).toHaveBeenCalledWith(expect.objectContaining({ message: 'Unable to detect page type' }));
+    expect(logger.error).toHaveBeenCalledWith(expect.objectContaining({ message: 'unable to detect page type' }));
   });
 
   it('logs error and reports when uncaught error occurs', async () => {
@@ -250,7 +250,7 @@ describe('makePageTask', () => {
       EMPTY_RESULTS
     ]);
     await runTask();
-    expect(logger.error).toHaveBeenCalledWith(expect.objectContaining({ message: 'Uncaught error' }));
+    expect(logger.error).toHaveBeenCalledWith(expect.objectContaining({ message: 'uncaught error' }));
     expect(builder.merge).toHaveBeenCalled();
   });
 
@@ -277,8 +277,8 @@ describe('makePageTask', () => {
       EMPTY_RESULTS
     ]);
     await runTask();
-    expect(logger.warn).toHaveBeenCalledWith(expect.objectContaining({ message: 'Uncaught error (expected)' }));
-    expect(logger.error).not.toHaveBeenCalledWith(expect.objectContaining({ message: 'Uncaught error' }));
+    expect(logger.warn).toHaveBeenCalledWith(expect.objectContaining({ message: 'uncaught error (expected)' }));
+    expect(logger.error).not.toHaveBeenCalledWith(expect.objectContaining({ message: 'uncaught error' }));
   });
 
   it('completes the task when OPA in-progress state is followed by done state', async () => {
@@ -296,7 +296,7 @@ describe('makePageTask', () => {
     page.eval.mockRejectedValueOnce(new Error('eval failed')).mockResolvedValueOnce(EMPTY_RESULTS);
     vi.mocked(getBrowser).mockReturnValue({ newWindow: vi.fn().mockResolvedValue(page) } as never);
     await runTask();
-    expect(logger.error).toHaveBeenCalledWith(expect.objectContaining({ message: 'An error occurred' }));
+    expect(logger.error).toHaveBeenCalledWith(expect.objectContaining({ message: 'an error occurred' }));
   });
 
   it('reports a failed result and logs error when browser.newWindow throws', async () => {
@@ -308,7 +308,7 @@ describe('makePageTask', () => {
     } as never);
     await runTask();
     expect(logger.error).toHaveBeenCalledWith(
-      expect.objectContaining({ message: 'Unexpected error while running page' })
+      expect.objectContaining({ message: 'unexpected error while running page' })
     );
     expect(builder.merge).toHaveBeenCalledWith(
       PAGE_URL,
@@ -389,7 +389,7 @@ describe('makePageTask', () => {
       await vi.advanceTimersByTimeAsync(200);
       releaseEval(EMPTY_RESULTS);
       await taskPromise;
-      expect(logger.warn).toHaveBeenCalledWith(expect.objectContaining({ message: 'Page timed out' }));
+      expect(logger.warn).toHaveBeenCalledWith(expect.objectContaining({ message: 'page timed out' }));
       const mergeCalls = builder.merge.mock.calls as Array<[string, { summary: { failed: number } }]>;
       const timeoutMergeCall = mergeCalls.find(([, result]) => result.summary.failed === 1);
       expect(timeoutMergeCall).toBeDefined();

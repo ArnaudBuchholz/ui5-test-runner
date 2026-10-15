@@ -14,10 +14,10 @@ export const instrument = async (configuration: Configuration): Promise<void> =>
     return;
   }
   if (!configuration.webapp) {
-    logger.info({ source: 'coverage', message: 'No local webapp, skipping instrumentation' });
+    logger.info({ source: 'coverage', message: 'no local webapp, skipping instrumentation' });
     return;
   }
-  logger.info({ source: 'coverage', message: 'Instrumenting source files...' });
+  logger.info({ source: 'coverage', message: 'instrumenting source files...' });
   const { settings, settingsPath } = await initSettings(configuration);
 
   const nycBin = await getNycBin(configuration);
@@ -43,7 +43,7 @@ export const instrument = async (configuration: Configuration): Promise<void> =>
     await generateBaseline(configuration);
   }
 
-  logger.info({ source: 'coverage', message: 'Instrumentation complete' });
+  logger.info({ source: 'coverage', message: 'instrumentation complete' });
 };
 
 const generateBaseline = async (configuration: Configuration): Promise<void> => {

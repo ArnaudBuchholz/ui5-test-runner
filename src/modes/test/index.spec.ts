@@ -238,7 +238,7 @@ describe('test()', () => {
       setupHappyPath();
       vi.mocked(Server.start).mockRejectedValue(new Error('boom'));
       await runTest(makeConfig());
-      expect(logger.error).toHaveBeenCalledWith(expect.objectContaining({ message: 'An error occurred' }));
+      expect(logger.error).toHaveBeenCalledWith(expect.objectContaining({ message: 'an error occurred' }));
     });
 
     it('calls Server.stop even when Server.start rejects', async () => {

@@ -55,7 +55,7 @@ describe('batch()', () => {
       vi.mocked(resolve).mockResolvedValue([]);
       await batch(makeConfig());
       expect(logger.warn).toHaveBeenCalledWith(
-        expect.objectContaining({ message: expect.stringContaining('No batch items') as unknown })
+        expect.objectContaining({ message: expect.stringContaining('no batch items') as unknown })
       );
       expect(batchTask).not.toHaveBeenCalled();
     });

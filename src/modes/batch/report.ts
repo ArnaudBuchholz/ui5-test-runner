@@ -35,7 +35,7 @@ export const buildBatchReport = async (
       start: itemStart,
       stop: itemStop,
       filePath: anonymize(item).path,
-      ...(item.timedOut && { message: 'Batch item timed out, check the logs' })
+      ...(item.timedOut && { message: 'batch item timed out, check the logs' })
     };
   });
 

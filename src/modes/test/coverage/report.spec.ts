@@ -50,7 +50,7 @@ describe('generateReport', () => {
   it('logs that report generation is starting', async () => {
     await generateReport(BASE_CONFIGURATION);
     expect(logger.info).toHaveBeenCalledWith(
-      expect.objectContaining({ source: 'coverage', message: 'Generating coverage report...' })
+      expect.objectContaining({ source: 'coverage', message: 'generating coverage report...' })
     );
   });
 
@@ -113,7 +113,7 @@ describe('generateReport', () => {
   it('logs report complete on success', async () => {
     await generateReport(BASE_CONFIGURATION);
     expect(logger.info).toHaveBeenCalledWith(
-      expect.objectContaining({ source: 'coverage', message: 'Coverage report complete' })
+      expect.objectContaining({ source: 'coverage', message: 'coverage report complete' })
     );
   });
 

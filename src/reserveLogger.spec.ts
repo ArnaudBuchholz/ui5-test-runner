@@ -37,7 +37,7 @@ it('logs debug and info on ready', () => {
     message: 'ready',
     data: { url: 'http://localhost:1234' }
   });
-  expect(logger.info).toHaveBeenCalledWith({ source: 'server', message: 'Server listening on: http://localhost:1234' });
+  expect(logger.info).toHaveBeenCalledWith({ source: 'server', message: 'server listening on: http://localhost:1234' });
 });
 
 it('logs debug on error', () => {

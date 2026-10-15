@@ -9,7 +9,7 @@ import { getSettingsPath } from './settings.js';
 export const generateReport = async (
   configuration: Configuration
 ): Promise<CommonTestReport['results'] | undefined> => {
-  logger.info({ source: 'coverage', message: 'Generating coverage report...' });
+  logger.info({ source: 'coverage', message: 'generating coverage report...' });
   await Folder.recreate(configuration.coverageReportDir);
 
   const [nycBin, settingsPath] = await Promise.all([getNycBin(configuration), getSettingsPath(configuration)]);
@@ -69,7 +69,7 @@ export const generateReport = async (
         .map(([flag, value]) => `${flag.replace('--', '')}=${value}%`)
         .join(', ');
       logger.error({ source: 'coverage', message: `Coverage thresholds not met (${thresholds})` });
-      logger.info({ source: 'coverage', message: 'Coverage report complete' });
+      logger.info({ source: 'coverage', message: 'coverage report complete' });
       const results = createEmptyTestResults();
       results.tool.name = 'nyc';
       results.summary.tests = 1;
@@ -85,6 +85,6 @@ export const generateReport = async (
     throw new Error(`nyc report failed with code ${proc.code}`);
   }
 
-  logger.info({ source: 'coverage', message: 'Coverage report complete' });
+  logger.info({ source: 'coverage', message: 'coverage report complete' });
   return undefined;
 };

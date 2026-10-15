@@ -32,7 +32,7 @@ export const factory = async (configuration: Configuration, signal: AbortSignal)
       if (error instanceof Error && error.message.includes('Executable doesn')) {
         logger.info({
           source: 'progress',
-          message: 'Installing chromium (playwright)',
+          message: 'installing chromium (playwright)',
           pageId: undefined,
           data: {
             value: 1,

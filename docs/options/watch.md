@@ -6,9 +6,9 @@ summary: watch for file changes and automatically reload
 keywords:
   - mcp
 validation:
-  - message: "this option is valid only for --mcp"
+  - message: "this option is valid only for --mcp with --debug-mcp-local-docs"
     conditions:
-      - "!watch || mode === 'mcp'"
+      - "!watch || (mode === 'mcp' && debugMcpLocalDocs)"
 relations:
   see-also:
     - options/mcp

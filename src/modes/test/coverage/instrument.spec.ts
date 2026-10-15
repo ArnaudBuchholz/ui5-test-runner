@@ -80,7 +80,7 @@ describe('instrument', () => {
       expect(logger.info).toHaveBeenCalledWith(
         expect.objectContaining({
           source: 'coverage',
-          message: 'No local webapp, skipping instrumentation'
+          message: 'no local webapp, skipping instrumentation'
         })
       );
     });
@@ -97,7 +97,7 @@ describe('instrument', () => {
       const config = makeConfiguration({});
       await instrument(config);
       expect(logger.info).toHaveBeenCalledWith(
-        expect.objectContaining({ source: 'coverage', message: 'Instrumenting source files...' })
+        expect.objectContaining({ source: 'coverage', message: 'instrumenting source files...' })
       );
     });
 
@@ -129,7 +129,7 @@ describe('instrument', () => {
       const config = makeConfiguration({});
       await instrument(config);
       expect(logger.info).toHaveBeenCalledWith(
-        expect.objectContaining({ source: 'coverage', message: 'Instrumentation complete' })
+        expect.objectContaining({ source: 'coverage', message: 'instrumentation complete' })
       );
     });
   });

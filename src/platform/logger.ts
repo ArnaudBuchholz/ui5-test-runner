@@ -123,7 +123,7 @@ export const logger = {
           return;
         }
 
-        logger.warn({ source: 'job', message: 'User requested interruption' });
+        logger.warn({ source: 'job', message: 'user requested interruption' });
         Exit.sigInt();
       });
       Terminal.onResize(terminalResized);

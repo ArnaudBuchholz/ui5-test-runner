@@ -57,10 +57,10 @@ describe('start', () => {
 
     it('logs info before running the command', async () => {
       await start(START_CONFIGURATION);
-      expect(logger.info).toHaveBeenCalledWith({ source: 'job', message: 'Executing start command...' });
+      expect(logger.info).toHaveBeenCalledWith({ source: 'job', message: 'executing start command...' });
       expect(logger.info).toHaveBeenCalledWith({
         source: 'progress',
-        message: 'Executing start command',
+        message: 'executing start command',
         pageId: undefined,
         data: { value: 0, max: 0 }
       });
@@ -97,12 +97,12 @@ describe('start', () => {
       await start(START_WITH_WAIT_CONFIGURATION);
       expect(logger.info).toHaveBeenCalledWith({
         source: 'job',
-        message: 'Waiting for start URL to be reachable',
+        message: 'waiting for start URL to be reachable',
         data: { url: START_URL }
       });
       expect(logger.info).toHaveBeenCalledWith({
         source: 'progress',
-        message: 'Waiting for start URL to be reachable',
+        message: 'waiting for start URL to be reachable',
         pageId: undefined,
         data: { value: 0, max: 0 }
       });

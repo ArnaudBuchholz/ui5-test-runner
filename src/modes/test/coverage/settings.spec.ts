@@ -141,7 +141,7 @@ describe('initSettings', () => {
     const config = makeConfiguration({});
     await initSettings(config);
     expect(logger.debug).toHaveBeenCalledWith(
-      expect.objectContaining({ source: 'coverage', message: 'No coverage settings file found, using defaults' })
+      expect.objectContaining({ source: 'coverage', message: 'no coverage settings file found, using defaults' })
     );
   });
 

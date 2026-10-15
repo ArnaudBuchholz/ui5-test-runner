@@ -8,7 +8,7 @@ const main = async () => {
   try {
     await workerMain(data);
   } catch (error) {
-    logger.fatal({ source: 'thread', message: `An error occurred`, error, data: { path } });
+    logger.fatal({ source: 'thread', message: `an error occurred`, error, data: { path } });
   } finally {
     logger.debug({
       source: 'thread',

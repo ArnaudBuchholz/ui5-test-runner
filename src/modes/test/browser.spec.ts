@@ -73,7 +73,7 @@ describe('setupBrowser', () => {
     const { setupBrowser } = await import('./browser.js');
     // logger.fatal throws ExitShutdownError
     await expect(setupBrowser(makeConfig())).rejects.toThrow();
-    expect(logger.fatal).toHaveBeenCalledWith(expect.objectContaining({ message: 'Unable to setup browser' }));
+    expect(logger.fatal).toHaveBeenCalledWith(expect.objectContaining({ message: 'unable to setup browser' }));
   });
 
   it('returns capabilities from browser.setup', async () => {
@@ -127,7 +127,7 @@ describe('setupBrowser', () => {
       void __lastRegisteredExitAsyncTask.stop();
       await getBrowser().shutdown();
       expect(logger.warn).toHaveBeenCalledWith(
-        expect.objectContaining({ message: 'Browser will remain open, use CTRL+C to end command' })
+        expect.objectContaining({ message: 'browser will remain open, use CTRL+C to end command' })
       );
     });
 

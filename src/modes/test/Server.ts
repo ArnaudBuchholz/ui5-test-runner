@@ -75,7 +75,7 @@ export const Server = {
 };
 
 export const workerMain = async (configuration: Configuration) => {
-  logger.debug({ source: 'server', message: 'Starting server...' });
+  logger.debug({ source: 'server', message: 'starting server...' });
   _channel = Thread.createBroadcastChannel('server');
 
   let reserveServer: REserveServer;
@@ -85,9 +85,9 @@ export const workerMain = async (configuration: Configuration) => {
       return;
     }
 
-    logger.debug({ source: 'server', message: 'Stopping server...' });
+    logger.debug({ source: 'server', message: 'stopping server...' });
     void reserveServer.close({ force: true }).finally(() => {
-      logger.debug({ source: 'server', message: 'Server stopped.' });
+      logger.debug({ source: 'server', message: 'server stopped.' });
       _channel.postMessage({
         command: 'terminated'
       } satisfies Message);
@@ -98,7 +98,7 @@ export const workerMain = async (configuration: Configuration) => {
   try {
     reserveServer = serve(await buildREserveConfiguration(configuration));
   } catch (error) {
-    logger.error({ source: 'server', message: 'An error occurred while configuring', error });
+    logger.error({ source: 'server', message: 'an error occurred while configuring', error });
     _channel.postMessage({
       command: 'error'
     } satisfies Message);

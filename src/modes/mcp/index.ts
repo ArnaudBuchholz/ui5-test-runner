@@ -10,13 +10,13 @@ export const mcp = async (configuration: Configuration): Promise<void> => {
   await Folder.create(configuration.reportDir);
   await logger.start(configuration);
   await init(configuration);
-  if (configuration.watch) {
+  if (configuration.debugMcpLocalDocs && configuration.watch) {
     let debounce: ReturnType<typeof setTimeout> | undefined;
     const watcher = FileSystem.watch(DOCS_DIR, { recursive: true });
     watcher.on('change', () => {
       clearTimeout(debounce);
       debounce = setTimeout(() => {
-        void reindex().then(() => logger.info({ source: 'mcp', message: 'knowledge base reindexed' }));
+        void reindex(configuration).then(() => logger.info({ source: 'mcp', message: 'knowledge base reindexed' }));
       }, 300);
     });
     Exit.registerAsyncTask({
@@ -40,8 +40,8 @@ export const mcp = async (configuration: Configuration): Promise<void> => {
   });
   logReserve(server);
   server.on('ready', ({ url }) => {
-    logger.info({ source: 'mcp', message: 'Connect your MCP client to ' + new URL('/mcp', url).href });
-    logger.info({ source: 'mcp', message: 'Use CTRL+C to end' });
+    logger.info({ source: 'mcp', message: 'connect your MCP client to ' + new URL('/mcp', url).href });
+    logger.info({ source: 'mcp', message: 'use CTRL+C to end' });
   });
   server.on('error', ({ reason: error }) => {
     logger.error({ source: 'mcp', message: 'server error', error });
