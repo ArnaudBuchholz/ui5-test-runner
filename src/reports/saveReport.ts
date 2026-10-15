@@ -2,6 +2,7 @@ import { FileSystem, Path } from '../platform/index.js';
 import type { Configuration } from '../configuration/Configuration.js';
 import type { CommonTestReport } from '../types/CommonTestReportFormat.js';
 import { generateHtmlReport } from './html.js';
+import { generateJUnitReport } from './junit.js';
 
 export async function saveReport(configuration: Configuration, report: CommonTestReport): Promise<void> {
   FileSystem.writeFileSync(
@@ -10,4 +11,5 @@ export async function saveReport(configuration: Configuration, report: CommonTes
     'utf8'
   );
   await generateHtmlReport(configuration, report);
+  generateJUnitReport(configuration, report);
 }

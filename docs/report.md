@@ -15,6 +15,7 @@ relations:
     - options/end
     - options/coverageReporters
     - options/screenshotOnFailure
+    - options/junitXmlFilename
 ---
 # Report
 
@@ -28,11 +29,15 @@ The exact shape of the report is defined by the CTRF specification and mirrored 
 * [CTRF JSON schema](https://github.com/ctrf-io/ctrf/blob/main/schema/ctrf.schema.json)
 * [`CommonTestReportFormat.ts`](https://github.com/ArnaudBuchholz/ui5-test-runner/blob/main/src/types/CommonTestReportFormat.ts) — the project's TypeScript definition (always the latest version on `main`)
 
-The report is written to `report.json` inside the folder configured by [`--report-dir`](./options/reportDir.md). It is produced once, at the very end of the run, after every page has completed. The file is pretty-printed JSON; an HTML report is generated alongside it in the same folder.
+The report is written to `report.json` inside the folder configured by [`--report-dir`](./options/reportDir.md). It is produced once, at the very end of the run, after every page has completed. The file is pretty-printed JSON; an HTML report and a JUnit XML report are generated alongside it in the same folder.
 
 ### HTML report
 
 Next to `report.json`, the runner writes a self-contained `report.html` in the same folder. It is a single standalone file with the viewer's JavaScript embedded, so it can be opened directly in a browser or archived as a build artifact without any accompanying assets. It renders the same CTRF data as an interactive view of suites, tests, and attached screenshots.
+
+### JUnit XML report
+
+The runner also writes a `junit.xml` file in the same folder. The filename is controlled by [`--junit-xml-filename`](./options/junitXmlFilename.md) and defaults to `junit.xml`; set it to an empty string to disable this output. The file follows the standard JUnit XML format consumed by CI systems such as Jenkins, GitLab CI, and GitHub Actions test reporters. Tests are grouped into `<testsuite>` elements by their top-level suite, with failure messages and screenshot attachments included where present.
 
 ## Mapping
 

@@ -277,6 +277,12 @@ export const options = [
     description: 'skip execution if the expression evaluates to falsy'
   },
   {
+    name: 'junitXmlFilename',
+    type: 'string',
+    description: 'filename for the JUnit XML report saved in the report directory',
+    default: 'junit.xml'
+  },
+  {
     name: 'lib',
     type: 'library-mapping',
     multiple: true,
@@ -497,6 +503,7 @@ export const defaults = {
   coverageTempDir: '.nyc_output',
   cwd: process.cwd(),
   driver: 'puppeteer',
+  junitXmlFilename: 'junit.xml',
   npmInstall: 'global',
   npmInstallMinReleaseAge: 3,
   outputInterval: 30_000,

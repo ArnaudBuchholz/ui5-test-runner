@@ -34,7 +34,7 @@ directory to output test reports
 
 ## Details
 
-The report directory stores all test execution output: `report.json` (CTRF format), `report.html`, screenshots, and `.logz` trace files. The directory is cleared and recreated at the start of each run.
+The report directory stores all test execution output: `report.json` (CTRF format), `report.html`, `junit.xml` (JUnit XML format, see [`--junit-xml-filename`](./junitXmlFilename.md)), screenshots, and `.logz` trace files. The directory is cleared and recreated at the start of each run.
 
 ## Example
 
