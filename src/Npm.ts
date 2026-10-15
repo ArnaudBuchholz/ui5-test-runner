@@ -111,6 +111,22 @@ export class Npm {
     }
   }
 
+  private static async tryImportFromRoots(
+    configuration: Configuration,
+    moduleName: string,
+    roots: Array<{ path: string; label: string; checkVersion?: boolean }>
+  ): Promise<unknown> {
+    for (const { path, label, checkVersion } of roots) {
+      const result = await this.tryImportFromPath(configuration, moduleName, path);
+      if (result !== undefined) {
+        logger.debug({ source: 'npm', message: `Module ${moduleName} ${label}` });
+        if (checkVersion) void this.checkIfLatestVersion(configuration, moduleName);
+        return result;
+      }
+    }
+    return undefined;
+  }
+
   /** Locate the module (or install it) then import it */
   static async import(configuration: Configuration, moduleName: string): Promise<unknown> {
     logger.debug({ source: 'npm', message: `Importing module: ${moduleName}` });
@@ -125,36 +141,28 @@ export class Npm {
       if (code !== 'ERR_MODULE_NOT_FOUND' && code !== 'MODULE_NOT_FOUND') {
         throw error;
       }
-      logger.warn({ source: 'npm', message: `Module ${moduleName} not found locally` });
-    }
-
-    const { global: globalRoot } = await getRoots();
-    const fromGlobal = await this.tryImportFromPath(configuration, moduleName, globalRoot);
-    if (fromGlobal !== undefined) {
-      logger.debug({ source: 'npm', message: `Module ${moduleName} found globally` });
-      void this.checkIfLatestVersion(configuration, moduleName);
-      return fromGlobal;
-    }
-
-    if (configuration.alternateNpmPath) {
-      const fromAlternate = await this.tryImportFromPath(configuration, moduleName, configuration.alternateNpmPath);
-      if (fromAlternate !== undefined) {
-        logger.debug({ source: 'npm', message: `Module ${moduleName} found in alternateNpmPath` });
-        return fromAlternate;
+      if (moduleName === this.packageNameOf(moduleName)) {
+        logger.warn({ source: 'npm', message: `Module ${moduleName} not found locally` });
       }
     }
 
-    if (configuration.npmInstallPrefix) {
-      const fromPrefix = await this.tryImportFromPath(
-        configuration,
-        moduleName,
-        Path.join(configuration.npmInstallPrefix, 'node_modules')
-      );
-      if (fromPrefix !== undefined) {
-        logger.debug({ source: 'npm', message: `Module ${moduleName} found in npmInstallPrefix` });
-        return fromPrefix;
-      }
-    }
+    const { local: localRoot, global: globalRoot } = await getRoots();
+
+    const extraRoots = [
+      ...(configuration.alternateNpmPath
+        ? [{ path: configuration.alternateNpmPath, label: 'found in alternateNpmPath' }]
+        : []),
+      ...(configuration.npmInstallPrefix
+        ? [{ path: Path.join(configuration.npmInstallPrefix, 'node_modules'), label: 'found in npmInstallPrefix' }]
+        : [])
+    ];
+
+    const found = await this.tryImportFromRoots(configuration, moduleName, [
+      { path: localRoot, label: 'found in local node_modules', checkVersion: true },
+      { path: globalRoot, label: 'found globally', checkVersion: true },
+      ...extraRoots
+    ]);
+    if (found !== undefined) return found;
 
     if (configuration.noNpmInstall) {
       const message = `Module ${moduleName} not found and noNpmInstall is set`;
@@ -212,29 +220,45 @@ export class Npm {
     throw new Error(`Cannot locate package directory for ${moduleName}`);
   }
 
+  /** Extract the npm package name from a module specifier (strips sub-paths) */
+  private static packageNameOf(moduleName: string): string {
+    if (moduleName.startsWith('@')) {
+      const [scope, package_] = moduleName.split('/', 2);
+      return `${scope}/${package_}`;
+    }
+    return moduleName.split('/', 1)[0]!;
+  }
+
   /** fetch the latest version info for the given module */
-  static async getLatestVersion(moduleName: string): Promise<string> {
+  static async getLatestVersion(packageName: string): Promise<string> {
     try {
-      const response = await Http.getAsText(`https://registry.npmjs.org/${moduleName}/latest`);
+      const response = await Http.getAsText(`https://registry.npmjs.org/${packageName}/latest`);
       const { version } = JSON.parse(response) as { version: string };
       return version;
     } catch (error) {
-      throw new Error(`Unable to fetch latest version of ${moduleName} from NPM registry`, {
+      throw new Error(`Unable to fetch latest version of ${packageName} from NPM registry`, {
         cause: error
       });
     }
   }
 
+  private static readonly _checkedPackages = new Set<string>();
+
   static async checkIfLatestVersion(configuration: Configuration, moduleName: string): Promise<void> {
+    const packageName = this.packageNameOf(moduleName);
+    if (this._checkedPackages.has(packageName)) {
+      return;
+    }
+    this._checkedPackages.add(packageName);
     try {
-      const packageDirectory = await this.resolvePackageDir(configuration, moduleName);
+      const packageDirectory = await this.resolvePackageDir(configuration, packageName);
       const { version: installedVersion } = JSON.parse(
         await FileSystem.readFile(Path.join(packageDirectory, 'package.json'), 'utf8')
       ) as { version: string };
-      logger.info({ source: 'npm', message: `Installed version of ${moduleName} is ${installedVersion}` });
-      const latestVersion = await this.getLatestVersion(moduleName);
+      logger.info({ source: 'npm', message: `Installed version of ${packageName} is ${installedVersion}` });
+      const latestVersion = await this.getLatestVersion(packageName);
       if (latestVersion !== installedVersion) {
-        logger.warn({ source: 'npm', message: `Latest version of ${moduleName} is ${latestVersion}` });
+        logger.warn({ source: 'npm', message: `Latest version of ${packageName} is ${latestVersion}` });
       }
     } catch (error) {
       logger.error({ source: 'npm', message: 'failed in checkIfLatestVersion', error });

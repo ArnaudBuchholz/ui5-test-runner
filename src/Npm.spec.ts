@@ -96,6 +96,8 @@ beforeEach(() => {
   TestNpm.dynamicImportSpy.mockRejectedValue(
     Object.assign(new Error('ERR_MODULE_NOT_FOUND'), { code: 'ERR_MODULE_NOT_FOUND' })
   );
+  // Reset the deduplication set so each test starts clean
+  (Npm as unknown as { _checkedPackages: Set<string> })._checkedPackages.clear();
 });
 
 describe('getNpmCliPath', () => {
@@ -178,6 +180,31 @@ describe('checkIfLatestVersion', () => {
     vi.mocked(Module.findPackageJSON).mockReturnValue(undefined);
     await expect(Npm.checkIfLatestVersion(NO_CONFIGURATION, 'some-module')).resolves.toBeUndefined();
     expect(logger.error).toHaveBeenCalled();
+  });
+
+  it('strips sub-paths and checks the root package name', async () => {
+    vi.mocked(Module.findPackageJSON).mockReturnValue('/local/root/some-module/package.json');
+    vi.mocked(FileSystem.readFile).mockResolvedValue(JSON.stringify({ version: '1.0.0' }));
+    vi.mocked(Http.getAsText).mockResolvedValue(JSON.stringify({ version: '1.0.0' }));
+    await Npm.checkIfLatestVersion(NO_CONFIGURATION, 'some-module/sub/path');
+    expect(Http.getAsText).toHaveBeenCalledWith('https://registry.npmjs.org/some-module/latest');
+  });
+
+  it('strips sub-paths for scoped packages', async () => {
+    vi.mocked(Module.findPackageJSON).mockReturnValue('/local/root/@scope/pkg/package.json');
+    vi.mocked(FileSystem.readFile).mockResolvedValue(JSON.stringify({ version: '1.0.0' }));
+    vi.mocked(Http.getAsText).mockResolvedValue(JSON.stringify({ version: '1.0.0' }));
+    await Npm.checkIfLatestVersion(NO_CONFIGURATION, '@scope/pkg/sub/path');
+    expect(Http.getAsText).toHaveBeenCalledWith('https://registry.npmjs.org/@scope/pkg/latest');
+  });
+
+  it('skips the registry check for already-checked packages', async () => {
+    vi.mocked(Module.findPackageJSON).mockReturnValue('/local/root/some-module/package.json');
+    vi.mocked(FileSystem.readFile).mockResolvedValue(JSON.stringify({ version: '1.0.0' }));
+    vi.mocked(Http.getAsText).mockResolvedValue(JSON.stringify({ version: '1.0.0' }));
+    await Npm.checkIfLatestVersion(NO_CONFIGURATION, 'some-module');
+    await Npm.checkIfLatestVersion(NO_CONFIGURATION, 'some-module/sub/path');
+    expect(Http.getAsText).toHaveBeenCalledTimes(1);
   });
 });
 
@@ -282,6 +309,13 @@ describe('import', () => {
     );
   });
 
+  it('does not warn when a sub-path module is not found locally via ESM', async () => {
+    await expect(TestNpm.import(NO_INSTALL_CONFIGURATION, 'non-existent-module-xyz-abc/sub/path')).rejects.toThrow();
+    expect(logger.warn).not.toHaveBeenCalledWith(
+      expect.objectContaining({ message: expect.stringContaining('not found locally') as string })
+    );
+  });
+
   it('throws when noNpmInstall is set and module is missing everywhere', async () => {
     await expect(TestNpm.import(NO_INSTALL_CONFIGURATION, 'non-existent-module-xyz-abc')).rejects.toThrow(
       ExitShutdownError
@@ -293,14 +327,34 @@ describe('import', () => {
     );
   });
 
-  it('returns the module and checks latest version when found globally', async () => {
-    const FAKE_MODULE = { default: 'global-module' };
-    // local fails, then global tryImportFromPath resolves
+  it('returns the module when found in local node_modules via require.resolve fallback', async () => {
+    const FAKE_MODULE = { default: 'local-cjs-module' };
+    // dynamicImport fails (e.g. CJS sub-path without .js), local tryImportFromPath succeeds
     TestNpm.dynamicImportSpy
       .mockRejectedValueOnce(Object.assign(new Error('ERR_MODULE_NOT_FOUND'), { code: 'ERR_MODULE_NOT_FOUND' }))
       .mockResolvedValueOnce(FAKE_MODULE);
-    vi.mocked(Module.createRequire).mockReturnValue(makeRequire('/global/root/some-module/index.js'));
+    vi.mocked(Module.createRequire).mockReturnValue(makeRequire('/local/root/some-module/index.js'));
     vi.mocked(Url.pathToFileURL)
+      .mockReturnValueOnce({ href: `file://${CWD}/package.json` } as URL)
+      .mockReturnValueOnce({ href: 'file:///local/root/some-module/index.js' } as URL);
+    const result = await TestNpm.import(NO_CONFIGURATION, 'some-module');
+    expect(result).toBe(FAKE_MODULE);
+    expect(logger.debug).toHaveBeenCalledWith(
+      expect.objectContaining({ message: expect.stringContaining('found in local node_modules') as string })
+    );
+  });
+
+  it('returns the module and checks latest version when found globally', async () => {
+    const FAKE_MODULE = { default: 'global-module' };
+    // local dynamicImport fails, local tryImportFromPath fails, global tryImportFromPath resolves
+    TestNpm.dynamicImportSpy
+      .mockRejectedValueOnce(Object.assign(new Error('ERR_MODULE_NOT_FOUND'), { code: 'ERR_MODULE_NOT_FOUND' }))
+      .mockResolvedValueOnce(FAKE_MODULE);
+    vi.mocked(Module.createRequire)
+      .mockReturnValueOnce(makeRequireThrow()) // local root fails
+      .mockReturnValueOnce(makeRequire('/global/root/some-module/index.js'));
+    vi.mocked(Url.pathToFileURL)
+      .mockReturnValueOnce({ href: `file://${CWD}/package.json` } as URL)
       .mockReturnValueOnce({ href: `file://${CWD}/package.json` } as URL)
       .mockReturnValueOnce({ href: 'file:///global/root/some-module/index.js' } as URL);
     const result = await TestNpm.import(NO_CONFIGURATION, 'some-module');
@@ -312,14 +366,16 @@ describe('import', () => {
 
   it('returns the module when found in alternateNpmPath', async () => {
     const FAKE_MODULE = { default: 'alternate-module' };
-    // local fails, then global tryImportFromPath resolve throws, then alternate tryImportFromPath resolves
+    // local dynamicImport fails, local tryImportFromPath fails, global fails, alternate resolves
     TestNpm.dynamicImportSpy
       .mockRejectedValueOnce(Object.assign(new Error('ERR_MODULE_NOT_FOUND'), { code: 'ERR_MODULE_NOT_FOUND' }))
       .mockResolvedValueOnce(FAKE_MODULE);
     vi.mocked(Module.createRequire)
-      .mockReturnValueOnce(makeRequireThrow())
+      .mockReturnValueOnce(makeRequireThrow()) // local root fails
+      .mockReturnValueOnce(makeRequireThrow()) // global root fails
       .mockReturnValueOnce(makeRequire('/alternate/path/some-module/index.js'));
     vi.mocked(Url.pathToFileURL)
+      .mockReturnValueOnce({ href: `file://${CWD}/package.json` } as URL)
       .mockReturnValueOnce({ href: `file://${CWD}/package.json` } as URL)
       .mockReturnValueOnce({ href: `file://${CWD}/package.json` } as URL)
       .mockReturnValueOnce({ href: 'file:///alternate/path/some-module/index.js' } as URL);
@@ -332,14 +388,16 @@ describe('import', () => {
 
   it('returns the module when found in npmInstallPrefix', async () => {
     const FAKE_MODULE = { default: 'prefix-module' };
-    // local fails, then global tryImportFromPath resolve throws, then prefix tryImportFromPath resolves
+    // local dynamicImport fails, local tryImportFromPath fails, global fails, prefix resolves
     TestNpm.dynamicImportSpy
       .mockRejectedValueOnce(Object.assign(new Error('ERR_MODULE_NOT_FOUND'), { code: 'ERR_MODULE_NOT_FOUND' }))
       .mockResolvedValueOnce(FAKE_MODULE);
     vi.mocked(Module.createRequire)
-      .mockReturnValueOnce(makeRequireThrow())
+      .mockReturnValueOnce(makeRequireThrow()) // local root fails
+      .mockReturnValueOnce(makeRequireThrow()) // global root fails
       .mockReturnValueOnce(makeRequire('/prefix/path/node_modules/some-module/index.js'));
     vi.mocked(Url.pathToFileURL)
+      .mockReturnValueOnce({ href: `file://${CWD}/package.json` } as URL)
       .mockReturnValueOnce({ href: `file://${CWD}/package.json` } as URL)
       .mockReturnValueOnce({ href: `file://${CWD}/package.json` } as URL)
       .mockReturnValueOnce({ href: 'file:///prefix/path/node_modules/some-module/index.js' } as URL);
@@ -457,14 +515,16 @@ describe('import', () => {
 
   it('returns the module when found via reimportPath after global install', async () => {
     const FAKE_MODULE = { default: 'installed-module' };
-    // local fails, global tryImportFromPath fails, install runs, then reimportPath resolves
+    // local dynamicImport fails, local tryImportFromPath fails, global tryImportFromPath fails, install runs, reimportPath resolves
     TestNpm.dynamicImportSpy
       .mockRejectedValueOnce(Object.assign(new Error('ERR_MODULE_NOT_FOUND'), { code: 'ERR_MODULE_NOT_FOUND' }))
       .mockResolvedValueOnce(FAKE_MODULE);
     vi.mocked(Module.createRequire)
-      .mockReturnValueOnce(makeRequireThrow())
-      .mockReturnValueOnce(makeRequire('/global/root/some-module/index.js'));
+      .mockReturnValueOnce(makeRequireThrow()) // local root fails
+      .mockReturnValueOnce(makeRequireThrow()) // global root fails pre-install
+      .mockReturnValueOnce(makeRequire('/global/root/some-module/index.js')); // global root succeeds post-install
     vi.mocked(Url.pathToFileURL)
+      .mockReturnValueOnce({ href: `file://${CWD}/package.json` } as URL)
       .mockReturnValueOnce({ href: `file://${CWD}/package.json` } as URL)
       .mockReturnValueOnce({ href: `file://${CWD}/package.json` } as URL)
       .mockReturnValueOnce({ href: 'file:///global/root/some-module/index.js' } as URL);
