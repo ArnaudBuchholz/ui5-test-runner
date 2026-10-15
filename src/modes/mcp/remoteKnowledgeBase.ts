@@ -64,7 +64,7 @@ const buildDocuments = (contents: Record<string, string>): IDocument[] =>
   Object.entries(contents).map(([path, content]) => ({ path, content }));
 
 export const collectRemoteDocuments = async (): Promise<IDocument[]> => {
-  logger.info({ source: 'mcp', message: `cache path: ${CACHE_FILE_PATH}`});
+  logger.info({ source: 'mcp', message: `cache path: ${CACHE_FILE_PATH}` });
 
   const cache = await loadCache();
   const now = Date.now();
@@ -107,11 +107,10 @@ export const collectRemoteDocuments = async (): Promise<IDocument[]> => {
 
   await Promise.all(
     entries.map(async (entry) => {
-      if (previousFiles[entry.path] === entry.sha && previousContents[entry.path] !== undefined) {
-        newContents[entry.path] = previousContents[entry.path]!;
-      } else {
-        newContents[entry.path] = await fetchFileContent(entry.path);
-      }
+      newContents[entry.path] =
+        previousFiles[entry.path] === entry.sha && previousContents[entry.path] !== undefined
+          ? previousContents[entry.path]!
+          : await fetchFileContent(entry.path);
     })
   );
 

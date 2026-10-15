@@ -124,12 +124,7 @@ describe('cache older than 1 hour, SHA unchanged', () => {
 
     expect(FileSystem.writeFileSync).toHaveBeenCalledWith(
       CACHE_PATH,
-      cacheJson(
-        'sha-1',
-        NOW,
-        { 'options/coverage.md': 'file-sha-1' },
-        { 'options/coverage.md': 'cached content' }
-      )
+      cacheJson('sha-1', NOW, { 'options/coverage.md': 'file-sha-1' }, { 'options/coverage.md': 'cached content' })
     );
     expect(Http.getAsText).toHaveBeenCalledTimes(1); // tree check only
     expect(documents).toStrictEqual([{ path: 'options/coverage.md', content: 'cached content' }]);
@@ -203,12 +198,7 @@ describe('cache older than 1 hour, SHA changed', () => {
 
     expect(FileSystem.writeFileSync).toHaveBeenCalledWith(
       CACHE_PATH,
-      cacheJson(
-        'sha-new',
-        NOW,
-        { 'options/coverage.md': 'file-sha-new' },
-        { 'options/coverage.md': 'new content' }
-      )
+      cacheJson('sha-new', NOW, { 'options/coverage.md': 'file-sha-new' }, { 'options/coverage.md': 'new content' })
     );
   });
 });
