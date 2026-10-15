@@ -159,7 +159,7 @@ describe('cache older than 1 hour, SHA changed', () => {
     const documents = await collect();
 
     const calls = vi.mocked(Http.getAsText).mock.calls.map(([url]) => url);
-    const fileFetches = calls.filter((url) => url.includes('raw.githubusercontent.com'));
+    const fileFetches = calls.filter((url) => url.startsWith('https://raw.githubusercontent.com'));
     expect(fileFetches).toHaveLength(1);
     expect(fileFetches[0]).toContain('coverage.md');
     expect(documents.find((d) => d.path === 'options/parallel.md')?.content).toBe('parallel content');
