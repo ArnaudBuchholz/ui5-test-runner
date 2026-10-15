@@ -9,7 +9,7 @@ export const logReserve = (server: Server) => {
     .on('ready', (event) => {
       const { eventName: message, ...data } = event;
       logger.debug({ source: 'reserve', message, data });
-      logger.info({ source: 'server', message: `Server listening on: ${event.url}` });
+      logger.info({ source: 'server', message: `server listening on: ${event.url}` });
     })
     .on('error', (event) => {
       // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment -- REserve uses any

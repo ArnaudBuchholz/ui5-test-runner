@@ -55,7 +55,7 @@ describe('end', () => {
       await end(END_CONFIGURATION);
       expect(logger.info).toHaveBeenCalledWith({
         source: 'progress',
-        message: 'Executing end command',
+        message: 'executing end command',
         pageId: undefined,
         data: { value: 0, max: 0 }
       });
@@ -86,7 +86,7 @@ describe('end', () => {
       await end(END_CONFIGURATION);
       expect(logger.warn).toHaveBeenCalledWith({
         source: 'job',
-        message: 'Status changed to success by end command'
+        message: 'status changed to success by end command'
       });
     });
 
@@ -102,7 +102,7 @@ describe('end', () => {
       await end(END_CONFIGURATION);
       expect(logger.warn).toHaveBeenCalledWith({
         source: 'job',
-        message: 'Status changed to error by end command'
+        message: 'status changed to error by end command'
       });
     });
   });
@@ -133,7 +133,7 @@ describe('end', () => {
       await promise;
 
       expect(process.kill).toHaveBeenCalled();
-      expect(logger.error).toHaveBeenCalledWith({ source: 'job', message: 'End command timed out, killing' });
+      expect(logger.error).toHaveBeenCalledWith({ source: 'job', message: 'end command timed out, killing' });
       expect(Exit.code).toBe(-1);
       vi.useRealTimers();
     });

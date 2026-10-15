@@ -25,7 +25,7 @@ export const setupBrowser = async (configuration: Configuration): Promise<Browse
   try {
     _capabilities = await _browser.setup(settings);
   } catch (error) {
-    logger.fatal({ source: 'job', message: 'Unable to setup browser', error });
+    logger.fatal({ source: 'job', message: 'unable to setup browser', error });
   }
   if (debugKeepBrowserOpen) {
     // eslint-disable-next-line @typescript-eslint/unbound-method -- Called with .call(browser,...)
@@ -41,7 +41,7 @@ export const setupBrowser = async (configuration: Configuration): Promise<Browse
       stop: () => resolve()
     });
     _browser.shutdown = () => {
-      logger.warn({ source: 'job', message: 'Browser will remain open, use CTRL+C to end command' });
+      logger.warn({ source: 'job', message: 'browser will remain open, use CTRL+C to end command' });
       return promise;
     };
   }

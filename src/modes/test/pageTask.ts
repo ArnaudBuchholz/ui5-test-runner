@@ -81,13 +81,13 @@ const shouldUncaughtErrorsFail = (context: PageContext, errors: IError[]): boole
     for (; index < errors.length; ++index) {
       const error = errors[index]!;
       let logMethod: 'warn' | 'error' = 'error';
-      let message = 'Uncaught error';
+      let message = 'uncaught error';
       if (
         error.message === 'Called start() outside of a test context too many times' &&
         (error.stack?.includes('/sap/ui/thirdparty/qunit-2.js') || error.stack?.includes('/sap/ui/thirdparty/qunit.js'))
       ) {
         logMethod = 'warn';
-        message = 'Uncaught error (expected)';
+        message = 'uncaught error (expected)';
       }
       logger[logMethod]({
         source: 'page',
@@ -134,11 +134,11 @@ const shouldStopBasedOnAgentState = (
     } else if (agentState.type === 'unknown') {
       logger.error({
         source: 'page',
-        message: 'Unable to detect page type',
+        message: 'unable to detect page type',
         pageId: context.pageId,
         data: { state: agentState }
       });
-      assert(false, 'Unable to detect page type');
+      assert(false, 'unable to detect page type');
     } else {
       assert(agentState.type === 'QUnit');
       reportQunitProgress(context, agentState, isScreenshotEnabled);
@@ -217,7 +217,7 @@ const runPollingLoop = async (
         break;
       }
     } catch (error) {
-      logger.error({ source: 'page', message: 'An error occurred', error, pageId: context.pageId, data: {} });
+      logger.error({ source: 'page', message: 'an error occurred', error, pageId: context.pageId, data: {} });
       break;
     }
   }
@@ -261,7 +261,7 @@ export const makePageTask = (configuration: Configuration) => {
 
     const startTime = getReportBuilder().report.results.summary.start;
     if (isGloballyTimedOut(configuration.globalTimeout, startTime)) {
-      logger.warn({ source: 'page', message: 'Global timeout reached, skipping page', pageId, data: { url } });
+      logger.warn({ source: 'page', message: 'global timeout reached, skipping page', pageId, data: { url } });
       reportError(url, 'Global timeout reached');
       return;
     }
@@ -314,7 +314,7 @@ export const makePageTask = (configuration: Configuration) => {
       let pageTimeoutHandle: ReturnType<typeof setTimeout> | undefined;
       if (pageTimeoutMs > 0) {
         pageTimeoutHandle = setTimeout(() => {
-          logger.warn({ source: 'page', message: 'Page timed out', pageId, data: { url } });
+          logger.warn({ source: 'page', message: 'page timed out', pageId, data: { url } });
           pageTimeoutController.abort();
         }, pageTimeoutMs);
       }
@@ -334,10 +334,10 @@ export const makePageTask = (configuration: Configuration) => {
       await collectCoverage(configuration, context);
       mergeTestResults(url, pageId, context, testResults);
       if (pageTimeoutController.signal.aborted) {
-        reportError(url, 'Page timed out');
+        reportError(url, 'page timed out');
       }
     } catch (error) {
-      logger.error({ source: 'page', message: 'Unexpected error while running page', error, pageId, data: {} });
+      logger.error({ source: 'page', message: 'unexpected error while running page', error, pageId, data: {} });
       reportError(url, 'An unexpected error occurred');
     } finally {
       if (context !== undefined) {

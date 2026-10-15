@@ -9,9 +9,9 @@ export const getNpmCliPath = async () => {
   });
   await npmChildProcess.closed;
   const match = /^npm@([^ ]+) (.*)$/gm.exec(npmChildProcess.stdout);
-  assert(match !== null, 'Unable to match NPM output');
+  assert(match !== null, 'unable to match NPM output');
   const [, semver, path] = match;
-  assert(!!semver && !!path, 'Failed to parse NPM output');
+  assert(!!semver && !!path, 'failed to parse NPM output');
   logger.debug({ source: 'npm', message: `npm@${semver} ${path}` });
   return Path.join(path, 'bin/npm-cli.js');
 };
@@ -49,7 +49,7 @@ const getRoots = memoize(async () => {
   await Promise.all([localRootProcess.closed, globalRootProcess.closed]);
   const local = await validateRoot(localRootProcess, '(local)');
   const global = await validateRoot(globalRootProcess, '(global)');
-  logger.debug({ source: 'npm', message: 'Roots', data: { local, global } });
+  logger.debug({ source: 'npm', message: 'roots', data: { local, global } });
   return { local, global };
 });
 
@@ -237,7 +237,7 @@ export class Npm {
         logger.warn({ source: 'npm', message: `Latest version of ${moduleName} is ${latestVersion}` });
       }
     } catch (error) {
-      logger.error({ source: 'npm', message: 'Failed in checkIfLatestVersion', error });
+      logger.error({ source: 'npm', message: 'failed in checkIfLatestVersion', error });
     }
   }
 
@@ -256,7 +256,7 @@ export class Npm {
       };
       return Object.keys(content?.scripts ?? {});
     } catch (error) {
-      logger.error({ source: 'npm', message: 'Failed to list package script names', error, data: { cwd } });
+      logger.error({ source: 'npm', message: 'failed to list package script names', error, data: { cwd } });
       return [];
     }
   }

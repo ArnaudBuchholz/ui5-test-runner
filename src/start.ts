@@ -8,10 +8,10 @@ const POLL_INTERVAL = 250;
 const waitForStart = async (configuration: Configuration, startProcess: IProcess) => {
   assert(configuration.startWaitUrl !== undefined);
   const { startWaitUrl: url, startWaitMethod: method, startTimeout: timeout } = configuration;
-  logger.info({ source: 'job', message: 'Waiting for start URL to be reachable', data: { url } });
+  logger.info({ source: 'job', message: 'waiting for start URL to be reachable', data: { url } });
   logger.info({
     source: 'progress',
-    message: 'Waiting for start URL to be reachable',
+    message: 'waiting for start URL to be reachable',
     pageId: undefined,
     data: { value: 0, max: 0 }
   });
@@ -46,7 +46,7 @@ const waitForStart = async (configuration: Configuration, startProcess: IProcess
 
     logger.info({
       source: 'progress',
-      message: `Waiting for start URL to be reachable (${numberOfAttempts}:${lastStatus})`,
+      message: `waiting for start URL to be reachable (${numberOfAttempts}:${lastStatus})`,
       pageId: undefined,
       data: { value: 0, max: 0 }
     });
@@ -63,10 +63,10 @@ export const start = async (configuration: Configuration): Promise<IProcess | un
   if (!configuration.start) {
     return undefined;
   }
-  logger.info({ source: 'job', message: 'Executing start command...' });
+  logger.info({ source: 'job', message: 'executing start command...' });
   logger.info({
     source: 'progress',
-    message: 'Executing start command',
+    message: 'executing start command',
     pageId: undefined,
     data: { value: 0, max: 0 }
   });

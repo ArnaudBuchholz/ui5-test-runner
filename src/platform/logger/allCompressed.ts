@@ -46,7 +46,7 @@ export const workerMain = ({ configuration }: { configuration: Configuration }) 
   channel.onmessage = (event: { data: LogMessage }) => {
     const { data: message } = event;
     if (message.command === 'terminate') {
-      _log({ source: 'logger', message: 'Logger terminating' });
+      _log({ source: 'logger', message: 'logger terminating' });
       channel.close();
       flushBuffer();
       void writePromise.then(() => stream.end());
@@ -55,7 +55,7 @@ export const workerMain = ({ configuration }: { configuration: Configuration }) 
     }
   };
 
-  _log({ source: 'logger', message: 'Logger ready' });
+  _log({ source: 'logger', message: 'logger ready' });
   channel.postMessage({
     command: 'ready',
     source: 'allCompressed'

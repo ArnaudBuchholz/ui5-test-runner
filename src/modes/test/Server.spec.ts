@@ -156,7 +156,7 @@ describe('workerMain', () => {
     const { workerMain } = await import('./Server.js');
     await workerMain(CONFIGURATION);
     expect(Thread.createBroadcastChannel).toHaveBeenCalledWith('server');
-    expect(logger.debug).toHaveBeenCalledWith(expect.objectContaining({ message: 'Starting server...' }));
+    expect(logger.debug).toHaveBeenCalledWith(expect.objectContaining({ message: 'starting server...' }));
   });
 
   it('posts ready with port when reserve server emits ready', async () => {
@@ -202,7 +202,7 @@ describe('workerMain', () => {
     await workerMain(CONFIGURATION);
     const channel = getChannel();
     expect(logger.error).toHaveBeenCalledWith(
-      expect.objectContaining({ message: 'An error occurred while configuring' })
+      expect.objectContaining({ message: 'an error occurred while configuring' })
     );
     expect(channel.postMessage).toHaveBeenCalledWith({ command: 'error' });
   });

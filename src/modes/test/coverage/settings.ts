@@ -45,7 +45,7 @@ const _initSettings = async (configuration: Configuration): Promise<SettingsEntr
     base = JSON.parse(raw) as IstanbulSettings;
     logger.debug({ source: 'coverage', message: `Loaded coverage settings from ${configuration.coverageSettings}` });
   } catch {
-    logger.debug({ source: 'coverage', message: 'No coverage settings file found, using defaults' });
+    logger.debug({ source: 'coverage', message: 'no coverage settings file found, using defaults' });
   }
 
   const exclude: string[] = [...(Array.isArray(base.exclude) ? base.exclude : [])];

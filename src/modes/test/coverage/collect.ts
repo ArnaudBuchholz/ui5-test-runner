@@ -33,7 +33,7 @@ export const collect = async (configuration: Configuration, pageContext: PageCon
   }
   const coverageData = await page.eval('window.__coverage__');
   if (!coverageData) {
-    logger.warn({ source: 'coverage', pageId, message: 'No coverage data found for page', data: { url } });
+    logger.warn({ source: 'coverage', pageId, message: 'no coverage data found for page', data: { url } });
     return;
   }
   assert(isCoverageData(coverageData), `Invalid coverage data for page ${url}`);
@@ -42,7 +42,7 @@ export const collect = async (configuration: Configuration, pageContext: PageCon
   try {
     await FileSystem.access(firstFilePath, FileSystem.constants.R_OK);
   } catch {
-    logger.debug({ source: 'coverage', pageId, message: 'Coverage data requires mapping' });
+    logger.debug({ source: 'coverage', pageId, message: 'coverage data requires mapping' });
     data = remapPaths(coverageData, configuration.coverageSourceDir ?? configuration.webapp);
   }
   const fileName = `${pageId}.json`;

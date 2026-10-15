@@ -8,8 +8,8 @@ export const end = async (configuration: Configuration): Promise<void> => {
     return;
   }
   const start = Date.now();
-  logger.info({ source: 'job', message: 'Executing end command...' });
-  logger.info({ source: 'progress', message: 'Executing end command', pageId: undefined, data: { value: 0, max: 0 } });
+  logger.info({ source: 'job', message: 'executing end command...' });
+  logger.info({ source: 'progress', message: 'executing end command', pageId: undefined, data: { value: 0, max: 0 } });
   const [command, arguments_, environment] = await Command.parse(configuration, configuration.end, {
     exitCode: String(Exit.code)
   });
@@ -29,7 +29,7 @@ export const end = async (configuration: Configuration): Promise<void> => {
     );
     await Promise.race([process.closed, timeout]);
     if (didTimeout) {
-      logger.error({ source: 'job', message: 'End command timed out, killing' });
+      logger.error({ source: 'job', message: 'end command timed out, killing' });
       await process.kill();
       code = -1; // Error
     } else {
@@ -44,12 +44,12 @@ export const end = async (configuration: Configuration): Promise<void> => {
     if (before === 0 && code !== 0) {
       logger.warn({
         source: 'job',
-        message: 'Status changed to error by end command'
+        message: 'status changed to error by end command'
       });
     } else if (before !== 0 && code === 0) {
       logger.warn({
         source: 'job',
-        message: 'Status changed to success by end command'
+        message: 'status changed to success by end command'
       });
     }
     Exit.code = code;

@@ -20,7 +20,7 @@ export const test = async (configuration: Configuration) => {
   await initReportBuilder(configuration);
   await Folder.create(configuration.reportDir);
   await logger.start(configuration);
-  logger.debug({ source: 'job', message: 'Configuration', data: { defaults, configuration } });
+  logger.debug({ source: 'job', message: 'configuration', data: { defaults, configuration } });
 
   if (!configuration.noBanner) {
     await logEnvironnement();
@@ -41,7 +41,7 @@ export const test = async (configuration: Configuration) => {
         name: 'serveOnly',
         stop: () => resolve()
       });
-      logger.warn({ source: 'job', message: 'Serving only, use CTRL+C to end command' });
+      logger.warn({ source: 'job', message: 'serving only, use CTRL+C to end command' });
       await promise;
       return;
     }
@@ -56,7 +56,7 @@ export const test = async (configuration: Configuration) => {
     setReportBrowserInfo(capabilities);
     isBrowserStarted = true;
     initBrowserConfig(configuration);
-    logger.info({ source: 'progress', message: 'Executing pages', pageId: undefined, data: { value: 0, max: 0 } });
+    logger.info({ source: 'progress', message: 'executing pages', pageId: undefined, data: { value: 0, max: 0 } });
     sendToParentProcess({ type: 'progress', count: 0, total: 0 });
     let completed = 0;
     let lastLoggedCompleted: number | undefined;
@@ -78,7 +78,7 @@ export const test = async (configuration: Configuration) => {
         lastLoggedMax = urls.length;
         logger.info({
           source: 'progress',
-          message: 'Executing pages',
+          message: 'executing pages',
           pageId: undefined,
           data: { value: completed, max: urls.length }
         });
@@ -106,7 +106,7 @@ export const test = async (configuration: Configuration) => {
     sendToParentProcess({ type: 'done', passed, failed, tests });
     await end(configuration);
   } catch (error) {
-    logger.error({ source: 'job', message: 'An error occurred', error });
+    logger.error({ source: 'job', message: 'an error occurred', error });
   } finally {
     if (isBrowserStarted) {
       await getBrowser().shutdown();

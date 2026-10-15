@@ -59,7 +59,7 @@ describe('when workerMain throws', () => {
   });
 
   it('logs fatal with the error', () => {
-    expect(logger.fatal).toHaveBeenCalledWith(expect.objectContaining({ message: 'An error occurred', error }));
+    expect(logger.fatal).toHaveBeenCalledWith(expect.objectContaining({ message: 'an error occurred', error }));
   });
 
   it('still logs completion in the finally block', () => {

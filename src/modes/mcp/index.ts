@@ -40,8 +40,8 @@ export const mcp = async (configuration: Configuration): Promise<void> => {
   });
   logReserve(server);
   server.on('ready', ({ url }) => {
-    logger.info({ source: 'mcp', message: 'Connect your MCP client to ' + new URL('/mcp', url).href });
-    logger.info({ source: 'mcp', message: 'Use CTRL+C to end' });
+    logger.info({ source: 'mcp', message: 'connect your MCP client to ' + new URL('/mcp', url).href });
+    logger.info({ source: 'mcp', message: 'use CTRL+C to end' });
   });
   server.on('error', ({ reason: error }) => {
     logger.error({ source: 'mcp', message: 'server error', error });

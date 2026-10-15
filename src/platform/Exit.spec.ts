@@ -479,7 +479,7 @@ describe('handles', () => {
         }
         expect(logger.warn).not.toHaveBeenCalledWith({
           source: 'exit/handle',
-          message: 'Missing process._getActiveHandles'
+          message: 'missing process._getActiveHandles'
         });
       });
     }
@@ -490,7 +490,7 @@ describe('handles', () => {
     await Exit.shutdown();
     expect(logger.warn).toHaveBeenCalledWith({
       source: 'exit/handle',
-      message: 'Missing process._getActiveHandles'
+      message: 'missing process._getActiveHandles'
     });
   });
 });

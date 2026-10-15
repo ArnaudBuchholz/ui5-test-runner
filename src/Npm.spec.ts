@@ -106,13 +106,13 @@ describe('getNpmCliPath', () => {
   it('throws and logs fatal when npm output does not match the expected format', async () => {
     vi.mocked(Process.spawn).mockImplementationOnce(() => makeProcess('unexpected output'));
     await expect(getNpmCliPath()).rejects.toThrow(ExitShutdownError);
-    expect(logger.fatal).toHaveBeenCalledWith(expect.objectContaining({ message: 'Unable to match NPM output' }));
+    expect(logger.fatal).toHaveBeenCalledWith(expect.objectContaining({ message: 'unable to match NPM output' }));
   });
 
   it('throws and logs fatal when the parsed path is empty', async () => {
     vi.mocked(Process.spawn).mockImplementationOnce(() => makeProcess('npm@10.2.0 '));
     await expect(getNpmCliPath()).rejects.toThrow(ExitShutdownError);
-    expect(logger.fatal).toHaveBeenCalledWith(expect.objectContaining({ message: 'Failed to parse NPM output' }));
+    expect(logger.fatal).toHaveBeenCalledWith(expect.objectContaining({ message: 'failed to parse NPM output' }));
   });
 });
 
@@ -212,7 +212,7 @@ describe('listPackageScriptNames', () => {
     vi.mocked(FileSystem.readFile).mockRejectedValue(error);
     await expect(Npm.listPackageScriptNames('/home/usr')).resolves.toStrictEqual([]);
     expect(logger.error).toHaveBeenCalledWith(
-      expect.objectContaining({ message: 'Failed to list package script names', error })
+      expect.objectContaining({ message: 'failed to list package script names', error })
     );
   });
 });

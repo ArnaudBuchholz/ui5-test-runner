@@ -66,7 +66,7 @@ export const batchTask = async (
   });
 
   if (isGloballyTimedOut(configuration.globalTimeout, startTime)) {
-    logger.warn({ source: 'page', message: 'Global timeout reached, skipping batch item', pageId, data: { label } });
+    logger.warn({ source: 'page', message: 'global timeout reached, skipping batch item', pageId, data: { label } });
     batchItem.skipped = true;
     return batchItem;
   }
@@ -108,7 +108,7 @@ export const batchTask = async (
   const batchTimeoutMs = getBatchTimeout(configuration, startTime);
   if (batchTimeoutMs > 0) {
     const timeoutHandle = setTimeout(() => {
-      logger.warn({ source: 'page', message: 'Batch item timed out', pageId, data: { label } });
+      logger.warn({ source: 'page', message: 'batch item timed out', pageId, data: { label } });
       batchItem.timedOut = true;
       void childProcess.kill();
     }, batchTimeoutMs);
