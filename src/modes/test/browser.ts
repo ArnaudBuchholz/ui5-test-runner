@@ -20,7 +20,11 @@ export const setupBrowser = async (configuration: Configuration): Promise<Browse
       height: browserViewportHeight
     },
     browser: configuration.browser ?? getDescriptor(driver).defaultBrowser,
-    options: configuration.browserOptions
+    options: configuration.browserOptions,
+    basicAuthentication:
+      configuration.browserBasicAuthUsername !== undefined && configuration.browserBasicAuthPassword !== undefined
+        ? { username: configuration.browserBasicAuthUsername, password: configuration.browserBasicAuthPassword }
+        : undefined
   };
   try {
     _capabilities = await _browser.setup(settings);

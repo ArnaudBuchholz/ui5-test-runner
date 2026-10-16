@@ -33,6 +33,8 @@ relations:
 |[batchLabel](options/batchLabel.md)|--batch-label||string|display label for the batch item|
 |[batchTimeout](options/batchTimeout.md)|--batch-timeout|-bt|timeout|fails a batch item if it takes longer than this timeout|
 |[browser](options/browser.md)|--browser|-b|chrome \| chromium \| firefox \| webkit \| edge \| safari|browser selection (per driver)|
+|[browserBasicAuthPassword](options/browserBasicAuthPassword.md)|--browser-basic-auth-password||secret|password for HTTP basic authentication|
+|[browserBasicAuthUsername](options/browserBasicAuthUsername.md)|--browser-basic-auth-username||string|username for HTTP basic authentication|
 |[browserOptions](options/browserOptions.md)|--browser-options||json|browser-specific options (JSON)|
 |[browserViewportHeight](options/browserViewportHeight.md)|--browser-viewport-height|-H|integer|height of the browser viewport in pixels|
 |[browserViewportWidth](options/browserViewportWidth.md)|--browser-viewport-width|-W|integer|width of the browser viewport in pixels|

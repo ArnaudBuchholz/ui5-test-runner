@@ -53,7 +53,10 @@ export const factory = async (configuration: Configuration, signal: AbortSignal)
       }
     }
     context = await browser.newContext({
-      viewport: settings.viewport ?? null // null = no fixed viewport (use window size)
+      viewport: settings.viewport ?? null, // null = no fixed viewport (use window size)
+      httpCredentials: settings.basicAuthentication
+        ? { username: settings.basicAuthentication.username, password: settings.basicAuthentication.password.reveal() }
+        : undefined
     });
     return {
       browserName: browser.browserType().name(),

@@ -40,3 +40,5 @@ in-process and drives the browser directly.
   driver runs it automatically when the browser is missing.
 * `UI5TR_CHROME_ARGS` is always applied to the Chromium launch — see
   [Chrome / Chromium specifics](browsers/chrome.md).
+* Supports [HTTP basic authentication](../../options/browserBasicAuthUsername.md)
+  via `httpCredentials` on the browser context, shared across all pages.

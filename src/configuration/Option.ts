@@ -1,3 +1,5 @@
+import type { ISecretValue } from '../types/ISecretValue.js';
+
 export type OptionType =
   | 'boolean'
   | 'enumeration'
@@ -7,6 +9,7 @@ export type OptionType =
   | 'library-mapping'
   | 'percent'
   | 'regexp'
+  | 'secret'
   | 'string'
   | 'timeout'
   | 'url';
@@ -28,7 +31,9 @@ export type InferOptionType<T extends OptionType> = T extends 'boolean'
           ? RegExp
           : T extends 'library-mapping'
             ? LibraryMapping
-            : string;
+            : T extends 'secret'
+              ? ISecretValue
+              : string;
 
 export type Option<T extends OptionType = OptionType> = {
   name: string;

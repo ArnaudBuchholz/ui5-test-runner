@@ -13,6 +13,8 @@ relations:
     - options/driver
     - options/browser
     - options/browserOptions
+    - options/browserBasicAuthUsername
+    - options/browserBasicAuthPassword
     - browser_selection
     - browsers/v6/puppeteer
     - browsers/v6/playwright
@@ -74,6 +76,17 @@ each driver page marks which browsers are wired today versus planned.
 
 Browser-specific tuning (extra Chrome flags) is documented in
 [Chrome / Chromium specifics](browsers/chrome.md).
+
+## Capabilities by driver
+
+| Capability | puppeteer | playwright | webdriverio | selenium-webdriver |
+|---|---|---|---|---|
+| Screenshots | ✔️ | ✔️ | ✔️ | ✔️ |
+| Script injection | ✔️ | ✔️ | ✔️ | ✔️ |
+| Console traces | ✔️ | ✔️ | ✔️ | ✔️ |
+| Network traces | ✔️ | ✔️ | ✔️ | ✔️ |
+| [`--browser-options`](../../options/browserOptions.md) args | ✔️ | — | — | — |
+| [HTTP basic authentication](../../options/browserBasicAuthUsername.md) | ✔️ | ✔️ | — | — |
 
 ## jsdom is not supported in v6
 

@@ -1,0 +1,9 @@
+{
+  "batchId": "PUPPETEER_BASIC_AUTHENT",
+  "batchLabel": "Puppeteer with basic authent",
+  "url": ["http://localhost:8081/test/testsuite.qunit.html"],
+  "driver": "puppeteer",
+  "browserBasicAuthUsername": "testUsername",
+  "browserBasicAuthPassword": "testPassword",
+  "end": "RUNNER_EXIT_CODE={{exitCode}} NODE_OPTIONS= node test/e2e/check.mjs {{reportDir}} --pages 2"
+}

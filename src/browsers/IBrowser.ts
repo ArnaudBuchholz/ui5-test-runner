@@ -1,3 +1,5 @@
+import type { ISecretValue } from '../types/ISecretValue.js';
+
 export interface IWindow {
   eval(script: string): Promise<unknown>;
   screenshot(path: string): Promise<void>;
@@ -9,7 +11,7 @@ export type BrowserSettings = {
   viewport?: { width: number; height: number };
   language?: string;
   secure?: boolean;
-  basicAuthentication?: { username: string; password: string };
+  basicAuthentication?: { username: string; password: ISecretValue };
   browser?: string;
   options?: Record<string, unknown>;
 };

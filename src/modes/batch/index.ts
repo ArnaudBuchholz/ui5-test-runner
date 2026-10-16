@@ -6,6 +6,8 @@ import { resolve } from './resolve.js';
 import { batchTask } from './batchTask.js';
 import { buildBatchReport } from './report.js';
 import { defaults } from '../../configuration/options.js';
+import { redactSecrets } from '../../utils/node/anonymize.js';
+import { toPlainObject } from '../../utils/shared/object.js';
 import { Folder } from '../../utils/node/Folder.js';
 import { saveReport } from '../../reports/saveReport.js';
 import { formatDuration } from '../../utils/shared/string.js';
@@ -15,7 +17,11 @@ export const batch = async (configuration: Configuration): Promise<void> => {
   const batchStart = Date.now();
   await Folder.create(configuration.reportDir);
   await logger.start(configuration);
-  logger.debug({ source: 'job', message: 'configuration', data: { defaults, configuration } });
+  logger.debug({
+    source: 'job',
+    message: 'configuration',
+    data: { defaults, configuration: redactSecrets(toPlainObject(configuration)) }
+  });
   if (!configuration.noBanner) {
     await logEnvironnement();
   }

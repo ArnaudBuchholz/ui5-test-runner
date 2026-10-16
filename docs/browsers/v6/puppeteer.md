@@ -39,3 +39,5 @@ and drives the browser directly.
   target browser is `chrome` — see [Chrome / Chromium specifics](browsers/chrome.md).
 * If you hit `ERROR: Failed to set up Chrome …`, define
   `PUPPETEER_SKIP_DOWNLOAD=true`.
+* Supports [HTTP basic authentication](../../options/browserBasicAuthUsername.md)
+  via `page.authenticate()`, called before each page load.

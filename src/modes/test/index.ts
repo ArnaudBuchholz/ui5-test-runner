@@ -1,6 +1,8 @@
 import { logger, logEnvironnement, Exit } from '../../platform/index.js';
 import type { Configuration } from '../../configuration/Configuration.js';
 import { defaults } from '../../configuration/options.js';
+import { redactSecrets } from '../../utils/node/anonymize.js';
+import { toPlainObject } from '../../utils/shared/object.js';
 import { parallelize } from '../../utils/shared/parallelize.js';
 import { getAgentSource } from './agent.js';
 import { setupBrowser, getBrowser } from './browser.js';
@@ -20,7 +22,11 @@ export const test = async (configuration: Configuration) => {
   await initReportBuilder(configuration);
   await Folder.create(configuration.reportDir);
   await logger.start(configuration);
-  logger.debug({ source: 'job', message: 'configuration', data: { defaults, configuration } });
+  logger.debug({
+    source: 'job',
+    message: 'configuration',
+    data: { defaults, configuration: redactSecrets(toPlainObject(configuration)) }
+  });
 
   if (!configuration.noBanner) {
     await logEnvironnement();

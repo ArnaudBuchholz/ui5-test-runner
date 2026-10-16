@@ -9,6 +9,8 @@ keywords:
   - upgrade
   - deprecation
   - removed options
+  - basic authentication
+  - credentials
 relations:
   requires:
     - options/lib
@@ -23,6 +25,8 @@ relations:
     - options/browserOptions
     - options/batchTimeout
     - options/browserVisible
+    - options/browserBasicAuthUsername
+    - options/browserBasicAuthPassword
   see-also:
     - v5_options
     - report
@@ -81,6 +85,28 @@ As a consequence, the following options have been removed:
 * `--browser-close-timeout` (`-bt`) is removed.
 * `--browser-retry` (`-br`) is removed.
 * `--unsecure` (`-u`), typically passed through `--browser-args`/`browserArgs`, is no more needed and must be dropped — do not carry it into `--browser-options`. It existed to relax browser security (e.g. Chrome's local-network-access check) so the test page could reach the runner; with the version 6 agent paradigm the agent is injected into the page and its state is fetched by the runner, so no such relaxation is required.
+
+## Basic authentication
+
+In version 5, HTTP basic authentication was configured through puppeteer-specific sub-options passed via `--browser-args`:
+
+* `--basic-auth-username <username>`
+* `--basic-auth-password <password>`
+
+These are **replaced** in version 6 by two dedicated options that work with both the `puppeteer` and `playwright` drivers:
+
+* [`--browser-basic-auth-username`](./options/browserBasicAuthUsername.md)
+* [`--browser-basic-auth-password`](./options/browserBasicAuthPassword.md)
+
+The password is stored as a secret value and is never written to logs, reports, or `--dump-config` output.
+
+```bash
+# v5 (puppeteer-specific flags, passed after --)
+ui5-test-runner --url http://host/test/testsuite.qunit.html -- --basic-auth-username myuser --basic-auth-password mypassword
+
+# v6
+ui5-test-runner --url http://host/test/testsuite.qunit.html --browser-basic-auth-username myuser --browser-basic-auth-password mypassword
+```
 
 ## Options
 

@@ -154,9 +154,17 @@ const shouldStopBasedOnAgentState = (
   return false;
 };
 
-const tryToFetchThePageFirst = async (url: string, pageId: number): Promise<Response> => {
+const tryToFetchThePageFirst = async (url: string, pageId: number, configuration: Configuration): Promise<Response> => {
   try {
-    const response = await Http.fetch(url);
+    const headers: Record<string, string> = {};
+    const { browserBasicAuthUsername, browserBasicAuthPassword } = configuration;
+    if (browserBasicAuthUsername !== undefined && browserBasicAuthPassword !== undefined) {
+      const credentials = Buffer.from(`${browserBasicAuthUsername}:${browserBasicAuthPassword.reveal()}`).toString(
+        'base64'
+      );
+      headers['Authorization'] = `Basic ${credentials}`;
+    }
+    const response = await Http.fetch(url, { headers });
     if (!response.ok) {
       throw new Error(`Unexpected status code ${response.status}`);
     }
@@ -266,7 +274,7 @@ export const makePageTask = (configuration: Configuration) => {
       return;
     }
 
-    await tryToFetchThePageFirst(url, pageId);
+    await tryToFetchThePageFirst(url, pageId, configuration);
     await logUi5VersionOnce(url);
 
     const { promise: taskStopped, resolve: setTaskAsStopped } = Promise.withResolvers<void>();

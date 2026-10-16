@@ -92,6 +92,16 @@ export const options = [
     description: 'browser selection (per driver)'
   },
   {
+    name: 'browserBasicAuthPassword',
+    type: 'secret',
+    description: 'password for HTTP basic authentication'
+  },
+  {
+    name: 'browserBasicAuthUsername',
+    type: 'string',
+    description: 'username for HTTP basic authentication'
+  },
+  {
     name: 'browserOptions',
     type: 'json',
     batchForwarded: true,
@@ -517,3 +527,5 @@ export const defaults = {
   ui5: 'https://ui5.sap.com',
   webapp: 'webapp'
 } as const;
+
+export const sensitiveKeys = new Set(['browserBasicAuthPassword'] as const);

@@ -1,5 +1,5 @@
 import { vi, beforeAll, afterAll, describe, it, expect } from 'vitest';
-import { testBrowser } from './browser.test.js';
+import { testBrowser, testBrowserBasicAuth } from './browser.test.js';
 import { Npm } from '../Npm.js';
 import { serve } from 'reserve';
 import type { Server } from 'reserve';
@@ -104,6 +104,22 @@ beforeAll(async () => {
         ]
       },
       {
+        match: '/basic-auth.html',
+        custom: (request) => {
+          if (request.headers?.['authorization']) {
+            const encoded = /^Basic (.+)$/.exec(request.headers['authorization'])?.[1] ?? '';
+            const [user, pass] = Buffer.from(encoded, 'base64').toString().split(':', 2);
+            if (user === 'testUser' && pass === 'testPass') {
+              return [
+                `<html><h1>Authenticated</h1></html>`,
+                { headers: { 'content-type': 'text/html; charset=UTF-8' } }
+              ];
+            }
+          }
+          return ['', { statusCode: 401, headers: { 'WWW-Authenticate': 'Basic realm=""' } }];
+        }
+      },
+      {
         match: '/page.html',
         custom: () => [
           `<html><h1>Hello World !</h1></html>`,
@@ -150,6 +166,7 @@ beforeAll(async () => {
   const { promise, resolve } = Promise.withResolvers<void>();
   server.on('ready', ({ port }) => {
     process.env['BROWSERS_SERVER_URL'] = `http://localhost:${port}/`;
+    process.env['BROWSERS_BASIC_AUTH_URL'] = `http://localhost:${port}/basic-auth.html`;
     if (BROWSERS_TEST === 'SERVER_ONLY') {
       // Block forever — the server stays up for BROWSER_ONLY runs
       console.log(process.env['BROWSERS_SERVER_URL']);
@@ -179,6 +196,7 @@ if (BROWSERS_TEST === 'puppeteer' || BROWSERS_TEST === '') {
       }
     ]
   });
+  testBrowserBasicAuth({ name: 'puppeteer', label: 'puppeteer + chrome (default)' });
 }
 
 if (BROWSERS_TEST === 'puppeteer-firefox' || BROWSERS_TEST === '') {
@@ -219,6 +237,7 @@ if (BROWSERS_TEST === 'playwright' || BROWSERS_TEST === '') {
       }
     ]
   });
+  testBrowserBasicAuth({ name: 'playwright', label: 'playwright + chromium (default)' });
 }
 
 if (BROWSERS_TEST === 'webdriverio' || BROWSERS_TEST === '') {

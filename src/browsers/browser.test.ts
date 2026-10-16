@@ -5,8 +5,12 @@ import type { IBrowser, IWindow, BrowserSettings } from './IBrowser.js';
 import { defaults } from '../configuration/options.js';
 import type { Configuration } from '../configuration/Configuration.js';
 import { __sourcesRoot, logger, Path } from '../platform/index.js';
+import { SecretValue } from '../types/SecretValue.js';
 // Need to import native APIs to enable testing
 import { stat } from 'node:fs/promises';
+
+const BASIC_AUTH_USERNAME = 'testUser';
+const BASIC_AUTH_PASSWORD = 'testPass';
 
 type TTestBrowserArguments = {
   name: Browser;
@@ -344,6 +348,44 @@ export const testBrowser = ({
         const pathStat = await stat(path);
         expect(pathStat.size).toBeGreaterThan(0);
       });
+    });
+  });
+};
+
+export const testBrowserBasicAuth = ({ name, label = name }: { name: Browser; label?: string }) => {
+  const FACTORY_SETTINGS = {
+    ...defaults,
+    coverageReporters: [],
+    mode: 'help',
+    sources: {}
+  } as const as Configuration;
+
+  describe(`${label} — basic authentication`, () => {
+    let browser: IBrowser;
+
+    beforeAll(async () => {
+      browser = await BrowserFactory.build(FACTORY_SETTINGS, name);
+      await browser.setup({
+        basicAuthentication: {
+          username: BASIC_AUTH_USERNAME,
+          password: new SecretValue(BASIC_AUTH_PASSWORD)
+        }
+      });
+    }, 0);
+
+    afterAll(() => browser.shutdown());
+
+    it('loads a page protected by HTTP basic authentication', async () => {
+      const url = process.env['BROWSERS_BASIC_AUTH_URL'] ?? '';
+      const window = await browser.newWindow({ pageId: 1, scripts: [], url });
+      try {
+        await vi.waitFor(async () => {
+          const value = await window.eval(`document.querySelector('h1')?.innerText`);
+          expect(value).toBeTruthy();
+        });
+      } finally {
+        await window.close();
+      }
     });
   });
 };

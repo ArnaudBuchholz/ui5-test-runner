@@ -56,6 +56,50 @@ export const validations: Array<(configuration: Configuration) => void> = [
   },
   (configuration) => {
     if (
+      Object.hasOwn(configuration, 'browserBasicAuthPassword') &&
+      !punyexpr("(driver === 'puppeteer' || driver === 'playwright')")(configuration)
+    ) {
+      throw OptionValidationError.createValidationError(
+        indexedOptions.browserBasicAuthPassword,
+        'browserBasicAuthPassword is only supported with puppeteer and playwright drivers'
+      );
+    }
+  },
+  (configuration) => {
+    if (
+      Object.hasOwn(configuration, 'browserBasicAuthPassword') &&
+      !punyexpr('(browserBasicAuthUsername !== undefined)')(configuration)
+    ) {
+      throw OptionValidationError.createValidationError(
+        indexedOptions.browserBasicAuthPassword,
+        'browserBasicAuthPassword requires browserBasicAuthUsername'
+      );
+    }
+  },
+  (configuration) => {
+    if (
+      Object.hasOwn(configuration, 'browserBasicAuthUsername') &&
+      !punyexpr("(driver === 'puppeteer' || driver === 'playwright')")(configuration)
+    ) {
+      throw OptionValidationError.createValidationError(
+        indexedOptions.browserBasicAuthUsername,
+        'browserBasicAuthUsername is only supported with puppeteer and playwright drivers'
+      );
+    }
+  },
+  (configuration) => {
+    if (
+      Object.hasOwn(configuration, 'browserBasicAuthUsername') &&
+      !punyexpr('(browserBasicAuthPassword !== undefined)')(configuration)
+    ) {
+      throw OptionValidationError.createValidationError(
+        indexedOptions.browserBasicAuthUsername,
+        'browserBasicAuthUsername requires browserBasicAuthPassword'
+      );
+    }
+  },
+  (configuration) => {
+    if (
       Object.hasOwn(configuration, 'coverage') &&
       !punyexpr("(!coverage || webapp !== '' || coverageSourceDir !== '')")(configuration)
     ) {

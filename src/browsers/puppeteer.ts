@@ -18,6 +18,7 @@ export const factory = async (configuration: Configuration, signal: AbortSignal)
   const launch = (puppeteer as { launch: typeof launchFunction }).launch;
   let browser: Browser | undefined;
   let isFirstWindow = true;
+  let basicAuthentication: BrowserSettings['basicAuthentication'];
 
   const launchAndInstallIfNeeded = async (settings: BrowserSettings): Promise<BrowserCapabilities> => {
     const target = settings.browser ?? 'chrome';
@@ -67,6 +68,7 @@ export const factory = async (configuration: Configuration, signal: AbortSignal)
 
   return {
     async setup(settings) {
+      basicAuthentication = settings.basicAuthentication;
       return await launchAndInstallIfNeeded(settings);
     },
 
@@ -100,6 +102,12 @@ export const factory = async (configuration: Configuration, signal: AbortSignal)
             response.headers()
           );
         });
+      if (basicAuthentication) {
+        await page?.authenticate({
+          username: basicAuthentication.username,
+          password: basicAuthentication.password.reveal()
+        });
+      }
       await page?.goto(settings.url);
       return {
         async eval(script: string) {

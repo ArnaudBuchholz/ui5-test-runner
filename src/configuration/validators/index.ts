@@ -8,6 +8,7 @@ import { json } from './json.js';
 import { lib } from './libraryMapping.js';
 import { percent } from './percent.js';
 import { regexp } from './regexp.js';
+import { secret } from './secret.js';
 import { string } from './string.js';
 import { timeout } from './timeout.js';
 import { url } from './url.js';
@@ -21,6 +22,7 @@ export const validators: { [key in OptionType]: OptionValidator<key> } = {
   'library-mapping': lib,
   percent,
   regexp,
+  secret,
   string,
   timeout,
   url

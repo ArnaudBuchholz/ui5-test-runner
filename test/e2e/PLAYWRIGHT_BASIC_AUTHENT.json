@@ -1,0 +1,9 @@
+{
+  "batchId": "PLAYWRIGHT_BASIC_AUTHENT",
+  "batchLabel": "Playwright with basic authent",
+  "url": ["http://localhost:8081/test/testsuite.qunit.html"],
+  "driver": "playwright",
+  "browserBasicAuthUsername": "testUsername",
+  "browserBasicAuthPassword": "testPassword",
+  "end": "RUNNER_EXIT_CODE={{exitCode}} NODE_OPTIONS= node test/e2e/check.mjs {{reportDir}} --pages 2"
+}

@@ -10,6 +10,7 @@ import { LogLevel } from './logger/types.js';
 import { toInternalLogAttributes } from './logger/toInternalLogAttributes.js';
 import assert from 'node:assert/strict';
 import { toPlainObject } from '../utils/shared/object.js';
+import { redactSecrets } from '../utils/node/anonymize.js';
 import { toIError } from '../utils/shared/toIError.js';
 
 const startedAt = Date.now();
@@ -111,10 +112,10 @@ export const logger = {
     assert.ok(!loggerWorker && !consoleWorker, 'Call logger.start only once');
     start();
     loggerWorker = Thread.createWorker('platform/logger/allCompressed', {
-      configuration: toPlainObject(configuration)
+      configuration: redactSecrets(toPlainObject(configuration))
     });
     consoleWorker = Thread.createWorker('platform/logger/output', {
-      configuration: toPlainObject(configuration),
+      configuration: redactSecrets(toPlainObject(configuration)),
       startedAt
     });
     if (!configuration.ci) {

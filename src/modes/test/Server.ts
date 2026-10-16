@@ -3,6 +3,7 @@ import type { Configuration } from '../../configuration/Configuration.js';
 import { serve } from 'reserve';
 import type { Server as REserveServer } from 'reserve';
 import { toPlainObject } from '../../utils/shared/object.js';
+import { redactSecrets } from '../../utils/node/anonymize.js';
 import { buildREserveConfiguration } from './reserve.js';
 import { logReserve } from '../../reserveLogger.js';
 
@@ -33,7 +34,7 @@ export const Server = {
       name: 'server',
       stop: () => Server.stop()
     });
-    _serverWorker = Thread.createWorker('modes/test/Server', toPlainObject(configuration));
+    _serverWorker = Thread.createWorker('modes/test/Server', redactSecrets(toPlainObject(configuration)));
     const { promise, resolve, reject } = Promise.withResolvers<number>();
     _channel.onmessage = ({ data: message }: { data: Message }) => {
       if (message.command === 'ready') {

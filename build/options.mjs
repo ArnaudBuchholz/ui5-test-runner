@@ -85,6 +85,9 @@ for (const fileName of optionsFileNames) {
     if (type && !BATCH_FORWARDABLE_TYPES.has(type)) {
       errors.push(`batchForwarded is not allowed on type '${type}' (${name})`);
     }
+    if (type === 'secret') {
+      errors.push(`batchForwarded is not allowed on a secret option (${name})`);
+    }
   }
   if (defaultValue) {
     defaults[name] = defaultValue;
@@ -165,7 +168,15 @@ export const defaults = {`);
   for (const [key, value] of Object.entries(defaults)) {
     configOptions.push(`    ${key}: ${value},`);
   }
-  configOptions.push(`} as const;`);
+  configOptions.push(`} as const;
+
+export const sensitiveKeys = new Set([`);
+  for (const name of sortedOptionNames) {
+    if (options[name].type === 'secret') {
+      configOptions.push(`  '${name}',`);
+    }
+  }
+  configOptions.push(`] as const);`);
 
   await writeFile('./src/configuration/options.ts', configOptions.join('\n'));
 
