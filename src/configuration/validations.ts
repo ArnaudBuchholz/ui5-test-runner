@@ -1,3 +1,7 @@
+/*
+ * This file is generated from the option documentation in docs/options/*.md.
+ * Do NOT edit it by hand — run `make options` to regenerate it.
+ */
 import { punyexpr } from 'punyexpr';
 import type { Configuration } from './Configuration.js';
 import { indexedOptions } from './indexedOptions.js';

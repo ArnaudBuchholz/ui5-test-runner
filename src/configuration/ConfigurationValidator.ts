@@ -5,6 +5,7 @@ import { indexedOptions } from './indexedOptions.js';
 import { validators } from './validators/index.js';
 import { OptionValidationError } from './OptionValidationError.js';
 import { validations } from './validations.js';
+import { derivations } from './derivations.js';
 import { Modes } from '../modes/Modes.js';
 import { FileSystem, Host, Path } from '../platform/index.js';
 
@@ -112,6 +113,9 @@ const finalizeConfiguration = async (merged: Configuration) => {
     }
     const substituted = Path.join(merged.reportDir, (merged[option.name] as string).split('{{reportDir}}', 2)[1]!);
     Object.assign(merged, { [option.name]: await validateValue(option, { ...merged, [option.name]: substituted }) });
+  }
+  for (const derive of derivations) {
+    derive(merged);
   }
   merged.mode = ConfigurationValidator.computeMode(merged);
   for (const validate of validations) {

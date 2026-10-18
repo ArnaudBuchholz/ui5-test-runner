@@ -100,6 +100,9 @@ describe('task()', () => {
     expect(returnedItem).toStrictEqual(item);
     expect(returnedItem.statusCode).toStrictEqual(0);
     expect(returnedItem.end).not.toBeUndefined();
+    expect(logger.info).toHaveBeenCalledWith(
+      expect.objectContaining({ source: 'page', message: expect.stringMatching(/^succeeded .+ \(\d.*\)$/) as unknown })
+    );
   });
 
   it('sets start and end timestamps on the batch item', async () => {
@@ -157,6 +160,8 @@ describe('task()', () => {
   it('logs an error when the child process exits with a non-zero status code', async () => {
     vi.mocked(Process.spawn).mockReturnValue(makeProcess(1));
     await batchTask(makeConfig(), makeItem(), START_TIME);
-    expect(logger.error).toHaveBeenCalled();
+    expect(logger.error).toHaveBeenCalledWith(
+      expect.objectContaining({ source: 'page', message: expect.stringMatching(/^failed .+ \(\d.*\)$/) as unknown })
+    );
   });
 });

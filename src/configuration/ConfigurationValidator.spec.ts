@@ -528,3 +528,22 @@ describe('merge (config file loading)', () => {
     });
   });
 });
+
+describe('llm implies ci and noBanner (example of derivations)', () => {
+  it('forces ci and noBanner when llm is set', async () => {
+    const configuration = await ConfigurationValidator.validate({ llm: true });
+    expect(configuration.ci).toBe(true);
+    expect(configuration.noBanner).toBe(true);
+  });
+
+  it('overrides an explicit noBanner: false when llm is set', async () => {
+    const configuration = await ConfigurationValidator.validate({ llm: true, noBanner: false });
+    expect(configuration.noBanner).toBe(true);
+  });
+
+  it('leaves ci and noBanner untouched when llm is not set', async () => {
+    const configuration = await ConfigurationValidator.validate({ noBanner: false });
+    expect(configuration.noBanner).toBe(false);
+    expect(configuration.llm).toBeUndefined();
+  });
+});

@@ -69,7 +69,10 @@ describe('Main thread', () => {
     const starting = logger.start({ cwd } as Configuration);
     ready(channel);
     await starting;
-    expect(Thread.createWorker).toHaveBeenCalledWith('platform/logger/allCompressed', { configuration: { cwd } });
+    expect(Thread.createWorker).toHaveBeenCalledWith('platform/logger/allCompressed', {
+      configuration: { cwd },
+      startedAt: expectAnyNumber
+    });
     expect(Thread.createWorker).toHaveBeenCalledWith('platform/logger/output', {
       configuration: { cwd },
       startedAt: expectAnyNumber
@@ -141,6 +144,24 @@ describe('Main thread', () => {
       const secondClose = logger.stop();
       simulateWorkersExit();
       await expect(Promise.all([firstClose, secondClose])).resolves.toStrictEqual([undefined, undefined]);
+    });
+
+    it('emits the trace file path as a job log on stop', async () => {
+      const { logger } = await vi.importActual<{ logger: typeof LoggerType }>('./logger.js');
+      const channel = Thread.createBroadcastChannel('logger');
+      const starting = logger.start({ cwd, reportDir: '/tmp/report' } as Configuration);
+      ready(channel);
+      await starting;
+      const closing = logger.stop();
+      simulateWorkersExit();
+      await closing;
+      expect(channel.postMessage).toHaveBeenCalledWith(
+        expect.objectContaining({
+          command: 'log',
+          source: 'job',
+          message: expect.stringMatching(/^trace file: \/tmp\/report\/traces-\d{8}-\d{6}\.logz$/) as string
+        })
+      );
     });
   });
 

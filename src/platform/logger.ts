@@ -1,6 +1,7 @@
 import { Exit, ExitShutdownError } from './Exit.js';
 import { Host } from './Host.js';
 import { Terminal } from './Terminal.js';
+import { Path } from './Path.js';
 import { Thread } from './Thread.js';
 import { performance } from 'node:perf_hooks';
 import type { Configuration } from '../configuration/Configuration.js';
@@ -8,6 +9,7 @@ import type { InternalLogAttributes, LogAttributes, LogMessage, ReadySource } fr
 import type { ILoggerService } from './logger/ILogger.ts';
 import { LogLevel } from './logger/types.js';
 import { toInternalLogAttributes } from './logger/toInternalLogAttributes.js';
+import { traceFileName } from './logger/traceFileName.js';
 import assert from 'node:assert/strict';
 import { toPlainObject } from '../utils/shared/object.js';
 import { redactSecrets } from '../utils/node/anonymize.js';
@@ -22,6 +24,7 @@ const startedAt = Date.now();
 let channel: ReturnType<typeof Thread.createBroadcastChannel>;
 let loggerWorker: ReturnType<typeof Thread.createWorker> | undefined;
 let consoleWorker: ReturnType<typeof Thread.createWorker> | undefined;
+let reportDirectory: string | undefined;
 const buffer: InternalLogAttributes[] = [];
 const waitingFor: ReadySource[] = ['allCompressed', 'output'];
 let isReady = !Thread.isMainThread;
@@ -110,9 +113,11 @@ export const logger = {
   async start(configuration: Configuration): Promise<void> {
     assert.ok(Thread.isMainThread, 'Call logger.start only in main thread');
     assert.ok(!loggerWorker && !consoleWorker, 'Call logger.start only once');
+    reportDirectory = configuration.reportDir;
     start();
     loggerWorker = Thread.createWorker('platform/logger/allCompressed', {
-      configuration: redactSecrets(toPlainObject(configuration))
+      configuration: redactSecrets(toPlainObject(configuration)),
+      startedAt
     });
     consoleWorker = Thread.createWorker('platform/logger/output', {
       configuration: redactSecrets(toPlainObject(configuration)),
@@ -162,6 +167,9 @@ export const logger = {
     assert.ok(Thread.isMainThread, 'Call logger.stop only in main thread');
     if (stopping) {
       return await stopping;
+    }
+    if (reportDirectory !== undefined) {
+      logger.info({ source: 'job', message: `trace file: ${Path.join(reportDirectory, traceFileName(startedAt))}` });
     }
     const { promise, resolve } = Promise.withResolvers<void>();
     stopping = promise;

@@ -2,7 +2,7 @@ import { logger, Path, Process, Host, __sourcesRoot } from '../../platform/index
 import { options } from '../../configuration/options.js';
 import type { Configuration } from '../../configuration/Configuration.js';
 import type { IBatchItem } from './BatchItem.js';
-import { toKebabCase } from '../../utils/shared/string.js';
+import { toKebabCase, formatDuration } from '../../utils/shared/string.js';
 import { getEffectiveTimeout, isGloballyTimedOut } from '../../utils/node/timeout.js';
 
 const getBatchTimeout = (configuration: Configuration, startTime: number): number =>
@@ -120,19 +120,20 @@ export const batchTask = async (
 
   batchItem.end = new Date();
   batchItem.statusCode = childProcess.code;
+  const duration = formatDuration(batchItem.end.getTime() - batchItem.start.getTime());
   if (batchItem.skipped) {
-    logger.warn({ source: 'page', pageId, message: `skipped ${label}` });
+    logger.warn({ source: 'page', pageId, message: `skipped ${label} (${duration})` });
   } else if (batchItem.statusCode === 0 && !batchItem.timedOut) {
     logger.info({
       source: 'page',
       pageId,
-      message: `succeeded ${label}`
+      message: `succeeded ${label} (${duration})`
     });
   } else {
     logger.error({
       source: 'page',
       pageId,
-      message: `failed ${label}`
+      message: `failed ${label} (${duration})`
     });
   }
 

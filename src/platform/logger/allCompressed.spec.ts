@@ -27,7 +27,7 @@ let channel: ReturnType<typeof Thread.createBroadcastChannel>;
 beforeEach(() => {
   vi.mocked(ZLib.deflateRawSync).mockReturnValue(Buffer.from('compressed'));
   Object.assign(Thread, { isMainThread: false }); // This worker is not in the main thread
-  workerMain({ configuration: { reportDir: './tmp' } } as { configuration: Configuration });
+  workerMain({ configuration: { reportDir: './tmp' } as Configuration, startedAt: Date.now() });
   channel = Thread.createBroadcastChannel('logger');
 });
 

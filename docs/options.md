@@ -65,6 +65,7 @@ relations:
 |[if](options/if.md)|--if||string|skip execution if the expression evaluates to falsy|
 |[junitXmlFilename](options/junitXmlFilename.md)|--junit-xml-filename||string|filename for the JUnit XML report saved in the report directory|
 |[lib](options/lib.md)|--lib||library-mapping|Library mapping|
+|[llm](options/llm.md)|--llm||boolean|forces LLM-friendly output (compact, no color, structured summary)|
 |[log](options/log.md)|--log||fs-entry|path to a .logz trace file produced by a previous run; activates log viewer mode|
 |[logDump](options/logDump.md)|--log-dump||boolean|dump all traces to stdout instead of opening a browser (requires --log)|
 |[logFilter](options/logFilter.md)|--log-filter|-lf|string|JavaScript expression (using punyexpr) to filter logs for dumping with --log-dump|

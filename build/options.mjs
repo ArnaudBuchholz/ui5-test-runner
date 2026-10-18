@@ -26,6 +26,13 @@ const types = [];
 const options = {};
 const defaults = {};
 const validations = [];
+const implications = [];
+
+const GENERATED_HEADER = `/*
+ * This file is generated from the option documentation in docs/options/*.md.
+ * Do NOT edit it by hand — run \`make options\` to regenerate it.
+ */
+`;
 const names = new Set();
 const shorts = new Set();
 
@@ -118,6 +125,11 @@ for (const fileName of optionsFileNames) {
       validations.push({ name, message: rule.message, conditions: rule.conditions });
     }
   }
+  if (Array.isArray(metadata.implies)) {
+    for (const rule of metadata.implies) {
+      implications.push({ name, when: rule.when, set: rule.set });
+    }
+  }
 }
 
 // TODO: leverage dependsOn
@@ -132,7 +144,7 @@ for (const name of Object.keys(options)) {
 }
 
 if (!process.exitCode) {
-  const configOptions = [`export const options = [`];
+  const configOptions = [`${GENERATED_HEADER}export const options = [`];
   for (const name of sortedOptionNames) {
     configOptions.push(` {`);
     const option = options[name];
@@ -180,7 +192,7 @@ export const sensitiveKeys = new Set([`);
 
   await writeFile('./src/configuration/options.ts', configOptions.join('\n'));
 
-  const agentConfig = ['export type Configuration = {'];
+  const agentConfig = [`${GENERATED_HEADER}export type Configuration = {`];
   for (const name of sortedOptionNames) {
     const option = options[name];
     if (!option.browserExposed) {
@@ -203,7 +215,7 @@ export const sensitiveKeys = new Set([`);
   await writeFile('./src/agent/Configuration.ts', agentConfig.join('\n'));
 
   const validationsOutput = [
-    `import { punyexpr } from 'punyexpr';`,
+    `${GENERATED_HEADER}import { punyexpr } from 'punyexpr';`,
     `import type { Configuration } from './Configuration.js';`,
     `import { indexedOptions } from './indexedOptions.js';`,
     `import { OptionValidationError } from './OptionValidationError.js';`,
@@ -225,6 +237,25 @@ export const sensitiveKeys = new Set([`);
   validationsOutput.push(`];`);
 
   await writeFile('./src/configuration/validations.ts', validationsOutput.join('\n'));
+
+  const derivationsOutput = [
+    `${GENERATED_HEADER}import { punyexpr } from 'punyexpr';`,
+    `import type { Configuration } from './Configuration.js';`,
+    ``,
+    `export const derivations: Array<(configuration: Configuration) => void> = [`
+  ];
+  for (const { when, set } of implications) {
+    derivationsOutput.push(
+      ` (configuration) => {`,
+      `  if (punyexpr(${JSON.stringify(when)})(configuration)) {`,
+      `   Object.assign(configuration, ${JSON.stringify(set)});`,
+      `  }`,
+      ` },`
+    );
+  }
+  derivationsOutput.push(`];`);
+
+  await writeFile('./src/configuration/derivations.ts', derivationsOutput.join('\n'));
 
   const optionsMarkdown = ['|Option|CLI arg|CLI shortcut|Type|Description|', '|---|---|---|---|---|'];
   const toKebabCase = (name) => name.replaceAll(/[A-Z]/g, (letter) => `-${letter.toLowerCase()}`);
