@@ -7,10 +7,11 @@ keywords:
   - serve
   - webapp
 relations:
-  see-also:
-    - options/serveOnly
+  requires:
     - options/lib
     - options/ui5
+  see-also:
+    - options/serveOnly
     - web_server
 ---
 # Serving and testing the application *(a.k.a. legacy mode)*
@@ -63,21 +64,11 @@ You may also use :
 
 * `--parallel` : to increase the number of parallel execution *(default is 2)*
 
-> 🧠TODO this part is common to all three modes and should probably be isolated in another document
+After the tests are executed, the results are available as described in the [[report]] document:
 
-**After** the tests are executed :
+* A summary is printed to the command line output
+* `report/` — detailed test report (configurable with `--report-dir`)
+* `coverage/` — coverage report (configurable with `--coverage-report-dir`)
+* `.nyc_output/` — raw coverage data
 
-* The command line output will provide a summary of executed pages and the corresponding failures
-
-* The detailed test report is available in the `report/` folder
-
-* The coverage report is available in the `coverage/` folder (default path, configurable with `--coverage-report-dir`)
-
-
-* Some folders are created to support execution, you may add them to your project `.gitignore` to exclude them from git :
-
-  * `.nyc_output/` : contains coverage information
-
-  * `report/` : contains test report *(as well as screenshots and console log outputs)*
-
-  * These folder names can be changed through parameters
+You may add these folders to your project `.gitignore`.

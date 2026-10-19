@@ -1,7 +1,7 @@
 ---
 "#type": concept
 title: fs-entry type
-summary: Option value pointing to a file-system entry (a file or a folder), refinable with the file, overwrite and safe-default modifiers.
+summary: Option value pointing to a file-system entry (a file or a folder), refinable with the file, overwrite and safe-default modifiers
 keywords:
   - fs-entry
   - file

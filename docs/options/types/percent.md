@@ -1,7 +1,7 @@
 ---
 "#type": concept
 title: percent type
-summary: Option value expressing a percentage, a number from 0 to 100 (integer or decimal) where 0 usually disables the check.
+summary: Option value expressing a percentage, a number from 0 to 100 (integer or decimal) where 0 usually disables the check
 keywords:
   - percent
   - percentage

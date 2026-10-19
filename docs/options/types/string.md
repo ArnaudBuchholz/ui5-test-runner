@@ -1,7 +1,7 @@
 ---
 "#type": concept
 title: string type
-summary: Option value accepting any textual value.
+summary: Option value accepting any textual value
 keywords:
   - string
 ---

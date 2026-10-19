@@ -1,7 +1,7 @@
 ---
 "#type": concept
 title: url type
-summary: Option value that must be a valid URL.
+summary: Option value that must be a valid URL
 keywords:
   - url
   - link

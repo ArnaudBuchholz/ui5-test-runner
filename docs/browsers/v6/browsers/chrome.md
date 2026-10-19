@@ -18,7 +18,7 @@ relations:
 # Chrome / Chromium specifics
 
 Chrome (and its Chromium variant) is the **default browser** for every driver
-except [playwright](playwright.md), where the default is `chromium`. It is also
+except [playwright](../playwright.md), where the default is `chromium`. It is also
 the only browser family that exposes browser-specific tuning today.
 
 ## Extra launch arguments — `UI5TR_CHROME_ARGS`
@@ -35,15 +35,15 @@ This is honored by **all drivers**, but only affects the Chrome/Chromium family:
 
 | Driver | Applies `UI5TR_CHROME_ARGS` |
 |---|---|
-| [puppeteer](puppeteer.md) | ✔️ only when the target browser is `chrome` |
-| [playwright](playwright.md) | ✔️ always (Chromium) |
-| [webdriver.io](webdriverio.md) | ✔️ into `goog:chromeOptions` |
-| [selenium-webdriver](selenium-webdriver.md) | ✔️ into Chrome `Options` |
+| [puppeteer](../puppeteer.md) | ✔️ only when the target browser is `chrome` |
+| [playwright](../playwright.md) | ✔️ always (Chromium) |
+| [webdriver.io](../webdriverio.md) | ✔️ into `goog:chromeOptions` |
+| [selenium-webdriver](../selenium-webdriver.md) | ✔️ into Chrome `Options` |
 
 ## Per-run options — `--browser-options`
 
 The [`--browser-options`](../../../options/browserOptions.md) option takes a JSON
-object of browser-specific settings. Today the [puppeteer](puppeteer.md) driver
+object of browser-specific settings. Today the [puppeteer](../puppeteer.md) driver
 reads its `args` array as extra launch arguments:
 
 ```bash

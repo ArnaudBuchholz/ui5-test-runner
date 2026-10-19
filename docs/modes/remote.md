@@ -34,12 +34,7 @@ On the flip side, it does **not** enable these features :
 
 `ui5-test-runner --url https://ui5.sap.com/test-resources/sap/m/demokit/orderbrowser/webapp/test/testsuite.qunit.html`
 
-> 🧠TODO this part is common to all three modes and should probably be isolated in another document
+After the tests are executed, the results are available as described in the [[report]] document:
 
-**After** the tests are executed :
-
-* The command line output will provide a summary of executed pages and the corresponding failures
-
-* The detailed test report is available in the `report/` folder
-
-* The folder `report/` is created to support execution, you may add it to your project `.gitignore` to exclude it from git
+* A summary is printed to the command line output
+* `report/` — detailed test report (configurable with `--report-dir`)

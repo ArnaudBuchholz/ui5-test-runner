@@ -1,7 +1,7 @@
 ---
 "#type": concept
 title: enumeration type
-summary: Option value restricted to a predefined list of choices, listed as the option's type modifiers.
+summary: Option value restricted to a predefined list of choices, listed as the option's type modifiers
 keywords:
   - enumeration
   - enum

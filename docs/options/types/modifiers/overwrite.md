@@ -1,7 +1,7 @@
 ---
 "#type": concept
 title: overwrite modifier
-summary: Modifier allowing an fs-entry option to point to a possibly missing item that will be overwritten if it exists.
+summary: Modifier allowing an fs-entry option to point to a possibly missing item that will be overwritten if it exists
 keywords:
   - overwrite
   - modifier

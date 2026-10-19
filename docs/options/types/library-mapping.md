@@ -1,7 +1,7 @@
 ---
 "#type": concept
 title: library-mapping type
-summary: Option value describing how a UI5 resources sub-folder is mapped to a local source folder.
+summary: Option value describing how a UI5 resources sub-folder is mapped to a local source folder
 keywords:
   - library-mapping
   - library

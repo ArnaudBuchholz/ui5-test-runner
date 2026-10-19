@@ -1,7 +1,7 @@
 ---
 "#type": concept
 title: boolean type
-summary: Option value that is either true or false, accepting several textual forms on the command line.
+summary: Option value that is either true or false, accepting several textual forms on the command line
 keywords:
   - boolean
   - flag

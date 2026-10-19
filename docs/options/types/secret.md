@@ -1,7 +1,7 @@
 ---
 "#type": concept
 title: secret type
-summary: Option value holding a sensitive string, redacted in all serialized output.
+summary: Option value holding a sensitive string, redacted in all serialized output
 keywords:
   - secret
   - password

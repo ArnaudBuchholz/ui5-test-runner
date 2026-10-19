@@ -1,7 +1,7 @@
 ---
 "#type": concept
 title: regexp type
-summary: Option value that is a regular expression used to match a value.
+summary: Option value that is a regular expression used to match a value
 keywords:
   - regexp
   - regex

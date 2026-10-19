@@ -1,7 +1,7 @@
 ---
 "#type": concept
 title: integer type
-summary: Option value that must be a whole number, refinable with the positive and non-zero modifiers.
+summary: Option value that must be a whole number, refinable with the positive and non-zero modifiers
 keywords:
   - integer
 ---

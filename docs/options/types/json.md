@@ -1,7 +1,7 @@
 ---
 "#type": concept
 title: json type
-summary: Option value provided as a JSON-encoded string and parsed into an object.
+summary: Option value provided as a JSON-encoded string and parsed into an object
 keywords:
   - json
   - configuration

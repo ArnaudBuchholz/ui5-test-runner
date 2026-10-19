@@ -1,7 +1,7 @@
 ---
 "#type": mode
 title: Batch mode
-summary: execute more than one test project in a single run
+summary: Run multiple test projects in parallel using --batch, spawning one child process per item
 keywords:
   - batch
   - multi-project
@@ -23,25 +23,9 @@ This mode is activated when the [`--batch`](../options/batch.md) parameter is us
 
 > ⚠️ **Resource warning — always mention this when recommending batch mode.** Batch items run in parallel *and* each batch item runs its own test pages in parallel, so the number of concurrently open browsers **multiplies**: with the default `--parallel 2` that is 2 batch items × 2 pages = up to **4 browsers at once**, and it scales with `--parallel`. Size `--parallel` against the machine's resources to avoid overloading it.
 
-> 🧠TODO we might merge the ## `--batch` parameter section with the batch.md description. It is not worth repeating it here.
+## `--batch` parameter
 
-## `--batch` parameter 
-
-The `--batch` parameter accepts multiple values and supports three kind of parameters :
-
-* A **folder** : execution of `ui5-test-runner --batch <folder>` triggers the execution of `ui5-test-runner --cwd <folder>`
-
-* A **configuration file** *(for instance: `ui5-test-runner.json`)* : execution `ui5-test-runner --batch <config.json>` triggers the execution of `ui5-test-runner --config <config.json>`
-
-* A **regular expression** : if the value does not match any folder or file name, it is interpreted as a regular expression. Then, `ui5-test-runner` *recursively* scans the current working directory (`--cwd`) and when :
-
-  * a folder matches the regular expression : it adds `--batch <folder>`
-
-  * a JSON file matches the regular expression : it adds `--batch <filename>`
-
-  The regex is tested against the **path relative to `--cwd`**, with path separators normalized to `/`. A `^` anchor can be prepended, so the pattern must match from the start of the relative path. For example, `^test/e2e/[\w_]*\.json` matches `test/e2e/app.json` but not `.worktrees/branch/test/e2e/app.json`.
-
-Once all the values are processed, `ui5-test-runner` starts the execution of all identified batch items in parallel (using the value of `--parallel`). Because each batch item itself runs its own test pages in parallel, the browser count **multiplies**: with the default `--parallel 2`, 2 batch items each running 2 pages means up to **4 browsers open at once**. Size `--parallel` against the resources of the machine, as the concurrent browser count grows with it.
+See [[options/batch]] for the full syntax (folder, config file, regex) and anchoring rules.
 
 ## Execution
 
@@ -64,19 +48,12 @@ Each individual item execution generates its own report information (including c
 In order to better organize and control the exeuction of batch items, multiple mechanisms exist :
 
 * some options are configured to be forwarded from the main command to the batch item, they are tagged with `batchForwarded: yes`
-
-> 🧠TODO check the following statement
-* the batch item report dir is the main command one concatenated with the batch id (see [--batch-id])
-
-> 🧠TODO here again I don't see the value of repeating the description, it should be merged with if.md and only refer that this option can be used to control execution
-* `--if`: if provided in a configuration file, it conditions the execution of the batch item. The expression can test any environment variable (for instance: `--if "ALL_TESTS === 'true'"`) or use the Node.js' major version (`--if "NODE_MAJOR_VERSION >= 20"`).
+* the batch item report dir is the main command one concatenated with the batch id (see [[options/batchId]])
+* `--if`: see [[options/if]] — when provided in a configuration file, it conditions execution of the batch item
 
 ## Report format
 
-> 🧠TODO elaborate
-One result per batch item
-
-> 🧠TODO anything missing ?
+One result per batch item. Each batch item's sub-report is merged into the main report; see [[report]] for the full format description.
 
 ## Design rationale
 

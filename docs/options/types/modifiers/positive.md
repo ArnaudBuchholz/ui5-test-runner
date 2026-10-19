@@ -1,7 +1,7 @@
 ---
 "#type": concept
 title: positive modifier
-summary: Modifier requiring an integer option value to be zero or greater.
+summary: Modifier requiring an integer option value to be zero or greater
 keywords:
   - positive
   - modifier

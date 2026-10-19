@@ -1,7 +1,7 @@
 ---
 "#type": concept
 title: safe-default modifier
-summary: Modifier that skips validation of an fs-entry option when its default value is used and not overridden.
+summary: Modifier that skips validation of an fs-entry option when its default value is used and not overridden
 keywords:
   - safe-default
   - modifier

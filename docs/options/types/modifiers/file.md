@@ -1,7 +1,7 @@
 ---
 "#type": concept
 title: file modifier
-summary: Modifier indicating that an fs-entry option must point to a file rather than a folder.
+summary: Modifier indicating that an fs-entry option must point to a file rather than a folder
 keywords:
   - file
   - modifier

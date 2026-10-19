@@ -1,7 +1,7 @@
 ---
 "#type": concept
 title: timeout type
-summary: Option value representing a maximum delay, expressed in milliseconds, seconds or minutes with unit suffixes.
+summary: Option value representing a maximum delay, expressed in milliseconds, seconds or minutes with unit suffixes
 keywords:
   - timeout
   - delay
