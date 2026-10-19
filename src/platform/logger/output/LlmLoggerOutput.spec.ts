@@ -77,11 +77,11 @@ it('omits the pageId when the event is not page-scoped', () => {
     message: 'port busy'
   } as InternalLogAttributes);
   const [line] = terminalWrites();
-  expect(line).toContain('[server]');
+  expect(line).toContain('[server] WARN port busy');
   expect(line).not.toContain('#');
 });
 
-it('appends the error name and message when present', () => {
+it('prefixes a severity word for warn and above, and appends the error', () => {
   const output = build();
   output.addAttributesToLoggerOutput({
     timestamp: Date.now(),
@@ -91,7 +91,19 @@ it('appends the error name and message when present', () => {
     error: new TypeError('x is not a function')
   } as InternalLogAttributes);
   const [line] = terminalWrites();
-  expect(line).toContain('[assert] assertion failed TypeError: x is not a function');
+  expect(line).toContain('[assert] ERROR assertion failed TypeError: x is not a function');
+});
+
+it('does not prefix a severity word for info lines', () => {
+  const output = build();
+  output.addAttributesToLoggerOutput({
+    timestamp: Date.now(),
+    source: 'job',
+    level: LogLevel.info,
+    message: 'tests completed'
+  } as InternalLogAttributes);
+  const [line] = terminalWrites();
+  expect(line).toStrictEqual('[job] tests completed\n');
 });
 
 it('does not render filtered sources or debug records', () => {
