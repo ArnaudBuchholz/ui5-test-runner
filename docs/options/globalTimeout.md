@@ -11,6 +11,7 @@ relations:
   affects:
     - modes/legacy
     - modes/remote
+    - modes/batch
   see-also:
     - options/pageTimeout
     - options/batchTimeout

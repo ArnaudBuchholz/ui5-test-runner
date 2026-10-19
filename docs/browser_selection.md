@@ -10,9 +10,10 @@ keywords:
   - browser_selection
   - automation
 relations:
-  see-also:
+  requires:
     - options/driver
     - options/browser
+  see-also:
     - options/browserOptions
     - browsers/v6/browser
 ---

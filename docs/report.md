@@ -130,4 +130,17 @@ Screenshots are attached to test entries via `attachments`, each `{ name, conten
 
 ### Error entries
 
-When a page cannot be tested — fetch failure, page or global timeout, or an uncaught error — the runner synthesizes a single `failed` entry named after the page URL, with a `message` pointing to the logs, so the failure is still reflected in the report rather than silently lost.
+When a page cannot be tested — fetch failure, page or global timeout, uncaught error, or process interruption — the runner synthesizes a single `failed` entry named after the page URL, with a `message` pointing to the logs, so the failure is still reflected in the report rather than silently lost.
+
+The possible `message` values are:
+
+| Cause | Message |
+|---|---|
+| URL fetch failed before opening browser | `An error occurred while fetching the URL, check the logs` |
+| Page timed out | `page timed out, check the logs` |
+| Global timeout reached before page started | `Global timeout reached, check the logs` |
+| Uncaught error(s) in page | `Uncaught error(s): N, check the logs` |
+| Unexpected error in runner | `An unexpected error occurred, check the logs` |
+| URL never dispatched (process interrupted) | `not executed (process was interrupted), check the logs` |
+| Batch item never dispatched (process interrupted) | `batch item not executed (process was interrupted)` |
+| Batch item timed out | `batch item timed out, check the logs` |

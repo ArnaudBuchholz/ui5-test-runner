@@ -4,7 +4,7 @@ title: port
 type: integer
 typeModifiers:
   - positive
-summary: port to use
+summary: Port the local web server listens on; 0 allocates a free port automatically
 keywords:
   - server
   - http

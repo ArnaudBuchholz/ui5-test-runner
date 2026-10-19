@@ -29,7 +29,7 @@ Watch for file changes and automatically reload.
 
 When set, the runner monitors relevant files for changes and reloads automatically. Currently used by the MCP server to reindex documentation without requiring a restart.
 
-Only valid when used with `--mcp`.
+Only valid when used with `--mcp` and `--debug-mcp-local-docs`.
 
 ## Example
 

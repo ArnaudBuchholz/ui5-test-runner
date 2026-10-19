@@ -3,7 +3,7 @@
 title: lib
 type: library-mapping
 multiple: yes
-summary: Library mapping
+summary: Maps a UI5 resources sub-folder to a local source folder, used in legacy mode to serve custom libraries
 keywords:
   - library
   - mapping

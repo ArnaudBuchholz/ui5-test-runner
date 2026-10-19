@@ -2,7 +2,7 @@
 "#type": option
 title: ui5
 type: url
-summary: UI5 url
+summary: URL of the UI5 CDN used in legacy mode to serve the UI5 framework resources
 default: "'https://ui5.sap.com'"
 batchForwarded: yes
 keywords:
