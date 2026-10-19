@@ -206,7 +206,7 @@ const mergeTestResults = (
     data: { results: testResults }
   });
 
-  getReportBuilder().merge(url, testResults, { pageId });
+  getReportBuilder().merge(url, testResults, { pageId, type: context.type });
 };
 
 const runPollingLoop = async (

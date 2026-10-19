@@ -39,6 +39,13 @@ Next to `report.json`, the runner writes a self-contained `report.html` in the s
 
 The runner also writes a `junit.xml` file in the same folder. The filename is controlled by [`--junit-xml-filename`](./options/junitXmlFilename.md) and defaults to `junit.xml`; set it to an empty string to disable this output. The file follows the standard JUnit XML format consumed by CI systems such as Jenkins, GitLab CI, and GitHub Actions test reporters. Tests are grouped into `<testsuite>` elements by their top-level suite, with failure messages and screenshot attachments included where present.
 
+### Text report
+
+At the very end of the run the runner also prints a short plain-text report to the log. Unlike the files above it is not written to disk on its own — it is emitted through the logger, so it appears in the terminal (in every output mode, including [`--llm`](./options/llm.md)), in `output.txt`, and in the recorded trace.
+
+It starts with one line per test page (`PASS`/`FAIL`/`SKIP`, the passed/total ratio, and the page URL — `SKIP` marks a page whose tests were all skipped). When at least one test failed, a detail section follows: each failing test is logged as its own error record, grouped under its page URL and showing the failing `module ▶ test` with the associated message (and trace, when available). For OPA pages only the first failure is shown — later OPA errors are usually cascade noise — with a warning stating how many failures occurred. This gives a quick, copy-pasteable summary of what went wrong, which is especially useful when driving the runner from an LLM.
+
+
 ## Mapping
 
 The report is assembled in two places:

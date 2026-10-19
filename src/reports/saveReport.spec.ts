@@ -5,8 +5,10 @@ import type { CommonTestReport } from '../types/CommonTestReportFormat.js';
 import { saveReport } from './saveReport.js';
 
 vi.mock('./html.js');
+vi.mock('./textReport.js');
 
 import { generateHtmlReport } from './html.js';
+import { generateTextReport } from './textReport.js';
 
 const REPORT_DIR = '/output';
 const NO_CONFIGURATION = { reportDir: REPORT_DIR } as unknown as Configuration;
@@ -30,5 +32,10 @@ describe('saveReport()', () => {
   it('calls generateHtmlReport with configuration and report', async () => {
     await saveReport(NO_CONFIGURATION, STUB_REPORT);
     expect(generateHtmlReport).toHaveBeenCalledWith(NO_CONFIGURATION, STUB_REPORT);
+  });
+
+  it('calls generateTextReport with configuration and report', async () => {
+    await saveReport(NO_CONFIGURATION, STUB_REPORT);
+    expect(generateTextReport).toHaveBeenCalledWith(NO_CONFIGURATION, STUB_REPORT);
   });
 });

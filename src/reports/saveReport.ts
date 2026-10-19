@@ -3,6 +3,7 @@ import type { Configuration } from '../configuration/Configuration.js';
 import type { CommonTestReport } from '../types/CommonTestReportFormat.js';
 import { generateHtmlReport } from './html.js';
 import { generateJUnitReport } from './junit.js';
+import { generateTextReport } from './textReport.js';
 
 export async function saveReport(configuration: Configuration, report: CommonTestReport): Promise<void> {
   FileSystem.writeFileSync(
@@ -10,6 +11,7 @@ export async function saveReport(configuration: Configuration, report: CommonTes
     JSON.stringify(report, undefined, 2),
     'utf8'
   );
+  generateTextReport(configuration, report);
   await generateHtmlReport(configuration, report);
   generateJUnitReport(configuration, report);
 }

@@ -347,7 +347,7 @@ Npm.import(NO_CONFIGURATION, 'node:path')
 ## Commands
 
 ```bash
-npm run lint              # ESLint + Prettier + tsc --noEmit + circular import check
+npm run lint              # ESLint + Prettier + tsc --build --noEmit + circular import check
 npm run test:unit         # Vitest with coverage
 npm run test:unit:watch   # Vitest watch mode
 npx vitest run src/path/to/Foo.spec.ts
@@ -362,6 +362,8 @@ npm run ts-run -- src/cli.ts [args]  # Run CLI directly (no pre-build)
 ```
 
 `npm run lint` must pass with zero errors before every commit. Circular imports are forbidden. `src/platform/logger/proxy.ts` breaks one unavoidable internal loop — do not replicate. Verify new source files are included in the correct `tsconfig` project.
+
+Verify types with `npm run lint`, not an ad-hoc `tsc` call: it runs `tsc --build --noEmit`, which walks every `tsconfig.*` project reference. A bare `tsc --noEmit` resolves to the root `tsconfig.json` (`"files": []`, references only) and type-checks **nothing** — it passes vacuously.
 
 ## UI5 Web Components
 
