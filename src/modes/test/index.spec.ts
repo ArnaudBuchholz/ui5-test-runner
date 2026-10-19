@@ -10,7 +10,7 @@ vi.mock('./report.js', () => ({
   setReportBrowserInfo: vi.fn()
 }));
 vi.mock('./browser.js', () => ({ setupBrowser: vi.fn(), getBrowser: vi.fn() }));
-vi.mock('./pageTask.js', () => ({ makePageTask: vi.fn(() => vi.fn()) }));
+vi.mock('./pageTask.js', () => ({ makePageTask: vi.fn(() => vi.fn()), reportError: vi.fn() }));
 vi.mock('./browserConfig.js', () => ({ initBrowserConfig: vi.fn() }));
 vi.mock('./agent.js', () => ({ getAgentSource: vi.fn() }));
 vi.mock('./Server.js', () => ({ Server: { start: vi.fn(), stop: vi.fn() } }));
@@ -31,6 +31,7 @@ import { Folder } from '../../utils/node/Folder.js';
 import { parallelize } from '../../utils/shared/parallelize.js';
 import { sendToParentProcess } from '../../sendToParentProcess.js';
 import { instrument, generateReport } from './coverage/index.js';
+import { reportError } from './pageTask.js';
 
 const PORT = 8080;
 const CAPABILITIES = { browserName: 'chrome', browserVersion: '120' };
@@ -279,6 +280,20 @@ describe('test()', () => {
       expect(sendToParentProcess).toHaveBeenCalledWith(
         expect.objectContaining({ type: 'progress', count: 1, total: 1 })
       );
+    });
+
+    it('calls reportError for urls that were never started when interrupted', async () => {
+      setupHappyPath();
+      vi.mocked(parallelize).mockImplementation((_task, _urls, options) => {
+        options?.on?.({ type: 'started', index: 0, input: 'https://x/page1.html' });
+        options?.on?.({ type: 'completed', index: 0, input: 'https://x/page1.html', output: undefined });
+        // page2 and page3 never get started (interrupted)
+        return Promise.resolve([]);
+      });
+      await runTest(makeConfig({ url: ['https://x:0/page1.html', 'https://x:0/page2.html', 'https://x:0/page3.html'] }));
+      expect(reportError).not.toHaveBeenCalledWith('https://x:8080/page1.html', expect.any(String));
+      expect(reportError).toHaveBeenCalledWith('https://x:8080/page2.html', 'not executed (process was interrupted)');
+      expect(reportError).toHaveBeenCalledWith('https://x:8080/page3.html', 'not executed (process was interrupted)');
     });
   });
 });

@@ -133,4 +133,14 @@ describe('buildBatchReport()', () => {
     const report = await buildBatchReport([makeItem({ statusCode: 0 })], NO_CONFIGURATION);
     expect(report.results.tests[0]!.message).toBeUndefined();
   });
+
+  it('adds a message field when item was never started', async () => {
+    const report = await buildBatchReport([makeItem({ start: undefined, end: undefined, statusCode: undefined })], NO_CONFIGURATION);
+    expect(report.results.tests[0]!.message).toBe('batch item not executed (process was interrupted)');
+  });
+
+  it('marks a never-started item as failed', async () => {
+    const report = await buildBatchReport([makeItem({ start: undefined, end: undefined, statusCode: undefined })], NO_CONFIGURATION);
+    expect(report.results.tests[0]!.status).toBe('failed');
+  });
 });

@@ -6,7 +6,7 @@ import { toPlainObject } from '../../utils/shared/object.js';
 import { parallelize } from '../../utils/shared/parallelize.js';
 import { getAgentSource } from './agent.js';
 import { setupBrowser, getBrowser } from './browser.js';
-import { makePageTask } from './pageTask.js';
+import { makePageTask, reportError } from './pageTask.js';
 import { initBrowserConfig } from './browserConfig.js';
 import { initReportBuilder, getReportBuilder, setReportBrowserInfo } from './report.js';
 import { saveReport } from '../../reports/saveReport.js';
@@ -67,10 +67,13 @@ export const test = async (configuration: Configuration) => {
     let completed = 0;
     let lastLoggedCompleted: number | undefined;
     let lastLoggedMax: number | undefined;
+    const startedIndices = new Set<number>();
     await parallelize(makePageTask(configuration), urls, {
       parallel: configuration.parallel,
       on: (event) => {
-        if (event.type === 'failed') {
+        if (event.type === 'started') {
+          startedIndices.add(event.index);
+        } else if (event.type === 'failed') {
           logger.error({ source: 'job', message: 'page failed', error: event.error, data: { url: event.input } });
           ++completed;
         } else if (event.type === 'completed') {
@@ -91,6 +94,11 @@ export const test = async (configuration: Configuration) => {
         sendToParentProcess({ type: 'progress', count: completed, total: urls.length });
       }
     });
+    for (const [index, url] of urls.entries()) {
+      if (!startedIndices.has(index)) {
+        reportError(url, 'not executed (process was interrupted)');
+      }
+    }
     getReportBuilder().finalize();
     if (configuration.coverage) {
       const coverageFailure = await generateReport(configuration);

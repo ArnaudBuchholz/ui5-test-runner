@@ -1,0 +1,18 @@
+{
+  "batchId": "JS_LEGACY_REMOTE_10X",
+  "batchLabel": "Legacy JS Sample accessed using --url (10 times)",
+  "cwd": "../sample.js",
+  "url": [
+    "http://localhost:0/test/testsuite.qunit.html?id=0",
+    "http://localhost:0/test/testsuite.qunit.html?id=1",
+    "http://localhost:0/test/testsuite.qunit.html?id=2",
+    "http://localhost:0/test/testsuite.qunit.html?id=3",
+    "http://localhost:0/test/testsuite.qunit.html?id=4",
+    "http://localhost:0/test/testsuite.qunit.html?id=5",
+    "http://localhost:0/test/testsuite.qunit.html?id=6",
+    "http://localhost:0/test/testsuite.qunit.html?id=7",
+    "http://localhost:0/test/testsuite.qunit.html?id=8",
+    "http://localhost:0/test/testsuite.qunit.html?id=9"
+  ],
+  "end": "RUNNER_EXIT_CODE={{exitCode}} NODE_OPTIONS= node ../e2e/check.mjs {{reportDir}} --pages 20"
+}
