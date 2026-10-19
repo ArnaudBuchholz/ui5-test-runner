@@ -1,5 +1,4 @@
 {
-  "if": "false && 'Not yet implemented'",
   "batchId": "WEBDRIVERIO_FIREFOX",
   "batchLabel": "Webdriver.io browser",
   "cwd": "../capabilities",

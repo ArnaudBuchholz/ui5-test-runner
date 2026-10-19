@@ -1,5 +1,4 @@
 {
-  "if": "implemented('coverage')",
   "batchId": "JS_LEGACY_COVERAGE",
   "batchLabel": "Legacy JS Sample with coverage",
   "cwd": "../sample.js",

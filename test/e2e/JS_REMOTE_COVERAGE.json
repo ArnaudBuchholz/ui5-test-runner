@@ -1,5 +1,4 @@
 {
-  "if": "implemented('coverage')",
   "batchId": "JS_REMOTE_COVERAGE",
   "batchLabel": "Remote JS sample with coverage (no local instrumentation)",
   "url": ["http://localhost:8080/test/testsuite.qunit.html"],

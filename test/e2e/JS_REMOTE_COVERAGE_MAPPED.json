@@ -1,5 +1,4 @@
 {
-  "if": "implemented('coverage')",
   "batchId": "JS_REMOTE_COVERAGE_MAPPED",
   "batchLabel": "Remote JS sample with coverage (with local mapping)",
   "cwd": "../sample.js",

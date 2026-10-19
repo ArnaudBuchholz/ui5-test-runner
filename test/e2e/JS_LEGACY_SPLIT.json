@@ -1,5 +1,4 @@
 {
-  "if": "implemented('splitOpa')",
   "batchId": "JS_LEGACY_SPLIT",
   "batchLabel": "Legacy JS Sample with OPA split",
   "cwd": "../sample.js",

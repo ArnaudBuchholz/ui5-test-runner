@@ -1,5 +1,4 @@
 {
-  "if": "implemented('splitOpa')",
   "batchId": "JS_REMOTE_SPLIT",
   "batchLabel": "Remote JS sample with OPA split",
   "url": ["http://localhost:8080/test/testsuite.qunit.html"],

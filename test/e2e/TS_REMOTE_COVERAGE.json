@@ -1,5 +1,4 @@
 {
-  "if": "implemented('coverage')",
   "batchId": "TS_REMOTE_COVERAGE",
   "batchLabel": "Remote TS sample with coverage (no local mapping)",
   "url": ["http://localhost:8083/test/testsuite.qunit.html"],

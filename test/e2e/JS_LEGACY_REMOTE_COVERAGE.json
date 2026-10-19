@@ -1,5 +1,4 @@
 {
-  "if": "implemented('coverage')",
   "batchId": "JS_LEGACY_REMOTE_COVERAGE",
   "batchLabel": "Legacy JS Sample accessed using --url with coverage",
   "cwd": "../sample.js",

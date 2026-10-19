@@ -1,5 +1,4 @@
 {
-  "if": "implemented('coverage')",
   "batchId": "TS_REMOTE_COVERAGE_MAPPED",
   "batchLabel": "Remote TS sample with coverage (with local mapping)",
   "cwd": "../sample.ts",
