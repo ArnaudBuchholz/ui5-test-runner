@@ -52,7 +52,7 @@ Two fields added to `BrowserSettings`:
 
 ### Puppeteer as the working prototype
 
-Puppeteer implements the full browser-selection path: `browser` field in launch options, `args` merged from `settings.options.args`, auto-install of the target browser on first run. Other drivers keep chrome-only behaviour for now; real browser selection is a follow-up per driver.
+Puppeteer implements the full browser-selection path: `browser` field in launch options, `args` merged from `settings.options.args`, auto-install of the target browser on first run. The other drivers now also declare a populated `supportedBrowsers` matrix in their descriptors (playwright: chromium/firefox/webkit; webdriverio and selenium-webdriver: chrome/firefox/edge/safari), but their launch code still defaults to chrome rather than acting on `settings.browser` — wiring that through is a follow-up per driver.
 
 ## Consequences
 

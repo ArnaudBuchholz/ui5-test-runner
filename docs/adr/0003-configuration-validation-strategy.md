@@ -21,7 +21,7 @@ Without a clear strategy, configuration handling becomes:
 
 ### Option Documentation as the Source of Truth
 
-All configuration options are **defined in documentation first**, stored as Markdown files with YAML frontmatter under `docs/options/`. The source code (`src/configuration/options.ts`, `src/agent/Configuration.ts`, `src/configuration/validations.ts`) is **generated** from these documents — never edited by hand.
+All configuration options are **defined in documentation first**, stored as Markdown files with YAML frontmatter under `docs/options/`. The source code (`src/configuration/options.ts`, `src/agent/Configuration.ts`, `src/configuration/validations.ts`, `src/configuration/derivations.ts`) is **generated** from these documents — never edited by hand.
 
 Each option file (e.g. `docs/options/parallel.md`) declares:
 
@@ -49,6 +49,7 @@ Running `make options` (or `npm run build:options`) executes `build/options.mjs`
 3. Emits `src/configuration/options.ts` — the `options` array and `defaults` object consumed by `CommandLine.ts`
 4. Emits `src/agent/Configuration.ts` — the `Configuration` type for `browserExposed` options used inside the browser agent
 5. Emits `src/configuration/validations.ts` — cross-field validation functions compiled from the `validation` frontmatter field
+6. Emits `src/configuration/derivations.ts` — functions that implicitly set other options, compiled from `when`/`set` frontmatter (e.g. `--llm` implies `ci` and `noBanner`)
 
 **Adding or modifying an option therefore means editing (or creating) a file in `docs/options/`, then re-running `make options`.** The `add-option` skill encodes this workflow.
 
@@ -102,12 +103,13 @@ docs/options/
     └── <type>.md            (Documentation for each validator type)
 
 build/
-└── options.mjs              (Code generator: reads docs/options/, writes the three files below)
+└── options.mjs              (Code generator: reads docs/options/, writes the GENERATED files below)
 
 src/configuration/
 ├── options.ts               (GENERATED — option definitions and defaults; do not edit by hand)
 ├── validations.ts           (GENERATED — cross-field validation functions; do not edit by hand)
-├── Configuration.ts         (Configuration type, derived from options)
+├── derivations.ts           (GENERATED — implied-option functions from when/set frontmatter; do not edit by hand)
+├── Configuration.ts         (Configuration type, derived from options via `typeof options`)
 ├── CommandLine.ts           (CLI parsing & entry point: CommandLine.buildConfigurationFrom())
 ├── ConfigurationValidator.ts (Validation, config file merging, mode computation)
 ├── Option.ts                (Option type definitions)
@@ -150,7 +152,7 @@ src/agent/
 - **Option docs**: `docs/options/<name>.md` — one file per option; YAML frontmatter is the source of truth
 - **Type docs**: `docs/options/types/<type>.md` — documentation for each validator type
 - **Code generator**: `build/options.mjs` — invoked by `make options` / `npm run build:options`
-- **Generated files**: `src/configuration/options.ts`, `src/configuration/validations.ts`, `src/agent/Configuration.ts`
+- **Generated files**: `src/configuration/options.ts`, `src/configuration/validations.ts`, `src/configuration/derivations.ts`, `src/agent/Configuration.ts`
 - **Entry Point**: `src/configuration/CommandLine.ts` — `CommandLine.buildConfigurationFrom()`
 - **CLI Integration**: `src/cli.ts` calls `CommandLine.buildConfigurationFrom()` directly
 - **Tests**: `src/configuration/*.spec.ts` — comprehensive validation tests

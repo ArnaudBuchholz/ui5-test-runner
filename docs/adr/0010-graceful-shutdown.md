@@ -110,9 +110,8 @@ After all tasks have stopped, `_checkForHandlesLeak()` inspects `process._getAct
 
 - **`src/platform/Exit.ts`** — `Exit` class, `ExitShutdownError`, `IAsyncTask`, `IRegisteredAsyncTask`
 - **`src/platform/Process.ts`** — `Process.spawn()` auto-registers the child process with `Exit`
-- **`src/modes/test/server.ts`** — HTTP server Worker registers with `Exit` on `ready`
+- **`src/modes/test/server.ts`** — HTTP server registers its shutdown task with `Exit` synchronously when `Server.start()` is called (before the worker's `ready` message resolves the port)
 - **`src/modes/test/pageTask.ts`** — each page task registers with `Exit`; catches `ExitShutdownError` via `parallelize`
 - **`src/modes/mcp/index.ts`** — MCP server registers with `Exit`
-- **`src/platform/logger.ts`** — `logger.stop()` is called last, after all tasks are drained
-- **`src/platform/logger/types.ts`** — `logger.error` downgrades `ExitShutdownError` to `debug`
+- **`src/platform/logger.ts`** — `logger.stop()` is called last, after all tasks are drained; also downgrades records whose `error` is an `ExitShutdownError` to `debug`
 - **`src/end.ts`** — writes `Exit.code` after the end command closes (see [ADR-0007](./0007-start-end-command-lifecycle.md))

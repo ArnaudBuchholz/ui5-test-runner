@@ -103,11 +103,11 @@ The view receives only changed fields; it re-renders only what changed.
 
 `LogViewerController` manages a `setInterval` handle:
 
-- **`_onConnect()`**: fires an initial query; auto-switches to absolute time-range if the oldest log entry is more than 5 minutes old
+- **`_onConnect()`**: delegates to `_checkInitialQuery()`, which fires an initial query and auto-switches to an absolute time-range if the oldest log entry is more than 5 minutes old
 - **`_startAutorefresh()`** / **`_stopAutorefresh()`**: start/stop `setInterval(() => void this.refresh_now(), interval)`
-- When `autorefresh` or `autorefreshInterval` changes in `_onInteraction`: stop the current interval and restart with the new value
+- When `autorefresh` or `autorefreshInterval` changes in `_onInteraction`, the `_autorefresh(diff)` helper stops the current interval and restarts with the new value
 
-The `refresh_now` action builds a query object (`from`/`to` for absolute range, `from = Date.now() - relativeTimerange` for relative), fetches `GET /query?...` from the REserve server, and calls `_update({ logs, metrics })` on success or `_update({ errorMessage })` on failure.
+The `refresh_now` action builds a query object (`from`/`to` for absolute range, `from = Date.now() - relativeTimerange` for relative) and hands it to the shared `_executeQuery()` helper, which fetches `GET /query?...` from the REserve server and returns a state diff of `{ logs, metrics }` on success or `{ errorMessage }` on failure for `_update()`.
 
 ### Build System
 

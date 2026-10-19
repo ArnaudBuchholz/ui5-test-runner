@@ -56,7 +56,7 @@ Possible future work: a per-name outcome channel (`state.screenshotResults[name]
 
 ### Failure screenshot left unchanged
 
-`handleFailureScreenshot` (the `screenshotOnFailure` option) is a separate, pre-existing mechanism: it takes a single screenshot after the run loop ends (to capture final DOM state) and sets `CTRFTest.screenshot` post-hoc. It is intentionally left unchanged — its timing (post-loop) and field (`screenshot` rather than `attachments[]`) are different in nature from per-assertion screenshots.
+`handleFailureScreenshot` (the `screenshotOnFailure` option) is a separate, pre-existing mechanism: when any test on the page failed, it takes a single screenshot (`${pageId}-failure.png`) after the run loop ends to capture final DOM state, then pushes a new synthetic test (`name: 'failure screenshot'`, `status: 'other'`) carrying the image in its `attachments[]`, and bumps the summary counts. It is intentionally left unchanged — its timing (post-loop) and shape (a whole synthetic test rather than a per-assertion attachment) are different in nature from per-assertion screenshots.
 
 ### Key Components
 

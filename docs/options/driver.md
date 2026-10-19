@@ -33,7 +33,7 @@ Driver selection.
 
 ## Details
 
-Selects the browser automation driver used to open and control test pages. Supported values: `puppeteer`, `playwright`, `webdriverio`, `selenium-webdriver`. See [browser selection](../topics/browser_selection.md) for driver-specific configuration and capabilities.
+Selects the browser automation driver used to open and control test pages. Supported values: `puppeteer`, `playwright`, `webdriverio`, `selenium-webdriver`. See [browser selection](../browser_selection.md) for driver-specific configuration and capabilities.
 
 ## Example
 

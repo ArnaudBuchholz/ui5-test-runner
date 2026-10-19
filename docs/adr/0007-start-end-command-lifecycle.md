@@ -113,9 +113,9 @@ After the end command process closes, `end()` writes its exit code into `Exit.co
 if (code !== undefined) {
   const before = Exit.code;
   if (before === 0 && code !== 0) {
-    logger.warn({ source: 'job', message: 'Status changed to error by end command' });
+    logger.warn({ source: 'job', message: 'status changed to error by end command' });
   } else if (before !== 0 && code === 0) {
-    logger.warn({ source: 'job', message: 'Status changed to success by end command' });
+    logger.warn({ source: 'job', message: 'status changed to success by end command' });
   }
   Exit.code = code;
 }
@@ -127,7 +127,7 @@ If the end command exceeds `--end-timeout`, it is killed and `Exit.code` is set 
 
 ### Start Command Lifecycle Differences in Batch Mode
 
-In **test mode**: `start()` returns the `IProcess` handle; the process runs for the duration of the test suite. `Exit.registerAsyncTask` ensures it is cleaned up on shutdown.
+In **test mode**: `start()` is awaited and its returned `IProcess` handle is discarded by the caller (`src/modes/test/index.ts`); the process runs for the duration of the test suite. Cleanup is not the caller's responsibility — `Process.spawn` registers every spawned process with `Exit.registerAsyncTask` internally, so the start process is killed on shutdown regardless.
 
 In **batch mode**: the handle is stored explicitly and killed in a `finally` block after all child processes complete; `end()` is then called once at the batch level (`src/modes/batch/index.ts`), after the start process has been terminated. Each child process runs its own `start()`/`end()` internally as an independent runner invocation.
 
