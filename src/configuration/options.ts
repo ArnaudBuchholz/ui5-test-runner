@@ -306,7 +306,7 @@ export const options = [
     name: 'llm',
     type: 'boolean',
     batchForwarded: true,
-    description: 'forces LLM-friendly output (compact, no color, structured summary)'
+    description: 'forces LLM-friendly output (compact, no color, severity-tagged)'
   },
   {
     name: 'log',

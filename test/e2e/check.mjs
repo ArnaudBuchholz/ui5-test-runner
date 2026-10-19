@@ -107,11 +107,7 @@ try {
   }
 
   if (junitXmlReport) {
-    assert.strictEqual(
-      (await stat(join(reportDir, 'junit.xml'))).isFile(),
-      true,
-      'junit XML report exists'
-    );
+    assert.strictEqual((await stat(join(reportDir, 'junit.xml'))).isFile(), true, 'junit XML report exists');
   }
 
   if (htmlReport) {
