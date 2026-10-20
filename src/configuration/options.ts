@@ -300,7 +300,8 @@ export const options = [
     name: 'lib',
     type: 'library-mapping',
     multiple: true,
-    description: 'Library mapping'
+    description:
+      'Maps a UI5 resources sub-folder to a local source folder, used in legacy mode to serve custom libraries'
   },
   {
     name: 'llm',
@@ -409,7 +410,7 @@ export const options = [
     name: 'port',
     type: 'integer',
     typeModifiers: new Set(['positive'] as const),
-    description: 'port to use'
+    description: 'Port the local web server listens on; 0 allocates a free port automatically'
   },
   {
     name: 'reportDir',
@@ -480,7 +481,7 @@ export const options = [
     name: 'ui5',
     type: 'url',
     batchForwarded: true,
-    description: 'UI5 url',
+    description: 'URL of the UI5 CDN used in legacy mode to serve the UI5 framework resources',
     default: 'https://ui5.sap.com'
   },
   {

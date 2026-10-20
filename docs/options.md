@@ -64,7 +64,7 @@ relations:
 |[help](options/help.md)|--help||boolean|display help|
 |[if](options/if.md)|--if||string|skip execution if the expression evaluates to falsy|
 |[junitXmlFilename](options/junitXmlFilename.md)|--junit-xml-filename||string|filename for the JUnit XML report saved in the report directory|
-|[lib](options/lib.md)|--lib||library-mapping|Library mapping|
+|[lib](options/lib.md)|--lib||library-mapping|Maps a UI5 resources sub-folder to a local source folder, used in legacy mode to serve custom libraries|
 |[llm](options/llm.md)|--llm||boolean|forces LLM-friendly output (compact, no color, severity-tagged)|
 |[log](options/log.md)|--log||fs-entry|path to a .logz trace file produced by a previous run; activates log viewer mode|
 |[logDump](options/logDump.md)|--log-dump||boolean|dump all traces to stdout instead of opening a browser (requires --log)|
@@ -81,7 +81,7 @@ relations:
 |[pageParams](options/pageParams.md)|--page-params|-pp|string|add parameters to page URL|
 |[pageTimeout](options/pageTimeout.md)|--page-timeout|-pt|timeout|fails a page if it takes longer than this timeout|
 |[parallel](options/parallel.md)|--parallel|-p|integer|number of parallel executions|
-|[port](options/port.md)|--port||integer|port to use|
+|[port](options/port.md)|--port||integer|Port the local web server listens on; 0 allocates a free port automatically|
 |[reportDir](options/reportDir.md)|--report-dir|-r|fs-entry|directory to output test reports|
 |[screenshot](options/screenshot.md)|--screenshot||boolean|take a screenshot after every OPA assertion|
 |[screenshotOnFailure](options/screenshotOnFailure.md)|--screenshot-on-failure||boolean|take a screenshot when a test fails|
@@ -92,7 +92,7 @@ relations:
 |[startTimeout](options/startTimeout.md)|--start-timeout||timeout|maximum waiting time for the start command to become ready|
 |[startWaitMethod](options/startWaitMethod.md)|--start-wait-method||string|HTTP method used when polling the startWaitUrl|
 |[startWaitUrl](options/startWaitUrl.md)|--start-wait-url||url|URL to poll after the start command is executed|
-|[ui5](options/ui5.md)|--ui5||url|UI5 url|
+|[ui5](options/ui5.md)|--ui5||url|URL of the UI5 CDN used in legacy mode to serve the UI5 framework resources|
 |[url](options/url.md)|--url|-u|url|URL of the page to test|
 |[version](options/version.md)|--version||boolean|display version|
 |[watch](options/watch.md)|--watch||boolean|watch for file changes and automatically reload|
