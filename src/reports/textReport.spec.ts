@@ -120,6 +120,20 @@ describe('generateTextReport()', () => {
     expect(emittedLines()).toContain(`FAIL   0/2  ${PAGE_A}`);
   });
 
+  it('includes the trace in the failure detail when present', () => {
+    const report = buildReport([
+      {
+        suite: [PAGE_A],
+        name: 'broken',
+        status: 'failed',
+        message: 'expected 1',
+        trace: 'at Object.<anonymous> (test.js:1:1)'
+      }
+    ]);
+    generateTextReport(NO_CONFIGURATION, report);
+    expect(errorMessages()[0]).toBe(`[${PAGE_A}]\nbroken\n  expected 1\n  at Object.<anonymous> (test.js:1:1)`);
+  });
+
   it('surfaces a synthetic page-level failure (page did not render)', () => {
     const report = buildReport([
       {

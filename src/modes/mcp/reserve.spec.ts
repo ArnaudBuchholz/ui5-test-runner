@@ -2,7 +2,7 @@ import { describe, it, expect, beforeAll, beforeEach, vi } from 'vitest';
 import { mock } from 'reserve';
 import type { Configuration } from '../../configuration/Configuration.js';
 import { buildREserveConfiguration } from './reserve.js';
-import { Crypto } from '../../platform/index.js';
+import { Crypto, FileSystem } from '../../platform/index.js';
 import * as knowledgeBase from './knowledgeBase.js';
 import type { IEntity, IKnowledgeBaseIndex } from './knowledgeBase.js';
 
@@ -268,6 +268,24 @@ describe('unknown method', () => {
     // eslint-disable-next-line @typescript-eslint/no-base-to-string -- REserve response body
     const body = JSON.parse(response.toString()) as { error: { code: number } };
     expect(body.error.code).toBe(-32_601);
+  });
+});
+
+describe('GET /docs (file serving)', () => {
+  it('returns 404 when the file does not exist', async () => {
+    vi.mocked(FileSystem.access).mockRejectedValue(new Error('ENOENT'));
+    const response = await server.request('GET', '/some-missing-doc');
+    await response.waitForFinish();
+    expect(response.statusCode).toBe(404);
+  });
+
+  it('returns raw markdown content when URL ends with ?raw', async () => {
+    vi.mocked(FileSystem.access).mockResolvedValue(undefined);
+    vi.mocked(FileSystem.readFile).mockResolvedValue('# Hello');
+    const response = await server.request('GET', '/index.md?raw');
+    await response.waitForFinish();
+    // eslint-disable-next-line @typescript-eslint/no-base-to-string -- REserve response body
+    expect(response.toString()).toContain('# Hello');
   });
 });
 

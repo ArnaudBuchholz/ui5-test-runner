@@ -155,6 +155,16 @@ describe('usual traces', () => {
     expect(addTextToLoggerOutput).not.toHaveBeenCalled();
   });
 
+  it('does not render server/unhandled traces', () => {
+    loggerOuput.addAttributesToLoggerOutput({
+      timestamp: Date.now(),
+      source: 'server/unhandled',
+      level: LogLevel.info,
+      message: 'test'
+    } as InternalLogAttributes);
+    expect(addTextToLoggerOutput).not.toHaveBeenCalled();
+  });
+
   it('does not render metric traces', () => {
     loggerOuput.addAttributesToLoggerOutput({
       timestamp: Date.now(),

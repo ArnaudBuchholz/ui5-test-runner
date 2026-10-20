@@ -1,4 +1,4 @@
-import { it, expect, vi, beforeEach } from 'vitest';
+import { it, expect, vi, beforeEach, describe } from 'vitest';
 import { FileSystem, Path } from '../platform/index.js';
 import { generateHtmlReport } from './html.js';
 import type { Configuration } from '../configuration/Configuration.js';
@@ -33,4 +33,20 @@ it('reads library and report JS then writes the HTML file', async () => {
   expect(writtenContent).toContain('<!DOCTYPE html>');
   expect(writtenContent).toContain(JSON.stringify(EMPTY_REPORT));
   expect(writtenContent).toContain('/* js content */');
+});
+
+describe('development mode paths', () => {
+  it('reads lib.js and html-report.js from dist/ui in development mode', async () => {
+    vi.resetModules();
+    vi.doMock('../platform/constants.js', async (orig) => ({
+      ...(await orig()),
+      __developmentMode: true
+    }));
+    const { generateHtmlReport: generateHtmlReportDevelopment } = await import('./html.js');
+    vi.mocked(FileSystem.readFile).mockResolvedValue('/* js content */');
+    vi.mocked(FileSystem.writeFileSync).mockImplementation(() => {});
+    await generateHtmlReportDevelopment(NO_CONFIGURATION, EMPTY_REPORT);
+    const paths = vi.mocked(FileSystem.readFile).mock.calls.map(([p]) => p as string);
+    expect(paths.every((p) => p.includes('dist/ui'))).toBe(true);
+  });
 });

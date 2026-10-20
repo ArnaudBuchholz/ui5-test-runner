@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { Process, Host, logger } from '../../platform/index.js';
+import { Process, Host, logger, FileSystem } from '../../platform/index.js';
 import type { IProcess } from '../../platform/index.js';
 import type { Configuration } from '../../configuration/Configuration.js';
 import type { IBatchItem } from './BatchItem.js';
@@ -163,5 +163,57 @@ describe('task()', () => {
     expect(logger.error).toHaveBeenCalledWith(
       expect.objectContaining({ source: 'page', message: expect.stringMatching(/^failed .+ \(\d.*\)$/) as unknown })
     );
+  });
+
+  it('forwards scalar-typed CLI options with template-string serialization', () => {
+    const config = {
+      ...makeConfig({ alternateNpmPath: 'cli' }),
+      alternateNpmPath: '/custom/npm'
+    } as unknown as Configuration;
+    vi.mocked(Process.spawn).mockReturnValue(makeProcess());
+    void batchTask(config, makeItem(), START_TIME);
+    const [, parameters] = vi.mocked(Process.spawn).mock.calls[0]!;
+    const flagIndex = parameters.indexOf('--alternate-npm-path');
+    expect.assert(flagIndex !== -1);
+    expect(parameters[flagIndex + 1]).toBe('/custom/npm');
+  });
+
+  it('leaves batchItem.message undefined when all tests passed (buildFailureMessage returns undefined)', async () => {
+    vi.mocked(Process.spawn).mockReturnValue(makeProcess(1));
+    vi.mocked(FileSystem.readFile).mockResolvedValue(
+      JSON.stringify({ results: { tests: [{ status: 'passed', name: 'ok' }] } })
+    );
+    const item = makeItem();
+    await batchTask(makeConfig(), item, START_TIME);
+    expect(item.message).toBeUndefined();
+  });
+
+  it('uses singular "test failed" when exactly one test failed', async () => {
+    vi.mocked(Process.spawn).mockReturnValue(makeProcess(1));
+    vi.mocked(FileSystem.readFile).mockResolvedValue(
+      JSON.stringify({ results: { tests: [{ status: 'failed', name: 'the broken test' }] } })
+    );
+    const item = makeItem();
+    await batchTask(makeConfig(), item, START_TIME);
+    expect(item.message).toBe('1 test failed: the broken test');
+  });
+
+  it('truncates the failure list when names exceed the max message length', async () => {
+    const longName = 'a'.repeat(110);
+    vi.mocked(Process.spawn).mockReturnValue(makeProcess(1));
+    vi.mocked(FileSystem.readFile).mockResolvedValue(
+      JSON.stringify({
+        results: {
+          tests: [
+            { status: 'failed', name: longName },
+            { status: 'failed', name: 'second' }
+          ]
+        }
+      })
+    );
+    const item = makeItem();
+    await batchTask(makeConfig(), item, START_TIME);
+    expect(item.message).toMatch(/…$/);
+    expect(item.message!.length).toBeLessThanOrEqual(120);
   });
 });
