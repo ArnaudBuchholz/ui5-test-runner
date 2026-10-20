@@ -123,4 +123,46 @@ describe('/all endpoint', () => {
     expect(Array.isArray(body)).toBe(true);
     expect(body).toHaveLength(147);
   });
+
+  it('waits for drain when response.write returns false', async () => {
+    const smallStorage = {
+      length: 2,
+      fetch: vi.fn().mockReturnValue([{ source: 'test', level: 'info', message: 'hello' }])
+    };
+    const config = buildREserveConfiguration({
+      configuration: {} as Configuration,
+      storage: smallStorage as typeof storage,
+      metrics: fakeMetrics,
+      abortController: new AbortController()
+    });
+    const allMapping = config.mappings.find((m) => typeof m === 'object' && 'match' in m && m.match === '/all') as {
+      custom: (request: unknown, response: unknown) => Promise<void>;
+    };
+
+    let drainCallback: (() => void) | undefined;
+    const fakeResponse = {
+      writeHead: vi.fn(),
+      write: vi
+        .fn()
+        .mockReturnValueOnce(true) // '[\n'
+        .mockReturnValueOnce(false) // first log entry — triggers drain
+        .mockReturnValue(true), // second log entry and subsequent
+      once: vi.fn().mockImplementation((event: string, callback: () => void) => {
+        if (event === 'drain') {
+          drainCallback = callback;
+        }
+      }),
+      end: vi.fn()
+    };
+
+    const handlerPromise = allMapping.custom({}, fakeResponse); // Flush microtasks until once('drain') is registered
+    for (let index = 0; index < 20; ++index) {
+      await Promise.resolve();
+      if (drainCallback !== undefined) break;
+    }
+    expect.assert(drainCallback !== undefined);
+    drainCallback();
+    await handlerPromise;
+    expect(fakeResponse.end).toHaveBeenCalledWith(']\n');
+  });
 });

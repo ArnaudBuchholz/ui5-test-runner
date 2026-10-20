@@ -7,10 +7,10 @@ import { __lastRegisteredExitAsyncTask } from '../../platform/mock.js';
 vi.mock('../../browsers/factory.js', () => ({
   BrowserFactory: { build: vi.fn() },
   getDescriptor: vi.fn().mockReturnValue({ defaultBrowser: 'chrome', screenshotFormat: '.png', supportedBrowsers: [] }),
-  isBrowser: vi.fn().mockReturnValue(true)
+  isDriver: vi.fn().mockReturnValue(true)
 }));
 
-import { BrowserFactory } from '../../browsers/factory.js';
+import { BrowserFactory, isDriver } from '../../browsers/factory.js';
 
 const CAPABILITIES: BrowserCapabilities = {
   browserName: 'chrome',
@@ -40,9 +40,19 @@ const makeConfig = (overrides: Partial<Configuration> = {}): Configuration =>
 beforeEach(() => {
   vi.clearAllMocks();
   vi.resetModules();
+  vi.mocked(isDriver).mockReturnValue(true);
 });
 
 describe('setupBrowser', () => {
+  it('calls logger.fatal with unknown driver message when isBrowser returns false', async () => {
+    vi.mocked(isDriver).mockReturnValue(false);
+    const { setupBrowser } = await import('./browser.js');
+    await expect(setupBrowser(makeConfig({ driver: 'unknown-driver' }))).rejects.toThrow();
+    expect(logger.fatal).toHaveBeenCalledWith(
+      expect.objectContaining({ source: 'job', message: 'Unknown driver: unknown-driver' })
+    );
+  });
+
   it('passes the driver name to BrowserFactory.build', async () => {
     vi.mocked(BrowserFactory.build).mockResolvedValue(makeBrowser());
     const { setupBrowser } = await import('./browser.js');

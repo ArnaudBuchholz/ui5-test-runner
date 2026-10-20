@@ -197,12 +197,34 @@ describe('instrument', () => {
       expect(FileSystem.rm).toHaveBeenCalledWith(`${COVERAGE_TEMP_DIR}/baseline`, { recursive: true });
     });
 
+    it('skips non-file entries (e.g. directories) in the baseline temp directory', async () => {
+      const directoryEntry = { isFile: () => false, name: 'subdir' } as unknown as Awaited<
+        ReturnType<typeof FileSystem.readdir>
+      >[number];
+      vi.mocked(FileSystem.readdir).mockResolvedValue([directoryEntry]);
+      const config = makeConfiguration({});
+      await instrument(config);
+      expect(FileSystem.rename).not.toHaveBeenCalled();
+    });
+
     it('skips baseline generation when settings.all is false', async () => {
       vi.mocked(FileSystem.access).mockResolvedValue(undefined);
       vi.mocked(FileSystem.readFile).mockResolvedValue(JSON.stringify({ all: false }));
       const config = makeConfiguration({});
       await instrument(config);
       // only instrument spawn, no baseline spawn
+      const spawnCalls = vi.mocked(Process.spawn).mock.calls;
+      const baselineCalls = spawnCalls.filter(
+        ([, arguments_]) => Array.isArray(arguments_) && arguments_.includes('--temp-dir')
+      );
+      expect(baselineCalls).toHaveLength(0);
+    });
+
+    it('skips baseline generation when coverageSourceDir is set and settings.all is false', async () => {
+      vi.mocked(FileSystem.access).mockResolvedValue(undefined);
+      vi.mocked(FileSystem.readFile).mockResolvedValue(JSON.stringify({ all: false }));
+      const config = makeConfiguration({ coverageSourceDir: '/remote/src' });
+      await instrument(config);
       const spawnCalls = vi.mocked(Process.spawn).mock.calls;
       const baselineCalls = spawnCalls.filter(
         ([, arguments_]) => Array.isArray(arguments_) && arguments_.includes('--temp-dir')

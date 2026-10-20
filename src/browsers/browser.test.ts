@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach, afterAll, beforeAll } from 'vitest';
 import { BrowserFactory } from './factory.js';
-import type { Browser } from './factory.js';
+import type { Driver } from './factory.js';
 import type { IBrowser, IWindow, BrowserSettings } from './IBrowser.js';
 import { defaults } from '../configuration/options.js';
 import type { Configuration } from '../configuration/Configuration.js';
@@ -13,7 +13,7 @@ const BASIC_AUTH_USERNAME = 'testUser';
 const BASIC_AUTH_PASSWORD = 'testPass';
 
 type TTestBrowserArguments = {
-  name: Browser;
+  name: Driver;
   label?: string;
   browserSettings?: BrowserSettings;
   failedSetupTestCases?: {
@@ -352,7 +352,7 @@ export const testBrowser = ({
   });
 };
 
-export const testBrowserBasicAuth = ({ name, label = name }: { name: Browser; label?: string }) => {
+export const testBrowserBasicAuth = ({ name, label = name }: { name: Driver; label?: string }) => {
   const FACTORY_SETTINGS = {
     ...defaults,
     coverageReporters: [],

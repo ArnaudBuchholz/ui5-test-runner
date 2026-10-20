@@ -198,6 +198,19 @@ describe('resolve', () => {
       expect(items).toHaveLength(0);
     });
 
+    it('counts a file that does not match the regex but does not add it as an item', async () => {
+      vi.mocked(FileSystem.stat)
+        .mockReset()
+        .mockRejectedValueOnce(new Error('ENOENT'))
+        .mockResolvedValue(makeStatFile());
+      vi.mocked(FileSystem.readdir).mockResolvedValue(['README.md'] as unknown as Awaited<
+        ReturnType<typeof FileSystem.readdir>
+      >);
+      const items = await resolve(config([String.raw`app\.json`]));
+      expect(items).toHaveLength(0);
+      expect(logger.warn).not.toHaveBeenCalled();
+    });
+
     it('does not crawl in a folder which name is node_modules', async () => {
       // Simulates: cwd has node_modules/test/e2e/app.json
       vi.mocked(FileSystem.stat)

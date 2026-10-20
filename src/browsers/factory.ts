@@ -6,30 +6,30 @@ import { factory as webdriverioFactory, descriptor as webdriverioDescriptor } fr
 import { factory as seleniumWebdriverFactory, descriptor as seleniumWebdriverDescriptor } from './seleniumWebdriver.js';
 import { Exit, logger } from '../platform/index.js';
 
-const BROWSERS = ['puppeteer', 'playwright', 'webdriverio', 'selenium-webdriver'] as const;
-export type Browser = (typeof BROWSERS)[number];
-export const isBrowser = (value: string): value is Browser => (BROWSERS as readonly string[]).includes(value);
+const DRIVERS = ['puppeteer', 'playwright', 'webdriverio', 'selenium-webdriver'] as const;
+export type Driver = (typeof DRIVERS)[number];
+export const isDriver = (value: string): value is Driver => (DRIVERS as readonly string[]).includes(value);
 
-const factories: { [key in Browser]: (configuration: Configuration, signal: AbortSignal) => Promise<IBrowser> } = {
+const factories: { [key in Driver]: (configuration: Configuration, signal: AbortSignal) => Promise<IBrowser> } = {
   puppeteer: puppeteerFactory,
   playwright: playwrightFactory,
   webdriverio: webdriverioFactory,
   'selenium-webdriver': seleniumWebdriverFactory
 };
 
-const descriptors: { [key in Browser]: BrowserDriverDescriptor } = {
+const descriptors: { [key in Driver]: BrowserDriverDescriptor } = {
   puppeteer: puppeteerDescriptor,
   playwright: playwrightDescriptor,
   webdriverio: webdriverioDescriptor,
   'selenium-webdriver': seleniumWebdriverDescriptor
 };
 
-export const getDescriptor = (driver: Browser): BrowserDriverDescriptor => descriptors[driver];
+export const getDescriptor = (driver: Driver): BrowserDriverDescriptor => descriptors[driver];
 
 let _instanceCount = 0;
-const _activeInstances = new Set<Browser>();
+const _activeInstances = new Set<Driver>();
 
-const shutdown = async (browser: Browser, inner: IBrowser) => {
+const shutdown = async (browser: Driver, inner: IBrowser) => {
   logger.debug({ source: browser, message: 'shutdown' });
   try {
     await inner.shutdown();
@@ -44,7 +44,7 @@ const shutdown = async (browser: Browser, inner: IBrowser) => {
 };
 
 export const BrowserFactory = {
-  async build(configuration: Configuration, browser: Browser): Promise<IBrowser> {
+  async build(configuration: Configuration, browser: Driver): Promise<IBrowser> {
     if (_activeInstances.has(browser)) {
       logger.fatal({ source: browser, message: 'build failed: already has an active instance' });
     }
@@ -127,7 +127,7 @@ export const BrowserFactory = {
   }
 };
 
-const wrapWindow = (innerWindow: IWindow, source: Browser, pageId: number, onClosed: () => void): IWindow => {
+const wrapWindow = (innerWindow: IWindow, source: Driver, pageId: number, onClosed: () => void): IWindow => {
   let isClosed = false;
 
   return {

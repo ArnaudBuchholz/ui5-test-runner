@@ -1,4 +1,4 @@
-import { BrowserFactory, getDescriptor, isBrowser } from '../../browsers/factory.js';
+import { BrowserFactory, getDescriptor, isDriver } from '../../browsers/factory.js';
 import type { BrowserCapabilities, BrowserSettings, IBrowser } from '../../browsers/IBrowser.js';
 import type { Configuration } from '../../configuration/Configuration.js';
 import { Exit, logger } from '../../platform/index.js';
@@ -8,7 +8,7 @@ let _capabilities: BrowserCapabilities;
 
 export const setupBrowser = async (configuration: Configuration): Promise<BrowserCapabilities> => {
   const { driver } = configuration;
-  if (!isBrowser(driver)) {
+  if (!isDriver(driver)) {
     return logger.fatal({ source: 'job', message: `Unknown driver: ${driver}` });
   }
   _browser = await BrowserFactory.build(configuration, driver);

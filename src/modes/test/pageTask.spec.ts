@@ -185,6 +185,27 @@ describe('makePageTask', () => {
     expect(browserMock.newWindow).not.toHaveBeenCalled();
   });
 
+  it('sends Basic Authorization header when browserBasicAuthUsername and browserBasicAuthPassword are set', async () => {
+    const builder = makeBuilder();
+    vi.mocked(getReportBuilder).mockReturnValue(builder as unknown as TestReportBuilder);
+    vi.mocked(Http.fetch).mockResolvedValue({ ok: true, status: 200 } as Response);
+    const page = makePage();
+    page.eval.mockResolvedValueOnce(QUNIT_DONE).mockResolvedValueOnce(HAPPY_RESULTS);
+    vi.mocked(getBrowser).mockReturnValue({ newWindow: vi.fn().mockResolvedValue(page) } as never);
+    const config = makeConfig({
+      browserBasicAuthUsername: 'admin',
+      browserBasicAuthPassword: { reveal: () => 's3cret' }
+    });
+    await makePageTask(config).call(makeContext(), PAGE_URL, 0, []);
+    const expectedCredentials = Buffer.from('admin:s3cret').toString('base64');
+    expect(Http.fetch).toHaveBeenCalledWith(
+      PAGE_URL,
+      expect.objectContaining({
+        headers: expect.objectContaining({ Authorization: `Basic ${expectedCredentials}` }) as unknown
+      })
+    );
+  });
+
   it('rejects and logs progress with remove when fetch returns non-ok status', async () => {
     const builder = makeBuilder();
     vi.mocked(getReportBuilder).mockReturnValue(builder as unknown as TestReportBuilder);
@@ -209,6 +230,69 @@ describe('makePageTask', () => {
       expect.objectContaining({ data: expect.objectContaining({ remove: true }) as unknown })
     );
     expect(builder.merge).toHaveBeenCalled();
+  });
+
+  it('does not log progress when QUnit total is zero', async () => {
+    const zeroTotal = {
+      done: false,
+      type: 'QUnit',
+      isOpa: false,
+      executed: 0,
+      errors: 0,
+      total: 0,
+      pendingScreenshot: false
+    } satisfies AgentState;
+    setupHappyPath([zeroTotal, QUNIT_DONE, HAPPY_RESULTS]);
+    await runTask();
+    // reportQunitProgress returns early when total <= 0 — no progress call with value: 0 from zero-total state
+    const zeroValueProgressCalls = vi
+      .mocked(logger.info)
+      .mock.calls.filter(
+        ([attributes]) =>
+          (attributes as { source: string }).source === 'progress' &&
+          (attributes as { data?: { value?: number; max?: number } }).data?.value === 0 &&
+          (attributes as { data?: { max?: number } }).data?.max === 0 &&
+          !(attributes as { data?: { remove?: boolean } }).data?.remove
+      );
+    expect(zeroValueProgressCalls).toHaveLength(0);
+  });
+
+  it('does not log progress when executed and total are unchanged between polls', async () => {
+    setupHappyPath([QUNIT_IN_PROGRESS, QUNIT_IN_PROGRESS, QUNIT_DONE, HAPPY_RESULTS]);
+    await runTask();
+    // With two identical QUNIT_IN_PROGRESS, only one reportQunitProgress call fires (second is skipped).
+    // Then QUNIT_DONE fires one more. The finally block adds one with remove:true.
+    // Filter out the initial unknown-type call and the remove call.
+    const nonRemoveProgressCallsWithMax10 = vi
+      .mocked(logger.info)
+      .mock.calls.filter(
+        ([attributes]) =>
+          (attributes as { source: string }).source === 'progress' &&
+          (attributes as { data?: { max?: number } }).data?.max === 10 &&
+          !(attributes as { data?: { remove?: boolean } }).data?.remove
+      );
+    // 1 from first QUNIT_IN_PROGRESS + 1 from QUNIT_DONE = 2 (not 3, because second QUNIT_IN_PROGRESS is skipped)
+    expect(nonRemoveProgressCallsWithMax10).toHaveLength(2);
+  });
+
+  it('skips the final progress log in finally when context is undefined (newWindow throws before context)', async () => {
+    const builder = makeBuilder();
+    vi.mocked(getReportBuilder).mockReturnValue(builder as unknown as TestReportBuilder);
+    vi.mocked(Http.fetch).mockResolvedValue({ ok: true, status: 200 } as Response);
+    vi.mocked(getBrowser).mockReturnValue({
+      newWindow: vi.fn().mockRejectedValue(new Error('launch failed'))
+    } as never);
+    await runTask();
+    const progressCallsWithRemove = vi
+      .mocked(logger.info)
+      .mock.calls.filter(
+        ([attributes]) =>
+          (attributes as { source: string }).source === 'progress' &&
+          (attributes as { data?: { remove?: boolean } }).data?.remove === true &&
+          (attributes as { data?: { max?: number } }).data?.max !== 0
+      );
+    // When context is undefined, the finally block skips the progress log
+    expect(progressCallsWithRemove).toHaveLength(0);
   });
 
   it('completes the loop on done state and calls collect and merge', async () => {

@@ -107,6 +107,38 @@ describe('sendToParent', () => {
 });
 
 describe('spawn', () => {
+  it('passes options object as-is when options.env is falsy', () => {
+    const options = { detached: true };
+    Process.spawn('node', [], options);
+    expect(logger.debug).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({ options: { detached: true } }) as unknown
+      })
+    );
+  });
+
+  it('includes forceRender in stdout log entries when forceRender is true', () => {
+    const childProcess = Process.spawn('node', [], { forceRender: true });
+    mockChildProcess?.emitStdout('data', 'line');
+    expect(logger.info).toHaveBeenCalledWith({
+      source: 'process/stdout',
+      processId: childProcess.pid,
+      forceRender: true,
+      message: 'line'
+    });
+  });
+
+  it('includes forceRender in stderr log entries when forceRender is true', () => {
+    const childProcess = Process.spawn('node', [], { forceRender: true });
+    mockChildProcess?.emitStderr('data', 'err');
+    expect(logger.error).toHaveBeenCalledWith({
+      source: 'process/stderr',
+      processId: childProcess.pid,
+      forceRender: true,
+      message: 'err'
+    });
+  });
+
   it('allocates a Process instance after calling node.js spawn', () => {
     const options = {};
     const childProcess = Process.spawn('whatever', ['a', 'b'], options);
@@ -127,6 +159,27 @@ describe('spawn', () => {
       message: 'spawned',
       data: { command: 'node', arguments: [], options: {} }
     });
+  });
+
+  it('logs env keys (not values) when options.env is provided', () => {
+    Process.spawn('node', [], { env: { SECRET: 'password', PATH: '/usr/bin' } });
+    const debugCall = vi
+      .mocked(logger.debug)
+      .mock.calls.find(([attributes]) => (attributes as { message: string }).message === 'spawned');
+    expect(debugCall).toBeDefined();
+    const loggedOptions = (debugCall![0] as { data: { options: { env: string[] } } }).data.options;
+    expect(loggedOptions.env).toContain('SECRET');
+    expect(loggedOptions.env).toContain('PATH');
+    expect(loggedOptions.env).not.toContain('password');
+  });
+
+  it('uses warn instead of debug to log spawned when pid is falsy', () => {
+    const noOpChildProcess = createMockChildProcess();
+    Object.defineProperty(noOpChildProcess, 'pid', { value: 0 });
+    vi.mocked(spawn).mockImplementationOnce(() => noOpChildProcess as unknown as ChildProcess);
+    Process.spawn('node', []);
+    expect(logger.warn).toHaveBeenCalledWith(expect.objectContaining({ source: 'process', message: 'spawned' }));
+    expect(logger.debug).not.toHaveBeenCalledWith(expect.objectContaining({ message: 'spawned' }));
   });
 
   it('documents error while spawning', () => {
@@ -356,5 +409,15 @@ describe('kill', () => {
       );
       expect(logger.debug).not.toHaveBeenCalledWith(expect.objectContaining({ message: 'unable to kill' }));
     });
+  });
+});
+
+describe('sleep', () => {
+  it('resolves after the specified delay', async () => {
+    vi.useFakeTimers();
+    const promise = Process.sleep(100);
+    await vi.advanceTimersByTimeAsync(100);
+    await expect(promise).resolves.toBeUndefined();
+    vi.useRealTimers();
   });
 });
