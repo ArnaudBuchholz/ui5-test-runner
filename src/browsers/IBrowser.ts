@@ -9,6 +9,7 @@ export interface IWindow {
 export type BrowserSettings = {
   visible?: boolean;
   viewport?: { width: number; height: number };
+  device?: string;
   language?: string;
   secure?: boolean;
   basicAuthentication?: { username: string; password: ISecretValue };

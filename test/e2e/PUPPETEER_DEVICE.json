@@ -1,0 +1,8 @@
+{
+  "batchId": "PUPPETEER_DEVICE",
+  "batchLabel": "Puppeteer device emulation",
+  "url": ["http://localhost:8080/test/unit/device.qunit.html"],
+  "driver": "puppeteer",
+  "browserDevice": "iPhone X",
+  "end": "RUNNER_EXIT_CODE={{exitCode}} NODE_OPTIONS= node test/e2e/check.mjs {{reportDir}} --pages 1"
+}

@@ -103,6 +103,25 @@ export const validations: Array<(configuration: Configuration) => void> = [
     }
   },
   (configuration) => {
+    if (Object.hasOwn(configuration, 'browserDevice') && !punyexpr("(driver === 'puppeteer')")(configuration)) {
+      throw OptionValidationError.createValidationError(
+        indexedOptions.browserDevice,
+        'browserDevice is only supported with the puppeteer driver'
+      );
+    }
+  },
+  (configuration) => {
+    if (
+      Object.hasOwn(configuration, 'browserDevice') &&
+      !punyexpr("(browser === undefined || browser === 'chrome')")(configuration)
+    ) {
+      throw OptionValidationError.createValidationError(
+        indexedOptions.browserDevice,
+        'browserDevice requires the chrome browser'
+      );
+    }
+  },
+  (configuration) => {
     if (
       Object.hasOwn(configuration, 'coverage') &&
       !punyexpr("(!coverage || webapp !== '' || coverageSourceDir !== '')")(configuration)

@@ -224,6 +224,18 @@ describe('cross-option validation', () => {
     it('passes when browser is not set (driver default is used)', async () => {
       await expect(ConfigurationValidator.validate({ driver: 'puppeteer' })).resolves.not.toThrow();
     });
+
+    it('passes when browserDevice uses the default Puppeteer Chrome browser', async () => {
+      await expect(
+        ConfigurationValidator.validate({ browserDevice: 'iPhone X', driver: 'puppeteer' })
+      ).resolves.not.toThrow();
+    });
+
+    it('rejects browserDevice when Puppeteer Firefox is selected', async () => {
+      await expect(
+        ConfigurationValidator.validate({ browserDevice: 'iPhone X', driver: 'puppeteer', browser: 'firefox' })
+      ).rejects.toThrow('invalid use of browserDevice: browserDevice requires the chrome browser');
+    });
   });
 });
 

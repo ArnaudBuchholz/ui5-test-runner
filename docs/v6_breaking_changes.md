@@ -23,6 +23,7 @@ relations:
     - options/driver
     - options/browser
     - options/browserOptions
+    - options/browserDevice
     - options/batchTimeout
     - options/browserVisible
     - options/browserBasicAuthUsername
@@ -85,6 +86,15 @@ As a consequence, the following options have been removed:
 * `--browser-close-timeout` (`-bt`) is removed.
 * `--browser-retry` (`-br`) is removed.
 * `--unsecure` (`-u`), typically passed through `--browser-args`/`browserArgs`, is no more needed and must be dropped — do not carry it into `--browser-options`. It existed to relax browser security (e.g. Chrome's local-network-access check) so the test page could reach the runner; with the version 6 agent paradigm the agent is injected into the page and its state is fetched by the runner, so no such relaxation is required.
+* Puppeteer's nested `--device <name>` option, typically passed through `--browser-args`/`browserArgs`, is replaced with the dedicated [`--browser-device <name>`](./options/browserDevice.md) option. It supports Puppeteer's known device names (for example, `iPhone X`) and requires the `puppeteer` driver with Chrome. It applies the device viewport, user agent, and touch support, so it overrides `--browser-viewport-width` and `--browser-viewport-height`.
+
+```bash
+# v5 (Puppeteer-specific flag, passed after --)
+ui5-test-runner --browser $/puppeteer.js -- --device "iPhone X"
+
+# v6
+ui5-test-runner --driver puppeteer --browser-device "iPhone X"
+```
 
 ## Basic authentication
 

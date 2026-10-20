@@ -31,6 +31,7 @@ const makeConfig = (overrides: Partial<Configuration> = {}): Configuration =>
     driver: 'puppeteer',
     browserOptions: {},
     browserVisible: false,
+    browserDevice: undefined,
     debugKeepBrowserOpen: false,
     browserViewportWidth: VIEWPORT.width,
     browserViewportHeight: VIEWPORT.height,
@@ -107,6 +108,14 @@ describe('setupBrowser', () => {
     const { setupBrowser } = await import('./browser.js');
     await setupBrowser(makeConfig({ browser: 'firefox' }));
     expect(browser.setup).toHaveBeenCalledWith(expect.objectContaining({ browser: 'firefox' }));
+  });
+
+  it('passes browserDevice to the browser settings', async () => {
+    const browser = makeBrowser();
+    vi.mocked(BrowserFactory.build).mockResolvedValue(browser);
+    const { setupBrowser } = await import('./browser.js');
+    await setupBrowser(makeConfig({ browserDevice: 'iPhone X' }));
+    expect(browser.setup).toHaveBeenCalledWith(expect.objectContaining({ device: 'iPhone X' }));
   });
 
   describe('debugKeepBrowserOpen wrapping', () => {

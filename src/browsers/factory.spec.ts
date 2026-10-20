@@ -6,6 +6,7 @@ import type { Configuration } from '../configuration/Configuration.js';
 import { Exit } from '../platform/Exit.js';
 import { logger } from '../platform/index.js';
 import { __unregisterExitAsyncTask, __lastRegisteredExitAsyncTask } from '../platform/mock.js';
+import { RecoverableBrowserError } from './RecoverableBrowserError.js';
 
 vi.mock(import('./puppeteer.js'), () => ({
   factory: vi.fn(),
@@ -178,6 +179,22 @@ describe('BrowserFactory', () => {
         message: 'newWindow failed',
         error
       });
+    });
+
+    it('logs and forwards a recoverable newWindow error', async () => {
+      const error = new RecoverableBrowserError('unknown device');
+      const inner = makeInnerBrowser();
+      vi.mocked(inner.newWindow).mockRejectedValueOnce(error);
+      vi.mocked(mockPuppeteerFactory).mockResolvedValue(inner);
+      browser = await BrowserFactory.build(FACTORY_SETTINGS, 'puppeteer');
+      await browser.setup(BROWSER_SETTINGS);
+      await expect(browser.newWindow(WINDOW_SETTINGS)).rejects.toThrow(error);
+      expect(logger.error).toHaveBeenCalledWith({
+        source: 'puppeteer',
+        message: 'newWindow failed',
+        error
+      });
+      expect(logger.fatal).not.toHaveBeenCalled();
     });
 
     describe('window wrapper', () => {

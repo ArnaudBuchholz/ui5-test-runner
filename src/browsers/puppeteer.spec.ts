@@ -3,6 +3,7 @@ import { Npm } from '../Npm.js';
 import { Process, logger } from '../platform/index.js';
 import type { Configuration } from '../configuration/Configuration.js';
 import { factory } from './puppeteer.js';
+import { RecoverableBrowserError } from './RecoverableBrowserError.js';
 
 const NO_CONFIGURATION = {} as Configuration;
 const ABORT_SIGNAL = new AbortController().signal;
@@ -13,6 +14,7 @@ const makePage = () => ({
   evaluateOnNewDocument: vi.fn().mockResolvedValue(undefined),
   on: vi.fn().mockReturnThis(),
   authenticate: vi.fn().mockResolvedValue(undefined),
+  emulate: vi.fn().mockResolvedValue(undefined),
   goto: vi.fn().mockResolvedValue(undefined),
   evaluate: vi.fn().mockResolvedValue(undefined),
   screenshot: vi.fn().mockResolvedValue(undefined),
@@ -63,4 +65,35 @@ it('rethrows when launch throws an error unrelated to missing browser', async ()
   const instance = await factory(NO_CONFIGURATION, ABORT_SIGNAL);
   await expect(instance.setup({})).rejects.toThrow('permission denied');
   expect(Process.spawn).not.toHaveBeenCalled();
+});
+
+it('emulates the requested known device before navigating', async () => {
+  const page = makePage();
+  const browser = makeBrowser(page);
+  const device = { viewport: { width: 375, height: 812, isMobile: true, hasTouch: true }, userAgent: 'iPhone' };
+  npmImportSpy.mockResolvedValue({ launch: vi.fn().mockResolvedValue(browser), KnownDevices: { 'iPhone X': device } });
+
+  const instance = await factory(NO_CONFIGURATION, ABORT_SIGNAL);
+  await instance.setup({ device: 'iPhone X' });
+  await instance.newWindow({ pageId: 1, scripts: [], url: 'https://example.test' });
+
+  expect(page.emulate).toHaveBeenCalledWith(device);
+  expect(page.emulate).toHaveBeenCalledBefore(page.goto);
+});
+
+it('rejects an unknown device name and lists the available devices', async () => {
+  const page = makePage();
+  const browser = makeBrowser(page);
+  npmImportSpy.mockResolvedValue({ launch: vi.fn().mockResolvedValue(browser), KnownDevices: { 'iPhone X': {} } });
+
+  const instance = await factory(NO_CONFIGURATION, ABORT_SIGNAL);
+  await instance.setup({ device: 'no-such-device' });
+
+  await expect(instance.newWindow({ pageId: 1, scripts: [], url: 'https://example.test' })).rejects.toThrow(
+    'Unknown device "no-such-device", available devices: iPhone X'
+  );
+  await expect(instance.newWindow({ pageId: 1, scripts: [], url: 'https://example.test' })).rejects.toBeInstanceOf(
+    RecoverableBrowserError
+  );
+  expect(page.goto).not.toHaveBeenCalled();
 });

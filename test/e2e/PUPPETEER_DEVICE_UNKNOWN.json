@@ -1,0 +1,8 @@
+{
+  "batchId": "PUPPETEER_DEVICE_UNKNOWN",
+  "batchLabel": "Puppeteer device emulation with an unknown device name",
+  "url": ["http://localhost:8080/test/unit/device.qunit.html"],
+  "driver": "puppeteer",
+  "browserDevice": "no-such-device",
+  "end": "RUNNER_EXIT_CODE={{exitCode}} NODE_OPTIONS= node test/e2e/check.mjs {{reportDir}} --failed"
+}

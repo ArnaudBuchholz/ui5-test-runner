@@ -106,6 +106,12 @@ export const options = [
     description: 'username for HTTP basic authentication'
   },
   {
+    name: 'browserDevice',
+    type: 'string',
+    batchForwarded: true,
+    description: 'emulate a Puppeteer-known device, overriding browser viewport dimensions'
+  },
+  {
     name: 'browserOptions',
     type: 'json',
     batchForwarded: true,

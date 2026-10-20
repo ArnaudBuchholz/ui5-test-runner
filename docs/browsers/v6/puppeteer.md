@@ -41,3 +41,4 @@ and drives the browser directly.
   `PUPPETEER_SKIP_DOWNLOAD=true`.
 * Supports [HTTP basic authentication](../../options/browserBasicAuthUsername.md)
   via `page.authenticate()`, called before each page load.
+* Supports [device emulation](../../options/browserDevice.md) in Chrome.

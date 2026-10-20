@@ -5,6 +5,7 @@ import { factory as playwrightFactory, descriptor as playwrightDescriptor } from
 import { factory as webdriverioFactory, descriptor as webdriverioDescriptor } from './webdriverio.js';
 import { factory as seleniumWebdriverFactory, descriptor as seleniumWebdriverDescriptor } from './seleniumWebdriver.js';
 import { Exit, logger } from '../platform/index.js';
+import { RecoverableBrowserError } from './RecoverableBrowserError.js';
 
 const DRIVERS = ['puppeteer', 'playwright', 'webdriverio', 'selenium-webdriver'] as const;
 export type Driver = (typeof DRIVERS)[number];
@@ -109,7 +110,8 @@ export const BrowserFactory = {
           _openWindows.add(wrapped);
           return wrapped;
         } catch (error) {
-          logger.fatal({
+          const logMethod: keyof typeof logger = error instanceof RecoverableBrowserError ? 'error' : 'fatal';
+          logger[logMethod]({
             source: browser,
             message: 'newWindow failed',
             error

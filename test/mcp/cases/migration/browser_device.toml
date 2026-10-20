@@ -1,0 +1,29 @@
+[user]
+question="""
+How do I migrate to ui5-test-runner 6 ?
+"""
+
+[files]
+"package.json" = """
+{
+  "scripts": {
+    "test": "ui5-test-runner"
+  },
+  "devDependencies": {
+    "ui5-test-runner": "^5"
+  }
+}
+"""
+
+"ui5-test-runner.json" = """
+{
+  "browser": "$/puppeteer.js",
+  "browserArgs": ["--device", "iPhone X"]
+}
+"""
+
+[expected]
+v6 = "It should explain how to migrate the project to ui5-test-runner version 6"
+driver = "it should explain that the Puppeteer browser command script is replaced by selecting the puppeteer driver and the browser with --browser"
+device = "it should explain that Puppeteer's nested --device iPhone X setting is replaced by the dedicated --browser-device iPhone X option (browserDevice in configuration), not passed through browserOptions"
+viewport = "it should state that device emulation supplies the viewport, user agent, and touch support, and overrides browser viewport width and height"

@@ -6,6 +6,7 @@ import type { Configuration } from '../configuration/Configuration.js';
 import { handleConsoleMessage } from './consoleMessage.js';
 import { handleNetworkResponse } from './networkResponse.js';
 import { getExtraChromeArguments } from './chromeArguments.js';
+import { RecoverableBrowserError } from './RecoverableBrowserError.js';
 
 export const descriptor: BrowserDriverDescriptor = {
   supportedBrowsers: ['chrome', 'firefox'],
@@ -19,6 +20,7 @@ export const factory = async (configuration: Configuration, signal: AbortSignal)
   let browser: Browser | undefined;
   let isFirstWindow = true;
   let basicAuthentication: BrowserSettings['basicAuthentication'];
+  let deviceName: BrowserSettings['device'];
 
   const launchAndInstallIfNeeded = async (settings: BrowserSettings): Promise<BrowserCapabilities> => {
     const target = settings.browser ?? 'chrome';
@@ -69,6 +71,7 @@ export const factory = async (configuration: Configuration, signal: AbortSignal)
   return {
     async setup(settings) {
       basicAuthentication = settings.basicAuthentication;
+      deviceName = settings.device;
       return await launchAndInstallIfNeeded(settings);
     },
 
@@ -83,6 +86,17 @@ export const factory = async (configuration: Configuration, signal: AbortSignal)
         page = await browser?.newPage({
           type: 'window'
         });
+      }
+      if (deviceName) {
+        const knownDevices =
+          (puppeteer as { KnownDevices?: Record<string, Parameters<Page['emulate']>[0]> }).KnownDevices ?? {};
+        const device = knownDevices[deviceName];
+        if (!device) {
+          throw new RecoverableBrowserError(
+            `Unknown device "${deviceName}", available devices: ${Object.keys(knownDevices).join(', ')}`
+          );
+        }
+        await page?.emulate(device);
       }
       for (const script of settings.scripts) {
         await page?.evaluateOnNewDocument(script);

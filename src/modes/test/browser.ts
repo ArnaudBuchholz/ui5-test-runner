@@ -12,13 +12,15 @@ export const setupBrowser = async (configuration: Configuration): Promise<Browse
     return logger.fatal({ source: 'job', message: `Unknown driver: ${driver}` });
   }
   _browser = await BrowserFactory.build(configuration, driver);
-  const { debugKeepBrowserOpen, browserVisible, browserViewportWidth, browserViewportHeight } = configuration;
+  const { debugKeepBrowserOpen, browserVisible, browserViewportWidth, browserViewportHeight, browserDevice } =
+    configuration;
   const settings: BrowserSettings = {
     visible: browserVisible || debugKeepBrowserOpen,
     viewport: {
       width: browserViewportWidth,
       height: browserViewportHeight
     },
+    device: browserDevice,
     browser: configuration.browser ?? getDescriptor(driver).defaultBrowser,
     options: configuration.browserOptions,
     basicAuthentication:
