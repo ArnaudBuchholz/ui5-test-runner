@@ -125,7 +125,10 @@ describe('buildBatchReport()', () => {
   });
 
   it('adds a message field when item has timedOut set', async () => {
-    const report = await buildBatchReport([makeItem({ timedOut: true, statusCode: 1 })], NO_CONFIGURATION);
+    const report = await buildBatchReport(
+      [makeItem({ timedOut: true, statusCode: 1, message: 'batch item timed out, check the logs' })],
+      NO_CONFIGURATION
+    );
     expect(report.results.tests[0]!.message).toBe('batch item timed out, check the logs');
   });
 
@@ -135,12 +138,33 @@ describe('buildBatchReport()', () => {
   });
 
   it('adds a message field when item was never started', async () => {
-    const report = await buildBatchReport([makeItem({ start: undefined, end: undefined, statusCode: undefined })], NO_CONFIGURATION);
+    const report = await buildBatchReport(
+      [
+        makeItem({
+          start: undefined,
+          end: undefined,
+          statusCode: undefined,
+          message: 'batch item not executed (process was interrupted)'
+        })
+      ],
+      NO_CONFIGURATION
+    );
     expect(report.results.tests[0]!.message).toBe('batch item not executed (process was interrupted)');
   });
 
   it('marks a never-started item as failed', async () => {
-    const report = await buildBatchReport([makeItem({ start: undefined, end: undefined, statusCode: undefined })], NO_CONFIGURATION);
+    const report = await buildBatchReport(
+      [makeItem({ start: undefined, end: undefined, statusCode: undefined })],
+      NO_CONFIGURATION
+    );
     expect(report.results.tests[0]!.status).toBe('failed');
+  });
+
+  it('surfaces failure details from sub-report via item message', async () => {
+    const report = await buildBatchReport(
+      [makeItem({ statusCode: 1, message: '2 tests failed: Dynamic part is loaded, …' })],
+      NO_CONFIGURATION
+    );
+    expect(report.results.tests[0]!.message).toBe('2 tests failed: Dynamic part is loaded, …');
   });
 });

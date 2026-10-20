@@ -290,7 +290,9 @@ describe('test()', () => {
         // page2 and page3 never get started (interrupted)
         return Promise.resolve([]);
       });
-      await runTest(makeConfig({ url: ['https://x:0/page1.html', 'https://x:0/page2.html', 'https://x:0/page3.html'] }));
+      await runTest(
+        makeConfig({ url: ['https://x:0/page1.html', 'https://x:0/page2.html', 'https://x:0/page3.html'] })
+      );
       expect(reportError).not.toHaveBeenCalledWith('https://x:8080/page1.html', expect.any(String));
       expect(reportError).toHaveBeenCalledWith('https://x:8080/page2.html', 'not executed (process was interrupted)');
       expect(reportError).toHaveBeenCalledWith('https://x:8080/page3.html', 'not executed (process was interrupted)');

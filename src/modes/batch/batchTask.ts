@@ -1,7 +1,8 @@
-import { logger, Path, Process, Host, __sourcesRoot } from '../../platform/index.js';
+import { logger, Path, Process, Host, __sourcesRoot, FileSystem } from '../../platform/index.js';
 import { options } from '../../configuration/options.js';
 import type { Configuration } from '../../configuration/Configuration.js';
 import type { IBatchItem } from './BatchItem.js';
+import type { CommonTestReport } from '../../types/CommonTestReportFormat.js';
 import { toKebabCase, formatDuration } from '../../utils/shared/string.js';
 import { getEffectiveTimeout, isGloballyTimedOut } from '../../utils/node/timeout.js';
 
@@ -49,6 +50,27 @@ type ProgressMessage = { type: 'progress'; count: number; total: number };
 type SkipMessage = { type: 'skip' };
 type IPCMessage = ProgressMessage | SkipMessage;
 
+const MAX_MESSAGE_LENGTH = 120;
+
+const buildFailureMessage = async (reportDirectory: string, batchId: string): Promise<string | undefined> => {
+  try {
+    const raw = await FileSystem.readFile(Path.join(reportDirectory, batchId, 'report.json'), 'utf8');
+    const report = JSON.parse(raw) as CommonTestReport;
+    const failed = report.results.tests.filter((t) => t.status === 'failed');
+    if (failed.length === 0) {
+      return undefined;
+    }
+    const prefix = `${failed.length} test${failed.length > 1 ? 's' : ''} failed: `;
+    let names = failed.map((t) => t.name).join(', ');
+    if (prefix.length + names.length > MAX_MESSAGE_LENGTH) {
+      names = names.slice(0, MAX_MESSAGE_LENGTH - prefix.length - 1) + '…';
+    }
+    return prefix + names;
+  } catch {
+    return undefined;
+  }
+};
+
 let lastPageId = 0;
 
 export const batchTask = async (
@@ -68,6 +90,7 @@ export const batchTask = async (
   if (isGloballyTimedOut(configuration.globalTimeout, startTime)) {
     logger.warn({ source: 'page', message: 'global timeout reached, skipping batch item', pageId, data: { label } });
     batchItem.skipped = true;
+    batchItem.message = 'batch item not executed (process was interrupted)';
     return batchItem;
   }
 
@@ -110,6 +133,7 @@ export const batchTask = async (
     const timeoutHandle = setTimeout(() => {
       logger.warn({ source: 'page', message: 'batch item timed out', pageId, data: { label } });
       batchItem.timedOut = true;
+      batchItem.message = 'batch item timed out, check the logs';
       void childProcess.kill();
     }, batchTimeoutMs);
     await childProcess.closed;
@@ -135,6 +159,7 @@ export const batchTask = async (
       pageId,
       message: `failed ${label} (${duration})`
     });
+    batchItem.message = await buildFailureMessage(configuration.reportDir, batchItem.id);
   }
 
   logger.debug({

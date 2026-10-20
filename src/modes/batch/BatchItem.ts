@@ -8,4 +8,5 @@ export interface IBatchItem {
   statusCode?: number;
   skipped?: boolean;
   timedOut?: boolean;
+  message?: string;
 }
