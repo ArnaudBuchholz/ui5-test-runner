@@ -1,0 +1,8 @@
+[user]
+question="""
+I'm running ui5-test-runner in batch mode in a CI pipeline with several projects. After the run I want to see the individual test output logs for each project — how do I do that?
+"""
+
+[expected]
+option = "it should propose --batch-output (config key batchOutput) to print each batch item's output.txt after all items have settled"
+order = "it should mention that the output is printed in alphabetical batch-id order"
