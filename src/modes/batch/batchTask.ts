@@ -48,13 +48,14 @@ const buildForwardedParameters = (configuration: Configuration): string[] => {
 
 type ProgressMessage = { type: 'progress'; count: number; total: number };
 type SkipMessage = { type: 'skip' };
-type IPCMessage = ProgressMessage | SkipMessage;
+type ReportDirectoryMessage = { type: 'report-dir'; reportDir: string };
+type IPCMessage = ProgressMessage | SkipMessage | ReportDirectoryMessage;
 
 const MAX_MESSAGE_LENGTH = 120;
 
-const buildFailureMessage = async (reportDirectory: string, batchId: string): Promise<string | undefined> => {
+const buildFailureMessage = async (reportDirectory: string): Promise<string | undefined> => {
   try {
-    const raw = await FileSystem.readFile(Path.join(reportDirectory, batchId, 'report.json'), 'utf8');
+    const raw = await FileSystem.readFile(Path.join(reportDirectory, 'report.json'), 'utf8');
     const report = JSON.parse(raw) as CommonTestReport;
     const failed = report.results.tests.filter((t) => t.status === 'failed');
     if (failed.length === 0) {
@@ -95,17 +96,17 @@ export const batchTask = async (
   }
 
   batchItem.start = new Date();
+  const reportDirectory = Path.join(configuration.reportDir, batchItem.id);
+  batchItem.reportDir = reportDirectory;
 
   const parameters: string[] = [
     ...buildRunnerCommand(),
+    '--no-banner',
     ...batchItem.args,
-    ...(configuration.sources['reportDir'] === 'cli'
-      ? ['--report-dir', Path.join(configuration.reportDir, batchItem.id)]
-      : []),
     ...buildForwardedParameters(configuration)
   ];
   const childProcess = Process.spawn('node', parameters, {
-    env: { ...Host.env, UI5TR_BATCH_MODE: '1' },
+    env: { ...Host.env, UI5TR_BATCH_MODE: '1', UI5TR_BATCH_REPORT_DIR: reportDirectory },
     windowsHide: true,
     onMessage: (data) => {
       const message = data as IPCMessage;
@@ -118,6 +119,8 @@ export const batchTask = async (
         });
       } else if (message?.type === 'skip') {
         batchItem.skipped = true;
+      } else if (message?.type === 'report-dir') {
+        batchItem.reportDir = message.reportDir;
       }
     }
   });
@@ -159,7 +162,7 @@ export const batchTask = async (
       pageId,
       message: `failed ${label} (${duration})`
     });
-    batchItem.message = await buildFailureMessage(configuration.reportDir, batchItem.id);
+    batchItem.message = await buildFailureMessage(batchItem.reportDir ?? reportDirectory);
   }
 
   logger.debug({

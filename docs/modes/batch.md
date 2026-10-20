@@ -35,6 +35,9 @@ The batch mode implies the parallel execution of **multiple batch items**.
 
 Each individual item execution generates its own report information (including coverage). Also, the main output is slightly different.
 
+Use [`--batch-output`](../options/batchOutput.md) to print each child's completed `output.txt` at
+the end of the run, in alphabetical batch-id order.
+
 ```batch
    00:08 succeeded Legacy JS Sample with batch timeout (JS_LEGACY_BATCH_TIMEOUT)
    00:14 succeeded Legacy JS Sample (JS_LEGACY)
@@ -48,7 +51,7 @@ Each individual item execution generates its own report information (including c
 In order to better organize and control the exeuction of batch items, multiple mechanisms exist :
 
 * some options are configured to be forwarded from the main command to the batch item, they are tagged with `batchForwarded: yes`
-* the batch item report dir is the main command one concatenated with the batch id (see [[options/batchId]])
+* when a batch-item configuration does not set `reportDir`, it receives an isolated fallback directory: the main command report directory concatenated with the batch id (see [[options/batchId]]); an explicit batch-item `reportDir` is preserved and communicated back to the main process
 * `--if`: see [[options/if]] — when provided in a configuration file, it conditions execution of the batch item
 
 ## Report format

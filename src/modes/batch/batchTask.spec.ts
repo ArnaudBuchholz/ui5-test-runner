@@ -66,20 +66,32 @@ describe('task()', () => {
     expect(parameters[cwdIndex + 1]).toEqual('/my/path');
   });
 
-  it('appends --report-dir when reportDir is CLI-sourced', () => {
+  it('suppresses the banner in every child runner', () => {
     vi.mocked(Process.spawn).mockReturnValue(makeProcess());
-    const item = makeItem({ id: 'abc123' });
-    void batchTask(makeConfig({ reportDir: 'cli' }), item, START_TIME);
+    void batchTask(makeConfig(), makeItem(), START_TIME);
     const [, parameters] = vi.mocked(Process.spawn).mock.calls[0]!;
-    expect(parameters).toContain('--report-dir');
-    expect(parameters).toContain(`${REPORT_DIR}/abc123`);
+    expect(parameters).toContain('--no-banner');
   });
 
-  it('does not append --report-dir when reportDir is not CLI-sourced', () => {
+  it('provides a fallback child report directory through the environment', () => {
     vi.mocked(Process.spawn).mockReturnValue(makeProcess());
-    void batchTask(makeConfig({}), makeItem(), START_TIME);
+    const item = makeItem({ id: 'abc123' });
+    void batchTask(makeConfig(), item, START_TIME);
     const [, parameters] = vi.mocked(Process.spawn).mock.calls[0]!;
     expect(parameters).not.toContain('--report-dir');
+    expect(item.reportDir).toBe(`${REPORT_DIR}/abc123`);
+  });
+
+  it('sets the isolated report directory in the child environment', () => {
+    vi.mocked(Process.spawn).mockReturnValue(makeProcess());
+    void batchTask(makeConfig({}), makeItem(), START_TIME);
+    expect(Process.spawn).toHaveBeenCalledWith(
+      'node',
+      expect.any(Array) as unknown,
+      expect.objectContaining({
+        env: expect.objectContaining({ UI5TR_BATCH_REPORT_DIR: `${REPORT_DIR}/abc123` }) as unknown
+      })
+    );
   });
 
   it('serializes json-typed options with JSON.stringify when CLI-sourced', () => {
@@ -136,6 +148,14 @@ describe('task()', () => {
     expect(logger.info).toHaveBeenCalledWith(
       expect.objectContaining({ source: 'progress', data: expect.objectContaining({ value: 3, max: 10 }) as unknown })
     );
+  });
+
+  it('uses the report directory communicated by the child', () => {
+    vi.mocked(Process.spawn).mockReturnValue(makeProcess());
+    const item = makeItem();
+    void batchTask(makeConfig(), item, START_TIME);
+    getOnMessage()({ type: 'report-dir', reportDir: '/resolved/child/report' });
+    expect(item.reportDir).toBe('/resolved/child/report');
   });
 
   it('kills the child process and sets timedOut when the batch timeout elapses', async () => {

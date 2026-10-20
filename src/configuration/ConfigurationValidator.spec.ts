@@ -8,7 +8,7 @@ import { defaults } from './options.js';
 import type { Configuration } from './Configuration.js';
 import { Modes } from '../modes/Modes.js';
 import type { OptionValidator } from './validators/OptionValidator.js';
-import { FileSystem } from '../platform/index.js';
+import { FileSystem, Host } from '../platform/index.js';
 import { fsEntry } from './validators/fsEntry.js';
 import { MOCK_CWD } from '../platform/mock.js';
 
@@ -45,6 +45,37 @@ describe('defaults', () => {
   it('knows if overridden using Object.hasOwnProperty', async () => {
     const configuration = await ConfigurationValidator.validate({ cwd: '/test/user' });
     expect(Object.hasOwnProperty.call(configuration, 'cwd')).toStrictEqual(true);
+  });
+});
+
+describe('batch report directory', () => {
+  const environmentKey = 'UI5TR_BATCH_REPORT_DIR';
+  const originalValue = Host.env[environmentKey];
+
+  afterEach(() => {
+    if (originalValue === undefined) {
+      delete Host.env[environmentKey];
+    } else {
+      Host.env[environmentKey] = originalValue;
+    }
+    vi.mocked(FileSystem.readFile).mockReset();
+  });
+
+  it('uses the batch report directory when the child does not configure one', async () => {
+    Host.env[environmentKey] = '/parent/report/item';
+
+    const configuration = await ConfigurationValidator.validate({});
+
+    expect(configuration.reportDir).toBe('/parent/report/item');
+  });
+
+  it('preserves a report directory configured by the child', async () => {
+    Host.env[environmentKey] = '/parent/report/item';
+    vi.mocked(FileSystem.readFile).mockResolvedValue(JSON.stringify({ reportDir: '/child/report' }));
+
+    const configuration = await ConfigurationValidator.validate({ config: CONFIG_FILE_PATH });
+
+    expect(configuration.reportDir).toBe('/child/report');
   });
 });
 

@@ -31,6 +31,7 @@ relations:
 |[batch](options/batch.md)|--batch||string|batch item specification (folder, config file, or regex pattern)|
 |[batchId](options/batchId.md)|--batch-id||string|identifier for the batch item|
 |[batchLabel](options/batchLabel.md)|--batch-label||string|display label for the batch item|
+|[batchOutput](options/batchOutput.md)|--batch-output||boolean|print output.txt for every batch item after execution|
 |[batchTimeout](options/batchTimeout.md)|--batch-timeout|-bt|timeout|fails a batch item if it takes longer than this timeout|
 |[browser](options/browser.md)|--browser|-b|chrome \| chromium \| firefox \| webkit \| edge \| safari|browser selection (per driver)|
 |[browserBasicAuthPassword](options/browserBasicAuthPassword.md)|--browser-basic-auth-password||secret|password for HTTP basic authentication|

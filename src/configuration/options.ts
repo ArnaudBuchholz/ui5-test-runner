@@ -82,6 +82,11 @@ export const options = [
     description: 'display label for the batch item'
   },
   {
+    name: 'batchOutput',
+    type: 'boolean',
+    description: 'print output.txt for every batch item after execution'
+  },
+  {
     name: 'batchTimeout',
     short: 'bt',
     type: 'timeout',

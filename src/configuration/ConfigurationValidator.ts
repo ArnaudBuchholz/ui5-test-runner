@@ -7,7 +7,7 @@ import { OptionValidationError } from './OptionValidationError.js';
 import { validations } from './validations.js';
 import { derivations } from './derivations.js';
 import { Modes } from '../modes/Modes.js';
-import { FileSystem, Host, Path } from '../platform/index.js';
+import { assert, FileSystem, Host, Path } from '../platform/index.js';
 
 const MAX_CONFIG_DEPTH = 10;
 
@@ -96,12 +96,22 @@ const extractConfigEntries = (parsed: Record<string, unknown>, configDirectory: 
 };
 
 const finalizeConfiguration = async (merged: Configuration) => {
+  // Defaults are materialized below; capture whether reportDir came from the child first.
+  const hasExplicitReportDirectory = Object.hasOwn(merged, 'reportDir');
   for (const option of options) {
     if (!Object.hasOwn(merged, option.name) && merged[option.name] && option.type === 'fs-entry') {
       Object.assign(merged, {
         [option.name]: await validateValue(option, merged)
       });
     }
+  }
+  const batchReportDirectory = Host.env['UI5TR_BATCH_REPORT_DIR'];
+  if (batchReportDirectory && !hasExplicitReportDirectory) {
+    const reportDirectoryOption = options.find((option) => option.name === 'reportDir');
+    assert(reportDirectoryOption !== undefined);
+    Object.assign(merged, {
+      reportDir: await validateValue(reportDirectoryOption, { ...merged, reportDir: batchReportDirectory })
+    });
   }
   for (const option of options) {
     if (!(

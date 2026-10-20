@@ -12,6 +12,7 @@ import { Folder } from '../../utils/node/Folder.js';
 import { saveReport } from '../../reports/saveReport.js';
 import { formatDuration } from '../../utils/shared/string.js';
 import { end } from '../../end.js';
+import { printBatchOutput } from './output.js';
 
 export const batch = async (configuration: Configuration): Promise<void> => {
   const batchStart = Date.now();
@@ -37,36 +38,60 @@ export const batch = async (configuration: Configuration): Promise<void> => {
   logger.info({ source: 'progress', message: 'executing batch items', pageId: undefined, data: { value: 0, max: 0 } });
   let completed = 0;
   let lastLoggedCompleted: number | undefined;
+  const started = new Set<number>();
   try {
-    await parallelize((item) => batchTask(configuration, item, batchStart), items, {
-      parallel: configuration.parallel,
-      on: (event) => {
-        if (event.type === 'completed') {
-          ++completed;
-          if (event.input.statusCode !== 0 || event.input.timedOut) {
-            ++failed;
+    await parallelize(
+      async function (item) {
+        const result = await batchTask(configuration, item, batchStart);
+        if (configuration.failFast && (result.statusCode !== 0 || result.timedOut)) {
+          for (const [queuedIndex, queuedItem] of items.entries()) {
+            if (started.has(queuedIndex)) {
+              continue;
+            }
+            queuedItem.skipped = true;
+            queuedItem.message = 'batch item not executed (fail-fast)';
           }
-        } else if (event.type === 'failed') {
-          ++failed;
-          ++completed;
+          // eslint-disable-next-line unicorn/no-this-outside-of-class -- parallelize binds its cancellation context
+          this.stop(new Error(`batch item failed: ${result.id}`));
         }
-        if (lastLoggedCompleted === completed) {
-          return;
-        }
+        return result;
+      },
+      items,
+      {
+        parallel: configuration.parallel,
+        on: (event) => {
+          if (event.type === 'started') {
+            started.add(event.index);
+          } else if (event.type === 'completed') {
+            ++completed;
+            if (event.input.statusCode !== 0 || event.input.timedOut) {
+              ++failed;
+            }
+          } else if (event.type === 'failed') {
+            ++failed;
+            ++completed;
+          }
+          if (lastLoggedCompleted === completed) {
+            return;
+          }
 
-        lastLoggedCompleted = completed;
-        logger.info({
-          source: 'progress',
-          message: 'executing batch items',
-          pageId: undefined,
-          data: { value: completed, max: items.length }
-        });
+          lastLoggedCompleted = completed;
+          logger.info({
+            source: 'progress',
+            message: 'executing batch items',
+            pageId: undefined,
+            data: { value: completed, max: items.length }
+          });
+        }
       }
-    });
+    );
   } finally {
     await startProcess?.kill();
   }
   await saveReport(configuration, await buildBatchReport(items, configuration));
+  if (configuration.batchOutput) {
+    await printBatchOutput(items);
+  }
   logger.info({
     source: 'job',
     message: `Batch items completed: passed=${completed - failed} failed=${failed} count=${completed} (${formatDuration(Date.now() - batchStart)})`

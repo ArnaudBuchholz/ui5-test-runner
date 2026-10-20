@@ -232,6 +232,15 @@ describe('test()', () => {
       await runTest(makeConfig());
       expect(sendToParentProcess).toHaveBeenCalledWith(expect.objectContaining({ type: 'done' }));
     });
+
+    it('communicates its resolved report directory to a batch parent', async () => {
+      setupHappyPath();
+      const configuration = makeConfig({ reportDir: '/tmp/child-report' });
+
+      await runTest(configuration);
+
+      expect(sendToParentProcess).toHaveBeenCalledWith({ type: 'report-dir', reportDir: '/tmp/child-report' });
+    });
   });
 
   describe('error handling', () => {

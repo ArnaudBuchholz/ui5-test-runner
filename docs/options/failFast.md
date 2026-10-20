@@ -17,7 +17,7 @@ relations:
 ---
 # `--fail-fast` / `-f`
 
-Stop the whole execution after the first failing page.
+Stop the whole execution after the first failure (page / batch item).
 
 ## Overview
 
@@ -31,9 +31,10 @@ Stop the whole execution after the first failing page.
 
 ## Details
 
-When set, the runner stops as soon as any test page reports a failure. Remaining queued pages are skipped.
+When set, the runner stops scheduling new work after a failure. Remaining queued pages or items are skipped.
 
-This option does not ripple across batch instances.
+In batch mode, a failed batch item prevents further batch items from being started. Batch items that
+were already running are allowed to complete so their reports and logs are preserved.
 
 ## Example
 

@@ -22,6 +22,7 @@ export const test = async (configuration: Configuration) => {
   await initReportBuilder(configuration);
   await Folder.create(configuration.reportDir);
   await logger.start(configuration);
+  sendToParentProcess({ type: 'report-dir', reportDir: configuration.reportDir });
   logger.debug({
     source: 'job',
     message: 'configuration',

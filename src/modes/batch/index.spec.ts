@@ -6,12 +6,14 @@ import { batch } from './index.js';
 vi.mock('./resolve.js');
 vi.mock('./batchTask.js');
 vi.mock('./report.js');
+vi.mock('./output.js');
 vi.mock('../../start.js');
 vi.mock('../../reports/saveReport.js');
 
 import { resolve } from './resolve.js';
 import { batchTask } from './batchTask.js';
 import { buildBatchReport } from './report.js';
+import { printBatchOutput } from './output.js';
 import { start } from '../../start.js';
 import { saveReport } from '../../reports/saveReport.js';
 import type { IBatchItem } from './BatchItem.js';
@@ -92,6 +94,21 @@ describe('batch()', () => {
       expect(Exit.code).toBe(-1);
     });
 
+    it('does not dispatch queued batch items after a failure when failFast is set', async () => {
+      const first = makeItem('a');
+      const second = makeItem('b');
+      vi.mocked(resolve).mockResolvedValue([first, second]);
+      vi.mocked(batchTask).mockImplementation((_, batchItem) => {
+        batchItem.statusCode = 1;
+        return Promise.resolve(batchItem);
+      });
+
+      await batch({ ...makeConfig(), parallel: 1, failFast: true });
+
+      expect(batchTask).toHaveBeenCalledTimes(1);
+      expect(second).toMatchObject({ skipped: true, message: 'batch item not executed (fail-fast)' });
+    });
+
     it('kills the start process after tasks complete', async () => {
       const startProcess = makeProcess();
       vi.mocked(start).mockResolvedValue(startProcess);
@@ -120,6 +137,16 @@ describe('batch()', () => {
       vi.mocked(resolve).mockResolvedValue([makeItem('a')]);
       await batch(makeConfig());
       expect(saveReport).toHaveBeenCalledWith(makeConfig(), STUB_REPORT);
+    });
+
+    it('prints child output when batchOutput is set', async () => {
+      const items = [makeItem('a')];
+      const config = { ...makeConfig(), batchOutput: true };
+      vi.mocked(resolve).mockResolvedValue(items);
+
+      await batch(config);
+
+      expect(printBatchOutput).toHaveBeenCalledWith(items);
     });
   });
 });
