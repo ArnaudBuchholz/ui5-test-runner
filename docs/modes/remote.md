@@ -34,7 +34,7 @@ On the flip side, it does **not** enable these features :
 
 `ui5-test-runner --url https://ui5.sap.com/test-resources/sap/m/demokit/orderbrowser/webapp/test/testsuite.qunit.html`
 
-After the tests are executed, the results are available as described in the [[report]] document:
+After the tests are executed, the results are available as described in the [report](../report.md) document:
 
 * A summary is printed to the command line output
 * `report/` — detailed test report (configurable with `--report-dir`)

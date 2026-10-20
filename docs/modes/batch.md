@@ -25,7 +25,19 @@ This mode is activated when the [`--batch`](../options/batch.md) parameter is us
 
 ## `--batch` parameter
 
-See [[options/batch]] for the full syntax (folder, config file, regex) and anchoring rules.
+The `--batch` option can be given **multiple times** (or with multiple values) to add several batch items in a single run. Each value selects one or more test projects by:
+
+- **Folder path** — runs the project found in that folder
+- **JSON config file path** — runs the project described by that config file
+- **Regular expression** — recursively scans `--cwd` and collects matching folders and config files
+
+```bash
+ui5-test-runner --batch ./packages/app1 --batch ./packages/app2
+ui5-test-runner --batch ./packages/app1 ./packages/app2
+ui5-test-runner --batch "^packages/[\w-]+"
+```
+
+See [`--batch`](../options/batch.md) for anchoring rules and the full regex syntax.
 
 ## Execution
 
@@ -51,12 +63,12 @@ the end of the run, in alphabetical batch-id order.
 In order to better organize and control the exeuction of batch items, multiple mechanisms exist :
 
 * some options are configured to be forwarded from the main command to the batch item, they are tagged with `batchForwarded: yes`
-* when a batch-item configuration does not set `reportDir`, it receives an isolated fallback directory: the main command report directory concatenated with the batch id (see [[options/batchId]]); an explicit batch-item `reportDir` is preserved and communicated back to the main process
-* `--if`: see [[options/if]] — when provided in a configuration file, it conditions execution of the batch item
+* when a batch-item configuration does not set `reportDir`, it receives an isolated fallback directory: the main command report directory concatenated with the batch id (see [`--batch-id`](../options/batchId.md)); an explicit batch-item `reportDir` is preserved and communicated back to the main process
+* `--if`: see [`--if`](../options/if.md) — when provided in a configuration file, it conditions execution of the batch item
 
 ## Report format
 
-One result per batch item. Each batch item's sub-report is merged into the main report; see [[report]] for the full format description.
+One result per batch item. Each batch item's sub-report is merged into the main report; see [report](../report.md) for the full format description.
 
 ## Design rationale
 

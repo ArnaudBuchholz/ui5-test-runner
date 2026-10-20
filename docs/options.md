@@ -36,7 +36,7 @@ relations:
 |[browser](options/browser.md)|--browser|-b|chrome \| chromium \| firefox \| webkit \| edge \| safari|browser selection (per driver)|
 |[browserBasicAuthPassword](options/browserBasicAuthPassword.md)|--browser-basic-auth-password||secret|password for HTTP basic authentication|
 |[browserBasicAuthUsername](options/browserBasicAuthUsername.md)|--browser-basic-auth-username||string|username for HTTP basic authentication|
-|[browserDevice](options/browserDevice.md)|--browser-device||string|emulate a Puppeteer-known device, overriding browser viewport dimensions|
+|[browserDevice](options/browserDevice.md)|--browser-device||string|emulate a Puppeteer-known device — sets the viewport, user agent, and touch support, overriding browser viewport width and height|
 |[browserOptions](options/browserOptions.md)|--browser-options||json|browser-specific options (JSON)|
 |[browserViewportHeight](options/browserViewportHeight.md)|--browser-viewport-height|-H|integer|height of the browser viewport in pixels|
 |[browserViewportWidth](options/browserViewportWidth.md)|--browser-viewport-width|-W|integer|width of the browser viewport in pixels|

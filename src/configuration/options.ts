@@ -114,7 +114,8 @@ export const options = [
     name: 'browserDevice',
     type: 'string',
     batchForwarded: true,
-    description: 'emulate a Puppeteer-known device, overriding browser viewport dimensions'
+    description:
+      'emulate a Puppeteer-known device — sets the viewport, user agent, and touch support, overriding browser viewport width and height'
   },
   {
     name: 'browserOptions',

@@ -39,7 +39,7 @@ ui5-test-runner depends on three categories of package that it does not bundle:
 | **Browser binary** | Chromium (bundled with Puppeteer), Chrome, Firefox | Depends on driver — Puppeteer downloads Chromium on install; others expect the browser pre-installed |
 | **Coverage tooling** | `nyc` | Only when `--coverage` is enabled |
 
-At startup, the runner checks whether each required package is resolvable from the working directory. If a package is missing, it installs it automatically using npm before continuing.
+At startup, the runner checks whether each required package is resolvable from the working directory. If a package is missing, it installs it automatically using npm before continuing. For security, `--ignore-scripts` is always passed to npm during auto-installation, so `postinstall` scripts never run automatically.
 
 ## Install strategies
 
@@ -107,6 +107,6 @@ With this flag, the runner will not attempt to install anything at runtime. If a
 |---|---|---|
 | Setup effort | None | Add packages to `devDependencies`, run `npm install` |
 | Version pinning | No — installs latest at runtime | Yes — exact versions in lockfile |
-| Postinstall scripts | Blocked by default | Controlled by your normal install |
+| Postinstall scripts | Blocked by default (`--ignore-scripts`) | Controlled by your normal install |
 | Reproducibility | Runs may differ as packages publish | Identical across machines and runs |
 | Recommended for CI | ⚠️ Use with caution | ✅ Preferred |

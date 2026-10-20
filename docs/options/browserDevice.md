@@ -2,7 +2,7 @@
 "#type": option
 title: browserDevice
 type: string
-summary: emulate a Puppeteer-known device, overriding browser viewport dimensions
+summary: emulate a Puppeteer-known device — sets the viewport, user agent, and touch support, overriding browser viewport width and height
 keywords:
   - browser
   - device

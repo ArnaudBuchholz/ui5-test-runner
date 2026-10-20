@@ -1,7 +1,7 @@
 ---
 "#type": concept
 title: Report format
-summary: The normalized CTRF-based JSON test report produced by a run, and how results map to it
+summary: The normalized CTRF-based JSON test report produced once, at the end of the run after every page has completed, and how results map to it
 keywords:
   - report
   - ctrf

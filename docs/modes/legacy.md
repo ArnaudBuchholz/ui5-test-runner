@@ -64,7 +64,7 @@ You may also use :
 
 * `--parallel` : to increase the number of parallel execution *(default is 2)*
 
-After the tests are executed, the results are available as described in the [[report]] document:
+After the tests are executed, the results are available as described in the [report](../report.md) document:
 
 * A summary is printed to the command line output
 * `report/` — detailed test report (configurable with `--report-dir`)
