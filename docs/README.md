@@ -28,6 +28,6 @@ A self-sufficient test runner for UI5 applications enabling parallel execution o
 |[puppeteer](browsers/v6/puppeteer.md)|`chrome`, `firefox`|✔️|✔️|✔️|
 |[playwright](browsers/v6/playwright.md)|`chromium` *(firefox, webkit planned)*|✔️|✔️|✔️|
 |[webdriver.io](browsers/v6/webdriverio.md)|`chrome` *(firefox, edge, safari planned)*|✔️|✔️|✔️|
-|[selenium-webdriver](browsers/v6/selenium-webdriver.md)|`chrome` *(firefox, edge, safari planned)*|✔️|✔️|✔️|
+|[selenium-webdriver](browsers/v6/selenium_webdriver.md)|`chrome` *(firefox, edge, safari planned)*|✔️|✔️|✔️|
 
 * [V6 breaking changes](v6_breaking_changes.md)

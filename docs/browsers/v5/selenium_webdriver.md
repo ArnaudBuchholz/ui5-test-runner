@@ -12,7 +12,7 @@ relations:
     - v6
   see-also:
     - browsers/v5/browser
-    - browsers/v6/selenium-webdriver
+    - browsers/v6/selenium_webdriver
 ---
 # selenium-webdriver
 

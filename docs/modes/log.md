@@ -56,4 +56,4 @@ ui5-test-runner --log report/traces-20251030-215600.logz --log-dump --log-filter
 ## Constraints
 
 - `--log` cannot be combined with other mode options (e.g. `--url`, `--batch`, `--mcp`).
-- `--log-dump` and `--log-filter` require `--log`.
+- `--log-dump` requires `--log`; `--log-filter` requires both `--log` and `--log-dump`.

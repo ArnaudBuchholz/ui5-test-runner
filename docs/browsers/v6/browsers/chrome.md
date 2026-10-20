@@ -38,7 +38,7 @@ This is honored by **all drivers**, but only affects the Chrome/Chromium family:
 | [puppeteer](../puppeteer.md) | ✔️ only when the target browser is `chrome` |
 | [playwright](../playwright.md) | ✔️ always (Chromium) |
 | [webdriver.io](../webdriverio.md) | ✔️ into `goog:chromeOptions` |
-| [selenium-webdriver](../selenium-webdriver.md) | ✔️ into Chrome `Options` |
+| [selenium-webdriver](../selenium_webdriver.md) | ✔️ into Chrome `Options` |
 
 ## Per-run options — `--browser-options`
 

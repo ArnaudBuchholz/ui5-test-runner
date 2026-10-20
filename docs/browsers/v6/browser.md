@@ -19,7 +19,7 @@ relations:
     - browsers/v6/puppeteer
     - browsers/v6/playwright
     - browsers/v6/webdriverio
-    - browsers/v6/selenium-webdriver
+    - browsers/v6/selenium_webdriver
     - browsers/v6/browsers/chrome
 ---
 # Drivers and browsers
@@ -69,7 +69,7 @@ contract.
 | [puppeteer](puppeteer.md) | `chrome` | chrome + firefox wired |
 | [playwright](playwright.md) | `chromium` | chromium wired |
 | [webdriver.io](webdriverio.md) | `chrome` | chrome wired (BiDi) |
-| [selenium-webdriver](selenium-webdriver.md) | `chrome` | chrome wired (BiDi) |
+| [selenium-webdriver](selenium_webdriver.md) | `chrome` | chrome wired (BiDi) |
 
 Some drivers **declare** support for more browsers than they currently launch —
 each driver page marks which browsers are wired today versus planned.

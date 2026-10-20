@@ -149,7 +149,7 @@ When the run finishes, the report is available at `report/report.html` in your c
 ### Browsers
 
 - [Drivers and browsers](browsers/v6/browser.md) — how to select and configure an automation library
-- [Puppeteer](browsers/v6/puppeteer.md) · [Playwright](browsers/v6/playwright.md) · [Selenium WebDriver](browsers/v6/selenium-webdriver.md) · [WebdriverIO](browsers/v6/webdriverio.md)
+- [Puppeteer](browsers/v6/puppeteer.md) · [Playwright](browsers/v6/playwright.md) · [Selenium WebDriver](browsers/v6/selenium_webdriver.md) · [WebdriverIO](browsers/v6/webdriverio.md)
 
 ### Results and coverage
 

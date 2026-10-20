@@ -16,7 +16,7 @@ relations:
     - browsers/v6/browser
     - browsers/v5/puppeteer
     - browsers/v5/playwright
-    - browsers/v5/selenium-webdriver
+    - browsers/v5/selenium_webdriver
     - browsers/v5/webdriverio
     - browsers/v5/jsdom
 ---
@@ -31,7 +31,7 @@ relations:
     * chromium
     * firefox
     * webkit
-* [selenium-webdriver](selenium-webdriver.md)
+* [selenium-webdriver](selenium_webdriver.md)
       * chrome
       * firefox
       * edge

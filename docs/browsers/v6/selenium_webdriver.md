@@ -1,6 +1,6 @@
 ---
 "#type": concept
-title: selenium-webdriver driver
+title: Selenium WebDriver driver
 summary: The v6 Selenium WebDriver driver — an in-process automation library using WebDriver BiDi; Chrome is wired today, Firefox/Edge/Safari are declared but not yet launched
 keywords:
   - selenium-webdriver
