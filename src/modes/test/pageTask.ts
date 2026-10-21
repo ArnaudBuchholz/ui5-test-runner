@@ -97,12 +97,14 @@ const shouldUncaughtErrorsFail = (context: PageContext, errors: IError[]): boole
         pageId,
         error
       });
-      if (logMethod === 'error') {
-        if (firstError === undefined) {
-          firstError = error;
-        }
-        ++errorsCount;
+      if (logMethod !== 'error') {
+        continue;
       }
+
+      if (firstError === undefined) {
+        firstError = error;
+      }
+      ++errorsCount;
     }
   }
   if (errorsCount !== 0) {
