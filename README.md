@@ -19,22 +19,26 @@ A self-sufficient test runner for [UI5 applications](https://ui5.sap.com/) enabl
 
 ## 💿 How to install
 
-* Works with [Node.js](https://nodejs.org/en/download/) >= 24
+* Works with [Node.js](https://nodejs.org/en/download/) >= 24.11.1
 * Local installation
-  * `npm install --save-dev ui5-test-runner`
+  * `npm install --save-dev ui5-test-runner@6`
   * Trigger either with `npx ui5-test-runner` or through an npm script invoking `ui5-test-runner`
 * Global installation
-  * `npm install --global ui5-test-runner`
+  * `npm install --global ui5-test-runner@6`
   * Trigger with `ui5-test-runner`
 
 **NOTE** : additional packages might be needed during the execution (`puppeteer`, `selenium-webdriver`, `nyc`...) . If they are found installed **locally** in the tested project, they are used. Otherwise, they are installed **on demand**.
+
+## 🤖 AI-powered documentation
+
+Use `npx ui5-test-runner@6 --mcp` to start an MCP server exposing the latest indexed documentation to your AI client.
 
 ## 🧭 Links
 
 * 📚 [Documentation](https://github.com/ArnaudBuchholz/ui5-test-runner/tree/main/docs#-documentation)
 
-* ⚠️ [Breaking changes](docs/v6_breaking_changes.md)
+* ⚠️ [Breaking changes](https://github.com/ArnaudBuchholz/ui5-test-runner/blob/main/docs/v6_breaking_changes.md)
 
-* ✒ [Contributors]((https://github.com/ArnaudBuchholz/ui5-test-runner/graphs/contributors?all=1))
+* ✒ [Contributors](https://github.com/ArnaudBuchholz/ui5-test-runner/graphs/contributors?all=1)
 
 
