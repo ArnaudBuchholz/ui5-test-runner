@@ -29,7 +29,7 @@ The exact shape of the report is defined by the CTRF specification and mirrored 
 * [CTRF JSON schema](https://github.com/ctrf-io/ctrf/blob/main/schema/ctrf.schema.json)
 * [`CommonTestReportFormat.ts`](https://github.com/ArnaudBuchholz/ui5-test-runner/blob/main/src/types/CommonTestReportFormat.ts) — the project's TypeScript definition (always the latest version on `main`)
 
-The report is written to `report.json` inside the folder configured by [`--report-dir`](./options/reportDir.md). It is produced once, at the very end of the run, after every page has completed. The file is pretty-printed JSON; an HTML report and a JUnit XML report are generated alongside it in the same folder.
+The report is written once to `report.json` inside the folder configured by [`--report-dir`](./options/reportDir.md), at the very end of the run after every page has completed. The file is pretty-printed JSON; an HTML report and a JUnit XML report are generated alongside it in the same folder.
 
 ### HTML report
 

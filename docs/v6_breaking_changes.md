@@ -197,7 +197,7 @@ By default, a screenshot is always captured if a test fails within the page. It 
 
 ### Report generators
 
-The report-generator mechanism has been removed. The version 5 option — the `--report-generator` CLI flag (short `-rg`), equivalently the `reportGenerator` key in a configuration file — no longer exists in version 6. A project that sets `reportGenerator` (for instance in its `ui5-test-runner.json` or a custom `--config` file) must drop it as part of the migration; if post-processing of the report is still needed, use the end command (see [`--end`](./options/end.md)).
+The report-generator mechanism has been removed. The version 5 option — the `--report-generator` CLI flag (short `-rg`), equivalently the `reportGenerator` key in a configuration file — no longer exists in version 6. A project that sets `reportGenerator` must drop it. If post-processing of the report is still needed, use [`--end`](./options/end.md) instead: the end command runs after the test run completes and can post-process the report file.
 
 ### Report format
 

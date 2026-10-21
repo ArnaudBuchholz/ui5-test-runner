@@ -84,7 +84,7 @@ export const options = [
   {
     name: 'batchOutput',
     type: 'boolean',
-    description: 'print output.txt for every batch item after execution'
+    description: 'print output.txt for every batch item after execution, in alphabetical batch-id order'
   },
   {
     name: 'batchTimeout',

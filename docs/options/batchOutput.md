@@ -2,7 +2,7 @@
 "#type": option
 title: batchOutput
 type: boolean
-summary: print output.txt for every batch item after execution
+summary: print output.txt for every batch item after execution, in alphabetical batch-id order
 keywords:
   - batch
   - output
