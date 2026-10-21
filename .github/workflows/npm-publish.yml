@@ -43,7 +43,7 @@ jobs:
       with:
         node-version-file: .nvmrc
         cache: 'npm'
-    - run: npm install --prefix ./sr semantic-release@25 @semantic-release/changelog@6 @semantic-release/git@10 --no-save
+    - run: npm install --prefix ./sr semantic-release@25 --no-save
     - uses: actions/download-artifact@v7
       with:
         name: dist
