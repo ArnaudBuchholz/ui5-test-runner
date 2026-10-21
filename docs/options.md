@@ -88,6 +88,7 @@ relations:
 |[screenshot](options/screenshot.md)|--screenshot||boolean|take a screenshot after every OPA assertion|
 |[screenshotOnFailure](options/screenshotOnFailure.md)|--screenshot-on-failure||boolean|take a screenshot when a test fails|
 |[screenshotTimeout](options/screenshotTimeout.md)|--screenshot-timeout||timeout|maximum time allowed to take a screenshot|
+|[seleniumApiTimeout](options/seleniumApiTimeout.md)|--selenium-api-timeout||timeout|fails a page if a selenium webdriver api call does not respond within this timeout, indicating a dead session|
 |[serveOnly](options/serveOnly.md)|--serve-only|-s|boolean|start the legacy web server and serve the application without running any tests|
 |[splitOpa](options/splitOpa.md)|--split-opa|-so|boolean|split OPA tests by QUnit module, creating one test page per module|
 |[start](options/start.md)|--start||string|command to be executed before the tests|

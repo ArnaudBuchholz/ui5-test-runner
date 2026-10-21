@@ -11,6 +11,8 @@ relations:
   see-also:
     - options/driver
     - options/browser
+    - options/seleniumApiTimeout
+    - options/pageTimeout
     - browsers/v6/browser
     - browsers/v6/browsers/chrome
     - browser_selection
@@ -41,3 +43,30 @@ loaded in-process and drives the browser over the WebDriver protocol.
   see [Chrome / Chromium specifics](browsers/chrome.md).
 * Requires a matching browser driver binary installed locally; see the
   [selenium-webdriver installation notes](https://www.npmjs.com/package/selenium-webdriver#installation).
+
+## Session expiry detection
+
+Selenium Grid and containerised Selenium nodes have a server-side session timeout
+(`SE_NODE_SESSION_TIMEOUT`, default 300 s). When it fires, the browser closes
+silently. Because `eval` and `screenshot` calls go over plain HTTP with no
+built-in timeout, the runner would otherwise hang until the global timeout (which
+can be tens of minutes).
+
+To detect this quickly, every `eval` and `screenshot` call is raced against
+[`--selenium-api-timeout`](options/seleniumApiTimeout.md) (default 10 s). When a
+call does not respond in time, the affected page is immediately failed with:
+
+```
+Selenium WebDriver API call did not respond within Xms — the session may have expired
+```
+
+Because all pages share one Selenium session, every page running at the time
+will fail independently as each hits the same timeout.
+
+### Mitigations
+
+| Goal | Approach |
+|---|---|
+| Prevent expiry during a long test page | Increase `SE_NODE_SESSION_TIMEOUT` on the Grid / container beyond the expected page duration |
+| Fail pages before the session can expire | Set [`--page-timeout`](options/pageTimeout.md) shorter than `SE_NODE_SESSION_TIMEOUT` |
+| Reduce exposure | Split long OPA suites into smaller pages so each completes well within the session window |

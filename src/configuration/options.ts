@@ -454,6 +454,13 @@ export const options = [
     default: 5000
   },
   {
+    name: 'seleniumApiTimeout',
+    type: 'timeout',
+    description:
+      'fails a page if a selenium webdriver api call does not respond within this timeout, indicating a dead session',
+    default: 10_000
+  },
+  {
     name: 'serveOnly',
     short: 's',
     type: 'boolean',
@@ -544,6 +551,7 @@ export const defaults = {
   reportDir: 'report',
   screenshotOnFailure: true,
   screenshotTimeout: 5000,
+  seleniumApiTimeout: 10_000,
   startTimeout: 30_000,
   startWaitMethod: 'GET',
   testsuite: 'test/testsuite.qunit.html',

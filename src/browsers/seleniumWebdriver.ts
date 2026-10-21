@@ -13,6 +13,7 @@ import type getBrowsingContextInstance from 'selenium-webdriver/bidi/browsingCon
 import type getScriptManagerInstance from 'selenium-webdriver/bidi/scriptManager';
 import type CreateContextParameters from 'selenium-webdriver/bidi/createContextParameters';
 import type { Header } from 'selenium-webdriver/bidi/networkTypes';
+import { RecoverableBrowserError } from './RecoverableBrowserError.js';
 
 export const descriptor: BrowserDriverDescriptor = {
   supportedBrowsers: ['chrome', 'firefox', 'edge', 'safari'],
@@ -31,6 +32,26 @@ type NetworkFactory = (driver: ThenableWebDriver) => Promise<{
 
 const headersToObject = (headers: Header[]): Record<string, string> =>
   Object.fromEntries(headers.map(({ name, value }) => [name.toLowerCase(), value.value ?? '']));
+
+const withApiTimeout = async <T>(ms: number, promise: Promise<T>): Promise<T> => {
+  let timer: ReturnType<typeof setTimeout>;
+  const timeout = new Promise<never>((_, reject) => {
+    timer = setTimeout(
+      () =>
+        reject(
+          new RecoverableBrowserError(
+            `Selenium WebDriver API call did not respond within ${ms}ms — the session may have expired`
+          )
+        ),
+      ms
+    );
+  });
+  try {
+    return await Promise.race([promise, timeout]);
+  } finally {
+    clearTimeout(timer!);
+  }
+};
 
 export const factory = async (configuration: Configuration): Promise<IBrowser> => {
   const selenium = await Npm.import(configuration, 'selenium-webdriver');
@@ -150,15 +171,26 @@ export const factory = async (configuration: Configuration): Promise<IBrowser> =
         await bc.navigate(url, 'interactive');
       }
 
+      const { seleniumApiTimeout } = configuration;
       return {
         async eval(script: string) {
-          await driver!.switchTo().window(context);
-          return driver!.executeScript<unknown>(`return (${script})`);
+          return withApiTimeout(
+            seleniumApiTimeout,
+            (async () => {
+              await driver!.switchTo().window(context);
+              return driver!.executeScript<unknown>(`return (${script})`);
+            })()
+          );
         },
         async screenshot(path: string) {
-          await driver!.switchTo().window(context);
-          const data = await driver!.takeScreenshot();
-          await writeFile(path, Buffer.from(data, 'base64'));
+          await withApiTimeout(
+            seleniumApiTimeout,
+            (async () => {
+              await driver!.switchTo().window(context);
+              const data = await driver!.takeScreenshot();
+              await writeFile(path, Buffer.from(data, 'base64'));
+            })()
+          );
         },
         async close() {
           contextToPageId.delete(context);
