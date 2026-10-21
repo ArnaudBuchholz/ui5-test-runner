@@ -89,9 +89,7 @@ it('forwards ignoreDefaultArgs array from browserOptions to launch', async () =>
   const instance = await factory(NO_CONFIGURATION, ABORT_SIGNAL);
   await instance.setup({ options: { ignoreDefaultArgs: ['--enable-automation'] } });
 
-  expect(chromium.launch).toHaveBeenCalledWith(
-    expect.objectContaining({ ignoreDefaultArgs: ['--enable-automation'] })
-  );
+  expect(chromium.launch).toHaveBeenCalledWith(expect.objectContaining({ ignoreDefaultArgs: ['--enable-automation'] }));
 });
 
 it('omits ignoreDefaultArgs from launch when not set in browserOptions', async () => {
@@ -103,7 +101,9 @@ it('omits ignoreDefaultArgs from launch when not set in browserOptions', async (
   const instance = await factory(NO_CONFIGURATION, ABORT_SIGNAL);
   await instance.setup({});
 
-  expect(chromium.launch).toHaveBeenCalledWith(expect.not.objectContaining({ ignoreDefaultArgs: expect.anything() }));
+  expect(chromium.launch).toHaveBeenCalledWith(
+    expect.not.objectContaining({ ignoreDefaultArgs: expect.anything() as unknown })
+  );
 });
 
 it('forwards args from browserOptions to launch', async () => {
@@ -116,6 +116,6 @@ it('forwards args from browserOptions to launch', async () => {
   await instance.setup({ options: { args: ['--no-sandbox'] } });
 
   expect(chromium.launch).toHaveBeenCalledWith(
-    expect.objectContaining({ args: expect.arrayContaining(['--no-sandbox']) })
+    expect.objectContaining({ args: expect.arrayContaining(['--no-sandbox']) as string[] })
   );
 });
