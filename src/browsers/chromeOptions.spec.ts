@@ -1,6 +1,6 @@
 import { it, expect, beforeEach } from 'vitest';
 import { Host } from '../platform/index.js';
-import { buildChromeLaunchOptions } from './chromeOptions.js';
+import { buildChromeLaunchOptions, DEFAULT_CHROME_ARGS } from './chromeOptions.js';
 
 const ENV_KEY = 'UI5TR_CHROME_ARGS';
 
@@ -8,19 +8,19 @@ beforeEach(() => {
   delete (Host.env as Record<string, string | undefined>)[ENV_KEY];
 });
 
-it('returns empty args and no ignoreDefaultArgs when options is undefined', () => {
-  expect(buildChromeLaunchOptions(undefined)).toEqual({ args: [] });
+it('includes default background-throttling flags when options is undefined', () => {
+  expect(buildChromeLaunchOptions(undefined)).toEqual({ args: DEFAULT_CHROME_ARGS });
 });
 
-it('includes extraArgs before user args and env args', () => {
+it('places default flags before extra, user, and env args', () => {
   (Host.env as Record<string, string | undefined>)[ENV_KEY] = '--env-flag';
   const result = buildChromeLaunchOptions({ args: ['--user-flag'] }, ['--extra']);
-  expect(result.args).toEqual(['--extra', '--user-flag', '--env-flag']);
+  expect(result.args).toEqual([...DEFAULT_CHROME_ARGS, '--extra', '--user-flag', '--env-flag']);
 });
 
 it('filters non-string values from args', () => {
   const result = buildChromeLaunchOptions({ args: ['--valid', 42, null, '--also-valid'] });
-  expect(result.args).toEqual(['--valid', '--also-valid']);
+  expect(result.args).toEqual([...DEFAULT_CHROME_ARGS, '--valid', '--also-valid']);
 });
 
 it('sets ignoreDefaultArgs to true when given true', () => {
@@ -41,5 +41,5 @@ it('omits ignoreDefaultArgs when not set in options', () => {
 it('excludes env args when includeEnvArgs is false', () => {
   (Host.env as Record<string, string | undefined>)[ENV_KEY] = '--env-flag';
   const result = buildChromeLaunchOptions({ args: ['--user-flag'] }, [], false);
-  expect(result.args).toEqual(['--user-flag']);
+  expect(result.args).toEqual([...DEFAULT_CHROME_ARGS, '--user-flag']);
 });

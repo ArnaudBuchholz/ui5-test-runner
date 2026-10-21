@@ -4,7 +4,7 @@ import { Npm } from '../Npm.js';
 import type { Configuration } from '../configuration/Configuration.js';
 import { handleConsoleMessage } from './consoleMessage.js';
 import { handleNetworkResponse } from './networkResponse.js';
-import { getExtraChromeArguments } from './chromeArguments.js';
+import { buildChromeLaunchOptions } from './chromeOptions.js';
 
 export const descriptor: BrowserDriverDescriptor = {
   supportedBrowsers: ['chrome', 'firefox', 'edge', 'safari'],
@@ -51,14 +51,11 @@ export const factory = async (configuration: Configuration): Promise<IBrowser> =
         capabilities: {
           browserName: 'chrome',
           webSocketUrl: true,
-          'goog:chromeOptions': {
-            args: [
-              ...(settings.visible ? [] : ['--headless']),
-              '--start-maximized',
-              ...(settings.viewport ? [`--window-size=${settings.viewport.width},${settings.viewport.height}`] : []),
-              ...getExtraChromeArguments()
-            ]
-          }
+          'goog:chromeOptions': buildChromeLaunchOptions(settings.options, [
+            ...(settings.visible ? [] : ['--headless']),
+            '--start-maximized',
+            ...(settings.viewport ? [`--window-size=${settings.viewport.width},${settings.viewport.height}`] : [])
+          ])
         }
       });
       browser.on('log.entryAdded', (entry) => {

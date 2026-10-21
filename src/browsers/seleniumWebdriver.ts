@@ -4,7 +4,7 @@ import { Npm } from '../Npm.js';
 import type { Configuration } from '../configuration/Configuration.js';
 import { handleConsoleMessage } from './consoleMessage.js';
 import { handleNetworkResponse } from './networkResponse.js';
-import { getExtraChromeArguments } from './chromeArguments.js';
+import { buildChromeLaunchOptions } from './chromeOptions.js';
 import { writeFile } from 'node:fs/promises';
 import type { Builder, ThenableWebDriver } from 'selenium-webdriver';
 import type { Options } from 'selenium-webdriver/chrome';
@@ -93,14 +93,12 @@ export const factory = async (configuration: Configuration): Promise<IBrowser> =
     async setup(settings: BrowserSettings): Promise<BrowserCapabilities> {
       logger.debug({ source: 'selenium-webdriver', message: 'launching browser' });
       const options = new ChromeOptions();
-      if (!settings.visible) {
-        options.addArguments('--headless');
-      }
-      options.addArguments('--start-maximized');
-      if (settings.viewport) {
-        options.addArguments(`--window-size=${settings.viewport.width},${settings.viewport.height}`);
-      }
-      options.addArguments(...getExtraChromeArguments());
+      const { args } = buildChromeLaunchOptions(settings.options, [
+        ...(settings.visible ? [] : ['--headless']),
+        '--start-maximized',
+        ...(settings.viewport ? [`--window-size=${settings.viewport.width},${settings.viewport.height}`] : [])
+      ]);
+      options.addArguments(...args);
       options.enableBidi();
 
       driver = new SeleniumBuilder().forBrowser(Browser.CHROME).setChromeOptions(options).build();

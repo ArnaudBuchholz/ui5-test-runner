@@ -112,7 +112,7 @@ describe('setup', () => {
     const { options } = setupMocks();
     const browser = await factory(NO_CONFIGURATION);
     await browser.setup({ viewport: { width: 1280, height: 720 }, visible: false });
-    expect(options.addArguments).toHaveBeenCalledWith('--window-size=1280,720');
+    expect(options.addArguments.mock.calls[0]).toContain('--window-size=1280,720');
   });
 
   it('does not add --window-size argument when settings.viewport is not set', async () => {

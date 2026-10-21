@@ -1,6 +1,12 @@
 import type { BrowserSettings } from './IBrowser.js';
 import { getExtraChromeArguments } from './chromeArguments.js';
 
+export const DEFAULT_CHROME_ARGS = [
+  '--disable-background-timer-throttling',
+  '--disable-backgrounding-occluded-windows',
+  '--disable-renderer-backgrounding'
+] as const;
+
 export const buildChromeLaunchOptions = (
   options: BrowserSettings['options'],
   extraArguments: string[] = [],
@@ -21,6 +27,7 @@ export const buildChromeLaunchOptions = (
   }
   return {
     args: [
+      ...DEFAULT_CHROME_ARGS,
       ...extraArguments,
       ...userArguments,
       ...(shouldIncludeEnvironmentArguments ? getExtraChromeArguments() : [])
