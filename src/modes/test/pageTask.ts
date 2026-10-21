@@ -59,7 +59,7 @@ const reportQunitProgress = (
   });
 };
 
-export const reportError = (url: string, message: string) => {
+export const reportError = (url: string, message: string, error?: IError) => {
   const result = createEmptyTestResults();
   result.summary.tests = 1;
   result.summary.failed = 1;
@@ -67,6 +67,7 @@ export const reportError = (url: string, message: string) => {
     name: url,
     status: 'failed',
     message: `${message}, check the logs`,
+    trace: error?.stack,
     duration: 0
   });
   getReportBuilder().merge(url, result);
@@ -75,6 +76,7 @@ export const reportError = (url: string, message: string) => {
 const shouldUncaughtErrorsFail = (context: PageContext, errors: IError[]): boolean => {
   const { lastUncaughtErrorsCount, pageId } = context;
   let errorsCount = 0;
+  let firstError: IError | undefined;
   if (lastUncaughtErrorsCount < errors.length) {
     let index = lastUncaughtErrorsCount;
     context.lastUncaughtErrorsCount = errors.length;
@@ -96,12 +98,16 @@ const shouldUncaughtErrorsFail = (context: PageContext, errors: IError[]): boole
         error
       });
       if (logMethod === 'error') {
+        if (firstError === undefined) {
+          firstError = error;
+        }
         ++errorsCount;
       }
     }
   }
   if (errorsCount !== 0) {
-    reportError(context.url, `Uncaught error(s): ${errorsCount}`);
+    const errorDetail = `${firstError!.name}: ${firstError!.message}`;
+    reportError(context.url, `Uncaught error(s): ${errorsCount} (first: ${errorDetail})`, firstError);
     return true;
   }
   return false;
