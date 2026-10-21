@@ -5,7 +5,7 @@ import { Npm } from '../Npm.js';
 import type { Configuration } from '../configuration/Configuration.js';
 import { handleConsoleMessage } from './consoleMessage.js';
 import { handleNetworkResponse } from './networkResponse.js';
-import { getExtraChromeArguments } from './chromeArguments.js';
+import { buildChromeLaunchOptions } from './chromeOptions.js';
 
 export const descriptor: BrowserDriverDescriptor = {
   supportedBrowsers: ['chromium', 'firefox', 'webkit'],
@@ -21,13 +21,14 @@ export const factory = async (configuration: Configuration, signal: AbortSignal)
   let isFirstWindow = true;
 
   const launchAndInstallIfNeeded = async (settings: BrowserSettings): Promise<BrowserCapabilities> => {
+    const launchOptions = {
+      headless: !settings.visible,
+      handleSIGINT: false,
+      ...buildChromeLaunchOptions(settings.options)
+    };
     logger.debug({ source: 'playwright', message: 'launching browser' });
     try {
-      browser = await chromium.launch({
-        headless: !settings.visible,
-        handleSIGINT: false,
-        args: getExtraChromeArguments()
-      });
+      browser = await chromium.launch(launchOptions);
     } catch (error) {
       if (error instanceof Error && error.message.includes('Executable doesn')) {
         logger.info({
@@ -43,11 +44,7 @@ export const factory = async (configuration: Configuration, signal: AbortSignal)
           shell: true,
           signal
         }).closed;
-        browser = await chromium.launch({
-          headless: !settings.visible,
-          handleSIGINT: false,
-          args: getExtraChromeArguments()
-        });
+        browser = await chromium.launch(launchOptions);
       } else {
         throw error;
       }

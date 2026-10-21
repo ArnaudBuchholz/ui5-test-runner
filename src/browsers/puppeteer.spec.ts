@@ -97,3 +97,41 @@ it('rejects an unknown device name and lists the available devices', async () =>
   );
   expect(page.goto).not.toHaveBeenCalled();
 });
+
+it('forwards ignoreDefaultArgs: true from browserOptions to launch', async () => {
+  const page = makePage();
+  const browser = makeBrowser(page);
+  const launch = vi.fn().mockResolvedValue(browser);
+  npmImportSpy.mockResolvedValue({ launch });
+
+  const instance = await factory(NO_CONFIGURATION, ABORT_SIGNAL);
+  await instance.setup({ options: { ignoreDefaultArgs: true } });
+
+  expect(launch).toHaveBeenCalledWith(expect.objectContaining({ ignoreDefaultArgs: true }));
+});
+
+it('forwards ignoreDefaultArgs array from browserOptions to launch', async () => {
+  const page = makePage();
+  const browser = makeBrowser(page);
+  const launch = vi.fn().mockResolvedValue(browser);
+  npmImportSpy.mockResolvedValue({ launch });
+
+  const instance = await factory(NO_CONFIGURATION, ABORT_SIGNAL);
+  await instance.setup({ options: { ignoreDefaultArgs: ['--enable-automation'] } });
+
+  expect(launch).toHaveBeenCalledWith(
+    expect.objectContaining({ ignoreDefaultArgs: ['--enable-automation'] })
+  );
+});
+
+it('omits ignoreDefaultArgs from launch when not set in browserOptions', async () => {
+  const page = makePage();
+  const browser = makeBrowser(page);
+  const launch = vi.fn().mockResolvedValue(browser);
+  npmImportSpy.mockResolvedValue({ launch });
+
+  const instance = await factory(NO_CONFIGURATION, ABORT_SIGNAL);
+  await instance.setup({});
+
+  expect(launch).toHaveBeenCalledWith(expect.not.objectContaining({ ignoreDefaultArgs: expect.anything() }));
+});

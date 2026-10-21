@@ -67,3 +67,55 @@ it('rethrows when launch throws an error unrelated to missing executable', async
   await expect(instance.setup({})).rejects.toThrow('some other error');
   expect(Process.spawn).not.toHaveBeenCalled();
 });
+
+it('forwards ignoreDefaultArgs: true from browserOptions to launch', async () => {
+  const context = makeContext();
+  const browser = makeBrowser(context);
+  const chromium = { launch: vi.fn().mockResolvedValue(browser) };
+  npmImportSpy.mockResolvedValue({ chromium });
+
+  const instance = await factory(NO_CONFIGURATION, ABORT_SIGNAL);
+  await instance.setup({ options: { ignoreDefaultArgs: true } });
+
+  expect(chromium.launch).toHaveBeenCalledWith(expect.objectContaining({ ignoreDefaultArgs: true }));
+});
+
+it('forwards ignoreDefaultArgs array from browserOptions to launch', async () => {
+  const context = makeContext();
+  const browser = makeBrowser(context);
+  const chromium = { launch: vi.fn().mockResolvedValue(browser) };
+  npmImportSpy.mockResolvedValue({ chromium });
+
+  const instance = await factory(NO_CONFIGURATION, ABORT_SIGNAL);
+  await instance.setup({ options: { ignoreDefaultArgs: ['--enable-automation'] } });
+
+  expect(chromium.launch).toHaveBeenCalledWith(
+    expect.objectContaining({ ignoreDefaultArgs: ['--enable-automation'] })
+  );
+});
+
+it('omits ignoreDefaultArgs from launch when not set in browserOptions', async () => {
+  const context = makeContext();
+  const browser = makeBrowser(context);
+  const chromium = { launch: vi.fn().mockResolvedValue(browser) };
+  npmImportSpy.mockResolvedValue({ chromium });
+
+  const instance = await factory(NO_CONFIGURATION, ABORT_SIGNAL);
+  await instance.setup({});
+
+  expect(chromium.launch).toHaveBeenCalledWith(expect.not.objectContaining({ ignoreDefaultArgs: expect.anything() }));
+});
+
+it('forwards args from browserOptions to launch', async () => {
+  const context = makeContext();
+  const browser = makeBrowser(context);
+  const chromium = { launch: vi.fn().mockResolvedValue(browser) };
+  npmImportSpy.mockResolvedValue({ chromium });
+
+  const instance = await factory(NO_CONFIGURATION, ABORT_SIGNAL);
+  await instance.setup({ options: { args: ['--no-sandbox'] } });
+
+  expect(chromium.launch).toHaveBeenCalledWith(
+    expect.objectContaining({ args: expect.arrayContaining(['--no-sandbox']) })
+  );
+});

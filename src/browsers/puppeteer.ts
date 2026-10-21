@@ -5,7 +5,7 @@ import { Npm } from '../Npm.js';
 import type { Configuration } from '../configuration/Configuration.js';
 import { handleConsoleMessage } from './consoleMessage.js';
 import { handleNetworkResponse } from './networkResponse.js';
-import { getExtraChromeArguments } from './chromeArguments.js';
+import { buildChromeLaunchOptions } from './chromeOptions.js';
 import { RecoverableBrowserError } from './RecoverableBrowserError.js';
 
 export const descriptor: BrowserDriverDescriptor = {
@@ -27,17 +27,14 @@ export const factory = async (configuration: Configuration, signal: AbortSignal)
     const arguments_ = [
       settings.viewport ? `--window-size=${settings.viewport.width},${settings.viewport.height}` : '--start-maximized'
     ];
-    const rawArguments = settings.options?.['args'];
-    const extraArguments = Array.isArray(rawArguments)
-      ? rawArguments.filter((a): a is string => typeof a === 'string')
-      : [];
+    const chromeLaunchOptions = buildChromeLaunchOptions(settings.options, arguments_, target === 'chrome');
     const launchOptions: Parameters<typeof launch>[0] = {
       browser: target as 'chrome' | 'firefox',
       headless: !settings.visible,
       defaultViewport: null,
       handleSIGINT: false,
       signal,
-      args: [...arguments_, ...extraArguments, ...(target === 'chrome' ? getExtraChromeArguments() : [])]
+      ...chromeLaunchOptions
     };
     logger.debug({ source: 'puppeteer', message: 'launching browser' });
     try {
