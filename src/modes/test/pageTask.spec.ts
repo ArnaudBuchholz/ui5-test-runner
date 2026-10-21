@@ -335,12 +335,14 @@ describe('makePageTask', () => {
     ]);
     await runTask();
     expect(logger.error).toHaveBeenCalledWith(expect.objectContaining({ message: 'uncaught error' }));
+    const expectedTest = expect.objectContaining({
+      message: expect.stringContaining('Error: boom') as string,
+      trace: 'at /app/test.js'
+    }) as object;
     expect(builder.merge).toHaveBeenCalledWith(
       PAGE_URL,
       expect.objectContaining({
-        tests: expect.arrayContaining([
-          expect.objectContaining({ message: expect.stringContaining('Error: boom'), trace: 'at /app/test.js' })
-        ])
+        tests: expect.arrayContaining([expectedTest]) as object[]
       })
     );
   });
