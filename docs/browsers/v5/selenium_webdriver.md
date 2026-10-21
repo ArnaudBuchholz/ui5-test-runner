@@ -68,3 +68,5 @@ docker run -d -p 4444:4444 --add-host myhost:host-gateway --name selenium-chrome
 ```bash
 ui5-test-runner --localhost myhost --browser $/selenium-webdriver.js --browser chrome -s http://localhost:4444/wd/hub
 ```
+
+> ⓘ This example uses the v5 command-line syntax, including the `--localhost` option, which was removed in v6. See the [v6 selenium-webdriver driver](../v6/selenium_webdriver.md) for the current syntax.

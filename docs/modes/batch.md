@@ -41,9 +41,7 @@ See [`--batch`](../options/batch.md) for anchoring rules and the full regex synt
 
 ## Execution
 
-The batch mode implies the parallel execution of **multiple batch items**.
-
-> ⚠️ Assuming the defaut value for `--parallel` is 2, it means that 2 batch items are executed in parallel which, themselves, execute 2 test pages in parallel. That makes a **total of 4 browsers** executed in parallel.
+The batch mode implies the parallel execution of **multiple batch items**, each of which itself runs its test pages in parallel (see the resource warning above).
 
 Each individual item execution generates its own report information (including coverage). Also, the main output is slightly different.
 

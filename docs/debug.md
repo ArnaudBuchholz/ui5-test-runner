@@ -74,6 +74,20 @@ Zero-percent files, missing files, or an aggregate that seems off are usually
 explained by how instrumentation works — see [Coverage extraction](./coverage.md)
 for the forced overrides and the remote-coverage cases.
 
+## Environment variables
+
+A couple of environment variables adjust the runner's behaviour independently of
+any option:
+
+- `NO_COLOR` — when set to any value, disables ANSI colors in the interactive
+  output. Useful when capturing logs to a file or in a terminal that renders
+  escape codes poorly. This follows the [`NO_COLOR`](https://no-color.org/)
+  convention.
+- `NO_WORKERS` — when set to any value, runs the workers as in-process fibers
+  instead of real worker threads. This serializes execution onto the main thread,
+  which makes traces and breakpoints easier to follow when debugging the runner
+  itself.
+
 ## Using the troubleshooting workflow
 
 When driving the tool through Claude Code, the `troubleshooting` skill automates

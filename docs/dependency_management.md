@@ -49,7 +49,7 @@ The `--npmInstall` option controls where the runner installs missing packages:
 |---|---|---|
 | `global` *(default)* | `npm install -g <pkg>` | Shared across projects on the same machine |
 | `local` | `npm install --no-save <pkg>` | Installed into the project's `node_modules` without touching `package.json` |
-| `prefix` | `npm install --prefix <path> <pkg>` | Installed into a specific directory set by [`--npmInstallPrefix`](./options/npmInstallPrefix.md) — useful for isolated environments or shared caches across projects |
+| `prefix` | `npm install --prefix <path> --no-save <pkg>` | Installed into a specific directory set by [`--npmInstallPrefix`](./options/npmInstallPrefix.md) — useful for isolated environments or shared caches across projects |
 
 ### Package lookup order
 

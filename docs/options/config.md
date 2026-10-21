@@ -54,6 +54,8 @@ Options that accept multiple values (e.g. `--lib`) can be a single string or an 
 }
 ```
 
+A configuration file may itself set `config` to point at another file, letting configurations build on a shared base. These references are resolved recursively, up to a nesting depth of 10; a deeper chain fails with a nesting-depth error.
+
 ## Example
 
 ```bash

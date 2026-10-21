@@ -4,6 +4,9 @@ title: watch
 type: boolean
 summary: watch for file changes and automatically reload
 keywords:
+  - watch
+  - reload
+  - file-changes
   - mcp
 validation:
   - message: "this option is valid only for --mcp with --debug-mcp-local-docs"

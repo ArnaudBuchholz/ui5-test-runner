@@ -295,7 +295,7 @@ export const options = [
   {
     name: 'help',
     type: 'boolean',
-    description: 'display help'
+    description: 'display the list of available options and exit'
   },
   {
     name: 'if',
@@ -313,7 +313,7 @@ export const options = [
     type: 'library-mapping',
     multiple: true,
     description:
-      'Maps a UI5 resources sub-folder to a local source folder, used in legacy mode to serve custom libraries'
+      'map a UI5 resources sub-folder to a local source folder, used in legacy mode to serve custom libraries'
   },
   {
     name: 'llm',
@@ -341,7 +341,7 @@ export const options = [
   {
     name: 'mcp',
     type: 'boolean',
-    description: 'start an MCP server to pilot ui5-test-runner with an MCP client'
+    description: 'start a documentation-only MCP server that lets an MCP client answer questions about ui5-test-runner'
   },
   {
     name: 'noBanner',

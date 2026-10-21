@@ -63,15 +63,15 @@ relations:
 |[failFast](options/failFast.md)|--fail-fast|-f|boolean|stop the whole execution after the first failing page|
 |[failOpaFast](options/failOpaFast.md)|--fail-opa-fast|-fo|boolean|stop the OPA page execution after the first failing test|
 |[globalTimeout](options/globalTimeout.md)|--global-timeout|-t|timeout|limit the tests execution time, fail remaining pages if it takes longer than the timeout|
-|[help](options/help.md)|--help||boolean|display help|
+|[help](options/help.md)|--help||boolean|display the list of available options and exit|
 |[if](options/if.md)|--if||string|skip execution if the expression evaluates to falsy|
 |[junitXmlFilename](options/junitXmlFilename.md)|--junit-xml-filename||string|filename for the JUnit XML report saved in the report directory|
-|[lib](options/lib.md)|--lib||library-mapping|Maps a UI5 resources sub-folder to a local source folder, used in legacy mode to serve custom libraries|
+|[lib](options/lib.md)|--lib||library-mapping|map a UI5 resources sub-folder to a local source folder, used in legacy mode to serve custom libraries|
 |[llm](options/llm.md)|--llm||boolean|forces LLM-friendly output (compact, no color, severity-tagged)|
 |[log](options/log.md)|--log||fs-entry|path to a .logz trace file produced by a previous run; activates log viewer mode|
 |[logDump](options/logDump.md)|--log-dump||boolean|dump all traces to stdout instead of opening a browser (requires --log)|
 |[logFilter](options/logFilter.md)|--log-filter|-lf|string|JavaScript expression (using punyexpr) to filter logs for dumping with --log-dump|
-|[mcp](options/mcp.md)|--mcp||boolean|start an MCP server to pilot ui5-test-runner with an MCP client|
+|[mcp](options/mcp.md)|--mcp||boolean|start a documentation-only MCP server that lets an MCP client answer questions about ui5-test-runner|
 |[noBanner](options/noBanner.md)|--no-banner||boolean|do not display the startup banner (logo) and environment information|
 |[noNpmInstall](options/noNpmInstall.md)|--no-npm-install||boolean|prevent any NPM install|
 |[npmAllowInstallScripts](options/npmAllowInstallScripts.md)|--npm-allow-install-scripts||boolean|allow postinstall scripts when installing missing packages|

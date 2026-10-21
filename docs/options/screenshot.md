@@ -6,6 +6,9 @@ summary: take a screenshot after every OPA assertion
 browserExposed: yes
 batchForwarded: yes
 keywords:
+  - screenshot
+  - opa
+  - assertion
   - agent
 relations:
   affects:

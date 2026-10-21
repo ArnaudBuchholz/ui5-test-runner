@@ -2,7 +2,7 @@
 "#type": option
 title: help
 type: boolean
-summary: display help
+summary: display the list of available options and exit
 keywords:
   - help
   - usage

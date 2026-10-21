@@ -85,7 +85,7 @@ relations:
 * Open `report/output.txt`, it summarizes the tests execution
 * Open `report/report.html` in the browser, it details the tests execution
 
-> ⓘ The runner logs everything: the `report/` contains a log file (extension `.log.gz`) which can be viewed using `ui5-test-runner --log <the log file path>.
+> ⓘ The runner logs everything: the `report/` contains a log file (extension `.logz`) which can be viewed using `ui5-test-runner --log <the log file path>.
 
 ### "Faster" testing
 

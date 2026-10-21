@@ -53,7 +53,7 @@ built-in timeout, the runner would otherwise hang until the global timeout (whic
 can be tens of minutes).
 
 To detect this quickly, every `eval` and `screenshot` call is raced against
-[`--selenium-api-timeout`](options/seleniumApiTimeout.md) (default 10 s). When a
+[`--selenium-api-timeout`](../../options/seleniumApiTimeout.md) (default 10 s). When a
 call does not respond in time, the affected page is immediately failed with:
 
 ```
@@ -68,5 +68,5 @@ will fail independently as each hits the same timeout.
 | Goal | Approach |
 |---|---|
 | Prevent expiry during a long test page | Increase `SE_NODE_SESSION_TIMEOUT` on the Grid / container beyond the expected page duration |
-| Fail pages before the session can expire | Set [`--page-timeout`](options/pageTimeout.md) shorter than `SE_NODE_SESSION_TIMEOUT` |
+| Fail pages before the session can expire | Set [`--page-timeout`](../../options/pageTimeout.md) shorter than `SE_NODE_SESSION_TIMEOUT` |
 | Reduce exposure | Split long OPA suites into smaller pages so each completes well within the session window |

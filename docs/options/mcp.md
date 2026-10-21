@@ -2,7 +2,7 @@
 "#type": option
 title: mcp
 type: boolean
-summary: start an MCP server to pilot ui5-test-runner with an MCP client
+summary: start a documentation-only MCP server that lets an MCP client answer questions about ui5-test-runner
 keywords:
   - ai
   - agent
@@ -13,7 +13,7 @@ validation:
 ---
 # `--mcp`
 
-start an MCP server to pilot ui5-test-runner with an MCP client
+start a documentation-only MCP server that lets an MCP client answer questions about ui5-test-runner
 
 ## Overview
 
@@ -25,7 +25,7 @@ start an MCP server to pilot ui5-test-runner with an MCP client
 
 ## Details
 
-Starts the runner in MCP server mode, exposing tools that an MCP-compatible AI client (such as Claude) can call to run and inspect tests. Cannot be combined with other mode options.
+Starts the runner in MCP server mode, exposing its documentation to an MCP-compatible AI client (such as Claude) so it can answer questions about the tool. The server is **documentation-only**: it exposes two tools — `list_topics` (a catalog of documentation entities) and `get_topic` (the markdown for one entity) — and does **not** drive, monitor, or cancel test runs. Cannot be combined with other mode options.
 
 ## Example
 
