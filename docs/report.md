@@ -139,7 +139,7 @@ The possible `message` values are:
 | URL fetch failed before opening browser | `An error occurred while fetching the URL, check the logs` |
 | Page timed out | `page timed out, check the logs` |
 | Global timeout reached before page started | `Global timeout reached, check the logs` |
-| Uncaught error(s) in page | `Uncaught error(s): N, check the logs` |
+| Uncaught error(s) in page | `Uncaught error(s): N (first: <Name>: <message>), check the logs` (the first error's stack is attached as `trace`) |
 | Unexpected error in runner | `An unexpected error occurred, check the logs` |
 | URL never dispatched (process interrupted) | `not executed (process was interrupted), check the logs` |
 | Batch item never dispatched (process interrupted) | `batch item not executed (process was interrupted)` |

@@ -1,0 +1,9 @@
+[user]
+question="""
+My UI5 tests started failing after upgrading to version 6, and the report shows an "Uncaught error(s)" failure for a page even though the page's own tests all passed. Why does an uncaught error fail the test now, and are there any uncaught errors that do not fail it?
+"""
+
+[expected]
+fails = "it should explain that in version 6 an uncaught error on a test page fails that page's tests (a synthesized failed entry named after the page URL)"
+reasoning = "it should give the reason: an uncaught error means the test page or the production code it exercises is misbehaving, so failing surfaces the problem early instead of letting a broken page report as passing"
+exception = "it should mention the exception that the QUnit 'Called start() outside of a test context too many times' error (raised from QUnit's own source) is treated as expected and does not fail the test"
