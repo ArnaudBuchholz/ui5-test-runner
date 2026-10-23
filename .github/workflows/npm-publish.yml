@@ -2,6 +2,11 @@ name: NPM Publish
 
 on:
   workflow_dispatch:
+    inputs:
+      dry_run:
+        description: 'Dry run: preview the next version and release notes without publishing'
+        type: boolean
+        default: false
 
 permissions:
   actions: read
@@ -52,7 +57,7 @@ jobs:
           mv package.json package0.json
           jq 'del(.scripts,.devDependencies)' package0.json > package.json
           rm package0.json
-          npx --prefix ./sr --no semantic-release
+          npx --prefix ./sr --no semantic-release ${{ inputs.dry_run == 'true' && '--dry-run' || '' }}
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         npm_config_package_lock: false
