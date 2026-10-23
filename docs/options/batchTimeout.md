@@ -30,6 +30,8 @@ Fails a batch item if it takes longer than this timeout.
 
 When set, any batch item that exceeds this duration is forcibly terminated and marked as failed. Without this option, batch items can run indefinitely.
 
+When `--global-timeout` is also set, the effective batch-item timeout is capped to the time remaining in the global budget — see [`--global-timeout`](./globalTimeout.md) for how this clamping works.
+
 ## Example
 
 ```bash

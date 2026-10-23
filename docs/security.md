@@ -49,7 +49,19 @@ drivers, browser binaries, and coverage tooling it needs. By default it can
 can pull a freshly published (potentially compromised) version.
 
 The safer, reproducible setup is to pre-install your own pinned dependencies and
-disable runtime installation. The mitigations — `--npm-install-min-release-age`,
-the default `--ignore-scripts`, and `--no-npm-install` — are described in
-[dependency management](./dependency_management.md); that page is the canonical
-reference for this topic.
+disable runtime installation. Two built-in mitigations reduce the risk of the
+default auto-install behaviour:
+
+* **`--npm-install-min-release-age`** (config key `npmInstallMinReleaseAge`,
+  default **3 days**) — refuses to install packages published fewer than N days
+  ago, making freshly-injected malicious packages less likely to be pulled in
+  immediately.
+* **`--ignore-scripts` is the default** — by default the runner always passes
+  `--ignore-scripts` to npm during auto-installation, so `postinstall` scripts
+  in installed packages do **not** run. This can be overridden with
+  [`--npm-allow-install-scripts`](./options/npmAllowInstallScripts.md), but
+  that is unsafe unless you trust the packages being installed.
+
+The full treatment — including how to pre-install your own pinned dependencies
+and use `--no-npm-install` for the most secure setup — is in
+[dependency management](./dependency_management.md).

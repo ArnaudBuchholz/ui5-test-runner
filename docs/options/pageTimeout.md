@@ -34,6 +34,8 @@ fails a page if it takes longer than this timeout
 
 Per-page timeout in milliseconds. If a page takes longer than this value it is marked as failed and closed. Distinct from [`--global-timeout`](./globalTimeout.md), which applies to the entire run, and from [`--batch-timeout`](./batchTimeout.md), which bounds a whole batch item in [batch mode](../modes/batch.md). When not set, pages run until they complete or the global timeout fires.
 
+When `--global-timeout` is also set, the effective per-page timeout is capped to the time remaining in the global budget — see [`--global-timeout`](./globalTimeout.md) for how this clamping works.
+
 ## Example
 
 ```bash

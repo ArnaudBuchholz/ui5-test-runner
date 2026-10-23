@@ -33,7 +33,7 @@ take a screenshot after every OPA assertion
 
 When enabled, a screenshot is captured after every OPA assertion and saved in the report directory. Enabling this option keeps the agent polling interval fast regardless of the OPA detection setting.
 
-Screenshots only make sense for OPA tests: they capture the UI state driven by an OPA journey. For a plain QUnit test there is no benefit in taking a screenshot — nothing visual is being asserted — so `--screenshot` has no value for QUnit test cases. The only screenshot that still matters for any test is the automatic one taken on failure, see [`--screenshot-on-failure`](./screenshotOnFailure.md).
+Screenshots only make sense for OPA tests: they capture the UI state driven by an OPA journey. For a plain QUnit test there is no benefit in taking a screenshot — nothing visual is being asserted — so `--screenshot` has no value for QUnit test cases. The only screenshot that still matters for any test is the automatic one taken on failure: [`--screenshot-on-failure`](./screenshotOnFailure.md) is **enabled by default** (`true`), so a screenshot is always captured when a test fails, regardless of whether `--screenshot` is set.
 
 ## Example
 

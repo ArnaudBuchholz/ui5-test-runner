@@ -5,4 +5,4 @@ I want to measure coverage and I want the command line to fail if the covered st
 
 [expected]
 coverage = "it should propose to run with --coverage"
-threshold = "it should propose to use --coverage-check-statements 880 or -ccs 80"
+threshold = "it should propose to use --coverage-check-statements 80 or -ccs 80"

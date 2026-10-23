@@ -130,7 +130,7 @@ Screenshots are attached to test entries via `attachments`, each `{ name, conten
 
 ### Error entries
 
-When a page cannot be tested — fetch failure, page or global timeout, uncaught error, or process interruption — the runner synthesizes a single `failed` entry named after the page URL, with a `message` pointing to the logs, so the failure is still reflected in the report rather than silently lost.
+When a page cannot be tested — fetch failure, page or global timeout, uncaught error, or process interruption — the runner synthesizes a single `failed` entry named after the page URL, with a `message` pointing to the logs, so the failure is still reflected in the report rather than silently lost. A few synthesized entries are run-level rather than page-level and are named accordingly (noted in the table below).
 
 The possible `message` values are:
 
@@ -144,3 +144,5 @@ The possible `message` values are:
 | URL never dispatched (process interrupted) | `not executed (process was interrupted), check the logs` |
 | Batch item never dispatched (process interrupted) | `batch item not executed (process was interrupted)` |
 | Batch item timed out | `batch item timed out, check the logs` |
+| Batch item skipped by [`--fail-fast`](./options/failFast.md) after an earlier failure | `batch item not executed (fail-fast)` (recorded as `skipped`) |
+| Coverage below a [`--coverage-check-*`](./options/coverage.md) threshold | `Coverage thresholds not met (lines=X%, ...)` — a run-level `failed` entry named `Global code coverage check` (not a page URL) |

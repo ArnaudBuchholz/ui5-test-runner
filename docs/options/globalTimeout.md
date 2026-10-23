@@ -39,6 +39,8 @@ To bound how long testing can take, `ui5-test-runner` offers **three complementa
 
 A hanging *page* is bounded by `--page-timeout`; the overall run is bounded by `--global-timeout`. Use them together.
 
+> **The global timeout caps the others.** When `--global-timeout` is set, the effective timeout applied to each page (and each batch item) is the **shorter** of its own timeout and the time still remaining in the global budget. Because that remaining budget shrinks as the run progresses, a page late in the run can be given far less time than `--page-timeout` nominally allows — and two identical pages can get different effective timeouts depending on when they run. If you rely on a precise per-page deadline, set `--global-timeout` high enough that it never becomes the binding limit, or leave it unset.
+
 ## Example
 
 ```bash

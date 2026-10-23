@@ -39,7 +39,7 @@ Version 6 is a new major release and even if the best effort was made to keep ba
 
 ## How to migrate your configuration
 
-Migrate option by option — do not stop at a general overview. Inventory **every** option the project actually sets, across both its command line (the `ui5-test-runner` invocation in the `package.json` script, or wherever it is launched) and its configuration file (`ui5-test-runner.json`, or the file passed to `--config`). The same option may appear as a CLI flag (kebab-case, e.g. `--report-generator`) or as a configuration-file key (camelCase, e.g. `reportGenerator`) — these are the same option, so translate between the two spellings before looking it up here.
+Migrate option by option — do not stop at a general overview. Inventory **every** option the project actually sets, across both its command line (the `ui5-test-runner` invocation in the `package.json` script, or wherever it is launched) and its configuration file (`ui5-test-runner.json`, or the file passed to `--config`). **If the command line contains `--config <file>`, read that file — it is the configuration file for this project, not `ui5-test-runner.json`.** The same option may appear as a CLI flag (kebab-case, e.g. `--report-generator`) or as a configuration-file key (camelCase, e.g. `reportGenerator`) — these are the same option, so translate between the two spellings before looking it up here.
 
 Then, for each option the project sets, determine from the sections below exactly one outcome and state it, naming the option:
 
@@ -67,10 +67,14 @@ This feature has been removed and is replaced with the possibility to visualize 
 
 ## Browser selection
 
-> **Applicability check — do this before reading further.** First determine, from the project's actual files, whether your version 5 setup explicitly selected a browser. It did if the project sets any of these, under either its CLI-flag spelling or its configuration-file key: `--browser` / `browser` (a command script), `--browser-args` / `browserArgs`, `--browser-retry` / `browserRetry`, or `--browser-close-timeout` / `browserCloseTimeout`. Remember a configuration file uses the camelCase key (e.g. `"browser": "$/puppeteer.js"` is the `--browser` option), so treat the presence of `browser` in `ui5-test-runner.json` exactly as `--browser` on the command line.
+> **⛔ Applicability gate — check first, before reading any further in this section.**
 >
-> * **If none of them are present**, browser selection was never configured, the version 6 defaults apply unchanged, and this migration topic does not concern the project — do not raise browser or driver selection at all, and skip the rest of this section.
-> * **If any of them are present**, the project does rely on browser selection: read the whole section below and, in your answer, address every one of those options that the project actually sets — state for each what it becomes in version 6 (renamed, replaced, or removed), naming it. Do not stop at "browser selection changed"; cover each option individually.
+> Scan the project's command line and configuration file for any of these options (CLI flag or config key): `--browser` / `browser`, `--browser-args` / `browserArgs`, `--browser-retry` / `browserRetry`, `--browser-close-timeout` / `browserCloseTimeout`. A configuration file uses the camelCase key (e.g. `"browser": "$/puppeteer.js"` in `ui5-test-runner.json` is the `--browser` option).
+>
+> * **None of them present → STOP.** Browser selection was never configured. Version 6 defaults apply unchanged. **Do not mention browser selection, driver selection, `--driver`, `--browser`, `--browser-options`, `--browser-device`, or `--unsecure` anywhere in your answer.** Skip the rest of this section entirely.
+> * **At least one present → continue reading below.**
+
+### Changes for projects that configured browser selection
 
 For projects that did select a browser in version 5: the browser was instantiated through a command script passed to `--browser` (for instance `--browser $/puppeteer.js`), and arguments were forwarded with `--browser-args` (or `browserArgs` in the configuration file).
 
@@ -86,13 +90,15 @@ As a consequence, the following options have been removed:
 * `--browser-close-timeout` (`-bt`) is removed.
 * `--browser-retry` (`-br`) is removed.
 * `--unsecure` (`-u`), typically passed through `--browser-args`/`browserArgs`, is no more needed and must be dropped — do not carry it into `--browser-options`. It existed to relax browser security (e.g. Chrome's local-network-access check) so the test page could reach the runner; with the version 6 agent paradigm the agent is injected into the page and its state is fetched by the runner, so no such relaxation is required.
-* Puppeteer's nested `--device <name>` option, typically passed through `--browser-args`/`browserArgs`, is replaced with the dedicated [`--browser-device <name>`](./options/browserDevice.md) option (`browserDevice` config key). It supports Puppeteer's known device names (for example, `iPhone X`) and requires the `puppeteer` driver with Chrome. The `--browser-device` option sets the **viewport**, **user agent**, and **touch support** for the emulated device, and overrides `--browser-viewport-width` and `--browser-viewport-height`.
+* Puppeteer's nested `--device <name>` option, typically passed through `--browser-args`/`browserArgs`, is replaced with the dedicated [`--browser-device <name>`](./options/browserDevice.md) option (`browserDevice` config key). It requires the `puppeteer` driver with Chrome.
+
+  **`--browser-device` sets three properties simultaneously: the viewport dimensions, the user agent string, and touch support.** It overrides `--browser-viewport-width` and `--browser-viewport-height` — any viewport flags set alongside it are ignored.
 
 ```bash
 # v5 (Puppeteer-specific flag, passed after --)
 ui5-test-runner --browser $/puppeteer.js -- --device "iPhone X"
 
-# v6: --browser-device sets the viewport, user agent, and touch support (overrides --browser-viewport-width and --browser-viewport-height)
+# v6: --browser-device sets viewport, user agent, and touch support (overrides --browser-viewport-width and --browser-viewport-height)
 ui5-test-runner --driver puppeteer --browser-device "iPhone X"
 ```
 

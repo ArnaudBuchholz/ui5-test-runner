@@ -39,6 +39,12 @@ support. It overrides `--browser-viewport-width` and
 | Propagates to batch items | yes |
 | Supported driver/browser | `puppeteer` / `chrome` |
 
+## Details
+
+Device emulation sets three things simultaneously: the **viewport** dimensions, the **user agent** string, and **touch support**. Because it controls the viewport, it overrides [`--browser-viewport-width`](./browserViewportWidth.md) and [`--browser-viewport-height`](./browserViewportHeight.md) — any viewport flags set alongside `--browser-device` are ignored.
+
+Only works with `--driver puppeteer` and the `chrome` browser.
+
 ## Example
 
 ```bash

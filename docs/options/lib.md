@@ -7,6 +7,7 @@ summary: map a UI5 resources sub-folder to a local source folder, used in legacy
 keywords:
   - library
   - mapping
+  - libs
 relations:
   affects:
     - modes/legacy
@@ -14,6 +15,8 @@ relations:
 # `--lib`
 
 Library mapping
+
+> **Migration note:** `--libs` (plural) was renamed to `--lib` (singular) in version 6. If your version 5 configuration or command line uses `libs`, change it to `lib`.
 
 ## Overview
 

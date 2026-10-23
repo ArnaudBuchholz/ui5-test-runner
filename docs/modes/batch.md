@@ -68,6 +68,12 @@ In order to better organize and control the exeuction of batch items, multiple m
 
 One result per batch item. Each batch item's sub-report is merged into the main report; see [report](../report.md) for the full format description.
 
+## Exit code
+
+When at least one batch item fails — a non-zero process exit code or a timeout — the main command exits with code `-1`; it exits `0` only when every item succeeds. This mirrors the non-zero exit used by [legacy](./legacy.md) and [remote](./remote.md) runs on failure, so batch mode can be wired into a CI pipeline the same way.
+
+**Empty batch is a success, not an error.** If no batch item resolves — for example a regular-expression `--batch` value matches no folder or config file — the main command logs a `no batch items found` warning and exits with code `0` **without writing a report**. A run that silently passes with no report is usually a sign the `--batch` pattern is wrong; verify it matches the intended projects.
+
 ## Design rationale
 
 The one-child-process-per-item orchestration and the IPC progress/skip signalling
