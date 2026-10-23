@@ -71,6 +71,12 @@ describe('instrument', () => {
         expect.anything()
       );
     });
+
+    it('does not warn about coverageRemoteInstrument when it is set', async () => {
+      const config = makeConfiguration({ coverageSourceDir: '/remote/src', coverageRemoteInstrument: [/^my\/lib\//] });
+      await instrument(config);
+      expect(logger.warn).not.toHaveBeenCalled();
+    });
   });
 
   describe('when webapp is not set', () => {
@@ -131,6 +137,23 @@ describe('instrument', () => {
       expect(logger.info).toHaveBeenCalledWith(
         expect.objectContaining({ source: 'coverage', message: 'instrumentation complete' })
       );
+    });
+
+    it('warns that coverageRemoteInstrument has no effect when it is set', async () => {
+      const config = makeConfiguration({ coverageRemoteInstrument: [/^my\/lib\//] });
+      await instrument(config);
+      expect(logger.warn).toHaveBeenCalledWith(
+        expect.objectContaining({
+          source: 'coverage',
+          message: 'coverageRemoteInstrument has no effect with local instrumentation (legacy mode)'
+        })
+      );
+    });
+
+    it('does not warn about coverageRemoteInstrument when it is not set', async () => {
+      const config = makeConfiguration({});
+      await instrument(config);
+      expect(logger.warn).not.toHaveBeenCalled();
     });
   });
 

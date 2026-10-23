@@ -203,12 +203,14 @@ export const sensitiveKeys = new Set([`);
       browser: 'string',
       enumeration: 'string',
       integer: 'number',
+      regexp: 'string',
       timeout: 'number'
     }[option.type];
     if (!type) {
       throw new Error(`Missing TypeScript type mapping for ${option.type}`);
     }
-    agentConfig.push(`  ${name}: ${type};`);
+    const agentType = option.multiple ? `${type}[]` : type;
+    agentConfig.push(`  ${name}: ${agentType};`);
   }
   agentConfig.push('  pageId: number;', '};');
 

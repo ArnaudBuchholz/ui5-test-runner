@@ -48,6 +48,7 @@ relations:
 |[coverageCheckFunctions](options/coverageCheckFunctions.md)|--coverage-check-functions|-ccf|percent|minimum function coverage threshold (0 = no check)|
 |[coverageCheckLines](options/coverageCheckLines.md)|--coverage-check-lines|-ccl|percent|minimum line coverage threshold (0 = no check)|
 |[coverageCheckStatements](options/coverageCheckStatements.md)|--coverage-check-statements|-ccs|percent|minimum statement coverage threshold (0 = no check)|
+|[coverageRemoteInstrument](options/coverageRemoteInstrument.md)|--coverage-remote-instrument||regexp|resources sub-paths to instrument for coverage in remote mode|
 |[coverageReportDir](options/coverageReportDir.md)|--coverage-report-dir|-crd|fs-entry|directory for the final coverage report|
 |[coverageReporters](options/coverageReporters.md)|--coverage-reporters|-cr|string|istanbul-lib-report reporters to use|
 |[coverageSettings](options/coverageSettings.md)|--coverage-settings|-cs|fs-entry|path to the Istanbul configuration file (.nycrc.json)|

@@ -15,6 +15,7 @@ relations:
     - options/coverageTempDir
     - options/coverageReportDir
     - options/coverageSourceDir
+    - options/coverageRemoteInstrument
     - options/lib
     - options/webapp
     - options/url
@@ -110,7 +111,9 @@ For `webapp` the project mapping at the bottom of the server configuration alrea
 
 ### The `?instrument=true` signal
 
-A small browser-side agent monkey-patches the UI5 loader so that every script URL it requests gets `?instrument=true` appended. The server strips the query parameter before resolving the file path, so the same instrumented/source fallback logic applies regardless of whether the query parameter is present.
+A small browser-side agent monkey-patches the UI5 loader so that script URLs it requests get `?instrument=true` appended. The server strips the query parameter before resolving the file path, so the same instrumented/source fallback logic applies regardless of whether the query parameter is present — in legacy mode the parameter has no effect on which file is served.
+
+The agent does **not** append the parameter to files served under `resources/` or `test-resources/` (UI5 framework and library sources), because doing so busts the browser cache and defeats UI5 preload bundling. This default only matters in [remote mode](#remote-mode) (where the parameter drives on-the-fly instrumentation); see [`--coverage-remote-instrument`](./options/coverageRemoteInstrument.md) to opt library sources back in.
 
 ### Why a file can show 0% even when instrumented
 
@@ -129,6 +132,8 @@ The [`@ui5/middleware-code-coverage`](https://www.npmjs.com/package/@ui5/middlew
 According to the documentation, the coverage information can be leveraged only from UI5 1.113 thanks to `qunit-coverage-istanbul.js` which adds the URL parameter dynamically.
 
 `ui5-test-runner` reproduces the behavior by altering the URLs without `qunit-coverage-istanbul.js` making the coverage available for *any* version.
+
+**By default, URLs under `resources/` and `test-resources/` are not instrumented** — appending `?instrument=true` to them busts the browser cache and defeats UI5 preload bundling. Application code (outside `resources/`) is always instrumented. When testing a UI5 library whose sources are served under `resources/`, use [`--coverage-remote-instrument`](./options/coverageRemoteInstrument.md) to opt the relevant sub-paths back in (each pattern is matched against the path below `resources/`). The equivalent exclusion on the middleware side is `excludePatterns`.
 
 Here is an example of `ui5.yaml` configuration file to include the middleware.
 

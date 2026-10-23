@@ -17,6 +17,12 @@ export const instrument = async (configuration: Configuration): Promise<void> =>
     logger.info({ source: 'coverage', message: 'no local webapp, skipping instrumentation' });
     return;
   }
+  if (configuration.coverageRemoteInstrument?.length) {
+    logger.warn({
+      source: 'coverage',
+      message: 'coverageRemoteInstrument has no effect with local instrumentation (legacy mode)'
+    });
+  }
   logger.info({ source: 'coverage', message: 'instrumenting source files...' });
   const { settings, settingsPath } = await initSettings(configuration);
 

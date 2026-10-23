@@ -8,6 +8,7 @@ export type Configuration = {
   agentDetectionTimeout: number;
   agentNoTestsTimeout: number;
   agentScreenshotTimeout: number;
+  coverageRemoteInstrument: string[];
   driver: string;
   parallel: number;
   screenshot: boolean;

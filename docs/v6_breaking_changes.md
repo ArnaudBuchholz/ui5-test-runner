@@ -177,6 +177,7 @@ The following version 5 UI5 mapping options have been removed:
 
 * coverage is now disabled by default, deprecating `--no-coverage`. The [`--coverage`](./options/coverage.md) option still exists and works as before — a version 5 project that relied on default coverage, or already passed `--coverage`, keeps coverage by passing `--coverage`.
 * screenshots are disabled by default, deprecating `--no-screenshot`
+* in remote mode, files served under `resources/` and `test-resources/` are no longer instrumented for coverage by default (this avoids busting the browser cache and defeating UI5 preload bundling). Application code is unaffected. When testing a UI5 library whose sources are served under `resources/`, use the new [`--coverage-remote-instrument`](./options/coverageRemoteInstrument.md) option to opt the relevant sub-paths back in.
 
 ### Renaming
 

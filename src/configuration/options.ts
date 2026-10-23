@@ -194,6 +194,13 @@ export const options = [
     default: 0
   },
   {
+    name: 'coverageRemoteInstrument',
+    type: 'regexp',
+    multiple: true,
+    browserExposed: true,
+    description: 'resources sub-paths to instrument for coverage in remote mode'
+  },
+  {
     name: 'coverageReportDir',
     short: 'crd',
     type: 'fs-entry',

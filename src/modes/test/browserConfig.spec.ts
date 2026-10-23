@@ -29,3 +29,9 @@ it('getBrowserConfigScript includes a self-executing script setting pageId', () 
   const script = getBrowserConfigScript(789);
   expect(script).toContain('.config.pageId=789');
 });
+
+it('serializes browserExposed regexp options to their source string', () => {
+  initBrowserConfig({ coverageRemoteInstrument: [/^my\/lib\//, /^other\//] } as unknown as Configuration);
+  const script = getBrowserConfigScript(1);
+  expect(script).toContain(String.raw`"coverageRemoteInstrument":["^my\\/lib\\/","^other\\/"]`);
+});
