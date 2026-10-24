@@ -8,7 +8,7 @@
     "dist/"
   ],
   "bin": {
-    "ui5-test-runner": "./dist/cli.js"
+    "ui5-test-runner": "dist/cli.js"
   },
   "publishConfig": {
     "access": "public",

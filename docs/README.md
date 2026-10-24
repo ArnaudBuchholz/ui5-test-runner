@@ -14,7 +14,7 @@ A self-sufficient test runner for UI5 applications enabling parallel execution o
 * [ui5-test-runner v3](https://www.youtube.com/live/kxmmdy1tho4), a live presentation from [Devtoberfest](https://www.youtube.com/playlist?list=PL6RpkC85SLQDHz97qsNTNAE2jnUKj8X5d)
 
 ## 📖 Detailed documentation
-* [Command line usage](usage.md)
+* [Options reference](options.md)
 * [Testing a "remote" application](modes/remote.md)
 * [Coverage extraction](coverage.md)
 * [Serving and testing the application *(a.k.a. legacy mode)*](modes/legacy.md)

@@ -96,5 +96,5 @@ export const help = async () => {
     console.log(`  ${flags.padEnd(col1Width)}  ${typeLabel.padEnd(col2Width)}  ${desc}`);
   }
 
-  console.log('\nFor full documentation, visit https://arnaudbuchholz.github.io/ui5-test-runner/');
+  console.log('\nFor full documentation, visit https://github.com/ArnaudBuchholz/ui5-test-runner/tree/main/docs#-documentation');
 };
