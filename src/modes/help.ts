@@ -5,6 +5,8 @@ import { Npm } from '../Npm.js';
 import { toKebabCase } from '../utils/shared/string.js';
 
 const FALLBACK_WIDTH = 80;
+export const DOCUMENTATION_LINK =
+  'https://github.com/ArnaudBuchholz/ui5-test-runner/tree/main/docs#-documentation' as const;
 
 const formatDefault = (value: unknown): string => {
   return Array.isArray(value) ? value.join(', ') : String(value);
@@ -96,5 +98,5 @@ export const help = async () => {
     console.log(`  ${flags.padEnd(col1Width)}  ${typeLabel.padEnd(col2Width)}  ${desc}`);
   }
 
-  console.log('\nFor full documentation, visit https://github.com/ArnaudBuchholz/ui5-test-runner/tree/main/docs#-documentation');
+  console.log(`\nFor full documentation, visit ${DOCUMENTATION_LINK}`);
 };

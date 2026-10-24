@@ -1,5 +1,5 @@
 import { it, expect, vi, beforeEach } from 'vitest';
-import { help } from './help.js';
+import { help, DOCUMENTATION_LINK } from './help.js';
 import { options } from '../configuration/options.js';
 import { Terminal } from '../platform/index.js';
 import { Npm } from '../Npm.js';
@@ -77,9 +77,7 @@ it('omits default for options without one', async () => {
 
 it('outputs the documentation URL', async () => {
   await help();
-  expect(consoleSpy).toHaveBeenCalledWith(
-    '\nFor full documentation, visit https://arnaudbuchholz.github.io/ui5-test-runner/'
-  );
+  expect(consoleSpy).toHaveBeenCalledWith(`\nFor full documentation, visit ${DOCUMENTATION_LINK}`);
 });
 
 it('wraps description at terminal width', async () => {
