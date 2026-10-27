@@ -1,0 +1,36 @@
+[user]
+question="""
+How do I migrate to ui5-test-runner 6 ?
+"""
+
+[files]
+"package.json" = """
+{
+  "scripts": {
+    "test": "ui5-test-runner --ci"
+  },
+  "devDependencies": {
+    "ui5-test-runner": "^5"
+  }
+}
+"""
+
+"ui5-test-runner.json" = """
+{
+  "browser": "$/puppeteer.js"
+}
+"""
+
+"Dockerfile" = """
+FROM node:24-slim
+WORKDIR /app
+COPY . .
+RUN npm ci
+CMD ["npm", "test"]
+"""
+
+[expected]
+v6 = "It should explain how to migrate the project to ui5-test-runner version 6"
+driver = "it should explain that the Puppeteer browser command script is replaced by selecting the puppeteer driver with --driver and the browser with --browser"
+no_sandbox = "it should warn that the version 5 default Puppeteer driver applied --no-sandbox implicitly, that version 6 no longer does, and that a project running Chrome in a container (as this one does) must now pass --no-sandbox explicitly"
+restore = "it should explain that the dropped Chrome flags are passed either through --browser-options (browserOptions) as an args array, for example --browser-options '{\"args\":[\"--no-sandbox\"]}', or through the UI5TR_CHROME_ARGS environment variable"

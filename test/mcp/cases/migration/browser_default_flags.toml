@@ -1,0 +1,31 @@
+[user]
+question="""
+I am upgrading a Puppeteer-based project from ui5-test-runner 5 to 6. The version 5
+default driver seemed to set some Chrome launch flags for me. Which flags are no
+longer applied by default in version 6, and how do I pass them myself?
+"""
+
+[files]
+"package.json" = """
+{
+  "scripts": {
+    "test": "ui5-test-runner"
+  },
+  "devDependencies": {
+    "ui5-test-runner": "^5"
+  }
+}
+"""
+
+"ui5-test-runner.json" = """
+{
+  "browser": "$/puppeteer.js"
+}
+"""
+
+[expected]
+dropped = "it should explain that the version 5 default Puppeteer driver hardcoded Chrome launch flags that version 6 no longer applies automatically"
+no_sandbox = "it should name --no-sandbox as one of the flags that is no longer applied by default"
+disable_gpu = "it should name --disable-gpu as one of the flags that is no longer applied by default"
+disable_extensions = "it should name --disable-extensions as one of the flags that is no longer applied by default"
+restore = "it should explain that the needed flags are passed either through --browser-options (browserOptions) as an args array or through the UI5TR_CHROME_ARGS environment variable, and that the two surfaces are additive"

@@ -18,6 +18,12 @@ import { end } from '../../end.js';
 import { sendToParentProcess } from '../../sendToParentProcess.js';
 import { instrument, generateReport } from './coverage/index.js';
 
+const markFailed = () => {
+  if (Exit.code === 0) {
+    Exit.code = -1;
+  }
+};
+
 export const test = async (configuration: Configuration) => {
   await initReportBuilder(configuration);
   await Folder.create(configuration.reportDir);
@@ -122,6 +128,7 @@ export const test = async (configuration: Configuration) => {
     await end(configuration);
   } catch (error) {
     logger.error({ source: 'job', message: 'an error occurred', error });
+    markFailed();
   } finally {
     if (isBrowserStarted) {
       await getBrowser().shutdown();

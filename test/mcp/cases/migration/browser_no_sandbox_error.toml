@@ -1,0 +1,40 @@
+[user]
+question="""
+I migrated my project to ui5-test-runner 6 and now the run fails to start the
+browser with "No usable sandbox!" in the logs. It worked fine on version 5.
+How do I fix this?
+"""
+
+[files]
+"package.json" = """
+{
+  "scripts": {
+    "test": "ui5-test-runner --ci"
+  },
+  "devDependencies": {
+    "ui5-test-runner": "^6"
+  }
+}
+"""
+
+"ui5-test-runner.json" = """
+{
+  "driver": "puppeteer",
+  "browser": "chrome"
+}
+"""
+
+"Dockerfile" = """
+FROM node:24-slim
+WORKDIR /app
+COPY . .
+RUN npm ci
+CMD ["npm", "test"]
+"""
+
+[expected]
+sandbox = "it should explain that the No usable sandbox error happens because version 6 no longer applies the --no-sandbox flag that the version 5 default Puppeteer driver added implicitly, and that running Chrome in a container (as this project does) requires passing it explicitly"
+no_sandbox = "it should name --no-sandbox as one of the flags that is no longer applied by default"
+disable_gpu = "it should name --disable-gpu as one of the flags that is no longer applied by default"
+disable_extensions = "it should name --disable-extensions as one of the flags that is no longer applied by default"
+restore = "it should explain that the needed flags are passed either through --browser-options (browserOptions) as an args array or through the UI5TR_CHROME_ARGS environment variable, and that the two surfaces are additive"

@@ -165,6 +165,34 @@ describe('Main thread', () => {
     });
   });
 
+  describe('fatal exit code', () => {
+    it('marks the process as failed when fatal is called', async () => {
+      const { logger } = await vi.importActual<{ logger: typeof LoggerType }>('./logger.js');
+      Exit.code = 0;
+      expect(() => logger.fatal({ source: 'job', message: 'test' })).toThrow(ExitShutdownError);
+      expect(Exit.code).toBe(-1);
+    });
+
+    it('does not overwrite an already-set exit code when fatal is called', async () => {
+      const { logger } = await vi.importActual<{ logger: typeof LoggerType }>('./logger.js');
+      Exit.code = 42;
+      expect(() => logger.fatal({ source: 'job', message: 'test' })).toThrow(ExitShutdownError);
+      expect(Exit.code).toBe(42);
+      Exit.code = 0;
+    });
+
+    it('marks the process as failed when a worker signals fatal', async () => {
+      const { logger } = await vi.importActual<{ logger: typeof LoggerType }>('./logger.js');
+      const channel = Thread.createBroadcastChannel('logger');
+      const starting = logger.start({ cwd } as Configuration);
+      ready(channel);
+      await starting;
+      Exit.code = 0;
+      channel.postMessage({ command: 'fatal' } satisfies LogMessage);
+      expect(Exit.code).toBe(-1);
+    });
+  });
+
   describe('raw mode', () => {
     it('uses raw mode (!ci)', async () => {
       const { logger } = await vi.importActual<{ logger: typeof LoggerType }>('./logger.js');

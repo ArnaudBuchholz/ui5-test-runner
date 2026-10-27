@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import type { Configuration } from '../../configuration/Configuration.js';
-import { Exit, Http, logger } from '../../platform/index.js';
+import { Exit, ExitShutdownError, Http, logger } from '../../platform/index.js';
 import { __lastRegisteredExitAsyncTask } from '../../platform/mock.js';
 import type { TestReportBuilder } from '../../utils/shared/TestReportBuilder.js';
 
@@ -265,6 +265,22 @@ describe('test()', () => {
       vi.mocked(Server.start).mockRejectedValue(new Error('boom'));
       await runTest(makeConfig());
       expect(fakeBrowser.shutdown).not.toHaveBeenCalled();
+    });
+
+    it('sets Exit.code to -1 when the browser fails to launch', async () => {
+      setupHappyPath();
+      vi.mocked(setupBrowser).mockRejectedValue(new ExitShutdownError());
+      Exit.code = 0;
+      await runTest(makeConfig());
+      expect(Exit.code).toBe(-1);
+    });
+
+    it('sets Exit.code to -1 when Server.start rejects', async () => {
+      setupHappyPath();
+      vi.mocked(Server.start).mockRejectedValue(new Error('boom'));
+      Exit.code = 0;
+      await runTest(makeConfig());
+      expect(Exit.code).toBe(-1);
     });
   });
 

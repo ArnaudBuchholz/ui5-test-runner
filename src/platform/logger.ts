@@ -79,6 +79,9 @@ const start = () => {
         startResolve();
       }
     } else if (message.command === 'fatal') {
+      if (Exit.code === 0) {
+        Exit.code = -1;
+      }
       void Exit.shutdown();
     } else if (message.command === 'terminate') {
       clearInterval(metricsMonitorInterval);
@@ -156,6 +159,9 @@ export const logger = {
   fatal(attributes: LogAttributes): never {
     log(LogLevel.fatal, attributes);
     if (Thread.isMainThread) {
+      if (Exit.code === 0) {
+        Exit.code = -1;
+      }
       void Exit.shutdown();
     } else {
       channel.postMessage({ command: 'fatal' } satisfies LogMessage);
