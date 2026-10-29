@@ -80,6 +80,28 @@ Adopt a **Parallel Browser Agents Architecture**:
 - Polls each page by evaluating `window['ui5-test-runner'].state` at a configurable interval
 - Aggregates results into unified report
 
+### Navigation Readiness
+
+Navigation resolves at **DOMContentLoaded** readiness, **not** the full `load` event:
+
+- Puppeteer and Playwright navigate with `goto(url, { waitUntil: 'domcontentloaded' })`; the two
+  BiDi-based drivers (WebDriverIO, and Selenium's non-first windows) navigate with the equivalent
+  `interactive` readiness state.
+- **Why**: a UI5 application keeps fetching framework resources one-by-one *after* the DOM is
+  parsed. Waiting for the full `load` event blocks the navigation call on that entire resource
+  waterfall and trips the automation library's hardcoded navigation timeout (~30 s in Puppeteer) —
+  a ceiling the user cannot raise. DOMContentLoaded lets navigation return as soon as the document
+  is parsed, and the slow framework load is then absorbed by the agent's framework-detection polling.
+- **Invariant**: how long a page may take to become ready is governed by `pageTimeout` and the
+  agent's detection polling — **not** by the navigation call. `goto` is still awaited, so a broken
+  URL or dead server still fails fast via a navigation rejection.
+- **Why this is safe**: the agent is injected *before* navigation (`evaluateOnNewDocument` /
+  `addInitScript`) and assigns `window['ui5-test-runner'] = { state, results }` synchronously at
+  document creation, with `state` starting as `{ done: false, type: undefined }`. So the moment a
+  document is committed at DOMContentLoaded, polling `window['ui5-test-runner'].state` already
+  returns a valid object — there is no window where the agent or its `state` is absent. Framework
+  detection (QUnit / suite) then begins on the `load` event and mutates that same `state`.
+
 ## Consequences
 
 ### Positive
@@ -122,7 +144,7 @@ Adopt a **Parallel Browser Agents Architecture**:
 
 1. **Launch**: CLI creates a **single** browser instance
 2. **Inject**: Agent scripts are registered via `evaluateOnNewDocument`/`addInitScript` on each new page before navigation
-3. **Detect**: After page load, agent polls for a supported test framework (QUnit or `window.suite`)
+3. **Navigate**: Navigation resolves at DOMContentLoaded readiness (not full `load`); the agent then detects a supported test framework (QUnit or `window.suite`) on the `load` event (see [Navigation Readiness](#navigation-readiness))
 4. **Execute**: Agent hooks into the test framework and records results
 5. **Poll**: CLI polls `window['ui5-test-runner'].state` at a configurable interval until `state.done === true`
 6. **Collect**: CLI reads `window['ui5-test-runner'].results` from the page

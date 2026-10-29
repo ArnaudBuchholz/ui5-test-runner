@@ -119,7 +119,7 @@ export const factory = async (configuration: Configuration, signal: AbortSignal)
           password: basicAuthentication.password.reveal()
         });
       }
-      await page?.goto(settings.url);
+      await page?.goto(settings.url, { waitUntil: 'domcontentloaded' });
       return {
         async eval(script: string) {
           return await page?.evaluate(script);

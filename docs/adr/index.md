@@ -7,7 +7,7 @@ This directory documents significant architectural decisions made in the `ui5-te
 | ADR | Title | Status | Summary |
 |-----|-------|--------|---------|
 | [0001](./0001-platform-abstraction-layer.md) | Platform Abstraction Layer | Accepted | Abstract Node.js APIs behind a testable platform interface to improve maintainability, testability, and cross-platform support |
-| [0002](./0002-parallel-browser-agents.md) | Parallel Browser Agents Architecture | Accepted | Execute tests in parallel across multiple isolated browser instances using an in-browser agent pattern to overcome memory and performance constraints |
+| [0002](./0002-parallel-browser-agents.md) | Parallel Browser Agents Architecture | Accepted | Execute tests in parallel across multiple isolated browser instances using an in-browser agent pattern to overcome memory and performance constraints; navigate at DOMContentLoaded readiness so a slow UI5 resource load is governed by `pageTimeout`, not the automation library's navigation timeout |
 | [0003](./0003-configuration-validation-strategy.md) | Configuration Validation Strategy | Accepted | Implement multi-stage configuration validation (schema, defaults, transformations) with clear separation between parsing, validation, and merging |
 | [0004](./0004-report-generation-architecture.md) | Report Generation Architecture | Accepted | Decouple report generation from test execution using a pipeline approach, supporting multiple output formats and interactive UIs |
 | [0005](./0005-logging-and-tracing-architecture.md) | Logging and Tracing Architecture | Accepted | Worker-based structured logging with a compressed binary trace format, separating live terminal output from a complete queryable record written to disk |
