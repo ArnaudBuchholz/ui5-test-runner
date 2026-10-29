@@ -62,6 +62,26 @@ For multi-step tasks, state a brief plan:
 
 Strong success criteria let you loop independently. Weak criteria ("make it work") require constant clarification.
 
+## 5. Defend Only Against Reachable States
+
+**Before adding a guard, prove the state it guards against can actually occur.**
+
+Defensive code against an impossible state is not safety — it is dead complexity that hides the real
+failure modes.
+
+- When you reach for a null-check, fallback, or retry, first ask: *given the code's own guarantees,
+  can this state actually happen?* Trace it, don't assume it.
+- Prefer the guarantee over the guard. If an invariant already prevents the state (e.g. a value is
+  assigned synchronously before any code can observe it), rely on the invariant and say so.
+- When a failure *can* occur, handle the way it actually manifests — not a plausible-sounding
+  substitute. A value that throws is not the same as a value that returns `undefined`; a guard for
+  one does nothing for the other.
+- "Plausible" is not "reachable." Resist guards that defend against a story you find convincing but
+  haven't grounded in the code.
+
+The test: for every defensive branch, you can name a concrete, reachable path that triggers it. If
+you can't, delete it.
+
 ---
 
-**These guidelines are working if:** fewer unnecessary changes in diffs, fewer rewrites due to overcomplication, and clarifying questions come before implementation rather than after mistakes.
+**These guidelines are working if:** fewer unnecessary changes in diffs, fewer rewrites due to overcomplication, clarifying questions come before implementation rather than after mistakes, and defensive branches each map to a reachable failure.
