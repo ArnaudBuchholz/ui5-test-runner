@@ -107,6 +107,39 @@ export class Npm {
       const resolved = require.resolve(moduleName, { paths: [nodeModulesPath] });
       return await this.dynamicImport(Url.pathToFileURL(resolved).href);
     } catch {
+      // require.resolve({ paths }) keeps failing in-process after an earlier lookup missed, on
+      // some Node versions (24.13.1+, 25.5+, 26.x; only for entries whose main is not index.js).
+      // After an on-demand install the package is on disk, so locate it directly and import the
+      // entry by absolute path (Module.findPackageJSON is unaffected by the poisoned resolver).
+      return this.tryImportByAbsoluteEntry(moduleName, nodeModulesPath);
+    }
+  }
+
+  private static async tryImportByAbsoluteEntry(moduleName: string, nodeModulesPath: string): Promise<unknown> {
+    try {
+      const packageName = this.packageNameOf(moduleName);
+      const packageJsonPath = Module.findPackageJSON(packageName, `${nodeModulesPath}/`);
+      if (packageJsonPath === undefined) return undefined;
+      const packageDirectory = Path.dirname(packageJsonPath);
+      const subPath = moduleName.slice(packageName.length).replace(/^\//, '');
+      // CJS-style extension probing: require.resolve would apply it, the poisoned resolver cannot.
+      let candidates: string[];
+      if (subPath) {
+        candidates = [subPath, `${subPath}.js`, Path.join(subPath, 'index.js')];
+      } else {
+        const main =
+          (JSON.parse(await FileSystem.readFile(packageJsonPath, 'utf8')) as { main?: string }).main ?? 'index.js';
+        candidates = Path.extname(main) ? [main] : [main, `${main}.js`];
+      }
+      for (const candidate of candidates) {
+        try {
+          return await this.dynamicImport(Url.pathToFileURL(Path.join(packageDirectory, candidate)).href);
+        } catch {
+          // this candidate is not a loadable entry; try the next
+        }
+      }
+      return undefined;
+    } catch {
       return undefined;
     }
   }

@@ -543,6 +543,81 @@ describe('import', () => {
       TestNpm.import({ ...NPM_INSTALL_PREFIX_CONFIGURATION, noNpmInstall: true }, 'non-existent-module-xyz-abc')
     ).rejects.toThrow(ExitShutdownError);
   });
+
+  // Node 24.13.1+/25.5+/26.x: require.resolve({ paths }) keeps failing in-process after an
+  // earlier lookup missed (for entries whose main is not index.js). After an on-demand install
+  // the package is on disk, so the fallback must locate it via Module.findPackageJSON and
+  // import the entry by absolute path instead of aborting with "could not be loaded after install".
+  describe('post-install fallback when require.resolve is poisoned (issue 200)', () => {
+    const mockRequirePoisoned = () =>
+      vi.mocked(Module.createRequire).mockImplementation(
+        () =>
+          Object.assign(vi.fn(), {
+            resolve: vi.fn().mockImplementation(() => {
+              throw Object.assign(new Error('Cannot find module'), { code: 'MODULE_NOT_FOUND' });
+            })
+          }) as unknown as ReturnType<typeof Module.createRequire>
+      );
+
+    const FAKE_INSTALLED_MODULE = { default: 'freshly-installed-module' };
+
+    it('imports the package main by absolute path when require.resolve fails after global install', async () => {
+      mockRequirePoisoned();
+      vi.mocked(FileSystem.readFile).mockResolvedValue(JSON.stringify({ main: './lib/puppeteer/puppeteer-core.js' }));
+      // pre-install probes (local root, global root) then the post-install fallback
+      vi.mocked(Module.findPackageJSON)
+        .mockReturnValueOnce(undefined)
+        .mockReturnValueOnce(undefined)
+        .mockReturnValue('/global/root/puppeteer-core/package.json');
+      // local dynamicImport, then the post-install absolute entry import
+      TestNpm.dynamicImportSpy
+        .mockRejectedValueOnce(Object.assign(new Error('ERR_MODULE_NOT_FOUND'), { code: 'ERR_MODULE_NOT_FOUND' }))
+        .mockResolvedValueOnce(FAKE_INSTALLED_MODULE);
+      vi.mocked(Url.pathToFileURL)
+        .mockReturnValueOnce({ href: `file://${CWD}/` } as URL) // base anchor (local probe)
+        .mockReturnValueOnce({ href: `file://${CWD}/` } as URL) // base anchor (global probe)
+        .mockReturnValueOnce({ href: `file://${CWD}/` } as URL) // base anchor (post-install probe)
+        .mockReturnValue({ href: 'file:///global/root/puppeteer-core/lib/puppeteer/puppeteer-core.js' } as URL);
+      const result = await TestNpm.import(GLOBAL_INSTALL_CONFIGURATION, 'puppeteer-core');
+      expect(result).toBe(FAKE_INSTALLED_MODULE);
+      expect(logger.fatal).not.toHaveBeenCalled();
+    });
+
+    it('imports a sub-path module by absolute path when require.resolve fails after install', async () => {
+      mockRequirePoisoned();
+      vi.mocked(Module.findPackageJSON)
+        .mockReturnValueOnce(undefined)
+        .mockReturnValueOnce(undefined)
+        .mockReturnValue('/global/root/selenium-webdriver/package.json');
+      TestNpm.dynamicImportSpy
+        .mockRejectedValueOnce(Object.assign(new Error('ERR_MODULE_NOT_FOUND'), { code: 'ERR_MODULE_NOT_FOUND' }))
+        .mockResolvedValueOnce(FAKE_INSTALLED_MODULE);
+      vi.mocked(Url.pathToFileURL)
+        .mockReturnValueOnce({ href: `file://${CWD}/` } as URL)
+        .mockReturnValueOnce({ href: `file://${CWD}/` } as URL)
+        .mockReturnValueOnce({ href: `file://${CWD}/` } as URL)
+        .mockReturnValue({ href: 'file:///global/root/selenium-webdriver/chrome.js' } as URL);
+      const result = await TestNpm.import(GLOBAL_INSTALL_CONFIGURATION, 'selenium-webdriver/chrome');
+      expect(result).toBe(FAKE_INSTALLED_MODULE);
+      // a sub-path specifier never reads the package main
+      expect(FileSystem.readFile).not.toHaveBeenCalledWith('/global/root/selenium-webdriver/package.json', 'utf8');
+    });
+
+    it('still aborts when the package is absent from disk after install', async () => {
+      mockRequirePoisoned();
+      vi.mocked(Module.findPackageJSON).mockReturnValue(undefined);
+      TestNpm.dynamicImportSpy.mockRejectedValue(
+        Object.assign(new Error('ERR_MODULE_NOT_FOUND'), { code: 'ERR_MODULE_NOT_FOUND' })
+      );
+      vi.mocked(Url.pathToFileURL).mockReturnValue({ href: `file://${CWD}/` } as URL);
+      await expect(TestNpm.import(GLOBAL_INSTALL_CONFIGURATION, 'missing-module-xyz')).rejects.toThrow(
+        ExitShutdownError
+      );
+      expect(logger.fatal).toHaveBeenCalledWith(
+        expect.objectContaining({ message: 'Module missing-module-xyz could not be loaded after install' })
+      );
+    });
+  });
 });
 
 describe('getCliPath', () => {
