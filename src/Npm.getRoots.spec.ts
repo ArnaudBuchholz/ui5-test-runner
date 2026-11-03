@@ -15,6 +15,8 @@ type ProcessLike = { stdout: string; code: number; closed: Promise<void> };
 
 const makeProcess = (stdout: string, code = 0): ProcessLike => ({ stdout, code, closed: Promise.resolve() });
 
+const errnoError = (code: string): NodeJS.ErrnoException => Object.assign(new Error(code), { code });
+
 const npmCliProcess = makeProcess('npm@10.0.0 /usr/local/lib/node_modules/npm');
 
 const setupRoots = (localStdout: string, globalStdout: string, localCode = 0, globalCode = 0) => {
@@ -65,13 +67,37 @@ describe('getRoots validation', () => {
     );
   });
 
-  it('rejects when the local root directory is not accessible', async () => {
+  it('rejects when the local root directory is genuinely unreadable (EACCES)', async () => {
     setupRoots(LOCAL_ROOT, GLOBAL_ROOT);
-    vi.mocked(FileSystem.access).mockRejectedValueOnce(new Error('ENOENT'));
+    vi.mocked(FileSystem.access).mockRejectedValueOnce(errnoError('EACCES'));
     const Npm = await loadFreshNpm();
     await expect(Npm.resolvePackageDir(NO_CONFIGURATION, 'any-module')).rejects.toThrow(ExitShutdownError);
     expect(logger.fatal).toHaveBeenCalledWith(
       expect.objectContaining({ message: `npm root (local) directory is not accessible: "${LOCAL_ROOT}"` })
+    );
+  });
+
+  it('tolerates a missing local root directory (ENOENT) and proceeds', async () => {
+    // `npm root` reports where node_modules would live even when it does not exist yet; a missing
+    // local root is a normal state (nothing installed locally) and must not abort the run.
+    setupRoots(LOCAL_ROOT, GLOBAL_ROOT);
+    vi.mocked(FileSystem.access).mockRejectedValueOnce(errnoError('ENOENT'));
+    const Npm = await loadFreshNpm();
+    // Neither root resolves the module, so we expect the normal "cannot locate" path — not a fatal.
+    await expect(Npm.resolvePackageDir(NO_CONFIGURATION, 'any-module')).rejects.toThrow(
+      'Cannot locate package directory for any-module'
+    );
+    expect(logger.fatal).not.toHaveBeenCalled();
+  });
+
+  it('rejects when the global root directory is missing (ENOENT is not tolerated for global)', async () => {
+    setupRoots(LOCAL_ROOT, GLOBAL_ROOT);
+    // First access (local) succeeds, second access (global) is missing.
+    vi.mocked(FileSystem.access).mockResolvedValueOnce(undefined).mockRejectedValueOnce(errnoError('ENOENT'));
+    const Npm = await loadFreshNpm();
+    await expect(Npm.resolvePackageDir(NO_CONFIGURATION, 'any-module')).rejects.toThrow(ExitShutdownError);
+    expect(logger.fatal).toHaveBeenCalledWith(
+      expect.objectContaining({ message: `npm root (global) directory is not accessible: "${GLOBAL_ROOT}"` })
     );
   });
 });

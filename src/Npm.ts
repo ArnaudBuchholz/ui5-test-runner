@@ -27,7 +27,7 @@ const npm = async (...arguments_: string[]) => {
   });
 };
 
-const validateRoot = async (proc: IProcess, label: string): Promise<string> => {
+const validateRoot = async (proc: IProcess, label: string, requiresExistence: boolean): Promise<string> => {
   if (proc.code !== 0) {
     logger.fatal({ source: 'npm', message: `npm root ${label} failed with code ${proc.code}` });
   }
@@ -37,8 +37,15 @@ const validateRoot = async (proc: IProcess, label: string): Promise<string> => {
   }
   try {
     await FileSystem.access(value, FileSystem.constants.R_OK);
-  } catch {
-    logger.fatal({ source: 'npm', message: `npm root ${label} directory is not accessible: "${value}"` });
+  } catch (error) {
+    // `npm root` reports where node_modules *would* live for the cwd; the directory may not exist
+    // yet (a fresh project with nothing installed locally). A missing directory is a normal state —
+    // the downstream probe/install flow handles it — so ENOENT is tolerated for a non-requiresExistence
+    // root. A directory that exists but genuinely can't be read (EACCES, …) stays fatal.
+    const code = (error as NodeJS.ErrnoException).code;
+    if (requiresExistence || code !== 'ENOENT') {
+      logger.fatal({ source: 'npm', message: `npm root ${label} directory is not accessible: "${value}"` });
+    }
   }
   return value;
 };
@@ -47,8 +54,8 @@ const getRoots = memoize(async () => {
   const localRootProcess = await npm('root');
   const globalRootProcess = await npm('root', '--global');
   await Promise.all([localRootProcess.closed, globalRootProcess.closed]);
-  const local = await validateRoot(localRootProcess, '(local)');
-  const global = await validateRoot(globalRootProcess, '(global)');
+  const local = await validateRoot(localRootProcess, '(local)', false);
+  const global = await validateRoot(globalRootProcess, '(global)', true);
   logger.debug({ source: 'npm', message: 'roots', data: { local, global } });
   return { local, global };
 });
