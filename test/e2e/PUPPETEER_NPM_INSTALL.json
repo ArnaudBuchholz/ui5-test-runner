@@ -1,0 +1,9 @@
+{
+  "batchId": "PUPPETEER_NPM_INSTALL",
+  "batchLabel": "Puppeteer resolved via prefix install (regression #200)",
+  "cwd": "../capabilities",
+  "driver": "puppeteer",
+  "debugNpmNoLocal": true,
+  "npmInstall": "prefix",
+  "npmInstallPrefix": "{{tmpDir}}/ui5tr-npm-install"
+}

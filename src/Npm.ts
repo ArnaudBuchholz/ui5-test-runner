@@ -86,6 +86,20 @@ export class Npm {
     return import(specifier);
   }
 
+  /** ESM equivalent of require.resolve: the file:// URL a bare `import(specifier)` would load. */
+  protected static resolveSpecifier(specifier: string): string {
+    return import.meta.resolve(specifier);
+  }
+
+  /** Best-effort resolved location for logging — never throws (resolution can differ from import). */
+  private static tryResolveSpecifier(specifier: string): string {
+    try {
+      return this.resolveSpecifier(specifier);
+    } catch {
+      return 'unknown location';
+    }
+  }
+
   private static tryResolvePackageDir(moduleName: string, nodeModulesPath: string): string | undefined {
     try {
       const packageJsonPath = Module.findPackageJSON(moduleName, `${nodeModulesPath}/`);
@@ -99,7 +113,7 @@ export class Npm {
     configuration: Configuration,
     moduleName: string,
     nodeModulesPath: string
-  ): Promise<unknown> {
+  ): Promise<{ module: unknown; resolved: string } | undefined> {
     // Gate require.resolve behind a findPackageJSON existence check. On some Node versions
     // (24.13.1+, 25.5+, 26.x), a require.resolve(name, { paths }) that misses caches the negative
     // result for the whole process (for packages whose main is not index.js), so a pre-install
@@ -114,7 +128,7 @@ export class Npm {
       // directory URL under cwd is sufficient (no package.json needs to exist here).
       const require = Module.createRequire(`${Url.pathToFileURL(configuration.cwd).href}/`);
       const resolved = require.resolve(moduleName, { paths: [nodeModulesPath] });
-      return await this.dynamicImport(Url.pathToFileURL(resolved).href);
+      return { module: await this.dynamicImport(Url.pathToFileURL(resolved).href), resolved };
     } catch {
       return undefined;
     }
@@ -128,21 +142,29 @@ export class Npm {
     for (const { path, label, checkVersion } of roots) {
       const result = await this.tryImportFromPath(configuration, moduleName, path);
       if (result !== undefined) {
-        logger.debug({ source: 'npm', message: `Module ${moduleName} ${label}` });
+        logger.debug({ source: 'npm', message: `Module ${moduleName} ${label} (${result.resolved})` });
         if (checkVersion) void this.checkIfLatestVersion(configuration, moduleName);
-        return result;
+        return result.module;
       }
     }
     return undefined;
   }
 
-  /** Locate the module (or install it) then import it */
-  static async import(configuration: Configuration, moduleName: string): Promise<unknown> {
-    logger.debug({ source: 'npm', message: `Importing module: ${moduleName}` });
-
+  /**
+   * Attempt the bare top-level dynamic import (the fast path when the package resolves locally).
+   * Returns the module when found, or undefined to fall through to the per-root probes. Rethrows
+   * any error that is not a module-not-found. Skipped entirely under debugNpmNoLocal.
+   */
+  private static async tryImportLocally(configuration: Configuration, moduleName: string): Promise<unknown> {
+    if (configuration.debugNpmNoLocal) {
+      return undefined;
+    }
     try {
       const module = await this.dynamicImport(moduleName);
-      logger.debug({ source: 'npm', message: `Module ${moduleName} found locally` });
+      logger.debug({
+        source: 'npm',
+        message: `Module ${moduleName} found locally (${this.tryResolveSpecifier(moduleName)})`
+      });
       void this.checkIfLatestVersion(configuration, moduleName);
       return module;
     } catch (error) {
@@ -153,7 +175,19 @@ export class Npm {
       if (moduleName === this.packageNameOf(moduleName)) {
         logger.warn({ source: 'npm', message: `Module ${moduleName} not found locally` });
       }
+      return undefined;
     }
+  }
+
+  /** Locate the module (or install it) then import it */
+  static async import(configuration: Configuration, moduleName: string): Promise<unknown> {
+    logger.debug({ source: 'npm', message: `Importing module: ${moduleName}` });
+
+    // debugNpmNoLocal forces resolution past every local path (the top-level import in
+    // tryImportLocally and the localRoot probe below), so a test can exercise the global/prefix
+    // install-then-reimport path even when the package is already present locally.
+    const local = await this.tryImportLocally(configuration, moduleName);
+    if (local !== undefined) return local;
 
     const { local: localRoot, global: globalRoot } = await getRoots();
 
@@ -167,7 +201,9 @@ export class Npm {
     ];
 
     const found = await this.tryImportFromRoots(configuration, moduleName, [
-      { path: localRoot, label: 'found in local node_modules', checkVersion: true },
+      ...(configuration.debugNpmNoLocal
+        ? []
+        : [{ path: localRoot, label: 'found in local node_modules', checkVersion: true }]),
       { path: globalRoot, label: 'found globally', checkVersion: true },
       ...extraRoots
     ]);
@@ -194,10 +230,10 @@ export class Npm {
     if (reimportPath !== undefined) {
       const result = await this.tryImportFromPath(configuration, moduleName, reimportPath);
       if (result === undefined) {
-        const message = `Module ${moduleName} could not be loaded after install`;
-        logger.fatal({ source: 'npm', message });
+        return logger.fatal({ source: 'npm', message: `Module ${moduleName} could not be loaded after install` });
       }
-      return result;
+      logger.debug({ source: 'npm', message: `Module ${moduleName} loaded after install (${result.resolved})` });
+      return result.module;
     }
 
     return await this.dynamicImport(moduleName);

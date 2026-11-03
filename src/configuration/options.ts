@@ -255,6 +255,11 @@ export const options = [
     description: 'use local docs/ directory instead of fetching from GitHub (development only)'
   },
   {
+    name: 'debugNpmNoLocal',
+    type: 'boolean',
+    description: 'ignore locally-resolvable packages, forcing global/prefix resolution and install (development only)'
+  },
+  {
     name: 'driver',
     short: 'd',
     type: 'enumeration',
@@ -384,6 +389,7 @@ export const options = [
   {
     name: 'npmInstallPrefix',
     type: 'fs-entry',
+    typeModifiers: new Set(['overwrite'] as const),
     description: 'path used as --prefix when npmInstall is set to prefix'
   },
   {

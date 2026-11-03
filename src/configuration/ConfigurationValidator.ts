@@ -95,6 +95,23 @@ const extractConfigEntries = (parsed: Record<string, unknown>, configDirectory: 
   return { forcedKeys, configFileKeys, configFileObject };
 };
 
+// Replace a `{{token}}` placeholder (used as a path prefix) in every fs-entry option value with the
+// given directory, then re-validate. The suffix after the token is joined to `valueToReplace`, so
+// `{{token}}/sub` becomes `<valueToReplace>/sub`. Shared by {{reportDir}} and {{tmpDir}}.
+const substitutePlaceholder = async (merged: Configuration, searchToken: string, valueToReplace: string) => {
+  for (const option of options) {
+    if (!(
+      option.type === 'fs-entry' &&
+      typeof merged[option.name] === 'string' &&
+      (merged[option.name] as string).includes(searchToken)
+    )) {
+      continue;
+    }
+    const substituted = Path.join(valueToReplace, (merged[option.name] as string).split(searchToken, 2)[1]!);
+    Object.assign(merged, { [option.name]: await validateValue(option, { ...merged, [option.name]: substituted }) });
+  }
+};
+
 const finalizeConfiguration = async (merged: Configuration) => {
   // Defaults are materialized below; capture whether reportDir came from the child first.
   const hasExplicitReportDirectory = Object.hasOwn(merged, 'reportDir');
@@ -113,17 +130,8 @@ const finalizeConfiguration = async (merged: Configuration) => {
       reportDir: await validateValue(reportDirectoryOption, { ...merged, reportDir: batchReportDirectory })
     });
   }
-  for (const option of options) {
-    if (!(
-      option.type === 'fs-entry' &&
-      typeof merged[option.name] === 'string' &&
-      (merged[option.name] as string).includes('{{reportDir}}')
-    )) {
-      continue;
-    }
-    const substituted = Path.join(merged.reportDir, (merged[option.name] as string).split('{{reportDir}}', 2)[1]!);
-    Object.assign(merged, { [option.name]: await validateValue(option, { ...merged, [option.name]: substituted }) });
-  }
+  await substitutePlaceholder(merged, '{{reportDir}}', merged.reportDir);
+  await substitutePlaceholder(merged, '{{tmpDir}}', Host.tmpdir());
   for (const derive of derivations) {
     derive(merged);
   }

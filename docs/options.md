@@ -57,6 +57,7 @@ relations:
 |[debugKeepBrowserOpen](options/debugKeepBrowserOpen.md)|--debug-keep-browser-open||boolean|keeps the browser open after the tests completed|
 |[debugLog](options/debugLog.md)|--debug-log||string|output debug logs for given sources|
 |[debugMcpLocalDocs](options/debugMcpLocalDocs.md)|--debug-mcp-local-docs||boolean|use local docs/ directory instead of fetching from GitHub (development only)|
+|[debugNpmNoLocal](options/debugNpmNoLocal.md)|--debug-npm-no-local||boolean|ignore locally-resolvable packages, forcing global/prefix resolution and install (development only)|
 |[driver](options/driver.md)|--driver|-d|puppeteer \| playwright \| webdriverio \| selenium-webdriver|driver selection|
 |[dumpConfig](options/dumpConfig.md)|--dump-config||boolean|dump the resolved configuration as JSON and exit|
 |[end](options/end.md)|--end||string|command to be executed after the tests|

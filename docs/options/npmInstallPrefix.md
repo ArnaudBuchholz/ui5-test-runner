@@ -2,7 +2,9 @@
 "#type": option
 title: npmInstallPrefix
 type: fs-entry
-summary: path used as --prefix when npmInstall is set to prefix
+typeModifiers:
+  - overwrite
+summary: Directory used as the npm --prefix install target when --npm-install is set to prefix
 dependsOn: cwd
 keywords:
   - npm
@@ -18,13 +20,13 @@ path used as --prefix when npmInstall is set to prefix
 
 | | |
 |---|---|
-| Type | [`fs-entry`](types/fs-entry.md) |
+| Type | [`fs-entry`](types/fs-entry.md) (overwrite) |
 | Default | *none* |
 | Config key | `npmInstallPrefix` |
 
 ## Details
 
-Used as the `--prefix` argument to npm when [`--npm-install`](./npmInstall.md) is set to `prefix`. Specifies the directory where packages are installed. Has no effect with other `--npm-install` strategies.
+Used as the `--prefix` argument to npm when [`--npm-install`](./npmInstall.md) is set to `prefix`. Specifies the directory where packages are installed; it is created if it does not already exist. Has no effect with other `--npm-install` strategies.
 
 ## Example
 

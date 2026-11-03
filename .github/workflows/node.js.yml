@@ -29,28 +29,3 @@ jobs:
       with:
         name: e2e-reports
         path: e2e/
-
-  # https://github.com/ArnaudBuchholz/ui5-test-runner/issues/200
-  npm-install-regression:
-    runs-on: ubuntu-latest
-    permissions: { contents: read }
-    steps:
-    - uses: actions/checkout@v6
-    - uses: actions/setup-node@v6
-      with:
-        node-version-file: .nvmrc
-        cache: 'npm'
-    - run: npm ci
-    - run: npm run cli -- --version
-    - run: rm -rf node_modules
-    - run: npm install --omit=dev
-    - run: npm run test:npm-install
-      env:
-        UI5TR_CHROME_ARGS: --no-sandbox
-    - name: Archive regression results
-      if: always()
-      uses: actions/upload-artifact@v7
-      with:
-        name: npm-install-regression-reports
-        path: e2e-npm-install/
-

@@ -11,9 +11,14 @@ import { getNpmCliPath, Npm } from './Npm.js';
 
 class TestNpm extends Npm {
   static readonly dynamicImportSpy = vi.fn<(specifier: string) => Promise<unknown>>();
+  static readonly resolveSpecifierSpy = vi.fn<(specifier: string) => string>(() => 'file:///resolved/specifier');
 
   protected static override dynamicImport(specifier: string): Promise<unknown> {
     return this.dynamicImportSpy(specifier);
+  }
+
+  protected static override resolveSpecifier(specifier: string): string {
+    return this.resolveSpecifierSpy(specifier);
   }
 }
 
@@ -300,8 +305,28 @@ describe('import', () => {
     vi.mocked(FileSystem.readFile).mockResolvedValue(JSON.stringify({ version: '1.0.0' }));
     vi.mocked(Http.getAsText).mockResolvedValue(JSON.stringify({ version: '1.0.0' }));
     TestNpm.dynamicImportSpy.mockResolvedValueOnce(FAKE_MODULE);
+    TestNpm.resolveSpecifierSpy.mockReturnValueOnce('file:///local/node_modules/some-module/index.js');
     const module = await TestNpm.import(NO_CONFIGURATION, 'some-module');
     expect(module).toBe(FAKE_MODULE);
+    // The resolved location is surfaced in the log message.
+    expect(logger.debug).toHaveBeenCalledWith(
+      expect.objectContaining({
+        message: 'Module some-module found locally (file:///local/node_modules/some-module/index.js)'
+      })
+    );
+  });
+
+  it('reports "unknown location" when resolveSpecifier throws but the import succeeded', async () => {
+    const FAKE_MODULE = { default: 'local-module' };
+    TestNpm.dynamicImportSpy.mockResolvedValueOnce(FAKE_MODULE);
+    TestNpm.resolveSpecifierSpy.mockImplementationOnce(() => {
+      throw new Error('cannot resolve');
+    });
+    const module = await TestNpm.import(NO_CONFIGURATION, 'some-module');
+    expect(module).toBe(FAKE_MODULE);
+    expect(logger.debug).toHaveBeenCalledWith(
+      expect.objectContaining({ message: 'Module some-module found locally (unknown location)' })
+    );
   });
 
   it('re-throws immediately when local import fails with a non-not-found error', async () => {
@@ -365,7 +390,7 @@ describe('import', () => {
     const result = await TestNpm.import(NO_CONFIGURATION, 'some-module');
     expect(result).toBe(FAKE_MODULE);
     expect(logger.debug).toHaveBeenCalledWith(
-      expect.objectContaining({ message: expect.stringContaining('found globally') as string })
+      expect.objectContaining({ message: 'Module some-module found globally (/global/root/some-module/index.js)' })
     );
   });
 
@@ -553,6 +578,41 @@ describe('import', () => {
     // createRequire/require.resolve is the only thing that poisons the cache; it must never be
     // reached for the absent pre-install probes.
     expect(createRequireSpy).not.toHaveBeenCalled();
+  });
+
+  it('with debugNpmNoLocal, skips the top-level import and the local root, resolving globally', async () => {
+    // debugNpmNoLocal forces resolution past every local path so a test can exercise the
+    // global/prefix install-then-reimport path even when the package is present locally. Here the
+    // package is present at BOTH local and global roots: without the flag it would resolve from
+    // local, so resolving from global proves the local import probe was skipped.
+    const FAKE_MODULE = { default: 'global-module' };
+    mockPackagePresentAt('/local/root/', '/global/root/');
+    // If the top-level import were attempted it would resolve here; it must be skipped entirely.
+    TestNpm.dynamicImportSpy.mockResolvedValue(FAKE_MODULE);
+    // require.resolve returns the local path when probed from local, the global path from global.
+    vi.mocked(Module.createRequire).mockImplementation(
+      () =>
+        Object.assign(vi.fn(), {
+          resolve: vi.fn((_name, options?: { paths?: string[] }) =>
+            options?.paths?.[0] === '/local/root'
+              ? '/local/root/some-module/index.js'
+              : '/global/root/some-module/index.js'
+          )
+        }) as unknown as ReturnType<typeof Module.createRequire>
+    );
+    vi.mocked(Url.pathToFileURL).mockImplementation((p) => ({ href: `file://${p}` }) as URL);
+
+    const result = await TestNpm.import({ ...NO_CONFIGURATION, debugNpmNoLocal: true }, 'some-module');
+
+    expect(result).toBe(FAKE_MODULE);
+    // The top-level import of the bare module name must never run under debugNpmNoLocal.
+    expect(TestNpm.dynamicImportSpy).not.toHaveBeenCalledWith('some-module');
+    // Resolution reached the global import (local probe skipped), not the local one.
+    expect(TestNpm.dynamicImportSpy).toHaveBeenCalledWith('file:///global/root/some-module/index.js');
+    expect(TestNpm.dynamicImportSpy).not.toHaveBeenCalledWith('file:///local/root/some-module/index.js');
+    expect(logger.debug).toHaveBeenCalledWith(
+      expect.objectContaining({ message: expect.stringContaining('found globally') as string })
+    );
   });
 });
 

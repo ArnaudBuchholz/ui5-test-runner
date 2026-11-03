@@ -21,7 +21,14 @@ A file-system path. It can be refined with modifiers:
 * [overwrite](./modifiers/overwrite.md)
 * [safe-default](./modifiers/safe-default.md)
 
-Most `fs-entry` options are relative to [`cwd`](../cwd.md) unless specified otherwise.
+`fs-entry` values are resolved relative to [`cwd`](../cwd.md) by convention (each option's doc notes when a different base applies).
+
+## Placeholders
+
+An `fs-entry` value may start with a placeholder that is expanded, at configuration time, to a directory resolved by the runner. The text after the placeholder is appended to that directory:
+
+* `{{reportDir}}` — the resolved [`--report-dir`](../reportDir.md), e.g. `{{reportDir}}/coverage`
+* `{{tmpDir}}` — the operating-system temporary directory, e.g. `{{tmpDir}}/ui5tr-npm-install`
 
 ## Example
 
