@@ -45,7 +45,7 @@ test/**/report/
 !test/report/
 .utr-capabilities/
 test/report/report.html
-report-backup/
+report-*/
 
 # IDE
 .vscode/
