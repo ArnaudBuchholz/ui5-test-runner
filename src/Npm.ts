@@ -100,6 +100,15 @@ export class Npm {
     moduleName: string,
     nodeModulesPath: string
   ): Promise<unknown> {
+    // Gate require.resolve behind a findPackageJSON existence check. On some Node versions
+    // (24.13.1+, 25.5+, 26.x), a require.resolve(name, { paths }) that misses caches the negative
+    // result for the whole process (for packages whose main is not index.js), so a pre-install
+    // probe would keep failing even after the package is installed. findPackageJSON does not touch
+    // that cache, so skipping the resolve when the package is absent keeps it unpoisoned — and once
+    // the package is present, require.resolve runs for the first time and Node resolves it normally.
+    if (this.tryResolvePackageDir(this.packageNameOf(moduleName), nodeModulesPath) === undefined) {
+      return undefined;
+    }
     try {
       // The base only anchors resolution; require.resolve uses the explicit `paths` below, so a
       // directory URL under cwd is sufficient (no package.json needs to exist here).

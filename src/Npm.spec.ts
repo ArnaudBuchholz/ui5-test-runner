@@ -145,6 +145,15 @@ const makeRequireThrow = () =>
     })
   }) as unknown as ReturnType<typeof Module.createRequire>;
 
+// tryImportFromPath gates require.resolve behind a findPackageJSON existence check (so a missing
+// package never poisons the resolver cache). Mock findPackageJSON to report the package present
+// only at the given root base paths, matching which root each test expects to resolve from.
+const mockPackagePresentAt = (...presentBases: string[]) =>
+  vi.mocked(Module.findPackageJSON).mockImplementation((_name, base) => {
+    const match = typeof base === 'string' && presentBases.find((presentBase) => base.startsWith(presentBase));
+    return match ? `${match}some-module/package.json` : undefined;
+  });
+
 describe('checkIfLatestVersion', () => {
   const mockResolveLocal = () => {
     vi.mocked(Module.findPackageJSON).mockReturnValue('/local/root/some-module/package.json');
@@ -330,13 +339,12 @@ describe('import', () => {
   it('returns the module when found in local node_modules via require.resolve fallback', async () => {
     const FAKE_MODULE = { default: 'local-cjs-module' };
     // dynamicImport fails (e.g. CJS sub-path without .js), local tryImportFromPath succeeds
+    mockPackagePresentAt('/local/root/');
     TestNpm.dynamicImportSpy
       .mockRejectedValueOnce(Object.assign(new Error('ERR_MODULE_NOT_FOUND'), { code: 'ERR_MODULE_NOT_FOUND' }))
       .mockResolvedValueOnce(FAKE_MODULE);
     vi.mocked(Module.createRequire).mockReturnValue(makeRequire('/local/root/some-module/index.js'));
-    vi.mocked(Url.pathToFileURL)
-      .mockReturnValueOnce({ href: `file://${CWD}/package.json` } as URL)
-      .mockReturnValueOnce({ href: 'file:///local/root/some-module/index.js' } as URL);
+    vi.mocked(Url.pathToFileURL).mockImplementation((p) => ({ href: `file://${p}` }) as URL);
     const result = await TestNpm.import(NO_CONFIGURATION, 'some-module');
     expect(result).toBe(FAKE_MODULE);
     expect(logger.debug).toHaveBeenCalledWith(
@@ -347,16 +355,13 @@ describe('import', () => {
   it('returns the module and checks latest version when found globally', async () => {
     const FAKE_MODULE = { default: 'global-module' };
     // local dynamicImport fails, local tryImportFromPath fails, global tryImportFromPath resolves
+    mockPackagePresentAt('/global/root/');
     TestNpm.dynamicImportSpy
       .mockRejectedValueOnce(Object.assign(new Error('ERR_MODULE_NOT_FOUND'), { code: 'ERR_MODULE_NOT_FOUND' }))
       .mockResolvedValueOnce(FAKE_MODULE);
-    vi.mocked(Module.createRequire)
-      .mockReturnValueOnce(makeRequireThrow()) // local root fails
-      .mockReturnValueOnce(makeRequire('/global/root/some-module/index.js'));
-    vi.mocked(Url.pathToFileURL)
-      .mockReturnValueOnce({ href: `file://${CWD}/package.json` } as URL)
-      .mockReturnValueOnce({ href: `file://${CWD}/package.json` } as URL)
-      .mockReturnValueOnce({ href: 'file:///global/root/some-module/index.js' } as URL);
+    // local root is skipped (findPackageJSON absent), so createRequire runs only for the global root
+    vi.mocked(Module.createRequire).mockReturnValue(makeRequire('/global/root/some-module/index.js'));
+    vi.mocked(Url.pathToFileURL).mockImplementation((p) => ({ href: `file://${p}` }) as URL);
     const result = await TestNpm.import(NO_CONFIGURATION, 'some-module');
     expect(result).toBe(FAKE_MODULE);
     expect(logger.debug).toHaveBeenCalledWith(
@@ -366,19 +371,13 @@ describe('import', () => {
 
   it('returns the module when found in alternateNpmPath', async () => {
     const FAKE_MODULE = { default: 'alternate-module' };
-    // local dynamicImport fails, local tryImportFromPath fails, global fails, alternate resolves
+    // local and global are skipped (findPackageJSON absent); the alternate root has the package
+    mockPackagePresentAt('/alternate/path/');
     TestNpm.dynamicImportSpy
       .mockRejectedValueOnce(Object.assign(new Error('ERR_MODULE_NOT_FOUND'), { code: 'ERR_MODULE_NOT_FOUND' }))
       .mockResolvedValueOnce(FAKE_MODULE);
-    vi.mocked(Module.createRequire)
-      .mockReturnValueOnce(makeRequireThrow()) // local root fails
-      .mockReturnValueOnce(makeRequireThrow()) // global root fails
-      .mockReturnValueOnce(makeRequire('/alternate/path/some-module/index.js'));
-    vi.mocked(Url.pathToFileURL)
-      .mockReturnValueOnce({ href: `file://${CWD}/package.json` } as URL)
-      .mockReturnValueOnce({ href: `file://${CWD}/package.json` } as URL)
-      .mockReturnValueOnce({ href: `file://${CWD}/package.json` } as URL)
-      .mockReturnValueOnce({ href: 'file:///alternate/path/some-module/index.js' } as URL);
+    vi.mocked(Module.createRequire).mockReturnValue(makeRequire('/alternate/path/some-module/index.js'));
+    vi.mocked(Url.pathToFileURL).mockImplementation((p) => ({ href: `file://${p}` }) as URL);
     const result = await TestNpm.import(ALTERNATE_NPM_PATH_CONFIGURATION, 'some-module');
     expect(result).toBe(FAKE_MODULE);
     expect(logger.debug).toHaveBeenCalledWith(
@@ -388,19 +387,13 @@ describe('import', () => {
 
   it('returns the module when found in npmInstallPrefix', async () => {
     const FAKE_MODULE = { default: 'prefix-module' };
-    // local dynamicImport fails, local tryImportFromPath fails, global fails, prefix resolves
+    // local and global are skipped (findPackageJSON absent); the prefix root has the package
+    mockPackagePresentAt('/prefix/path/node_modules/');
     TestNpm.dynamicImportSpy
       .mockRejectedValueOnce(Object.assign(new Error('ERR_MODULE_NOT_FOUND'), { code: 'ERR_MODULE_NOT_FOUND' }))
       .mockResolvedValueOnce(FAKE_MODULE);
-    vi.mocked(Module.createRequire)
-      .mockReturnValueOnce(makeRequireThrow()) // local root fails
-      .mockReturnValueOnce(makeRequireThrow()) // global root fails
-      .mockReturnValueOnce(makeRequire('/prefix/path/node_modules/some-module/index.js'));
-    vi.mocked(Url.pathToFileURL)
-      .mockReturnValueOnce({ href: `file://${CWD}/package.json` } as URL)
-      .mockReturnValueOnce({ href: `file://${CWD}/package.json` } as URL)
-      .mockReturnValueOnce({ href: `file://${CWD}/package.json` } as URL)
-      .mockReturnValueOnce({ href: 'file:///prefix/path/node_modules/some-module/index.js' } as URL);
+    vi.mocked(Module.createRequire).mockReturnValue(makeRequire('/prefix/path/node_modules/some-module/index.js'));
+    vi.mocked(Url.pathToFileURL).mockImplementation((p) => ({ href: `file://${p}` }) as URL);
     const result = await TestNpm.import(NPM_INSTALL_PREFIX_CONFIGURATION, 'some-module');
     expect(result).toBe(FAKE_MODULE);
     expect(logger.debug).toHaveBeenCalledWith(
@@ -515,19 +508,25 @@ describe('import', () => {
 
   it('returns the module when found via reimportPath after global install', async () => {
     const FAKE_MODULE = { default: 'installed-module' };
-    // local dynamicImport fails, local tryImportFromPath fails, global tryImportFromPath fails, install runs, reimportPath resolves
+    // Pre-install the package is absent everywhere, so both root probes skip require.resolve (no
+    // poisoning). The install makes it appear at the global root, where the reimport then resolves.
+    let isInstalled = false;
+    vi.mocked(Module.findPackageJSON).mockImplementation((_name, base) =>
+      isInstalled && typeof base === 'string' && base.startsWith('/global/root/')
+        ? '/global/root/some-module/package.json'
+        : undefined
+    );
+    const spawnImpl = vi.mocked(Process.spawn).getMockImplementation()!;
+    vi.mocked(Process.spawn).mockImplementation((command, arguments_, options) => {
+      if (arguments_?.includes('install')) isInstalled = true;
+      return spawnImpl(command, arguments_, options);
+    });
     TestNpm.dynamicImportSpy
       .mockRejectedValueOnce(Object.assign(new Error('ERR_MODULE_NOT_FOUND'), { code: 'ERR_MODULE_NOT_FOUND' }))
       .mockResolvedValueOnce(FAKE_MODULE);
-    vi.mocked(Module.createRequire)
-      .mockReturnValueOnce(makeRequireThrow()) // local root fails
-      .mockReturnValueOnce(makeRequireThrow()) // global root fails pre-install
-      .mockReturnValueOnce(makeRequire('/global/root/some-module/index.js')); // global root succeeds post-install
-    vi.mocked(Url.pathToFileURL)
-      .mockReturnValueOnce({ href: `file://${CWD}/package.json` } as URL)
-      .mockReturnValueOnce({ href: `file://${CWD}/package.json` } as URL)
-      .mockReturnValueOnce({ href: `file://${CWD}/package.json` } as URL)
-      .mockReturnValueOnce({ href: 'file:///global/root/some-module/index.js' } as URL);
+    // Only the post-install reimport reaches require.resolve, so createRequire runs once.
+    vi.mocked(Module.createRequire).mockReturnValue(makeRequire('/global/root/some-module/index.js'));
+    vi.mocked(Url.pathToFileURL).mockImplementation((p) => ({ href: `file://${p}` }) as URL);
     const result = await TestNpm.import(GLOBAL_INSTALL_CONFIGURATION, 'some-module');
     expect(result).toBe(FAKE_MODULE);
   });
@@ -542,6 +541,18 @@ describe('import', () => {
     await expect(
       TestNpm.import({ ...NPM_INSTALL_PREFIX_CONFIGURATION, noNpmInstall: true }, 'non-existent-module-xyz-abc')
     ).rejects.toThrow(ExitShutdownError);
+  });
+
+  it('skips require.resolve for a root where the package is absent (avoids poisoning its cache)', async () => {
+    // Regression guard for the Node resolver-cache poisoning: when findPackageJSON reports the
+    // package absent at a root, require.resolve must not run there — a miss would cache a negative
+    // result for the whole process and break the post-install reimport on affected Node versions.
+    const createRequireSpy = vi.mocked(Module.createRequire).mockReturnValue(makeRequireThrow());
+    vi.mocked(Module.findPackageJSON).mockReturnValue(undefined); // absent at every root
+    await expect(TestNpm.import(GLOBAL_INSTALL_CONFIGURATION, 'non-existent-module-xyz-abc')).rejects.toThrow();
+    // createRequire/require.resolve is the only thing that poisons the cache; it must never be
+    // reached for the absent pre-install probes.
+    expect(createRequireSpy).not.toHaveBeenCalled();
   });
 });
 
