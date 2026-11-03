@@ -40,8 +40,8 @@ export const factory = async (configuration: Configuration, signal: AbortSignal)
             max: 0
           }
         });
-        await Process.spawn('npx', 'playwright install chromium'.split(' '), {
-          shell: true,
+        const cliPath = await Npm.resolvePackageBinCommand(configuration, 'playwright', 'playwright');
+        await Process.spawn('node', [cliPath, 'install', 'chromium'], {
           signal
         }).closed;
         browser = await chromium.launch(launchOptions);

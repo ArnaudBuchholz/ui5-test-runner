@@ -297,6 +297,59 @@ describe('resolvePackageDir', () => {
       'Cannot locate package directory for missing-module'
     );
   });
+
+  it('with debugNpmNoLocal, skips the local root so it resolves the same copy as import', async () => {
+    // Regression #200: resolvePackageDir drives the Chrome install while import loads puppeteer.
+    // Under debugNpmNoLocal a package present both locally and in the prefix must resolve to the
+    // prefix in BOTH, or the install and the launch drift to different puppeteer versions.
+    vi.mocked(Module.findPackageJSON)
+      .mockReturnValueOnce(undefined) // global — absent (local root is skipped entirely)
+      .mockReturnValueOnce('/prefix/path/node_modules/some-module/package.json'); // prefix — the match
+    await expect(
+      Npm.resolvePackageDir({ ...NPM_INSTALL_PREFIX_CONFIGURATION, debugNpmNoLocal: true }, 'some-module')
+    ).resolves.toBe('/prefix/path/node_modules/some-module');
+    expect(Module.findPackageJSON).not.toHaveBeenCalledWith('some-module', '/local/root/');
+  });
+});
+
+describe('resolvePackageBinCommand', () => {
+  const PACKAGE_DIR = '/local/root/some-pkg';
+  const BIN_RELATIVE = './cli.js';
+  const BIN_PATH = `${PACKAGE_DIR}/cli.js`;
+
+  beforeEach(() => {
+    vi.mocked(Module.findPackageJSON).mockReturnValue(`${PACKAGE_DIR}/package.json`);
+  });
+
+  it('returns the absolute bin path when "bin" is a string', async () => {
+    vi.mocked(FileSystem.readFile).mockResolvedValue(JSON.stringify({ bin: BIN_RELATIVE }));
+    await expect(Npm.resolvePackageBinCommand(NO_CONFIGURATION, 'some-pkg', 'some-pkg')).resolves.toBe(BIN_PATH);
+  });
+
+  it('returns the absolute bin path when "bin" is an object keyed by the command', async () => {
+    vi.mocked(FileSystem.readFile).mockResolvedValue(JSON.stringify({ bin: { 'some-pkg': BIN_RELATIVE } }));
+    await expect(Npm.resolvePackageBinCommand(NO_CONFIGURATION, 'some-pkg', 'some-pkg')).resolves.toBe(BIN_PATH);
+  });
+
+  it('fatally logs when the package has no "bin" entry at all', async () => {
+    vi.mocked(FileSystem.readFile).mockResolvedValue(JSON.stringify({}));
+    await expect(Npm.resolvePackageBinCommand(NO_CONFIGURATION, 'some-pkg', 'some-pkg')).rejects.toThrow(
+      ExitShutdownError
+    );
+    expect(logger.fatal).toHaveBeenCalledWith(
+      expect.objectContaining({ source: 'npm', message: 'Unable to locate command "some-pkg" in some-pkg package.json "bin"' })
+    );
+  });
+
+  it('fatally logs when "bin" is an object but the command key is absent', async () => {
+    vi.mocked(FileSystem.readFile).mockResolvedValue(JSON.stringify({ bin: { other: BIN_RELATIVE } }));
+    await expect(Npm.resolvePackageBinCommand(NO_CONFIGURATION, 'some-pkg', 'some-pkg')).rejects.toThrow(
+      ExitShutdownError
+    );
+    expect(logger.fatal).toHaveBeenCalledWith(
+      expect.objectContaining({ source: 'npm', message: 'Unable to locate command "some-pkg" in some-pkg package.json "bin"' })
+    );
+  });
 });
 
 describe('import', () => {

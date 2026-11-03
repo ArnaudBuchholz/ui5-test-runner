@@ -8,7 +8,10 @@ import { RecoverableBrowserError } from './RecoverableBrowserError.js';
 const NO_CONFIGURATION = {} as Configuration;
 const ABORT_SIGNAL = new AbortController().signal;
 
+const PUPPETEER_CLI_PATH = '/prefix/node_modules/puppeteer/lib/puppeteer/node/cli.js';
+
 const npmImportSpy = vi.spyOn(Npm, 'import');
+const npmResolvePackageBinCommandSpy = vi.spyOn(Npm, 'resolvePackageBinCommand');
 
 const makePage = () => ({
   evaluateOnNewDocument: vi.fn().mockResolvedValue(undefined),
@@ -41,6 +44,7 @@ it('installs the browser and retries when launch throws "Could not find" error',
     .mockRejectedValueOnce(new Error('Could not find Chrome (ver. 120)'))
     .mockResolvedValueOnce(browser);
   npmImportSpy.mockResolvedValue({ launch });
+  npmResolvePackageBinCommandSpy.mockResolvedValue(PUPPETEER_CLI_PATH);
   vi.mocked(Process.spawn).mockReturnValue({
     pid: 1,
     stdout: '',
@@ -53,7 +57,12 @@ it('installs the browser and retries when launch throws "Could not find" error',
   const instance = await factory(NO_CONFIGURATION, ABORT_SIGNAL);
   await instance.setup({});
 
-  expect(Process.spawn).toHaveBeenCalledWith('npx', expect.arrayContaining(['puppeteer']), expect.any(Object));
+  expect(npmResolvePackageBinCommandSpy).toHaveBeenCalledWith(NO_CONFIGURATION, 'puppeteer', 'puppeteer');
+  expect(Process.spawn).toHaveBeenCalledWith(
+    'node',
+    [PUPPETEER_CLI_PATH, 'browsers', 'install', 'chrome'],
+    expect.any(Object)
+  );
   expect(launch).toHaveBeenCalledTimes(2);
   expect(logger.info).toHaveBeenCalledWith(expect.objectContaining({ source: 'progress' }));
 });

@@ -7,7 +7,10 @@ import { factory } from './playwright.js';
 const NO_CONFIGURATION = {} as Configuration;
 const ABORT_SIGNAL = new AbortController().signal;
 
+const PLAYWRIGHT_CLI_PATH = '/prefix/node_modules/playwright/cli.js';
+
 const npmImportSpy = vi.spyOn(Npm, 'import');
+const npmResolvePackageBinCommandSpy = vi.spyOn(Npm, 'resolvePackageBinCommand');
 
 const makeContext = () => ({
   pages: vi.fn().mockReturnValue([]),
@@ -40,6 +43,7 @@ it('installs chromium and retries when launch throws "Executable doesn\'t" error
     launch: vi.fn().mockRejectedValueOnce(new Error("Executable doesn't exist")).mockResolvedValueOnce(browser)
   };
   npmImportSpy.mockResolvedValue({ chromium });
+  npmResolvePackageBinCommandSpy.mockResolvedValue(PLAYWRIGHT_CLI_PATH);
   vi.mocked(Process.spawn).mockReturnValue({
     pid: 1,
     stdout: '',
@@ -52,7 +56,12 @@ it('installs chromium and retries when launch throws "Executable doesn\'t" error
   const instance = await factory(NO_CONFIGURATION, ABORT_SIGNAL);
   await instance.setup({});
 
-  expect(Process.spawn).toHaveBeenCalledWith('npx', expect.arrayContaining(['playwright']), expect.any(Object));
+  expect(npmResolvePackageBinCommandSpy).toHaveBeenCalledWith(NO_CONFIGURATION, 'playwright', 'playwright');
+  expect(Process.spawn).toHaveBeenCalledWith(
+    'node',
+    [PLAYWRIGHT_CLI_PATH, 'install', 'chromium'],
+    expect.any(Object)
+  );
   expect(chromium.launch).toHaveBeenCalledTimes(2);
   expect(logger.info).toHaveBeenCalledWith(expect.objectContaining({ source: 'progress' }));
 });

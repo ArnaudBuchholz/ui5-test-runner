@@ -50,8 +50,8 @@ export const factory = async (configuration: Configuration, signal: AbortSignal)
             max: 0
           }
         });
-        await Process.spawn('npx', `puppeteer browsers install ${target}`.split(' '), {
-          shell: true,
+        const cliPath = await Npm.resolvePackageBinCommand(configuration, 'puppeteer', 'puppeteer');
+        await Process.spawn('node', [cliPath, 'browsers', 'install', target], {
           signal
         }).closed;
         browser = await launch(launchOptions);

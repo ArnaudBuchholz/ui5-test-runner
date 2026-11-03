@@ -250,8 +250,14 @@ export class Npm {
   static async resolvePackageDir(configuration: Configuration, moduleName: string): Promise<string> {
     const { local, global: globalRoot } = await getRoots();
 
-    const fromLocal = this.tryResolvePackageDir(moduleName, local);
-    if (fromLocal) return fromLocal;
+    // debugNpmNoLocal forces resolution past the local root so this stays consistent with
+    // Npm.import: a package present both locally and in the prefix must resolve to the SAME copy
+    // in both, otherwise the install (resolvePackageDir) and the import drift to different versions
+    // — exactly the puppeteer/Chrome version mismatch behind regression #200.
+    if (!configuration.debugNpmNoLocal) {
+      const fromLocal = this.tryResolvePackageDir(moduleName, local);
+      if (fromLocal) return fromLocal;
+    }
 
     const fromGlobal = this.tryResolvePackageDir(moduleName, globalRoot);
     if (fromGlobal) return fromGlobal;
@@ -270,6 +276,29 @@ export class Npm {
     }
 
     throw new Error(`Cannot locate package directory for ${moduleName}`);
+  }
+
+  /**
+   * Resolve the absolute path to a named CLI command declared in the installed package's `bin`
+   * field. When `bin` is a string (single-binary package), it is used regardless of `command`.
+   * When `bin` is an object, `command` is used as the lookup key. Fatally logs when no matching
+   * entry is found. Drives the binary install of the *same* resolved package that Npm.import loads —
+   * avoiding the version drift that caused regression #200 when using a bare `npx <pkg>` call.
+   */
+  static async resolvePackageBinCommand(
+    configuration: Configuration,
+    moduleName: string,
+    command: string
+  ): Promise<string> {
+    const packageDirectory = await this.resolvePackageDir(configuration, moduleName);
+    const { bin } = JSON.parse(
+      await FileSystem.readFile(Path.join(packageDirectory, 'package.json'), 'utf8')
+    ) as { bin?: string | Record<string, string> };
+    const binRelativePath = typeof bin === 'string' ? bin : bin?.[command];
+    if (!binRelativePath) {
+      return logger.fatal({ source: 'npm', message: `Unable to locate command "${command}" in ${moduleName} package.json "bin"` });
+    }
+    return Path.join(packageDirectory, binRelativePath);
   }
 
   /** Extract the npm package name from a module specifier (strips sub-paths) */
