@@ -2,7 +2,7 @@
 
 My name is Arnaud Buchholz, official title "Application Engineering Expert", with 10 years at SAP.
 
-A good chunk of those years went into UI5 — UI5con sessions ([UI5con@SAP 2018 - A journey with OPA](https://youtu.be/HiZq-kuIbt0)) and two co-authored books:
+A good chunk of those years went into UI5, some UI5con sessions (in particular [UI5con@SAP 2018 - A journey with OPA](https://youtu.be/HiZq-kuIbt0)) and two co-authored books:
 
 * [Testing SAPUI5 Applications](https://www.sap-press.com/testing-sapui5-applications_5056/)
 * [Clean SAPUI5](https://www.sap-press.com/clean-sapui5_5479/)
@@ -16,7 +16,7 @@ If you want to learn more about the project itself, here are some interesting li
 
 Today, this [package](https://www.npmjs.com/ui5-test-runner) gets around 20,000 downloads a week and roughly a hundred teams _(internal and external)_ rely on it to run their UI5 test suites in CI.
 
-Looks like a dream, but the day-to-day reality behind it is a steady trickle of issues landing in the inbox, each one costing hours to reproduce and qualify, on a codebase that had slowly stopped being enjoyable to work on.
+Looks like a success story, but the day-to-day reality behind it is a steady trickle of issues landing in the inbox, each one costing hours to reproduce and qualify, on a codebase that had slowly stopped being enjoyable to work on.
 
 This article elaborates on three facets which might be of interest for our fellow quality engineers:
 
@@ -26,22 +26,27 @@ This article elaborates on three facets which might be of interest for our fello
 
 ## Why ui5-test-runner@6 exists
 
-Version 5 worked. That's the uncomfortable part. It wasn't broken; it was *tired*. After five years of adding features to support every request a team could throw at it, the architecture had quietly turned into something I was afraid to touch.
+Version 5 worked. That's the _uncomfortable_ part: it wasn't broken but it was *tired*.
+
+After several years of adding features to support every request teams could throw at it, the architecture had quietly turned into something I was afraid to touch.
 
 A few concrete pain points, because "legacy code is hard" is too vague to be useful:
 
-- **No type safety, silent failures.** The option parser alone was around 500 lines of JavaScript. When I once added a `start` option, it collided with an internal `start` timestamp and I spent three hours debugging *wrong timings* in test reports. Nothing crashed. It just lied, quietly.
+- **No type safety, silent failures.** The whole codebase was written in JavaScript. The option parser alone was around 500 lines. When I once added a `start` option, it collided with an internal `start` timestamp and I spent three hours debugging *wrong timings* in test reports. Nothing crashed. It just lied, _quietly_.
+
 - **Tracing you had to earn.** When a team reported "it fails on CI but not on our machines," the workflow was: enable traces via options, re-run and wait, collect the scattered trace files (one per spawned process), squint at the clutter, and usually loop back to step one. The tool didn't tell you what happened by default.
-- **The browser model fought the browser.** v5 spawned a full browser *process* per test page, probed it for readiness, *then* ran the tests. Each process meant ~2 seconds of pure startup overhead and a cold cache, so UI5 resources were re-downloaded again and again. For simple QUnit suites, teams told me Karma was faster — and they were right.
+
+- **The browser model fought the browser.** v5 spawned a full browser *process* per test page, probed it for readiness, *then* ran the tests. Each process meant ~2 seconds of pure startup overhead and a cold cache, so UI5 resources were re-downloaded again and again. For simple QUnit suites, teams told me Karma was faster and - _sadly_ -  they were right.
+
 - **Chrome moved the goalposts.** Recent Chrome versions blocked `localhost` access from a remote URL. The common workaround was to disable browser security. Not scalable, not safe, and it erodes trust in the tool.
 
 I had three options: keep patching (unsustainable), onboard a second maintainer (impossible — the code was too brittle to hand over), or rebuild with guardrails. I took the bet: a few months of work to save thousands of hours downstream and, just as importantly, to produce something *someone else could maintain*.
 
 Version 6 is a complete rewrite in TypeScript, organized around three ideas:
 
-1. **Reliability** — a single, structured, queryable trace written by default, so a run tells its own story. No more "turn on logging and try again."
-2. **Speed** — one browser, many tabs. Native browser cache. An in-page *agent* that the runner polls, instead of the old probe-then-POST dance. The probe step is simply gone. On complex suites this is roughly 30% faster, and on the OpenUI5 challenge (31K+ tests) a run that took ~15 minutes on v5 came down to ~6.
-3. **Shareability** — clear interfaces, threads instead of processes where it helps, and a documentation system designed to be read by both humans and machines.
+1. **Reliability** a single, structured, queryable trace written by default, so a run tells its own story. No more "turn on logging and try again."
+2. **Speed** one browser, many tabs. Native browser cache. An in-page *agent* that the runner polls, instead of the old probe-then-POST dance. The probe step is simply gone. On complex suites this is roughly 30% faster, and on the OpenUI5 challenge (31K+ tests) a run that took ~15 minutes on v5 came down to ~6.
+3. **Shareability** clear interfaces, threads instead of processes where it helps, and a documentation system designed to be read by **both** humans and machines.
 
 The architecture shift, in one line: v5 was *runner → spawn browser → probe → browser POSTs results back*; v6 is *runner → one browser with tabs → injected agent holds state → runner polls the agent*. Removing the per-page process is what unlocked both the caching and the speed.
 
