@@ -40,6 +40,9 @@ jobs:
       with:
         node-version-file: .nvmrc
         cache: 'npm'
+    - run: npm ci
+    - run: npm run cli -- --version
+    - run: rm -rf node_modules
     - run: npm install --omit=dev
     - run: npm run test:npm-install
       env:
