@@ -291,14 +291,16 @@ export class Npm {
     command: string
   ): Promise<string> {
     const packageDirectory = await this.resolvePackageDir(configuration, moduleName);
-    const { bin } = JSON.parse(
-      await FileSystem.readFile(Path.join(packageDirectory, 'package.json'), 'utf8')
-    ) as { bin?: string | Record<string, string> };
+    const { bin } = JSON.parse(await FileSystem.readFile(Path.join(packageDirectory, 'package.json'), 'utf8')) as {
+      bin?: string | Record<string, string>;
+    };
     const binRelativePath = typeof bin === 'string' ? bin : bin?.[command];
-    if (!binRelativePath) {
-      return logger.fatal({ source: 'npm', message: `Unable to locate command "${command}" in ${moduleName} package.json "bin"` });
-    }
-    return Path.join(packageDirectory, binRelativePath);
+    return binRelativePath
+      ? Path.join(packageDirectory, binRelativePath)
+      : logger.fatal({
+          source: 'npm',
+          message: `Unable to locate command "${command}" in ${moduleName} package.json "bin"`
+        });
   }
 
   /** Extract the npm package name from a module specifier (strips sub-paths) */

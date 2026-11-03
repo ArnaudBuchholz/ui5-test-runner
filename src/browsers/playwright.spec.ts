@@ -57,11 +57,7 @@ it('installs chromium and retries when launch throws "Executable doesn\'t" error
   await instance.setup({});
 
   expect(npmResolvePackageBinCommandSpy).toHaveBeenCalledWith(NO_CONFIGURATION, 'playwright', 'playwright');
-  expect(Process.spawn).toHaveBeenCalledWith(
-    'node',
-    [PLAYWRIGHT_CLI_PATH, 'install', 'chromium'],
-    expect.any(Object)
-  );
+  expect(Process.spawn).toHaveBeenCalledWith('node', [PLAYWRIGHT_CLI_PATH, 'install', 'chromium'], expect.any(Object));
   expect(chromium.launch).toHaveBeenCalledTimes(2);
   expect(logger.info).toHaveBeenCalledWith(expect.objectContaining({ source: 'progress' }));
 });

@@ -337,7 +337,10 @@ describe('resolvePackageBinCommand', () => {
       ExitShutdownError
     );
     expect(logger.fatal).toHaveBeenCalledWith(
-      expect.objectContaining({ source: 'npm', message: 'Unable to locate command "some-pkg" in some-pkg package.json "bin"' })
+      expect.objectContaining({
+        source: 'npm',
+        message: 'Unable to locate command "some-pkg" in some-pkg package.json "bin"'
+      })
     );
   });
 
@@ -347,7 +350,10 @@ describe('resolvePackageBinCommand', () => {
       ExitShutdownError
     );
     expect(logger.fatal).toHaveBeenCalledWith(
-      expect.objectContaining({ source: 'npm', message: 'Unable to locate command "some-pkg" in some-pkg package.json "bin"' })
+      expect.objectContaining({
+        source: 'npm',
+        message: 'Unable to locate command "some-pkg" in some-pkg package.json "bin"'
+      })
     );
   });
 });
