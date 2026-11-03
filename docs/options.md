@@ -57,7 +57,7 @@ relations:
 |[debugKeepBrowserOpen](options/debugKeepBrowserOpen.md)|--debug-keep-browser-open||boolean|keeps the browser open after the tests completed|
 |[debugLog](options/debugLog.md)|--debug-log||string|output debug logs for given sources|
 |[debugMcpLocalDocs](options/debugMcpLocalDocs.md)|--debug-mcp-local-docs||boolean|use local docs/ directory instead of fetching from GitHub (development only)|
-|[debugNpmNoLocal](options/debugNpmNoLocal.md)|--debug-npm-no-local||boolean|ignore locally-resolvable packages, forcing global/prefix resolution and install (development only)|
+|[debugNpmNoLocal](options/debugNpmNoLocal.md)|--debug-npm-no-local||boolean|Simulates a locally-absent package so the runner falls back to global or prefix resolution (development/testing only)|
 |[driver](options/driver.md)|--driver|-d|puppeteer \| playwright \| webdriverio \| selenium-webdriver|driver selection|
 |[dumpConfig](options/dumpConfig.md)|--dump-config||boolean|dump the resolved configuration as JSON and exit|
 |[end](options/end.md)|--end||string|command to be executed after the tests|
@@ -79,7 +79,7 @@ relations:
 |[npmAllowInstallScripts](options/npmAllowInstallScripts.md)|--npm-allow-install-scripts||boolean|allow postinstall scripts when installing missing packages|
 |[npmInstall](options/npmInstall.md)|--npm-install||string|npm install strategy for missing packages|
 |[npmInstallMinReleaseAge](options/npmInstallMinReleaseAge.md)|--npm-install-min-release-age||integer|minimum release age (in days) required before installing a package|
-|[npmInstallPrefix](options/npmInstallPrefix.md)|--npm-install-prefix||fs-entry|path used as --prefix when npmInstall is set to prefix|
+|[npmInstallPrefix](options/npmInstallPrefix.md)|--npm-install-prefix||fs-entry|Directory used as the npm --prefix install target when --npm-install is set to prefix|
 |[outputInterval](options/outputInterval.md)|--output-interval|-oi|timeout|interval for reporting progress on non interactive output (CI/CD)|
 |[pageFilter](options/pageFilter.md)|--page-filter|-pf|regexp|filter pages to execute|
 |[pageParams](options/pageParams.md)|--page-params|-pp|string|add parameters to page URL|

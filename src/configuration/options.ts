@@ -257,7 +257,8 @@ export const options = [
   {
     name: 'debugNpmNoLocal',
     type: 'boolean',
-    description: 'ignore locally-resolvable packages, forcing global/prefix resolution and install (development only)'
+    description:
+      'Simulates a locally-absent package so the runner falls back to global or prefix resolution (development/testing only)'
   },
   {
     name: 'driver',
@@ -390,7 +391,7 @@ export const options = [
     name: 'npmInstallPrefix',
     type: 'fs-entry',
     typeModifiers: new Set(['overwrite'] as const),
-    description: 'path used as --prefix when npmInstall is set to prefix'
+    description: 'Directory used as the npm --prefix install target when --npm-install is set to prefix'
   },
   {
     name: 'outputInterval',
