@@ -1,8 +1,8 @@
 # Rebuilding ui5-test-runner with help from AI
 
-My name is Arnaud Buchholz, official title "Application Engineering Expert", with 10 years at SAP.
+My name is Arnaud Buchholz, official title "Application Engineering Expert", and I have been working the last 12 years at SAP.
 
-A good chunk of those years went into UI5, some UI5con sessions (in particular [UI5con@SAP 2018 - A journey with OPA](https://youtu.be/HiZq-kuIbt0)) and two co-authored books:
+A good chunk of those years went into UI5 development, some UI5con sessions (in particular [UI5con@SAP 2018 - A journey with OPA](https://youtu.be/HiZq-kuIbt0)) and two co-authored books:
 
 * [Testing SAPUI5 Applications](https://www.sap-press.com/testing-sapui5-applications_5056/)
 * [Clean SAPUI5](https://www.sap-press.com/clean-sapui5_5479/)
@@ -14,53 +14,66 @@ If you want to learn more about the project itself, here are some interesting li
 * [A different approach to UI5 tests execution](https://youtu.be/EBp0bdIqu4s), a live presentation from [UI5Con'21](https://openui5.org/ui5con/)
 * [ui5-test-runner v3](https://www.youtube.com/live/kxmmdy1tho4), a live presentation from [Devtoberfest](https://www.youtube.com/playlist?list=PL6RpkC85SLQDHz97qsNTNAE2jnUKj8X5d)
 
-Today, this [package](https://www.npmjs.com/ui5-test-runner) gets around 20,000 downloads a week and roughly a hundred teams _(internal and external)_ rely on it to run their UI5 test suites in CI.
+Today, this [package](https://www.npmjs.com/ui5-test-runner) gets around 20,000 downloads a week and a hundred teams, internal and external, visible in weekly npm telemetry, rely on it to run their UI5 test suites in CI.
 
 Looks like a success story, but the day-to-day reality behind it is a steady trickle of issues landing in the inbox, each one costing hours to reproduce and qualify, on a codebase that had slowly stopped being enjoyable to work on.
 
-This article elaborates on three facets which might be of interest for our fellow quality engineers:
-
-* Why version 6 exists
-* How AI has been leveraged to build this new version without losing control of the result
-* How an MCP server was built and tested to help teams migrate from version 5 to version 6
+This article covers the rebuild of version 6, how AI was put to work without losing control of the result, and the MCP server built to help teams migrate.
 
 ## Why ui5-test-runner@6 exists
 
 Version 5 worked. That's the _uncomfortable_ part: it wasn't broken but it was *tired*.
 
-After several years of adding features to support every request teams could throw at it, the architecture had quietly turned into something I was afraid to touch.
+After several years of adding features to support every request teams could throw at it, the architecture had quietly turned into something no one wanted to touch.
 
 A few concrete pain points, because "legacy code is hard" is too vague to be useful:
 
-- **No type safety, silent failures.** The whole codebase was written in JavaScript. The option parser alone was around 500 lines. When I once added a `start` option, it collided with an internal `start` timestamp and I spent three hours debugging *wrong timings* in test reports. Nothing crashed. It just lied, _quietly_.
+- **No type safety, silent failures.** The whole codebase was written in JavaScript. The option parser alone was around 500 lines. Adding a `start` option once collided with an internal `start` timestamp — hours of debugging *wrong timings* followed. Nothing crashed. It just lied, _quietly_.
 
-- **Tracing you had to earn.** When a team reported "it fails on CI but not on our machines," the workflow was: enable traces via options, re-run and wait, collect the scattered trace files (one per spawned process), squint at the clutter, and usually loop back to step one. The tool didn't tell you what happened by default.
+- **Tracing you had to earn.** When a team reported "it fails on CI but not on our machines," the workflow was: enable traces via options, re-run and wait, collect the scattered trace files (one per spawned process), squint at the clutter, and usually loop back to step one. Version 5 didn't tell you what happened by default.
 
-- **The browser model fought the browser.** v5 spawned a full browser *process* per test page, probed it for readiness, *then* ran the tests. Each process meant ~2 seconds of pure startup overhead and a cold cache, so UI5 resources were re-downloaded again and again. For simple QUnit suites, teams told me Karma was faster and - _sadly_ -  they were right.
+- **The browser model fought the browser.** A full browser *process* is spawned per test page, probed for readiness, *then* used to run the tests. Each process meant ~2 seconds of pure startup overhead and a cold cache, so UI5 resources were re-downloaded again and again. For simple QUnit suites, teams complained that Karma was faster and - _sadly_ -  they were right.
 
-- **Chrome moved the goalposts.** Recent Chrome versions blocked `localhost` access from a remote URL. The common workaround was to disable browser security. Not scalable, not safe, and it erodes trust in the tool.
+- **Chrome moved the goalposts.** Recent Chrome versions blocked `localhost` access from a remote URL. The common workaround is to disable browser security : not scalable, not safe, and it erodes trust in the tool.
 
-I had three options: keep patching (unsustainable), onboard a second maintainer (impossible — the code was too brittle to hand over), or rebuild with guardrails. I took the bet: a few months of work to save thousands of hours downstream and, just as importantly, to produce something *someone else could maintain*.
+Three options existed: keep patching (unsustainable), onboard a second maintainer (impossible as the code was too brittle to hand over), or rebuild with guardrails. Worth the bet: a few months of work to save thousands of hours downstream and, just as importantly, to produce something *someone else could maintain*.
 
 Version 6 is a complete rewrite in TypeScript, organized around three ideas:
 
 1. **Reliability** a single, structured, queryable trace written by default, so a run tells its own story. No more "turn on logging and try again."
-2. **Speed** one browser, many tabs. Native browser cache. An in-page *agent* that the runner polls, instead of the old probe-then-POST dance. The probe step is simply gone. On complex suites this is roughly 30% faster, and on the OpenUI5 challenge (31K+ tests) a run that took ~15 minutes on v5 came down to ~6.
-3. **Shareability** clear interfaces, threads instead of processes where it helps, and a documentation system designed to be read by **both** humans and machines.
+2. **Speed** one browser, many tabs. Native browser cache. An in-page *agent* that the runner polls, instead of the old probe-then-POST dance. The probe step is simply gone. On complex suites this is roughly 30% faster, and on the OpenUI5 challenge (31K+ tests) a run that took ~15 minutes on version 5 came down to ~6 minutes.
+3. **Maintainability** clear interfaces, threads instead of processes where it helps, and a documentation system designed to be read by **both** humans and machines.
 
-The architecture shift, in one line: v5 was *runner → spawn browser → probe → browser POSTs results back*; v6 is *runner → one browser with tabs → injected agent holds state → runner polls the agent*. Removing the per-page process is what unlocked both the caching and the speed.
+### Architecture shift
+
+In version 5, the runner spawns a browser per page, and the progress is monitored by having the browser post back informations to the runner.
+
+_Each box below is a separate OS process; the runner coordinates them over HTTP._
+
+![v5 architecture](v5%20architecture.png)
+
+In version 6, only one browser is used and a tab is opened for each page. An agent is injected in the page and it collects progress. The runner queries the agent state to monitor the progress.
+
+_A single browser process now hosts all tabs; the runner polls each tab's in-page agent over the Chrome DevTools Protocol._
+
+![v6 architecture](v6%20architecture.png)
+
+### Quality metrics
 
 The quality metrics back the feeling, measured with [sabik](https://www.npmjs.com/package/sabik):
 
-| | @5 | @6 |
-|-|----|----|
-| Language | JavaScript | TypeScript |
-| Cognitive complexity | 6.72 | 2.36 |
-| Cyclomatic complexity | 4.19 | 2.26 |
-| Estimated bugs delivered | 54.26 | 35.74 |
-| Lines of code | 11,605 | 10,862 |
+| |@5|@6|
+|-|--|--|
+|Language|JavaScript|TypeScript|
+|[Cognitive complexity](https://www.sonarsource.com/docs/CognitiveComplexity.pdf)|6.72|3.85|
+|[Cyclomatic complexity](https://en.wikipedia.org/wiki/Cyclomatic_complexity)|4.19|3.2|
+|[Maintainability](https://docs.microsoft.com/en-us/visualstudio/code-quality/code-metrics-maintainability-index-range-and-meaning?view=vs-2019)|82.58|84.64|
+|[Bugs delivered](https://en.wikipedia.org/wiki/Halstead_complexity_measures) (1️⃣)|54.26|39.43|
+|Lines of code|11605|10762|
 
-Fewer lines, far less complexity, and — my favorite detail — the "start option conflict" category of bug simply can't happen anymore, because the type system refuses it at parse time.
+_1️⃣: The Halstead metric estimates the total number of bugs latent in the codebase as a whole. On average, software projects tend to experience between 15 to 50 bugs per 1,000 lines of code._
+
+Fewer lines, far less complexity, and the "start option conflict" category of bug simply can't happen anymore, because the type system refuses it at design time.
 
 ## Part 2 — Building it with AI, guided by Architecture Decision Records
 
@@ -79,6 +92,8 @@ Three things changed once the ADRs existed:
 - **The AI stopped reinventing decisions.** When I ask it to touch `src/configuration/`, it reads ADR-0003 and follows the multi-stage validation model that's already there instead of inventing a fourth way to parse options. The project's `CLAUDE.md` points every session at the ADR index, so this isn't something I have to remember to say each time.
 - **I had something to review the AI *against*.** Reviewing a diff in isolation, you can only check "does this look right?" Reviewing it against a written decision, you can check "does this honor the decision we made?" That's a much sharper question, and it catches the confident-but-wrong output before it lands.
 - **The documents keep each other honest.** The ADRs are reviewed *alongside* the documentation, not as an afterthought. I even have a small `/doc-review` routine that checks doc files against the actual source. When the code and the record drift apart, that's a signal, not a surprise.
+
+`/doc-review` works by reading each documentation file and the source files it describes, then checking for contradictions: an option the doc mentions that no longer exists, a default value that has drifted, a behaviour the doc asserts that the code no longer exhibits. It is not a linter — it cannot catch a gap (something the code does that the doc never mentions), only a conflict. But conflicts are the dangerous kind: a gap leaves a user uninformed, a conflict actively misleads them. Running it on every PR that touches `src/` or `docs/` catches the most common drift before it compounds.
 
 I also codified the behavior I wanted from the AI itself. One rule I keep coming back to: *defend only against reachable states*. If the model wants to add a null-check or a retry, it has to be able to name a concrete, reachable path that triggers it — otherwise that "defensive" branch is just dead complexity hiding the real failure modes. And the workflow bias is tests-first: "fix the bug" becomes "write a failing test that reproduces it, then make it pass."
 
@@ -120,6 +135,8 @@ Three parts: the `[user]` question, a `[files]` block simulating the project's f
 
 Two harnesses then do the work. The **query** harness connects to the live MCP server and lets the model answer the question, exactly as a real assistant would. The **judge** harness takes that answer and scores it against each expected criterion, emitting a per-criterion verdict and a report. The thing being validated isn't a string — it's whether the documentation, as exposed, is *enough* for a model to reach the right conclusion.
 
+One thing worth naming: the judge is itself a model, so it inherits the same noise property as the query. A single judge verdict can be wrong in either direction — a genuine gap scored as a pass, or a correct answer penalised for phrasing. Repeating the full cycle (query + judge) five times means you're not just averaging out the query's variance; you're averaging out the judge's too. The pass rate you measure is the pass rate of the whole pipeline, end to end.
+
 The last piece is the one that made this trustworthy rather than flaky. LLM answers are noisy; a single run tells you very little. So the harness supports repetition:
 
 ```
@@ -127,7 +144,7 @@ ui5-test-runner --mcp --watch     # keep the docs server live while iterating
 npm run test:mcp --repeat 5       # run each case five times
 ```
 
-Running each case five times turns a brittle pass/fail into a **pass rate**, and the pass rate is diagnostic in a way a single verdict never is. Zero out of five means a genuine gap in the documentation — the model couldn't get there no matter what. A mixed result (say three of five) means the content is *present but not reliably findable* — maybe the topic needs a sharper keyword or an explicit cross-reference. My working rule is simply: **fix the cases that fail more than once.** That filters out the one-off noise and points me straight at the docs that need work, closing the loop between "write documentation" and "prove it answers the question."
+Running each case five times turns a brittle pass/fail into a **pass rate**, and the pass rate is diagnostic in a way a single verdict never is. Zero out of five means a genuine gap in the documentation — the model couldn't get there no matter what. A mixed result (say three of five) means the content is *present but not reliably findable* — maybe the topic needs a sharper keyword or an explicit cross-reference. My working rule is simply: **fix the cases that fail more than once.** That filters out the one-off noise and points me straight at the docs that need work. The fix is usually small — add a keyword to the frontmatter, drop an explicit cross-reference, or rewrite a summary so the question maps to it — then re-run with `--repeat 5` to confirm the pass rate recovers. That closes the loop between "write documentation" and "prove it answers the question."
 
 ## Takeaways
 
@@ -138,4 +155,4 @@ If I compress all of this into a few lines for the next person maintaining somet
 - **Document for the AI, not just for humans** — then expose those docs over MCP and make them authoritative.
 - **Let an LLM judge prove the docs work, and repeat the test to separate a real gap from noise.** A pass rate tells you more than a verdict.
 
-Version 6 is nearly ready. Come kick the tires — and, as always, send feedback. For a tool a hundred teams depend on, that feedback loop is the whole point.
+Version 6 is out. Come kick the tires — and, as always, send feedback. For a tool a hundred teams, internal and external, visible in weekly npm telemetry, depend on, that feedback loop is the whole point.
