@@ -21,7 +21,7 @@ const isCoverageData = (value: unknown): value is CoverageData => {
 const remapPaths = (coverageData: CoverageData, sourceDirectory: string): CoverageData =>
   Object.fromEntries(
     Object.entries(coverageData).map(([key, entry]) => {
-      const absoluteKey = Path.join(sourceDirectory, key);
+      const absoluteKey = Path.isAbsolute(key) ? key : Path.join(sourceDirectory, key);
       return [absoluteKey, { ...entry, path: absoluteKey }];
     })
   );
