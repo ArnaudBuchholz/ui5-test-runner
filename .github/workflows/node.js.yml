@@ -8,6 +8,12 @@ on:
       - 'articles/**'
       - '.github/**'
     branches: [ main ]
+  pull_request:
+    paths-ignore:
+      - 'docs/**'
+      - 'articles/**'
+      - '.github/**'
+    branches: [ main ]
 
 jobs:
   build:
