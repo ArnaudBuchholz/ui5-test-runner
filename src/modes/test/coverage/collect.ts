@@ -18,13 +18,23 @@ const isCoverageData = (value: unknown): value is CoverageData => {
   );
 };
 
-const remapPaths = (coverageData: CoverageData, sourceDirectory: string): CoverageData =>
-  Object.fromEntries(
-    Object.entries(coverageData).map(([key, entry]) => {
-      const absoluteKey = Path.isAbsolute(key) ? key : Path.join(sourceDirectory, key);
-      return [absoluteKey, { ...entry, path: absoluteKey }];
-    })
-  );
+const remapPaths = async (coverageData: CoverageData, sourceDirectory: string): Promise<CoverageData> => {
+  const entries = Object.entries(coverageData);
+  const mappedEntries: typeof entries = [];
+  for (const [key, entry] of entries) {
+    let isAbsoluteAndExists = Path.isAbsolute(key);
+    try {
+      if (isAbsoluteAndExists) {
+        await FileSystem.access(key, FileSystem.constants.R_OK);
+      }
+    } catch {
+      isAbsoluteAndExists = false;
+    }
+    const absoluteKey = isAbsoluteAndExists ? key : Path.join(sourceDirectory, key);
+    mappedEntries.push([absoluteKey, { ...entry, path: absoluteKey }]);
+  }
+  return Object.fromEntries(mappedEntries);
+};
 
 export const collect = async (configuration: Configuration, pageContext: PageContext): Promise<void> => {
   const { page, pageId, url, isSuite } = pageContext;
@@ -43,7 +53,7 @@ export const collect = async (configuration: Configuration, pageContext: PageCon
     await FileSystem.access(firstFilePath, FileSystem.constants.R_OK);
   } catch {
     logger.debug({ source: 'coverage', pageId, message: 'coverage data requires mapping' });
-    data = remapPaths(coverageData, configuration.coverageSourceDir ?? configuration.webapp);
+    data = await remapPaths(coverageData, configuration.coverageSourceDir ?? configuration.webapp);
   }
   const fileName = `${pageId}.json`;
   const filePath = Path.join(configuration.coverageTempDir, fileName);

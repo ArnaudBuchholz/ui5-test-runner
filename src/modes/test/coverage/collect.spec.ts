@@ -86,7 +86,7 @@ describe('when coverageSourceDir is set', () => {
     const absoluteKey = '/abs/path/file.ts';
     const data = { [absoluteKey]: { path: absoluteKey, s: { 0: 1 } } };
     const pageContext = makePageContext({ page: { eval: vi.fn().mockResolvedValue(data) } as never });
-    vi.mocked(FileSystem.access).mockRejectedValue(new Error('No access'));
+    vi.mocked(FileSystem.access).mockRejectedValueOnce(new Error('No access'));
     await collect(
       {
         coverage: true,
