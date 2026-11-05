@@ -15,6 +15,12 @@ checkValidator({
     { value: 50, expected: 50 },
     { value: 80.97, expected: 80.97 },
     { value: 100, expected: 100 },
+    { value: '0', expected: 0 },
+    { value: '1', expected: 1 },
+    { value: '10', expected: 10 },
+    { value: '50', expected: 50 },
+    { value: '80.97', expected: 80.97 },
+    { value: '100', expected: 100 },
     { value: '0%', expected: 0 },
     { value: '1%', expected: 1 },
     { value: '10%', expected: 10 },
@@ -32,6 +38,8 @@ checkValidator({
     { value: '1 %' },
     { value: ' 1%' },
     { value: '999%' },
+    { value: '101' },
+    { value: '999' },
     { value: 'abc' }
   ]
 });

@@ -14,7 +14,7 @@ A percentage value, expressed as a number between `0` and `100` (integer or deci
 
 ## Syntax
 
-A number from `0` to `100`. Decimal values are accepted using the `%` suffix form (e.g. `80.5%`). Used for coverage thresholds where `0` means the check is disabled and any greater value is the minimum percentage that must be reached.
+A number from `0` to `100` (integer or decimal). The `%` suffix is accepted but optional (e.g. `80`, `80.5`, or `80.5%` are all equivalent). Used for coverage thresholds where `0` means the check is disabled and any greater value is the minimum percentage that must be reached.
 
 ## Example
 
