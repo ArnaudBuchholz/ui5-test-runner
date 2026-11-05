@@ -82,6 +82,27 @@ it('throws when coverage data entries lack a path property', async () => {
 });
 
 describe('when coverageSourceDir is set', () => {
+  it('preserves absolute keys as-is without prepending coverageSourceDir', async () => {
+    const absoluteKey = '/abs/path/file.ts';
+    const data = { [absoluteKey]: { path: absoluteKey, s: { 0: 1 } } };
+    const pageContext = makePageContext({ page: { eval: vi.fn().mockResolvedValue(data) } as never });
+    vi.mocked(FileSystem.access).mockRejectedValue(new Error('No access'));
+    await collect(
+      {
+        coverage: true,
+        coverageTempDir: COVERAGE_TEMP_DIR,
+        coverageSourceDir: COVERAGE_SOURCE_DIR
+      } as unknown as Configuration,
+      pageContext
+    );
+    const written = JSON.parse(vi.mocked(FileSystem.writeFile).mock.calls[0]![1] as string) as Record<
+      string,
+      { path: string }
+    >;
+    expect.assert(written[absoluteKey] !== undefined);
+    expect(written[absoluteKey].path).toBe(absoluteKey);
+  });
+
   it('remaps entry keys and path fields to absolute paths under coverageSourceDir', async () => {
     const relativeKey = 'src/file.js';
     const data = { [relativeKey]: { path: relativeKey, s: { 0: 1 } } };
