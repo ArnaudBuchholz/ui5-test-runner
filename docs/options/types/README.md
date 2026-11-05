@@ -12,6 +12,6 @@ Every type document follows the same shape:
 ## Guidelines
 
 * Ground every statement in the validator (`src/configuration/validators/`) and in real options (`src/configuration/options.ts`) — do not describe forms the code does not accept.
-* Examples must reference options that actually use the type, linked as `[`option`](../option.md)`, and use their real CLI flags.
+* Examples must reference options that actually use the type, linked as `[`agentDetectionInterval`](../agentDetectionInterval.md)`, and use their real CLI flags.
 * Describe only the forms a user can provide on the command line or in a configuration file. Internal-only forms (for instance a `RegExp` object the validator accepts but that cannot be written in JSON) do not belong in the syntax.
 * Keep the singular heading `## Example` even when listing several examples.

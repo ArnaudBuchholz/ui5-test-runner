@@ -119,7 +119,16 @@ For every `#type: option` entity:
 - `browserExposed: yes` is only set when the option appears in `src/agent/Configuration.ts`
 - The body description matches what the option actually does in the runner
 
-### 2.4 Modes — specific checks
+### 2.4 Validator-type concepts — specific checks
+
+For every `#type: concept` entity under `docs/options/types/` (i.e. entities that document a validator type such as `percent`, `timeout`, `integer`, etc.):
+
+- A corresponding validator exists at `src/configuration/validators/<name>.ts`
+- Every syntax form described in the body (e.g. "plain number", "number with `%` suffix", "number with `s`/`ms` suffix") is actually accepted by the validator regex/logic — read the validator source and check each form against it
+- Any form described as *optional* or *accepted* must not be rejected by the validator when passed as a string (the CLI always passes strings)
+- Any form described as *required* or *only* must match what the validator actually enforces
+
+### 2.5 Modes — specific checks
 
 For every `#type: mode` entity:
 
