@@ -1,18 +1,6 @@
-# Rebuilding ui5-test-runner with help from AI
+# Building with AI without losing control: the ui5-test-runner v6 rewrite
 
-My name is Arnaud Buchholz, official title "Application Engineering Expert", and I have been working the last 12 years at SAP.
-
-A good chunk of those years went into UI5 development, some UI5con sessions (in particular [UI5con@SAP 2018 - A journey with OPA](https://youtu.be/HiZq-kuIbt0)) and two co-authored books:
-
-* [Testing SAPUI5 Applications](https://www.sap-press.com/testing-sapui5-applications_5056/)
-* [Clean SAPUI5](https://www.sap-press.com/clean-sapui5_5479/)
-
-Currently UI5 is no longer part of the day job, but — on top of other duties — the role of principal maintainer of `ui5-test-runner` remains.
-
-If you want to learn more about the project itself, here are some interesting links :
-* The initial concept *(version 1)* is explained in the article [REserve - Testing UI5](https://arnaud-buchholz.medium.com/reserve-testing-ui5-85187d5eb7f1)
-* [A different approach to UI5 tests execution](https://youtu.be/EBp0bdIqu4s), a live presentation from [UI5Con'21](https://openui5.org/ui5con/)
-* [ui5-test-runner v3](https://www.youtube.com/live/kxmmdy1tho4), a live presentation from [Devtoberfest](https://www.youtube.com/playlist?list=PL6RpkC85SLQDHz97qsNTNAE2jnUKj8X5d)
+My name is Arnaud Buchholz, "Application Engineering Expert" at SAP for the last 12 years. A good chunk of those went into UI5: some UI5con sessions (notably [A journey with OPA](https://youtu.be/HiZq-kuIbt0)) and two co-authored books, [Testing SAPUI5 Applications](https://www.sap-press.com/testing-sapui5-applications_5056/) and [Clean SAPUI5](https://www.sap-press.com/clean-sapui5_5479/). UI5 is no longer part of the day job, but, on top of other duties, the role of principal maintainer of `ui5-test-runner` remains. (For the project's backstory: the [original concept](https://arnaud-buchholz.medium.com/reserve-testing-ui5-85187d5eb7f1), and two talks, [UI5Con'21](https://youtu.be/EBp0bdIqu4s) and [Devtoberfest](https://www.youtube.com/live/kxmmdy1tho4).)
 
 Today, this [package](https://www.npmjs.com/ui5-test-runner) gets around 20,000 downloads a week and a hundred teams, internal and external, visible in weekly npm telemetry, rely on it to run their UI5 test suites in CI.
 
@@ -22,31 +10,31 @@ This article covers the rebuild of version 6, how AI was put to work without los
 
 ## Why ui5-test-runner version 6 exists
 
-Version 5 worked. That's the _uncomfortable_ part: it wasn't broken but it was *tired*.
+Version 5 worked. That's the uncomfortable part: it wasn't broken, it was *tired*.
 
 After several years of adding features to support every request teams could throw at it, the architecture had quietly turned into something no one wanted to touch.
 
 A few concrete pain points, because "legacy code is hard" is too vague to be useful:
 
-- **No type safety, silent failures.** The whole codebase was written in JavaScript. The option parser alone was around 500 lines. Adding a `start` option once collided with an internal `start` timestamp — hours of debugging *wrong timings* followed. Nothing crashed. It just lied, _quietly_.
+- **No type safety, silent failures.** The whole codebase was written in JavaScript. The option parser alone was around 500 lines. Adding a `start` option once collided with an internal `start` timestamp — hours of debugging wrong timings followed. Nothing crashed. It just lied, quietly.
 
 - **Tracing you had to earn.** When a team reported "it fails on CI but not on our machines," the workflow was: enable traces via options, re-run and wait, collect the scattered trace files (one per spawned process), squint at the clutter, and usually loop back to step one. Version 5 didn't tell you what happened by default.
 
-- **The browser model fought the browser.** A full browser *process* is spawned per test page, probed for readiness, *then* used to run the tests. Each process meant ~2 seconds of pure startup overhead and a cold cache, so UI5 resources were re-downloaded again and again. For simple QUnit suites, teams complained that Karma was faster and - _sadly_ -  they were right.
+- **The browser model fought the browser.** A full browser *process* is spawned per test page, probed for readiness, then used to run the tests. Each process meant ~2 seconds of pure startup overhead and a cold cache, so UI5 resources were re-downloaded again and again. For simple QUnit suites, teams complained that Karma was faster — and they were right.
 
-- **Chrome moved the goalposts.** Recent Chrome versions blocked `localhost` access from a remote URL. The common workaround is to disable browser security : not scalable, not safe, and it erodes trust in the tool.
+- **Chrome moved the goalposts.** Recent Chrome versions blocked `localhost` access from a remote URL. The common workaround is to disable browser security: not scalable, not safe, and it erodes trust in the tool.
 
 Three options existed: keep patching (unsustainable), onboard a second maintainer (impossible as the code was too brittle to hand over), or rebuild with guardrails. Worth the bet: a few months of work to save thousands of hours downstream and, just as importantly, to produce something *someone else could maintain*.
 
 Version 6 is a complete rewrite in TypeScript, organized around three ideas:
 
-1. **Reliability** a single, structured, queryable trace written by default, so a run tells its own story. No more "turn on logging and try again."
-2. **Speed** one browser, many tabs. Native browser cache. An in-page *agent* that the runner polls, instead of the old probe-then-POST dance. The probe step is simply gone. On complex suites this is roughly 30% faster, and on the OpenUI5 challenge (31K+ tests) a run that took ~15 minutes on version 5 came down to ~6 minutes.
-3. **Maintainability** clear interfaces, threads instead of processes where it helps, and a documentation system designed to be read by **both** humans and machines.
+1. **Reliability:** a single, structured, queryable trace written by default, so a run tells its own story. No more "turn on logging and try again."
+2. **Speed:** one browser, many tabs. Native browser cache. An in-page *agent* that the runner polls, instead of the old probe-then-POST dance. The probe step is simply gone. On complex suites this is roughly 30% faster, and on the OpenUI5 challenge (31K+ tests) a run that took ~15 minutes on version 5 came down to ~6 minutes. Both versions were measured on the same host, across several runs, and the figures averaged.
+3. **Maintainability:** clear interfaces, threads instead of processes where it helps, and a documentation system designed to be read by **both** humans and machines.
 
 ### Architecture shift
 
-In version 5, the runner spawns a browser per page, and the progress is monitored by having the browser post back informations to the runner.
+In version 5, the runner spawns a browser per page, and the progress is monitored by having the browser post back information to the runner.
 
 > _Each gray box below is a separate OS process; the runner coordinates them over HTTP and Node.js' IPC communication._
 
@@ -65,15 +53,15 @@ The quality metrics back the feeling, measured with [sabik](https://www.npmjs.co
 | |version 5|version 6|
 |-|--|--|
 |Language|JavaScript|TypeScript|
-|[Cognitive complexity](https://www.sonarsource.com/docs/CognitiveComplexity.pdf)|6.72|3.85|
+|[Cognitive complexity](https://www.sonarsource.com/docs/CognitiveComplexity.pdf) (average)|6.72|3.85|
 |[Cyclomatic complexity](https://en.wikipedia.org/wiki/Cyclomatic_complexity)|4.19|3.2|
 |[Maintainability](https://docs.microsoft.com/en-us/visualstudio/code-quality/code-metrics-maintainability-index-range-and-meaning?view=vs-2019)|82.58|84.64|
-|[Bugs delivered](https://en.wikipedia.org/wiki/Halstead_complexity_measures) (1️⃣)|54.26|39.43|
+|[Bugs delivered](https://en.wikipedia.org/wiki/Halstead_complexity_measures) per 1000 lines (1️⃣)|54.26|39.43|
 |Lines of code|11605|10762|
 
-_1️⃣: The Halstead metric estimates the total number of bugs latent in the codebase as a whole. On average, software projects tend to experience between 15 to 50 bugs per 1,000 lines of code._
+_1️⃣: The Halstead metric estimates the number of bugs latent in the codebase, here expressed per 1,000 lines of code. On average, software projects tend to experience between 15 and 50 bugs per 1,000 lines._
 
-Fewer lines, far less complexity, and the "start option conflict" category of bug simply can't happen anymore, because the type system refuses it at design time.
+Fewer lines, far less complexity, and the "start option conflict" category of bug simply can't happen anymore, because the type system refuses it at design time. The maintainability index barely moved (82.58 → 84.64) because it was already healthy; the real win was in the complexity figures.
 
 ## Built with AI but guardrailed
 
@@ -89,7 +77,7 @@ AI was genuinely excellent at the things that are tedious but low-risk:
 
 That saved real weeks.
 
-It was *dangerous* on the things that matter most. An early pass at the browser-spawning and lifecycle logic produced output that looked plausible — clean, confident, well-named — but contained subtle race conditions that would have been a nightmare to diagnose in the field. That's the trap with a capable model: it can be confidently wrong.
+It was dangerous on the things that matter most. An early pass at the browser-spawning and lifecycle logic produced output that looked plausible — clean, confident, well-named — but contained subtle race conditions that would have been a nightmare to diagnose in the field. That's the trap with a capable model: it can be confidently wrong.
 
 The fix was to push back and define the contract first. For the browser drivers, that meant specifying an interface ([IBrowser](https://github.com/ArnaudBuchholz/ui5-test-runner/blob/main/src/browsers/IBrowser.ts)) and a [contract test suite](https://github.com/ArnaudBuchholz/ui5-test-runner/blob/main/src/browsers/browser.test.ts) that every driver must pass — then asking AI to implement each driver **without touching those tests**. The tests became the specification the assistant couldn't rewrite away.
 
@@ -107,7 +95,7 @@ Three things changed once the ADRs existed:
 
 - **The AI stopped reinventing decisions.** When asked to touch `src/configuration/`, it reads [ADR-0003 Configuration Validation Strategy](https://github.com/ArnaudBuchholz/ui5-test-runner/blob/main/docs/adr/0003-configuration-validation-strategy.md) and follows the multi-stage validation model already in place, instead of inventing a new one. The project's `CLAUDE.md` points every session at the ADR index automatically.
 
-- **There is something concrete to review against.** Reviewing a diff in isolation, the only question is "does this look right?" Reviewing against a written decision, the question becomes "does this honor the decision we made?" That is a sharper question, and it catches confident-but-wrong output before it lands.
+- **There is something concrete to review against.** Reviewing a diff in isolation, the only question is "does this look right?" Reviewing against a written decision, the question becomes "does this honor the decision we made?" That is a sharper question, and it catches the plausible-looking mistakes before they land.
 
 - **The documents keep each other honest.** ADRs are reviewed *alongside* the documentation, not as an afterthought. A `/doc-review` routine checks each doc file against the actual source, looking for contradictions: an option the doc mentions that no longer exists, a default value that has drifted, a behaviour the doc asserts that the code no longer exhibits. It is not a linter — it cannot catch a gap (something the code does that the doc never mentions), only a conflict. But conflicts are the dangerous kind: a gap leaves a user uninformed, a conflict actively misleads them. Running it on every PR that touches `src/` or `docs/` catches the most common drift before it compounds.
 
@@ -125,13 +113,13 @@ For quality engineers specifically, a few patterns translated directly:
 
 Classic testing works on a binary assertion: given this input, expect that output. LLM output breaks that contract. The answer is natural language, it's slightly different every time, and "correct" is a matter of whether the model reached the right conclusion — not whether it matched a string. Building version 6 surfaced exactly this problem, and solving it became its own quality engineering exercise.
 
-The trigger was documentation. Version 6 is a complete rewrite with major breaking changes, and in the AI era users don't *read* migration guides... they ask an assistant. The documentation still has to exist and be correct, but it also has to be *reachable* by the tools people now use to answer their questions. Simply pointing an assistant at the `docs/` folder on GitHub and hoping wasn't an option.
+The trigger was documentation. Version 6 is a complete rewrite with major breaking changes, and in the AI era users don't *read* migration guides… they ask an assistant. The documentation still has to exist and be correct, but it also has to be *reachable* by the tools people now use to answer their questions. Simply pointing an assistant at the `docs/` folder on GitHub and hoping wasn't an option.
 
 Version 6 is actually **built** documentation-first. Options are *designed* as markdown with frontmatter (keywords, relations between topics) before any code is written. The [`--start` option](https://github.com/ArnaudBuchholz/ui5-test-runner/blob/main/docs/options/start.md) is a good example. There is even an `/add-option` skill that enforces this: you write the doc, then regenerate the option definitions from it, never the other way around. That gives the documentation a real structure, not just prose.
 
 Then that structure is exposed over the **Model Context Protocol**. Running `ui5-test-runner --mcp` starts a small web server offering exactly two tools:
 
-1. `list_topics` — returns the *structure* of the knowledge base, meaning all topics with their frontmatter information as a JSON. For instance :
+1. `list_topics` — returns the *structure* of the knowledge base, meaning all topics with their frontmatter information as a JSON. For instance:
 
 ```json
 [
@@ -163,15 +151,15 @@ Then that structure is exposed over the **Model Context Protocol**. Running `ui5
 
 2. `get_topic` — returns the *content* of a topic (stripping the frontmatter).
 
-Plus a set of [instructions](https://github.com/ArnaudBuchholz/ui5-test-runner/blob/main/src/modes/mcp/reserve.ts#L20) that tell the MCP client to treat this documentation as **authoritative**. That last word matters: it's the difference between an assistant guessing from its training data and an assistant answering from the **current, correct** documentation.
+Plus a set of [instructions](https://github.com/ArnaudBuchholz/ui5-test-runner/blob/b5a5cc74eb5c4b9f95cf2d0f35cfc0d1b36ad977/src/modes/mcp/reserve.ts#L20) that tell the MCP client to treat this documentation as **authoritative**. That last word matters: it's the difference between an assistant guessing from its training data and an assistant answering from the **current, correct** documentation.
 
-The quality question that follows: **how do you know the documentation actually works?** Not "is the markdown valid" but rather does an assistant, given a realistic question and this knowledge base, arrive at a *correct* answer? That's not a conventional assertion. The output is natural language, and it's slightly different every time.
+The quality question that follows: **how do you know the documentation actually works?** Not "is the markdown valid" but rather does an assistant, given a realistic question and this knowledge base, arrive at a correct answer? That's not a conventional assertion. The output is natural language, and it's slightly different every time.
 
 The approach that emerged is an LLM-as-judge harness. Each test case is a small `config.toml` describing a scenario:
 
 ```toml
 [user]
-question = "How do I migrate to ui5-test-runner 6 ?"
+question = "How do I migrate to ui5-test-runner 6?"
 
 [files]
 "package.json" = """{ "devDependencies": { "ui5-test-runner": "^5" } }"""
@@ -179,7 +167,7 @@ question = "How do I migrate to ui5-test-runner 6 ?"
 
 [expected]
 v6 = "It should explain how to migrate the project to version 6"
-config = "it should explain that reportGenerator is no more supported"
+config = "it should explain that reportGenerator is no longer supported"
 ```
 
 Three parts:
@@ -189,13 +177,13 @@ Three parts:
 
 Two harnesses collaborate to do the work:
 
-- The **query** harness connects to the live MCP server and lets the model answer the question, exactly as a real assistant would. A cheap model is being used to guarantee that minimal reflection is enough.
+- The **query** harness connects to the live MCP server and lets the model answer the question, exactly as a real assistant would. A deliberately weak model is used here: if even a model with little reasoning headroom reaches the right answer, the documentation is doing the work rather than the model's own cleverness.
 
-- The **judge** harness takes that answer and scores it against each expected criterion, emitting a per-criterion verdict and a report. The thing being validated isn't a string — it's whether the documentation, as exposed, is *enough* for a model to reach the right conclusion.
+- The **judge** harness takes that answer and scores it against each expected criterion, emitting a per-criterion verdict and a report. The thing being validated isn't a string — it's whether the documentation, as exposed, is *enough* for a model to reach the right conclusion. The judge is instructed to be a [strict, literal evaluator](https://github.com/ArnaudBuchholz/ui5-test-runner/blob/b5a5cc74eb5c4b9f95cf2d0f35cfc0d1b36ad977/test/mcp/judge.ts#L20) — a criterion passes only if the answer actually contains what it asks for — so a case can genuinely fail rather than being waved through.
 
 One thing worth naming: the judge is itself a model, so it inherits the same noise property as the query. A single judge verdict can be wrong in either direction — a genuine gap scored as a pass, or a correct answer penalised for phrasing. Repeating the full cycle (query + judge) five times means you're not just averaging out the query's variance; you're averaging out the judge's too. The pass rate you measure is the pass rate of the whole pipeline, end to end.
 
-The last piece is the one that made this **trustworthy rather than flaky**. LLM answers are noisy; a single run tells you very little. So the harness supports repetition:
+The last piece is what kept this from being flaky. LLM answers are noisy; a single run tells you very little. So the harness supports repetition:
 
 ```
 ui5-test-runner --mcp --watch     # keep the docs server live while iterating
@@ -206,17 +194,17 @@ Running each case five times turns a brittle pass/fail into a **pass rate**, and
 - Zero out of five means a genuine gap in the documentation. The model couldn't get there no matter what.
 - A mixed result (say three of five) means the content is *present but not reliably findable*. Maybe the topic needs a sharper keyword or an explicit cross-reference.
 
-The working rule is set to **fix the cases that fail more than once.** That filters out one-off noise and points directly at the docs that need work. The fix is usually small: add a keyword to the frontmatter, drop an explicit cross-reference, or rewrite a summary so the question maps to it. Then re-run with `--repeat 5` to confirm the pass rate recovers. This feedback loop is obviously automated in an agent.
+The working rule is set to **fix the cases that fail more than once.** That filters out one-off noise and points directly at the docs that need work. The fix is usually small: add a keyword to the frontmatter, drop an explicit cross-reference, or rewrite a summary so the question maps to it. Then re-run with `--repeat 5` to confirm the pass rate recovers. This feedback loop runs automated in an agent.
 
 That closes the loop between "write documentation" and "prove it answers the question."
 
 ## Takeaways
 
-Here are my takeways, compressed into a few lines for the next person maintaining something at scale:
+Here are my takeaways, compressed into a few lines for the next person maintaining something at scale:
 
-- **The refactor was never the goal, sustainability was.** TypeScript, the trace system, the tab-based browser model: those are means. The end was a tool someone else could confidently change.
+- **The goal was sustainability, and the refactor only served it.** TypeScript, the trace system, the tab-based browser model: those are means. The end was a tool someone else could confidently change.
 - **Give AI constraints, not freedom.** It's brilliant at scaffolding and boilerplate, and genuinely risky in the orchestration-heavy critical paths. ADRs were the single best lever: they stopped it reinventing decisions and provided something concrete to review its output *against*.
 - **Document for the AI, not just for humans** — then expose those docs over MCP and make them authoritative.
 - **Let an LLM judge prove the docs work, and repeat the test to separate a real gap from noise.** A pass rate tells you more than a verdict.
 
-Version 6 is out. Come kick the tires — and, as always, send feedback. For a tool a hundred teams, internal and external, visible in weekly npm telemetry, depend on, that feedback loop is the whole point.
+Version 6 is out. Come kick the tires — and, as always, send feedback. For a tool a hundred teams depend on, that feedback loop is the whole point.
