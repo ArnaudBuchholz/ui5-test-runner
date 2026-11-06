@@ -20,7 +20,7 @@ Looks like a success story, but the day-to-day reality behind it is a steady tri
 
 This article covers the rebuild of version 6, how AI was put to work without losing control of the result, and the MCP server built to help teams migrate.
 
-## Why ui5-test-runner@6 exists
+## Why ui5-test-runner version 6 exists
 
 Version 5 worked. That's the _uncomfortable_ part: it wasn't broken but it was *tired*.
 
@@ -50,19 +50,19 @@ In version 5, the runner spawns a browser per page, and the progress is monitore
 
 > _Each gray box below is a separate OS process; the runner coordinates them over HTTP and Node.js' IPC communication._
 
-![v5 architecture](v5%20architecture.png)
+![Version 5 architecture](v5%20architecture.png)
 
 In version 6, only one browser is used and a tab is opened for each page. An agent is injected in the page and it collects progress. The runner queries the agent state to monitor the progress.
 
 > _A single browser process now hosts all tabs; the runner polls each tab's in-page agent over the browser automation framework._
 
-![v6 architecture](v6%20architecture.png)
+![Version 6 architecture](v6%20architecture.png)
 
 ### Quality metrics
 
 The quality metrics back the feeling, measured with [sabik](https://www.npmjs.com/package/sabik):
 
-| |@5|@6|
+| |version 5|version 6|
 |-|--|--|
 |Language|JavaScript|TypeScript|
 |[Cognitive complexity](https://www.sonarsource.com/docs/CognitiveComplexity.pdf)|6.72|3.85|
@@ -75,7 +75,7 @@ _1️⃣: The Halstead metric estimates the total number of bugs latent in the c
 
 Fewer lines, far less complexity, and the "start option conflict" category of bug simply can't happen anymore, because the type system refuses it at design time.
 
-## Building it with AI but guardrailed
+## Built with AI but guardrailed
 
 Eyebrows may go up here, so here is an honest account of what worked and what didn't.
 
@@ -121,24 +121,53 @@ For quality engineers specifically, a few patterns translated directly:
 - **Anchor AI to existing test cases.** Migrated end-to-end tests from version 5 served as a concrete specification: the implementation was correct when those tests passed. An AI that cannot break your test suite is an AI operating within the quality gate.
 - **Design observability for AI consumption.** Traces were designed from the start to be readable by an assistant. When an error occurred, the first step was to ask AI to troubleshoot from the trace. If the assistant couldn't reach a diagnosis, the trace was reworked — not the query. That feedback loop steadily raised trace quality.
 
-## An MCP server, and letting an LLM prove the docs actually work
+## How do you test an LLM?
 
-This is the part that's most interesting for a quality audience, because it's testing a thing that doesn't fit the usual pass/fail mold.
+Classic testing works on a binary assertion: given this input, expect that output. LLM output breaks that contract. The answer is natural language, it's slightly different every time, and "correct" is a matter of whether the model reached the right conclusion — not whether it matched a string. Building version 6 surfaced exactly this problem, and solving it became its own quality engineering exercise.
 
-Here's the problem. v6 is a complete rewrite with major breaking changes, and in the AI era users don't *read* migration guides — they ask an assistant. The documentation still has to exist and be correct, but it also has to be *reachable* by the tools people now use to answer their questions. I couldn't just point an assistant at the `docs/` folder on GitHub and hope, and I certainly wasn't going to embed an LLM inside the test runner.
+The trigger was documentation. Version 6 is a complete rewrite with major breaking changes, and in the AI era users don't *read* migration guides... they ask an assistant. The documentation still has to exist and be correct, but it also has to be *reachable* by the tools people now use to answer their questions. Simply pointing an assistant at the `docs/` folder on GitHub and hoping wasn't an option.
 
-So the docs in v6 are built documentation-first. Options are *designed* as markdown with frontmatter — keywords, relations between topics — before any code is written. (There's even an `/add-option` skill that enforces this: you write the doc, then regenerate the option definitions from it, never the other way around.) That gives the documentation a real structure, not just prose.
+Version 6 is actually **built** documentation-first. Options are *designed* as markdown with frontmatter (keywords, relations between topics) before any code is written. The [`--start` option](https://github.com/ArnaudBuchholz/ui5-test-runner/blob/main/docs/options/start.md) is a good example. There is even an `/add-option` skill that enforces this: you write the doc, then regenerate the option definitions from it, never the other way around. That gives the documentation a real structure, not just prose.
 
-Then I expose that structure over the **Model Context Protocol**. Running `ui5-test-runner --mcp` starts a small web server offering exactly two tools:
+Then that structure is exposed over the **Model Context Protocol**. Running `ui5-test-runner --mcp` starts a small web server offering exactly two tools:
 
-1. `list_topics` — returns the *structure* of the knowledge base.
-2. `get_topic` — returns the *content* of a topic.
+1. `list_topics` — returns the *structure* of the knowledge base, meaning all topics with their frontmatter information as a JSON. For instance :
 
-Plus a set of instructions that tell the client to treat this documentation as **authoritative**. That last word matters: it's the difference between an assistant guessing from its training data and an assistant answering from the current, correct docs.
+```json
+[
+    {
+        "id": "browser_selection",
+        "#type": "concept",
+        "title": "Browser Selection Design",
+        "summary": "How --driver and --browser separate the automation library from the launched browser, and which combinations are valid",
+        "keywords": [
+            "browser",
+            "driver",
+            "puppeteer",
+            "playwright",
+            "browser_selection",
+            "automation"
+        ],
+        "relations": {
+            "requires": [
+                "options/driver",
+                "options/browser"
+            ],
+            "see-also": [
+                "options/browserOptions",
+                "browsers/v6/browser"
+            ]
+        }
+    },
+```
 
-Now the quality question that kept me up: **how do I know the documentation actually works?** Not "is the markdown valid" — does an assistant, given a realistic question and this knowledge base, arrive at a *correct* answer? That's not a conventional assertion. The output is natural language, and it's slightly different every time.
+2. `get_topic` — returns the *content* of a topic (stripping the frontmatter).
 
-The approach I landed on is an LLM-as-judge harness. Each test case is a small `config.toml` describing a scenario:
+Plus a set of [instructions](https://github.com/ArnaudBuchholz/ui5-test-runner/blob/main/src/modes/mcp/reserve.ts#L20) that tell the MCP client to treat this documentation as **authoritative**. That last word matters: it's the difference between an assistant guessing from its training data and an assistant answering from the **current, correct** documentation.
+
+The quality question that follows: **how do you know the documentation actually works?** Not "is the markdown valid" but rather does an assistant, given a realistic question and this knowledge base, arrive at a *correct* answer? That's not a conventional assertion. The output is natural language, and it's slightly different every time.
+
+The approach that emerged is an LLM-as-judge harness. Each test case is a small `config.toml` describing a scenario:
 
 ```toml
 [user]
@@ -153,27 +182,40 @@ v6 = "It should explain how to migrate the project to version 6"
 config = "it should explain that reportGenerator is no more supported"
 ```
 
-Three parts: the `[user]` question, a `[files]` block simulating the project's file system so the scenario is concrete, and `[expected]` — the criteria a good answer must satisfy, written in plain language.
+Three parts:
+- the `[user]` question,
+- a `[files]` block simulating the project's file system so the scenario is concrete,
+- and `[expected]` — the criteria a good answer must satisfy, written in plain language.
 
-Two harnesses then do the work. The **query** harness connects to the live MCP server and lets the model answer the question, exactly as a real assistant would. The **judge** harness takes that answer and scores it against each expected criterion, emitting a per-criterion verdict and a report. The thing being validated isn't a string — it's whether the documentation, as exposed, is *enough* for a model to reach the right conclusion.
+Two harnesses collaborate to do the work:
+
+- The **query** harness connects to the live MCP server and lets the model answer the question, exactly as a real assistant would. A cheap model is being used to guarantee that minimal reflection is enough.
+
+- The **judge** harness takes that answer and scores it against each expected criterion, emitting a per-criterion verdict and a report. The thing being validated isn't a string — it's whether the documentation, as exposed, is *enough* for a model to reach the right conclusion.
 
 One thing worth naming: the judge is itself a model, so it inherits the same noise property as the query. A single judge verdict can be wrong in either direction — a genuine gap scored as a pass, or a correct answer penalised for phrasing. Repeating the full cycle (query + judge) five times means you're not just averaging out the query's variance; you're averaging out the judge's too. The pass rate you measure is the pass rate of the whole pipeline, end to end.
 
-The last piece is the one that made this trustworthy rather than flaky. LLM answers are noisy; a single run tells you very little. So the harness supports repetition:
+The last piece is the one that made this **trustworthy rather than flaky**. LLM answers are noisy; a single run tells you very little. So the harness supports repetition:
 
 ```
 ui5-test-runner --mcp --watch     # keep the docs server live while iterating
 npm run test:mcp --repeat 5       # run each case five times
 ```
 
-Running each case five times turns a brittle pass/fail into a **pass rate**, and the pass rate is diagnostic in a way a single verdict never is. Zero out of five means a genuine gap in the documentation — the model couldn't get there no matter what. A mixed result (say three of five) means the content is *present but not reliably findable* — maybe the topic needs a sharper keyword or an explicit cross-reference. My working rule is simply: **fix the cases that fail more than once.** That filters out the one-off noise and points me straight at the docs that need work. The fix is usually small — add a keyword to the frontmatter, drop an explicit cross-reference, or rewrite a summary so the question maps to it — then re-run with `--repeat 5` to confirm the pass rate recovers. That closes the loop between "write documentation" and "prove it answers the question."
+Running each case five times turns a brittle pass/fail into a **pass rate**, and the pass rate is diagnostic in a way a single verdict never is:
+- Zero out of five means a genuine gap in the documentation. The model couldn't get there no matter what.
+- A mixed result (say three of five) means the content is *present but not reliably findable*. Maybe the topic needs a sharper keyword or an explicit cross-reference.
+
+The working rule is set to **fix the cases that fail more than once.** That filters out one-off noise and points directly at the docs that need work. The fix is usually small: add a keyword to the frontmatter, drop an explicit cross-reference, or rewrite a summary so the question maps to it. Then re-run with `--repeat 5` to confirm the pass rate recovers. This feedback loop is obviously automated in an agent.
+
+That closes the loop between "write documentation" and "prove it answers the question."
 
 ## Takeaways
 
-If I compress all of this into a few lines for the next person maintaining something at scale:
+Here are my takeways, compressed into a few lines for the next person maintaining something at scale:
 
-- **The refactor was never the goal — sustainability was.** TypeScript, the trace system, the tab-based browser model: those are means. The end was a tool someone other than me could confidently change.
-- **Give AI constraints, not freedom.** It's brilliant at scaffolding and boilerplate, and genuinely risky in the orchestration-heavy critical paths. ADRs were the single best lever: they stopped it reinventing decisions and gave me something concrete to review its output *against*.
+- **The refactor was never the goal, sustainability was.** TypeScript, the trace system, the tab-based browser model: those are means. The end was a tool someone else could confidently change.
+- **Give AI constraints, not freedom.** It's brilliant at scaffolding and boilerplate, and genuinely risky in the orchestration-heavy critical paths. ADRs were the single best lever: they stopped it reinventing decisions and provided something concrete to review its output *against*.
 - **Document for the AI, not just for humans** — then expose those docs over MCP and make them authoritative.
 - **Let an LLM judge prove the docs work, and repeat the test to separate a real gap from noise.** A pass rate tells you more than a verdict.
 
