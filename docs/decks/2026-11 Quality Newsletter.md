@@ -48,13 +48,13 @@ Version 6 is a complete rewrite in TypeScript, organized around three ideas:
 
 In version 5, the runner spawns a browser per page, and the progress is monitored by having the browser post back informations to the runner.
 
-_Each box below is a separate OS process; the runner coordinates them over HTTP._
+> _Each gray box below is a separate OS process; the runner coordinates them over HTTP and Node.js' IPC communication._
 
 ![v5 architecture](v5%20architecture.png)
 
 In version 6, only one browser is used and a tab is opened for each page. An agent is injected in the page and it collects progress. The runner queries the agent state to monitor the progress.
 
-_A single browser process now hosts all tabs; the runner polls each tab's in-page agent over the Chrome DevTools Protocol._
+> _A single browser process now hosts all tabs; the runner polls each tab's in-page agent over the browser automation framework._
 
 ![v6 architecture](v6%20architecture.png)
 
@@ -75,31 +75,53 @@ _1️⃣: The Halstead metric estimates the total number of bugs latent in the c
 
 Fewer lines, far less complexity, and the "start option conflict" category of bug simply can't happen anymore, because the type system refuses it at design time.
 
-## Part 2 — Building it with AI, guided by Architecture Decision Records
+## Building it with AI but guardrailed
 
-Here's where I expect some eyebrows to go up, so let me be honest about what worked and what didn't.
+Eyebrows may go up here, so here is an honest account of what worked and what didn't.
 
-AI was genuinely excellent at the things that are tedious but low-risk: scaffolding UI components from a text wireframe, converting the CTRF report into other formats, writing the first draft of a test. It saved me real weeks.
+AI came into the picture after the initial architecture was already in place: a cohesive file layout, a platform abstraction layer to enforce testability, and a unified logging framework. The constraints were set before the assistant touched a line of production code.
 
-It was *dangerous* on the things that matter most. Early on I let it take a pass at the browser-spawning and lifecycle logic. The output looked plausible — clean, confident, well-named — and it had subtle race conditions that would have been a nightmare to diagnose in the field. That's the trap with a capable model: it is articulate about code it got wrong.
+AI was genuinely excellent at the things that are tedious but low-risk:
+- scaffolding UI components from a text wireframe (see [HTML report viewer](https://github.com/ArnaudBuchholz/ui5-test-runner/blob/main/docs/prompts/HTML%20report%20viewer.md))
+- converting the [CTRF report](https://ctrf.io/) into other formats
+- writing the first draft of a test
+- ...
 
-The lesson I took away is that AI doesn't need *more* freedom, it needs *better constraints*. And the single most effective constraint turned out to be **Architecture Decision Records**.
+That saved real weeks.
 
-An ADR is a short document capturing one decision: the context, the choice, and the consequences. I keep [fourteen of them](../adr/index.md), one per load-bearing part of the system — the platform abstraction layer, the parallel browser agents, configuration validation, logging and tracing, graceful shutdown, and so on. Each one states not just *what* the architecture is but *why*, including the constraints that are easy to violate by accident.
+It was *dangerous* on the things that matter most. An early pass at the browser-spawning and lifecycle logic produced output that looked plausible — clean, confident, well-named — but contained subtle race conditions that would have been a nightmare to diagnose in the field. That's the trap with a capable model: it can be confidently wrong.
+
+The fix was to push back and define the contract first. For the browser drivers, that meant specifying an interface ([IBrowser](https://github.com/ArnaudBuchholz/ui5-test-runner/blob/main/src/browsers/IBrowser.ts)) and a [contract test suite](https://github.com/ArnaudBuchholz/ui5-test-runner/blob/main/src/browsers/browser.test.ts) that every driver must pass — then asking AI to implement each driver **without touching those tests**. The tests became the specification the assistant couldn't rewrite away.
+
+The lesson: **AI doesn't need more freedom, it needs better constraints.**
+
+Linting, test coverage gates, and type checking were the first line of defense — the same quality bar any agile team already enforces.
+
+But the most effective constraint turned out to be **Architecture Decision Records**.
+
+An ADR is a short document capturing one decision: the context, the choice, and the consequences. [Fourteen of them](../adr/index.md) cover the load-bearing parts of the system — the platform abstraction layer, the parallel browser agents, configuration validation, logging and tracing, graceful shutdown, and so on. Each one states not just *what* the architecture is but *why*, including the constraints that are easy to violate by accident.
+
+The index also maps each source file to the ADR it falls under, so there is no guesswork about which decision governs a change.
 
 Three things changed once the ADRs existed:
 
-- **The AI stopped reinventing decisions.** When I ask it to touch `src/configuration/`, it reads ADR-0003 and follows the multi-stage validation model that's already there instead of inventing a fourth way to parse options. The project's `CLAUDE.md` points every session at the ADR index, so this isn't something I have to remember to say each time.
-- **I had something to review the AI *against*.** Reviewing a diff in isolation, you can only check "does this look right?" Reviewing it against a written decision, you can check "does this honor the decision we made?" That's a much sharper question, and it catches the confident-but-wrong output before it lands.
-- **The documents keep each other honest.** The ADRs are reviewed *alongside* the documentation, not as an afterthought. I even have a small `/doc-review` routine that checks doc files against the actual source. When the code and the record drift apart, that's a signal, not a surprise.
+- **The AI stopped reinventing decisions.** When asked to touch `src/configuration/`, it reads [ADR-0003 Configuration Validation Strategy](https://github.com/ArnaudBuchholz/ui5-test-runner/blob/main/docs/adr/0003-configuration-validation-strategy.md) and follows the multi-stage validation model already in place, instead of inventing a new one. The project's `CLAUDE.md` points every session at the ADR index automatically.
 
-`/doc-review` works by reading each documentation file and the source files it describes, then checking for contradictions: an option the doc mentions that no longer exists, a default value that has drifted, a behaviour the doc asserts that the code no longer exhibits. It is not a linter — it cannot catch a gap (something the code does that the doc never mentions), only a conflict. But conflicts are the dangerous kind: a gap leaves a user uninformed, a conflict actively misleads them. Running it on every PR that touches `src/` or `docs/` catches the most common drift before it compounds.
+- **There is something concrete to review against.** Reviewing a diff in isolation, the only question is "does this look right?" Reviewing against a written decision, the question becomes "does this honor the decision we made?" That is a sharper question, and it catches confident-but-wrong output before it lands.
 
-I also codified the behavior I wanted from the AI itself. One rule I keep coming back to: *defend only against reachable states*. If the model wants to add a null-check or a retry, it has to be able to name a concrete, reachable path that triggers it — otherwise that "defensive" branch is just dead complexity hiding the real failure modes. And the workflow bias is tests-first: "fix the bug" becomes "write a failing test that reproduces it, then make it pass."
+- **The documents keep each other honest.** ADRs are reviewed *alongside* the documentation, not as an afterthought. A `/doc-review` routine checks each doc file against the actual source, looking for contradictions: an option the doc mentions that no longer exists, a default value that has drifted, a behaviour the doc asserts that the code no longer exhibits. It is not a linter — it cannot catch a gap (something the code does that the doc never mentions), only a conflict. But conflicts are the dangerous kind: a gap leaves a user uninformed, a conflict actively misleads them. Running it on every PR that touches `src/` or `docs/` catches the most common drift before it compounds.
 
-So the division of labor settled into something like: **AI writes the UIs, the boilerplate, the format converters, and the first draft of tests. The critical paths — browser lifecycle, state management — I design via an ADR and keep a tight hand on. Everything gets a human review against a written decision.** Go fast on what's safe, go slow on what's risky.
+Another [behavior rule](https://github.com/ArnaudBuchholz/ui5-test-runner/blob/main/AGENT_BEHAVIOR.md#5-defend-only-against-reachable-states) that provided value: *defend only against reachable states*. If the model proposes a null-check or a retry, it must be able to name a concrete, reachable path that triggers it. Otherwise that "defensive" branch is dead complexity hiding the real failure modes. And the workflow bias is tests-first: "fix the bug" becomes "write a failing test that reproduces it, then make it pass."
 
-## Part 3 — An MCP server, and letting an LLM prove the docs actually work
+The division of labor that emerged: **AI writes the UIs, the boilerplate, the format converters, and the first draft of tests. The critical paths — browser lifecycle, state management — are designed via an ADR and kept under tight review. Everything gets a human review against a written decision.** Go fast on what's safe, go slow on what's risky.
+
+For quality engineers specifically, a few patterns translated directly:
+
+- **Push back and challenge.** AI outputs are hypotheses, not answers. Challenging a result either surfaces an error or produces a better explanation: **both** are useful.
+- **Anchor AI to existing test cases.** Migrated end-to-end tests from version 5 served as a concrete specification: the implementation was correct when those tests passed. An AI that cannot break your test suite is an AI operating within the quality gate.
+- **Design observability for AI consumption.** Traces were designed from the start to be readable by an assistant. When an error occurred, the first step was to ask AI to troubleshoot from the trace. If the assistant couldn't reach a diagnosis, the trace was reworked — not the query. That feedback loop steadily raised trace quality.
+
+## An MCP server, and letting an LLM prove the docs actually work
 
 This is the part that's most interesting for a quality audience, because it's testing a thing that doesn't fit the usual pass/fail mold.
 
