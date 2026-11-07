@@ -96,7 +96,7 @@ export const qunit = () => {
       const pages = (QUnit.config as QUnitConfigWithModules).modules.map(({ moduleId }) => {
         const url = new URL(window.location.href);
         url.searchParams.set('moduleId', moduleId);
-        return url.href;
+        return { url: url.href };
       });
       Object.assign(state, { done: true, type: 'suite', pages });
       return;

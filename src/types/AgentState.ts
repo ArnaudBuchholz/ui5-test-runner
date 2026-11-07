@@ -2,6 +2,15 @@ import type { IError } from './IError.js';
 
 export const agentLogPrefix = '[ui5-test-runner]';
 
+export type SuitePage = {
+  /** Test page URL */
+  url: string;
+  /** Per-page coverage filters declared in the testsuite config */
+  coverage?: { only?: string | string[]; never?: string | string[] };
+  /** Per-page UI5 loader path mappings (resource prefix → URL), used to translate coverage filters */
+  loaderPaths?: Record<string, string>;
+};
+
 export type AgentState = {
   loaded?: ReturnType<typeof Date.now>;
   done: boolean;
@@ -19,7 +28,7 @@ export type AgentState = {
       /** Suite of tests */
       type: 'suite';
       /** Test pages to run */
-      pages: string[];
+      pages: SuitePage[];
     }
   | {
       /** Tests */

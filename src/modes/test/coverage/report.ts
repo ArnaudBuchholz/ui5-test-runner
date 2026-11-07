@@ -1,10 +1,39 @@
-import { Host, Path, Process, logger } from '../../../platform/index.js';
+import { FileSystem, Host, Path, Process, logger } from '../../../platform/index.js';
 import type { Configuration } from '../../../configuration/Configuration.js';
 import type { CommonTestReport } from '../../../types/CommonTestReportFormat.js';
 import { createEmptyTestResults } from '../../../types/CommonTestReportFormat.js';
 import { Folder } from '../../../utils/node/Folder.js';
 import { getNycBin } from './nyc.js';
 import { getSettingsPath } from './settings.js';
+import {
+  getRecordedSuitePages,
+  translateToCoverageFilter,
+  isCoverageKeyKept,
+  clearSuitePages
+} from './coverageFilter.js';
+
+// Apply the suite's coverage only/never filters to the merged coverage file. nyc report's own
+// --include/--exclude do not re-filter already-collected entries (incl. the nyc --all baseline),
+// so the filtering is done here on the merged file keys, made cwd-relative for matching.
+const filterMergedCoverage = async (configuration: Configuration, mergedPath: string): Promise<void> => {
+  const pages = getRecordedSuitePages(configuration);
+  clearSuitePages(configuration);
+  const filter = translateToCoverageFilter(pages);
+  if (filter.include === undefined && filter.exclude.length === 0) {
+    return;
+  }
+  const cwd = configuration.coverageSourceDir || configuration.webapp;
+  const merged = JSON.parse(await FileSystem.readFile(mergedPath, 'utf8')) as Record<string, unknown>;
+  const kept = Object.fromEntries(
+    Object.entries(merged).filter(([key]) => isCoverageKeyKept(Path.relative(cwd, key), filter))
+  );
+  await FileSystem.writeFile(mergedPath, JSON.stringify(kept));
+  logger.debug({
+    source: 'coverage',
+    message: `coverage filtered: ${Object.keys(merged).length} → ${Object.keys(kept).length} files`,
+    data: { include: filter.include, exclude: filter.exclude }
+  });
+};
 
 export const generateReport = async (
   configuration: Configuration
@@ -25,6 +54,8 @@ export const generateReport = async (
   if (mergeProc.code !== 0) {
     throw new Error(`nyc merge failed with code ${mergeProc.code}`);
   }
+
+  await filterMergedCoverage(configuration, mergedPath);
 
   const checks: [string, number][] = [
     ['--branches', configuration.coverageCheckBranches],

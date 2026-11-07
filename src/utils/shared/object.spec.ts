@@ -1,5 +1,37 @@
 import { describe, it, expect } from 'vitest';
-import { toPlainObject, pick } from './object.js';
+import { toPlainObject, pick, isObject, isStringRecord } from './object.js';
+
+describe('isObject', () => {
+  it('returns true for a plain object', () => {
+    expect(isObject({ a: 1 })).toBe(true);
+  });
+
+  it('returns false for null', () => {
+    expect(isObject(null)).toBe(false);
+  });
+
+  it('returns false for a non-object', () => {
+    expect(isObject('x')).toBe(false);
+  });
+});
+
+describe('isStringRecord', () => {
+  it('returns true when every value is a string', () => {
+    expect(isStringRecord({ a: 'x', b: 'y' })).toBe(true);
+  });
+
+  it('returns true for an empty object', () => {
+    expect(isStringRecord({})).toBe(true);
+  });
+
+  it('returns false when a value is not a string', () => {
+    expect(isStringRecord({ a: 'x', b: 1 })).toBe(false);
+  });
+
+  it('returns false for a non-object', () => {
+    expect(isStringRecord(null)).toBe(false);
+  });
+});
 
 describe('toPlainObject', () => {
   it('returns the same object on literals', () => {

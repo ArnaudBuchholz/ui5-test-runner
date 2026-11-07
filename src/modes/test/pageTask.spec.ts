@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { agentStateMessage, reportError, makePageTask } from './pageTask.js';
+import { getRecordedSuitePages } from './coverage/coverageFilter.js';
 import type { AgentState } from '../../types/AgentState.js';
 import type { TestReportBuilder } from '../../utils/shared/TestReportBuilder.js';
 import type { CommonTestReport } from '../../types/CommonTestReportFormat.js';
@@ -34,8 +35,8 @@ import { collect } from './coverage/index.js';
 import { isGloballyTimedOut, getEffectiveTimeout } from '../../utils/node/timeout.js';
 
 const LOADING_STATE = { done: false, type: undefined } satisfies AgentState;
-const UNKNOWN_STATE = { done: true, type: 'unknown' } satisfies AgentState;
-const SUITE_STATE = { done: true, type: 'suite', pages: ['/a.html', '/b.html'] } satisfies AgentState;
+const UNKNOWN_STATE = { done: false, type: 'unknown' } satisfies AgentState;
+const SUITE_STATE = { done: true, type: 'suite', pages: [{ url: '/a.html' }, { url: '/b.html' }] } satisfies AgentState;
 const QUNIT_IN_PROGRESS = {
   done: false,
   type: 'QUnit',
@@ -304,13 +305,21 @@ describe('makePageTask', () => {
 
   it('pushes resolved page URLs into urls array and skips merge when state is suite', async () => {
     const { builder } = setupHappyPath([
-      { done: true, type: 'suite', pages: ['page1.html'] } satisfies AgentState,
+      { done: true, type: 'suite', pages: [{ url: 'page1.html' }] } satisfies AgentState,
       EMPTY_RESULTS
     ]);
     const { urls } = await runTask();
     const expectedUrl = new URL('page1.html', PAGE_URL).href;
     expect(urls).toContain(expectedUrl);
     expect(builder.merge).not.toHaveBeenCalledWith(PAGE_URL, expect.anything(), expect.anything());
+  });
+
+  it('records the suite pages so the coverage filter can be derived at report time', async () => {
+    const pages = [{ url: 'page1.html', coverage: { only: 'sap/ui/demo/todo/' } }];
+    const configuration = makeConfig();
+    setupHappyPath([{ done: true, type: 'suite', pages } satisfies AgentState, EMPTY_RESULTS]);
+    await makePageTask(configuration).call(makeContext(), PAGE_URL, 0, []);
+    expect(getRecordedSuitePages(configuration)).toStrictEqual(pages);
   });
 
   it('logs error with Unable to detect page type when state type is unknown and done', async () => {

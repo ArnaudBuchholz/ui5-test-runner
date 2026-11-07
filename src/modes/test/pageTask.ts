@@ -11,6 +11,7 @@ import type { IWindow } from '../../browsers/IBrowser.js';
 import { getBrowserConfigScript } from './browserConfig.js';
 import type { IError } from '../../types/IError.js';
 import { collect as collectCoverage } from './coverage/index.js';
+import { recordSuitePages } from './coverage/coverageFilter.js';
 import type { Configuration } from '../../configuration/Configuration.js';
 import type { PageContext } from './PageContext.js';
 import { makeScreenshotHandlers } from './screenshot.js';
@@ -128,7 +129,8 @@ const shouldStopBasedOnAgentState = (
   });
   if (agentState.done) {
     if (agentState.type === 'suite') {
-      const resolvedPages = agentState.pages.map((page) => new URL(page, context.url).href);
+      recordSuitePages(context.configuration, agentState.pages);
+      const resolvedPages = agentState.pages.map((page) => new URL(page.url, context.url).href);
       for (const pageUrl of resolvedPages) {
         context.urls.push(pageUrl);
       }
@@ -314,6 +316,7 @@ export const makePageTask = (configuration: Configuration) => {
         url
       });
       context = {
+        configuration,
         pageId,
         urls,
         url,

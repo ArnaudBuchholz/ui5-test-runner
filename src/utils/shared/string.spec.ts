@@ -1,5 +1,27 @@
 import { it, expect, describe } from 'vitest';
-import { formatDuration, split } from './string.js';
+import { formatDuration, split, isStringOrStringArray } from './string.js';
+
+describe('isStringOrStringArray', () => {
+  it('returns true for a string', () => {
+    expect(isStringOrStringArray('x')).toBe(true);
+  });
+
+  it('returns true for an array of strings', () => {
+    expect(isStringOrStringArray(['a', 'b'])).toBe(true);
+  });
+
+  it('returns true for an empty array', () => {
+    expect(isStringOrStringArray([])).toBe(true);
+  });
+
+  it('returns false for an array containing a non-string', () => {
+    expect(isStringOrStringArray(['a', 1])).toBe(false);
+  });
+
+  it('returns false for a number', () => {
+    expect(isStringOrStringArray(42)).toBe(false);
+  });
+});
 
 describe('split', () => {
   it('returns the whole string', () => {

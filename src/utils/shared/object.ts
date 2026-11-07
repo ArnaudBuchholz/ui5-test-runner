@@ -1,5 +1,11 @@
 const literalPrototype = Object.getPrototypeOf({}) as object;
 
+export const isObject = (value: unknown): value is Record<string, unknown> =>
+  value !== null && typeof value === 'object';
+
+export const isStringRecord = (value: unknown): value is Record<string, string> =>
+  isObject(value) && Object.values(value).every((entry) => typeof entry === 'string');
+
 export const toPlainObject = (object: object): object => {
   const prototype = Object.getPrototypeOf(object) as object;
   return Object.getPrototypeOf(object) === literalPrototype

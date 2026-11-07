@@ -202,11 +202,10 @@ it('splits OPA page by module when splitOpa is enabled', async () => {
 
   await execQunit();
 
-  expect(state).toMatchObject({
-    done: true,
-    type: 'suite',
-    pages: [expect.stringContaining('moduleId='), expect.stringContaining('moduleId=')]
-  });
+  expect.assert(state.type === 'suite');
+  expect(state.pages).toHaveLength(2);
+  expect(state.pages[0]!.url).toContain('moduleId=');
+  expect(state.pages[1]!.url).toContain('moduleId=');
 });
 
 it('does not split when moduleId is already in URL (already a split page)', async () => {
