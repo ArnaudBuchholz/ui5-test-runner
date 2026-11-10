@@ -1,0 +1,11 @@
+{
+  "batchId": "JS_REMOTE_COVERAGE_FILTER",
+  "batchLabel": "Remote JS sample with coverage only/never filtering from testsuite config",
+  "url": ["http://localhost:8080/test/testsuite.coverage-filter.qunit.html"],
+  "coverage": true,
+  "coverageSourceDir": "../sample.js/webapp",
+  "coverageSettings": "../sample.js/.nycrc-no-all.json",
+  "coverageTempDir": "{{reportDir}}/.nyc_output",
+  "coverageReportDir": "{{reportDir}}/coverage",
+  "end": "RUNNER_EXIT_CODE={{exitCode}} NODE_OPTIONS= node test/e2e/check.mjs {{reportDir}} --pages 1 --coverage --coverage-include controller/ --coverage-exclude test/"
+}
