@@ -13,6 +13,11 @@ const getInstrumentPatterns = memoize(() =>
   (getConfig().coverageRemoteInstrument ?? []).map((pattern) => new RegExp(pattern))
 );
 
+// coverageOnly/coverageNever are UI5 resource path prefixes (e.g. "sap/ui/demo/todo/").
+// pathname arrives with a leading slash; strip it before prefix-matching.
+const hasMatchingPrefix = (path: string, prefixes: string[]): boolean =>
+  prefixes.some((prefix) => path.startsWith(prefix));
+
 function shouldInstrument(pathname: string): boolean {
   if (!pathname.endsWith('.js')) {
     return false;
@@ -21,6 +26,14 @@ function shouldInstrument(pathname: string): boolean {
   if (match) {
     const subPath = match[1]!;
     return getInstrumentPatterns().some((pattern) => pattern.test(subPath));
+  }
+  const { coverageOnly, coverageNever } = getConfig();
+  const path = pathname.startsWith('/') ? pathname.slice(1) : pathname;
+  if (coverageNever?.length && hasMatchingPrefix(path, coverageNever)) {
+    return false;
+  }
+  if (coverageOnly?.length && !hasMatchingPrefix(path, coverageOnly)) {
+    return false;
   }
   return true;
 }

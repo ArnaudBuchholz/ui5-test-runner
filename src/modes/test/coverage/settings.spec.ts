@@ -169,3 +169,49 @@ describe('getSettings', () => {
     expect(settings.coverageGlobalScope).toBe('window.top');
   });
 });
+
+describe('coverageNever / coverageOnly', () => {
+  const getWrittenSettings = () => {
+    const call = vi.mocked(FileSystem.writeFile).mock.calls.find(([path]) => (path as string).endsWith('.nycrc.json'));
+    return JSON.parse(call![1] as string) as { include?: string[]; exclude?: string[] };
+  };
+
+  it('appends coverageNever prefixes as exclude globs', async () => {
+    const config = makeConfiguration({ coverageNever: ['test-resources/', 'mock/'] });
+    await initSettings(config);
+    const { exclude } = getWrittenSettings();
+    expect(exclude).toEqual(expect.arrayContaining(['test-resources/**', 'mock/**']));
+  });
+
+  it('writes coverageOnly prefixes as include globs', async () => {
+    const config = makeConfiguration({ coverageOnly: ['sap/ui/demo/todo/'] });
+    await initSettings(config);
+    const { include } = getWrittenSettings();
+    expect(include).toStrictEqual(['sap/ui/demo/todo/**']);
+  });
+
+  it('merges coverageOnly with existing base include', async () => {
+    vi.mocked(FileSystem.access).mockResolvedValue(undefined);
+    vi.mocked(FileSystem.readFile).mockResolvedValue(JSON.stringify({ include: ['existing/**'] }));
+    const config = makeConfiguration({ coverageOnly: ['sap/'] });
+    await initSettings(config);
+    const { include } = getWrittenSettings();
+    expect(include).toStrictEqual(['existing/**', 'sap/**']);
+  });
+
+  it('preserves base include when coverageOnly is absent', async () => {
+    vi.mocked(FileSystem.access).mockResolvedValue(undefined);
+    vi.mocked(FileSystem.readFile).mockResolvedValue(JSON.stringify({ include: ['existing/**'] }));
+    const config = makeConfiguration({});
+    await initSettings(config);
+    const { include } = getWrittenSettings();
+    expect(include).toStrictEqual(['existing/**']);
+  });
+
+  it('omits include when neither coverageOnly nor base include is set', async () => {
+    const config = makeConfiguration({});
+    await initSettings(config);
+    const { include } = getWrittenSettings();
+    expect(include).toBeUndefined();
+  });
+});

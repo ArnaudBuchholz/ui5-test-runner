@@ -74,39 +74,6 @@ it('captures coverage only and never from the page config', async () => {
   ]);
 });
 
-it('captures loader paths from the page config', async () => {
-  window.suite = vi.fn(() => {
-    const testSuite = new window.jsUnitTestSuite();
-    testSuite.addTestPage('test1.html', {
-      coverage: { only: 'sap/ui/demo/todo/' },
-      loader: { paths: { 'sap/ui/demo/todo': '../' } }
-    });
-  });
-  await suite();
-  expect.assert(state.type === 'suite');
-  expect(state.pages).toStrictEqual([
-    { url: 'test1.html', coverage: { only: 'sap/ui/demo/todo/' }, loaderPaths: { 'sap/ui/demo/todo': '../' } }
-  ]);
-});
-
-it('omits loader paths when they are not a string record', async () => {
-  window.suite = vi.fn(() => {
-    const testSuite = new window.jsUnitTestSuite();
-    testSuite.addTestPage('test1.html', { loader: { paths: { 'sap/ui/demo/todo': 42 } } });
-  });
-  await suite();
-  expect.assert(state.type === 'suite');
-  expect(state.pages).toStrictEqual([{ url: 'test1.html' }]);
-});
-
-it('logs an error when loader paths are present but invalid', async () => {
-  window.suite = vi.fn(() => {
-    new window.jsUnitTestSuite().addTestPage('test1.html', { loader: { paths: { 'sap/ui/demo/todo': 42 } } });
-  });
-  await suite();
-  expect(errorSpy).toHaveBeenCalledWith(expect.stringContaining('invalid loader.paths'));
-});
-
 it('logs an error when a coverage pattern is present but invalid', async () => {
   window.suite = vi.fn(() => {
     new window.jsUnitTestSuite().addTestPage('test1.html', { coverage: { only: 42 } });
@@ -123,22 +90,12 @@ it('logs an error when the coverage property is present but not an object', asyn
   expect(errorSpy).toHaveBeenCalledWith(expect.stringContaining('invalid coverage'));
 });
 
-it('does not log an error when coverage and loader are simply absent', async () => {
+it('does not log an error when coverage is simply absent', async () => {
   window.suite = vi.fn(() => {
     new window.jsUnitTestSuite().addTestPage('test1.html', { name: 'unit' });
   });
   await suite();
   expect(errorSpy).not.toHaveBeenCalled();
-});
-
-it('omits loader paths when the loader has no paths key', async () => {
-  window.suite = vi.fn(() => {
-    const testSuite = new window.jsUnitTestSuite();
-    testSuite.addTestPage('test1.html', { loader: {} });
-  });
-  await suite();
-  expect.assert(state.type === 'suite');
-  expect(state.pages).toStrictEqual([{ url: 'test1.html' }]);
 });
 
 it('preserves array coverage patterns', async () => {

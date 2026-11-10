@@ -7,6 +7,7 @@ type IstanbulSettings = {
   coverageGlobalScope?: string;
   coverageGlobalScopeFunc?: boolean;
   cwd?: string;
+  include?: string[];
   exclude?: string[];
   [key: string]: unknown;
 };
@@ -60,6 +61,19 @@ const _initSettings = async (configuration: Configuration): Promise<SettingsEntr
       `${testReportDirectoryRelative}/**`
     );
   }
+  if (configuration.coverageNever?.length) {
+    for (const prefix of configuration.coverageNever) {
+      exclude.push(`${prefix}**`);
+    }
+  }
+
+  const baseInclude = Array.isArray(base.include) && base.include.length > 0 ? base.include : [];
+  let include: string[] | undefined;
+  if (configuration.coverageOnly?.length) {
+    include = [...baseInclude, ...configuration.coverageOnly.map((prefix) => `${prefix}**`)];
+  } else if (baseInclude.length > 0) {
+    include = baseInclude;
+  }
 
   const settings: IstanbulSettings = {
     ...base,
@@ -68,6 +82,7 @@ const _initSettings = async (configuration: Configuration): Promise<SettingsEntr
     coverageGlobalScope: 'window.top',
     coverageGlobalScopeFunc: false,
     ...(sourceDirectory && { cwd: sourceDirectory }),
+    ...(include !== undefined && { include }),
     exclude
   };
 

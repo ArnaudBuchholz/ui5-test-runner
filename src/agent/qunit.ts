@@ -93,10 +93,18 @@ export const qunit = () => {
       (QUnit.config as QUnitConfigWithModules).modules.length > 1 &&
       !new URL(window.location.href).searchParams.has('moduleId');
     if (shouldSplit) {
+      const { coverageOnly, coverageNever } = getConfig();
+      const coverage =
+        coverageOnly?.length || coverageNever?.length
+          ? {
+              ...(coverageOnly?.length && { only: coverageOnly }),
+              ...(coverageNever?.length && { never: coverageNever })
+            }
+          : undefined;
       const pages = (QUnit.config as QUnitConfigWithModules).modules.map(({ moduleId }) => {
         const url = new URL(window.location.href);
         url.searchParams.set('moduleId', moduleId);
-        return { url: url.href };
+        return coverage ? { url: url.href, coverage } : { url: url.href };
       });
       Object.assign(state, { done: true, type: 'suite', pages });
       return;

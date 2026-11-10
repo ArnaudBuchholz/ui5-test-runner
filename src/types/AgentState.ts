@@ -7,8 +7,6 @@ export type SuitePage = {
   url: string;
   /** Per-page coverage filters declared in the testsuite config */
   coverage?: { only?: string | string[]; never?: string | string[] };
-  /** Per-page UI5 loader path mappings (resource prefix → URL), used to translate coverage filters */
-  loaderPaths?: Record<string, string>;
 };
 
 export type AgentState = {

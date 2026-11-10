@@ -204,6 +204,7 @@ export const sensitiveKeys = new Set([`);
       enumeration: 'string',
       integer: 'number',
       regexp: 'string',
+      string: 'string',
       timeout: 'number'
     }[option.type];
     if (!type) {

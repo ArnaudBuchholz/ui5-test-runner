@@ -9,9 +9,9 @@ import { createEmptyTestResults } from '../../types/CommonTestReportFormat.js';
 import type { CommonTestReport } from '../../types/CommonTestReportFormat.js';
 import type { IWindow } from '../../browsers/IBrowser.js';
 import { getBrowserConfigScript } from './browserConfig.js';
+import type { PageCoverageOverride } from './browserConfig.js';
 import type { IError } from '../../types/IError.js';
 import { collect as collectCoverage } from './coverage/index.js';
-import { recordSuitePages } from './coverage/coverageFilter.js';
 import type { Configuration } from '../../configuration/Configuration.js';
 import type { PageContext } from './PageContext.js';
 import { makeScreenshotHandlers } from './screenshot.js';
@@ -129,8 +129,16 @@ const shouldStopBasedOnAgentState = (
   });
   if (agentState.done) {
     if (agentState.type === 'suite') {
-      recordSuitePages(context.configuration, agentState.pages);
-      const resolvedPages = agentState.pages.map((page) => new URL(page.url, context.url).href);
+      const resolvedPages = agentState.pages.map((page) => {
+        const resolvedUrl = new URL(page.url, context.url).href;
+        if (page.coverage) {
+          context.pageCoverageOverrides.set(resolvedUrl, {
+            coverageOnly: page.coverage.only,
+            coverageNever: page.coverage.never
+          });
+        }
+        return resolvedUrl;
+      });
       for (const pageUrl of resolvedPages) {
         context.urls.push(pageUrl);
       }
@@ -245,6 +253,7 @@ export const makePageTask = (configuration: Configuration) => {
   const { screenshot } = configuration;
   const { handlePendingScreenshot, handleFailureScreenshot } = makeScreenshotHandlers(configuration);
   const ui5VersionByOrigin = new Map<string, string>();
+  const pageCoverageOverrides = new Map<string, PageCoverageOverride>();
 
   const logUi5VersionOnce = async (probeUrl: string) => {
     const origin = new URL(probeUrl).origin;
@@ -307,7 +316,9 @@ export const makePageTask = (configuration: Configuration) => {
     try {
       const pageTimeoutMs = getPageTimeout(configuration, startTime);
       const agentSource = await getAgentSource();
-      const browserConfig = getBrowserConfigScript(pageId);
+      const coverageOverride = pageCoverageOverrides.get(url);
+      pageCoverageOverrides.delete(url);
+      const browserConfig = getBrowserConfigScript(pageId, coverageOverride);
       const scripts = [browserConfig, agentSource];
       const browser = getBrowser();
       page = await browser.newWindow({
@@ -327,7 +338,8 @@ export const makePageTask = (configuration: Configuration) => {
         errors: 0,
         lastTotal: 0,
         isSuite: false,
-        lastUncaughtErrorsCount: 0
+        lastUncaughtErrorsCount: 0,
+        pageCoverageOverrides
       };
       const pageTimeoutController = new AbortController();
       let pageTimeoutHandle: ReturnType<typeof setTimeout> | undefined;

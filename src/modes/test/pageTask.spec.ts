@@ -1,6 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { agentStateMessage, reportError, makePageTask } from './pageTask.js';
-import { getRecordedSuitePages } from './coverage/coverageFilter.js';
 import type { AgentState } from '../../types/AgentState.js';
 import type { TestReportBuilder } from '../../utils/shared/TestReportBuilder.js';
 import type { CommonTestReport } from '../../types/CommonTestReportFormat.js';
@@ -314,12 +313,17 @@ describe('makePageTask', () => {
     expect(builder.merge).not.toHaveBeenCalledWith(PAGE_URL, expect.anything(), expect.anything());
   });
 
-  it('records the suite pages so the coverage filter can be derived at report time', async () => {
-    const pages = [{ url: 'page1.html', coverage: { only: 'sap/ui/demo/todo/' } }];
-    const configuration = makeConfig();
+  it('stores per-page coverage overrides so child pages get them injected', async () => {
+    const { getBrowserConfigScript } = await import('./browserConfig.js');
+    const pages = [{ url: 'page1.html', coverage: { only: 'sap/ui/demo/todo/', never: 'test-resources/' } }];
     setupHappyPath([{ done: true, type: 'suite', pages } satisfies AgentState, EMPTY_RESULTS]);
-    await makePageTask(configuration).call(makeContext(), PAGE_URL, 0, []);
-    expect(getRecordedSuitePages(configuration)).toStrictEqual(pages);
+    const urls: string[] = [];
+    const task = makePageTask(makeConfig());
+    await task.call(makeContext(), PAGE_URL, 0, urls);
+    const expectedUrl = new URL('page1.html', PAGE_URL).href;
+    expect(urls).toContain(expectedUrl);
+    // The suite page itself receives no coverage override; getBrowserConfigScript is called with undefined.
+    expect(vi.mocked(getBrowserConfigScript)).toHaveBeenCalledWith(expect.any(Number), undefined);
   });
 
   it('logs error with Unable to detect page type when state type is unknown and done', async () => {

@@ -1,7 +1,7 @@
 import type { AgentState, SuitePage } from '../types/AgentState.js';
 import { state } from './state.js';
 import { log } from './log.js';
-import { isObject, isStringRecord } from '../utils/shared/object.js';
+import { isObject } from '../utils/shared/object.js';
 import { isStringOrStringArray } from '../utils/shared/string.js';
 
 type SuitePageCoverage = NonNullable<SuitePage['coverage']>;
@@ -45,21 +45,6 @@ const extractCoverage = (config: unknown): SuitePageCoverage | undefined => {
   return result;
 };
 
-const extractLoaderPaths = (config: unknown): Record<string, string> | undefined => {
-  if (!isObject(config) || !('loader' in config)) {
-    return undefined;
-  }
-  const { loader } = config;
-  if (!isObject(loader) || !('paths' in loader)) {
-    return undefined;
-  }
-  if (isStringRecord(loader['paths'])) {
-    return loader['paths'];
-  }
-  log.error('invalid loader.paths: expected a record of strings');
-  return undefined;
-};
-
 export class JsUnitTestSuite {
   // eslint-disable-next-line sonarjs/public-static-readonly -- to enable testing
   static pages: SuitePage[] | undefined;
@@ -72,13 +57,9 @@ export class JsUnitTestSuite {
   addTestPage(url: string, config?: unknown) {
     log(`addTestPage('${url}', ${JSON.stringify(config)})`);
     const coverage = extractCoverage(config);
-    const loaderPaths = extractLoaderPaths(config);
     const page: SuitePage = { url };
     if (coverage) {
       page.coverage = coverage;
-    }
-    if (loaderPaths) {
-      page.loaderPaths = loaderPaths;
     }
     JsUnitTestSuite.pages!.push(page);
   }

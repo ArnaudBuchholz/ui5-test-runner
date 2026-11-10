@@ -4,7 +4,6 @@ import { Npm } from '../../../Npm.js';
 import type { Configuration } from '../../../configuration/Configuration.js';
 import { Folder } from '../../../utils/node/Folder.js';
 import { generateReport } from './report.js';
-import { recordSuitePages } from './coverageFilter.js';
 
 const COVERAGE_TEMP_DIR = '/tmp/coverage';
 const COVERAGE_REPORT_DIR = '/tmp/coverage-report';
@@ -199,53 +198,5 @@ describe('generateReport', () => {
       .mocked(Process.spawn)
       .mock.calls.find(([, arguments_]) => Array.isArray(arguments_) && arguments_.includes('report'));
     expect(reportCall?.[2]).toMatchObject({ env: expect.objectContaining({ NODE_OPTIONS: '' }) as object });
-  });
-
-  describe('when the suite declared coverage filters', () => {
-    const recordTodoFilter = (configuration: Configuration) =>
-      recordSuitePages(configuration, [
-        {
-          url: 'http://localhost/test/opaTests.html',
-          coverage: { only: 'sap/ui/demo/todo/', never: 'test-resources/sap/ui/demo/todo/' },
-          loaderPaths: { 'sap/ui/demo/todo': '../' }
-        }
-      ]);
-
-    const readFilteredMerge = () => {
-      const writeCall = vi
-        .mocked(FileSystem.writeFile)
-        .mock.calls.find(([path]) => typeof path === 'string' && path.endsWith('merged/coverage.json'));
-      return Object.keys(JSON.parse(writeCall![1] as string) as Record<string, unknown>);
-    };
-
-    it('drops merged entries matching the never filter before reporting (coverageSourceDir)', async () => {
-      const cwd = '/app/src';
-      const configuration = makeConfiguration({ coverageSourceDir: cwd });
-      recordTodoFilter(configuration);
-      vi.mocked(FileSystem.readFile).mockResolvedValue(
-        JSON.stringify({
-          [`${cwd}/Component.js`]: { path: `${cwd}/Component.js` },
-          [`${cwd}/test/unit/unitTests.qunit.js`]: { path: `${cwd}/test/unit/unitTests.qunit.js` }
-        })
-      );
-      vi.mocked(Path.relative).mockImplementation((from, to) => to.replace(`${from}/`, ''));
-      await generateReport(configuration);
-      expect(readFilteredMerge()).toStrictEqual([`${cwd}/Component.js`]);
-    });
-
-    it('falls back to webapp as cwd when coverageSourceDir is unset', async () => {
-      const cwd = '/app/webapp';
-      const configuration = makeConfiguration({ webapp: cwd });
-      recordTodoFilter(configuration);
-      vi.mocked(FileSystem.readFile).mockResolvedValue(
-        JSON.stringify({
-          [`${cwd}/util/Helper.js`]: { path: `${cwd}/util/Helper.js` },
-          [`${cwd}/test/integration/opaTests.qunit.js`]: { path: `${cwd}/test/integration/opaTests.qunit.js` }
-        })
-      );
-      vi.mocked(Path.relative).mockImplementation((from, to) => to.replace(`${from}/`, ''));
-      await generateReport(configuration);
-      expect(readFilteredMerge()).toStrictEqual([`${cwd}/util/Helper.js`]);
-    });
   });
 });
