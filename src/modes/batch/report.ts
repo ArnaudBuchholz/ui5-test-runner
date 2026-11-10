@@ -4,7 +4,7 @@ import type { IBatchItem } from './BatchItem.js';
 import { initReportBuilder } from '../../reports/initReportBuilder.js';
 import { anonymize } from '../../utils/node/anonymize.js';
 
-const itemStatus = (item: IBatchItem): CommonTestStatus => {
+export const getBatchItemStatus = (item: IBatchItem): CommonTestStatus => {
   if (item.skipped) {
     return 'skipped';
   }
@@ -27,7 +27,7 @@ export const buildBatchReport = async (
   const tests = items.map((item) => {
     const itemStart = item.start?.getTime() ?? start;
     const itemStop = item.end?.getTime() ?? stop;
-    const status = itemStatus(item);
+    const status = getBatchItemStatus(item);
     return {
       name: item.label,
       status,

@@ -148,7 +148,7 @@ const shouldStopBasedOnAgentState = (
       });
       assert(false, 'unable to detect page type');
     } else {
-      assert(agentState.type === 'QUnit');
+      assert(agentState.type === 'QUnit', 'unexpected agent state');
       reportQunitProgress(context, agentState, isScreenshotEnabled);
     }
     return true;

@@ -4,7 +4,7 @@ import { parallelize } from '../../utils/shared/parallelize.js';
 import { start } from '../../start.js';
 import { resolve } from './resolve.js';
 import { batchTask } from './batchTask.js';
-import { buildBatchReport } from './report.js';
+import { buildBatchReport, getBatchItemStatus } from './report.js';
 import { defaults } from '../../configuration/options.js';
 import { redactSecrets } from '../../utils/node/anonymize.js';
 import { toPlainObject } from '../../utils/shared/object.js';
@@ -43,7 +43,7 @@ export const batch = async (configuration: Configuration): Promise<void> => {
     await parallelize(
       async function (item) {
         const result = await batchTask(configuration, item, batchStart);
-        if (configuration.failFast && (result.statusCode !== 0 || result.timedOut)) {
+        if (configuration.failFast && getBatchItemStatus(result) === 'failed') {
           for (const [queuedIndex, queuedItem] of items.entries()) {
             if (started.has(queuedIndex)) {
               continue;
@@ -64,7 +64,7 @@ export const batch = async (configuration: Configuration): Promise<void> => {
             started.add(event.index);
           } else if (event.type === 'completed') {
             ++completed;
-            if (event.input.statusCode !== 0 || event.input.timedOut) {
+            if (getBatchItemStatus(event.input) === 'failed') {
               ++failed;
             }
           } else if (event.type === 'failed') {

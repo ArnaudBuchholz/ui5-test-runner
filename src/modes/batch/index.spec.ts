@@ -12,7 +12,7 @@ vi.mock('../../reports/saveReport.js');
 
 import { resolve } from './resolve.js';
 import { batchTask } from './batchTask.js';
-import { buildBatchReport } from './report.js';
+import { buildBatchReport, getBatchItemStatus } from './report.js';
 import { printBatchOutput } from './output.js';
 import { start } from '../../start.js';
 import { saveReport } from '../../reports/saveReport.js';
@@ -49,6 +49,7 @@ beforeEach(() => {
   vi.mocked(start).mockResolvedValue(undefined);
   vi.mocked(buildBatchReport).mockResolvedValue(STUB_REPORT);
   vi.mocked(saveReport).mockResolvedValue(undefined);
+  vi.mocked(getBatchItemStatus).mockReturnValue('passed');
 });
 
 describe('batch()', () => {
@@ -90,6 +91,7 @@ describe('batch()', () => {
         batchItem.statusCode = 1;
         return Promise.resolve(batchItem);
       });
+      vi.mocked(getBatchItemStatus).mockReturnValue('failed');
       await batch(makeConfig());
       expect(Exit.code).toBe(-1);
     });
@@ -102,6 +104,7 @@ describe('batch()', () => {
         batchItem.statusCode = 1;
         return Promise.resolve(batchItem);
       });
+      vi.mocked(getBatchItemStatus).mockReturnValue('failed');
 
       await batch({ ...makeConfig(), parallel: 1, failFast: true });
 

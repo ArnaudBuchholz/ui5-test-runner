@@ -34,7 +34,7 @@ import { collect } from './coverage/index.js';
 import { isGloballyTimedOut, getEffectiveTimeout } from '../../utils/node/timeout.js';
 
 const LOADING_STATE = { done: false, type: undefined } satisfies AgentState;
-const UNKNOWN_STATE = { done: false, type: 'unknown' } satisfies AgentState;
+const UNKNOWN_STATE = { done: true, type: 'unknown' } satisfies AgentState;
 const SUITE_STATE = { done: true, type: 'suite', pages: ['/a.html', '/b.html'] } satisfies AgentState;
 const QUNIT_IN_PROGRESS = {
   done: false,

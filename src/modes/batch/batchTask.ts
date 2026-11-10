@@ -5,6 +5,7 @@ import type { IBatchItem } from './BatchItem.js';
 import type { CommonTestReport } from '../../types/CommonTestReportFormat.js';
 import { toKebabCase, formatDuration } from '../../utils/shared/string.js';
 import { getEffectiveTimeout, isGloballyTimedOut } from '../../utils/node/timeout.js';
+import { getBatchItemStatus } from './report.js';
 
 const getBatchTimeout = (configuration: Configuration, startTime: number): number =>
   getEffectiveTimeout(configuration.batchTimeout, configuration.globalTimeout, startTime);
@@ -148,9 +149,10 @@ export const batchTask = async (
   batchItem.end = new Date();
   batchItem.statusCode = childProcess.code;
   const duration = formatDuration(batchItem.end.getTime() - batchItem.start.getTime());
-  if (batchItem.skipped) {
+  const status = getBatchItemStatus(batchItem);
+  if (status === 'skipped') {
     logger.warn({ source: 'page', pageId, message: `skipped ${label} (${duration})` });
-  } else if (batchItem.statusCode === 0 && !batchItem.timedOut) {
+  } else if (status === 'passed') {
     logger.info({
       source: 'page',
       pageId,
