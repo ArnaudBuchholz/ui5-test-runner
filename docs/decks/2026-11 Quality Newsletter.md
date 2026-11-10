@@ -6,7 +6,11 @@ Today, this [package](https://www.npmjs.com/ui5-test-runner) gets around 20,000 
 
 Looks like a success story, but the day-to-day reality behind it is a steady trickle of issues landing in the inbox, each one costing hours to reproduce and qualify, on a codebase that had slowly stopped being enjoyable to work on.
 
-This article covers the rebuild of version 6, how AI was put to work without losing control of the result, and the MCP server built to help teams migrate.
+This article covers the rebuild of version 6 across three angles:
+
+- First, **why it existed at all.** The concrete pain points that made a rewrite the only viable option, and what the new architecture looks like.
+- Second, **how AI was used without losing control.** An honest account of where it helped and where it failed, and the constraints (test contracts, ADRs, a doc-review routine) that kept the output trustworthy.
+- Third, **a quality engineering problem that came with the territory**: how do you test that documentation actually works when the consumers are LLMs? That last part produced a small, reusable testing pattern (an LLM-as-judge harness with repetition) that may be useful beyond this project.
 
 ## Why ui5-test-runner version 6 exists
 
@@ -16,11 +20,11 @@ After several years of adding features to support every request teams could thro
 
 A few concrete pain points, because "legacy code is hard" is too vague to be useful:
 
-- **No type safety, silent failures.** The whole codebase was written in JavaScript. The option parser alone was around 500 lines. Adding a `start` option once collided with an internal `start` timestamp — hours of debugging wrong timings followed. Nothing crashed. It just lied, quietly.
+- **No type safety, silent failures.** The whole codebase was written in JavaScript. The option parser alone was around 500 lines. Adding a `start` option once collided with an internal `start` timestamp: hours of debugging wrong timings followed. Nothing crashed. It just lied, quietly.
 
 - **Tracing you had to earn.** When a team reported "it fails on CI but not on our machines," the workflow was: enable traces via options, re-run and wait, collect the scattered trace files (one per spawned process), squint at the clutter, and usually loop back to step one. Version 5 didn't tell you what happened by default.
 
-- **The browser model fought the browser.** A full browser *process* is spawned per test page, probed for readiness, then used to run the tests. Each process meant ~2 seconds of pure startup overhead and a cold cache, so UI5 resources were re-downloaded again and again. For simple QUnit suites, teams complained that Karma was faster — and they were right.
+- **The browser model fought the browser.** A full browser *process* is spawned per test page, probed for readiness, then used to run the tests. Each process meant ~2 seconds of pure startup overhead and a cold cache, so UI5 resources were re-downloaded again and again. For simple QUnit suites, teams complained that Karma was faster, and they were right.
 
 - **Chrome moved the goalposts.** Recent Chrome versions blocked `localhost` access from a remote URL. The common workaround is to disable browser security: not scalable, not safe, and it erodes trust in the tool.
 
@@ -77,17 +81,17 @@ AI was genuinely excellent at the things that are tedious but low-risk:
 
 That saved real weeks.
 
-It was dangerous on the things that matter most. An early pass at the browser-spawning and lifecycle logic produced output that looked plausible — clean, confident, well-named — but contained subtle race conditions that would have been a nightmare to diagnose in the field. That's the trap with a capable model: it can be confidently wrong.
+It was dangerous on the things that matter most. An early pass at the browser-spawning and lifecycle logic produced output that looked plausible, clean, confident, and well-named but contained subtle race conditions that would have been a nightmare to diagnose in the field. That's the trap with a capable model: it can be confidently wrong.
 
-The fix was to push back and define the contract first. For the browser drivers, that meant specifying an interface ([IBrowser](https://github.com/ArnaudBuchholz/ui5-test-runner/blob/main/src/browsers/IBrowser.ts)) and a [contract test suite](https://github.com/ArnaudBuchholz/ui5-test-runner/blob/main/src/browsers/browser.test.ts) that every driver must pass — then asking AI to implement each driver **without touching those tests**. The tests became the specification the assistant couldn't rewrite away.
+The fix was to push back and define the contract first. For the browser drivers, that meant specifying an interface ([IBrowser](https://github.com/ArnaudBuchholz/ui5-test-runner/blob/main/src/browsers/IBrowser.ts)) and a [contract test suite](https://github.com/ArnaudBuchholz/ui5-test-runner/blob/main/src/browsers/browser.test.ts) that every driver must pass, then asking AI to implement each driver **without touching those tests**. The tests became the specification the assistant couldn't rewrite away.
 
 The lesson: **AI doesn't need more freedom, it needs better constraints.**
 
-Linting, test coverage gates, and type checking were the first line of defense — the same quality bar any agile team already enforces.
+Linting, test coverage gates, and type checking were the first line of defense: the same quality bar any agile team already enforces.
 
 But the most effective constraint turned out to be **Architecture Decision Records**.
 
-An ADR is a short document capturing one decision: the context, the choice, and the consequences. [Fourteen of them](../adr/index.md) cover the load-bearing parts of the system — the platform abstraction layer, the parallel browser agents, configuration validation, logging and tracing, graceful shutdown, and so on. Each one states not just *what* the architecture is but *why*, including the constraints that are easy to violate by accident.
+An ADR is a short document capturing one decision: the context, the choice, and the consequences. [Fourteen of them](../adr/index.md) cover the load-bearing parts of the system: the platform abstraction layer, the parallel browser agents, configuration validation, logging and tracing, graceful shutdown, and so on. Each one states not just *what* the architecture is but *why*, including the constraints that are easy to violate by accident.
 
 The index also maps each source file to the ADR it falls under, so there is no guesswork about which decision governs a change.
 
@@ -97,21 +101,21 @@ Three things changed once the ADRs existed:
 
 - **There is something concrete to review against.** Reviewing a diff in isolation, the only question is "does this look right?" Reviewing against a written decision, the question becomes "does this honor the decision we made?" That is a sharper question, and it catches the plausible-looking mistakes before they land.
 
-- **The documents keep each other honest.** ADRs are reviewed *alongside* the documentation, not as an afterthought. A `/doc-review` routine checks each doc file against the actual source, looking for contradictions: an option the doc mentions that no longer exists, a default value that has drifted, a behaviour the doc asserts that the code no longer exhibits. It is not a linter — it cannot catch a gap (something the code does that the doc never mentions), only a conflict. But conflicts are the dangerous kind: a gap leaves a user uninformed, a conflict actively misleads them. Running it on every PR that touches `src/` or `docs/` catches the most common drift before it compounds.
+- **The documents keep each other honest.** ADRs are reviewed *alongside* the documentation, not as an afterthought. A `/doc-review` routine checks each doc file against the actual source, looking for contradictions: an option the doc mentions that no longer exists, a default value that has drifted, a behaviour the doc asserts that the code no longer exhibits. It is not a linter: it cannot catch a gap (something the code does that the doc never mentions), only a conflict. But conflicts are the dangerous kind: a gap leaves a user uninformed, a conflict actively misleads them. Running it on every PR that touches `src/` or `docs/` catches the most common drift before it compounds.
 
 Another [behavior rule](https://github.com/ArnaudBuchholz/ui5-test-runner/blob/main/AGENT_BEHAVIOR.md#5-defend-only-against-reachable-states) that provided value: *defend only against reachable states*. If the model proposes a null-check or a retry, it must be able to name a concrete, reachable path that triggers it. Otherwise that "defensive" branch is dead complexity hiding the real failure modes. And the workflow bias is tests-first: "fix the bug" becomes "write a failing test that reproduces it, then make it pass."
 
-The division of labor that emerged: **AI writes the UIs, the boilerplate, the format converters, and the first draft of tests. The critical paths — browser lifecycle, state management — are designed via an ADR and kept under tight review. Everything gets a human review against a written decision.** Go fast on what's safe, go slow on what's risky.
+The division of labor that emerged: **AI writes the UIs, the boilerplate, the format converters, and the first draft of tests. The critical paths (browser lifecycle, state management) are designed via an ADR and kept under tight review. Everything gets a human review against a written decision.** Go fast on what's safe, go slow on what's risky.
 
 For quality engineers specifically, a few patterns translated directly:
 
 - **Push back and challenge.** AI outputs are hypotheses, not answers. Challenging a result either surfaces an error or produces a better explanation: **both** are useful.
 - **Anchor AI to existing test cases.** Migrated end-to-end tests from version 5 served as a concrete specification: the implementation was correct when those tests passed. An AI that cannot break your test suite is an AI operating within the quality gate.
-- **Design observability for AI consumption.** Traces were designed from the start to be readable by an assistant. When an error occurred, the first step was to ask AI to troubleshoot from the trace. If the assistant couldn't reach a diagnosis, the trace was reworked — not the query. That feedback loop steadily raised trace quality.
+- **Design observability for AI consumption.** Traces were designed from the start to be readable by an assistant. When an error occurred, the first step was to ask AI to troubleshoot from the trace. If the assistant couldn't reach a diagnosis, the trace was reworked, not the query. That feedback loop steadily raised trace quality.
 
 ## How do you test an LLM?
 
-Classic testing works on a binary assertion: given this input, expect that output. LLM output breaks that contract. The answer is natural language, it's slightly different every time, and "correct" is a matter of whether the model reached the right conclusion — not whether it matched a string. Building version 6 surfaced exactly this problem, and solving it became its own quality engineering exercise.
+Classic testing works on a binary assertion: given this input, expect that output. LLM output breaks that contract. The answer is natural language, it's slightly different every time, and "correct" is a matter of whether the model reached the right conclusion, not whether it matched a string. Building version 6 surfaced exactly this problem, and solving it became its own quality engineering exercise.
 
 The trigger was documentation. Version 6 is a complete rewrite with major breaking changes, and in the AI era users don't *read* migration guides… they ask an assistant. The documentation still has to exist and be correct, but it also has to be *reachable* by the tools people now use to answer their questions. Simply pointing an assistant at the `docs/` folder on GitHub and hoping wasn't an option.
 
@@ -119,7 +123,7 @@ Version 6 is actually **built** documentation-first. Options are *designed* as m
 
 Then that structure is exposed over the **Model Context Protocol**. Running `ui5-test-runner --mcp` starts a small web server offering exactly two tools:
 
-1. `list_topics` — returns the *structure* of the knowledge base, meaning all topics with their frontmatter information as a JSON. For instance:
+1. `list_topics` returns the *structure* of the knowledge base, meaning all topics with their frontmatter information as a JSON. For instance:
 
 ```json
 [
@@ -149,7 +153,7 @@ Then that structure is exposed over the **Model Context Protocol**. Running `ui5
     },
 ```
 
-2. `get_topic` — returns the *content* of a topic (stripping the frontmatter).
+2. `get_topic` returns the *content* of a topic (stripping the frontmatter).
 
 Plus a set of [instructions](https://github.com/ArnaudBuchholz/ui5-test-runner/blob/b5a5cc74eb5c4b9f95cf2d0f35cfc0d1b36ad977/src/modes/mcp/reserve.ts#L20) that tell the MCP client to treat this documentation as **authoritative**. That last word matters: it's the difference between an assistant guessing from its training data and an assistant answering from the **current, correct** documentation.
 
@@ -173,15 +177,15 @@ config = "it should explain that reportGenerator is no longer supported"
 Three parts:
 - the `[user]` question,
 - a `[files]` block simulating the project's file system so the scenario is concrete,
-- and `[expected]` — the criteria a good answer must satisfy, written in plain language.
+- and `[expected]` the criteria a good answer must satisfy, written in plain language.
 
 Two harnesses collaborate to do the work:
 
 - The **query** harness connects to the live MCP server and lets the model answer the question, exactly as a real assistant would. A deliberately weak model is used here: if even a model with little reasoning headroom reaches the right answer, the documentation is doing the work rather than the model's own cleverness.
 
-- The **judge** harness takes that answer and scores it against each expected criterion, emitting a per-criterion verdict and a report. The thing being validated isn't a string — it's whether the documentation, as exposed, is *enough* for a model to reach the right conclusion. The judge is instructed to be a [strict, literal evaluator](https://github.com/ArnaudBuchholz/ui5-test-runner/blob/b5a5cc74eb5c4b9f95cf2d0f35cfc0d1b36ad977/test/mcp/judge.ts#L20) — a criterion passes only if the answer actually contains what it asks for — so a case can genuinely fail rather than being waved through.
+- The **judge** harness takes that answer and scores it against each expected criterion, emitting a per-criterion verdict and a report. The thing being validated isn't a string. It's whether the documentation, as exposed, is *enough* for a model to reach the right conclusion. The judge is instructed to be a [strict, literal evaluator](https://github.com/ArnaudBuchholz/ui5-test-runner/blob/b5a5cc74eb5c4b9f95cf2d0f35cfc0d1b36ad977/test/mcp/judge.ts#L20): a criterion passes only if the answer actually contains what it asks for, so a case can genuinely fail rather than being waved through.
 
-One thing worth naming: the judge is itself a model, so it inherits the same noise property as the query. A single judge verdict can be wrong in either direction — a genuine gap scored as a pass, or a correct answer penalised for phrasing. Repeating the full cycle (query + judge) five times means you're not just averaging out the query's variance; you're averaging out the judge's too. The pass rate you measure is the pass rate of the whole pipeline, end to end.
+One thing worth naming: the judge is itself a model, so it inherits the same noise property as the query. A single judge verdict can be wrong in either direction: a genuine gap scored as a pass, or a correct answer penalised for phrasing. Repeating the full cycle (query + judge) five times means you're not just averaging out the query's variance; you're averaging out the judge's too. The pass rate you measure is the pass rate of the whole pipeline, end to end.
 
 The last piece is what kept this from being flaky. LLM answers are noisy; a single run tells you very little. So the harness supports repetition:
 
@@ -204,7 +208,7 @@ Here are my takeaways, compressed into a few lines for the next person maintaini
 
 - **The goal was sustainability, and the refactor only served it.** TypeScript, the trace system, the tab-based browser model: those are means. The end was a tool someone else could confidently change.
 - **Give AI constraints, not freedom.** It's brilliant at scaffolding and boilerplate, and genuinely risky in the orchestration-heavy critical paths. ADRs were the single best lever: they stopped it reinventing decisions and provided something concrete to review its output *against*.
-- **Document for the AI, not just for humans** — then expose those docs over MCP and make them authoritative.
+- **Document for the AI, not just for humans** then expose those docs over MCP and make them authoritative.
 - **Let an LLM judge prove the docs work, and repeat the test to separate a real gap from noise.** A pass rate tells you more than a verdict.
 
-Version 6 is out. Come kick the tires — and, as always, send feedback. For a tool a hundred teams depend on, that feedback loop is the whole point.
+Version 6 is out. Come kick the tires and, as always, send feedback. For a tool a hundred teams depend on, that feedback loop is the whole point.
