@@ -4,7 +4,7 @@ import { ExitShutdownError } from '../../../platform/Exit.js';
 import { Npm } from '../../../Npm.js';
 import type { Configuration } from '../../../configuration/Configuration.js';
 import { Folder } from '../../../utils/node/Folder.js';
-import { instrument } from './instrument.js';
+import { instrument, deleteBaselineFiles } from './instrument.js';
 
 const folderRecreateSpy = vi.spyOn(Folder, 'recreate').mockResolvedValue(undefined);
 const folderCreateSpy = vi.spyOn(Folder, 'create').mockResolvedValue(undefined);
@@ -254,5 +254,57 @@ describe('instrument', () => {
       );
       expect(baselineCalls).toHaveLength(0);
     });
+  });
+});
+
+describe('deleteBaselineFiles', () => {
+  const makeEntry = (name: string, isFile = true) =>
+    ({ isFile: () => isFile, name }) as unknown as Awaited<ReturnType<typeof FileSystem.readdir>>[number];
+
+  it('removes baseline.json and indexed baseline files only', async () => {
+    vi.mocked(FileSystem.readdir).mockResolvedValue([
+      makeEntry('baseline.json'),
+      makeEntry('baseline-1.json'),
+      makeEntry('coverage-page1.json')
+    ]);
+    await deleteBaselineFiles(makeConfiguration({}));
+    expect(FileSystem.rm).toHaveBeenCalledWith(`${COVERAGE_TEMP_DIR}/baseline.json`);
+    expect(FileSystem.rm).toHaveBeenCalledWith(`${COVERAGE_TEMP_DIR}/baseline-1.json`);
+    expect(FileSystem.rm).not.toHaveBeenCalledWith(`${COVERAGE_TEMP_DIR}/coverage-page1.json`);
+  });
+
+  it('ignores non-baseline files', async () => {
+    vi.mocked(FileSystem.readdir).mockResolvedValue([makeEntry('coverage-page1.json'), makeEntry('merged.json')]);
+    await deleteBaselineFiles(makeConfiguration({}));
+    expect(FileSystem.rm).not.toHaveBeenCalled();
+  });
+
+  it('skips a directory entry named baseline.json', async () => {
+    vi.mocked(FileSystem.readdir).mockResolvedValue([makeEntry('baseline.json', false)]);
+    await deleteBaselineFiles(makeConfiguration({}));
+    expect(FileSystem.rm).not.toHaveBeenCalled();
+  });
+
+  it('logs how many baseline files were dropped', async () => {
+    vi.mocked(FileSystem.readdir).mockResolvedValue([makeEntry('baseline.json'), makeEntry('baseline-1.json')]);
+    await deleteBaselineFiles(makeConfiguration({}));
+    expect(logger.info).toHaveBeenCalledWith(
+      expect.objectContaining({
+        source: 'coverage',
+        message: expect.stringContaining('dropped 2 coverage baseline') as string
+      })
+    );
+  });
+
+  it('logs at debug (not info) when there is no baseline to drop', async () => {
+    vi.mocked(FileSystem.readdir).mockResolvedValue([makeEntry('coverage-page1.json')]);
+    await deleteBaselineFiles(makeConfiguration({}));
+    expect(logger.info).not.toHaveBeenCalled();
+    expect(logger.debug).toHaveBeenCalledWith(
+      expect.objectContaining({
+        source: 'coverage',
+        message: expect.stringContaining('no coverage baseline to drop') as string
+      })
+    );
   });
 });

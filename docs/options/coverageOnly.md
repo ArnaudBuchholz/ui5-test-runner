@@ -14,6 +14,7 @@ relations:
     - options/coverageRemoteInstrument
     - options/coverageSourceDir
     - coverage
+    - coverage_scope
 ---
 # `--coverage-only`
 
@@ -40,13 +41,20 @@ Two effects:
 1. **Instrumentation** — `?instrument=true` is not appended to module URLs that do not match any
    prefix, so they are never instrumented and never appear in `window.__coverage__`.
 2. **Report** — the prefix is written as an Istanbul `include` glob so only matching files appear
-   in the final merged report (covers files added by the `--coverage-source-dir` baseline).
+   in the final merged report.
+
+Because this option would otherwise be defeated by the `all: true` baseline (which enumerates every
+file at 0%), the runner suppresses that baseline when the option is set at the CLI (`all` is forced
+to `false`) or drops it after the run when the option comes from a testsuite. See
+[Coverage scope and filtering](../coverage_scope.md#where-the-filters-come-from-and-the-baseline).
 
 When this option is absent, all files (except those excluded by `--coverage-never`) are included.
 
-The option can also be set implicitly from the testsuite page config: if a test page loaded via
-a `testsuite.qunit.html` declares `coverage.only`, the runner applies those values to that page and
-all OPA pages split from it.
+The option can also be set per page from the testsuite, by passing `{ coverage: { only } }` as the
+second argument of `addTestPage` in a `window.suite` / `jsUnitTestSuite` testsuite. The values apply
+to that page and all OPA pages split from it. Keep the coverage scope consistent across a run — see
+[Declaring the coverage scope from a testsuite](../coverage.md#declaring-the-coverage-scope-from-a-testsuite) and
+[Keep coverage settings consistent across a run](../coverage.md#keep-coverage-settings-consistent-across-a-run).
 
 ## Example
 

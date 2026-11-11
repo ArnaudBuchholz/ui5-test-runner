@@ -2,7 +2,7 @@ import type { IParallelizeContext } from '../../utils/shared/parallelize.js';
 import { assert, Http, logger, Process } from '../../platform/index.js';
 import { getAgentSource } from './agent.js';
 import { getBrowser } from './browser.js';
-import type { AgentState } from '../../types/AgentState.js';
+import type { AgentState, SuitePage } from '../../types/AgentState.js';
 import { Exit, ExitShutdownError } from '../../platform/Exit.js';
 import { getReportBuilder } from './report.js';
 import { createEmptyTestResults } from '../../types/CommonTestReportFormat.js';
@@ -11,7 +11,7 @@ import type { IWindow } from '../../browsers/IBrowser.js';
 import { getBrowserConfigScript } from './browserConfig.js';
 import type { PageCoverageOverride } from './browserConfig.js';
 import type { IError } from '../../types/IError.js';
-import { collect as collectCoverage } from './coverage/index.js';
+import { collect as collectCoverage, invalidateSettings } from './coverage/index.js';
 import type { Configuration } from '../../configuration/Configuration.js';
 import type { PageContext } from './PageContext.js';
 import { makeScreenshotHandlers } from './screenshot.js';
@@ -19,6 +19,25 @@ import { getEffectiveTimeout, isGloballyTimedOut } from '../../utils/node/timeou
 
 const getPageTimeout = (configuration: Configuration, startTime: number): number =>
   getEffectiveTimeout(configuration.pageTimeout, configuration.globalTimeout, startTime);
+
+// Merges a testsuite page's coverage only/never into the run-wide configuration so the report-side
+// nyc settings (include/exclude globs) pick them up — the suite declares them per page, but the
+// generated .nycrc.json used by `nyc report` is per run. Values accumulate as a deduped union across
+// pages; mixing suites with different scopes therefore yields the union (see coverage_scope docs).
+// Deduped union of an existing prefix list with a newly-declared string | string[].
+const mergeCoveragePrefixes = (
+  current: string[] | undefined,
+  incoming: string | string[] | undefined
+): string[] | undefined =>
+  incoming === undefined ? current : [...new Set([...(current ?? []), ...[incoming].flat()])];
+
+const forwardSuiteCoverage = (configuration: Configuration, coverage: SuitePage['coverage']): void => {
+  configuration.coverageOnly = mergeCoveragePrefixes(configuration.coverageOnly, coverage?.only);
+  configuration.coverageNever = mergeCoveragePrefixes(configuration.coverageNever, coverage?.never);
+  // The settings (.nycrc.json) were already derived and cached during instrument(); drop the cache so
+  // the report step regenerates them with the newly-forwarded include/exclude globs.
+  invalidateSettings(configuration);
+};
 
 let lastPageId = 0;
 
@@ -136,6 +155,18 @@ const shouldStopBasedOnAgentState = (
             coverageOnly: page.coverage.only,
             coverageNever: page.coverage.never
           });
+          // Forward to the run-wide config so the report-side nyc settings pick up include/exclude
+          // globs (this is what makes filtering work in legacy mode, where the browser gate is inert).
+          forwardSuiteCoverage(context.configuration, page.coverage);
+          // Record that a testsuite drives the coverage scope; the runner drops any generated
+          // baseline before reporting (see reportCoverage). The latch doubles as a once-only guard.
+          if (!context.configuration.runtime.coverageBaselineInvalidated) {
+            logger.info({
+              source: 'job',
+              message: 'coverage only/never detected from testsuite'
+            });
+          }
+          context.configuration.runtime.coverageBaselineInvalidated = true;
         }
         return resolvedUrl;
       });

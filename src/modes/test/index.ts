@@ -16,11 +16,23 @@ import { formatDuration } from '../../utils/shared/string.js';
 import { start } from '../../start.js';
 import { end } from '../../end.js';
 import { sendToParentProcess } from '../../sendToParentProcess.js';
-import { instrument, generateReport } from './coverage/index.js';
+import { instrument, generateReport, deleteBaselineFiles } from './coverage/index.js';
 
 const markFailed = () => {
   if (Exit.code === 0) {
     Exit.code = -1;
+  }
+};
+
+const reportCoverage = async (configuration: Configuration) => {
+  // A testsuite that declared coverage only/never invalidated the baseline generated at instrument
+  // time; drop it before merging so the filtered scope is not polluted by 0%-covered files.
+  if (configuration.runtime.coverageBaselineInvalidated) {
+    await deleteBaselineFiles(configuration);
+  }
+  const coverageFailure = await generateReport(configuration);
+  if (coverageFailure) {
+    getReportBuilder().merge('coverage', coverageFailure);
   }
 };
 
@@ -108,10 +120,7 @@ export const test = async (configuration: Configuration) => {
     }
     getReportBuilder().finalize();
     if (configuration.coverage) {
-      const coverageFailure = await generateReport(configuration);
-      if (coverageFailure) {
-        getReportBuilder().merge('coverage', coverageFailure);
-      }
+      await reportCoverage(configuration);
     }
     const { report } = getReportBuilder();
     await saveReport(configuration, report);

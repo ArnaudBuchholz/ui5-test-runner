@@ -38,6 +38,13 @@ export const initSettings = (configuration: Configuration): Promise<SettingsEntr
   return promise;
 };
 
+// Drops the cached settings so the next initSettings re-derives (and rewrites) .nycrc.json. Needed
+// when coverageOnly/coverageNever are discovered mid-run from a testsuite, after the baseline/instrument
+// step already computed and cached the settings: the report must regenerate them with the new globs.
+export const invalidateSettings = (configuration: Configuration): void => {
+  cache.delete(configuration);
+};
+
 const _initSettings = async (configuration: Configuration): Promise<SettingsEntry> => {
   let base: IstanbulSettings = {};
   try {
@@ -75,9 +82,13 @@ const _initSettings = async (configuration: Configuration): Promise<SettingsEntr
     include = baseInclude;
   }
 
+  // only/never filtering is defeated by the nyc baseline (all:true enumerates every file at 0%,
+  // which the report merge then resurrects). When CLI-level filters are set, suppress the baseline.
+  const hasCliCoverageFilter = !!(configuration.coverageOnly?.length || configuration.coverageNever?.length);
+
   const settings: IstanbulSettings = {
     ...base,
-    all: base.all !== false,
+    all: !hasCliCoverageFilter && base.all !== false,
     sourceMap: false,
     coverageGlobalScope: 'window.top',
     coverageGlobalScopeFunc: false,

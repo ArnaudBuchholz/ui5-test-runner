@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { FileSystem, Path, logger } from '../../../platform/index.js';
 import type { Configuration } from '../../../configuration/Configuration.js';
-import { getSettingsPath, getSettings, initSettings } from './settings.js';
+import { getSettingsPath, getSettings, initSettings, invalidateSettings } from './settings.js';
 
 beforeEach(() => {
   vi.clearAllMocks();
@@ -151,6 +151,18 @@ describe('initSettings', () => {
     const second = await initSettings(config);
     expect(first).toBe(second);
   });
+
+  it('re-derives after invalidateSettings, picking up newly-set coverageOnly/never', async () => {
+    const config = makeConfiguration({});
+    const first = await initSettings(config);
+    expect(first.settings.include).toBeUndefined();
+    // Simulate a testsuite forwarding its filters mid-run, then invalidating the cache.
+    (config as { coverageOnly?: string[] }).coverageOnly = ['controller/'];
+    invalidateSettings(config);
+    const second = await initSettings(config);
+    expect(second).not.toBe(first);
+    expect(second.settings.include).toStrictEqual(['controller/**']);
+  });
 });
 
 describe('getSettingsPath', () => {
@@ -213,5 +225,25 @@ describe('coverageNever / coverageOnly', () => {
     await initSettings(config);
     const { include } = getWrittenSettings();
     expect(include).toBeUndefined();
+  });
+
+  it('forces all to false when coverageOnly is set', async () => {
+    const config = makeConfiguration({ coverageOnly: ['controller/'] });
+    const { settings } = await initSettings(config);
+    expect(settings.all).toBe(false);
+  });
+
+  it('forces all to false when coverageNever is set', async () => {
+    const config = makeConfiguration({ coverageNever: ['test/'] });
+    const { settings } = await initSettings(config);
+    expect(settings.all).toBe(false);
+  });
+
+  it('forces all to false even when base settings set all to true', async () => {
+    vi.mocked(FileSystem.access).mockResolvedValue(undefined);
+    vi.mocked(FileSystem.readFile).mockResolvedValue(JSON.stringify({ all: true }));
+    const config = makeConfiguration({ coverageOnly: ['controller/'] });
+    const { settings } = await initSettings(config);
+    expect(settings.all).toBe(false);
   });
 });

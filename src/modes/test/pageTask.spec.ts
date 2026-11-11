@@ -4,6 +4,7 @@ import type { AgentState } from '../../types/AgentState.js';
 import type { TestReportBuilder } from '../../utils/shared/TestReportBuilder.js';
 import type { CommonTestReport } from '../../types/CommonTestReportFormat.js';
 import type { Configuration } from '../../configuration/Configuration.js';
+import { createConfigurationStructuralMembers } from '../../configuration/Configuration.js';
 import type { IParallelizeContext } from '../../utils/shared/parallelize.js';
 import { Http, logger, Process } from '../../platform/index.js';
 import { ExitShutdownError } from '../../platform/Exit.js';
@@ -18,7 +19,7 @@ vi.mock('./screenshot.js', () => ({
     handleFailureScreenshot: vi.fn().mockResolvedValue(undefined)
   }))
 }));
-vi.mock('./coverage/index.js', () => ({ collect: vi.fn().mockResolvedValue(undefined) }));
+vi.mock('./coverage/index.js', () => ({ collect: vi.fn().mockResolvedValue(undefined), invalidateSettings: vi.fn() }));
 vi.mock('../../utils/node/timeout.js', () => ({
   getEffectiveTimeout: vi.fn(() => 0),
   isGloballyTimedOut: vi.fn(() => false)
@@ -30,7 +31,7 @@ vi.mock('./report.js', () => ({
 import { getReportBuilder } from './report.js';
 import { getBrowser } from './browser.js';
 import { makeScreenshotHandlers } from './screenshot.js';
-import { collect } from './coverage/index.js';
+import { collect, invalidateSettings } from './coverage/index.js';
 import { isGloballyTimedOut, getEffectiveTimeout } from '../../utils/node/timeout.js';
 
 const LOADING_STATE = { done: false, type: undefined } satisfies AgentState;
@@ -138,6 +139,7 @@ const makeConfig = (overrides: Record<string, unknown> = {}): Configuration =>
     screenshot: false,
     pageTimeout: 0,
     globalTimeout: 0,
+    ...createConfigurationStructuralMembers(),
     ...overrides
   }) as unknown as Configuration;
 
@@ -324,6 +326,74 @@ describe('makePageTask', () => {
     expect(urls).toContain(expectedUrl);
     // The suite page itself receives no coverage override; getBrowserConfigScript is called with undefined.
     expect(vi.mocked(getBrowserConfigScript)).toHaveBeenCalledWith(expect.any(Number), undefined);
+  });
+
+  it('latches coverageBaselineInvalidated when a suite page declares coverage', async () => {
+    const pages = [{ url: 'page1.html', coverage: { only: 'controller/' } }];
+    setupHappyPath([{ done: true, type: 'suite', pages } satisfies AgentState, EMPTY_RESULTS]);
+    const config = makeConfig();
+    await makePageTask(config).call(makeContext(), PAGE_URL, 0, []);
+    expect(config.runtime.coverageBaselineInvalidated).toBe(true);
+  });
+
+  it('leaves coverageBaselineInvalidated unset when a suite page declares no coverage', async () => {
+    setupHappyPath([{ done: true, type: 'suite', pages: [{ url: 'page1.html' }] } satisfies AgentState, EMPTY_RESULTS]);
+    const config = makeConfig();
+    await makePageTask(config).call(makeContext(), PAGE_URL, 0, []);
+    expect(config.runtime.coverageBaselineInvalidated).toBeFalsy();
+  });
+
+  it('forwards suite coverage only/never into the run-wide configuration and invalidates settings', async () => {
+    const pages = [{ url: 'page1.html', coverage: { only: 'controller/', never: ['test/', 'mock/'] } }];
+    setupHappyPath([{ done: true, type: 'suite', pages } satisfies AgentState, EMPTY_RESULTS]);
+    const config = makeConfig();
+    await makePageTask(config).call(makeContext(), PAGE_URL, 0, []);
+    expect(config.coverageOnly).toStrictEqual(['controller/']);
+    expect(config.coverageNever).toStrictEqual(['test/', 'mock/']);
+    expect(invalidateSettings).toHaveBeenCalledWith(config);
+  });
+
+  it('merges suite coverage as a deduped union across pages', async () => {
+    const pages = [
+      { url: 'page1.html', coverage: { only: 'controller/', never: 'test/' } },
+      { url: 'page2.html', coverage: { only: ['controller/', 'model/'], never: 'test/' } }
+    ];
+    setupHappyPath([{ done: true, type: 'suite', pages } satisfies AgentState, EMPTY_RESULTS]);
+    const config = makeConfig();
+    await makePageTask(config).call(makeContext(), PAGE_URL, 0, []);
+    expect(config.coverageOnly).toStrictEqual(['controller/', 'model/']);
+    expect(config.coverageNever).toStrictEqual(['test/']);
+  });
+
+  it('does not touch coverageOnly/never when a suite page declares no coverage', async () => {
+    setupHappyPath([{ done: true, type: 'suite', pages: [{ url: 'page1.html' }] } satisfies AgentState, EMPTY_RESULTS]);
+    const config = makeConfig();
+    await makePageTask(config).call(makeContext(), PAGE_URL, 0, []);
+    expect(config.coverageOnly).toBeUndefined();
+    expect(config.coverageNever).toBeUndefined();
+    expect(invalidateSettings).not.toHaveBeenCalled();
+  });
+
+  it('informs once (source job) when a suite declares coverage across multiple pages', async () => {
+    const pages = [
+      { url: 'page1.html', coverage: { only: 'controller/' } },
+      { url: 'page2.html', coverage: { never: 'test/' } }
+    ];
+    setupHappyPath([{ done: true, type: 'suite', pages } satisfies AgentState, EMPTY_RESULTS]);
+    await makePageTask(makeConfig()).call(makeContext(), PAGE_URL, 0, []);
+    const coverageInfos = vi
+      .mocked(logger.info)
+      .mock.calls.filter(([entry]) => (entry as { message: string }).message.includes('coverage only/never detected'));
+    expect(coverageInfos).toHaveLength(1);
+    expect(coverageInfos[0]![0]).toEqual(expect.objectContaining({ source: 'job' }));
+  });
+
+  it('does not warn about coverage when a suite declares no coverage', async () => {
+    setupHappyPath([{ done: true, type: 'suite', pages: [{ url: 'page1.html' }] } satisfies AgentState, EMPTY_RESULTS]);
+    await makePageTask(makeConfig()).call(makeContext(), PAGE_URL, 0, []);
+    expect(logger.warn).not.toHaveBeenCalledWith(
+      expect.objectContaining({ message: expect.stringContaining('coverage only/never detected') as string })
+    );
   });
 
   it('logs error with Unable to detect page type when state type is unknown and done', async () => {

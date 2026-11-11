@@ -1,0 +1,11 @@
+{
+  "batchId": "JS_LEGACY_COVERAGE_FILTER_CLI",
+  "batchLabel": "Legacy JS sample with coverage only/never filtering from the CLI options",
+  "cwd": "../sample.js",
+  "coverage": true,
+  "coverageOnly": ["controller/"],
+  "coverageNever": ["controller/App.controller.js"],
+  "coverageTempDir": "{{reportDir}}/.nyc_output",
+  "coverageReportDir": "{{reportDir}}/coverage",
+  "end": "RUNNER_EXIT_CODE={{exitCode}} NODE_OPTIONS= node ../e2e/check.mjs {{reportDir}} --pages 2 --coverage --coverage-include controller/BaseController.js --coverage-include controller/Main.controller.js --coverage-exclude controller/App.controller.js --coverage-exclude test/"
+}

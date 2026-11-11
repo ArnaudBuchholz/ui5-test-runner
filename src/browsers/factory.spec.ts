@@ -3,6 +3,7 @@ import { BrowserFactory } from './factory.js';
 import type { IBrowser, IWindow, BrowserCapabilities } from './IBrowser.js';
 import { defaults } from '../configuration/options.js';
 import type { Configuration } from '../configuration/Configuration.js';
+import { createConfigurationStructuralMembers } from '../configuration/Configuration.js';
 import { Exit } from '../platform/Exit.js';
 import { logger } from '../platform/index.js';
 import { __unregisterExitAsyncTask, __lastRegisteredExitAsyncTask } from '../platform/mock.js';
@@ -21,9 +22,9 @@ import { factory as mockPuppeteerFactory } from './puppeteer.js';
 
 const FACTORY_SETTINGS = {
   ...defaults,
+  ...createConfigurationStructuralMembers(),
   coverageReporters: [],
-  mode: 'legacy',
-  sources: {}
+  mode: 'legacy'
 } as const as Configuration;
 
 const BROWSER_SETTINGS = {} as const;

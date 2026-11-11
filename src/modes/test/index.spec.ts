@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import type { Configuration } from '../../configuration/Configuration.js';
+import { createConfigurationStructuralMembers } from '../../configuration/Configuration.js';
 import { Exit, ExitShutdownError, Http, logger } from '../../platform/index.js';
 import { __lastRegisteredExitAsyncTask } from '../../platform/mock.js';
 import type { TestReportBuilder } from '../../utils/shared/TestReportBuilder.js';
@@ -20,7 +21,7 @@ vi.mock('../../utils/shared/parallelize.js', () => ({ parallelize: vi.fn().mockR
 vi.mock('../../start.js', () => ({ start: vi.fn() }));
 vi.mock('../../end.js', () => ({ end: vi.fn() }));
 vi.mock('../../sendToParentProcess.js', () => ({ sendToParentProcess: vi.fn() }));
-vi.mock('./coverage/index.js', () => ({ instrument: vi.fn(), generateReport: vi.fn() }));
+vi.mock('./coverage/index.js', () => ({ instrument: vi.fn(), generateReport: vi.fn(), deleteBaselineFiles: vi.fn() }));
 
 import { test as runTest } from './index.js';
 import { initReportBuilder, getReportBuilder, setReportBrowserInfo } from './report.js';
@@ -30,7 +31,7 @@ import { saveReport } from '../../reports/saveReport.js';
 import { Folder } from '../../utils/node/Folder.js';
 import { parallelize } from '../../utils/shared/parallelize.js';
 import { sendToParentProcess } from '../../sendToParentProcess.js';
-import { instrument, generateReport } from './coverage/index.js';
+import { instrument, generateReport, deleteBaselineFiles } from './coverage/index.js';
 import { reportError } from './pageTask.js';
 
 const PORT = 8080;
@@ -52,6 +53,7 @@ const makeConfig = (overrides: object = {}): Configuration =>
     coverage: false,
     serveOnly: false,
     testsuite: '/test/testsuite.qunit.html',
+    ...createConfigurationStructuralMembers(),
     ...overrides
   }) as unknown as Configuration;
 
@@ -159,6 +161,35 @@ describe('test()', () => {
       vi.mocked(generateReport).mockResolvedValue(undefined);
       await runTest(makeConfig({ coverage: true }));
       expect(builder.merge).not.toHaveBeenCalledWith('coverage', expect.anything());
+    });
+
+    it('deletes baseline files before generateReport when a suite invalidated the baseline', async () => {
+      setupHappyPath();
+      vi.mocked(generateReport).mockResolvedValue(undefined);
+      const order: string[] = [];
+      vi.mocked(deleteBaselineFiles).mockImplementation(() => {
+        order.push('deleteBaselineFiles');
+        return Promise.resolve();
+      });
+      vi.mocked(generateReport).mockImplementation(() => {
+        order.push('generateReport');
+        return Promise.resolve(undefined);
+      });
+      // Mimic pageTask latching the signal on the shared configuration during parallelize.
+      const config = makeConfig({ coverage: true });
+      vi.mocked(parallelize).mockImplementation(() => {
+        config.runtime.coverageBaselineInvalidated = true;
+        return Promise.resolve([]);
+      });
+      await runTest(config);
+      expect(order).toStrictEqual(['deleteBaselineFiles', 'generateReport']);
+    });
+
+    it('does not delete baseline files when no suite invalidated the baseline', async () => {
+      setupHappyPath();
+      vi.mocked(generateReport).mockResolvedValue(undefined);
+      await runTest(makeConfig({ coverage: true }));
+      expect(deleteBaselineFiles).not.toHaveBeenCalled();
     });
   });
 
