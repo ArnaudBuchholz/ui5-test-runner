@@ -11,7 +11,7 @@ import type { IWindow } from '../../browsers/IBrowser.js';
 import { getBrowserConfigScript } from './browserConfig.js';
 import type { PageCoverageOverride } from './browserConfig.js';
 import type { IError } from '../../types/IError.js';
-import { collect as collectCoverage, invalidateSettings } from './coverage/index.js';
+import { collect as collectCoverage } from './coverage/index.js';
 import type { Configuration } from '../../configuration/Configuration.js';
 import type { PageContext } from './PageContext.js';
 import { makeScreenshotHandlers } from './screenshot.js';
@@ -24,19 +24,40 @@ const getPageTimeout = (configuration: Configuration, startTime: number): number
 // nyc settings (include/exclude globs) pick them up — the suite declares them per page, but the
 // generated .nycrc.json used by `nyc report` is per run. Values accumulate as a deduped union across
 // pages; mixing suites with different scopes therefore yields the union (see coverage_scope docs).
-// Deduped union of an existing prefix list with a newly-declared string | string[].
-const mergeCoveragePrefixes = (
-  current: string[] | undefined,
-  incoming: string | string[] | undefined
-): string[] | undefined =>
-  incoming === undefined ? current : [...new Set([...(current ?? []), ...[incoming].flat()])];
+// Normalizes a coverage prefix declaration (string | string[]) to a sorted, deduped array.
+const normalizePrefixes = (value: string | string[] | undefined): string[] =>
+  value === undefined ? [] : [...new Set([value].flat())].toSorted((a, b) => a.localeCompare(b));
 
-const forwardSuiteCoverage = (configuration: Configuration, coverage: SuitePage['coverage']): void => {
-  configuration.coverageOnly = mergeCoveragePrefixes(configuration.coverageOnly, coverage?.only);
-  configuration.coverageNever = mergeCoveragePrefixes(configuration.coverageNever, coverage?.never);
-  // The settings (.nycrc.json) were already derived and cached during instrument(); drop the cache so
-  // the report step regenerates them with the newly-forwarded include/exclude globs.
-  invalidateSettings(configuration);
+// Order-insensitive equality of two normalized (sorted) prefix lists.
+const arePrefixesEqual = (a: string[], b: string[] | undefined): boolean =>
+  a.length === (b ?? []).length && a.every((entry, index) => entry === (b ?? [])[index]);
+
+const describeScope = (only: string[], never: string[]): string =>
+  `only=[${only.join(', ')}] never=[${never.join(', ')}]`;
+
+// Records the testsuite coverage scope on configuration.runtime. All testsuites in a run must declare
+// the same only/never combination; a divergence is a fatal error — it is reported as a failed test and
+// forces a non-zero exit (a bare throw would be swallowed by the page loop's catch).
+const applySuiteCoverage = (context: PageContext, coverage: SuitePage['coverage']): void => {
+  const only = normalizePrefixes(coverage?.only);
+  const never = normalizePrefixes(coverage?.never);
+  const { runtime } = context.configuration;
+  if (runtime.coverageOnly === undefined && runtime.coverageNever === undefined) {
+    runtime.coverageOnly = only;
+    runtime.coverageNever = never;
+    return;
+  }
+  if (arePrefixesEqual(only, runtime.coverageOnly) && arePrefixesEqual(never, runtime.coverageNever)) {
+    return;
+  }
+  const message =
+    'inconsistent coverage only/never across testsuites: ' +
+    `${describeScope(runtime.coverageOnly ?? [], runtime.coverageNever ?? [])} vs ${describeScope(only, never)}. ` +
+    'All testsuites in a run must declare the same coverage filter; run divergent scopes separately.';
+  logger.error({ source: 'job', message, pageId: context.pageId });
+  reportError(context.url, message);
+  Exit.code = -1;
+  throw new Error(message);
 };
 
 let lastPageId = 0;
@@ -150,14 +171,17 @@ const shouldStopBasedOnAgentState = (
     if (agentState.type === 'suite') {
       const resolvedPages = agentState.pages.map((page) => {
         const resolvedUrl = new URL(page.url, context.url).href;
-        if (page.coverage) {
+        // Testsuite coverage only/never only matters when coverage is being measured; ignore it
+        // entirely otherwise (no instrumentation, no report — and no divergence check to fail on).
+        if (page.coverage && context.configuration.coverage) {
           context.pageCoverageOverrides.set(resolvedUrl, {
             coverageOnly: page.coverage.only,
             coverageNever: page.coverage.never
           });
-          // Forward to the run-wide config so the report-side nyc settings pick up include/exclude
-          // globs (this is what makes filtering work in legacy mode, where the browser gate is inert).
-          forwardSuiteCoverage(context.configuration, page.coverage);
+          // Record the testsuite coverage scope on configuration.runtime so the report-side nyc
+          // settings pick up include/exclude globs (this makes filtering work in legacy mode, where
+          // the browser gate is inert). Divergent scopes across testsuites are a fatal error.
+          applySuiteCoverage(context, page.coverage);
           // Record that a testsuite drives the coverage scope; the runner drops any generated
           // baseline before reporting (see reportCoverage). The latch doubles as a once-only guard.
           if (!context.configuration.runtime.coverageBaselineInvalidated) {

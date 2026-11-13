@@ -21,7 +21,8 @@ const BASE_CONFIGURATION = {
   coverageCheckFunctions: 0,
   coverageCheckLines: 0,
   coverageCheckStatements: 0,
-  coverageReporters: []
+  coverageReporters: [],
+  runtime: {}
 } as unknown as Configuration;
 
 const makeConfiguration = (overrides: object): Configuration => ({ ...BASE_CONFIGURATION, ...overrides });

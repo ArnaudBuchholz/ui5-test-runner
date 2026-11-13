@@ -17,6 +17,10 @@ export type ConfigurationStructuralMembers = {
   runtime: {
     /** A testsuite declared per-page coverage only/never, so the nyc baseline must be dropped before reporting */
     coverageBaselineInvalidated?: true;
+    /** Coverage include prefixes declared by the testsuite(s); all suites in a run must agree. Normalized (sorted, deduped). */
+    coverageOnly?: string[];
+    /** Coverage exclude prefixes declared by the testsuite(s); all suites in a run must agree. Normalized (sorted, deduped). */
+    coverageNever?: string[];
   };
 };
 

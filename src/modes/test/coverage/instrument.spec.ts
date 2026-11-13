@@ -25,7 +25,7 @@ const BASE_CONFIGURATION = {
   webapp: WEBAPP
 } as unknown as Configuration;
 
-const makeConfiguration = (overrides: object): Configuration => ({ ...BASE_CONFIGURATION, ...overrides });
+const makeConfiguration = (overrides: object): Configuration => ({ ...BASE_CONFIGURATION, runtime: {}, ...overrides });
 
 const setupHappyPath = () => {
   vi.mocked(FileSystem.access).mockRejectedValue(new Error('not found'));

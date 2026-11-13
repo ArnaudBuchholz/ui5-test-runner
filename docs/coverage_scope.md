@@ -90,22 +90,30 @@ In both cases the outcome is the same: **files that were not executed do not app
 difference is only *when* the baseline is suppressed — before generation (command line) or after it
 (testsuite).
 
-### Keep the scope consistent across a run
+### All testsuites in a run must declare the same scope
 
-Coverage filtering is resolved **per run**, not per page. The runner collects every testsuite page's
-`only`/`never` and applies their **deduped union** to the single `.nycrc.json` used by `nyc report` for
-the whole run (the same way a single `--coverage-only`/`--coverage-never` would apply globally).
+Coverage filtering is resolved **per run**, not per page: the single `.nycrc.json` used by `nyc report`
+carries one `only`/`never` combination for the whole run. The runner therefore enforces a hard invariant
+on testsuite-declared filters:
 
-> ⚠️ **Mixing suites with different `only`/`never` in one `ui5-test-runner` invocation (including
-> multiple `--url` values) produces misleading results.** Because the scopes are unioned, a file that
-> suite A wanted to exclude is still reported if suite B (or the CLI) includes it, and vice versa — the
-> report reflects the union, not each suite's intent. The baseline is likewise suppressed for the whole
-> run, so a suite with no filters loses its `all: true` baseline as soon as any other suite declares one.
+> ⚠️ **Either no testsuite declares `only`/`never`, or they all declare the _same_ combination.** The
+> first testsuite scope seen is stored on the run; any later testsuite page whose `only`/`never` differs
+> (compared as normalized, order-insensitive sets) is a **fatal error** — the run reports a failed test
+> (`inconsistent coverage only/never across testsuites: …`) and exits non-zero.
+
+This check only applies when coverage is being measured (`--coverage`). Without it, testsuite `only`/`never`
+declarations are ignored entirely (they scope nothing), so a divergence does not fail the run.
+
+This replaces the earlier best-effort union: a divergence now fails loudly instead of silently producing
+a report that reflects neither suite's intent.
+
+The command-line `--coverage-only`/`--coverage-never` are **independent** of this check — they apply
+globally and are not compared against the testsuite scopes.
 
 **Recommendation: isolate each distinct coverage scope in its own run.** If different suites or projects
 need different `only`/`never`, run them separately (one invocation each) and
 [aggregate](./coverage.md#aggregate-coverage-for-several-projects) the resulting coverage files into a
-single report. Keep `only`/`never` identical across all sources within any one run.
+single report.
 
 See [Restricting the covered scope](./coverage.md#restricting-the-covered-scope) for the testsuite
 declaration syntax.

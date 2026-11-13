@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { FileSystem, Path, logger } from '../../../platform/index.js';
 import type { Configuration } from '../../../configuration/Configuration.js';
-import { getSettingsPath, getSettings, initSettings, invalidateSettings } from './settings.js';
+import { getSettingsPath, getSettings, initSettings } from './settings.js';
 
 beforeEach(() => {
   vi.clearAllMocks();
@@ -24,10 +24,11 @@ const BASE_CONFIGURATION = {
 const NO_WEBAPP_CONFIGURATION = {
   coverageTempDir: COVERAGE_TEMP_DIR,
   coverageReportDir: COVERAGE_REPORT_DIR,
-  reportDir: REPORT_DIR
+  reportDir: REPORT_DIR,
+  runtime: {}
 } as unknown as Configuration;
 
-const makeConfiguration = (overrides: object): Configuration => ({ ...BASE_CONFIGURATION, ...overrides });
+const makeConfiguration = (overrides: object): Configuration => ({ ...BASE_CONFIGURATION, runtime: {}, ...overrides });
 
 describe('initSettings', () => {
   it('writes .nycrc.json into <coverageTempDir>/settings/', async () => {
@@ -145,23 +146,32 @@ describe('initSettings', () => {
     );
   });
 
-  it('caches the result for the same configuration object', async () => {
-    const config = makeConfiguration({});
-    const first = await initSettings(config);
-    const second = await initSettings(config);
-    expect(first).toBe(second);
-  });
-
-  it('re-derives after invalidateSettings, picking up newly-set coverageOnly/never', async () => {
+  it('re-derives on each call (no caching), picking up filters set after the first call', async () => {
     const config = makeConfiguration({});
     const first = await initSettings(config);
     expect(first.settings.include).toBeUndefined();
-    // Simulate a testsuite forwarding its filters mid-run, then invalidating the cache.
-    (config as { coverageOnly?: string[] }).coverageOnly = ['controller/'];
-    invalidateSettings(config);
+    // A testsuite stores its scope on runtime mid-run; the next call must reflect it.
+    config.runtime.coverageOnly = ['controller/'];
     const second = await initSettings(config);
     expect(second).not.toBe(first);
     expect(second.settings.include).toStrictEqual(['controller/**']);
+  });
+
+  it('reads coverage filters stored on runtime (from a testsuite)', async () => {
+    const config = makeConfiguration({});
+    config.runtime.coverageNever = ['test/'];
+    config.runtime.coverageOnly = ['controller/'];
+    const { settings } = await initSettings(config);
+    expect(settings.include).toStrictEqual(['controller/**']);
+    expect(settings.exclude).toEqual(expect.arrayContaining(['test/**']));
+    expect(settings.all).toBe(false); // any coverage filter suppresses the baseline
+  });
+
+  it('prefers CLI coverage options over runtime when both are set', async () => {
+    const config = makeConfiguration({ coverageOnly: ['cli/'] });
+    config.runtime.coverageOnly = ['suite/'];
+    const { settings } = await initSettings(config);
+    expect(settings.include).toStrictEqual(['cli/**']);
   });
 });
 

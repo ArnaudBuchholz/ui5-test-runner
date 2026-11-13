@@ -17,8 +17,6 @@ type SettingsEntry = {
   settingsPath: string;
 };
 
-const cache = new WeakMap<Configuration, Promise<SettingsEntry>>();
-
 export const getSettingsPath = async (configuration: Configuration): Promise<string> => {
   const { settingsPath } = await initSettings(configuration);
   return settingsPath;
@@ -29,21 +27,10 @@ export const getSettings = async (configuration: Configuration): Promise<Istanbu
   return settings;
 };
 
-export const initSettings = (configuration: Configuration): Promise<SettingsEntry> => {
-  let promise = cache.get(configuration);
-  if (!promise) {
-    promise = _initSettings(configuration);
-    cache.set(configuration, promise);
-  }
-  return promise;
-};
-
-// Drops the cached settings so the next initSettings re-derives (and rewrites) .nycrc.json. Needed
-// when coverageOnly/coverageNever are discovered mid-run from a testsuite, after the baseline/instrument
-// step already computed and cached the settings: the report must regenerate them with the new globs.
-export const invalidateSettings = (configuration: Configuration): void => {
-  cache.delete(configuration);
-};
+// Settings are a pure function of the configuration (including runtime-stored testsuite filters, which
+// are populated before the report step). They are regenerated and rewritten on each call — no caching —
+// so the report reflects filters discovered after instrument().
+export const initSettings = (configuration: Configuration): Promise<SettingsEntry> => _initSettings(configuration);
 
 const _initSettings = async (configuration: Configuration): Promise<SettingsEntry> => {
   let base: IstanbulSettings = {};
@@ -68,27 +55,34 @@ const _initSettings = async (configuration: Configuration): Promise<SettingsEntr
       `${testReportDirectoryRelative}/**`
     );
   }
-  if (configuration.coverageNever?.length) {
-    for (const prefix of configuration.coverageNever) {
+
+  // Coverage filters come from the CLI/config options or from a testsuite (stored on runtime). CLI wins
+  // when both are set. A testsuite populates runtime only after instrument(); since settings are no longer
+  // cached, the report regenerates them with these globs.
+  const coverageOnly = configuration.coverageOnly ?? configuration.runtime.coverageOnly;
+  const coverageNever = configuration.coverageNever ?? configuration.runtime.coverageNever;
+
+  if (coverageNever?.length) {
+    for (const prefix of coverageNever) {
       exclude.push(`${prefix}**`);
     }
   }
 
   const baseInclude = Array.isArray(base.include) && base.include.length > 0 ? base.include : [];
   let include: string[] | undefined;
-  if (configuration.coverageOnly?.length) {
-    include = [...baseInclude, ...configuration.coverageOnly.map((prefix) => `${prefix}**`)];
+  if (coverageOnly?.length) {
+    include = [...baseInclude, ...coverageOnly.map((prefix) => `${prefix}**`)];
   } else if (baseInclude.length > 0) {
     include = baseInclude;
   }
 
-  // only/never filtering is defeated by the nyc baseline (all:true enumerates every file at 0%,
-  // which the report merge then resurrects). When CLI-level filters are set, suppress the baseline.
-  const hasCliCoverageFilter = !!(configuration.coverageOnly?.length || configuration.coverageNever?.length);
+  // The nyc baseline (all:true enumerates every file at 0%) would resurrect filtered-out files via the
+  // report merge. Suppress it whenever a coverage filter is active, from any source.
+  const hasCoverageFilter = !!(coverageOnly?.length || coverageNever?.length);
 
   const settings: IstanbulSettings = {
     ...base,
-    all: !hasCliCoverageFilter && base.all !== false,
+    all: !hasCoverageFilter && base.all !== false,
     sourceMap: false,
     coverageGlobalScope: 'window.top',
     coverageGlobalScopeFunc: false,

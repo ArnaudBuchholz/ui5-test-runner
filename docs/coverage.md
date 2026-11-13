@@ -180,14 +180,15 @@ drive the instrumentation gate and the baseline suppression described above.
 
 ### Keep coverage settings consistent across a run
 
-Coverage filtering is resolved **per run**, not per URL: the collected `only`/`never` (from the CLI and
-from every testsuite page) are unioned and applied to the whole run, and the `all: true` baseline is
-suppressed as soon as any source declares a filter. Mixing suites with **different** `only`/`never` in a
-single `ui5-test-runner` invocation therefore yields the union of their scopes, not each suite's intent.
+Coverage filtering is resolved **per run**, not per URL: the single generated `.nycrc.json` carries one
+`only`/`never` combination. Testsuite-declared filters must agree — either no testsuite declares a
+filter, or they all declare the **same** one; a divergence is a **fatal error** (the run reports a failed
+test and exits non-zero). The command-line `--coverage-only`/`--coverage-never` apply globally and are
+independent of this check.
 
-Keep the coverage scope consistent for one run; if different suites or projects need different scopes,
-run them separately and [aggregate](#aggregate-coverage-for-several-projects) the results. See
-[Keep the scope consistent across a run](./coverage_scope.md#keep-the-scope-consistent-across-a-run)
+If different suites or projects need different scopes, run them separately and
+[aggregate](#aggregate-coverage-for-several-projects) the results. See
+[All testsuites in a run must declare the same scope](./coverage_scope.md#all-testsuites-in-a-run-must-declare-the-same-scope)
 for details.
 
 ## Remote mode
