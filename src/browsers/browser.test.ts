@@ -4,6 +4,7 @@ import type { Driver } from './factory.js';
 import type { IBrowser, IWindow, BrowserSettings } from './IBrowser.js';
 import { defaults } from '../configuration/options.js';
 import type { Configuration } from '../configuration/Configuration.js';
+import { createConfigurationStructuralMembers } from '../configuration/Configuration.js';
 import { __sourcesRoot, logger, Path } from '../platform/index.js';
 import { SecretValue } from '../types/SecretValue.js';
 // Need to import native APIs to enable testing
@@ -33,9 +34,9 @@ export const testBrowser = ({
   let BASE_URL: string;
   const FACTORY_SETTINGS = {
     ...defaults,
+    ...createConfigurationStructuralMembers(),
     coverageReporters: [],
-    mode: 'help',
-    sources: {}
+    mode: 'help'
   } as const as Configuration;
   const BROWSER_SETTINGS = browserSettings;
 
@@ -355,9 +356,9 @@ export const testBrowser = ({
 export const testBrowserBasicAuth = ({ name, label = name }: { name: Driver; label?: string }) => {
   const FACTORY_SETTINGS = {
     ...defaults,
+    ...createConfigurationStructuralMembers(),
     coverageReporters: [],
-    mode: 'help',
-    sources: {}
+    mode: 'help'
   } as const as Configuration;
 
   describe(`${label} — basic authentication`, () => {

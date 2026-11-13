@@ -1,0 +1,11 @@
+{
+  "batchId": "JS_LEGACY_COVERAGE_FILTER_DECLARATIVE",
+  "batchLabel": "Legacy JS sample with coverage only/never filtering from a declarative testsuite",
+  "cwd": "../sample.js",
+  "testsuite": "test/testsuite.coverage-filter-declarative.suite.qunit.html",
+  "coverage": true,
+  "coverageSettings": "./.nycrc-empty.json",
+  "coverageTempDir": "{{reportDir}}/.nyc_output",
+  "coverageReportDir": "{{reportDir}}/coverage",
+  "end": "RUNNER_EXIT_CODE={{exitCode}} NODE_OPTIONS= node ../e2e/check.mjs {{reportDir}} --pages 1 --coverage --coverage-include controller/ --coverage-exclude test/"
+}

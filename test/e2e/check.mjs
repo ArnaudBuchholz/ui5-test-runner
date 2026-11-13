@@ -11,6 +11,8 @@ try {
       pages,
       coverage,
       'report-uncovered': coverageReportUncovered,
+      'coverage-include': coverageInclude,
+      'coverage-exclude': coverageExclude,
       'junit-xml-report': junitXmlReport,
       failed,
       summary,
@@ -31,6 +33,16 @@ try {
       'report-uncovered': {
         type: 'boolean',
         default: false
+      },
+      'coverage-include': {
+        type: 'string',
+        multiple: true,
+        default: []
+      },
+      'coverage-exclude': {
+        type: 'string',
+        multiple: true,
+        default: []
       },
       'junit-xml-report': {
         type: 'boolean',
@@ -103,6 +115,18 @@ try {
     assert.ok(lcov.length > 0, 'lcov data exists');
     if (coverageReportUncovered) {
       assert.ok(lcov.match(/\bcontroller(\/|\\)uncovered\.(js|ts)\b/), 'uncovered is reported');
+    }
+    for (const prefix of coverageInclude) {
+      assert.ok(
+        lcov.includes(`SF:`) && lcov.split('\n').some((line) => line.startsWith('SF:') && line.includes(prefix)),
+        `lcov contains a file matching include prefix: ${prefix}`
+      );
+    }
+    for (const prefix of coverageExclude) {
+      assert.ok(
+        !lcov.split('\n').some((line) => line.startsWith('SF:') && line.includes(prefix)),
+        `lcov contains no file matching exclude prefix: ${prefix}`
+      );
     }
   }
 

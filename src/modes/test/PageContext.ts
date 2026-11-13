@@ -1,7 +1,10 @@
 import type { IWindow } from '../../browsers/IBrowser.js';
 import type { PageProgressData } from '../../platform/logger/types.js';
+import type { Configuration } from '../../configuration/Configuration.js';
+import type { PageCoverageOverride } from './browserConfig.js';
 
 export type PageContext = {
+  configuration: Configuration;
   pageId: number;
   urls: string[];
   url: string;
@@ -13,4 +16,5 @@ export type PageContext = {
   lastTotal: number;
   isSuite: boolean;
   lastUncaughtErrorsCount: number;
+  pageCoverageOverrides: Map<string, PageCoverageOverride>;
 };

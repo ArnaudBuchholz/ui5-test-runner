@@ -1,0 +1,10 @@
+{
+  "batchId": "JS_REMOTE_COVERAGE_FILTER_DECLARATIVE",
+  "batchLabel": "Remote JS sample with coverage only/never filtering from a declarative testsuite",
+  "url": ["http://localhost:8080/test/testsuite.coverage-filter-declarative.suite.qunit.html"],
+  "coverage": true,
+  "coverageSourceDir": "../sample.js/webapp",
+  "coverageTempDir": "{{reportDir}}/.nyc_output",
+  "coverageReportDir": "{{reportDir}}/coverage",
+  "end": "RUNNER_EXIT_CODE={{exitCode}} NODE_OPTIONS= node test/e2e/check.mjs {{reportDir}} --pages 1 --coverage --coverage-include controller/ --coverage-exclude test/"
+}

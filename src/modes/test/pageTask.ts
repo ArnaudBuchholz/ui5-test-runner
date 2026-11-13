@@ -2,13 +2,14 @@ import type { IParallelizeContext } from '../../utils/shared/parallelize.js';
 import { assert, Http, logger, Process } from '../../platform/index.js';
 import { getAgentSource } from './agent.js';
 import { getBrowser } from './browser.js';
-import type { AgentState } from '../../types/AgentState.js';
+import type { AgentState, SuitePage } from '../../types/AgentState.js';
 import { Exit, ExitShutdownError } from '../../platform/Exit.js';
 import { getReportBuilder } from './report.js';
 import { createEmptyTestResults } from '../../types/CommonTestReportFormat.js';
 import type { CommonTestReport } from '../../types/CommonTestReportFormat.js';
 import type { IWindow } from '../../browsers/IBrowser.js';
 import { getBrowserConfigScript } from './browserConfig.js';
+import type { PageCoverageOverride } from './browserConfig.js';
 import type { IError } from '../../types/IError.js';
 import { collect as collectCoverage } from './coverage/index.js';
 import type { Configuration } from '../../configuration/Configuration.js';
@@ -18,6 +19,46 @@ import { getEffectiveTimeout, isGloballyTimedOut } from '../../utils/node/timeou
 
 const getPageTimeout = (configuration: Configuration, startTime: number): number =>
   getEffectiveTimeout(configuration.pageTimeout, configuration.globalTimeout, startTime);
+
+// Merges a testsuite page's coverage only/never into the run-wide configuration so the report-side
+// nyc settings (include/exclude globs) pick them up — the suite declares them per page, but the
+// generated .nycrc.json used by `nyc report` is per run. Values accumulate as a deduped union across
+// pages; mixing suites with different scopes therefore yields the union (see coverage_scope docs).
+// Normalizes a coverage prefix declaration (string | string[]) to a sorted, deduped array.
+const normalizePrefixes = (value: string | string[] | undefined): string[] =>
+  value === undefined ? [] : [...new Set([value].flat())].toSorted((a, b) => a.localeCompare(b));
+
+// Order-insensitive equality of two normalized (sorted) prefix lists.
+const arePrefixesEqual = (a: string[], b: string[] | undefined): boolean =>
+  a.length === (b ?? []).length && a.every((entry, index) => entry === (b ?? [])[index]);
+
+const describeScope = (only: string[], never: string[]): string =>
+  `only=[${only.join(', ')}] never=[${never.join(', ')}]`;
+
+// Records the testsuite coverage scope on configuration.runtime. All testsuites in a run must declare
+// the same only/never combination; a divergence is a fatal error — it is reported as a failed test and
+// forces a non-zero exit (a bare throw would be swallowed by the page loop's catch).
+const applySuiteCoverage = (context: PageContext, coverage: SuitePage['coverage']): void => {
+  const only = normalizePrefixes(coverage?.only);
+  const never = normalizePrefixes(coverage?.never);
+  const { runtime } = context.configuration;
+  if (runtime.coverageOnly === undefined && runtime.coverageNever === undefined) {
+    runtime.coverageOnly = only;
+    runtime.coverageNever = never;
+    return;
+  }
+  if (arePrefixesEqual(only, runtime.coverageOnly) && arePrefixesEqual(never, runtime.coverageNever)) {
+    return;
+  }
+  const message =
+    'inconsistent coverage only/never across testsuites: ' +
+    `${describeScope(runtime.coverageOnly ?? [], runtime.coverageNever ?? [])} vs ${describeScope(only, never)}. ` +
+    'All testsuites in a run must declare the same coverage filter; run divergent scopes separately.';
+  logger.error({ source: 'job', message, pageId: context.pageId });
+  reportError(context.url, message);
+  Exit.code = -1;
+  throw new Error(message);
+};
 
 let lastPageId = 0;
 
@@ -128,7 +169,31 @@ const shouldStopBasedOnAgentState = (
   });
   if (agentState.done) {
     if (agentState.type === 'suite') {
-      const resolvedPages = agentState.pages.map((page) => new URL(page, context.url).href);
+      const resolvedPages = agentState.pages.map((page) => {
+        const resolvedUrl = new URL(page.url, context.url).href;
+        // Testsuite coverage only/never only matters when coverage is being measured; ignore it
+        // entirely otherwise (no instrumentation, no report — and no divergence check to fail on).
+        if (page.coverage && context.configuration.coverage) {
+          context.pageCoverageOverrides.set(resolvedUrl, {
+            coverageOnly: page.coverage.only,
+            coverageNever: page.coverage.never
+          });
+          // Record the testsuite coverage scope on configuration.runtime so the report-side nyc
+          // settings pick up include/exclude globs (this makes filtering work in legacy mode, where
+          // the browser gate is inert). Divergent scopes across testsuites are a fatal error.
+          applySuiteCoverage(context, page.coverage);
+          // Record that a testsuite drives the coverage scope; the runner drops any generated
+          // baseline before reporting (see reportCoverage). The latch doubles as a once-only guard.
+          if (!context.configuration.runtime.coverageBaselineInvalidated) {
+            logger.info({
+              source: 'job',
+              message: 'coverage only/never detected from testsuite'
+            });
+          }
+          context.configuration.runtime.coverageBaselineInvalidated = true;
+        }
+        return resolvedUrl;
+      });
       for (const pageUrl of resolvedPages) {
         context.urls.push(pageUrl);
       }
@@ -243,6 +308,7 @@ export const makePageTask = (configuration: Configuration) => {
   const { screenshot } = configuration;
   const { handlePendingScreenshot, handleFailureScreenshot } = makeScreenshotHandlers(configuration);
   const ui5VersionByOrigin = new Map<string, string>();
+  const pageCoverageOverrides = new Map<string, PageCoverageOverride>();
 
   const logUi5VersionOnce = async (probeUrl: string) => {
     const origin = new URL(probeUrl).origin;
@@ -305,7 +371,9 @@ export const makePageTask = (configuration: Configuration) => {
     try {
       const pageTimeoutMs = getPageTimeout(configuration, startTime);
       const agentSource = await getAgentSource();
-      const browserConfig = getBrowserConfigScript(pageId);
+      const coverageOverride = pageCoverageOverrides.get(url);
+      pageCoverageOverrides.delete(url);
+      const browserConfig = getBrowserConfigScript(pageId, coverageOverride);
       const scripts = [browserConfig, agentSource];
       const browser = getBrowser();
       page = await browser.newWindow({
@@ -314,6 +382,7 @@ export const makePageTask = (configuration: Configuration) => {
         url
       });
       context = {
+        configuration,
         pageId,
         urls,
         url,
@@ -324,7 +393,8 @@ export const makePageTask = (configuration: Configuration) => {
         errors: 0,
         lastTotal: 0,
         isSuite: false,
-        lastUncaughtErrorsCount: 0
+        lastUncaughtErrorsCount: 0,
+        pageCoverageOverrides
       };
       const pageTimeoutController = new AbortController();
       let pageTimeoutHandle: ReturnType<typeof setTimeout> | undefined;
