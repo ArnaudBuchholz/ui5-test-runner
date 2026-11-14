@@ -53,9 +53,9 @@ const optionTypeLabel = (option: (typeof options)[number]): string => {
 };
 
 const optionDescription = (option: (typeof options)[number]): string =>
-  !('typeModifiers' in option) || !option.typeModifiers
-    ? option.description
-    : `${option.description} (${[...option.typeModifiers].join(', ')})`;
+  'typeModifiers' in option && option.typeModifiers
+    ? `${option.description} (${[...option.typeModifiers].join(', ')})`
+    : option.description;
 
 export const help = async () => {
   const { name, version: semver } = await version();

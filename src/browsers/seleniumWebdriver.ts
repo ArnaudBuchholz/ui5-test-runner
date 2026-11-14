@@ -21,15 +21,6 @@ export const descriptor: BrowserDriverDescriptor = {
   screenshotFormat: '.png'
 };
 
-type NetworkEvent = {
-  id: string | null;
-  request: { url: string; method: string; headers: Header[] };
-  response: { status: number; headers: Header[] };
-};
-type NetworkFactory = (driver: ThenableWebDriver) => Promise<{
-  responseStarted(callback: (event: NetworkEvent | null) => void): Promise<number>;
-}>;
-
 const headersToObject = (headers: Header[]): Record<string, string> =>
   Object.fromEntries(headers.map(({ name, value }) => [name.toLowerCase(), value.value ?? '']));
 
@@ -54,6 +45,14 @@ const withApiTimeout = async <T>(ms: number, promise: Promise<T>): Promise<T> =>
 };
 
 export const factory = async (configuration: Configuration): Promise<IBrowser> => {
+  type NetworkEvent = {
+    id: string | null;
+    request: { url: string; method: string; headers: Header[] };
+    response: { status: number; headers: Header[] };
+  };
+  type NetworkFactory = (driver: ThenableWebDriver) => Promise<{
+    responseStarted(callback: (event: NetworkEvent | null) => void): Promise<number>;
+  }>;
   const selenium = await Npm.import(configuration, 'selenium-webdriver');
   const { Builder: SeleniumBuilder, Browser } = selenium as { Builder: typeof Builder; Browser: { CHROME: string } };
 

@@ -8,10 +8,10 @@ export class Thread {
   static readonly threadCpuUsage = process.threadCpuUsage.bind(process);
   static readonly createBroadcastChannel = (name: string) => new BroadcastChannel(name);
   /**
-   * @param name relative to src/
-   * @param data parameters of the worker
-   * @returns Worker
-   */
+  @param name relative to src/
+  @param data parameters of the worker
+  @returns Worker
+  */
   static readonly createWorker: (name: string, data?: object) => Worker = (name, data) => {
     const extension = extname(import.meta.url);
     const workerPath = '../' + name + extension; // Must be relative to workerBootstrap

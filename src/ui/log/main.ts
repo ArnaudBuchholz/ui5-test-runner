@@ -134,11 +134,11 @@ function attachToolbarEvents(): void {
   autorefreshSelect?.addEventListener('change', (event) => {
     const detail = (event as unknown as { detail: { selectedOption: { value: string } } }).detail;
     const value = detail.selectedOption.value;
-    if (value === 'none') {
-      controller.interaction({ autorefresh: false });
-    } else {
-      controller.interaction({ autorefresh: true, autorefreshInterval: Number(value) as State['autorefreshInterval'] });
-    }
+    controller.interaction(
+      value === 'none'
+        ? { autorefresh: false }
+        : { autorefresh: true, autorefreshInterval: Number(value) as State['autorefreshInterval'] }
+    );
   });
 
   const fromPicker = document.querySelector('#absoluteFromPicker');

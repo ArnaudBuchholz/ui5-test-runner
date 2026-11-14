@@ -127,10 +127,9 @@ const makePage = () => ({
   close: vi.fn().mockResolvedValue(undefined)
 });
 
-const makeContext = (overrides: Partial<IParallelizeContext> = {}): IParallelizeContext => ({
+const makeContext = (): IParallelizeContext => ({
   stop: vi.fn(),
-  stopRequested: false,
-  ...overrides
+  stopRequested: false
 });
 
 const makeConfig = (overrides: Record<string, unknown> = {}): Configuration =>
@@ -165,9 +164,9 @@ describe('makePageTask', () => {
     return { builder, page };
   };
 
-  const runTask = async (overrides: Record<string, unknown> = {}, context = makeContext()) => {
+  const runTask = async (overrides: Record<string, unknown> = {}) => {
     const urls: string[] = [];
-    await makePageTask(makeConfig(overrides)).call(context, PAGE_URL, 0, urls);
+    await makePageTask(makeConfig(overrides)).call(makeContext(), PAGE_URL, 0, urls);
     return { urls };
   };
 

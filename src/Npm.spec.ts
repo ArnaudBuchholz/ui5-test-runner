@@ -80,8 +80,8 @@ const PREFIX_MIN_RELEASE_AGE_CONFIGURATION = {
 const ALTERNATE_NPM_PATH_CONFIGURATION = { cwd: CWD, alternateNpmPath: '/alternate/path' } as unknown as Configuration;
 const NPM_INSTALL_PREFIX_CONFIGURATION = { cwd: CWD, npmInstallPrefix: '/prefix/path' } as unknown as Configuration;
 
-const makeProcess = (stdout: string, code = 0) =>
-  ({ stdout, code, closed: Promise.resolve() }) as unknown as InstanceType<typeof Process>;
+const makeProcess = (stdout: string) =>
+  ({ stdout, code: 0, closed: Promise.resolve() }) as unknown as InstanceType<typeof Process>;
 
 // Set up Process.spawn before tests run so the memoized getNpmCliPath and getRoots
 // resolve correctly on their first (and only) invocation.
@@ -89,7 +89,7 @@ vi.mocked(Process.spawn).mockImplementation((command, arguments_) => {
   if (command === 'npm') {
     return makeProcess('npm@10.0.0 /usr/local/lib/node_modules/npm');
   }
-  // eslint-disable-next-line unicorn/prefer-ternary -- or code becomes undreadable
+
   if (arguments_ && arguments_.includes('--global')) {
     return makeProcess('/global/root');
   }

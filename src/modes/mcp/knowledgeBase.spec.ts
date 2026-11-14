@@ -142,8 +142,7 @@ describe('init then getIndex', () => {
     vi.mocked(FileSystem.readFile).mockRejectedValue(new Error('no cache'));
     vi.mocked(Http.getAsText).mockResolvedValueOnce(TREE_RESPONSE).mockResolvedValueOnce(FILE_CONTENT);
     vi.resetModules();
-    const knowledgeBaseModule = await import('./knowledgeBase.js');
-    const { init, getIndex } = knowledgeBaseModule;
+    const { init, getIndex } = await import('./knowledgeBase.js');
 
     await init(NO_CONFIGURATION);
 
@@ -154,8 +153,7 @@ describe('init then getIndex', () => {
     vi.mocked(FileSystem.readFile).mockRejectedValue(new Error('no cache'));
     vi.mocked(Http.getAsText).mockResolvedValueOnce(TREE_RESPONSE).mockResolvedValueOnce(FILE_CONTENT);
     vi.resetModules();
-    const knowledgeBaseModule = await import('./knowledgeBase.js');
-    const { init } = knowledgeBaseModule;
+    const { init } = await import('./knowledgeBase.js');
 
     await init(NO_CONFIGURATION);
 
@@ -166,8 +164,7 @@ describe('init then getIndex', () => {
 describe('getIndex before init', () => {
   it('throws because the knowledge base is not initialized', async () => {
     vi.resetModules();
-    const knowledgeBaseModule = await import('./knowledgeBase.js');
-    const { getIndex } = knowledgeBaseModule;
+    const { getIndex } = await import('./knowledgeBase.js');
 
     expect(() => getIndex()).toThrow('knowledge base not initialized');
   });
@@ -178,8 +175,7 @@ describe('init in dev mode (local filesystem)', () => {
     vi.mocked(FileSystem.readdir).mockResolvedValue([dirent('options', 'coverage.md'), dirent('', 'logo.png', false)]);
     vi.mocked(FileSystem.readFile).mockResolvedValue('---\n"#type": option\ntitle: coverage\nsummary: s\n---\nbody');
     vi.resetModules();
-    const knowledgeBaseModule = await import('./knowledgeBase.js');
-    const { init, getIndex } = knowledgeBaseModule;
+    const { init, getIndex } = await import('./knowledgeBase.js');
 
     await init({ debugMcpLocalDocs: true } as Configuration);
 
@@ -195,8 +191,7 @@ describe('init in dev mode (local filesystem)', () => {
     ]);
     vi.mocked(FileSystem.readFile).mockResolvedValue('---\n"#type": option\ntitle: coverage\nsummary: s\n---\nbody');
     vi.resetModules();
-    const knowledgeBaseModule = await import('./knowledgeBase.js');
-    const { init, getIndex } = knowledgeBaseModule;
+    const { init, getIndex } = await import('./knowledgeBase.js');
 
     await init({ debugMcpLocalDocs: true } as Configuration);
 

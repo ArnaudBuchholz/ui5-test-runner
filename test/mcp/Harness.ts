@@ -15,12 +15,12 @@ export interface HarnessOptions {
 }
 
 /**
- * A generic conversation engine over an OpenAI-compatible endpoint. It owns the client,
- * drives the (optionally tool-calling) agentic loop and monitors token usage. It knows
- * nothing about prompts or test cases — the provider, tools and prompts are all supplied
- * by the caller, at construction or per `ask`. Requests, responses and tool calls are
- * written to the trace file (debug level) under the `mcp` source, tagged with `pageId`.
- */
+A generic conversation engine over an OpenAI-compatible endpoint. It owns the client,
+drives the (optionally tool-calling) agentic loop and monitors token usage. It knows
+nothing about prompts or test cases — the provider, tools and prompts are all supplied
+by the caller, at construction or per `ask`. Requests, responses and tool calls are
+written to the trace file (debug level) under the `mcp` source, tagged with `pageId`.
+*/
 export class Harness {
   private readonly provider: ProviderConfig;
   private readonly client: OpenAI;
@@ -84,10 +84,10 @@ export class Harness {
   }
 
   /**
-   * Drives a conversation from the given messages, resolving any tool calls, until the
-   * model returns a plain answer. Returns the final assistant content. Token counters
-   * accumulate across every call.
-   */
+  Drives a conversation from the given messages, resolving any tool calls, until the
+  model returns a plain answer. Returns the final assistant content. Token counters
+  accumulate across every call.
+  */
   async ask(messages: OpenAI.Chat.ChatCompletionMessageParam[]): Promise<string> {
     const history = [...messages];
 

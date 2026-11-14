@@ -1,12 +1,12 @@
 import type { McpTool } from './mcpClient.js';
 
 /**
- * Exposes the test case's `[files]` section as a read-only tool so the model under test can
- * *probe* for files the way a real agent would — following the KB's instructions to read a
- * file (e.g. a project's `package.json`) rather than being handed a listing. There is
- * deliberately no "list files" tool: the model learns which files to try from the retrieved
- * documentation, and a miss returns an error, which is the signal that the file is absent.
- */
+Exposes the test case's `[files]` section as a read-only tool so the model under test can
+*probe* for files the way a real agent would — following the KB's instructions to read a
+file (e.g. a project's `package.json`) rather than being handed a listing. There is
+deliberately no "list files" tool: the model learns which files to try from the retrieved
+documentation, and a miss returns an error, which is the signal that the file is absent.
+*/
 export function buildFileTools(files: Record<string, string>): McpTool[] {
   return [
     {

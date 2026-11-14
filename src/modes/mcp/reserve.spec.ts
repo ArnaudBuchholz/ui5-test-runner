@@ -8,8 +8,8 @@ import type { IEntity, IKnowledgeBaseIndex } from './knowledgeBase.js';
 
 const CONFIGURATION = { port: 3000 } as unknown as Configuration;
 
-const post = (server: ReturnType<typeof mock>, body: object, headers: Record<string, string> = {}) =>
-  server.request('POST', '/mcp', headers, JSON.stringify(body));
+const post = (server: ReturnType<typeof mock>, body: object) =>
+  server.request('POST', '/mcp', {}, JSON.stringify(body));
 
 let server: ReturnType<typeof mock>;
 
@@ -37,12 +37,11 @@ const ENTITY: IEntity = {
   body: '# Coverage'
 };
 
-const stubIndex = (overrides: Partial<IKnowledgeBaseIndex> = {}): void => {
+const stubIndex = (): void => {
   const index: IKnowledgeBaseIndex = {
     catalog: [{ id: ENTITY.id, '#type': ENTITY['#type'], title: ENTITY.title, summary: ENTITY.summary, relations: {} }],
     getEntity: (id) => (id === ENTITY.id ? ENTITY : undefined),
-    getReverseRelations: () => [],
-    ...overrides
+    getReverseRelations: () => []
   };
   vi.spyOn(knowledgeBase, 'getIndex').mockReturnValue(index);
 };

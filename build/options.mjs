@@ -274,9 +274,6 @@ export const sensitiveKeys = new Set([`);
   // emit an H1 title, rather than clobbering them with the generated table alone.
   const optionsDocumentPath = './docs/options.md';
   const existingOptionsDocument = await readFile(optionsDocumentPath, 'utf8');
-  const [, optionsFrontmatter] = existingOptionsDocument.match(/^(---\n[\s\S]*?\n---\n)/) ?? [];
-  await writeFile(
-    optionsDocumentPath,
-    `${optionsFrontmatter ?? ''}# Options reference\n\n${optionsMarkdown.join('\n')}\n`
-  );
+  const [, optionsFrontmatter = ''] = existingOptionsDocument.match(/^(---\n[\s\S]*?\n---\n)/) ?? [];
+  await writeFile(optionsDocumentPath, `${optionsFrontmatter}# Options reference\n\n${optionsMarkdown.join('\n')}\n`);
 }

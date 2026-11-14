@@ -158,10 +158,10 @@ export class Npm {
   }
 
   /**
-   * Attempt the bare top-level dynamic import (the fast path when the package resolves locally).
-   * Returns the module when found, or undefined to fall through to the per-root probes. Rethrows
-   * any error that is not a module-not-found. Skipped entirely under debugNpmNoLocal.
-   */
+  Attempt the bare top-level dynamic import (the fast path when the package resolves locally).
+  Returns the module when found, or undefined to fall through to the per-root probes. Rethrows
+  any error that is not a module-not-found. Skipped entirely under debugNpmNoLocal.
+  */
   private static async tryImportLocally(configuration: Configuration, moduleName: string): Promise<unknown> {
     if (configuration.debugNpmNoLocal) {
       return undefined;
@@ -279,12 +279,12 @@ export class Npm {
   }
 
   /**
-   * Resolve the absolute path to a named CLI command declared in the installed package's `bin`
-   * field. When `bin` is a string (single-binary package), it is used regardless of `command`.
-   * When `bin` is an object, `command` is used as the lookup key. Fatally logs when no matching
-   * entry is found. Drives the binary install of the *same* resolved package that Npm.import loads —
-   * avoiding the version drift that caused regression #200 when using a bare `npx <pkg>` call.
-   */
+  Resolve the absolute path to a named CLI command declared in the installed package's `bin`
+  field. When `bin` is a string (single-binary package), it is used regardless of `command`.
+  When `bin` is an object, `command` is used as the lookup key. Fatally logs when no matching
+  entry is found. Drives the binary install of the *same* resolved package that Npm.import loads —
+  avoiding the version drift that caused regression #200 when using a bare `npx <pkg>` call.
+  */
   static async resolvePackageBinCommand(
     configuration: Configuration,
     moduleName: string,

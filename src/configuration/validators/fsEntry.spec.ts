@@ -30,7 +30,7 @@ vi.mocked(FileSystem.access).mockImplementation((path) => {
   if (path === READ_ONLY_PATH) {
     return Promise.reject(readOnlyAccessError);
   }
-  return path === NOT_EXISTING_PATH ? Promise.reject(notExistAccessError) : Promise.reject(invalidAccess);
+  return Promise.reject(path === NOT_EXISTING_PATH ? notExistAccessError : invalidAccess);
 });
 
 vi.mocked(FileSystem.stat).mockImplementation((path) => {

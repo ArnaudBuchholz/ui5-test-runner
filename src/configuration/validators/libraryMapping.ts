@@ -10,13 +10,13 @@ const libraryMappingSchema = {
 
 export const lib: OptionValidator<'library-mapping'> = async (option, value, configuration) => {
   if (typeof value === 'string') {
-    const [resourcesSubFolder, sourceFolder, extra] = value.split('=', 3);
+    const [resourcesSubFolder, sourceFolder = resourcesSubFolder, extra] = value.split('=', 3);
     if (extra) {
       throw OptionValidationError.createInvalidValue(option);
     }
     value = {
       resourcesSubFolder,
-      sourceFolder: sourceFolder ?? resourcesSubFolder
+      sourceFolder
     };
   }
   try {

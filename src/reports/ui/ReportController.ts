@@ -50,10 +50,11 @@ export class ReportController extends AbstractUserInterfaceController<Settings, 
       tests = tests.filter((test) => test.suite?.join(SUITE_SEPARATOR)?.startsWith(filterOnSuiteUid));
     }
     if (filterOnStatus) {
-      tests =
+      tests = tests.filter(
         filterOnStatus === 'other'
-          ? tests.filter((test) => !['passed', 'failed'].includes(test.status))
-          : tests.filter((test) => test.status === filterOnStatus);
+          ? (test) => !['passed', 'failed'].includes(test.status)
+          : (test) => test.status === filterOnStatus
+      );
     }
     if (search) {
       tests = tests.filter((test) => test.name.includes(search));

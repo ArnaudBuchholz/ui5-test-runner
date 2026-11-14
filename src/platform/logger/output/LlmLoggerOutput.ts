@@ -11,13 +11,13 @@ const SEVERITY: Partial<Record<LogLevel, string>> = {
 } as const;
 
 /**
- * Output tailored for Large Language Model consumption. Like {@link InteractiveLoggerOutput}, it lets
- * the base do its usual work — progress bookkeeping, source/level filtering, and writing the complete
- * `output.txt` — then decides for itself what reaches the terminal and how. It prints one compact line
- * per rendered event, `[source#pageId] <SEVERITY?>message`, with no ANSI, no elapsed timestamp and no
- * progress heartbeat; lifecycle lines (page open/close, status banners) are kept off the terminal
- * (they remain in `output.txt`). Counts, verdict and the trace file path arrive as ordinary `job` logs.
- */
+Output tailored for Large Language Model consumption. Like {@link InteractiveLoggerOutput}, it lets
+the base do its usual work — progress bookkeeping, source/level filtering, and writing the complete
+`output.txt` — then decides for itself what reaches the terminal and how. It prints one compact line
+per rendered event, `[source#pageId] <SEVERITY?>message`, with no ANSI, no elapsed timestamp and no
+progress heartbeat; lifecycle lines (page open/close, status banners) are kept off the terminal
+(they remain in `output.txt`). Counts, verdict and the trace file path arrive as ordinary `job` logs.
+*/
 export class LlmLoggerOutput extends BaseLoggerOutput {
   private _current: InternalLogAttributes | undefined;
 

@@ -85,8 +85,8 @@ export class LogStorage implements ILogStorage {
     const cappedLimit = Math.min(limit, MAX_LIMIT);
     const hasRange = from !== 0 || to !== Number.MAX_SAFE_INTEGER;
     const hasFilter = filter !== '';
-    return !hasRange && !hasFilter
-      ? this._logs.slice(skip, skip + Math.max(cappedLimit, 0))
-      : this.#fetch({ from, to, filter, skip, limit, cappedLimit, hasRange, hasFilter });
+    return hasRange || hasFilter
+      ? this.#fetch({ from, to, filter, skip, limit, cappedLimit, hasRange, hasFilter })
+      : this._logs.slice(skip, skip + Math.max(cappedLimit, 0));
   }
 }

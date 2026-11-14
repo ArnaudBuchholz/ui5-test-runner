@@ -14,23 +14,6 @@ export const descriptor: BrowserDriverDescriptor = {
 
 type WdioBidiHeaderValue = { type: string; value: string };
 type WdioHeader = { name: string; value: string | WdioBidiHeaderValue };
-type WdioBrowser = {
-  capabilities: { browserName?: string; browserVersion?: string };
-  on(event: string, listener: (data: unknown) => void): void;
-  off(event: string, listener: (data: unknown) => void): void;
-  browsingContextClose(options: { context: string }): Promise<void>;
-  browsingContextCreate(options: { type: string; background?: boolean }): Promise<{ context: string }>;
-  browsingContextNavigate(options: { context: string; url: string; wait?: string }): Promise<unknown>;
-  sessionSubscribe(options: { events: string[] }): Promise<void>;
-  scriptAddPreloadScript(options: { functionDeclaration: string; contexts?: string[] }): Promise<unknown>;
-  url(url: string): Promise<void>;
-  execute<T>(script: string): Promise<T>;
-  saveScreenshot(path: string): Promise<void>;
-  getWindowHandle(): Promise<string>;
-  getWindowHandles(): Promise<string[]>;
-  switchToWindow(handle: string): Promise<void>;
-  deleteSession(): Promise<void>;
-};
 
 const headerValue = (value: string | WdioBidiHeaderValue): string =>
   typeof value === 'string' ? value : (value?.value ?? '');
@@ -39,6 +22,23 @@ const headersToObject = (headers: WdioHeader[] | undefined): Record<string, stri
   Object.fromEntries((headers ?? []).map(({ name, value }) => [name.toLowerCase(), headerValue(value)]));
 
 export const factory = async (configuration: Configuration): Promise<IBrowser> => {
+  type WdioBrowser = {
+    capabilities: { browserName?: string; browserVersion?: string };
+    on(event: string, listener: (data: unknown) => void): void;
+    off(event: string, listener: (data: unknown) => void): void;
+    browsingContextClose(options: { context: string }): Promise<void>;
+    browsingContextCreate(options: { type: string; background?: boolean }): Promise<{ context: string }>;
+    browsingContextNavigate(options: { context: string; url: string; wait?: string }): Promise<unknown>;
+    sessionSubscribe(options: { events: string[] }): Promise<void>;
+    scriptAddPreloadScript(options: { functionDeclaration: string; contexts?: string[] }): Promise<unknown>;
+    url(url: string): Promise<void>;
+    execute<T>(script: string): Promise<T>;
+    saveScreenshot(path: string): Promise<void>;
+    getWindowHandle(): Promise<string>;
+    getWindowHandles(): Promise<string[]>;
+    switchToWindow(handle: string): Promise<void>;
+    deleteSession(): Promise<void>;
+  };
   const webdriverio = await Npm.import(configuration, 'webdriverio');
   const { remote } = webdriverio as { remote: (options: unknown) => Promise<WdioBrowser> };
   let browser: WdioBrowser | undefined;

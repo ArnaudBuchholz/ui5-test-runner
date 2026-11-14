@@ -188,12 +188,9 @@ const applyEntry = (
     assignScalar(frontmatter, key, stripQuotes(value));
     return index;
   }
-  if (value === '') {
-    // A bare `key:` we do not model (e.g. `validation:`) introduces a collection; skip all its
-    // more-indented children so they are not mistaken for top-level keys.
-    return skipIndentedBlock(lines, index, indent);
-  }
-  return index;
+  // A bare `key:` we do not model (e.g. `validation:`) introduces a collection; skip all its
+  // more-indented children so they are not mistaken for top-level keys.
+  return value === '' ? skipIndentedBlock(lines, index, indent) : index;
 };
 
 const parseMetadata = (raw: string): IFrontmatter => {

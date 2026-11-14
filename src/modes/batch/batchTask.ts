@@ -47,11 +47,6 @@ const buildForwardedParameters = (configuration: Configuration): string[] => {
   return parameters;
 };
 
-type ProgressMessage = { type: 'progress'; count: number; total: number };
-type SkipMessage = { type: 'skip' };
-type ReportDirectoryMessage = { type: 'report-dir'; reportDir: string };
-type IPCMessage = ProgressMessage | SkipMessage | ReportDirectoryMessage;
-
 const MAX_MESSAGE_LENGTH = 120;
 
 const buildFailureMessage = async (reportDirectory: string): Promise<string | undefined> => {
@@ -110,6 +105,10 @@ export const batchTask = async (
     env: { ...Host.env, UI5TR_BATCH_MODE: '1', UI5TR_BATCH_REPORT_DIR: reportDirectory },
     windowsHide: true,
     onMessage: (data) => {
+      type ReportDirectoryMessage = { type: 'report-dir'; reportDir: string };
+      type SkipMessage = { type: 'skip' };
+      type ProgressMessage = { type: 'progress'; count: number; total: number };
+      type IPCMessage = ProgressMessage | SkipMessage | ReportDirectoryMessage;
       const message = data as IPCMessage;
       if (message?.type === 'progress') {
         logger.info({

@@ -92,27 +92,27 @@ describe('add logs', () => {
 
 describe('filter expression', () => {
   it('filters on message', () => {
-    const filterExpression = LogStorage.buildFilterExpression('message === "10"');
-    expect(filterExpression(log1)).toStrictEqual(true);
-    expect(filterExpression(log2)).toStrictEqual(false);
+    const doesMatch = LogStorage.buildFilterExpression('message === "10"');
+    expect(doesMatch(log1)).toStrictEqual(true);
+    expect(doesMatch(log2)).toStrictEqual(false);
   });
 
   it('filters on level', () => {
-    const filterExpression = LogStorage.buildFilterExpression('level === "info"');
-    expect(filterExpression(log1)).toStrictEqual(true);
-    expect(filterExpression(log2)).toStrictEqual(false);
+    const doesMatch = LogStorage.buildFilterExpression('level === "info"');
+    expect(doesMatch(log1)).toStrictEqual(true);
+    expect(doesMatch(log2)).toStrictEqual(false);
   });
 
   it('does not fail on non existing property (one level)', () => {
-    const filterExpression = LogStorage.buildFilterExpression('data');
-    expect(filterExpression(log3)).toStrictEqual(true);
-    expect(filterExpression(log1)).toStrictEqual(false);
+    const doesMatch = LogStorage.buildFilterExpression('data');
+    expect(doesMatch(log3)).toStrictEqual(true);
+    expect(doesMatch(log1)).toStrictEqual(false);
   });
 
   it('does not fail on non existing property', () => {
-    const filterExpression = LogStorage.buildFilterExpression('data.foo === "bar"');
-    expect(filterExpression(log3)).toStrictEqual(true);
-    expect(filterExpression(log1)).toStrictEqual(false);
+    const doesMatch = LogStorage.buildFilterExpression('data.foo === "bar"');
+    expect(doesMatch(log3)).toStrictEqual(true);
+    expect(doesMatch(log1)).toStrictEqual(false);
   });
 });
 

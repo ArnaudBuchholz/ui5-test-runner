@@ -21,22 +21,6 @@ type QUnitConfigWithModules = QUnit['config'] & {
   }[];
 };
 
-type QUnitModuleStartDetails = Parameters<Parameters<typeof QUnit.moduleStart>[0]>[0] & {
-  tests?: { name: string; testId: string; skip: boolean }[];
-};
-
-type QUnitLogDetails = Parameters<Parameters<typeof QUnit.log>[0]>[0] & {
-  testId?: string;
-  result?: boolean;
-};
-
-type QUnitTestDoneDetails = Parameters<Parameters<typeof QUnit.testDone>[0]>[0] & {
-  testId?: string;
-  assertions?: { result: boolean; message: string }[];
-  skipped?: true;
-  todo?: true;
-};
-
 const updateState = (updates: Partial<QUnitState>) => {
   Object.assign(state, updates);
 };
@@ -57,6 +41,22 @@ const countTotalTests = () => {
 };
 
 export const qunit = () => {
+  type QUnitModuleStartDetails = Parameters<Parameters<typeof QUnit.moduleStart>[0]>[0] & {
+    tests?: { name: string; testId: string; skip: boolean }[];
+  };
+
+  type QUnitLogDetails = Parameters<Parameters<typeof QUnit.log>[0]>[0] & {
+    testId?: string;
+    result?: boolean;
+  };
+
+  type QUnitTestDoneDetails = Parameters<Parameters<typeof QUnit.testDone>[0]>[0] & {
+    testId?: string;
+    assertions?: { result: boolean; message: string }[];
+    skipped?: true;
+    todo?: true;
+  };
+
   const { agentNoTestsTimeout, agentScreenshotTimeout, screenshot, pageId } = getConfig();
   let executed = 0;
   let errors = 0;

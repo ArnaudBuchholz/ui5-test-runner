@@ -19,14 +19,14 @@ const errnoError = (code: string): NodeJS.ErrnoException => Object.assign(new Er
 
 const npmCliProcess = makeProcess('npm@10.0.0 /usr/local/lib/node_modules/npm');
 
-const setupRoots = (localStdout: string, globalStdout: string, localCode = 0, globalCode = 0) => {
+const setupRoots = (localStdout: string, localCode = 0, globalCode = 0) => {
   vi.mocked(Process.spawn)
     // getNpmCliPath: the first `npm('root')` call warms the memoizedNpmCliPath
     .mockImplementationOnce(() => npmCliProcess as never)
     // npm root (local)
     .mockImplementationOnce(() => makeProcess(localStdout, localCode) as never)
     // npm root --global (memoizedNpmCliPath is already cached; only the spawn call)
-    .mockImplementationOnce(() => makeProcess(globalStdout, globalCode) as never);
+    .mockImplementationOnce(() => makeProcess(GLOBAL_ROOT, globalCode) as never);
 };
 
 const loadFreshNpm = async () => {
@@ -41,7 +41,7 @@ describe('getRoots validation', () => {
   });
 
   it('rejects with a descriptive error when npm root exits non-zero for local', async () => {
-    setupRoots(LOCAL_ROOT, GLOBAL_ROOT, 1, 0);
+    setupRoots(LOCAL_ROOT, 1, 0);
     const Npm = await loadFreshNpm();
     await expect(Npm.resolvePackageDir(NO_CONFIGURATION, 'any-module')).rejects.toThrow(ExitShutdownError);
     expect(logger.fatal).toHaveBeenCalledWith(
@@ -50,7 +50,7 @@ describe('getRoots validation', () => {
   });
 
   it('rejects with a descriptive error when npm root exits non-zero for global', async () => {
-    setupRoots(LOCAL_ROOT, GLOBAL_ROOT, 0, 2);
+    setupRoots(LOCAL_ROOT, 0, 2);
     const Npm = await loadFreshNpm();
     await expect(Npm.resolvePackageDir(NO_CONFIGURATION, 'any-module')).rejects.toThrow(ExitShutdownError);
     expect(logger.fatal).toHaveBeenCalledWith(
@@ -59,7 +59,7 @@ describe('getRoots validation', () => {
   });
 
   it('rejects with a descriptive error when npm root returns an empty path', async () => {
-    setupRoots('', GLOBAL_ROOT);
+    setupRoots('');
     const Npm = await loadFreshNpm();
     await expect(Npm.resolvePackageDir(NO_CONFIGURATION, 'any-module')).rejects.toThrow(ExitShutdownError);
     expect(logger.fatal).toHaveBeenCalledWith(
@@ -68,7 +68,7 @@ describe('getRoots validation', () => {
   });
 
   it('rejects when the local root directory is genuinely unreadable (EACCES)', async () => {
-    setupRoots(LOCAL_ROOT, GLOBAL_ROOT);
+    setupRoots(LOCAL_ROOT);
     vi.mocked(FileSystem.access).mockRejectedValueOnce(errnoError('EACCES'));
     const Npm = await loadFreshNpm();
     await expect(Npm.resolvePackageDir(NO_CONFIGURATION, 'any-module')).rejects.toThrow(ExitShutdownError);
@@ -80,7 +80,7 @@ describe('getRoots validation', () => {
   it('tolerates a missing local root directory (ENOENT) and proceeds', async () => {
     // `npm root` reports where node_modules would live even when it does not exist yet; a missing
     // local root is a normal state (nothing installed locally) and must not abort the run.
-    setupRoots(LOCAL_ROOT, GLOBAL_ROOT);
+    setupRoots(LOCAL_ROOT);
     vi.mocked(FileSystem.access).mockRejectedValueOnce(errnoError('ENOENT'));
     const Npm = await loadFreshNpm();
     // Neither root resolves the module, so we expect the normal "cannot locate" path — not a fatal.
@@ -91,7 +91,7 @@ describe('getRoots validation', () => {
   });
 
   it('rejects when the global root directory is missing (ENOENT is not tolerated for global)', async () => {
-    setupRoots(LOCAL_ROOT, GLOBAL_ROOT);
+    setupRoots(LOCAL_ROOT);
     // First access (local) succeeds, second access (global) is missing.
     vi.mocked(FileSystem.access).mockResolvedValueOnce(undefined).mockRejectedValueOnce(errnoError('ENOENT'));
     const Npm = await loadFreshNpm();

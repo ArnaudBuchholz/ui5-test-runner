@@ -31,25 +31,21 @@ export const buildREserveConfiguration = async (configuration: Configuration): P
       ]
     : [];
 
-  const libMappings: REserveConfiguration['mappings'] = (configuration.lib ?? []).flatMap(
-    ({ resourcesSubFolder, sourceFolder }) => {
-      // eslint-disable-next-line security/detect-non-literal-regexp -- resourcesSubFolder is validated
-      const match = new RegExp(String.raw`^/resources/${resourcesSubFolder}/(.*?)(?:\?.*)?$`);
-      const shouldUseInstrumented = configuration.coverage && sourceFolder.startsWith(configuration.cwd);
-      if (shouldUseInstrumented) {
-        const instrumentedCwd = Path.join(
-          configuration.coverageTempDir,
-          'instrumented',
-          sourceFolder.slice(configuration.cwd.length)
-        );
-        return [
-          { match, cwd: instrumentedCwd, file: '$1' },
-          { match, cwd: sourceFolder, file: '$1' }
-        ];
-      }
-      return [{ match, cwd: sourceFolder, file: '$1' }];
+  const libMappings: REserveConfiguration['mappings'] = [];
+  const libEntries = configuration.lib ?? [];
+  for (const { resourcesSubFolder, sourceFolder } of libEntries) {
+    // eslint-disable-next-line security/detect-non-literal-regexp -- resourcesSubFolder is validated
+    const match = new RegExp(String.raw`^/resources/${resourcesSubFolder}/(.*?)(?:\?.*)?$`);
+    if (configuration.coverage && sourceFolder.startsWith(configuration.cwd)) {
+      const instrumentedCwd = Path.join(
+        configuration.coverageTempDir,
+        'instrumented',
+        sourceFolder.slice(configuration.cwd.length)
+      );
+      libMappings.push({ match, cwd: instrumentedCwd, file: '$1' });
     }
-  );
+    libMappings.push({ match, cwd: sourceFolder, file: '$1' });
+  }
 
   const isWebappHasResources =
     (await hasFolder(Path.join(webapp, 'resources'))) || (await hasFolder(Path.join(webapp, 'test-resources')));

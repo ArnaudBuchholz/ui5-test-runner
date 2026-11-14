@@ -9,9 +9,8 @@ const NO_CONFIGURATION = { reportDir: '/test/report' } as unknown as Configurati
 
 const npmImportSpy = vi.spyOn(Npm, 'import');
 
-type NetworkResponseStartedListener = (entry: unknown) => void;
-
 const makeRemoteBrowser = () => {
+  type NetworkResponseStartedListener = (entry: unknown) => void;
   const listeners: Record<string, NetworkResponseStartedListener[]> = {};
   return {
     capabilities: { browserName: 'chrome', browserVersion: '120' },

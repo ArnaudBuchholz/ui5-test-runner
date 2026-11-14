@@ -37,11 +37,7 @@ export class Terminal {
     this.write(`${CSI}?25h`);
   }
   static eraseToEnd(lines: number) {
-    if (lines === 0) {
-      this.write(`${CSI}0G`);
-    } else {
-      this.write(`${CSI}0G${CSI}${lines}A${CSI}0J`);
-    }
+    this.write(lines === 0 ? `${CSI}0G` : `${CSI}0G${CSI}${lines}A${CSI}0J`);
   }
   static readonly BLUE = `${CSI}34m`;
   static readonly CYAN = `${CSI}36m`;

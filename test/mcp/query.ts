@@ -49,13 +49,13 @@ You must structure your answer in two parts :
 `;
 
 /**
- * Runs a single test case against the MCP server: builds a harness on the model under test
- * wired to the MCP tools and a `read_file` tool over the case's files, feeds it the question
- * and returns the final answer with the token tally. The model reaches the case's files only
- * by calling `read_file` — they are not injected into the question. The harness traces its
- * requests, responses and tool calls under the `mcp` source, tagged with `pageId` (the case
- * index).
- */
+Runs a single test case against the MCP server: builds a harness on the model under test
+wired to the MCP tools and a `read_file` tool over the case's files, feeds it the question
+and returns the final answer with the token tally. The model reaches the case's files only
+by calling `read_file` — they are not injected into the question. The harness traces its
+requests, responses and tool calls under the `mcp` source, tagged with `pageId` (the case
+index).
+*/
 export async function runQuery(mcpUrl: string, testCase: TestCase, pageId: number): Promise<QueryResult> {
   const provider = loadProvider();
   const { tools: mcpTools, instructions } = await loadMcpTools(mcpUrl);

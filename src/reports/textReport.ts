@@ -14,11 +14,11 @@ type PageSummary = {
 };
 
 /**
- * Resolve the page URL a test belongs to. `test.suite[0]` can be the *testsuite* URL (pages reached
- * through a suite are prefixed with it by `TestReportBuilder.addSuite`), and the trailing suite
- * entries are QUnit module names, not URLs. The real page is therefore the deepest suite entry that
- * parses as an http(s) URL; fall back to the first entry when none do.
- */
+Resolve the page URL a test belongs to. `test.suite[0]` can be the *testsuite* URL (pages reached
+through a suite are prefixed with it by `TestReportBuilder.addSuite`), and the trailing suite
+entries are QUnit module names, not URLs. The real page is therefore the deepest suite entry that
+parses as an http(s) URL; fall back to the first entry when none do.
+*/
 const pageUrlOf = (test: CTRFTest): string => {
   const suite: readonly string[] = test.suite ?? [];
   for (let index = suite.length - 1; index >= 0; --index) {

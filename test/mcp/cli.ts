@@ -123,7 +123,7 @@ interface TestRun {
 // repetitions sit together in the report (case A×1, A×2, …, B×1, …). A deferred case (meta.skip)
 // is never repeated — its outcome is identical every time — so it contributes a single run.
 const runs: TestRun[] = selectedCasePaths.flatMap((casePath) => {
-  return repeat <= 1 || loadTestCase(casePath).skip ? [{ casePath }] : Array.from({ length: repeat }, (_, index) => ({ casePath, repetition: index + 1 }));
+  return repeat <= 1 || loadTestCase(casePath).skip ? { casePath } : Array.from({ length: repeat }, (_, index) => ({ casePath, repetition: index + 1 }));
 });
 
 let completed = 0;

@@ -11,9 +11,9 @@ const parseVersion = (version: string): [number[], (string | number)[]] => {
 };
 
 /**
- * Compare two semantic versions, including prerelease versions.
- * Examples: "1.2.3", "1.2.3-beta", "1.2.3-rc.1"
- */
+Compare two semantic versions, including prerelease versions.
+Examples: "1.2.3", "1.2.3-beta", "1.2.3-rc.1"
+*/
 export const compareVersions = (version1: string, version2: string): 1 | 0 | -1 => {
   const [v1Release, v1Prerelease] = parseVersion(version1);
   const [v2Release, v2Prerelease] = parseVersion(version2);

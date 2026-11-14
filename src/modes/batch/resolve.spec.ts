@@ -12,8 +12,6 @@ const makeStatDirectory = () => ({ isDirectory: () => true, isFile: () => false 
 const makeStatFile = () => ({ isDirectory: () => false, isFile: () => true }) as FileSystemStat;
 const makeStatOther = () => ({ isDirectory: () => false, isFile: () => false }) as FileSystemStat;
 
-type FileSystemReadir = Awaited<ReturnType<typeof FileSystem.readdir>>;
-
 beforeEach(() => {
   vi.clearAllMocks();
   vi.mocked(FileSystem.readFile).mockResolvedValue('{}');
@@ -108,6 +106,7 @@ describe('resolve', () => {
   });
 
   describe('regex scan', () => {
+    type FileSystemReadir = Awaited<ReturnType<typeof FileSystem.readdir>>;
     it('matches directories and adds them as folder items', async () => {
       vi.mocked(FileSystem.stat).mockRejectedValueOnce(new Error('ENOENT')).mockResolvedValue(makeStatDirectory());
       vi.mocked(FileSystem.readdir).mockResolvedValue(['my-project'] as unknown as Awaited<

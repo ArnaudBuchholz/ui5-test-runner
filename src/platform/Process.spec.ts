@@ -11,9 +11,8 @@ const { splitLines, Process } = await vi.importActual<{
   Process: typeof ProcessType;
 }>('./Process.js');
 
-type EventHandler = (...arguments_: unknown[]) => unknown;
-
 const createMockChildProcess = () => {
+  type EventHandler = (...arguments_: unknown[]) => unknown;
   const processHandlers = new Map<string, EventHandler[]>();
   const stdoutHandlers = new Map<string, EventHandler[]>();
   const stderrHandlers = new Map<string, EventHandler[]>();
