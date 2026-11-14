@@ -316,6 +316,18 @@ export const options = [
     description: 'skip execution if the expression evaluates to falsy'
   },
   {
+    name: 'ignoreUncaughtErrors',
+    type: 'boolean',
+    batchForwarded: true,
+    description: 'do not fail the test when a page raises an uncaught error'
+  },
+  {
+    name: 'ignoreUnhandledRejections',
+    type: 'boolean',
+    batchForwarded: true,
+    description: 'do not fail the test when a page raises an unhandled promise rejection'
+  },
+  {
     name: 'junitXmlFilename',
     type: 'string',
     description: 'filename for the JUnit XML report saved in the report directory',

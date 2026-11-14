@@ -373,6 +373,85 @@ describe('makePageTask', () => {
     expect(logger.error).not.toHaveBeenCalledWith(expect.objectContaining({ message: 'uncaught error' }));
   });
 
+  it('logs warn with "uncaught error (ignored)" when ignoreUncaughtErrors is set and event is error', async () => {
+    setupHappyPath([
+      {
+        done: false,
+        type: 'QUnit',
+        isOpa: false,
+        executed: 0,
+        errors: 0,
+        total: 5,
+        pendingScreenshot: false as const,
+        uncaughtErrors: [{ name: 'Error', message: 'boom', stack: 'at /app/test.js', event: 'error' }]
+      } satisfies AgentState,
+      QUNIT_DONE,
+      EMPTY_RESULTS
+    ]);
+    await runTask({ ignoreUncaughtErrors: true });
+    expect(logger.warn).toHaveBeenCalledWith(expect.objectContaining({ message: 'uncaught error (ignored)' }));
+  });
+
+  it('does not fail the page when the uncaught error is ignored', async () => {
+    setupHappyPath([
+      {
+        done: false,
+        type: 'QUnit',
+        isOpa: false,
+        executed: 0,
+        errors: 0,
+        total: 5,
+        pendingScreenshot: false as const,
+        uncaughtErrors: [{ name: 'Error', message: 'boom', stack: 'at /app/test.js', event: 'error' }]
+      } satisfies AgentState,
+      QUNIT_DONE,
+      EMPTY_RESULTS
+    ]);
+    await runTask({ ignoreUncaughtErrors: true });
+    expect(logger.error).not.toHaveBeenCalledWith(expect.objectContaining({ message: 'uncaught error' }));
+  });
+
+  it('logs warn with "unhandled rejection (ignored)" when ignoreUnhandledRejections is set and event is unhandledrejection', async () => {
+    setupHappyPath([
+      {
+        done: false,
+        type: 'QUnit',
+        isOpa: false,
+        executed: 0,
+        errors: 0,
+        total: 5,
+        pendingScreenshot: false as const,
+        uncaughtErrors: [
+          { name: 'UnhandledPromiseRejection', message: 'oops', stack: 'at /app/test.js', event: 'unhandledrejection' }
+        ]
+      } satisfies AgentState,
+      QUNIT_DONE,
+      EMPTY_RESULTS
+    ]);
+    await runTask({ ignoreUnhandledRejections: true });
+    expect(logger.warn).toHaveBeenCalledWith(expect.objectContaining({ message: 'unhandled rejection (ignored)' }));
+  });
+
+  it('fails the page when ignoreUncaughtErrors is set but event is unhandledrejection', async () => {
+    setupHappyPath([
+      {
+        done: false,
+        type: 'QUnit',
+        isOpa: false,
+        executed: 0,
+        errors: 1,
+        total: 5,
+        pendingScreenshot: false as const,
+        uncaughtErrors: [
+          { name: 'UnhandledPromiseRejection', message: 'oops', stack: 'at /app/test.js', event: 'unhandledrejection' }
+        ]
+      } satisfies AgentState,
+      EMPTY_RESULTS
+    ]);
+    await runTask({ ignoreUncaughtErrors: true });
+    expect(logger.error).toHaveBeenCalledWith(expect.objectContaining({ message: 'uncaught error' }));
+  });
+
   it('completes the task when OPA in-progress state is followed by done state', async () => {
     setupHappyPath([OPA_IN_PROGRESS, OPA_DONE, EMPTY_RESULTS]);
     await runTask();

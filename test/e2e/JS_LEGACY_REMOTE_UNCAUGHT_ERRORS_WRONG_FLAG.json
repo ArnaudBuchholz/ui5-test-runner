@@ -1,0 +1,8 @@
+{
+  "batchId": "JS_LEGACY_REMOTE_UNCAUGHT_ERRORS_WRONG_FLAG",
+  "batchLabel": "Legacy JS Sample: unhandled rejection still fails when only --ignore-uncaught-errors is set",
+  "cwd": "../sample.js",
+  "url": ["http://localhost:0/test/unit/unitTests.qunit.uncaught2.html"],
+  "ignoreUncaughtErrors": true,
+  "end": "RUNNER_EXIT_CODE={{exitCode}} NODE_OPTIONS= node ../e2e/check.mjs {{reportDir}} --pages 1 --failed --summary 1,1,2"
+}

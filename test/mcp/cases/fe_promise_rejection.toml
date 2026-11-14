@@ -1,0 +1,14 @@
+[user]
+question="""
+My OPA test suite uses Fiori Elements and pages are failing with "Uncaught error(s): 1" even
+though all OPA assertions pass. Looking at the stack traces, the rejection comes from
+_promiseWaiter inside sap/ui/test/autowaiter — a framework-internal promise that rejects
+as part of normal control flow (the app's editFlow.onBeforeSave hook deliberately rejects
+to cancel a save, and FE consumes the rejection). How do I stop these framework-internal
+rejections from failing my pages while still catching genuinely unexpected errors?
+"""
+
+[expected]
+option = "it should recommend --ignore-unhandled-rejections (config key ignoreUnhandledRejections) to tolerate unhandled promise rejections without failing the page"
+warning = "it should clarify that with the option set the rejection is still logged as a warning, not silently dropped"
+independence = "it should make clear that --ignore-unhandled-rejections only suppresses unhandled promise rejections; genuine uncaught errors (window error events) still fail the page unless --ignore-uncaught-errors is also set"

@@ -1,0 +1,12 @@
+[user]
+question="""
+My test pages produce "Uncaught error(s)" failures but the OPA assertions themselves all
+pass. I want to keep running and treat those errors as warnings rather than test failures.
+What options do I have?
+"""
+
+[expected]
+unhandled_rejections = "it should mention --ignore-unhandled-rejections (config key ignoreUnhandledRejections) for suppressing unhandled promise rejection failures"
+uncaught_errors = "it should mention --ignore-uncaught-errors (config key ignoreUncaughtErrors) for suppressing uncaught error (window error event) failures"
+both_logged = "it should state that both options log the ignored error or rejection as a warning rather than silently discarding it"
+independence = "it should convey that the two options are independent — each covers a different event type — so the user can pick the one that matches their situation"

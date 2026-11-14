@@ -73,7 +73,25 @@ export const reportError = (url: string, message: string, error?: IError) => {
   getReportBuilder().merge(url, result);
 };
 
-const shouldUncaughtErrorsFail = (context: PageContext, errors: IError[]): boolean => {
+type ErrorLogEntry = { logMethod: 'warn' | 'error'; message: string };
+
+const classifyUncaughtError = (error: IError & { event: string }, configuration: Configuration): ErrorLogEntry => {
+  if (
+    error.message === 'Called start() outside of a test context too many times' &&
+    (error.stack?.includes('/sap/ui/thirdparty/qunit-2.js') || error.stack?.includes('/sap/ui/thirdparty/qunit.js'))
+  ) {
+    return { logMethod: 'warn', message: 'uncaught error (expected)' };
+  }
+  if (error.event === 'unhandledrejection' && configuration.ignoreUnhandledRejections) {
+    return { logMethod: 'warn', message: 'unhandled rejection (ignored)' };
+  }
+  if (error.event === 'error' && configuration.ignoreUncaughtErrors) {
+    return { logMethod: 'warn', message: 'uncaught error (ignored)' };
+  }
+  return { logMethod: 'error', message: 'uncaught error' };
+};
+
+const shouldUncaughtErrorsFail = (context: PageContext, errors: IError[], configuration: Configuration): boolean => {
   const { lastUncaughtErrorsCount, pageId } = context;
   let errorsCount = 0;
   let firstError: IError | undefined;
@@ -82,15 +100,7 @@ const shouldUncaughtErrorsFail = (context: PageContext, errors: IError[]): boole
     context.lastUncaughtErrorsCount = errors.length;
     for (; index < errors.length; ++index) {
       const error = errors[index]!;
-      let logMethod: 'warn' | 'error' = 'error';
-      let message = 'uncaught error';
-      if (
-        error.message === 'Called start() outside of a test context too many times' &&
-        (error.stack?.includes('/sap/ui/thirdparty/qunit-2.js') || error.stack?.includes('/sap/ui/thirdparty/qunit.js'))
-      ) {
-        logMethod = 'warn';
-        message = 'uncaught error (expected)';
-      }
+      const { logMethod, message } = classifyUncaughtError(error as IError & { event: string }, configuration);
       logger[logMethod]({
         source: 'page',
         message,
@@ -118,7 +128,8 @@ const shouldUncaughtErrorsFail = (context: PageContext, errors: IError[]): boole
 const shouldStopBasedOnAgentState = (
   context: PageContext,
   isScreenshotEnabled: boolean,
-  agentState: AgentState
+  agentState: AgentState,
+  configuration: Configuration
 ): boolean => {
   logger.debug({
     source: 'page',
@@ -156,7 +167,7 @@ const shouldStopBasedOnAgentState = (
   if (agentState.type === 'QUnit') {
     reportQunitProgress(context, agentState, isScreenshotEnabled);
     if (agentState.uncaughtErrors?.length) {
-      return shouldUncaughtErrorsFail(context, agentState.uncaughtErrors);
+      return shouldUncaughtErrorsFail(context, agentState.uncaughtErrors, configuration);
     }
   }
   return false;
@@ -220,7 +231,8 @@ const mergeTestResults = (
 const runPollingLoop = async (
   context: PageContext,
   handlePendingScreenshot: ((page: IWindow, agentState: AgentState, pageId: number) => Promise<void>) | false,
-  signal: AbortSignal
+  signal: AbortSignal,
+  configuration: Configuration
 ): Promise<void> => {
   while (!signal.aborted) {
     try {
@@ -229,7 +241,7 @@ const runPollingLoop = async (
       if (handlePendingScreenshot) {
         await handlePendingScreenshot(context.page, agentState, context.pageId);
       }
-      if (shouldStopBasedOnAgentState(context, handlePendingScreenshot !== false, agentState)) {
+      if (shouldStopBasedOnAgentState(context, handlePendingScreenshot !== false, agentState, configuration)) {
         break;
       }
     } catch (error) {
@@ -338,7 +350,8 @@ export const makePageTask = (configuration: Configuration) => {
         await runPollingLoop(
           context,
           !!screenshot && handlePendingScreenshot,
-          AbortSignal.any([pageTimeoutController.signal, stopController.signal])
+          AbortSignal.any([pageTimeoutController.signal, stopController.signal]),
+          configuration
         );
       } finally {
         if (pageTimeoutHandle !== undefined) {

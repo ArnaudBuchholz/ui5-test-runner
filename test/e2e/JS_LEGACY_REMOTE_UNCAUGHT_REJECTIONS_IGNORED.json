@@ -1,0 +1,8 @@
+{
+  "batchId": "JS_LEGACY_REMOTE_UNCAUGHT_REJECTIONS_IGNORED",
+  "batchLabel": "Legacy JS Sample: unhandled rejection is tolerated with --ignore-unhandled-rejections",
+  "cwd": "../sample.js",
+  "url": ["http://localhost:0/test/unit/unitTests.qunit.uncaught2.html"],
+  "ignoreUnhandledRejections": true,
+  "end": "RUNNER_EXIT_CODE={{exitCode}} NODE_OPTIONS= node ../e2e/check.mjs {{reportDir}} --pages 1 --summary 3,0,3"
+}
