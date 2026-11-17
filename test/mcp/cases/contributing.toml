@@ -1,0 +1,10 @@
+[user]
+question = """
+I think ui5-test-runner is missing a feature I need. Where do I report it or contribute it?
+"""
+
+[expected]
+issues = "the response should point to the GitHub issue tracker (github.com/ArnaudBuchholz/ui5-test-runner/issues) for reporting / requesting the feature"
+repository = "it should reference the ui5-test-runner GitHub repository as the source code location"
+contributing = "it should reference the CONTRIBUTING.md guide, or otherwise explain how to contribute (fork, pull request)"
+no_dead_end = "it must not simply say it cannot help or that the feature does not exist without offering a feedback or contribution path"

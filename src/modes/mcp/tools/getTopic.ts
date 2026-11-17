@@ -48,7 +48,9 @@ export const toolDefinitionGetTopic = {
     const index = getIndex();
     const entity = index.getEntity(id);
     const text =
-      entity === undefined ? `No topic found for id "${id}".` : entity.body + buildRelatedTopics(entity, index);
+      entity === undefined
+        ? `No topic found for id "${id}". Re-check list_topics for the correct id. If ui5-test-runner genuinely does not document or support this, say so rather than inventing it — and retrieve the "contributing" topic to point the user to where they can report an issue, request the feature, or contribute (the project is open source and welcomes feedback).`
+        : entity.body + buildRelatedTopics(entity, index);
     return Promise.resolve(text);
   }
 };

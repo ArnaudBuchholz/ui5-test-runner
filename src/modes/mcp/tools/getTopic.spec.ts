@@ -42,10 +42,14 @@ describe('get_topic', () => {
     expect(result).toContain('# Heading\ntext');
   });
 
-  it('returns a not-found message for an unknown id', async () => {
+  it('returns a loud, actionable not-found message for an unknown id', async () => {
     const handler = await setupIndex([entity({ id: 'a' })]);
     const result = await handler({ id: 'missing' });
-    expect(result).toBe('No topic found for id "missing".');
+    expect(result).toContain('No topic found for id "missing"');
+    // The miss must steer the agent somewhere, not dead-end: re-check the catalog,
+    // and fall back to the contributing topic for feedback/contribution.
+    expect(result).toContain('list_topics');
+    expect(result).toContain('contributing');
   });
 
   it('lists forward relation edges under Related topics', async () => {

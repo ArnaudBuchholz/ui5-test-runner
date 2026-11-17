@@ -1,0 +1,10 @@
+[user]
+question = """
+How do I contribute documentation or a new topic to the ui5-test-runner MCP knowledge base?
+"""
+
+[expected]
+kb_entity = "the response should explain that docs/ markdown files with valid frontmatter become KB entities (the frontmatter: #type, title, summary, keywords, relations)"
+contributing = "it should point to the CONTRIBUTING.md guide and its Knowledge Base (MCP) section"
+validate = "it should mention validating the KB, e.g. running the KB index build (npm run build:kb-index)"
+no_dead_end = "it must not dead-end; it must describe a concrete workflow for contributing docs"

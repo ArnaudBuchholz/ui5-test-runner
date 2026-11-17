@@ -14,6 +14,7 @@ relations:
     - options/browserViewportWidth
     - options/browserViewportHeight
     - options/driver
+    - contributing
 validation:
   - message: "browserDevice is only supported with the puppeteer driver"
     conditions:
@@ -28,6 +29,8 @@ Emulate a [Puppeteer-known device](https://pptr.dev/api/puppeteer.knowndevices),
 such as `iPhone X`. Device emulation sets the viewport, user agent, and touch
 support. It overrides `--browser-viewport-width` and
 `--browser-viewport-height`.
+
+> ⚠️ **Emulation only — not a real device.** This sets viewport, user-agent, and touch on a desktop Chrome instance; it does **not** run the tests on a physical phone or tablet. ui5-test-runner drives **local desktop browsers only** — there is no option to run on a real physical device (e.g. an actual iPhone) or on a device cloud. If you need that, it is not a supported capability: see [contributing](../contributing.md) to request the feature or contribute it, rather than assuming a flag exists.
 
 ## Overview
 

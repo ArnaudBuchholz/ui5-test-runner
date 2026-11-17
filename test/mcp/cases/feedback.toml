@@ -1,0 +1,9 @@
+[user]
+question = """
+Where can I give feedback or ask a question about ui5-test-runner?
+"""
+
+[expected]
+channel = "the response should point to the GitHub issue tracker (github.com/ArnaudBuchholz/ui5-test-runner/issues) as the place to give feedback or ask"
+repository = "it should reference the ui5-test-runner GitHub repository"
+no_dead_end = "it must not dead-end by saying it does not know where to give feedback; it must name a concrete channel"

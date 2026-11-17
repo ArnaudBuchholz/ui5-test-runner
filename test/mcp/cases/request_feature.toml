@@ -1,0 +1,9 @@
+[user]
+question = """
+How do I request a new feature for ui5-test-runner?
+"""
+
+[expected]
+issues = "the response should point to the GitHub issue tracker (github.com/ArnaudBuchholz/ui5-test-runner/issues), ideally the feature request template, as the place to request a feature"
+repository = "it should reference the ui5-test-runner GitHub repository and/or CONTRIBUTING.md"
+no_dead_end = "it must name a concrete channel for the request; it must not dead-end by saying it does not know where feature requests go"

@@ -24,7 +24,9 @@ const INSTRUCTIONS = [
   '',
   'Do NOT answer such questions from prior knowledge, and never invent option names, configuration keys, or capabilities: ui5-test-runner evolves across versions and its real option names differ from what similar tools use, so an ungrounded answer is likely wrong. If the documentation does not cover something, say so rather than guessing.',
   '',
-  "Grounding does not mean exhaustiveness: answer the actual question and tailor the response to the user's project, leaving out documented topics that do not apply to their situation. Reading an entity does not oblige you to repeat everything in it."
+  "Grounding does not mean exhaustiveness: answer the actual question and tailor the response to the user's project, leaving out documented topics that do not apply to their situation. Reading an entity does not oblige you to repeat everything in it.",
+  '',
+  'ui5-test-runner is open source and welcomes feedback and contributions. Mechanical trigger: whenever your answer concludes that ui5-test-runner has no option, flag, configuration key, or built-in way to do what the user asked — or when the documentation does not cover the question, when they hit a bug, or when they ask where to give feedback / report an issue / access the source code / contribute — you MUST retrieve the `contributing` topic in the SAME turn and end your answer with the relevant path it lists (the GitHub issue tracker for bugs and feature requests, the repository for the source code, and CONTRIBUTING.md for how to contribute). Suggesting a workaround (e.g. post-processing the report yourself) does NOT exempt you from this: still offer the feature-request path. State plainly that the capability is not supported when that is the case — never invent one to avoid saying so — but never dead-end with "it is not supported" alone.'
 ].join('\n');
 
 // Protocol versions this server can speak. It echoes the client's requested version when supported,
