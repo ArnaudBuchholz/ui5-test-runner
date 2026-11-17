@@ -1,12 +1,12 @@
-import '../lib/index.js';
-
 import './style.css';
 
 import { ReportController } from '../../reports/ui/ReportController.js';
 import type { State } from '../../reports/ui/types.js';
-import { renderSummary } from './components/Summary.js';
-import { renderFilterBar, renderSuitePopoverContent } from './components/FilterBar.js';
-import { renderTestList, renderTestListBody } from './components/TestList.js';
+import { renderHeader } from './components/Header.js';
+import { renderSummaryBar } from './components/SummaryBar.js';
+import { renderSuiteTree } from './components/SuiteTree.js';
+import { renderToolbar } from './components/Toolbar.js';
+import { renderThead, renderTableWindow, ROW_HEIGHT } from './components/TestTable.js';
 import { renderConfiguration } from './components/Configuration.js';
 import { debounce } from '../lib/utils/debounce.js';
 import { readHash, writeHash } from './utils/hash.js';
@@ -14,331 +14,309 @@ import type { CommonTestReport } from '../../types/CommonTestReportFormat.js';
 
 const controller = new ReportController();
 
-type UI5Element = Record<string, unknown>;
+/** View-local state the controller does not own: which rows are expanded + measured heights. */
+const expanded = new Set<number>();
+const heights = new Map<number, number>();
 
-function asUI5(element: Element): UI5Element {
-  return element as unknown as UI5Element;
-}
-
-function asHtml(element: Element | null): HTMLElement | null {
-  return element as HTMLElement | null;
+function $(selector: string): HTMLElement | null {
+  return document.querySelector(selector);
 }
 
 function currentHashState() {
-  const s = controller.state;
-  return {
-    filterOnSuiteUid: s.filterOnSuiteUid,
-    filterOnStatus: s.filterOnStatus,
-    search: s.search,
-    sortBy: s.sortBy,
-    sortAscending: s.sortAscending
-  };
+  const { filterOnSuiteUid, filterOnStatus, search, sortBy, sortAscending } = controller.state;
+  return { filterOnSuiteUid, filterOnStatus, search, sortBy, sortAscending };
 }
 
-// ---- Popover (injected once, before #app) ----
-
-function injectPopovers(): void {
-  const app = document.querySelector('#app');
-  if (!app) return;
-  app.insertAdjacentHTML(
-    'beforebegin',
-    `<ui5-popover id="suitePopover" header-text="Suite filter" placement="Bottom" style="max-width: 320px;">
-      <div id="suitePopoverContent" style="padding: 0.5rem; min-width: 240px; max-height: 300px; overflow-y: auto;"></div>
-      <div slot="footer" style="display:flex;justify-content:flex-end;padding:0.5rem;">
-        <ui5-button id="suitePopoverClose" design="Transparent">Close</ui5-button>
-      </div>
-    </ui5-popover>`
-  );
-}
-
-function updateSuitePopover(): void {
-  const content = document.querySelector('#suitePopoverContent');
-  if (!content) return;
-  content.innerHTML = renderSuitePopoverContent(controller.state.suites, controller.state.filterOnSuiteUid);
-}
-
-// ---- File input (created once, lives on body) ----
+// ---- Hidden file input for "Open…" -----------------------------------
 
 const fileInput = document.createElement('input');
 fileInput.type = 'file';
 fileInput.accept = '.json';
 fileInput.style.display = 'none';
-
 // eslint-disable-next-line @typescript-eslint/no-misused-promises
 fileInput.addEventListener('change', async () => {
   const file = fileInput.files?.[0];
-  if (!file) return;
-  const text = await file.text();
-  const report = JSON.parse(text) as CommonTestReport;
+  if (!file) {
+    return;
+  }
+  const report = JSON.parse(await file.text()) as CommonTestReport;
+  expanded.clear();
+  heights.clear();
   controller.interaction({ report });
   fileInput.value = '';
 });
 
-// ---- Render ----
-
-function renderDisplayMode(): string {
-  return (
-    renderSummary(controller.state) +
-    renderConfiguration(controller.state) +
-    renderFilterBar(controller.state, controller.settings) +
-    renderTestList(controller.state, controller.settings)
-  );
-}
+// ---- Rendering --------------------------------------------------------
 
 function renderOpenMode(): string {
   return `<div class="open-mode">
-  <ui5-title level="H2">UI5 Test Runner Report</ui5-title>
-  <ui5-button id="openBtn" design="Emphasized">Open Report</ui5-button>
+  <h1>UI5 Test Runner Report</h1>
+  <button id="openBtn" class="btn btn--primary">Open Report</button>
 </div>`;
 }
 
+function renderDisplayMode(): string {
+  return (
+    renderHeader(controller.state) +
+    renderSummaryBar(controller.state) +
+    `<div class="main">
+      ${renderSuiteTree(controller.state)}
+      <div class="content">
+        ${renderToolbar(controller.state, controller.settings)}
+        ${renderThead()}
+        <div class="table" id="table"></div>
+        ${renderConfiguration(controller.state)}
+      </div>
+    </div>`
+  );
+}
+
 function renderApp(): void {
-  const app = document.querySelector('#app');
-  if (!app) return;
+  const app = $('#app');
+  if (!app) {
+    return;
+  }
   app.innerHTML = controller.state.mode === 'display' ? renderDisplayMode() : renderOpenMode();
-  updateSuitePopover();
-  attachEvents();
+  if (controller.state.mode === 'display') {
+    renderTable();
+    attachDisplayEvents();
+  } else {
+    $('#openBtn')?.addEventListener('click', () => fileInput.click());
+  }
 }
 
-function updateTestListContent(): void {
-  const container = document.querySelector('#testList');
-  if (!container) return;
-  container.innerHTML = renderTestListBody(controller.state, controller.settings);
-  attachTestRowsEvents();
-  attachSortEvents();
+/** Re-render only the virtualized window for the current scroll position. */
+function renderTable(): void {
+  const table = $('#table');
+  if (!table) {
+    return;
+  }
+  table.innerHTML = renderTableWindow(
+    controller.state,
+    expanded,
+    heights,
+    table.scrollTop,
+    table.clientHeight || window.innerHeight
+  );
+  measureExpanded(table);
 }
 
-function updateSuiteButton(): void {
-  const button = document.querySelector('#suiteFilterBtn');
-  if (!button) return;
-  const uid = controller.state.filterOnSuiteUid;
-  const flatSuites = (function flatten(suites: typeof controller.state.suites): typeof controller.state.suites {
-    return suites.flatMap((s) => [s, ...flatten(s.suites)]);
-  })(controller.state.suites);
-  const label = uid ? (flatSuites.find((s) => s.uid === uid)?.label ?? 'Unknown suite') : 'All suites';
-  button.textContent = `${label} ▾`;
-}
-
-// ---- Event attachment ----
-
-function attachOpenExportEvents(): void {
-  document.addEventListener('click', (event) => {
-    const target = event.target as Element;
-    if (target.closest('#openBtn')) {
-      fileInput.click();
+/**
+Measure rendered expanded rows. If a measured height differs from what the window
+was laid out with, store it and re-render so the sizer/offsets reconcile.
+*/
+function measureExpanded(table: HTMLElement): void {
+  let isChanged = false;
+  for (const index of expanded) {
+    const row = table.querySelector(`.row[data-index="${CSS.escape(String(index))}"]`);
+    if (!row) {
+      continue;
     }
-    if (target.closest('#exportBtn')) {
-      controller.interaction({ action: 'export' });
+    const measured = (row as HTMLElement).offsetHeight;
+    if (Math.abs((heights.get(index) ?? ROW_HEIGHT) - measured) <= 1) {
+      continue;
     }
-  });
+    heights.set(index, measured);
+    isChanged = true;
+  }
+  if (!isChanged) {
+    return;
+  }
+  const clientHeight = table.clientHeight || window.innerHeight;
+  table.innerHTML = renderTableWindow(controller.state, expanded, heights, table.scrollTop, clientHeight);
 }
 
-function attachSuitePopoverEvents(): void {
-  const suitePopoverClose = document.querySelector('#suitePopoverClose');
-  suitePopoverClose?.addEventListener('click', () => {
-    asUI5(document.querySelector('#suitePopover')!)['open'] = false;
-  });
-}
+// ---- Image lazy-load (attachments / screenshots) ----------------------
 
-function attachFilterBarEvents(): void {
-  const suiteButton = document.querySelector('#suiteFilterBtn');
-  suiteButton?.addEventListener('click', (event) => {
-    updateSuitePopover();
-    const popover = document.querySelector('#suitePopover');
-    if (!popover) {
+function loadImages(scope: HTMLElement): void {
+  scope.querySelectorAll<HTMLImageElement>('img.att__thumb[data-src]').forEach((img) => {
+    if (img.getAttribute('src')) {
       return;
     }
-
-    asUI5(popover)['opener'] = event.currentTarget;
-    asUI5(popover)['open'] = true;
-  });
-
-  const suiteContent = document.querySelector('#suitePopoverContent');
-  suiteContent?.addEventListener('click', (event) => {
-    const item = asHtml((event.target as Element).closest('[data-suite-uid]'));
-    if (!item) return;
-    const uid = decodeURIComponent(item.dataset['suiteUid'] ?? '');
-    controller.interaction({ filterOnSuiteUid: uid });
-    writeHash(currentHashState());
-    updateSuiteButton();
-    asUI5(document.querySelector('#suitePopover')!)['open'] = false;
-  });
-
-  const statusSelect = document.querySelector('#statusSelect');
-  statusSelect?.addEventListener('change', (event) => {
-    const detail = (event as unknown as { detail: { selectedOption: { value: string } } }).detail;
-    controller.interaction({ filterOnStatus: detail.selectedOption.value as State['filterOnStatus'] });
-    writeHash(currentHashState());
-  });
-
-  const searchInput = document.querySelector('#searchInput');
-  const debouncedSearch = debounce((value: string) => {
-    controller.interaction({ search: value });
-    writeHash(currentHashState());
-  }, 250);
-
-  searchInput?.addEventListener('input', (event) => {
-    const target = event.target as unknown as { value: string };
-    debouncedSearch(target.value);
-  });
-
-  searchInput?.addEventListener('keydown', (event) => {
-    if ((event as KeyboardEvent).key !== 'Enter') {
-      return;
-    }
-
-    const target = event.target as unknown as { value: string };
-    controller.interaction({ search: target.value });
-    writeHash(currentHashState());
-  });
-}
-
-function attachSortEvents(): void {
-  const sortRow = document.querySelector('#sortRow');
-  sortRow?.addEventListener('click', (event) => {
-    const button = asHtml((event.target as Element).closest('.sort-btn'));
-    if (!button) return;
-    const key = (button.dataset['sortKey'] ?? '') as State['sortBy'];
-    const { sortBy, sortAscending } = controller.state;
-
-    if (key === '') {
-      controller.interaction({ sortBy: '' });
-    } else if (sortBy !== key) {
-      controller.interaction({ sortBy: key });
-    } else if (sortAscending) {
-      controller.interaction({ sortAscending: false });
-    } else {
-      controller.interaction({ sortBy: '' });
-    }
-    writeHash(currentHashState());
-  });
-}
-
-function loadImages(details: HTMLElement): void {
-  details.querySelectorAll<HTMLImageElement>('img.attachment-thumb[data-src]').forEach((img) => {
-    if (img.src && img.src !== window.location.href) {
-      return;
-    }
-
     img.src = img.dataset['src'] ?? '';
     img.addEventListener(
       'error',
       () => {
         img.removeAttribute('src');
-        img.classList.add('attachment-thumb--error');
+        img.classList.add('att__thumb--error');
+        img.textContent = 'Unavailable';
         img.title = `Unavailable: ${img.dataset['src'] ?? ''}`;
       },
       { once: true }
     );
-    img.addEventListener('click', () => {
-      window.open(img.dataset['src'], '_blank');
-    });
+    img.addEventListener('click', () => window.open(img.dataset['src'], '_blank'));
   });
 }
 
-function unloadImages(details: HTMLElement): void {
-  details.querySelectorAll<HTMLImageElement>('img.attachment-thumb').forEach((img) => {
-    img.removeAttribute('src');
+// ---- Event wiring -----------------------------------------------------
+
+function toggleTheme(): void {
+  const root = document.documentElement;
+  const current =
+    root.dataset['theme'] ?? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+  root.dataset['theme'] = current === 'dark' ? 'light' : 'dark';
+}
+
+const debouncedSearch = debounce((value: string) => {
+  expanded.clear();
+  heights.clear();
+  controller.interaction({ search: value });
+  writeHash(currentHashState());
+}, 250);
+
+function attachHeaderEvents(): void {
+  $('#openBtn')?.addEventListener('click', () => fileInput.click());
+  $('#exportBtn')?.addEventListener('click', () => controller.interaction({ action: 'export' }));
+  $('#themeBtn')?.addEventListener('click', toggleTheme);
+}
+
+function attachToolbarEvents(): void {
+  $('#statusSelect')?.addEventListener('change', (event) => {
+    expanded.clear();
+    heights.clear();
+    controller.interaction({ filterOnStatus: (event.target as HTMLSelectElement).value as State['filterOnStatus'] });
+    writeHash(currentHashState());
+  });
+
+  $('#searchInput')?.addEventListener('input', (event) => debouncedSearch((event.target as HTMLInputElement).value));
+
+  $('#sortSelect')?.addEventListener('change', (event) => {
+    expanded.clear();
+    heights.clear();
+    controller.interaction({ sortBy: (event.target as HTMLSelectElement).value as State['sortBy'] });
+    writeHash(currentHashState());
+  });
+
+  $('#sortDirBtn')?.addEventListener('click', () => {
+    expanded.clear();
+    heights.clear();
+    controller.interaction({ sortAscending: !controller.state.sortAscending });
+    writeHash(currentHashState());
   });
 }
 
-function toggleTestRow(testRows: Element, index: string): void {
-  const details = asHtml(testRows.querySelector(`.test-row-details[data-index="${CSS.escape(index)}"]`));
-  if (!details) return;
-  const toggleButton = asHtml(testRows.querySelector(`.test-toggle-btn[data-index="${CSS.escape(index)}"]`));
-  const isOpen = details.style.display !== 'none';
-  details.style.display = isOpen ? 'none' : 'block';
-  if (toggleButton) toggleButton.textContent = isOpen ? '[>]' : '[V]';
-  if (isOpen) {
-    unloadImages(details);
-  } else {
-    loadImages(details);
-  }
-}
-
-function attachTestRowsEvents(): void {
-  const testRows = document.querySelector('#testRows');
-  if (!testRows) return;
-
-  testRows.addEventListener('click', (event) => {
-    const target = event.target as Element;
-
-    const toggleButton = asHtml(target.closest('.test-toggle-btn'));
-    if (toggleButton) {
-      event.stopPropagation();
-      toggleTestRow(testRows, toggleButton.dataset['index'] ?? '');
+function attachSuiteTreeEvents(): void {
+  $('#suiteTree')?.addEventListener('click', (event) => {
+    const node = (event.target as Element).closest('[data-suite-uid]');
+    if (!node) {
       return;
     }
-
-    const qunitToggle = asHtml(target.closest('.qunit-logs-toggle'));
-    if (qunitToggle) {
-      event.stopPropagation();
-      const body = asHtml(qunitToggle.nextElementSibling);
-      if (body) {
-        const isOpen = body.style.display !== 'none';
-        body.style.display = isOpen ? 'none' : 'block';
-        qunitToggle.textContent = isOpen
-          ? qunitToggle.textContent.replace('[V]', '[>]')
-          : qunitToggle.textContent.replace('[>]', '[V]');
-      }
-      return;
-    }
-
-    const rowHeader = asHtml(target.closest('.test-row-header'));
-    if (rowHeader && !target.closest('ui5-breadcrumbs')) {
-      toggleTestRow(testRows, rowHeader.dataset['index'] ?? '');
-    }
-  });
-
-  testRows.addEventListener('item-click', (event) => {
-    const detail = (event as CustomEvent<{ item: HTMLElement }>).detail;
-    const uid = decodeURIComponent(detail.item.dataset['suiteUid'] ?? '');
+    expanded.clear();
+    heights.clear();
+    const uid = decodeURIComponent((node as HTMLElement).dataset['suiteUid'] ?? '');
     controller.interaction({ filterOnSuiteUid: uid });
     writeHash(currentHashState());
-    updateSuiteButton();
-    updateSuitePopover();
   });
 }
 
-function attachEvents(): void {
-  attachFilterBarEvents();
-  attachSortEvents();
-  attachTestRowsEvents();
+/** Flip a leading twisty glyph (▸ collapsed / ▾ expanded) on a toggle's label. */
+function setTwisty(element: Element, isOpen: boolean): void {
+  const text = (element.textContent ?? '').replace(/^[▸▾]\s*/, '');
+  element.textContent = `${isOpen ? '▾' : '▸'} ${text}`;
 }
 
-// ---- Controller update callback ----
-
-function update(changed: Partial<State>): void {
-  if ('mode' in changed) {
-    renderApp();
+function toggleAssertions(table: HTMLElement, toggle: Element): void {
+  const index = (toggle as HTMLElement).dataset['assertIndex'] ?? '';
+  const body = table.querySelector<HTMLElement>(`.assert-body[data-assert-index="${CSS.escape(index)}"]`);
+  if (!body) {
     return;
   }
-  if ('tests' in changed) {
-    updateTestListContent();
+  const isOpen = body.style.display === 'none';
+  body.style.display = isOpen ? 'block' : 'none';
+  setTwisty(toggle, isOpen);
+  measureExpanded(table);
+}
+
+function toggleRow(table: HTMLElement, index: number): void {
+  if (expanded.has(index)) {
+    expanded.delete(index);
+    heights.delete(index);
+  } else {
+    expanded.add(index);
+  }
+  renderTable();
+  const row = table.querySelector(`.row[data-index="${CSS.escape(String(index))}"]`);
+  if (row) {
+    loadImages(row as HTMLElement);
   }
 }
 
-// ---- Popstate (back/forward navigation) ----
+function attachTableEvents(): void {
+  const table = $('#table');
+  if (!table) {
+    return;
+  }
+
+  table.addEventListener('scroll', () => renderTable(), { passive: true });
+
+  table.addEventListener('click', (event) => {
+    const target = event.target as Element;
+    const assertToggle = target.closest('.assert-toggle');
+    if (assertToggle) {
+      toggleAssertions(table, assertToggle);
+      return;
+    }
+    const head = target.closest('.row__head');
+    if (head) {
+      toggleRow(table, Number((head as HTMLElement).dataset['index']));
+    }
+  });
+}
+
+function attachConfigEvents(): void {
+  $('#configToggle')?.addEventListener('click', () => {
+    const json = $('#configJson');
+    const toggle = $('#configToggle');
+    if (!json || !toggle) {
+      return;
+    }
+    const isOpen = json.style.display === 'none';
+    json.style.display = isOpen ? 'block' : 'none';
+    toggle.setAttribute('aria-expanded', String(isOpen));
+    setTwisty(toggle, isOpen);
+  });
+}
+
+function attachDisplayEvents(): void {
+  attachHeaderEvents();
+  attachToolbarEvents();
+  attachSuiteTreeEvents();
+  attachTableEvents();
+  attachConfigEvents();
+}
+
+// ---- Controller update callback ---------------------------------------
+
+function update(changed: Partial<State>): void {
+  // Any state change in display mode re-renders the shell; `mode` flips open↔display.
+  if ('mode' in changed || 'report' in changed || 'tests' in changed) {
+    renderApp();
+  }
+}
+
+// ---- Popstate (back/forward) ------------------------------------------
 
 window.addEventListener('popstate', () => {
   const hashState = readHash();
-  if (Object.keys(hashState).length > 0) {
-    controller.interaction(hashState as Partial<State>);
+  if (Object.keys(hashState).length === 0) {
+    return;
   }
-  updateSuiteButton();
+
+  expanded.clear();
+  heights.clear();
+  controller.interaction(hashState as Partial<State>);
 });
 
-// ---- Boot ----
+// ---- Boot -------------------------------------------------------------
 
 document.addEventListener('DOMContentLoaded', () => {
   document.body.append(fileInput);
-  injectPopovers();
-  attachOpenExportEvents();
-  attachSuitePopoverEvents();
   controller.connect(update);
+
   if ('ctrf' in window && typeof window.ctrf === 'object' && window.ctrf) {
     controller.interaction({ report: window.ctrf as CommonTestReport });
   }
+
   const initialHash = readHash();
   if (Object.keys(initialHash).length > 0) {
     controller.interaction(initialHash as Partial<State>);

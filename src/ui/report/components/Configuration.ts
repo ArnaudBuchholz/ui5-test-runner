@@ -1,15 +1,14 @@
 import type { State } from '../../../reports/ui/types.js';
+import { escapeHtml } from '../utils/escapeHtml.js';
 
 export function renderConfiguration(state: State): string {
   const configuration = state.report.extra?.['configuration'];
-  return configuration
-    ? `<ui5-panel id="configPanel" collapsed no-animation="true">
-  <div slot="header" class="panel-header">
-    <ui5-title level="H4">Configuration</ui5-title>
-  </div>
-  <div class="config-body">
-    <pre class="config-json">${JSON.stringify(configuration, null, 2)}</pre>
-  </div>
-</ui5-panel>`
-    : '';
+  if (!configuration) {
+    return '';
+  }
+  const json = escapeHtml(JSON.stringify(configuration, null, 2));
+  return `<section class="config" id="configPanel">
+  <button class="config__toggle" id="configToggle" aria-expanded="false">▸ Configuration</button>
+  <pre class="config__json" id="configJson" style="display:none">${json}</pre>
+</section>`;
 }

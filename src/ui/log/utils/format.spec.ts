@@ -1,5 +1,13 @@
 import { describe, it, expect } from 'vitest';
-import { levelIcon, levelName, formatTimestamp, epochToDateTimePickerValue, formatBytes } from './format.js';
+import {
+  levelIcon,
+  levelName,
+  formatTimestamp,
+  epochToDateTimePickerValue,
+  formatBytes,
+  formatClock,
+  formatDuration
+} from './format.js';
 
 describe('levelIcon', () => {
   it('returns 🔍 for debug (0)', () => expect(levelIcon(0)).toBe('&#128269;'));
@@ -43,4 +51,20 @@ describe('formatBytes', () => {
   it('returns KB for 1024 bytes', () => expect(formatBytes(1024)).toBe('1.0 KB'));
   it('returns KB with one decimal for 1500 bytes', () => expect(formatBytes(1500)).toBe('1.5 KB'));
   it('returns MB for large values', () => expect(formatBytes(1_500_000)).toBe('1.4 MB'));
+});
+
+describe('formatClock', () => {
+  it('returns — for epoch 0', () => expect(formatClock(0)).toBe('—'));
+
+  it('formats time-of-day with millisecond precision', () => {
+    const epoch = new Date(2024, 0, 15, 9, 8, 7, 42).getTime();
+    expect(formatClock(epoch)).toBe('09:08:07.042');
+  });
+});
+
+describe('formatDuration', () => {
+  it('returns 0s for non-positive spans', () => expect(formatDuration(0)).toBe('0s'));
+  it('returns seconds with one decimal under a minute', () => expect(formatDuration(21_000)).toBe('21.0s'));
+  it('returns minutes and padded seconds at or above a minute', () => expect(formatDuration(65_000)).toBe('1m 05s'));
+  it('formats a multi-minute span', () => expect(formatDuration(221_000)).toBe('3m 41s'));
 });

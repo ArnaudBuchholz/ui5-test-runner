@@ -22,6 +22,31 @@ function pad(n: number): string {
   return n.toString().padStart(2, '0');
 }
 
+function pad3(n: number): string {
+  return n.toString().padStart(3, '0');
+}
+
+/** Short time-of-day with millisecond precision, e.g. 12:08:26.142 — used in the event stream. */
+export function formatClock(epoch: number): string {
+  if (!epoch) {
+    return '—';
+  }
+  const date = new Date(epoch);
+  return `${pad(date.getHours())}:${pad(date.getMinutes())}:${pad(date.getSeconds())}.${pad3(date.getMilliseconds())}`;
+}
+
+/** Human duration from a millisecond span, e.g. 221.0s or 1m 05s. */
+export function formatDuration(ms: number): string {
+  if (ms <= 0) {
+    return '0s';
+  }
+  if (ms < 60_000) {
+    return `${(ms / 1000).toFixed(1)}s`;
+  }
+  const totalSeconds = Math.round(ms / 1000);
+  return `${Math.floor(totalSeconds / 60)}m ${pad(totalSeconds % 60)}s`;
+}
+
 export function levelIcon(level: LogLevel): string {
   return LEVEL_ICONS[level] ?? '?';
 }

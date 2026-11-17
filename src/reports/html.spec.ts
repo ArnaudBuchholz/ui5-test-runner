@@ -24,9 +24,9 @@ beforeEach(() => {
   vi.mocked(FileSystem.writeFileSync).mockImplementation(() => {});
 });
 
-it('reads library and report JS then writes the HTML file', async () => {
+it('reads the report JS then writes the HTML file', async () => {
   await generateHtmlReport(NO_CONFIGURATION, EMPTY_REPORT);
-  expect(FileSystem.readFile).toHaveBeenCalledTimes(2);
+  expect(FileSystem.readFile).toHaveBeenCalledOnce();
   expect(FileSystem.writeFileSync).toHaveBeenCalledOnce();
   const [writtenPath, writtenContent] = vi.mocked(FileSystem.writeFileSync).mock.calls[0]!;
   expect(writtenPath).toBe(Path.join('/output', 'report.html'));
@@ -36,7 +36,7 @@ it('reads library and report JS then writes the HTML file', async () => {
 });
 
 describe('development mode paths', () => {
-  it('reads lib.js and html-report.js from dist/ui in development mode', async () => {
+  it('reads html-report.js from dist/ui in development mode', async () => {
     vi.resetModules();
     vi.doMock('../platform/constants.js', async (orig) => ({
       ...(await orig()),
