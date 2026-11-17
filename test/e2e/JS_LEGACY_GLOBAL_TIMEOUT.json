@@ -4,5 +4,6 @@
   "cwd": "../sample.js",
   "url": ["http://localhost:0/test/testsuite.qunit.html"],
   "globalTimeout": "3s",
-  "end": "RUNNER_EXIT_CODE={{exitCode}} NODE_OPTIONS= node ../e2e/check.mjs {{reportDir}} --failed"
+  "end": "RUNNER_EXIT_CODE={{exitCode}} NODE_OPTIONS= node ../e2e/check.mjs {{reportDir}} --failed",
+  "endOverrideExitCode": true
 }

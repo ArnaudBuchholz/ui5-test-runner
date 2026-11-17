@@ -3,5 +3,6 @@
   "batchLabel": "Legacy JS Sample with batch timeout",
   "batch": ["JS_LEGACY.json", "JS_LEGACY_REMOTE.json"],
   "batchTimeout": "1s",
-  "end": "RUNNER_EXIT_CODE={{exitCode}} NODE_OPTIONS= node test/e2e/check.mjs {{reportDir}} --failed"
+  "end": "RUNNER_EXIT_CODE={{exitCode}} NODE_OPTIONS= node test/e2e/check.mjs {{reportDir}} --failed",
+  "endOverrideExitCode": true
 }

@@ -4,5 +4,6 @@
   "cwd": "../sample.js",
   "url": ["http://localhost:0/test/unit/unitTests.qunit.html"],
   "pageTimeout": "1ms",
-  "end": "RUNNER_EXIT_CODE={{exitCode}} NODE_OPTIONS= node ../e2e/check.mjs {{reportDir}} --failed --summary 0,1,1"
+  "end": "RUNNER_EXIT_CODE={{exitCode}} NODE_OPTIONS= node ../e2e/check.mjs {{reportDir}} --failed --summary 0,1,1",
+  "endOverrideExitCode": true
 }

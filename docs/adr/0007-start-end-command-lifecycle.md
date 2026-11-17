@@ -15,7 +15,7 @@ UI5 test suites commonly require external infrastructure: a mock backend, a loca
 
 ## Decision
 
-Pre-test (`--start`) and post-test (`--end`) commands are parsed, substituted, and spawned as direct Node.js child processes — never via a shell. NPM script names are auto-detected and rewritten to `node [npm-cli.js] run <name>`. The end command has unconditional authority to override `Exit.code` in either direction.
+Pre-test (`--start`) and post-test (`--end`) commands are parsed, substituted, and spawned as direct Node.js child processes — never via a shell. NPM script names are auto-detected and rewritten to `node [npm-cli.js] run <name>`. By default the end command can only **fail** the run (a failing end command, or a timeout) — it never clears an existing test failure; the opt-in `--end-override-exit-code` restores full authority to override `Exit.code` in either direction.
 
 ```
   ┌──────────────────────────────────────────────────────────┐
@@ -106,22 +106,26 @@ This keeps the log source taxonomy unchanged while giving per-process control ov
 
 ### End Command Exit Code Authority
 
-After the end command process closes, `end()` writes its exit code into `Exit.code` whenever the command produced a defined code, and logs any transition between success and failure:
+After the end command process closes, `end()` reconciles its exit code with `Exit.code`. The default is **fail-only**: the end command can make a passing run fail, but a successful end command never clears an existing failure. The opt-in `--end-override-exit-code` (config key `endOverrideExitCode`) restores the end command's full authority to override `Exit.code` in either direction:
 
 ```typescript
-// ✅ End command has full authority — a change in either direction is warned and honoured
+// ✅ Default: fail-only — a successful end command cannot clear an existing failure.
+//    --end-override-exit-code restores both-direction authority.
 if (code !== undefined) {
   const before = Exit.code;
-  if (before === 0 && code !== 0) {
-    logger.warn({ source: 'job', message: 'status changed to error by end command' });
-  } else if (before !== 0 && code === 0) {
-    logger.warn({ source: 'job', message: 'status changed to success by end command' });
+  const isFailureCleared = before !== 0 && code === 0;
+  if (!isFailureCleared || configuration.endOverrideExitCode) {
+    if (before === 0 && code !== 0) {
+      logger.warn({ source: 'job', message: 'status changed to error by end command' });
+    } else if (isFailureCleared) {
+      logger.warn({ source: 'job', message: 'status changed to success by end command' });
+    }
+    Exit.code = code;
   }
-  Exit.code = code;
 }
 ```
 
-This is intentional: an end command can bless a failure (known flaky test that will be fixed separately) or taint a success (coverage threshold missed, artefact validation failed). The `logger.warn` (emitted under the `'job'` source) ensures the transition is always visible in logs.
+**Why the default is fail-only:** `--end` is commonly used for report generation and cleanup, where a `0` exit means only that post-processing succeeded — not that the tests passed. Letting that `0` override a failing run silently turns a red CI green (the motivating regression). The default therefore preserves test failures; `--end-override-exit-code` is for deliberate result-gating scripts (bless a known-flaky failure, or taint a success when a coverage threshold or artefact validation fails). The `logger.warn` (emitted under the `'job'` source) ensures any honoured transition is visible in logs.
 
 If the end command exceeds `--end-timeout`, it is killed and `Exit.code` is set to `-1`.
 
@@ -136,13 +140,13 @@ In **batch mode**: the handle is stored explicitly and killed in a `finally` blo
 ### Positive
 - ✅ **No shell for lifecycle commands**: start/end resolutions produce a `node`/binary invocation with no `sh`/`cmd` intermediary; consistent behaviour on Windows and POSIX (a shell is used only once, to discover the npm CLI path)
 - ✅ **NPM scripts work transparently**: `--start serve` works if `serve` is in `package.json` scripts, without the user knowing about npm-cli.js
-- ✅ **End command is a first-class result gate**: post-test validation scripts can change the outcome; the tool honours and logs the transition
+- ✅ **End command is a safe result gate by default**: a successful end command cannot hide failing tests; a failing one still fails the run. Deliberate result-gating scripts opt into full override with `--end-override-exit-code`, and the tool logs the transition
 - ✅ **`forceRender` is additive**: the existing log source taxonomy is unchanged; no new source names needed for lifecycle command output
 - ✅ **Substitution errors fail fast**: unknown `{{key}}` tokens throw before any process is spawned
 
 ### Negative/Trade-offs
 - ❌ **`npm run` overhead**: routing NPM scripts through `npm-cli.js` adds one extra Node.js process startup compared to running the script's binary directly
-- ❌ **End command replaces exit code**: whenever the end command yields a defined exit code it becomes the run's exit code; there is no "only override on failure" mode, so callers must be deliberate about exit codes
+- ❌ **End command can replace exit code (opt-in)**: with `--end-override-exit-code`, whenever the end command yields a defined exit code it becomes the run's exit code; callers enabling it must be deliberate about exit codes
 - ❌ **`startWaitUrl` polling is not cancellable mid-test**: if the start server crashes after the poll succeeds, there is no re-check mechanism
 
 ### Mitigation
@@ -154,7 +158,7 @@ In **batch mode**: the handle is stored explicitly and killed in a `finally` blo
 
 - **`src/Command.ts`** — tokenisation, NPM script detection, `{{param}}` substitution, env extraction
 - **`src/start.ts`** — spawns the start command; polls `startWaitUrl`; returns `IProcess` handle
-- **`src/end.ts`** — spawns the end command; overwrites `Exit.code` when the command returns a defined code; logs success/failure status transitions under the `'job'` source
+- **`src/end.ts`** — spawns the end command; by default only fails the run on a non-zero end code, and overwrites `Exit.code` in both directions when `endOverrideExitCode` is set; logs success/failure status transitions under the `'job'` source
 - **`src/Npm.ts`** — `getCliPath()` (memoized npm binary resolution), `listPackageScriptNames()` (reads `package.json`)
 - **`src/platform/Process.ts`** — `SpawnOptionsExtended.forceRender`; `IProcess` interface; per-line stdout/stderr logging
 - **`src/platform/logger/output/BaseLoggerOutput.ts`** — `_shouldRender()`: `forceRender` check before source filter

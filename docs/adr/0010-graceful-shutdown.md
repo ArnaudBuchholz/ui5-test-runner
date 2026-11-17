@@ -85,7 +85,7 @@ After all tasks have stopped, `_checkForHandlesLeak()` inspects `process._getAct
 
 ### `Exit.code`
 
-`process.exitCode` is accessed only via `Exit.code` (getter/setter). The setter asserts `Thread.isMainThread` — worker threads must never write `exitCode`. The end command uses this setter to exercise its unconditional authority over the final exit code (see [ADR-0007](./0007-start-end-command-lifecycle.md)).
+`process.exitCode` is accessed only via `Exit.code` (getter/setter). The setter asserts `Thread.isMainThread` — worker threads must never write `exitCode`. The end command uses this setter to reconcile the final exit code with its own (fail-only by default; full override via `--end-override-exit-code`, see [ADR-0007](./0007-start-end-command-lifecycle.md)).
 
 ## Consequences
 

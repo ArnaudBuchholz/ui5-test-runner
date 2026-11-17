@@ -61,6 +61,7 @@ relations:
 |[driver](options/driver.md)|--driver|-d|puppeteer \| playwright \| webdriverio \| selenium-webdriver|driver selection|
 |[dumpConfig](options/dumpConfig.md)|--dump-config||boolean|dump the resolved configuration as JSON and exit|
 |[end](options/end.md)|--end||string|command to be executed after the tests|
+|[endOverrideExitCode](options/endOverrideExitCode.md)|--end-override-exit-code||boolean|let the end command exit code override the runner result in both directions|
 |[endTimeout](options/endTimeout.md)|--end-timeout||timeout|maximum waiting time for the end command to execute|
 |[failFast](options/failFast.md)|--fail-fast|-f|boolean|stop the whole execution after the first failing page|
 |[failOpaFast](options/failOpaFast.md)|--fail-opa-fast|-fo|boolean|stop the OPA page execution after the first failing test|

@@ -17,6 +17,7 @@ relations:
     - options/log
     - options/screenshotOnFailure
     - options/end
+    - options/endOverrideExitCode
     - options/start
     - options/coverage
     - options/screenshot
@@ -202,6 +203,7 @@ The following version 5 UI5 mapping options have been removed:
 * coverage is now disabled by default, deprecating `--no-coverage`. The [`--coverage`](./options/coverage.md) option still exists and works as before — a version 5 project that relied on default coverage, or already passed `--coverage`, keeps coverage by passing `--coverage`.
 * screenshots are disabled by default, deprecating `--no-screenshot`
 * in remote mode, files served under `resources/` and `test-resources/` are no longer instrumented for coverage by default (this avoids busting the browser cache and defeating UI5 preload bundling). Application code is unaffected. When testing a UI5 library whose sources are served under `resources/`, use the new [`--coverage-remote-instrument`](./options/coverageRemoteInstrument.md) option to opt the relevant sub-paths back in.
+* the [`--end`](./options/end.md) command no longer overrides the runner's exit code by default. In version 5 a successful end command could turn a failing run green (and a failing one could fail a passing run); in version 6 the end command can only *fail* the run, never clear an existing test failure. Set [`--end-override-exit-code`](./options/endOverrideExitCode.md) to restore the version 5 both-direction override. See [Report generators](#report-generators) above.
 
 ### Renaming
 
@@ -229,6 +231,11 @@ By default, a screenshot is always captured if a test fails within the page. It 
 ### Report generators
 
 The report-generator mechanism has been removed. The version 5 option — the `--report-generator` CLI flag (short `-rg`), equivalently the `reportGenerator` key in a configuration file — no longer exists in version 6. A project that sets `reportGenerator` must drop it. If post-processing of the report is still needed, use [`--end`](./options/end.md) instead: the end command runs after the test run completes and can post-process the report file.
+
+> **⚠️ Whenever you propose `--end` (whether migrating `reportGenerator` or otherwise), you must state both of the following — they are part of the migration, not optional asides:**
+>
+> 1. **The default changed.** In version 5 the end command's exit code **always** overrode the runner's result: a post-processing script that exited `0` turned a run with failing tests into a success (and a non-zero exit failed a passing run). **In version 6 this is no longer the default** — by default the end command can only ever *fail* the run (a failing end command, or a timeout), but a **successful end command never clears an existing test failure**. This makes `--end` safe for report generation and cleanup, where the script exiting `0` means only that post-processing succeeded, not that the tests passed. A project migrating a `reportGenerator` to `--end` therefore gets the safer behaviour automatically.
+> 2. **Name the opt-in escape hatch.** Always name the [`--end-override-exit-code`](./options/endOverrideExitCode.md) option (config key `endOverrideExitCode`) as the way to restore the version 5 behaviour — the end command's exit code overriding the runner's result in **both** directions. Name it even when the project does not currently need it, so the reader knows the old behaviour is still reachable.
 
 ### Report format
 

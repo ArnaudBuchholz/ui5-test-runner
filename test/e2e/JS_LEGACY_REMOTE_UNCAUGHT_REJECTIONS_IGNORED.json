@@ -4,5 +4,6 @@
   "cwd": "../sample.js",
   "url": ["http://localhost:0/test/unit/unitTests.qunit.uncaught2.html"],
   "ignoreUnhandledRejections": true,
-  "end": "RUNNER_EXIT_CODE={{exitCode}} NODE_OPTIONS= node ../e2e/check.mjs {{reportDir}} --pages 1 --summary 3,0,3"
+  "end": "RUNNER_EXIT_CODE={{exitCode}} NODE_OPTIONS= node ../e2e/check.mjs {{reportDir}} --pages 1 --summary 3,0,3",
+  "endOverrideExitCode": true
 }

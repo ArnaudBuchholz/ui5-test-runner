@@ -41,18 +41,16 @@ export const end = async (configuration: Configuration): Promise<void> => {
   }
   if (code !== undefined) {
     const before = Exit.code;
-    if (before === 0 && code !== 0) {
-      logger.warn({
-        source: 'job',
-        message: 'status changed to error by end command'
-      });
-    } else if (before !== 0 && code === 0) {
-      logger.warn({
-        source: 'job',
-        message: 'status changed to success by end command'
-      });
+    const isFailureCleared = before !== 0 && code === 0;
+    // By default the end command can only fail the run, never clear an existing failure.
+    if (!isFailureCleared || configuration.endOverrideExitCode) {
+      if (before === 0 && code !== 0) {
+        logger.warn({ source: 'job', message: 'status changed to error by end command' });
+      } else if (isFailureCleared) {
+        logger.warn({ source: 'job', message: 'status changed to success by end command' });
+      }
+      Exit.code = code;
     }
-    Exit.code = code;
   }
   const duration = formatDuration(Date.now() - start);
   logger.info({ source: 'job', message: `End command executed (${duration})` });

@@ -11,6 +11,7 @@ const CWD = '/test/cwd';
 
 const NO_END_CONFIGURATION = { cwd: CWD } as Configuration;
 const END_CONFIGURATION = { cwd: CWD, end: 'my-command --flag' } as Configuration;
+const END_OVERRIDE_CONFIGURATION = { cwd: CWD, end: 'my-command --flag', endOverrideExitCode: true } as Configuration;
 const END_TIMEOUT = 5000;
 const END_WITH_TIMEOUT_CONFIGURATION = {
   cwd: CWD,
@@ -76,18 +77,22 @@ describe('end', () => {
       });
     });
 
-    it('sets Exit.code to 0 on clean exit', async () => {
+    it('sets Exit.code to 0 when the run was already successful', async () => {
+      Exit.code = 0;
       await end(END_CONFIGURATION);
       expect(Exit.code).toStrictEqual(0);
     });
 
-    it('warns when switching Exit.code from something to 0', async () => {
+    it('preserves an existing failure when the end command exits 0', async () => {
       Exit.code = 42;
       await end(END_CONFIGURATION);
-      expect(logger.warn).toHaveBeenCalledWith({
-        source: 'job',
-        message: 'status changed to success by end command'
-      });
+      expect(Exit.code).toStrictEqual(42);
+    });
+
+    it('does not warn about a status change when preserving an existing failure', async () => {
+      Exit.code = 42;
+      await end(END_CONFIGURATION);
+      expect(logger.warn).not.toHaveBeenCalled();
     });
 
     it('sets Exit.code to the process exit code', async () => {
@@ -96,10 +101,54 @@ describe('end', () => {
       expect(Exit.code).toBe(42);
     });
 
-    it('warns when switching Exit.code from 0 to something', async () => {
+    it('warns when a successful run is failed by the end command', async () => {
       Exit.code = 0;
       vi.mocked(Process.spawn).mockReturnValue(makeProcess(42));
       await end(END_CONFIGURATION);
+      expect(logger.warn).toHaveBeenCalledWith({
+        source: 'job',
+        message: 'status changed to error by end command'
+      });
+    });
+    it('leaves Exit.code unchanged when the end command yields no exit code', async () => {
+      Exit.code = DEFAULT_EXIT_CODE;
+      vi.mocked(Process.spawn).mockReturnValue({
+        pid: 123,
+        stdout: '',
+        stderr: '',
+        closed: Promise.resolve(),
+        code: undefined,
+        kill: vi.fn().mockResolvedValue(undefined)
+      });
+      await end(END_CONFIGURATION);
+      expect(Exit.code).toStrictEqual(DEFAULT_EXIT_CODE);
+    });
+  });
+
+  describe('when endOverrideExitCode is set', () => {
+    beforeEach(() => {
+      vi.mocked(Process.spawn).mockReturnValue(makeProcess(0));
+    });
+
+    it('clears an existing failure when the end command exits 0', async () => {
+      Exit.code = 42;
+      await end(END_OVERRIDE_CONFIGURATION);
+      expect(Exit.code).toStrictEqual(0);
+    });
+
+    it('warns when switching Exit.code from a failure to success', async () => {
+      Exit.code = 42;
+      await end(END_OVERRIDE_CONFIGURATION);
+      expect(logger.warn).toHaveBeenCalledWith({
+        source: 'job',
+        message: 'status changed to success by end command'
+      });
+    });
+
+    it('warns when a successful run is failed by the end command', async () => {
+      Exit.code = 0;
+      vi.mocked(Process.spawn).mockReturnValue(makeProcess(42));
+      await end(END_OVERRIDE_CONFIGURATION);
       expect(logger.warn).toHaveBeenCalledWith({
         source: 'job',
         message: 'status changed to error by end command'

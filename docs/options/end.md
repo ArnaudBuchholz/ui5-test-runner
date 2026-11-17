@@ -12,6 +12,7 @@ relations:
     - modes/remote
   see-also:
     - options/cwd
+    - options/endOverrideExitCode
 ---
 # `--end`
 
@@ -37,7 +38,11 @@ In addition to configuration options, the following extra placeholders are avail
 
 Environment variables and full command syntax are documented in [start](./start.md).
 
-> **Note:** The exit code of the end command overrides the runner's exit code, allowing you to enforce failure or suppress errors from the test execution.
+> **Note:** By default the end command can only **fail** the run — a non-zero exit code (or a timeout)
+> fails it, but a successful (`0`) end command never clears an existing test failure. This keeps
+> `--end` safe for report generation and cleanup. To let the end command override the runner's result
+> in **both** directions (bless a failure or taint a success), set
+> [`--end-override-exit-code`](./endOverrideExitCode.md).
 
 ## Example
 

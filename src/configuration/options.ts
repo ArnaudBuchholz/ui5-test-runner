@@ -281,6 +281,11 @@ export const options = [
     description: 'command to be executed after the tests'
   },
   {
+    name: 'endOverrideExitCode',
+    type: 'boolean',
+    description: 'let the end command exit code override the runner result in both directions'
+  },
+  {
     name: 'endTimeout',
     type: 'timeout',
     description: 'maximum waiting time for the end command to execute'

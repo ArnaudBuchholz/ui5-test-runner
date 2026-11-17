@@ -26,3 +26,4 @@ How do I migrate to ui5-test-runner 6 ?
 v6 = "It should explain how to migrate the project to ui5-test-runner version 6"
 report_generator = "it should explain that reportGenerator is no more supported and suggest the end command instead"
 lib = "it should explain that the libs option is renamed to lib"
+end_exit_code = "when proposing the end command for report generation, it should warn that by default a successful end command does not override the test result (a passing report generator will not hide failing tests), and mention --end-override-exit-code (config key endOverrideExitCode) for the opt-in override behavior"

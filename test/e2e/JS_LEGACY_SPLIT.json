@@ -3,5 +3,6 @@
   "batchLabel": "Legacy JS Sample with OPA split",
   "cwd": "../sample.js",
   "splitOpa": true,
-  "end": "RUNNER_EXIT_CODE={{exitCode}} NODE_OPTIONS= node ../e2e/check.mjs {{reportDir}} --pages 3"
+  "end": "RUNNER_EXIT_CODE={{exitCode}} NODE_OPTIONS= node ../e2e/check.mjs {{reportDir}} --pages 3",
+  "endOverrideExitCode": true
 }

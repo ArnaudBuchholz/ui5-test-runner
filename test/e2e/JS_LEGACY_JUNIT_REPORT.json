@@ -2,5 +2,6 @@
   "batchId": "JS_LEGACY_JUNIT_REPORT",
   "batchLabel": "Legacy JS Sample with junit XML report",
   "cwd": "../sample.js",
-  "end": "RUNNER_EXIT_CODE={{exitCode}} NODE_OPTIONS= node ../e2e/check.mjs {{reportDir}} --pages 2 --junit-xml-report"
+  "end": "RUNNER_EXIT_CODE={{exitCode}} NODE_OPTIONS= node ../e2e/check.mjs {{reportDir}} --pages 2 --junit-xml-report",
+  "endOverrideExitCode": true
 }

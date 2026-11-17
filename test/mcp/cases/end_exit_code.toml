@@ -1,0 +1,9 @@
+[user]
+question="""
+I use the --end command to generate a custom report from report.json. If my tests fail but the report generator exits 0, what exit code does ui5-test-runner return, and how can I change that?
+"""
+
+[expected]
+default = "it should explain that by default a successful end command does NOT clear existing test failures: the run stays failed (the runner keeps its non-zero exit code) even though the end command exited 0"
+end_failure = "it should explain that a failing end command (non-zero exit code or a timeout) still fails the run"
+opt_in = "it should name --end-override-exit-code (config key endOverrideExitCode) as the opt-in option that lets the end command's exit code override the runner's result in both directions (bless a failure or taint a success)"

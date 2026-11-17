@@ -11,5 +11,6 @@
   "coverageTempDir": "{{reportDir}}/.nyc_output",
   "coverageReportDir": "{{reportDir}}/coverage",
   "coverageCheckStatements": 60,
-  "end": "RUNNER_EXIT_CODE={{exitCode}} NODE_OPTIONS= node ../e2e/check.mjs {{reportDir}} --coverage"
+  "end": "RUNNER_EXIT_CODE={{exitCode}} NODE_OPTIONS= node ../e2e/check.mjs {{reportDir}} --coverage",
+  "endOverrideExitCode": true
 }

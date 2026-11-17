@@ -14,5 +14,6 @@
     "http://localhost:0/test/testsuite.qunit.html?id=8",
     "http://localhost:0/test/testsuite.qunit.html?id=9"
   ],
-  "end": "RUNNER_EXIT_CODE={{exitCode}} NODE_OPTIONS= node ../e2e/check.mjs {{reportDir}} --pages 20"
+  "end": "RUNNER_EXIT_CODE={{exitCode}} NODE_OPTIONS= node ../e2e/check.mjs {{reportDir}} --pages 20",
+  "endOverrideExitCode": true
 }
