@@ -333,6 +333,14 @@ export const options = [
     description: 'do not fail the test when a page raises an unhandled promise rejection'
   },
   {
+    name: 'jest',
+    short: 'je',
+    type: 'boolean',
+    browserExposed: true,
+    batchForwarded: true,
+    description: 'run the test page as a jest suite using the built-in jest runtime'
+  },
+  {
     name: 'junitXmlFilename',
     type: 'string',
     description: 'filename for the JUnit XML report saved in the report directory',

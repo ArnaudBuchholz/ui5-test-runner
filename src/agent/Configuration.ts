@@ -10,6 +10,7 @@ export type Configuration = {
   agentScreenshotTimeout: number;
   coverageRemoteInstrument: string[];
   driver: string;
+  jest: boolean;
   parallel: number;
   screenshot: boolean;
   splitOpa: boolean;

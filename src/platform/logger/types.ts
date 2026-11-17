@@ -38,7 +38,7 @@ export type PageProgressData = {
   max: number;
   /** Errors */
   errors: number;
-  type: 'unknown' | 'qunit' | 'opa';
+  type: 'unknown' | 'qunit' | 'opa' | 'jest';
   remove?: true;
 };
 

@@ -27,6 +27,8 @@ declare global {
       config: Configuration;
       state: State;
       results: CommonTestReport['results'];
+      /** Starts the jest run; the test page calls it once its spec files are loaded */
+      jestStart?: () => void;
     };
   }
 }

@@ -86,7 +86,9 @@ export default [
       // Parameterized tests are used when useful
       'sonarjs/parameterized-tests': 'off',
       // File system APIs are all mocked
-      'sonarjs/publicly-writable-directories': 'off'
+      'sonarjs/publicly-writable-directories': 'off',
+      // Matcher-library tests legitimately assert expect(x).toBe(x) shapes
+      'sonarjs/no-trivial-assertions': 'off'
     }
   },
   // *Must* use any

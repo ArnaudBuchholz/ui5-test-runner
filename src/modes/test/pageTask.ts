@@ -28,7 +28,35 @@ export const agentStateMessage = (agentState: AgentState): string => {
     const progress = `${agentState.executed}/${agentState.total}`;
     return agentState.done ? `agent state: ${kind} done ${progress}` : `agent state: ${kind} ${progress}`;
   }
+  if (agentState.type === 'jest') {
+    const progress = `${agentState.executed}/${agentState.total}`;
+    return agentState.done ? `agent state: jest done ${progress}` : `agent state: jest ${progress}`;
+  }
   return agentState.type === 'unknown' ? 'agent state: unknown' : 'agent state: loading';
+};
+
+const reportProgress = (
+  context: PageContext,
+  type: 'qunit' | 'opa' | 'jest',
+  agentState: { executed: number; total: number; errors: number }
+) => {
+  if (agentState.total <= 0) {
+    return;
+  }
+  const { executed, total, errors } = agentState;
+  if (executed === context.lastExecuted && total === context.lastTotal) {
+    return;
+  }
+  context.lastExecuted = executed;
+  context.lastTotal = total;
+  context.errors = errors;
+  context.type = type;
+  logger.info({
+    source: 'progress',
+    message: context.url,
+    pageId: context.pageId,
+    data: { max: total, value: executed, type, errors }
+  });
 };
 
 const reportQunitProgress = (
@@ -39,24 +67,7 @@ const reportQunitProgress = (
   if (!isScreenshotEnabled && agentState.isOpa) {
     context.loopDelay = 1000; // No need to stress out, they are slower
   }
-  if (agentState.total <= 0) {
-    return;
-  }
-  const { executed, total, errors } = agentState;
-  if (executed === context.lastExecuted && total === context.lastTotal) {
-    return;
-  }
-  const type = agentState.isOpa ? 'opa' : 'qunit';
-  context.lastExecuted = executed;
-  context.lastTotal = total;
-  context.errors = errors;
-  context.type = type;
-  logger.info({
-    source: 'progress',
-    message: context.url,
-    pageId: context.pageId,
-    data: { max: agentState.total, value: agentState.executed, type, errors }
-  });
+  reportProgress(context, agentState.isOpa ? 'opa' : 'qunit', agentState);
 };
 
 export const reportError = (url: string, message: string, error?: IError) => {
@@ -158,6 +169,8 @@ const shouldStopBasedOnAgentState = (
         data: { state: agentState }
       });
       assert(false, 'unable to detect page type');
+    } else if (agentState.type === 'jest') {
+      reportProgress(context, 'jest', agentState);
     } else {
       assert(agentState.type === 'QUnit', 'unexpected agent state');
       reportQunitProgress(context, agentState, isScreenshotEnabled);
@@ -166,6 +179,11 @@ const shouldStopBasedOnAgentState = (
   }
   if (agentState.type === 'QUnit') {
     reportQunitProgress(context, agentState, isScreenshotEnabled);
+    if (agentState.uncaughtErrors?.length) {
+      return shouldUncaughtErrorsFail(context, agentState.uncaughtErrors, configuration);
+    }
+  } else if (agentState.type === 'jest') {
+    reportProgress(context, 'jest', agentState);
     if (agentState.uncaughtErrors?.length) {
       return shouldUncaughtErrorsFail(context, agentState.uncaughtErrors, configuration);
     }

@@ -35,4 +35,14 @@ export type AgentState = {
       /** Filename requested by the agent for the next screenshot, or false when none pending */
       pendingScreenshot: string | false;
     }
+  | {
+      /** Jest tests */
+      type: 'jest';
+      /** Number of tests executed so far (including errors) */
+      executed: number;
+      /** Number of errors so far */
+      errors: number;
+      /** Total number of tests */
+      total: number;
+    }
 );

@@ -1,6 +1,7 @@
 import { state } from './state.js';
 import { suite } from './suite.js';
 import { qunit } from './qunit.js';
+import { jest } from './jest/index.js';
 import type { AgentState } from '../types/AgentState.js';
 import { log } from './log.js';
 import { getConfig } from './config.js';
@@ -14,12 +15,15 @@ window.addEventListener('load', () => {
   log(`screen: ${screen.width}x${screen.height}, devicePixelRatio: ${window.devicePixelRatio}`);
   log(`position: ${window.screenX},${window.screenY}`);
   log(`userAgent: ${navigator.userAgent}`);
-  const { agentDetectionTimeout, agentDetectionInterval, agentDetectionMaxInterval } = getConfig();
+  const { agentDetectionTimeout, agentDetectionInterval, agentDetectionMaxInterval, jest: isJest } = getConfig();
   const loaded = Date.now();
   state.loaded = loaded;
   let delay = agentDetectionInterval;
   const detect = () => {
-    if (typeof window.suite === 'function') {
+    if (isJest) {
+      log('jest mode');
+      jest();
+    } else if (typeof window.suite === 'function') {
       log('suite detected');
       void suite();
     } else if (window.QUnit !== undefined) {
