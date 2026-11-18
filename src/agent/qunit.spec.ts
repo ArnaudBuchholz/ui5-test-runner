@@ -202,11 +202,48 @@ it('splits OPA page by module when splitOpa is enabled', async () => {
 
   await execQunit();
 
-  expect(state).toMatchObject({
-    done: true,
-    type: 'suite',
-    pages: [expect.stringContaining('moduleId='), expect.stringContaining('moduleId=')]
+  expect.assert(state.type === 'suite');
+  expect(state.pages).toHaveLength(2);
+  expect(state.pages[0]!.url).toContain('moduleId=');
+  expect(state.pages[1]!.url).toContain('moduleId=');
+});
+
+it('forwards coverageOnly and coverageNever to split OPA pages', async () => {
+  vi.mocked(getConfig).mockReturnValue({
+    ...DEFAULT_CONFIG,
+    splitOpa: true,
+    coverageOnly: ['sap/ui/demo/todo/'],
+    coverageNever: ['test-resources/']
   });
+  window.sap = { ui: { test: { Opa5: class {} } } };
+
+  QUnit.module('Journey1');
+  QUnit.test('step1', (assert) => assert.ok(true));
+  QUnit.module('Journey2');
+  QUnit.test('step2', (assert) => assert.ok(true));
+
+  await execQunit();
+
+  expect.assert(state.type === 'suite');
+  expect(state.pages).toHaveLength(2);
+  expect(state.pages[0]!.coverage).toStrictEqual({ only: ['sap/ui/demo/todo/'], never: ['test-resources/'] });
+  expect(state.pages[1]!.coverage).toStrictEqual({ only: ['sap/ui/demo/todo/'], never: ['test-resources/'] });
+});
+
+it('omits coverage from split pages when coverageOnly and coverageNever are not set', async () => {
+  vi.mocked(getConfig).mockReturnValue({ ...DEFAULT_CONFIG, splitOpa: true });
+  window.sap = { ui: { test: { Opa5: class {} } } };
+
+  QUnit.module('Journey1');
+  QUnit.test('step1', (assert) => assert.ok(true));
+  QUnit.module('Journey2');
+  QUnit.test('step2', (assert) => assert.ok(true));
+
+  await execQunit();
+
+  expect.assert(state.type === 'suite');
+  expect(state.pages[0]!.coverage).toBeUndefined();
+  expect(state.pages[1]!.coverage).toBeUndefined();
 });
 
 it('does not split when moduleId is already in URL (already a split page)', async () => {

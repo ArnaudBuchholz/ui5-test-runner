@@ -1,0 +1,12 @@
+{
+  "batchId": "JS_REMOTE_COVERAGE_FILTER_CLI",
+  "batchLabel": "Remote JS sample with coverage only/never filtering from the CLI options",
+  "url": ["http://localhost:8080/test/testsuite.qunit.html"],
+  "coverage": true,
+  "coverageSourceDir": "../sample.js/webapp",
+  "coverageOnly": ["controller/"],
+  "coverageNever": ["controller/App.controller.js"],
+  "coverageTempDir": "{{reportDir}}/.nyc_output",
+  "coverageReportDir": "{{reportDir}}/coverage",
+  "end": "RUNNER_EXIT_CODE={{exitCode}} NODE_OPTIONS= node test/e2e/check.mjs {{reportDir}} --pages 2 --coverage --coverage-include controller/BaseController.js --coverage-include controller/Main.controller.js --coverage-exclude controller/App.controller.js --coverage-exclude test/"
+}

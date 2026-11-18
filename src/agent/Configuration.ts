@@ -8,6 +8,8 @@ export type Configuration = {
   agentDetectionTimeout: number;
   agentNoTestsTimeout: number;
   agentScreenshotTimeout: number;
+  coverageNever: string[];
+  coverageOnly: string[];
   coverageRemoteInstrument: string[];
   driver: string;
   parallel: number;

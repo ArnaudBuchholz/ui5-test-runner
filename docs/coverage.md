@@ -16,6 +16,9 @@ relations:
     - options/coverageReportDir
     - options/coverageSourceDir
     - options/coverageRemoteInstrument
+    - options/coverageOnly
+    - options/coverageNever
+    - coverage_scope
     - options/lib
     - options/webapp
     - options/url
@@ -81,7 +84,7 @@ The runner merges your settings file with the following forced overrides before 
 
 | Key | Value | Reason |
 |---|---|---|
-| `all` | `true` (unless you explicitly set `false`) | ensures files never loaded during tests still appear with 0% coverage |
+| `all` | `true` (unless you set `false`, or `--coverage-only`/`--coverage-never` is used) | ensures files never loaded during tests still appear with 0% coverage |
 | `sourceMap` | `false` | source maps point to pre-instrumented originals, causing double-mapping |
 | `coverageGlobalScope` | `"window.top"` | UI5 apps run in iframes; coverage is accumulated on `window.top` |
 | `coverageGlobalScopeFunc` | `false` | prevents nyc from wrapping the scope lookup, which breaks in sandboxed iframes |
@@ -119,7 +122,74 @@ The agent does **not** append the parameter to files served under `resources/` o
 
 When `all: true` is set in `.nycrc.json` (the default), nyc generates a zero-hit baseline for every instrumented file before any tests run. A file that is never individually fetched over HTTP during the test run will keep that 0% baseline in the final report.
 
-This commonly happens with UI5 library initializer files (e.g. `library.js`): UI5 loads them via a preload bundle fetched from the CDN rather than as individual HTTP requests, so the instrumented copy is never executed, and the file appears in the report with 0% coverage even though it was instrumented successfully.
+This commonly happens with UI5 library initializer files (e.g. `library.js`): UI5 loads them via a preload bundle fetched from the CDN rather than as individual HTTP requests, so the instrumented copy is never executed, and the file appears in the report with 0% coverage even though it was instrumented successfully. To keep such files (or test sources, generated code) out of the report entirely, see [Restricting the covered scope](#restricting-the-covered-scope).
+
+## Restricting the covered scope
+
+Two options narrow the covered scope by **path prefix**, relative to `--coverage-source-dir` (or
+`--webapp` when it is not set) — see [Coverage scope and filtering](./coverage_scope.md) for the full
+mode/server/baseline matrix:
+
+- [`--coverage-only <prefix...>`](./options/coverageOnly.md) — keep only files whose path starts with
+  one of the prefixes.
+- [`--coverage-never <prefix...>`](./options/coverageNever.md) — drop files whose path starts with one
+  of the prefixes.
+
+Each option acts at two layers:
+
+1. **Instrumentation gate (browser side)** — a non-matching module never gets `?instrument=true`, so
+   it is never instrumented and produces no `window.__coverage__` entry. The prefix is matched against
+   the request path (equal to the source-relative path when the app is served at the server root).
+2. **Report (nyc side)** — the prefixes become Istanbul `include`/`exclude` globs.
+
+### Interaction with the baseline
+
+The `all: true` baseline would reintroduce the files these options exclude, so the runner suppresses it
+whenever filtering is in effect (forced to `all: false` for command-line filters, deleted after the run
+for testsuite filters). Either way, excluded files do not reappear at 0% — see
+[Coverage scope and filtering](./coverage_scope.md#where-the-filters-come-from-and-the-baseline).
+
+### Declaring the coverage scope from a testsuite
+
+In newer testsuites, the `testsuite.qunit.js` only declares a list of pages and options:
+
+```javascript
+sap.ui.define(function () {
+	"use strict";
+	return {
+		name: "QUnit test suite for Todo App",
+		defaults: {
+			page: "ui5://test-resources/sap/ui/demo/todo/Test.qunit.html?testsuite={suite}&test={name}",
+			coverage: {
+				only: "sap/ui/demo/todo/",
+				never: "test-resources/sap/ui/demo/todo/"
+			}
+		},
+		tests: {
+			"unit/unitTests": {
+				title: "Unit tests for Todo App"
+			}
+		}
+	};
+});
+```
+
+The declarative suite is converted by the UI5 Test Starter into `addTestPage` calls, so the
+`coverage.only`/`coverage.never` entries reach the runner exactly as the imperative form would — they
+drive the instrumentation gate and the baseline suppression described above.
+
+### Keep coverage settings consistent across a run
+
+Coverage filtering is resolved **per run**, not per URL: the single generated `.nycrc.json` carries one
+`only`/`never` combination. Testsuite-declared filters must agree — either no testsuite declares a
+filter, or they all declare the **same** one; a divergence is a **fatal error** (the run reports a failed
+test and exits non-zero). The command-line `--coverage-only`/`--coverage-never` apply globally and are
+independent of this check.
+
+If different suites or projects need different scopes, run them separately and
+[aggregate](#aggregate-coverage-for-several-projects) the results. See
+[All testsuites in a run must declare the same scope](./coverage_scope.md#all-testsuites-in-a-run-must-declare-the-same-scope)
+for details.
 
 ## Remote mode
 
@@ -155,7 +225,7 @@ server:
         - "resources/"
 ```
 
-**Implementation note** : unlike the expected usage of the middleware, `ui5-test-runner` generates the coverage report. It forces the runner to download all the covered source files locally to ensure the report can be generated.
+**Implementation note** : unlike the expected usage of the middleware, `ui5-test-runner` generates the coverage report itself. This requires the covered source files to be available locally (via [`--coverage-source-dir`](./options/coverageSourceDir.md)) so the report can be generated.
 
 ### TypeScript `@ui5/cli` projects
 
@@ -192,9 +262,7 @@ npm i --save-dev babel-plugin-istanbul
 
 **NOTE** : The `overridesToOverride` is only needed in ui5 versions < 1.112.x as mentioned in the [transform-ui5 documentation](https://github.com/ui5-community/babel-plugin-transform-modules-ui5?tab=readme-ov-file#properties-related-to-controller-extensions).
 
-**NOTE** : You may consider tweaking in a distinct configuration file and use the `--config` option to run it.
-
-For instance : `ui5 serve --config ui5-coverage.yaml`
+**NOTE** : You may consider tweaking in a distinct configuration file and use the `--config` option to run it, for instance : `ui5 serve --config ui5-coverage.yaml`
 
 #### Excluding test code from coverage reporting in TypeScript projects
 

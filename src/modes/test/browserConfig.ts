@@ -20,7 +20,22 @@ export const initBrowserConfig = (configuration: Configuration): void => {
   _browserConfigScript = `(function(){window['${UI5_TEST_RUNNER}']=window['${UI5_TEST_RUNNER}']||{};window['${UI5_TEST_RUNNER}'].config=${JSON.stringify(payload, serializeRegExps)};})();`;
 };
 
-export const getBrowserConfigScript = (pageId: number): string => {
+export type PageCoverageOverride = {
+  coverageOnly?: string | string[];
+  coverageNever?: string | string[];
+};
+
+export const getBrowserConfigScript = (pageId: number, coverageOverride?: PageCoverageOverride): string => {
   assert(_browserConfigScript !== undefined, 'browserConfig not initialized');
-  return _browserConfigScript + `(function(){window['${UI5_TEST_RUNNER}'].config.pageId=${pageId};})();`;
+  const overrides: Record<string, unknown> = { pageId };
+  if (coverageOverride?.coverageOnly !== undefined) {
+    overrides['coverageOnly'] = [coverageOverride.coverageOnly].flat();
+  }
+  if (coverageOverride?.coverageNever !== undefined) {
+    overrides['coverageNever'] = [coverageOverride.coverageNever].flat();
+  }
+  return (
+    _browserConfigScript +
+    `(function(){Object.assign(window['${UI5_TEST_RUNNER}'].config,${JSON.stringify(overrides)});})();`
+  );
 };

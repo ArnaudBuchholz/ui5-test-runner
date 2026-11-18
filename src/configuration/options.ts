@@ -194,6 +194,20 @@ export const options = [
     default: 0
   },
   {
+    name: 'coverageNever',
+    type: 'string',
+    multiple: true,
+    browserExposed: true,
+    description: 'resource path prefixes to exclude from coverage (instrumentation and report)'
+  },
+  {
+    name: 'coverageOnly',
+    type: 'string',
+    multiple: true,
+    browserExposed: true,
+    description: 'resource path prefixes to include in coverage (instrumentation and report)'
+  },
+  {
     name: 'coverageRemoteInstrument',
     type: 'regexp',
     multiple: true,

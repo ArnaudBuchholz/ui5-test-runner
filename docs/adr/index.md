@@ -20,6 +20,7 @@ This directory documents significant architectural decisions made in the `ui5-te
 | [0012](./0012-screenshot-capture-and-attachment.md) | Screenshot Capture and Attachment | Accepted | Agent owns screenshot filenames (built from pageId+testId+logIndex), signals the runner via `pendingScreenshot: string | false`, and attaches per-assertion screenshots to `CTRFTest.attachments[]` in `testDone` |
 | [0013](./0013-browser-selection.md) | Browser Selection Architecture | Accepted | Split driver (automation library) and browser (actual browser) into two flags; generic `json` option type; static `BrowserDriverDescriptor`; enumeration + option-level validation for per-driver browser validity |
 | [0014](./0014-mcp-kb-evaluation-harness.md) | MCP Knowledge-Base Evaluation Harness | Accepted | LLM-as-judge harness (`test/mcp/`) that drives the model-under-test against the live MCP server and scores answers against per-criterion verdicts; `--repeat` turns noisy pass/fail into a pass rate (0/N = real gap, mixed = noise), with `meta.skip` deferral and `--page-filter` selection |
+| [0015](./0015-runtime-derived-configuration-state.md) | Runtime-Derived Configuration State | Accepted | Segregate state computed during execution into a reserved `configuration.runtime` sub-object (members optional, container initialized at validation time) so it never collides with the option-name namespace and its mid-run lifecycle is explicit |
 
 ## Quick Navigation
 
@@ -37,6 +38,7 @@ This directory documents significant architectural decisions made in the `ui5-te
 - **When modifying `src/modes/test/screenshot.ts`, screenshot naming, or per-assertion screenshot attachment** → See [ADR-0012](./0012-screenshot-capture-and-attachment.md)
 - **When modifying `src/browsers/`, `src/configuration/validators/`, or `docs/options/browser.md`/`driver.md`** → See [ADR-0013](./0013-browser-selection.md)
 - **When modifying `test/mcp/` or adding/tuning MCP knowledge-base evaluation cases** → See [ADR-0014](./0014-mcp-kb-evaluation-harness.md)
+- **When adding state computed during execution to `Configuration` (the `runtime` sub-object)** → See [ADR-0015](./0015-runtime-derived-configuration-state.md)
 
 ## Cross-Cutting Concerns
 

@@ -27,11 +27,27 @@ it('getBrowserConfigScript includes browserExposed option values', () => {
 
 it('getBrowserConfigScript includes a self-executing script setting pageId', () => {
   const script = getBrowserConfigScript(789);
-  expect(script).toContain('.config.pageId=789');
+  expect(script).toContain('"pageId":789');
 });
 
 it('serializes browserExposed regexp options to their source string', () => {
   initBrowserConfig({ coverageRemoteInstrument: [/^my\/lib\//, /^other\//] } as unknown as Configuration);
   const script = getBrowserConfigScript(1);
   expect(script).toContain(String.raw`"coverageRemoteInstrument":["^my\\/lib\\/","^other\\/"]`);
+});
+
+it('injects coverageOnly as an array when provided as a string', () => {
+  const script = getBrowserConfigScript(1, { coverageOnly: 'sap/ui/demo/todo/' });
+  expect(script).toContain('"coverageOnly":["sap/ui/demo/todo/"]');
+});
+
+it('injects coverageNever as an array when provided as an array', () => {
+  const script = getBrowserConfigScript(1, { coverageNever: ['test-resources/', 'mock/'] });
+  expect(script).toContain('"coverageNever":["test-resources/","mock/"]');
+});
+
+it('injects both coverageOnly and coverageNever when both are provided', () => {
+  const script = getBrowserConfigScript(1, { coverageOnly: 'sap/', coverageNever: 'test-resources/' });
+  expect(script).toContain('"coverageOnly":["sap/"]');
+  expect(script).toContain('"coverageNever":["test-resources/"]');
 });

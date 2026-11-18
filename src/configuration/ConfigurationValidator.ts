@@ -1,4 +1,5 @@
 import type { Configuration } from './Configuration.js';
+import { createConfigurationStructuralMembers } from './Configuration.js';
 import type { Option, OptionType } from './Option.js';
 import { options, defaults } from './options.js';
 import { indexedOptions } from './indexedOptions.js';
@@ -203,7 +204,7 @@ export const ConfigurationValidator = {
       }
     }
     if (!Object.hasOwn(withDefaults, 'sources')) {
-      Object.assign(withDefaults, { sources: {} });
+      Object.assign(withDefaults, createConfigurationStructuralMembers());
     }
     const merged = await this.merge(withDefaults, explicitKeys, depth);
     if (depth === 0) {

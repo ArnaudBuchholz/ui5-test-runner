@@ -42,7 +42,7 @@ it('detects a suite', async () => {
   await vi.waitFor(() => {
     expect(state.loaded).toBeGreaterThan(0);
     expect.assert(state.type === 'suite');
-    expect(state.pages).toStrictEqual(['test.html']);
+    expect(state.pages).toStrictEqual([{ url: 'test.html' }]);
   });
 });
 

@@ -11,11 +11,11 @@ const originalOpen = XMLHttpRequest.prototype.open;
 const originalSetAttribute = HTMLScriptElement.prototype.setAttribute;
 let nativeOpen = vi.spyOn(XMLHttpRequest.prototype, 'open');
 
-const loadAgent = async (coverageRemoteInstrument?: string[]) => {
+const loadAgent = async (coverageRemoteInstrument?: string[], coverageOnly?: string[], coverageNever?: string[]) => {
   XMLHttpRequest.prototype.open = originalOpen;
   HTMLScriptElement.prototype.setAttribute = originalSetAttribute;
   nativeOpen = vi.spyOn(XMLHttpRequest.prototype, 'open');
-  vi.mocked(getConfig).mockReturnValue({ coverageRemoteInstrument } as Configuration);
+  vi.mocked(getConfig).mockReturnValue({ coverageRemoteInstrument, coverageOnly, coverageNever } as Configuration);
   vi.resetModules();
   await import('./ui5Coverage.js');
 };
@@ -160,5 +160,84 @@ describe('XMLHttpRequest.prototype.open', () => {
     simulateSapUiLoader();
     new XMLHttpRequest().open('GET', 'https://example.com/Component.js', false);
     expect(nativeOpen.mock.calls[0]?.[2]).toBe(false);
+  });
+});
+
+describe('coverageOnly / coverageNever', () => {
+  const simulateSapUiLoader = () => {
+    (window as { sap?: unknown }).sap = { ui: { loader: {} } };
+  };
+
+  it('excludes a module matching coverageNever', async () => {
+    await loadAgent(undefined, undefined, ['test-resources/sap/ui/demo/todo/']);
+    simulateSapUiLoader();
+    new XMLHttpRequest().open('GET', 'https://example.com/test-resources/sap/ui/demo/todo/Test.js');
+    expect(nativeOpen).toHaveBeenCalledWith(
+      'GET',
+      'https://example.com/test-resources/sap/ui/demo/todo/Test.js',
+      true,
+      undefined,
+      undefined
+    );
+  });
+
+  it('includes a module not matching coverageNever', async () => {
+    await loadAgent(undefined, undefined, ['test-resources/sap/ui/demo/todo/']);
+    simulateSapUiLoader();
+    new XMLHttpRequest().open('GET', 'https://example.com/Component.js');
+    expect(nativeOpen).toHaveBeenCalledWith(
+      'GET',
+      'https://example.com/Component.js?instrument=true',
+      true,
+      undefined,
+      undefined
+    );
+  });
+
+  it('includes a module matching coverageOnly', async () => {
+    await loadAgent(undefined, ['sap/ui/demo/todo/']);
+    simulateSapUiLoader();
+    new XMLHttpRequest().open('GET', 'https://example.com/sap/ui/demo/todo/Component.js');
+    expect(nativeOpen).toHaveBeenCalledWith(
+      'GET',
+      'https://example.com/sap/ui/demo/todo/Component.js?instrument=true',
+      true,
+      undefined,
+      undefined
+    );
+  });
+
+  it('excludes a module not matching coverageOnly', async () => {
+    await loadAgent(undefined, ['sap/ui/demo/todo/']);
+    simulateSapUiLoader();
+    new XMLHttpRequest().open('GET', 'https://example.com/test/unit/Test.js');
+    expect(nativeOpen).toHaveBeenCalledWith('GET', 'https://example.com/test/unit/Test.js', true, undefined, undefined);
+  });
+
+  it('coverageNever takes precedence over coverageOnly for the same prefix', async () => {
+    await loadAgent(undefined, ['sap/ui/demo/'], ['sap/ui/demo/todo/']);
+    simulateSapUiLoader();
+    new XMLHttpRequest().open('GET', 'https://example.com/sap/ui/demo/todo/Component.js');
+    expect(nativeOpen).toHaveBeenCalledWith(
+      'GET',
+      'https://example.com/sap/ui/demo/todo/Component.js',
+      true,
+      undefined,
+      undefined
+    );
+  });
+
+  it('coverageOnly/coverageNever do not affect resources/ paths', async () => {
+    await loadAgent(undefined, ['resources/sap/ui/core/'], ['test-resources/']);
+    simulateSapUiLoader();
+    // resources/ path is handled by the remoteInstrument path — coverageOnly/Never don't apply
+    new XMLHttpRequest().open('GET', 'https://example.com/resources/sap/ui/core/Core.js');
+    expect(nativeOpen).toHaveBeenCalledWith(
+      'GET',
+      'https://example.com/resources/sap/ui/core/Core.js',
+      true,
+      undefined,
+      undefined
+    );
   });
 });
