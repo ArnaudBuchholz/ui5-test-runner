@@ -14,8 +14,15 @@
 				// (unlike localStorage in parallel mode). Under isolation "none" a cookie
 				// set by an earlier page in the shared context is visible here; under
 				// isolation "context" each page gets a fresh jar, so it is not.
+				//
+				// Max-Age (not a session cookie) is required: the runner closes each page
+				// before opening the next, and a session cookie is not reliably flushed to
+				// the context cookie store on page close (observed passing locally but not on
+				// headless CI). A persisted cookie is written through immediately and survives
+				// the close. It does not leak across runs: each run launches a fresh browser
+				// with a throwaway profile (no userDataDir), so the jar starts empty regardless.
 				var seen = document.cookie.indexOf("utrIsolationSentinel=1") !== -1;
-				document.cookie = "utrIsolationSentinel=1; path=/; SameSite=Lax";
+				document.cookie = "utrIsolationSentinel=1; path=/; max-age=3600; SameSite=Lax";
 				assert.strictEqual(seen, false, "no sentinel from a previous page (fresh storage jar)");
 			});
 		</script>
