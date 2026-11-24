@@ -268,6 +268,46 @@ describe('cross-option validation', () => {
       ).rejects.toThrow('invalid use of browserDevice: browserDevice requires the chrome browser');
     });
   });
+
+  describe('isolation validation', () => {
+    it('passes when isolation context is used with driver puppeteer', async () => {
+      await expect(
+        ConfigurationValidator.validate({ isolation: 'context', driver: 'puppeteer' })
+      ).resolves.not.toThrow();
+    });
+
+    it('passes when isolation context is used with driver playwright', async () => {
+      await expect(
+        ConfigurationValidator.validate({ isolation: 'context', driver: 'playwright' })
+      ).resolves.not.toThrow();
+    });
+
+    it('passes when isolation none is used with driver selenium-webdriver', async () => {
+      await expect(
+        ConfigurationValidator.validate({ isolation: 'none', driver: 'selenium-webdriver' })
+      ).resolves.not.toThrow();
+    });
+
+    it('throws when isolation context is used with driver selenium-webdriver', async () => {
+      let capturedError: unknown;
+      try {
+        await ConfigurationValidator.validate({ isolation: 'context', driver: 'selenium-webdriver' });
+      } catch (error) {
+        capturedError = error;
+      }
+      expect.assert(capturedError instanceof OptionValidationError);
+      expect(capturedError.option).toStrictEqual(indexedOptions.isolation);
+      expect(capturedError.message).toStrictEqual(
+        "invalid use of isolation: isolation 'context' is supported by puppeteer and playwright only"
+      );
+    });
+
+    it('throws when isolation context is used with driver webdriverio', async () => {
+      await expect(ConfigurationValidator.validate({ isolation: 'context', driver: 'webdriverio' })).rejects.toThrow(
+        "invalid use of isolation: isolation 'context' is supported by puppeteer and playwright only"
+      );
+    });
+  });
 });
 
 describe('mode', () => {

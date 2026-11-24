@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta http-equiv="Cache-control" content="no-cache, no-store, must-revalidate" />
+		<meta http-equiv="Pragma" content="no-cache" />
+		<meta http-equiv="expires" content="0" />
+		<meta charset="utf-8" />
+		<title>Isolation fixture for the UI5 Application: sample.js</title>
+		<link rel="stylesheet" type="text/css" href="../resources/sap/ui/thirdparty/qunit-2.css" />
+		<script src="../resources/sap/ui/thirdparty/qunit-2.js"></script>
+		<script>
+			QUnit.test("storage is isolated per page", function (assert) {
+				// Cookies are scoped to the browser context, not shimmed by the agent
+				// (unlike localStorage in parallel mode). Under isolation "none" a cookie
+				// set by an earlier page in the shared context is visible here; under
+				// isolation "context" each page gets a fresh jar, so it is not.
+				var seen = document.cookie.indexOf("utrIsolationSentinel=1") !== -1;
+				document.cookie = "utrIsolationSentinel=1; path=/; SameSite=Lax";
+				assert.strictEqual(seen, false, "no sentinel from a previous page (fresh storage jar)");
+			});
+		</script>
+	</head>
+	<body>
+		<div id="qunit"></div>
+		<div id="qunit-fixture"></div>
+	</body>
+</html>

@@ -19,6 +19,15 @@ export const factory = async (configuration: Configuration, signal: AbortSignal)
   let browser: Browser | undefined;
   let context: BrowserContext | undefined;
   let isFirstWindow = true;
+  let isolation: BrowserSettings['isolation'];
+  let contextOptions: ReturnType<typeof buildContextOptions>;
+
+  const buildContextOptions = (settings: BrowserSettings) => ({
+    viewport: settings.viewport ?? null, // null = no fixed viewport (use window size)
+    httpCredentials: settings.basicAuthentication
+      ? { username: settings.basicAuthentication.username, password: settings.basicAuthentication.password.reveal() }
+      : undefined
+  });
 
   const launchAndInstallIfNeeded = async (settings: BrowserSettings): Promise<BrowserCapabilities> => {
     const launchOptions = {
@@ -49,12 +58,9 @@ export const factory = async (configuration: Configuration, signal: AbortSignal)
         throw error;
       }
     }
-    context = await browser.newContext({
-      viewport: settings.viewport ?? null, // null = no fixed viewport (use window size)
-      httpCredentials: settings.basicAuthentication
-        ? { username: settings.basicAuthentication.username, password: settings.basicAuthentication.password.reveal() }
-        : undefined
-    });
+    if (isolation !== 'context') {
+      context = await browser.newContext(contextOptions);
+    }
     return {
       browserName: browser.browserType().name(),
       browserVersion: browser.version()
@@ -63,12 +69,18 @@ export const factory = async (configuration: Configuration, signal: AbortSignal)
 
   return {
     async setup(settings) {
+      isolation = settings.isolation;
+      contextOptions = buildContextOptions(settings);
       return await launchAndInstallIfNeeded(settings);
     },
 
     async newWindow(settings) {
       let page;
-      if (isFirstWindow) {
+      let windowContext: BrowserContext | undefined;
+      if (isolation === 'context') {
+        windowContext = await browser?.newContext(contextOptions);
+        page = await windowContext?.newPage();
+      } else if (isFirstWindow) {
         isFirstWindow = false;
         const existingPages = context?.pages();
         page = existingPages?.[0] ?? (await context?.newPage());
@@ -104,8 +116,12 @@ export const factory = async (configuration: Configuration, signal: AbortSignal)
           await page.screenshot({ path });
         },
         async close() {
-          await page.goto('about:blank');
-          await page.close();
+          if (windowContext) {
+            await windowContext.close();
+          } else {
+            await page.goto('about:blank');
+            await page.close();
+          }
         }
       };
     },

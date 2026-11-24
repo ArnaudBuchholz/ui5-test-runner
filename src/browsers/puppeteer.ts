@@ -1,6 +1,6 @@
 import { logger, Process } from '../platform/index.js';
 import type { BrowserCapabilities, BrowserDriverDescriptor, BrowserSettings, IBrowser } from './IBrowser.js';
-import type { launch as launchFunction, Browser, Page } from 'puppeteer';
+import type { launch as launchFunction, Browser, BrowserContext, Page } from 'puppeteer';
 import { Npm } from '../Npm.js';
 import type { Configuration } from '../configuration/Configuration.js';
 import { handleConsoleMessage } from './consoleMessage.js';
@@ -21,6 +21,7 @@ export const factory = async (configuration: Configuration, signal: AbortSignal)
   let isFirstWindow = true;
   let basicAuthentication: BrowserSettings['basicAuthentication'];
   let deviceName: BrowserSettings['device'];
+  let isolation: BrowserSettings['isolation'];
 
   const launchAndInstallIfNeeded = async (settings: BrowserSettings): Promise<BrowserCapabilities> => {
     const target = settings.browser ?? 'chrome';
@@ -69,13 +70,23 @@ export const factory = async (configuration: Configuration, signal: AbortSignal)
     async setup(settings) {
       basicAuthentication = settings.basicAuthentication;
       deviceName = settings.device;
+      isolation = settings.isolation;
       return await launchAndInstallIfNeeded(settings);
     },
 
     async newWindow(settings) {
       const { pageId } = settings;
       let page: Page | undefined;
-      if (isFirstWindow) {
+      let context: BrowserContext | undefined;
+      if (isolation === 'context') {
+        if (isFirstWindow) {
+          isFirstWindow = false;
+          const defaultPages = await browser?.pages(true);
+          await defaultPages?.[0]?.close();
+        }
+        context = await browser?.createBrowserContext();
+        page = await context?.newPage();
+      } else if (isFirstWindow) {
         isFirstWindow = false;
         const pages = await browser?.pages(true);
         page = pages?.[0];
@@ -128,7 +139,11 @@ export const factory = async (configuration: Configuration, signal: AbortSignal)
           await page?.screenshot({ path });
         },
         async close() {
-          await page?.close();
+          if (context) {
+            await context.close();
+          } else {
+            await page?.close();
+          }
         }
       };
     },

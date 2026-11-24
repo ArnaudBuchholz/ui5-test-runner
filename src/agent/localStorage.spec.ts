@@ -2,8 +2,21 @@ import { it, describe, expect, beforeEach } from 'vitest';
 import { UI5_TEST_RUNNER } from './contants.js';
 import { patchLocalStorage } from './localStorage.js';
 
-const PARALLEL_CONFIG = { config: { driver: '', parallel: 2 }, state: { done: false, type: undefined }, results: [] };
-const SERIAL_CONFIG = { config: { driver: '', parallel: 1 }, state: { done: false, type: undefined }, results: [] };
+const PARALLEL_CONFIG = {
+  config: { driver: '', parallel: 2, isolation: 'none' },
+  state: { done: false, type: undefined },
+  results: []
+};
+const SERIAL_CONFIG = {
+  config: { driver: '', parallel: 1, isolation: 'none' },
+  state: { done: false, type: undefined },
+  results: []
+};
+const CONTEXT_CONFIG = {
+  config: { driver: '', parallel: 2, isolation: 'context' },
+  state: { done: false, type: undefined },
+  results: []
+};
 
 beforeEach(() => {
   Object.defineProperty(window, 'localStorage', {
@@ -30,6 +43,15 @@ describe('when parallel <= 1', () => {
   });
 });
 
+describe('when isolation is not none', () => {
+  it('does not replace localStorage even with parallel > 1', () => {
+    Object.assign(window, { [UI5_TEST_RUNNER]: CONTEXT_CONFIG });
+    const original = window.localStorage;
+    patchLocalStorage();
+    expect(window.localStorage).toBe(original);
+  });
+});
+
 describe('when parallel > 1', () => {
   beforeEach(() => {
     Object.assign(window, { [UI5_TEST_RUNNER]: PARALLEL_CONFIG });
@@ -38,6 +60,10 @@ describe('when parallel > 1', () => {
 
   it('replaces localStorage with an in-memory store that starts empty', () => {
     expect(window.localStorage).toHaveLength(0);
+  });
+
+  it('is an instance of Storage', () => {
+    expect(window.localStorage).toBeInstanceOf(Storage);
   });
 
   it('setItem / getItem round-trips', () => {

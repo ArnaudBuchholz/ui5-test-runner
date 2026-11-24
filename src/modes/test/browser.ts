@@ -1,5 +1,6 @@
 import { BrowserFactory, getDescriptor, isDriver } from '../../browsers/factory.js';
 import type { BrowserCapabilities, BrowserSettings, IBrowser } from '../../browsers/IBrowser.js';
+import { isBrowserIsolation } from '../../browsers/IBrowser.js';
 import type { Configuration } from '../../configuration/Configuration.js';
 import { Exit, logger } from '../../platform/index.js';
 
@@ -22,6 +23,7 @@ export const setupBrowser = async (configuration: Configuration): Promise<Browse
     },
     device: browserDevice,
     browser: configuration.browser ?? getDescriptor(driver).defaultBrowser,
+    isolation: isBrowserIsolation(configuration.isolation) ? configuration.isolation : undefined,
     options: configuration.browserOptions,
     basicAuthentication:
       configuration.browserBasicAuthUsername === undefined || configuration.browserBasicAuthPassword === undefined

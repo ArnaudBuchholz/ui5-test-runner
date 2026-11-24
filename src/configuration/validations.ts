@@ -157,6 +157,17 @@ export const validations: Array<(configuration: Configuration) => void> = [
     }
   },
   (configuration) => {
+    if (
+      Object.hasOwn(configuration, 'isolation') &&
+      !punyexpr("(isolation !== 'context' || driver === 'puppeteer' || driver === 'playwright')")(configuration)
+    ) {
+      throw OptionValidationError.createValidationError(
+        indexedOptions.isolation,
+        "isolation 'context' is supported by puppeteer and playwright only"
+      );
+    }
+  },
+  (configuration) => {
     if (Object.hasOwn(configuration, 'log') && !punyexpr("(mode === 'log')")(configuration)) {
       throw OptionValidationError.createValidationError(
         indexedOptions.log,

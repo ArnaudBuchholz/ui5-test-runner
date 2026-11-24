@@ -78,6 +78,22 @@ describe('setupBrowser', () => {
     expect(browser.setup).toHaveBeenCalledWith(expect.objectContaining({ visible: true }));
   });
 
+  it('forwards a valid isolation value to BrowserSettings', async () => {
+    const browser = makeBrowser();
+    vi.mocked(BrowserFactory.build).mockResolvedValue(browser);
+    const { setupBrowser } = await import('./browser.js');
+    await setupBrowser(makeConfig({ isolation: 'context' }));
+    expect(browser.setup).toHaveBeenCalledWith(expect.objectContaining({ isolation: 'context' }));
+  });
+
+  it('builds BrowserSettings with isolation undefined when it is not set', async () => {
+    const browser = makeBrowser();
+    vi.mocked(BrowserFactory.build).mockResolvedValue(browser);
+    const { setupBrowser } = await import('./browser.js');
+    await setupBrowser(makeConfig());
+    expect(browser.setup).toHaveBeenCalledWith(expect.objectContaining({ isolation: undefined }));
+  });
+
   it('calls logger.fatal with Unable to setup browser when browser.setup rejects', async () => {
     const browser = makeBrowser({ setup: vi.fn().mockRejectedValue(new Error('fail')) });
     vi.mocked(BrowserFactory.build).mockResolvedValue(browser);

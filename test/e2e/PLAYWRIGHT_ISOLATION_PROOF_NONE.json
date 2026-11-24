@@ -1,0 +1,13 @@
+{
+  "batchId": "PLAYWRIGHT_ISOLATION_PROOF_NONE",
+  "batchLabel": "Playwright isolation proof (none)",
+  "url": [
+    "http://localhost:8080/test/isolation.qunit.html",
+    "http://localhost:8080/test/isolation.qunit.html"
+  ],
+  "driver": "playwright",
+  "isolation": "none",
+  "parallel": 1,
+  "end": "RUNNER_EXIT_CODE={{exitCode}} NODE_OPTIONS= node test/e2e/check.mjs {{reportDir}} --failed --summary 1,1,3",
+  "endOverrideExitCode": true
+}

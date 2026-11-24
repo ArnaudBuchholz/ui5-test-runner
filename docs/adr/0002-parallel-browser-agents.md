@@ -75,7 +75,7 @@ Adopt a **Parallel Browser Agents Architecture**:
 
 **Orchestrator (`src/modes/test/index.ts` + related files)**
 - Manages configuration and parallelization strategy
-- Launches a **single** browser instance and opens multiple pages concurrently
+- Launches a **single** browser instance and opens multiple pages concurrently; by default each page is a tab of that shared instance, but `--isolation context` gives each page its own browser context instead (see [Page Isolation Strategy](#page-isolation-strategy))
 - Distributes URLs (test pages) across parallel page tasks via `parallelize()`
 - Polls each page by evaluating `window['ui5-test-runner'].state` at a configurable interval
 - Aggregates results into unified report
@@ -101,6 +101,23 @@ Navigation resolves at **DOMContentLoaded** readiness, **not** the full `load` e
   document is committed at DOMContentLoaded, polling `window['ui5-test-runner'].state` already
   returns a valid object — there is no window where the agent or its `state` is absent. Framework
   detection (QUnit / suite) then begins on the `load` event and mutates that same `state`.
+
+### Page Isolation Strategy
+
+Each page always runs in its own window with a fresh DOM, JS context, and agent instance. How
+strongly pages are isolated *from each other* is controlled by the `isolation` option:
+
+- **`none`** *(default)* — every page is a tab of the single shared browser instance, with no isolation between pages. Tabs share
+  the process HTTP cache and, depending on origin partitioning, cookies and storage. This is the
+  original and least resource-intensive behaviour.
+- **`context`** — each page runs in a dedicated browser context (`createBrowserContext()` in
+  Puppeteer, `newContext()` in Playwright), giving it its own cookie/storage/cache jar with no
+  cross-page state bleed, while still sharing one browser process. This reduces flakiness caused by
+  shared state at a far lower cost than launching a separate browser per page. It is only supported
+  by the `puppeteer` and `playwright` drivers; combining it with `selenium-webdriver` or
+  `webdriverio` is rejected at configuration time.
+
+See the [`isolation` option](../options/isolation.md) for details.
 
 ## Consequences
 
@@ -148,7 +165,7 @@ Navigation resolves at **DOMContentLoaded** readiness, **not** the full `load` e
 4. **Execute**: Agent hooks into the test framework and records results
 5. **Poll**: CLI polls `window['ui5-test-runner'].state` at a configurable interval until `state.done === true`
 6. **Collect**: CLI reads `window['ui5-test-runner'].results` from the page
-7. **Cleanup**: Page (window) is closed; browser instance remains open for subsequent pages
+7. **Cleanup**: Page (window) is closed; in `--isolation context` mode its browser context is closed too. The browser instance remains open for subsequent pages
 
 ## Configuration Options
 
@@ -156,6 +173,7 @@ Key configuration parameters:
 - `parallel`: Number of concurrent page tasks (default: **2**)
 - `driver`: Which automation driver to use (`puppeteer` (default), `playwright`, `webdriverio`, `selenium-webdriver`)
 - `browser`: Which actual browser to launch (default: driver's default; see ADR-0013)
+- `isolation`: Whether each page shares the browser with no isolation (`none`, default) or runs in its own `context` (puppeteer/playwright only; see [Page Isolation Strategy](#page-isolation-strategy))
 - `pageTimeout`: Fail a page if it takes longer than this duration
 - `globalTimeout`: Fail remaining pages if the total run exceeds this duration
 - `failFast`: Stop the whole execution after the first failing page

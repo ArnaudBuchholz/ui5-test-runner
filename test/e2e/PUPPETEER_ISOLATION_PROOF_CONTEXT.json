@@ -1,0 +1,13 @@
+{
+  "batchId": "PUPPETEER_ISOLATION_PROOF_CONTEXT",
+  "batchLabel": "Puppeteer isolation proof (context)",
+  "url": [
+    "http://localhost:8080/test/isolation.qunit.html",
+    "http://localhost:8080/test/isolation.qunit.html"
+  ],
+  "driver": "puppeteer",
+  "isolation": "context",
+  "parallel": 1,
+  "end": "RUNNER_EXIT_CODE={{exitCode}} NODE_OPTIONS= node test/e2e/check.mjs {{reportDir}} --summary 2,0,2",
+  "endOverrideExitCode": true
+}

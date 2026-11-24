@@ -1,0 +1,10 @@
+{
+  "batchId": "PLAYWRIGHT_ISOLATION_CONTEXT",
+  "batchLabel": "Playwright context isolation",
+  "url": ["http://localhost:8080/test/testsuite.qunit.html"],
+  "driver": "playwright",
+  "isolation": "context",
+  "parallel": 2,
+  "end": "RUNNER_EXIT_CODE={{exitCode}} NODE_OPTIONS= node test/e2e/check.mjs {{reportDir}} --pages 2 --summary 4,0,4",
+  "endOverrideExitCode": true
+}

@@ -14,6 +14,7 @@ const npmResolvePackageBinCommandSpy = vi.spyOn(Npm, 'resolvePackageBinCommand')
 
 const makeContext = () => ({
   pages: vi.fn().mockReturnValue([]),
+  close: vi.fn().mockResolvedValue(undefined),
   newPage: vi.fn().mockResolvedValue({
     addInitScript: vi.fn().mockResolvedValue(undefined),
     on: vi.fn().mockReturnThis(),
@@ -123,4 +124,58 @@ it('forwards args from browserOptions to launch', async () => {
   expect(chromium.launch).toHaveBeenCalledWith(
     expect.objectContaining({ args: expect.arrayContaining(['--no-sandbox']) as string[] })
   );
+});
+
+it('does not create a shared context at setup when isolation is context', async () => {
+  const context = makeContext();
+  const browser = makeBrowser(context);
+  const chromium = { launch: vi.fn().mockResolvedValue(browser) };
+  npmImportSpy.mockResolvedValue({ chromium });
+
+  const instance = await factory(NO_CONFIGURATION, ABORT_SIGNAL);
+  await instance.setup({ isolation: 'context' });
+
+  expect(browser.newContext).not.toHaveBeenCalled();
+});
+
+it('creates a fresh context per window when isolation is context', async () => {
+  const context = makeContext();
+  const browser = makeBrowser(context);
+  const chromium = { launch: vi.fn().mockResolvedValue(browser) };
+  npmImportSpy.mockResolvedValue({ chromium });
+
+  const instance = await factory(NO_CONFIGURATION, ABORT_SIGNAL);
+  await instance.setup({ isolation: 'context' });
+  await instance.newWindow({ pageId: 1, scripts: [], url: 'https://example.test/a' });
+  await instance.newWindow({ pageId: 2, scripts: [], url: 'https://example.test/b' });
+
+  expect(browser.newContext).toHaveBeenCalledTimes(2);
+});
+
+it('closes the window context on close when isolation is context', async () => {
+  const context = makeContext();
+  const browser = makeBrowser(context);
+  const chromium = { launch: vi.fn().mockResolvedValue(browser) };
+  npmImportSpy.mockResolvedValue({ chromium });
+
+  const instance = await factory(NO_CONFIGURATION, ABORT_SIGNAL);
+  await instance.setup({ isolation: 'context' });
+  const window = await instance.newWindow({ pageId: 1, scripts: [], url: 'https://example.test/a' });
+  await window.close();
+
+  expect(context.close).toHaveBeenCalledOnce();
+});
+
+it('reuses a single shared context for every window without isolation', async () => {
+  const context = makeContext();
+  const browser = makeBrowser(context);
+  const chromium = { launch: vi.fn().mockResolvedValue(browser) };
+  npmImportSpy.mockResolvedValue({ chromium });
+
+  const instance = await factory(NO_CONFIGURATION, ABORT_SIGNAL);
+  await instance.setup({});
+  await instance.newWindow({ pageId: 1, scripts: [], url: 'https://example.test/a' });
+  await instance.newWindow({ pageId: 2, scripts: [], url: 'https://example.test/b' });
+
+  expect(browser.newContext).toHaveBeenCalledOnce();
 });

@@ -6,6 +6,13 @@ export interface IWindow {
   close(): Promise<void>;
 }
 
+export type BrowserIsolation = 'none' | 'context';
+
+const BROWSER_ISOLATIONS: readonly BrowserIsolation[] = ['none', 'context'];
+
+export const isBrowserIsolation = (value: string | undefined): value is BrowserIsolation =>
+  (BROWSER_ISOLATIONS as readonly (string | undefined)[]).includes(value);
+
 export type BrowserSettings = {
   visible?: boolean;
   viewport?: { width: number; height: number };
@@ -14,6 +21,7 @@ export type BrowserSettings = {
   secure?: boolean;
   basicAuthentication?: { username: string; password: ISecretValue };
   browser?: string;
+  isolation?: BrowserIsolation;
   options?: Record<string, unknown>;
 };
 

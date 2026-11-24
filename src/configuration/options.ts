@@ -333,6 +333,15 @@ export const options = [
     description: 'do not fail the test when a page raises an unhandled promise rejection'
   },
   {
+    name: 'isolation',
+    type: 'enumeration',
+    typeModifiers: new Set(['none', 'context'] as const),
+    browserExposed: true,
+    batchForwarded: true,
+    description: 'per-page browser isolation strategy',
+    default: 'none'
+  },
+  {
     name: 'junitXmlFilename',
     type: 'string',
     description: 'filename for the JUnit XML report saved in the report directory',
@@ -574,6 +583,7 @@ export const defaults = {
   coverageTempDir: '.nyc_output',
   cwd: process.cwd(),
   driver: 'puppeteer',
+  isolation: 'none',
   junitXmlFilename: 'junit.xml',
   npmInstall: 'global',
   npmInstallMinReleaseAge: 3,

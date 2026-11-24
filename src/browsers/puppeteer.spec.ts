@@ -24,10 +24,16 @@ const makePage = () => ({
   close: vi.fn().mockResolvedValue(undefined)
 });
 
-const makeBrowser = (page: ReturnType<typeof makePage>) => ({
+const makeContext = (page: ReturnType<typeof makePage>) => ({
+  newPage: vi.fn().mockResolvedValue(page),
+  close: vi.fn().mockResolvedValue(undefined)
+});
+
+const makeBrowser = (page: ReturnType<typeof makePage>, context = makeContext(page)) => ({
   version: vi.fn().mockResolvedValue('120.0.0'),
   pages: vi.fn().mockResolvedValue([page]),
   newPage: vi.fn().mockResolvedValue(page),
+  createBrowserContext: vi.fn().mockResolvedValue(context),
   close: vi.fn().mockResolvedValue(undefined)
 });
 
@@ -141,4 +147,59 @@ it('omits ignoreDefaultArgs from launch when not set in browserOptions', async (
   await instance.setup({});
 
   expect(launch).toHaveBeenCalledWith(expect.not.objectContaining({ ignoreDefaultArgs: expect.anything() as unknown }));
+});
+
+it('creates a fresh browser context per window when isolation is context', async () => {
+  const page = makePage();
+  const browser = makeBrowser(page);
+  npmImportSpy.mockResolvedValue({ launch: vi.fn().mockResolvedValue(browser) });
+
+  const instance = await factory(NO_CONFIGURATION, ABORT_SIGNAL);
+  await instance.setup({ isolation: 'context' });
+  await instance.newWindow({ pageId: 1, scripts: [], url: 'https://example.test/a' });
+  await instance.newWindow({ pageId: 2, scripts: [], url: 'https://example.test/b' });
+
+  expect(browser.createBrowserContext).toHaveBeenCalledTimes(2);
+});
+
+it('closes the leftover default page once when isolation is context', async () => {
+  const defaultPage = makePage();
+  const page = makePage();
+  const context = makeContext(page);
+  const browser = makeBrowser(page, context);
+  browser.pages.mockResolvedValue([defaultPage]);
+  npmImportSpy.mockResolvedValue({ launch: vi.fn().mockResolvedValue(browser) });
+
+  const instance = await factory(NO_CONFIGURATION, ABORT_SIGNAL);
+  await instance.setup({ isolation: 'context' });
+  await instance.newWindow({ pageId: 1, scripts: [], url: 'https://example.test/a' });
+  await instance.newWindow({ pageId: 2, scripts: [], url: 'https://example.test/b' });
+
+  expect(defaultPage.close).toHaveBeenCalledOnce();
+});
+
+it('closes the browser context on close when isolation is context', async () => {
+  const page = makePage();
+  const context = makeContext(page);
+  const browser = makeBrowser(page, context);
+  npmImportSpy.mockResolvedValue({ launch: vi.fn().mockResolvedValue(browser) });
+
+  const instance = await factory(NO_CONFIGURATION, ABORT_SIGNAL);
+  await instance.setup({ isolation: 'context' });
+  const window = await instance.newWindow({ pageId: 1, scripts: [], url: 'https://example.test/a' });
+  await window.close();
+
+  expect(context.close).toHaveBeenCalledOnce();
+});
+
+it('opens windows as tabs without a browser context when isolation is none', async () => {
+  const page = makePage();
+  const browser = makeBrowser(page);
+  npmImportSpy.mockResolvedValue({ launch: vi.fn().mockResolvedValue(browser) });
+
+  const instance = await factory(NO_CONFIGURATION, ABORT_SIGNAL);
+  await instance.setup({});
+  await instance.newWindow({ pageId: 1, scripts: [], url: 'https://example.test/a' });
+
+  expect(browser.createBrowserContext).not.toHaveBeenCalled();
 });

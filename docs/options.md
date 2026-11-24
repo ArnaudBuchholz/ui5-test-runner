@@ -70,6 +70,7 @@ relations:
 |[if](options/if.md)|--if||string|skip execution if the expression evaluates to falsy|
 |[ignoreUncaughtErrors](options/ignoreUncaughtErrors.md)|--ignore-uncaught-errors||boolean|do not fail the test when a page raises an uncaught error|
 |[ignoreUnhandledRejections](options/ignoreUnhandledRejections.md)|--ignore-unhandled-rejections||boolean|do not fail the test when a page raises an unhandled promise rejection|
+|[isolation](options/isolation.md)|--isolation||none \| context|per-page browser isolation strategy|
 |[junitXmlFilename](options/junitXmlFilename.md)|--junit-xml-filename||string|filename for the JUnit XML report saved in the report directory|
 |[lib](options/lib.md)|--lib||library-mapping|map a UI5 resources sub-folder to a local source folder, used in legacy mode to serve custom libraries|
 |[llm](options/llm.md)|--llm||boolean|forces LLM-friendly output (compact, no color, severity-tagged)|
